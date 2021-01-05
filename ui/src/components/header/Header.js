@@ -15,10 +15,10 @@
  */
 import NavBar from '../denali/NavBar';
 import NavBarItem from '../denali/NavBarItem';
-import { Link } from '../../routes';
 import styled from '@emotion/styled';
 import HeaderMenu from './HeaderMenu';
 import Search from '../search/Search';
+import { useRouter } from 'next/router';
 
 const Logo = ({ className }) => (
     <img src='/static/athenz-logo-full.png' className={className} />
@@ -41,6 +41,7 @@ const NavBarItemDiv = styled.div`
 
 const Header = (props) => {
     let search = '';
+    const router = useRouter();
     if (props.showSearch) {
         search = <Search isHeader={true} searchData={props.searchData} />;
     }
@@ -48,11 +49,13 @@ const Header = (props) => {
         <NavBarDiv data-testid='header'>
             <NavBar background={'#002339'}>
                 <NavBarItem>
-                    <Link route='home'>
-                        <a>
-                            <LogoStyled />
-                        </a>
-                    </Link>
+                    <a
+                        onClick={() =>
+                            router.push(`/`, `/`, { getInitialProps: true })
+                        }
+                    >
+                        <LogoStyled />
+                    </a>
                 </NavBarItem>
                 <NavBarItemDiv>
                     <NavBarItem width='100%'>{search}</NavBarItem>

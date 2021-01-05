@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import React from 'react';
-import { Router } from '../../routes';
 import SearchInput from '../denali/SearchInput';
+import { withRouter } from 'next/router';
 
-export default class Search extends React.Component {
+class Search extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -48,10 +48,17 @@ export default class Search extends React.Component {
                                 error: true,
                             });
                         } else {
-                            Router.pushRoute('search', {
-                                type: this.state.selected,
-                                searchterm: this.state.searchText.trim(),
-                            });
+                            this.props.router.push(
+                                `/search/${
+                                    this.state.selected
+                                }/${this.state.searchText.trim()}`,
+                                `/search/${
+                                    this.state.selected
+                                }/${this.state.searchText.trim()}`,
+                                {
+                                    getInitialProps: true,
+                                }
+                            );
                         }
                     }
                 }}
@@ -59,3 +66,4 @@ export default class Search extends React.Component {
         );
     }
 }
+export default withRouter(Search);

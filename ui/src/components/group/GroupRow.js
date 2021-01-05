@@ -18,11 +18,11 @@ import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import NameUtils from '../utils/NameUtils';
 import styled from '@emotion/styled';
-import { Router } from '../../routes.js';
 import DeleteModal from '../modal/DeleteModal';
 import Menu from '../denali/Menu/Menu';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
+import { withRouter } from 'next/router';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -55,7 +55,7 @@ const LeftSpan = styled.span`
     padding-left: 20px;
 `;
 
-export default class GroupRow extends React.Component {
+class GroupRow extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;
@@ -80,8 +80,8 @@ export default class GroupRow extends React.Component {
         });
     }
 
-    onClickFunction(route, domain, group) {
-        Router.pushRoute(route, { domain: domain, group: group });
+    onClickFunction(route) {
+        this.props.router.push(route, route, { getInitialProps: true });
     }
 
     onSubmitDelete(domain) {
@@ -141,21 +141,15 @@ export default class GroupRow extends React.Component {
 
         let clickMembers = this.onClickFunction.bind(
             this,
-            'group-members',
-            this.props.domain,
-            this.state.name
+            `/domain/${this.props.domain}/group/${this.state.name}/members`
         );
         let clickSettings = this.onClickFunction.bind(
             this,
-            'group-settings',
-            this.props.domain,
-            this.state.name
+            `/domain/${this.props.domain}/group/${this.state.name}/settings`
         );
         let clickRoles = this.onClickFunction.bind(
             this,
-            'group-roles',
-            this.props.domain,
-            this.state.name
+            `/domain/${this.props.domain}/group/${this.state.name}/roles`
         );
 
         let clickDelete = this.onClickDelete.bind(this, this.state.name);
@@ -308,3 +302,4 @@ export default class GroupRow extends React.Component {
         return rows;
     }
 }
+export default withRouter(GroupRow);

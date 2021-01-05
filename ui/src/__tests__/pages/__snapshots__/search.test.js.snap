@@ -678,9 +678,7 @@ exports[`Search should render 1`] = `
         class="emotion-3 simple denali-navbar-item"
         data-testid="navbar-item"
       >
-        <a
-          href="/"
-        >
+        <a>
           <img
             class="emotion-4 emotion-5"
             src="/static/athenz-logo-full.png"

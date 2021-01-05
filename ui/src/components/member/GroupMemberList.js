@@ -15,12 +15,9 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import { colors } from '../denali/styles';
-import MemberRow from './MemberRow';
-import Icon from '../denali/icons/Icon';
 import Button from '../denali/Button';
-import { Router } from '../../routes';
 import DateUtils from '../utils/DateUtils';
+import { withRouter } from 'next/router';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -114,7 +111,7 @@ const StyledTd = styled.td`
     padding: 5px;
 `;
 
-export default class GroupMemberList extends React.Component {
+class GroupMemberList extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -124,20 +121,13 @@ export default class GroupMemberList extends React.Component {
 
     viewGroup(e) {
         e.stopPropagation();
-        let groupName = this.props.groupName;
-        this.api
-            .getStatus()
-            .then(function () {
-                Router.pushRoute('group-members', {
-                    domain: groupName.split(':group.')[0],
-                    group: groupName.split(':group.')[1],
-                });
-            })
-            .catch((err) => {
-                if (err.statusCode === 0) {
-                    window.location.reload();
-                }
-            });
+        let dom = this.props.groupName.split(':group.')[0];
+        let grp = this.props.groupName.split(':group.')[1];
+        this.props.router.push(
+            `/domain/${dom}/group/${grp}/members`,
+            `/domain/${dom}/group/${grp}/members`,
+            { getInitialProps: true }
+        );
     }
 
     render() {
@@ -191,3 +181,4 @@ export default class GroupMemberList extends React.Component {
         );
     }
 }
+export default withRouter(GroupMemberList);

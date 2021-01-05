@@ -21,7 +21,7 @@ import Color from '../denali/Color';
 import InputLabel from '../denali/InputLabel';
 import Input from '../denali/Input';
 import RequestUtils from '../utils/RequestUtils';
-import { Router } from '../../routes';
+import { withRouter } from 'next/router';
 
 const TitleDiv = styled.div`
     font-size: 16px;
@@ -91,7 +91,7 @@ const StyledJustification = styled(Input)`
     margin-top: 5px;
 `;
 
-export default class ReviewTable extends React.Component {
+class ReviewTable extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;
@@ -314,10 +314,11 @@ export default class ReviewTable extends React.Component {
     }
 
     onClickSettings() {
-        Router.pushRoute('settings', {
-            domain: this.props.domain,
-            role: this.props.role,
-        });
+        this.props.router.push(
+            `/domain/${this.props.domain}/role/${this.props.role}/settings`,
+            `/domain/${this.props.domain}/role/${this.props.role}/settings`,
+            { getInitialProps: true }
+        );
     }
 
     cancelRoleMetaUpdate() {
@@ -531,3 +532,4 @@ export default class ReviewTable extends React.Component {
         }
     }
 }
+export default withRouter(ReviewTable);

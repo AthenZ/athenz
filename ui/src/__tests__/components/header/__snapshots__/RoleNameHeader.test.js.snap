@@ -113,7 +113,7 @@ exports[`Header should render delegated role 1`] = `
   </a>
   :role.
   delegated.role
-   (Delegated by 
+   (Delegated to 
   <a
     class="emotion-3 emotion-4"
   >

@@ -20,8 +20,7 @@ import API from '../api.js';
 import styled from '@emotion/styled';
 import Head from 'next/head';
 import PendingApprovalTable from '../components/pending-approval/PendingApprovalTable';
-// there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
-import 'flatpickr/dist/themes/light.css';
+
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
 import createCache from '@emotion/cache';

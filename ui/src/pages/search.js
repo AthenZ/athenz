@@ -16,13 +16,10 @@
 import React from 'react';
 import Head from 'next/head';
 import { withRouter } from 'next/router';
-import { Link } from '../routes';
 import API from '../api';
 import Header from '../components/header/Header';
 import UserDomains from '../components/domain/UserDomains';
 import styled from '@emotion/styled';
-// there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
-import 'flatpickr/dist/themes/light.css';
 import { colors } from '../components/denali/styles';
 import Icon from '../components/denali/icons/Icon';
 import RequestUtils from '../components/utils/RequestUtils';
@@ -129,7 +126,7 @@ class PageSearchDetails extends React.Component {
             headerDetails: values[2],
             error,
             reload,
-            nonce: props.req.headers.rid,
+            nonce: props.req && props.req.headers.rid,
         };
     }
 
@@ -179,6 +176,7 @@ class PageSearchDetails extends React.Component {
 
     displayDomainResults() {
         let items = [];
+        let self = this;
         this.state.domainResults.forEach(function (currentDomain) {
             let domain = currentDomain.name;
             let showIcon =
@@ -201,9 +199,17 @@ class PageSearchDetails extends React.Component {
             items.push(
                 <ResultsDiv key={domain}>
                     <DomainLogoDiv>{icon}</DomainLogoDiv>
-                    <Link route='role' params={{ domain }}>
-                        <StyledAnchor>{domain}</StyledAnchor>
-                    </Link>
+                    <StyledAnchor
+                        onClick={() =>
+                            self.props.router.push(
+                                `/domain/${domain}/role`,
+                                `/domain/${domain}/role`,
+                                { getInitialProps: true }
+                            )
+                        }
+                    >
+                        {domain}
+                    </StyledAnchor>
                 </ResultsDiv>
             );
         });

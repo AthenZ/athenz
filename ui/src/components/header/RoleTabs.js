@@ -15,9 +15,9 @@
  */
 import React from 'react';
 import TabGroup from '../denali/TabGroup';
-import { Router } from '../../routes';
+import { withRouter } from 'next/router';
 
-export default class RoleTabs extends React.Component {
+class RoleTabs extends React.Component {
     constructor(props) {
         super(props);
         this.tabClicked = this.tabClicked.bind(this);
@@ -49,79 +49,39 @@ export default class RoleTabs extends React.Component {
         const { domain, role } = this.props;
         switch (tab.name) {
             case 'members':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('members', {
-                            domain: domain,
-                            role: role,
-                        });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/role/${role}/members`,
+                    `/domain/${domain}/role/${role}/members`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'review':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('review', {
-                            domain: domain,
-                            role: role,
-                        });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/role/${role}/review`,
+                    `/domain/${domain}/role/${role}/review`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'policies':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('role-policy', {
-                            domain: domain,
-                            role: role,
-                        });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/role/${role}/policy`,
+                    `/domain/${domain}/role/${role}/policy`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'settings':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('settings', {
-                            domain: domain,
-                            role: role,
-                        });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/role/${role}/settings`,
+                    `/domain/${domain}/role/${role}/settings`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'history':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('role-history', {
-                            domain: domain,
-                            role: role,
-                        });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/role/${role}/history`,
+                    `/domain/${domain}/role/${role}/history`,
+                    { getInitialProps: true }
+                );
                 break;
         }
     }
@@ -137,3 +97,4 @@ export default class RoleTabs extends React.Component {
         );
     }
 }
+export default withRouter(RoleTabs);

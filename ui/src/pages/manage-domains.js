@@ -19,8 +19,7 @@ import UserDomains from '../components/domain/UserDomains';
 import API from '../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-// there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
-import 'flatpickr/dist/themes/light.css';
+
 import ManageDomains from '../components/domain/ManageDomains';
 import RequestUtils from '../components/utils/RequestUtils';
 import Alert from '../components/denali/Alert';

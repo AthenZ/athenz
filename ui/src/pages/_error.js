@@ -17,13 +17,11 @@ import React from 'react';
 import Header from '../components/header/Header';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-// there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
-import 'flatpickr/dist/themes/light.css';
+
 import Color from '../components/denali/Color';
-import { Link } from '../routes';
-import NavBarItem from '../components/denali/NavBarItem';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
+import { withRouter } from 'next/router';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -64,13 +62,12 @@ const HomeDiv = styled.div`
     margin-top: 20px;
 `;
 
-export default class Error extends React.Component {
-    static async getInitialProps({ req, res, err }) {
+class Error extends React.Component {
+    static async getInitialProps({ res, err }) {
         const statusCode = res ? res.statusCode : err ? err.statusCode : 404;
         return {
             statusCode,
             err,
-            nonce: req.headers.rid,
         };
     }
 
@@ -111,9 +108,15 @@ export default class Error extends React.Component {
                                             </Color>
                                         </span>
                                         <HomeDiv>
-                                            <Link route='home'>
-                                                <a>Athenz Home</a>
-                                            </Link>
+                                            <a
+                                                onClick={() =>
+                                                    router.push(`/`, `/`, {
+                                                        getInitialProps: true,
+                                                    })
+                                                }
+                                            >
+                                                Athenz Home
+                                            </a>
                                         </HomeDiv>
                                     </DetailsDiv>
                                 </HomeContentDiv>
@@ -125,3 +128,5 @@ export default class Error extends React.Component {
         );
     }
 }
+
+export default withRouter(Error);
