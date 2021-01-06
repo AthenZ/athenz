@@ -110,7 +110,8 @@ public class ZMSSchema {
             .field("serviceExpiryDays", "Int32", true, "all services in the domain roles will have specified max expiry days")
             .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
-            .field("azureSubscription", "String", true, "associated azure subscription id (system attribute - uniqueness check)");
+            .field("azureSubscription", "String", true, "associated azure subscription id (system attribute - uniqueness check)")
+            .mapField("tags", "CompoundName", "StringList", true, "key-value pair tags, tag might contain multiple values");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
@@ -582,6 +583,8 @@ public class ZMSSchema {
             .queryParam("member", "roleMember", "ResourceName", null, "restrict the domain names where the specified user is in a role - see roleName")
             .queryParam("role", "roleName", "ResourceName", null, "restrict the domain names where the specified user is in this role - see roleMember")
             .queryParam("azure", "subscription", "String", null, "restrict to domain names that have specified azure subscription name")
+            .queryParam("tagKey", "tagKey", "CompoundName", null, "flag to query all roles that have a given tagName")
+            .queryParam("tagValue", "tagValue", "CompoundName", null, "flag to query all roles that have a given tag name and value")
             .headerParam("If-Modified-Since", "modifiedSince", "String", null, "This header specifies to the server to return any domains modified since this HTTP date")
             .auth("", "", true)
             .expected("OK")

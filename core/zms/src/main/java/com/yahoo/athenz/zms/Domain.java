@@ -5,6 +5,7 @@
 package com.yahoo.athenz.zms;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Map;
 import com.yahoo.rdl.*;
 
 //
@@ -68,6 +69,9 @@ public class Domain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String azureSubscription;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Map<String, StringList> tags;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -195,6 +199,13 @@ public class Domain {
     public String getAzureSubscription() {
         return azureSubscription;
     }
+    public Domain setTags(Map<String, StringList> tags) {
+        this.tags = tags;
+        return this;
+    }
+    public Map<String, StringList> getTags() {
+        return tags;
+    }
     public Domain setName(String name) {
         this.name = name;
         return this;
@@ -273,6 +284,9 @@ public class Domain {
                 return false;
             }
             if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
+                return false;
+            }
+            if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

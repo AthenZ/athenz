@@ -29,7 +29,7 @@ type DomainList Struct {
 
 //Enumerate domains. Can be filtered by prefix and depth, and paginated.
 //This operation can be expensive, as it may span multiple domains.
-resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth={depth}&account={account}&ypmid={productId}&member={roleMember}&role={roleName}&azure={subscription}" {
+resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth={depth}&account={account}&ypmid={productId}&member={roleMember}&role={roleName}&azure={subscription}&tagKey={tagKey}&tagValue={tagValue}" {
     Int32 limit (optional); //restrict the number of results in this call
     String skip (optional); //restrict the set to those after the specified "next" token returned from a previous call
     String prefix (optional); //restrict to names that start with the prefix
@@ -40,6 +40,8 @@ resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth
     ResourceName roleMember (optional); //restrict the domain names where the specified user is in a role - see roleName
     ResourceName roleName (optional); //restrict the domain names where the specified user is in this role - see roleMember
     String modifiedSince (header="If-Modified-Since"); //This header specifies to the server to return any domains modified since this HTTP date
+    CompoundName tagKey (optional); //flag to query all roles that have a given tagName
+    CompoundName tagValue (optional); //flag to query all roles that have a given tag name and value
     authenticate;
     exceptions {
         ResourceError UNAUTHORIZED;
@@ -258,7 +260,7 @@ resource DomainTemplateList GET "/domain/{name}/template" {
     }
 }
 
-//Update the given domain by deleting the specified template from the 
+//Update the given domain by deleting the specified template from the
 //domain template list. Cycles through the roles and policies defined in the
 //template and deletes them.
 //Caller must have delete privileges on the domain itself.
