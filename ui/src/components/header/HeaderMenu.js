@@ -18,7 +18,7 @@ import styled from '@emotion/styled';
 import Menu from '../denali/Menu/Menu';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
-import { Router } from '../../routes';
+import { useRouter } from 'next/router';
 
 const HeaderMenuDiv = styled.div`
     display: flex;
@@ -82,6 +82,7 @@ const HeaderMenuUserDiv = styled.div`
 
 const HeaderMenu = (props) => {
     let icon = 'notification';
+    const router = useRouter();
     if (props.pending) {
         if (Object.keys(props.pending).length !== 0) {
             icon = 'notification-solid';
@@ -108,7 +109,11 @@ const HeaderMenu = (props) => {
             <Icon
                 icon={icon}
                 isLink
-                onClick={() => Router.pushRoute('workflow')}
+                onClick={() =>
+                    router.push('/workflow', '/workflow', {
+                        getInitialProps: true,
+                    })
+                }
                 size={'25px'}
                 color={colors.white}
             />

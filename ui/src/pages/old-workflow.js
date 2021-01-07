@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
-import 'flatpickr/dist/themes/light.css';
+
 import Workflow from './workflow';
 export default Workflow;

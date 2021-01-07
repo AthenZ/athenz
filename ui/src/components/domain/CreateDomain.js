@@ -21,8 +21,8 @@ import Input from '../denali/Input';
 import Switch from '../denali/Switch';
 import Button from '../denali/Button';
 import Color from '../denali/Color';
-import { Router } from '../../routes';
 import RequestUtils from '../utils/RequestUtils';
+import { withRouter } from 'next/router';
 
 const TABS = [
     {
@@ -86,7 +86,7 @@ const LineSeparatorDiv = styled.div`
     width: 100%;
 `;
 
-export default class CreateDomain extends React.Component {
+class CreateDomain extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -101,14 +101,13 @@ export default class CreateDomain extends React.Component {
 
     tabClicked(tab) {
         let self = this;
+        let pdom = 'home.' + this.props.userId;
         switch (tab.name) {
             case 'personal':
                 self.api
                     .getDomain('home.' + self.props.userId)
                     .then((data) => {
-                        Router.pushRoute('role', {
-                            domain: 'home.' + self.props.userId,
-                        });
+                        self.props.router.push(`/domain/${pdom}/role`);
                     })
                     .catch((err) => {
                         if (err.statusCode === 404) {
@@ -118,9 +117,9 @@ export default class CreateDomain extends React.Component {
                                     self.props._csrf
                                 )
                                 .then(() => {
-                                    Router.pushRoute('role', {
-                                        domain: 'home.' + self.props.userId,
-                                    });
+                                    self.props.router.push(
+                                        `/domain/${pdom}/role`
+                                    );
                                 })
                                 .catch((err) => {
                                     self.setState({
@@ -166,9 +165,9 @@ export default class CreateDomain extends React.Component {
                 this.props._csrf
             )
             .then(() => {
-                Router.pushRoute('role', {
-                    domain: this.state.domain + '.' + this.state.subDomain,
-                });
+                this.props.router.push(
+                    `/domain/${this.state.domain}.${this.state.subDomain}/role`
+                );
             })
             .catch((err) => {
                 this.setState({
@@ -331,3 +330,4 @@ export default class CreateDomain extends React.Component {
         );
     }
 }
+export default withRouter(CreateDomain);

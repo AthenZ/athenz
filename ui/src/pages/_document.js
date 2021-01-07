@@ -27,7 +27,7 @@ export default class MyDocument extends Document {
                     {initialProps.styles}
                     <style
                         data-emotion-css={styles.ids.join(' ')}
-                        nonce={`${ctx.req.headers.rid}`}
+                        nonce={ctx.req.headers.rid}
                         dangerouslySetInnerHTML={{ __html: styles.css }}
                     />
                 </>

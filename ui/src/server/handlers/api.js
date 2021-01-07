@@ -1306,7 +1306,7 @@ Fetchr.registerService({
     name: 'group',
     read(req, resource, params, config, callback) {
         req.clients.zms.getGroup(params, function (err, data) {
-            if (err) {
+            if (err.status !== 404) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
@@ -1315,6 +1315,8 @@ Fetchr.registerService({
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
+            } else {
+                callback(null, []);
             }
             if (data && data.groupMembers) {
                 data.groupMembers.forEach((member) => {

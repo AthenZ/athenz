@@ -18,11 +18,11 @@ import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import NameUtils from '../utils/NameUtils';
 import styled from '@emotion/styled';
-import { Router } from '../../routes.js';
 import DeleteModal from '../modal/DeleteModal';
 import Menu from '../denali/Menu/Menu';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
+import { withRouter } from 'next/router';
 
 const TDName = styled.td`
     background-color: ${(props) => props.color};
@@ -84,7 +84,7 @@ const LeftSpan = styled.span`
     padding-left: 20px;
 `;
 
-export default class RoleSectionRow extends React.Component {
+class RoleSectionRow extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;
@@ -111,8 +111,8 @@ export default class RoleSectionRow extends React.Component {
         });
     }
 
-    onClickFunction(route, domain, role) {
-        Router.pushRoute(route, { domain: domain, role: role });
+    onClickFunction(route) {
+        this.props.router.push(route, route, { getInitialProps: true });
     }
 
     onSubmitDelete(domain) {
@@ -173,27 +173,19 @@ export default class RoleSectionRow extends React.Component {
 
         let clickMembers = this.onClickFunction.bind(
             this,
-            'members',
-            this.props.domain,
-            this.state.name
+            `/domain/${this.props.domain}/role/${this.state.name}/members`
         );
         let clickReview = this.onClickFunction.bind(
             this,
-            'review',
-            this.props.domain,
-            this.state.name
+            `/domain/${this.props.domain}/role/${this.state.name}/review`
         );
         let clickSettings = this.onClickFunction.bind(
             this,
-            'settings',
-            this.props.domain,
-            this.state.name
+            `/domain/${this.props.domain}/role/${this.state.name}/settings`
         );
         let clickPolicy = this.onClickFunction.bind(
             this,
-            'role-policy',
-            this.props.domain,
-            this.state.name
+            `/domain/${this.props.domain}/role/${this.state.name}/policy`
         );
 
         let clickDelete = this.onClickDelete.bind(this, this.state.name);
@@ -430,3 +422,4 @@ export default class RoleSectionRow extends React.Component {
         return rows;
     }
 }
+export default withRouter(RoleSectionRow);

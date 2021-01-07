@@ -15,9 +15,9 @@
  */
 import React from 'react';
 import TabGroup from '../denali/TabGroup';
-import { Router } from '../../routes';
+import { withRouter } from 'next/router';
 
-export default class Tabs extends React.Component {
+class Tabs extends React.Component {
     constructor(props) {
         super(props);
         this.tabClicked = this.tabClicked.bind(this);
@@ -53,76 +53,46 @@ export default class Tabs extends React.Component {
         const { domain } = this.props;
         switch (tab.name) {
             case 'roles':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('role', { domain });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/role`,
+                    `/domain/${domain}/role`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'services':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('service', { domain });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/service`,
+                    `/domain/${domain}/service`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'groups':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('group', { domain });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/groups`,
+                    `/domain/${domain}/groups`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'policies':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('policy', { domain });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/policy`,
+                    `/domain/${domain}/policy`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'history':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('history', { domain });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/history`,
+                    `/domain/${domain}/history`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'templates':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('template', { domain });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/template`,
+                    `/domain/${domain}/template`,
+                    { getInitialProps: true }
+                );
                 break;
         }
     }
@@ -138,3 +108,4 @@ export default class Tabs extends React.Component {
         );
     }
 }
+export default withRouter(Tabs);

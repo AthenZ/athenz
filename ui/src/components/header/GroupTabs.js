@@ -15,9 +15,9 @@
  */
 import React from 'react';
 import TabGroup from '../denali/TabGroup';
-import { Router } from '../../routes';
+import { withRouter } from 'next/router';
 
-export default class GroupTabs extends React.Component {
+class GroupTabs extends React.Component {
     constructor(props) {
         super(props);
         this.tabClicked = this.tabClicked.bind(this);
@@ -49,79 +49,39 @@ export default class GroupTabs extends React.Component {
         const { domain, group } = this.props;
         switch (tab.name) {
             case 'members':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('group-members', {
-                            domain: domain,
-                            group: group,
-                        });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/group/${group}/members`,
+                    `/domain/${domain}/group/${group}/members`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'review':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('group-review', {
-                            domain: domain,
-                            group: group,
-                        });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/group/${group}/review`,
+                    `/domain/${domain}/group/${group}/review`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'roles':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('group-roles', {
-                            domain: domain,
-                            group: group,
-                        });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/group/${group}/roles`,
+                    `/domain/${domain}/group/${group}/roles`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'settings':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('group-settings', {
-                            domain: domain,
-                            group: group,
-                        });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/group/${group}/settings`,
+                    `/domain/${domain}/group/${group}/settings`,
+                    { getInitialProps: true }
+                );
                 break;
             case 'history':
-                this.props.api
-                    .getStatus()
-                    .then(function () {
-                        Router.pushRoute('group-history', {
-                            domain: domain,
-                            group: group,
-                        });
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 0) {
-                            window.location.reload();
-                        }
-                    });
+                this.props.router.push(
+                    `/domain/${domain}/group/${group}/history`,
+                    `/domain/${domain}/group/${group}/history`,
+                    { getInitialProps: true }
+                );
                 break;
         }
     }
@@ -137,3 +97,4 @@ export default class GroupTabs extends React.Component {
         );
     }
 }
+export default withRouter(GroupTabs);

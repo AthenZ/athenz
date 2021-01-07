@@ -19,14 +19,15 @@ import UserDomains from '../components/domain/UserDomains';
 import API from '../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-// there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
-import 'flatpickr/dist/themes/light.css';
+
 import CollectionDetails from '../components/header/CollectionDetails';
 import CollectionHistoryList from '../components/history/CollectionHistoryList';
 import RoleTabs from '../components/header/RoleTabs';
 import NameHeader from '../components/header/NameHeader';
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;

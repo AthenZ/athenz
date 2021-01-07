@@ -16,7 +16,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import UserDomains from '../../../components/domain/UserDomains';
-import API from '../../../api';
+
 describe('UserDomains', () => {
     it('should render', () => {
         let domains = [];
@@ -39,44 +39,6 @@ describe('UserDomains', () => {
             <UserDomains domains={domains} domainResult={[]} api={api} />
         );
         fireEvent.click(getByTestId('toggle-domain'));
-        const userDomains = getByTestId('user-domains');
-        expect(userDomains).toMatchSnapshot();
-    });
-
-    it('should navigate to Manage Domains Page', () => {
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
-        const api = {
-            getStatus() {
-                return new Promise((resolve, reject) => {
-                    resolve([]);
-                });
-            },
-        };
-        const { getByTestId, getByText } = render(
-            <UserDomains domains={domains} domainResult={[]} api={api} />
-        );
-        fireEvent.click(getByText('Manage'));
-        const userDomains = getByTestId('user-domains');
-        expect(userDomains).toMatchSnapshot();
-    });
-
-    it('should navigate to Create Domains Page', () => {
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
-        const api = {
-            getStatus() {
-                return new Promise((resolve, reject) => {
-                    resolve([]);
-                });
-            },
-        };
-        const { getByTestId, getByText } = render(
-            <UserDomains domains={domains} domainResult={[]} api={api} />
-        );
-        fireEvent.click(getByText('Create'));
         const userDomains = getByTestId('user-domains');
         expect(userDomains).toMatchSnapshot();
     });

@@ -16,8 +16,7 @@
 import React from 'react';
 import { colors } from '../denali/styles/colors';
 import styled from '@emotion/styled';
-// there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
-import 'flatpickr/dist/themes/light.css';
+
 import CheckBox from '../denali/CheckBox';
 import TextArea from '../denali/TextArea';
 import FlatPicker from '../flatpicker/FlatPicker';

@@ -16,7 +16,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import RoleTabs from '../../../components/header/RoleTabs';
-import API from '../../../api';
 
 describe('Tabs', () => {
     it('should render', () => {
@@ -27,6 +26,7 @@ describe('Tabs', () => {
                 });
             },
         };
+
         let domain = 'home.mujibur';
         let role = 'admin'
         const { getByTestId } = render(

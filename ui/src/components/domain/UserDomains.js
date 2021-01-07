@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 import React from 'react';
-import { Link } from '../../routes.js';
 import styled from '@emotion/styled';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
-import { Router } from '../../routes';
+import { withRouter } from 'next/router';
 
 const DomainListDiv = styled.div`
     padding: 0 30px 0 15px;
@@ -88,13 +87,11 @@ const DividerSpan = styled.span`
     color: ${colors.grey500};
 `;
 
-export default class UserDomains extends React.Component {
+class UserDomains extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
         this.toggleDomains = this.toggleDomains.bind(this);
-        this.manageDomainHandler = this.manageDomainHandler.bind(this);
-        this.createDomainHandler = this.createDomainHandler.bind(this);
         this.state = {
             showDomains: !(props.hideDomains ? props.hideDomains : false),
         };
@@ -106,31 +103,10 @@ export default class UserDomains extends React.Component {
         });
     }
 
-    manageDomainHandler() {
-        this.api
-            .getStatus()
-            .then(function () {
-                Router.pushRoute('manage-domains');
-            })
-            .catch(function (err) {
-                if (err.statusCode === 0) {
-                    window.location.reload();
-                }
-            });
-    }
-
-    createDomainHandler() {
-        this.api
-            .getStatus()
-            .then(function () {
-                Router.pushRoute('create-domain');
-            })
-            .catch(function (err) {
-                if (err.statusCode === 0) {
-                    window.location.reload();
-                }
-            });
-    }
+    routeHandler = (route) => (e) => {
+        e.preventDefault();
+        this.props.router.push(route, route, { getInitialProps: true });
+    };
 
     render() {
         let userIcons = [];
@@ -151,11 +127,14 @@ export default class UserDomains extends React.Component {
                                 verticalAlign={'baseline'}
                             />
                         </UserAdminLogoDiv>
-                        <Link route='role' params={{ domain: domainName }}>
-                            <StyledAnchor active={currentDomain === domainName}>
-                                {domainName}
-                            </StyledAnchor>
-                        </Link>
+                        <StyledAnchor
+                            active={currentDomain === domainName}
+                            onClick={this.routeHandler(
+                                `/domain/${domainName}/role`
+                            )}
+                        >
+                            {domainName}
+                        </StyledAnchor>
                     </DomainDiv>
                 );
             });
@@ -184,13 +163,17 @@ export default class UserDomains extends React.Component {
                             </ManageDomainsTitleDiv>
                             <div>
                                 <StyledAnchor
-                                    onClick={this.createDomainHandler}
+                                    onClick={this.routeHandler(
+                                        `/domain/create`
+                                    )}
                                 >
                                     Create
                                 </StyledAnchor>
                                 <DividerSpan> | </DividerSpan>
                                 <StyledAnchor
-                                    onClick={this.manageDomainHandler}
+                                    onClick={this.routeHandler(
+                                        `/domain/manage`
+                                    )}
                                 >
                                     Manage
                                 </StyledAnchor>
@@ -203,3 +186,4 @@ export default class UserDomains extends React.Component {
         );
     }
 }
+export default withRouter(UserDomains);

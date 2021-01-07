@@ -16,17 +16,16 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-// there is an issue with next-link and next-css if the css is not present then it doesnt load so adding this
-import 'flatpickr/dist/themes/light.css';
+
 import NavBar from '../components/denali/NavBar';
 import NavBarItem from '../components/denali/NavBarItem';
-import { Link, Router } from '../routes';
 import InputLabel from '../components/denali/InputLabel';
 import Input from '../components/denali/Input';
 import Button from '../components/denali/Button';
 import API from '../api';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
+import { withRouter } from 'next/router';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -106,7 +105,7 @@ const ButtonDiv = styled.div`
     text-align: center;
 `;
 
-export default class PageLogin extends React.Component {
+class PageLogin extends React.Component {
     static async getInitialProps(props) {
         let api = API(props.req);
         let options = '';
@@ -169,7 +168,9 @@ export default class PageLogin extends React.Component {
                             },
                         }).then((response) => {
                             if (response && response.status === 200) {
-                                Router.pushRoute('home', {});
+                                this.props.router.push(`/`, `/`, {
+                                    getInitialProps: true,
+                                });
                             }
                         });
                     }
@@ -192,11 +193,15 @@ export default class PageLogin extends React.Component {
                     <NavBarDiv data-testid='header'>
                         <NavBar background={'#002339'}>
                             <NavBarItem>
-                                <Link route='home'>
-                                    <a>
-                                        <LogoStyled />
-                                    </a>
-                                </Link>
+                                <a
+                                    onClick={() =>
+                                        this.props.router.push(`/`, `/`, {
+                                            getInitialProps: true,
+                                        })
+                                    }
+                                >
+                                    <LogoStyled />
+                                </a>
                             </NavBarItem>
                         </NavBar>
                     </NavBarDiv>
@@ -257,3 +262,4 @@ export default class PageLogin extends React.Component {
         );
     }
 }
+export default withRouter(PageLogin);

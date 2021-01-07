@@ -19,6 +19,7 @@ import Menu from '../denali/Menu/Menu';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import { Link } from '../../routes';
+import { withRouter } from 'next/router';
 
 const StyledAnchor = styled.a`
     color: #3570f4;
@@ -38,7 +39,7 @@ const MenuDiv = styled.div`
     font-size: 12px;
 `;
 
-export default class NameHeader extends React.Component {
+class NameHeader extends React.Component {
     constructor(props) {
         super(props);
     }
@@ -94,14 +95,30 @@ export default class NameHeader extends React.Component {
                 <TitleDiv data-testid='collection-name-header'>
                     {roleTypeIcon}
                     {roleAuditIcon}
-                    <Link route='role' params={{ domain: domain }}>
-                        <StyledAnchor>{domain}</StyledAnchor>
-                    </Link>
+                    <StyledAnchor
+                        onClick={() =>
+                            this.props.router.push(
+                                `/domain/${domain}/role`,
+                                `/domain/${domain}/role`,
+                                { getInitialProps: true }
+                            )
+                        }
+                    >
+                        {domain}
+                    </StyledAnchor>
                     :role.{collection}
-                    {' (Delegated by '}
-                    <Link route='role' params={{ domain: deDomain }}>
-                        <StyledAnchor>{deDomain}</StyledAnchor>
-                    </Link>
+                    {' (Delegated to '}
+                    <StyledAnchor
+                        onClick={() =>
+                            this.props.router.push(
+                                `/domain/${deDomain}/role`,
+                                `/domain/${deDomain}/role`,
+                                { getInitialProps: true }
+                            )
+                        }
+                    >
+                        {deDomain}
+                    </StyledAnchor>
                     {' )'}
                 </TitleDiv>
             );
@@ -109,15 +126,31 @@ export default class NameHeader extends React.Component {
         let link;
         if (this.props.category === 'group') {
             link = (
-                <Link route='group' params={{ domain: domain }}>
-                    <StyledAnchor>{domain}</StyledAnchor>
-                </Link>
+                <StyledAnchor
+                    onClick={() =>
+                        this.props.router.push(
+                            `/domain/${domain}/group`,
+                            `/domain/${domain}/group`,
+                            { getInitialProps: true }
+                        )
+                    }
+                >
+                    {domain}
+                </StyledAnchor>
             );
         } else if (this.props.category === 'role') {
             link = (
-                <Link route='role' params={{ domain: domain }}>
-                    <StyledAnchor>{domain}</StyledAnchor>
-                </Link>
+                <StyledAnchor
+                    onClick={() =>
+                        this.props.router.push(
+                            `/domain/${domain}/role`,
+                            `/domain/${domain}/role`,
+                            { getInitialProps: true }
+                        )
+                    }
+                >
+                    {domain}
+                </StyledAnchor>
             );
         }
 
@@ -130,3 +163,5 @@ export default class NameHeader extends React.Component {
         );
     }
 }
+
+export default withRouter(NameHeader);
