@@ -143,9 +143,6 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 	}
 	info.AttestationData = string(attestData)
 
-	infoData, err := json.Marshal(info)
-	logutil.LogInfo(sysLogger, "attestation data: \n%s\n", infoData)
-
 	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, "", "", opts.ZTSCACertFile, sysLogger)
 	if err != nil {
 		return err
