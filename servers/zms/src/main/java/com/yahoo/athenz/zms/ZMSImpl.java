@@ -15,11 +15,13 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
@@ -186,6 +188,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected int httpsPort;
     protected int statusPort;
     protected int serviceNameMinLength;
+    protected int authzDetailsEntityMaxSize;
     protected Status successServerStatus = null;
     protected Set<String> reservedSystemDomains = null;
     protected File healthCheckFile = null;
@@ -780,6 +783,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // get server region
 
         serverRegion = System.getProperty(ZMSConsts.ZMS_PROP_SERVER_REGION);
+
+        // our max size for authorization details entity object
+
+        authzDetailsEntityMaxSize = Integer.parseInt(System.getProperty(
+                ZMSConsts.ZMS_PROP_AUTHZ_DETAILS_ENTITY_MAX_SIZE, ZMSConsts.ZMS_AUTHZ_DETAILS_ENTITY_MAX_SIZE_DEFAULT));
     }
 
     void loadObjectStore() {
@@ -2568,11 +2576,43 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         entityName = entityName.toLowerCase();
         AthenzObject.ENTITY.convertToLowerCase(resource);
 
+        // if this happens to be an authorization details entity then
+        // we need to validate the structure to make sure it is as expected
+
+        validateAuthorizationDetailsEntity(entityName, resource, caller);
+
         // verify that request is properly authenticated for this request
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
         dbService.executePutEntity(ctx, domainName, entityName, resource, auditRef, caller);
+    }
+
+    void validateAuthorizationDetailsEntity(final String entityName, Entity resource, final String caller) {
+
+        if (!AuthzDetailsEntity.ENTITY_NAME.equals(entityName)) {
+            return;
+        }
+
+        // get the json representation of the struct and validate that we can
+        // parse into our details entity object
+
+        final String jsonData = JSON.string(resource.getValue());
+        if (jsonData.length() > authzDetailsEntityMaxSize) {
+            throw ZMSUtils.requestError("Authorization details entity too big", caller);
+        }
+
+        try {
+            AuthzDetailsEntity authzDetailsEntity = jsonMapper.readValue(jsonData, AuthzDetailsEntity.class);
+
+            // make sure we have a type value present in the
+
+            if (StringUtil.isEmpty(authzDetailsEntity.getType())) {
+                throw ZMSUtils.requestError("Authorization details entity object missing type", caller);
+            }
+        } catch (JsonProcessingException ex) {
+            throw ZMSUtils.requestError("Invalid authorization details entity object provided", caller);
+        }
     }
 
     @Override

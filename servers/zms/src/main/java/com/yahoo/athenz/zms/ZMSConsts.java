@@ -42,7 +42,6 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_DOMAIN_NAME_MAX_SIZE = "athenz.zms.domain_name_max_len";
     public static final String ZMS_PROP_HEALTH_CHECK_PATH    = "athenz.zms.health_check_path";
     public static final String ZMS_PROP_SERVER_REGION        = "athenz.zms.server_region";
-
     public static final String ZMS_PROP_CONFLICT_RETRY_COUNT      = "athenz.zms.request_conflict_retry_count";
     public static final String ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME = "athenz.zms.request_conflict_retry_sleep_time";
 
@@ -98,6 +97,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS = "athenz.zms.validate_service_members";
     public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS = "athenz.zms.validate_service_members_skip_domains";
     public static final String ZMS_PROP_MASTER_COPY_FOR_SIGNED_DOMAINS        = "athenz.zms.master_copy_for_signed_domains";
+    public static final String ZMS_PROP_AUTHZ_DETAILS_ENTITY_MAX_SIZE         = "athenz.zms.authz_details_entity_max_len";
 
     // properties used to over-ride default Audit logger
  
@@ -148,6 +148,7 @@ public final class ZMSConsts {
     public static final String ZMS_SERVICE            = "zms";
 
     public static final String ZMS_DOMAIN_NAME_MAX_SIZE_DEFAULT = "128";
+    public static final String ZMS_AUTHZ_DETAILS_ENTITY_MAX_SIZE_DEFAULT = "1024";
 
     public static final String USER_DOMAIN        = "user";
 
