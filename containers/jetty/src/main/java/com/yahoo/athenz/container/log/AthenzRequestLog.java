@@ -107,6 +107,8 @@ public class AthenzRequestLog extends NCSARequestLog {
     private void logTLSProtocol(StringBuilder buf, Request request) {
         SSLSession sslSession = (SSLSession) request.getAttribute(REQUEST_SSL_SESSION);
         append(buf, (sslSession == null) ? "-" : sslSession.getProtocol());
+        buf.append(' ');
+        append(buf, (sslSession == null) ? "-" : sslSession.getCipherSuite());
     }
 
     private void append(StringBuilder buf, String str) {
