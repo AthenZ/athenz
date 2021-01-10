@@ -617,8 +617,8 @@ public class ZMSClient implements Closeable {
      *                      id is specified all other optional attributes are ignored since there must be
      *                      only one domain matching the specified subscription id.
      * @param modifiedSince return domains only modified since this date
-     * @param tagKey        query all roles with given tag name
-     * @param tagValue      query all roles with given tag key and value
+     * @param tagKey        query all domains with given tag name
+     * @param tagValue      query all domains with given tag key and value
      * @return list of domain names
      * @throws ZMSClientException in case of failure
      */
