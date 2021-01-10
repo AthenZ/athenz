@@ -27,15 +27,17 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.wix.mysql.EmbeddedMysql;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.auth.util.AthenzUtils;
+import com.yahoo.athenz.common.config.AuthzDetailsEntity;
+import com.yahoo.athenz.common.config.AuthzDetailsField;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
@@ -44,6 +46,7 @@ import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import com.yahoo.rdl.JSON;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -1171,8 +1174,7 @@ public class ZMSImplTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null,
-                null, null, null, null, null, null,
-            null, null, null);
+                null, null, null, null, null, null, null, null, null);
         int size = domList.getNames().size();
         assertTrue(size > 3);
 
@@ -1183,8 +1185,7 @@ public class ZMSImplTest {
 
         // ask for the remaining domains
         DomainList remList = zms.getDomainList(mockDomRsrcCtx, null, domList.getNext(),
-                null, null, null, null, null, null,
-            null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null);
         assertEquals(remList.getNames().size(), size - 2);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "SkipDom1", auditRef);
@@ -1204,8 +1205,7 @@ public class ZMSImplTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null,
-                "Prefix", null, null, null, null,
-            null, null, null, null, null);
+                "Prefix", null, null, null, null, null, null, null, null, null);
 
         assertFalse(domList.getNames().contains("NoPrefixDom1".toLowerCase()));
         assertTrue(domList.getNames().contains("PrefixDom2".toLowerCase()));
@@ -1230,8 +1230,7 @@ public class ZMSImplTest {
         zms.postSubDomain(mockDomRsrcCtx, "DepthDom1.DepthDom2", auditRef, dom3);
 
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null,
-                1, null, null, null, null, null,
-            null, null, null);
+                1, null, null, null, null, null, null, null, null);
 
         assertTrue(domList.getNames().contains("DepthDom1".toLowerCase()));
         assertTrue(domList.getNames().contains("DepthDom1.DepthDom2".toLowerCase()));
@@ -1245,8 +1244,8 @@ public class ZMSImplTest {
     @Test
     public void testGetDomainListThrowException() {
         try {
-            zms.getDomainList(mockDomRsrcCtx, -1, null, null, null, null, null,
-                null, null, null, null, null, null);
+            zms.getDomainList(mockDomRsrcCtx, -1, null, null, null, null, null, null,
+                    null, null, null, null, null);
             fail("requesterror not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 400);
@@ -8548,17 +8547,144 @@ public class ZMSImplTest {
 
     @Test
     public void testPutEntity() {
-        int code = 404;
-        try {
-            final String name = "entityOne";
-            Entity entity = createEntityObject(name);
 
-            // entityName will not match entity.name.
-            zms.putEntity(mockDomRsrcCtx, "wrongDomainName", name, auditRef, entity);
-            fail("notfounderror not thrown.");
+        final String name = "entity-one";
+        final String domainName = "put-entity";
+        Entity entity = createEntityObject(name);
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // add a new entity as expected
+
+        zms.putEntity(mockDomRsrcCtx, domainName, name, auditRef, entity);
+        Entity response = zms.getEntity(mockDomRsrcCtx, domainName, name);
+        assertNotNull(response);
+
+        // now add entity without a name match
+
+        try {
+            zms.putEntity(mockDomRsrcCtx, domainName, "different-name", auditRef, entity);
+            fail();
         } catch (ResourceException e) {
-            assertEquals(e.getCode(), code);
+            assertEquals(e.getCode(), 400);
         }
+
+        // now add entity with a different domain
+
+        try {
+            zms.putEntity(mockDomRsrcCtx, "unknown-domain", name, auditRef, entity);
+            fail();
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 404);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutEntityAuthzDetails() throws JsonProcessingException {
+
+        final String name = "authorization_details";
+        final String domainName = "put-entity-authz-details";
+
+        Entity entity = new Entity();
+        entity.setName(name);
+
+        final String jsonData = "{\"type\":\"message_access\",\"roles\":[{\"name\":\"msg-readers\"," +
+                "\"optional\":true},{\"name\":\"msg-writers\",\"optional\":false},{\"name\":" +
+                "\"msg-editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
+                "{\"name\":\"identifier\",\"optional\":false},{\"name\":\"resource\"}]}";
+
+        entity.setValue(JSON.fromString(jsonData, Struct.class));
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // add a new authz entity as expected
+
+        zms.putEntity(mockDomRsrcCtx, domainName, name, auditRef, entity);
+        Entity response = zms.getEntity(mockDomRsrcCtx, domainName, name);
+        assertNotNull(response);
+
+        ObjectMapper jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+
+        AuthzDetailsEntity authzEntity = jsonMapper.readValue(JSON.string(response.getValue()), AuthzDetailsEntity.class);
+        assertNotNull(authzEntity);
+
+        List<AuthzDetailsField> roles = authzEntity.getRoles();
+        assertNotNull(roles);
+        assertEquals(roles.size(), 3);
+
+        List<AuthzDetailsField> fields = authzEntity.getFields();
+        assertNotNull(fields);
+        assertEquals(fields.size(), 3);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutEntityAuthzDetailsInvalid() throws JsonProcessingException {
+
+        final String name = "authorization_details";
+        final String domainName = "put-entity-authz-details";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Entity entity = new Entity();
+        entity.setName(name);
+
+        // first let's use attributes not present in the schema
+
+        String jsonData = "{\"type\":\"message_access\",\"data\":\"resource\"}";
+        entity.setValue(JSON.fromString(jsonData, Struct.class));
+
+        try {
+            zms.putEntity(mockDomRsrcCtx, domainName, name, auditRef, entity);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid authorization details entity object provided"));
+        }
+
+        // now let's try without required type attribute
+
+        jsonData = "{\"roles\":[{\"name\":\"msg-readers\"," +
+                "\"optional\":true},{\"name\":\"msg-writers\",\"optional\":false},{\"name\":" +
+                "\"msg-editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
+                "{\"name\":\"identifier\",\"optional\":false},{\"name\":\"resource\"}]}";
+        entity.setValue(JSON.fromString(jsonData, Struct.class));
+
+        try {
+            zms.putEntity(mockDomRsrcCtx, domainName, name, auditRef, entity);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization details entity object missing type"));
+        }
+
+        // now let's try the size limitation
+
+        jsonData = "{\"type\":\"message_access\",\"roles\":[{\"name\":\"msg-readers\"," +
+                "\"optional\":true},{\"name\":\"msg-writers\",\"optional\":false},{\"name\":" +
+                "\"msg-editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
+                "{\"name\":\"identifier\",\"optional\":false},{\"name\":\"resource\"}]}";
+        entity.setValue(JSON.fromString(jsonData, Struct.class));
+
+        int maxSize = zms.authzDetailsEntityMaxSize;
+        zms.authzDetailsEntityMaxSize = 10;
+        try {
+            zms.putEntity(mockDomRsrcCtx, domainName, name, auditRef, entity);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization details entity too big"));
+        }
+        zms.authzDetailsEntityMaxSize = maxSize;
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
@@ -16212,8 +16338,8 @@ public class ZMSImplTest {
         assertNotNull(principal);
         ((SimplePrincipal) principal).setUnsignedCreds(userId);
         ResourceContext rsrcCtx1 = createResourceContext(principal);
-        zms.getDomainList(rsrcCtx1, 100, null, null, 100, "account", 224,
-            "roleMem1", "role1", null, null, null, null);
+        zms.getDomainList(rsrcCtx1, 100, null, null, 100, "account", 224, "roleMem1",
+                "role1", null, null, null, null);
     }
 
     @Test
