@@ -1132,7 +1132,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     @Override
     public DomainList getDomainList(ResourceContext ctx, Integer limit, String skip, String prefix,
             Integer depth, String account, Integer productId, String roleMember, String roleName,
-            String subscription, String modifiedSince) {
+            String subscription, String tagKey, String tagValue, String modifiedSince) {
 
         final String caller = ctx.getApiName();
 

@@ -272,6 +272,11 @@ type DomainMeta struct {
 	// associated azure subscription id (system attribute - uniqueness check)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
 }
 
 //
@@ -470,6 +475,11 @@ type Domain struct {
 	// associated azure subscription id (system attribute - uniqueness check)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -3322,6 +3332,11 @@ type TopLevelDomain struct {
 	AzureSubscription string `json:"azureSubscription" rdl:"optional"`
 
 	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -3542,6 +3557,11 @@ type SubDomain struct {
 	// associated azure subscription id (system attribute - uniqueness check)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -3778,6 +3798,11 @@ type UserDomain struct {
 	// associated azure subscription id (system attribute - uniqueness check)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
 
 	//
 	// user id which will be the domain name
@@ -5961,6 +5986,11 @@ type DomainData struct {
 	// associated azure subscription id (system attribute - uniqueness check)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
 
 	//
 	// name of the domain

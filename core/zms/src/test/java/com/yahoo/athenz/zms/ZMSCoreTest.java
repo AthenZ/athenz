@@ -754,7 +754,9 @@ public class ZMSCoreTest {
                 .setMemberExpiryDays(30).setServiceExpiryDays(40).setGroupExpiryDays(50)
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120)
                 .setServiceCertExpiryMins(150).setDescription("main domain").setOrg("org").setSignAlgorithm("rsa")
-                .setUserAuthorityFilter("OnShore").setGroups(gl).setAzureSubscription("azure");
+                .setUserAuthorityFilter("OnShore").setGroups(gl).setAzureSubscription("azure")
+                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+
 
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
@@ -783,13 +785,16 @@ public class ZMSCoreTest {
         assertEquals(dd.getOrg(), "org");
         assertEquals(dd.getSignAlgorithm(), "rsa");
         assertEquals(dd.getUserAuthorityFilter(), "OnShore");
+        assertEquals(dd.getTags(),
+            Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("aws").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
                 .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud").setAuditEnabled(false)
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150)
                 .setDescription("main domain").setOrg("org").setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl).setAzureSubscription("azure");
+                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl).setAzureSubscription("azure")
+                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(dd.equals(dd2));
         assertFalse(dd.equals(null));
@@ -892,6 +897,13 @@ public class ZMSCoreTest {
         dd2.setOrg(null);
         assertFalse(dd2.equals(dd));
         dd2.setOrg("org");
+        assertTrue(dd2.equals(dd));
+
+        dd2.setTags(Collections.singletonMap("tagKeyOther", new StringList().setList(Collections.singletonList("tagValue"))));
+        assertFalse(dd2.equals(dd));
+        dd2.setTags(null);
+        assertFalse(dd2.equals(dd));
+        dd2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
         assertTrue(dd2.equals(dd));
 
         dd2.setAuditEnabled(true);
@@ -1112,7 +1124,8 @@ public class ZMSCoreTest {
                 .setAccount("aws").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud")
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure");
+                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
 
         Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
@@ -1137,6 +1150,8 @@ public class ZMSCoreTest {
         assertEquals(d.getRoleCertExpiryMins(), Integer.valueOf(150));
         assertEquals(d.getSignAlgorithm(), "rsa");
         assertEquals(d.getUserAuthorityFilter(), "OnShore");
+        assertEquals(d.getTags(),
+            Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
 
         Domain d2 = new Domain();
         d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
@@ -1144,7 +1159,8 @@ public class ZMSCoreTest {
                 .setAccount("aws").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud")
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure");
+                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(d2.equals(d));
         assertTrue(d.equals(d));
@@ -1168,6 +1184,13 @@ public class ZMSCoreTest {
         d2.setAzureSubscription(null);
         assertFalse(d2.equals(d));
         d2.setAzureSubscription("azure");
+        assertTrue(d2.equals(d));
+
+        d2.setTags(Collections.singletonMap("tagKeyOther", new StringList().setList(Collections.singletonList("tagValue"))));
+        assertFalse(d2.equals(d));
+        d2.setTags(null);
+        assertFalse(d2.equals(d));
+        d2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
         assertTrue(d2.equals(d));
 
         d2.setSignAlgorithm("ec");
@@ -1285,7 +1308,9 @@ public class ZMSCoreTest {
                 .setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30).setTokenExpiryMins(300)
                 .setServiceCertExpiryMins(120).setRoleCertExpiryMins(150).setSignAlgorithm("ec")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
-                .setAzureSubscription("azure");
+                .setAzureSubscription("azure")
+                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+
 
         Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -1307,6 +1332,8 @@ public class ZMSCoreTest {
         assertEquals(dm.getRoleCertExpiryMins(), Integer.valueOf(150));
         assertEquals(dm.getSignAlgorithm(), "ec");
         assertEquals(dm.getUserAuthorityFilter(), "OnShore");
+        assertEquals(dm.getTags(),
+            Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
 
         DomainMeta dm2 = new DomainMeta().init();
         dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
@@ -1314,7 +1341,8 @@ public class ZMSCoreTest {
                 .setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30).setTokenExpiryMins(300)
                 .setServiceCertExpiryMins(120).setRoleCertExpiryMins(150).setSignAlgorithm("ec")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
-                .setAzureSubscription("azure");
+                .setAzureSubscription("azure")
+                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(dm2.equals(dm));
         assertTrue(dm.equals(dm));
@@ -1338,6 +1366,13 @@ public class ZMSCoreTest {
         dm2.setAzureSubscription(null);
         assertFalse(dm2.equals(dm));
         dm2.setAzureSubscription("azure");
+        assertTrue(dm2.equals(dm));
+
+        dm2.setTags(Collections.singletonMap("tagKeyOther", new StringList().setList(Collections.singletonList("tagValue"))));
+        assertFalse(dm2.equals(dm));
+        dm2.setTags(null);
+        assertFalse(dm2.equals(dm));
+        dm2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
         assertTrue(dm2.equals(dm));
 
         dm2.setSignAlgorithm("rsa");
@@ -1440,8 +1475,8 @@ public class ZMSCoreTest {
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
                 .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150).setSignAlgorithm("rsa")
-                .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
-                .setAzureSubscription("azure");
+                .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -1466,13 +1501,17 @@ public class ZMSCoreTest {
         assertEquals(tld.getRoleCertExpiryMins(), Integer.valueOf(120));
         assertEquals(tld.getSignAlgorithm(), "rsa");
         assertEquals(tld.getUserAuthorityFilter(), "OnShore");
+        assertEquals(tld.getTags(),
+            Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
                 .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150).setSignAlgorithm("rsa")
-                .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
-                .setAzureSubscription("azure");
+                .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+
 
         assertTrue(tld2.equals(tld));
         assertTrue(tld.equals(tld));
@@ -1496,6 +1535,13 @@ public class ZMSCoreTest {
         tld2.setAzureSubscription(null);
         assertFalse(tld2.equals(tld));
         tld2.setAzureSubscription("azure");
+        assertTrue(tld2.equals(tld));
+
+        tld2.setTags(Collections.singletonMap("tagKeyOther", new StringList().setList(Collections.singletonList("tagValue"))));
+        assertFalse(tld2.equals(tld));
+        tld2.setTags(null);
+        assertFalse(tld2.equals(tld));
+        tld2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
         assertTrue(tld2.equals(tld));
 
         tld2.setSignAlgorithm("ec");
@@ -1586,7 +1632,9 @@ public class ZMSCoreTest {
                 .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud")
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure");
+                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+
 
         Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -1612,6 +1660,8 @@ public class ZMSCoreTest {
         assertEquals(sd.getServiceCertExpiryMins(), Integer.valueOf(120));
         assertEquals(sd.getSignAlgorithm(), "rsa");
         assertEquals(sd.getUserAuthorityFilter(), "OnShore");
+        assertEquals(sd.getTags(),
+            Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -1619,7 +1669,9 @@ public class ZMSCoreTest {
                 .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud")
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure");
+                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+
 
         assertTrue(sd2.equals(sd));
         assertTrue(sd.equals(sd));
@@ -1643,6 +1695,13 @@ public class ZMSCoreTest {
         sd2.setAzureSubscription(null);
         assertFalse(sd2.equals(sd));
         sd2.setAzureSubscription("azure");
+        assertTrue(sd2.equals(sd));
+
+        sd2.setTags(Collections.singletonMap("tagKeyOther", new StringList().setList(Collections.singletonList("tagValue"))));
+        assertFalse(sd2.equals(sd));
+        sd2.setTags(null);
+        assertFalse(sd2.equals(sd));
+        sd2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
         assertTrue(sd2.equals(sd));
 
         sd2.setSignAlgorithm("ec");
@@ -1732,7 +1791,8 @@ public class ZMSCoreTest {
                 .setApplicationId("101").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
                 .setTokenExpiryMins(300).setServiceCertExpiryMins(120).setRoleCertExpiryMins(150)
                 .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore")
-                .setGroupExpiryDays(50).setAzureSubscription("azure");
+                .setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
 
         Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -1756,6 +1816,9 @@ public class ZMSCoreTest {
         assertEquals(ud.getServiceCertExpiryMins(), Integer.valueOf(120));
         assertEquals(ud.getSignAlgorithm(), "rsa");
         assertEquals(ud.getUserAuthorityFilter(), "OnShore");
+        assertEquals(ud.getTags(),
+            Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testuser")
@@ -1763,7 +1826,9 @@ public class ZMSCoreTest {
                 .setApplicationId("101").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
                 .setTokenExpiryMins(300).setServiceCertExpiryMins(120).setRoleCertExpiryMins(150)
                 .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore")
-                .setGroupExpiryDays(50).setAzureSubscription("azure");
+                .setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+
 
         assertTrue(ud2.equals(ud));
         assertTrue(ud.equals(ud));
@@ -1787,6 +1852,13 @@ public class ZMSCoreTest {
         ud2.setAzureSubscription(null);
         assertFalse(ud2.equals(ud));
         ud2.setAzureSubscription("azure");
+        assertTrue(ud2.equals(ud));
+
+        ud2.setTags(Collections.singletonMap("tagKeyOther", new StringList().setList(Collections.singletonList("tagValue"))));
+        assertFalse(ud2.equals(ud));
+        ud2.setTags(null);
+        assertFalse(ud2.equals(ud));
+        ud2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
         assertTrue(ud2.equals(ud));
 
         ud2.setSignAlgorithm("ec");

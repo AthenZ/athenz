@@ -130,6 +130,7 @@ func init() {
 	tDomainMeta.Field("groupExpiryDays", "Int32", true, nil, "all groups in the domain roles will have specified max expiry days")
 	tDomainMeta.Field("userAuthorityFilter", "String", true, nil, "membership filtered based on user authority configured attributes")
 	tDomainMeta.Field("azureSubscription", "String", true, nil, "associated azure subscription id (system attribute - uniqueness check)")
+	tDomainMeta.MapField("tags", "CompoundName", "StringList", true, "key-value pair tags, tag might contain multiple values")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")
@@ -666,6 +667,8 @@ func init() {
 	mGetDomainList.Input("roleMember", "ResourceName", false, "member", "", true, nil, "restrict the domain names where the specified user is in a role - see roleName")
 	mGetDomainList.Input("roleName", "ResourceName", false, "role", "", true, nil, "restrict the domain names where the specified user is in this role - see roleMember")
 	mGetDomainList.Input("subscription", "String", false, "azure", "", true, nil, "restrict to domain names that have specified azure subscription name")
+	mGetDomainList.Input("tagKey", "CompoundName", false, "tagKey", "", true, nil, "flag to query all domains that have a given tagName")
+	mGetDomainList.Input("tagValue", "CompoundName", false, "tagValue", "", true, nil, "flag to query all domains that have a given tag name and value")
 	mGetDomainList.Input("modifiedSince", "String", false, "", "If-Modified-Since", false, nil, "This header specifies to the server to return any domains modified since this HTTP date")
 	mGetDomainList.Auth("", "", true, "")
 	mGetDomainList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")

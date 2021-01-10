@@ -547,7 +547,7 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public DomainList getDomainList() {
-        return getDomainList(null, null, null, null, null, null, null, null);
+        return getDomainList(null, null);
     }
 
     /**
@@ -570,7 +570,7 @@ public class ZMSClient implements Closeable {
      */
     public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth,
                                     String awsAccount, Integer productId, Date modifiedSince) {
-        return getDomainList(limit, skip, prefix, depth, awsAccount, productId, null, modifiedSince);
+        return getDomainList(limit, skip, prefix, depth, awsAccount, productId, null, modifiedSince, null, null);
     }
 
     /**
@@ -596,6 +596,35 @@ public class ZMSClient implements Closeable {
      */
     public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth,
                                     String awsAccount, Integer productId, String azureSubscription, Date modifiedSince) {
+        return getDomainList(limit, skip, prefix, depth, awsAccount, productId, azureSubscription, modifiedSince, null, null);
+    }
+
+    /**
+     * Retrieve the list of domains provisioned on the ZMS Server
+     * filters based on the specified arguments
+     *
+     * @param limit         number of domain objects to return
+     * @param skip          exclude all the domains including the specified one from the return set
+     * @param prefix        return domains starting with this value
+     * @param depth         maximum depth of the domain (0 - top level domains only)
+     * @param awsAccount    return domain that has the specified aws account name. If account name
+     *                      is specified all other optional attributes are ignored since there must be
+     *                      only one domain matching the specified account name.
+     * @param productId     return domain that has the specified product id. If product id
+     *                      is specified all other optional attributes are ignored since there must be
+     *                      only one domain matching the specified product id.
+     * @param azureSubscription return domain that has the specified azure subscription id. If subscription
+     *                      id is specified all other optional attributes are ignored since there must be
+     *                      only one domain matching the specified subscription id.
+     * @param modifiedSince return domains only modified since this date
+     * @param tagKey        query all domains with given tag name
+     * @param tagValue      query all domains with given tag key and value
+     * @return list of domain names
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth,
+                                    String awsAccount, Integer productId, String azureSubscription,
+                                    Date modifiedSince, String tagKey, String tagValue) {
         updatePrincipal();
         String modSinceStr = null;
         if (modifiedSince != null) {
@@ -603,7 +632,7 @@ public class ZMSClient implements Closeable {
             modSinceStr = df.format(modifiedSince);
         }
         try {
-            return client.getDomainList(limit, skip, prefix, depth, awsAccount, productId, null, null, azureSubscription, modSinceStr);
+            return client.getDomainList(limit, skip, prefix, depth, awsAccount, productId, null, null, azureSubscription, tagKey, tagValue, modSinceStr);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -623,7 +652,7 @@ public class ZMSClient implements Closeable {
     public DomainList getDomainList(String roleMember, String roleName) {
         updatePrincipal();
         try {
-            return client.getDomainList(null, null, null, null, null, null, roleMember, roleName, null, null);
+            return client.getDomainList(null, null, null, null, null, null, roleMember, roleName, null, null, null, null);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

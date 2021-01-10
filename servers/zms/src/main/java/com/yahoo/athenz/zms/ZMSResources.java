@@ -63,13 +63,15 @@ public class ZMSResources {
         @Parameter(description = "restrict the domain names where the specified user is in a role - see roleName", required = false) @QueryParam("member") String roleMember,
         @Parameter(description = "restrict the domain names where the specified user is in this role - see roleMember", required = false) @QueryParam("role") String roleName,
         @Parameter(description = "restrict to domain names that have specified azure subscription name", required = false) @QueryParam("azure") String subscription,
+        @Parameter(description = "flag to query all domains that have a given tagName", required = false) @QueryParam("tagKey") String tagKey,
+        @Parameter(description = "flag to query all domains that have a given tag name and value", required = false) @QueryParam("tagValue") String tagValue,
         @Parameter(description = "This header specifies to the server to return any domains modified since this HTTP date", required = true) @HeaderParam("If-Modified-Since") String modifiedSince) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getDomainList");
             context.authenticate();
-            return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, subscription, modifiedSince);
+            return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, subscription, tagKey, tagValue, modifiedSince);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
