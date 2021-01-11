@@ -25047,4 +25047,102 @@ public class ZMSImplTest {
                 .get();
     }
 
+    @Test
+    public void testDomainMetaWithTags() {
+        final String domainName = "domain-with-tags";
+
+        TopLevelDomain topLevelDomain = createTopLevelDomainObject(domainName, "Test Domain With Tags", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, topLevelDomain);
+
+        DomainMeta domainMeta = createDomainMetaObject("Domain Meta for domain tags", "testOrg", true, true, "12345", 1001);
+        domainMeta.setTags(simpleDomainTag());
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, domainMeta);
+
+        Domain domain = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertEquals(domain.getTags(), simpleDomainTag());
+    }
+
+    @Test
+    public void testTopLevelSubDomainWithTags() {
+        final String domainName = "tld-with-tags";
+
+        TopLevelDomain topLevelDomain = createTopLevelDomainObject(domainName, "Test Domain With Tags", "testOrg", adminUser);
+        topLevelDomain.setTags(simpleDomainTag());
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, topLevelDomain);
+
+        String subDomName = "subdomain-with-tag";
+        SubDomain subDom = createSubDomainObject(subDomName, domainName, "subdomain desc", "testOrg", adminUser);
+        subDom.setTags(simpleDomainTag());
+        zms.postSubDomain(mockDomRsrcCtx, domainName, auditRef, subDom);
+
+        Domain domain = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertEquals(domain.getTags(), simpleDomainTag());
+
+        Domain subDomainObj = zms.getDomain(mockDomRsrcCtx, domainName + "." + subDomName);
+        assertEquals(subDomainObj.getTags(), simpleDomainTag());
+    }
+
+    @Test
+    public void testUserLevelDomainWithTags() {
+        String domainName = "dguttman-tags";
+
+        UserDomain userDomain = createUserDomainObject(domainName, "Test Domain1", "testOrg");
+        userDomain.setTags(simpleDomainTag());
+        zms.postUserDomain(mockDomRsrcCtx, domainName, auditRef, userDomain);
+
+        Domain domain = zms.getDomain(mockDomRsrcCtx, "user." + domainName);
+        assertEquals(domain.getTags(), simpleDomainTag());
+    }
+
+    private Map<String, StringList> simpleDomainTag() {
+        return Collections.singletonMap("tag-key", new StringList().setList(Arrays.asList("val1", "val2")));
+    }
+
+    @Test
+    public void testGetDomainListUsingTags() {
+        // first domain - no tags
+        String domainNoTags = "tld-no-tags";
+        TopLevelDomain tldNoTags = createTopLevelDomainObject(domainNoTags, "Test Domain Without Tags", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, tldNoTags);
+        Domain domainObjNoTags = zms.getDomain(mockDomRsrcCtx, domainNoTags);
+        assertNull(domainObjNoTags.getTags());
+
+        // first domain - 1 tag
+        String domainName1 = "tld-tag-1";
+        TopLevelDomain topLevelDomain = createTopLevelDomainObject(domainName1, "Test Domain With Tags", "testOrg", adminUser);
+        topLevelDomain.setTags(simpleDomainTag());
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, topLevelDomain);
+        Domain domain1 = zms.getDomain(mockDomRsrcCtx, domainName1);
+        assertEquals(domain1.getTags(), simpleDomainTag());
+
+        // second domain - 2 tags
+        Map<String, StringList> twoTags = new HashMap<>();
+        twoTags.put("tag-key", new StringList().setList(Arrays.asList("tld2-val1", "tld2-val2")));
+        twoTags.put("tag-key-2", new StringList().setList(Arrays.asList("tld2-val3", "tld2-val4")));
+        String domainName2 = "tld-tag-2";
+        TopLevelDomain topLevelDomain2 = createTopLevelDomainObject(domainName2, "Test Domain With Tags", "testOrg", adminUser);
+        topLevelDomain2.setTags(twoTags);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, topLevelDomain2);
+        Domain domain2 = zms.getDomain(mockDomRsrcCtx, domainName1);
+        assertEquals(domain2.getTags(), simpleDomainTag());
+
+        // domain-list no tags - all domains should be presented
+        DomainList dl = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
+            null, null, null, null, null, null, null, null);
+        assertTrue(dl.getNames().containsAll(Arrays.asList(domainNoTags, domainName1, domainName2)));
+
+        // domain-list with only tag-key, should include both domains
+        dl = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
+            null, null, null, null, null, "tag-key", null, null);
+
+        assertEquals(dl.getNames().size(), 2);
+        assertTrue(dl.getNames().containsAll(Arrays.asList(domainName1, domainName2)));
+
+        // domain-list with tag-key AND tag-value, should include only domainName1
+        dl = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
+            null, null, null, null, null, "tag-key", "val1", null);
+
+        assertEquals(dl.getNames().size(), 1);
+        assertTrue(dl.getNames().contains(domainName1));
+    }
 }

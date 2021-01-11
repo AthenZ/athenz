@@ -1207,6 +1207,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             dlist = dbService.lookupDomainByProductId(productId);
         } else if (roleMember != null || roleName != null) {
             dlist = dbService.lookupDomainByRole(normalizeDomainAliasUser(roleMember), roleName);
+        } else if (!StringUtil.isEmpty(tagKey)) {
+            dlist = dbService.lookupDomainByTag(tagKey, tagValue);
         } else {
             dlist = listDomains(limit, skip, prefix, depth, modTime, false);
         }
@@ -1325,7 +1327,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
                 .setSignAlgorithm(detail.getSignAlgorithm())
-                .setUserAuthorityFilter(detail.getUserAuthorityFilter());
+                .setUserAuthorityFilter(detail.getUserAuthorityFilter())
+                .setTags(detail.getTags());
 
         // before processing validate the fields
 
@@ -1495,8 +1498,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setTokenExpiryMins(detail.getTokenExpiryMins())
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
-                .setSignAlgorithm(detail.getSignAlgorithm());
-
+                .setSignAlgorithm(detail.getSignAlgorithm())
+                .setTags(detail.getTags());
         // before processing validate the fields
 
         validateDomainValues(subDomain);
@@ -1586,7 +1589,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setTokenExpiryMins(detail.getTokenExpiryMins())
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
-                .setSignAlgorithm(detail.getSignAlgorithm());
+                .setSignAlgorithm(detail.getSignAlgorithm())
+                .setTags(detail.getTags());
 
         // before processing validate the fields
 
@@ -5404,6 +5408,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setOrg(domain.getOrg())
                 .setCertDnsDomain(domain.getCertDnsDomain())
                 .setMemberExpiryDays(domain.getMemberExpiryDays())
+                .setTags(domain.getTags())
                 .setRoles(athenzDomain.getRoles())
                 .setServices(athenzDomain.getServices());
 

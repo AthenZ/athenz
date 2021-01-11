@@ -46,6 +46,12 @@ public interface ObjectStoreConnection extends Closeable {
     AthenzDomain getAthenzDomain(String domainName);
     DomainMetaList listModifiedDomains(long modifiedSince);
 
+    // Domain tags
+    Map<String, StringList> getDomainTags(String domainName);
+    boolean insertDomainTags(String domainName, Map<String, StringList> tags);
+    boolean deleteDomainTags(String domainName, Set<String> tagsToRemove);
+    List<String> lookupDomainByTags(String tagKey, String tagValue);
+
     // Principal commands
 
     boolean deletePrincipal(String principalName, boolean subDomains);
@@ -194,4 +200,5 @@ public interface ObjectStoreConnection extends Closeable {
     boolean deleteRoleTags(String roleName, String domainName, Set<String> tagKeys);
 
     Map<String, StringList> getRoleTags(String domainName, String roleName);
+
 }
