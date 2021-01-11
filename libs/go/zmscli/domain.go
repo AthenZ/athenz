@@ -604,6 +604,22 @@ func (cli Zms) SetDomainRoleCertExpiryMins(dn string, mins int32) (*string, erro
 	return &s, nil
 }
 
+func (cli Zms) SetDomainTags(dn string, mins int32) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	meta := getDomainMetaObject(domain)
+	meta.RoleCertExpiryMins = &mins
+
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	return &s, nil
+}
+
 func (cli Zms) SetDomainAccount(dn string, account string) (*string, error) {
 	meta := zms.DomainMeta{
 		Account: account,

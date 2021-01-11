@@ -503,6 +503,16 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role r ON rt.role_id = r.role_id JOIN domain ON domain.domain_id=r.domain_id "
             + "WHERE domain.name=?";
 
+    private static final String SQL_INSERT_DOMAIN_TAG = "INSERT INTO domain_tags"
+        + "(domain_id, domain_tags.key, domain_tags.value) VALUES (?,?,?);";
+    private static final String SQL_DELETE_DOMAIN_TAG = "DELETE FROM domain_tags WHERE domain_id=? AND domain_tags.key=?;";
+    private static final String SQL_GET_DOMAIN_TAGS = "SELECT dt.key, dt.value FROM domain_tags dt "
+        + "JOIN domain d ON dt.domain_id = d.domain_id WHERE d.name=?";
+    private static final String SQL_LOOKUP_DOMAIN_BY_TAG_KEY = "SELECT d.name FROM domain d "
+        + "JOIN domain_tags dt ON dt.domain_id = d.domain_id WHERE dt.key=?";
+    private static final String SQL_LOOKUP_DOMAIN_BY_TAG_KEY_VAL = "SELECT d.name FROM domain d "
+        + "JOIN domain_tags dt ON dt.domain_id = d.domain_id WHERE dt.key=? AND dt.value=?";
+
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
     private static final String CACHE_GROUP     = "g:";
@@ -644,7 +654,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setSignAlgorithm(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)))
                 .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0))
                 .setGroupExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_GROUP_EXPIRY_DAYS), 0))
-                .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)));
+                .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)))
+                .setTags(getDomainTags(domainName));
     }
 
     @Override
@@ -992,6 +1003,106 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         Collections.sort(domains);
         return domains;
+    }
+
+    public boolean deleteDomainTags(String domainName, Set<String> tagsToRemove) {
+        final String caller = "deleteDomainTags";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        boolean res = true;
+        for (String tagKey : tagsToRemove) {
+            try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_DOMAIN_TAG)) {
+                ps.setInt(1, domainId);
+                ps.setString(2, processInsertValue(tagKey));
+                res &= (executeUpdate(ps, caller) > 0);
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
+        }
+        return res;
+    }
+
+    public boolean insertDomainTags(String domainName, Map<String, StringList> tags) {
+        final String caller = "updateDomainTags";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        boolean res = true;
+        for (Map.Entry<String, StringList> e : tags.entrySet()) {
+            for (String tagValue : e.getValue().getList()) {
+                try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_DOMAIN_TAG)) {
+                    ps.setInt(1, domainId);
+                    ps.setString(2, processInsertValue(e.getKey()));
+                    ps.setString(3, processInsertValue(tagValue));
+                    res &= (executeUpdate(ps, caller) > 0);
+                } catch (SQLException ex) {
+                    throw sqlError(ex, caller);
+                }
+            }
+        }
+        return res;
+    }
+
+    public Map<String, StringList> getDomainTags(String domainName) {
+        final String caller = "getDomainTags";
+        Map<String, StringList> domainTag = null;
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_TAGS)) {
+            ps.setString(1, domainName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    String tagKey = rs.getString(1);
+                    String tagValue = rs.getString(2);
+                    if (domainTag == null) {
+                        domainTag = new HashMap<>();
+                    }
+                    StringList tagValues = domainTag.computeIfAbsent(tagKey, k -> new StringList().setList(new ArrayList<>()));
+                    tagValues.getList().add(tagValue);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return domainTag;
+    }
+
+    public List<String> lookupDomainByTags(String tagKey, String tagValue) {
+        final String caller = "lookupDomainByTags";
+
+        // since domain tag might include multiple values - duplicates
+        // are possible. use Set to avoid duplicates
+
+        Set<String> uniqueDomains = new HashSet<>();
+
+        try (PreparedStatement ps = prepareScanByTags(tagKey, tagValue)) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    uniqueDomains.add(rs.getString(ZMSConsts.DB_COLUMN_NAME));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        List<String> domains = new ArrayList<>(uniqueDomains);
+        Collections.sort(domains);
+        return domains;
+    }
+
+    PreparedStatement prepareScanByTags(String tagKey, String tagValue) throws SQLException {
+        PreparedStatement ps;
+        if (!StringUtil.isEmpty(tagValue)) {
+            ps = con.prepareStatement(SQL_LOOKUP_DOMAIN_BY_TAG_KEY_VAL);
+            ps.setString(1, tagKey);
+            ps.setString(2, tagValue);
+        } else {
+            ps = con.prepareStatement(SQL_LOOKUP_DOMAIN_BY_TAG_KEY);
+            ps.setString(1, tagKey);
+        }
+        return ps;
     }
 
     @Override
@@ -3497,6 +3608,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         getAthenzDomainGroups(domainName, domainId, athenzDomain);
         getAthenzDomainPolicies(domainName, domainId, athenzDomain);
         getAthenzDomainServices(domainName, domainId, athenzDomain);
+        athenzDomain.setTags(athenzDomain.getDomain().getTags()); // tags are being query as part of saveDomainSettings..
 
         return athenzDomain;
     }
