@@ -210,6 +210,7 @@ public class ZTSImplTest {
 
         ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_cert_store"));
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
+        System.setProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, "false");
 
         // enable ip validation for cert requests
 
@@ -10992,10 +10993,20 @@ public class ZTSImplTest {
 
         DomainData domainData = new DomainData();
 
-        // TODO once enabled a domain data with null services should throw an exception
+        zts.validateInstanceServiceIdentity = true;
 
-        zts.validateInstanceServiceIdentity(domainData, "athenz.api", "unit-test");
-        zts.validateInstanceServiceIdentity(domainData, "athenz.backend", "unit-test");
+        try {
+            zts.validateInstanceServiceIdentity(domainData, "athenz.api", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+        try {
+            zts.validateInstanceServiceIdentity(domainData, "athenz.backend", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
 
         List<com.yahoo.athenz.zms.ServiceIdentity> services = new ArrayList<>();
         com.yahoo.athenz.zms.ServiceIdentity serviceBackend = new com.yahoo.athenz.zms.ServiceIdentity()
@@ -11012,10 +11023,21 @@ public class ZTSImplTest {
         zts.validateInstanceServiceIdentity(domainData, "athenz.api", "unit-test");
         zts.validateInstanceServiceIdentity(domainData, "athenz.backend", "unit-test");
 
-        // TODO unknown services should throw an exception once enabled
+        // unknown services should throw an exception
 
-        zts.validateInstanceServiceIdentity(domainData, "athenz.frontend", "unit-test");
-        zts.validateInstanceServiceIdentity(domainData, "athenz.api2", "unit-test");
+        try {
+            zts.validateInstanceServiceIdentity(domainData, "athenz.frontend", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        try {
+            zts.validateInstanceServiceIdentity(domainData, "athenz.api2", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
 
         // screwdriver services are excluded from the check since they're dynamic
         // screwdriver is configured as service skip domain
@@ -11024,6 +11046,7 @@ public class ZTSImplTest {
 
         zts.validateInstanceServiceIdentity(domainData, "screwdriver.project1", "unit-test");
         zts.validateInstanceServiceIdentity(domainData, "screwdriver.project2", "unit-test");
+        zts.validateInstanceServiceIdentity = false;
     }
 
     @Test
