@@ -17,7 +17,9 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
+import Link from 'next/Link';
 import { withRouter } from 'next/router';
+import PageUtils from '../utils/PageUtils';
 
 const DomainListDiv = styled.div`
     padding: 0 30px 0 15px;
@@ -103,11 +105,6 @@ class UserDomains extends React.Component {
         });
     }
 
-    routeHandler = (route) => (e) => {
-        e.preventDefault();
-        this.props.router.push(route, route, { getInitialProps: true });
-    };
-
     render() {
         let userIcons = [];
         let currentDomain = this.props.domain ? this.props.domain : null;
@@ -127,14 +124,11 @@ class UserDomains extends React.Component {
                                 verticalAlign={'baseline'}
                             />
                         </UserAdminLogoDiv>
-                        <StyledAnchor
-                            active={currentDomain === domainName}
-                            onClick={this.routeHandler(
-                                `/domain/${domainName}/role`
-                            )}
-                        >
-                            {domainName}
-                        </StyledAnchor>
+                        <Link href={PageUtils.rolePage(domainName)}>
+                            <StyledAnchor active={currentDomain === domainName}>
+                                {domainName}
+                            </StyledAnchor>
+                        </Link>
                     </DomainDiv>
                 );
             });
@@ -162,21 +156,13 @@ class UserDomains extends React.Component {
                                 My Domains
                             </ManageDomainsTitleDiv>
                             <div>
-                                <StyledAnchor
-                                    onClick={this.routeHandler(
-                                        `/domain/create`
-                                    )}
-                                >
-                                    Create
-                                </StyledAnchor>
+                                <Link href={PageUtils.createDomainPage()}>
+                                    <StyledAnchor>Create</StyledAnchor>
+                                </Link>
                                 <DividerSpan> | </DividerSpan>
-                                <StyledAnchor
-                                    onClick={this.routeHandler(
-                                        `/domain/manage`
-                                    )}
-                                >
-                                    Manage
-                                </StyledAnchor>
+                                <Link href={PageUtils.manageDomainPage()}>
+                                    <StyledAnchor>Manage</StyledAnchor>
+                                </Link>
                             </div>
                         </ManageDomainsHeaderDiv>
                         <DomainListDiv>{userIcons}</DomainListDiv>

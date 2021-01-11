@@ -315,7 +315,9 @@ exports[`Header should render 1`] = `
       class="emotion-3 simple denali-navbar-item"
       data-testid="navbar-item"
     >
-      <a>
+      <a
+        href="/"
+      >
         <img
           class="emotion-4 emotion-5"
           src="/static/athenz-logo-full.png"
@@ -847,7 +849,9 @@ exports[`Header should render with search 1`] = `
       class="emotion-3 simple denali-navbar-item"
       data-testid="navbar-item"
     >
-      <a>
+      <a
+        href="/"
+      >
         <img
           class="emotion-4 emotion-5"
           src="/static/athenz-logo-full.png"
