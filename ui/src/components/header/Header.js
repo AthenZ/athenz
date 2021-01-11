@@ -18,7 +18,7 @@ import NavBarItem from '../denali/NavBarItem';
 import styled from '@emotion/styled';
 import HeaderMenu from './HeaderMenu';
 import Search from '../search/Search';
-import Link from 'next/Link';
+import Link from 'next/link';
 import PageUtils from '../utils/PageUtils';
 
 const Logo = ({ className }) => (

@@ -26,7 +26,7 @@ import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
-import Link from 'next/Link';
+import Link from 'next/link';
 import PageUtils from '../components/utils/PageUtils';
 
 const AppContainerDiv = styled.div`

@@ -18,7 +18,7 @@ import React from 'react';
 import Menu from '../denali/Menu/Menu';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
-import Link from 'next/Link';
+import Link from 'next/link';
 import { withRouter } from 'next/router';
 import PageUtils from '../utils/PageUtils';
 

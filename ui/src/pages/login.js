@@ -26,7 +26,7 @@ import API from '../api';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import { withRouter } from 'next/router';
-import Link from 'next/Link';
+import Link from 'next/link';
 import PageUtils from '../components/utils/PageUtils';
 
 const HomeContainerDiv = styled.div`
