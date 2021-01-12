@@ -138,6 +138,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean readOnlyMode = false;
     protected boolean verifyCertRequestIP = false;
     protected boolean verifyCertSubjectOU = false;
+    protected boolean validateInstanceServiceIdentity = true;
     protected String ztsOAuthIssuer;
     protected File healthCheckFile = null;
 
@@ -503,6 +504,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         final String skipDomains = System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "");
         validateServiceSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
+
+        validateInstanceServiceIdentity = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, "true"));
     }
     
     static String getServerHostName() {
@@ -2472,10 +2476,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     void validateInstanceServiceIdentity(DomainData domainData, final String serviceName, final String caller) {
 
+        // if the feature is not enforced there is nothing to do
+
+        if (!validateInstanceServiceIdentity) {
+            return;
+        }
+
         // if the domain is one of the skip domains then we have no
         // need to check anything
 
-        if (validateServiceSkipDomains.contains(domainData.getName())) {
+        final String domainName = domainData.getName();
+        if (validateServiceSkipDomains.contains(domainName)) {
             return;
         }
 
@@ -2488,11 +2499,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
         }
 
-        // eventually we'll reject these requests but first we want to see
-        // how many of these services are still running
-
-        //throw requestError("Service not registered in domain", caller, domainData.getName(), domainData.getName());
         LOGGER.error("validateInstanceServiceIdentity: {} not registered for caller {}", serviceName, caller);
+        throw requestError("Service not registered in domain", caller, domainName, domainName);
     }
 
     @Override
