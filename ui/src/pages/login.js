@@ -26,6 +26,8 @@ import API from '../api';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import { withRouter } from 'next/router';
+import Link from 'next/link';
+import PageUtils from '../components/utils/PageUtils';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -193,15 +195,11 @@ class PageLogin extends React.Component {
                     <NavBarDiv data-testid='header'>
                         <NavBar background={'#002339'}>
                             <NavBarItem>
-                                <a
-                                    onClick={() =>
-                                        this.props.router.push(`/`, `/`, {
-                                            getInitialProps: true,
-                                        })
-                                    }
-                                >
-                                    <LogoStyled />
-                                </a>
+                                <Link href={PageUtils.homePage()}>
+                                    <a>
+                                        <LogoStyled />
+                                    </a>
+                                </Link>
                             </NavBarItem>
                         </NavBar>
                     </NavBarDiv>

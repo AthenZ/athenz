@@ -1207,7 +1207,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainParam + " delete-domain-tag tag_key [tag_value]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
-			buf.WriteString("   domain          : name of the domain that role belongs to\n")
+			buf.WriteString("   domain          : name of the domain being updated\n")
 		}
 		buf.WriteString("   tag_key         : tag key to be removed from to this domain\n")
 		buf.WriteString("   tag_value       : optional, tag value to be removed from this tag value list\n")

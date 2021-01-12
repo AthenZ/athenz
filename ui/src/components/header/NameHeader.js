@@ -18,8 +18,9 @@ import React from 'react';
 import Menu from '../denali/Menu/Menu';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
-import { Link } from '../../routes';
+import Link from 'next/link';
 import { withRouter } from 'next/router';
+import PageUtils from '../utils/PageUtils';
 
 const StyledAnchor = styled.a`
     color: #3570f4;
@@ -95,30 +96,14 @@ class NameHeader extends React.Component {
                 <TitleDiv data-testid='collection-name-header'>
                     {roleTypeIcon}
                     {roleAuditIcon}
-                    <StyledAnchor
-                        onClick={() =>
-                            this.props.router.push(
-                                `/domain/${domain}/role`,
-                                `/domain/${domain}/role`,
-                                { getInitialProps: true }
-                            )
-                        }
-                    >
-                        {domain}
-                    </StyledAnchor>
+                    <Link href={PageUtils.rolePage(domain)}>
+                        <StyledAnchor>{domain}</StyledAnchor>
+                    </Link>
                     :role.{collection}
                     {' (Delegated to '}
-                    <StyledAnchor
-                        onClick={() =>
-                            this.props.router.push(
-                                `/domain/${deDomain}/role`,
-                                `/domain/${deDomain}/role`,
-                                { getInitialProps: true }
-                            )
-                        }
-                    >
-                        {deDomain}
-                    </StyledAnchor>
+                    <Link href={PageUtils.rolePage(deDomain)}>
+                        <StyledAnchor>{deDomain}</StyledAnchor>
+                    </Link>
                     {' )'}
                 </TitleDiv>
             );
@@ -126,31 +111,15 @@ class NameHeader extends React.Component {
         let link;
         if (this.props.category === 'group') {
             link = (
-                <StyledAnchor
-                    onClick={() =>
-                        this.props.router.push(
-                            `/domain/${domain}/group`,
-                            `/domain/${domain}/group`,
-                            { getInitialProps: true }
-                        )
-                    }
-                >
-                    {domain}
-                </StyledAnchor>
+                <Link href={PageUtils.groupPage(domain)}>
+                    <StyledAnchor>{domain}</StyledAnchor>
+                </Link>
             );
         } else if (this.props.category === 'role') {
             link = (
-                <StyledAnchor
-                    onClick={() =>
-                        this.props.router.push(
-                            `/domain/${domain}/role`,
-                            `/domain/${domain}/role`,
-                            { getInitialProps: true }
-                        )
-                    }
-                >
-                    {domain}
-                </StyledAnchor>
+                <Link href={PageUtils.rolePage(domain)}>
+                    <StyledAnchor>{domain}</StyledAnchor>
+                </Link>
             );
         }
 

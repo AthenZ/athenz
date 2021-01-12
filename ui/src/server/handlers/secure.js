@@ -23,44 +23,45 @@ const multer = require('multer');
 module.exports = function (expressApp, config, secrets) {
     expressApp.use((req, res, next) => {
         const scriptSrc = [`'self'`];
-        const styleSrc = [`'self'`];
-        const defaultSrc = [`'self'`];
         const connectSrc = [`'self'`];
-
         // locally allow 'unsafe-inline', so HMR doesn't trigger the CSP
         if (process.env.NODE_ENV !== 'production') {
             scriptSrc.push(`'unsafe-inline'`);
             scriptSrc.push(`'unsafe-eval'`);
-            styleSrc.push(`'unsafe-inline'`);
         } else {
             scriptSrc.push(`'nonce-${req.headers.rid}'`);
-            styleSrc.push(`'nonce-${req.headers.rid}'`);
-            defaultSrc.push(`'nonce-${req.headers.rid}'`);
         }
-
         // to be used by local ZMS for ntoken based auth
         if (config.env === 'local') {
             connectSrc.push(`https://localhost:4443`);
         }
-
-        let cspOptions = {
+        let contentSecurityPolicy = {
             directives: {
-                defaultSrc,
                 baseUri: [`'none'`],
                 imgSrc: [`'self'`],
                 scriptSrc,
-                styleSrc,
                 connectSrc,
+                fontSrc: [`'self'`],
+                frameSrc: [`'self'`],
+                manifestSrc: [`'self'`],
+                mediaSrc: [`'self'`],
+                objectSrc: [`'self'`],
+                workerSrc: [`'self'`],
+                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/default-src
+                // we have set all the directives which defaultSrc sets for us, and we let nextjs set up style-src for us
+                defaultSrc:
+                    helmet.contentSecurityPolicy.dangerouslyDisableDefaultSrc,
             },
         };
-
         if (config.cspImgSrc && config.cspImgSrc !== '') {
-            cspOptions.directives.imgSrc.push(config.cspImgSrc);
+            contentSecurityPolicy.directives.imgSrc.push(config.cspImgSrc);
         }
         if (config.cspReportUri && config.cspReportUri !== '') {
-            cspOptions.directives.reportUri = config.cspReportUri;
+            contentSecurityPolicy.directives.reportUri = config.cspReportUri;
         }
-        helmet.contentSecurityPolicy(cspOptions)(req, res, next);
+        helmet({
+            contentSecurityPolicy: contentSecurityPolicy,
+        })(req, res, next);
     });
 
     // helmet disables the X-Powered-By response header, but next.js adds it again
@@ -86,7 +87,6 @@ module.exports = function (expressApp, config, secrets) {
     );
 
     expressApp.use(csrf());
-
     expressApp.use(function (err, req, res, next) {
         if (err.code !== 'EBADCSRFTOKEN') {
             return next(err);

@@ -68,8 +68,8 @@ class Tabs extends React.Component {
                 break;
             case 'groups':
                 this.props.router.push(
-                    `/domain/${domain}/groups`,
-                    `/domain/${domain}/groups`,
+                    `/domain/${domain}/group`,
+                    `/domain/${domain}/group`,
                     { getInitialProps: true }
                 );
                 break;
