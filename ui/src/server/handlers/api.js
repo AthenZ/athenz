@@ -1306,20 +1306,20 @@ Fetchr.registerService({
     name: 'group',
     read(req, resource, params, config, callback) {
         req.clients.zms.getGroup(params, function (err, data) {
-            if (err) {
-                if (err.status !== 404) {
-                    debug(
-                        `principal: ${req.session.shortId} rid: ${
-                            req.headers.rid
-                        } Error from ZMS while calling getGroup API: ${JSON.stringify(
-                            err
-                        )}`
-                    );
-                    callback(errorHandler.fetcherError(err));
-                } else {
-                    callback(null, []);
-                }
+            // if (err) {
+            if (err.status !== 404) {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error from ZMS while calling getGroup API: ${JSON.stringify(
+                        err
+                    )}`
+                );
+                callback(errorHandler.fetcherError(err));
+            } else {
+                callback(null, []);
             }
+            // }
             if (data && data.groupMembers) {
                 data.groupMembers.forEach((member) => {
                     member.memberFullName = userService.getUserFullName(
