@@ -8245,6 +8245,7 @@ public class DBServiceTest {
                 anyString(), anyString())).thenReturn(false).thenThrow(new ResourceException(409));
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
+        zms.dbService.defaultRetryCount = 2;
 
         Group group = createGroupObject(domainName, groupName, "user.joe", "user.jane");
         GroupMember groupMember = new GroupMember().setMemberName("user.john");
@@ -9289,6 +9290,7 @@ public class DBServiceTest {
         final String updateRoleMetaTag = "tag-key-update-role-meta-without-tag";
         final List<String> updateRoleMetaTagValues = Collections.singletonList("update-meta-value");
         final String roleName = "roleWithTagUpdateMeta";
+        ObjectStore savedStore = zms.dbService.store;
 
         Role role = new Role().setName(roleName);
         RoleMeta rm = new RoleMeta()
@@ -9318,6 +9320,7 @@ public class DBServiceTest {
         StringList tagValues = resultInsertTags.get(updateRoleMetaTag);
         assertNotNull(tagValues);
         assertTrue(tagValues.getList().containsAll(updateRoleMetaTagValues));
+        zms.dbService.store = savedStore;
     }
 
     @Test
@@ -9328,6 +9331,7 @@ public class DBServiceTest {
         final String updateRoleMetaTag = "tag-key-update-role-meta-exist-tag";
         final List<String> updateRoleMetaTagValues = Collections.singletonList("update-meta-value");
         final String roleName = "roleWithTagUpdateMeta";
+        ObjectStore savedStore = zms.dbService.store;
 
         // initial role with tags
         Role role = new Role().setName(roleName)
@@ -9370,27 +9374,38 @@ public class DBServiceTest {
         StringList tagValues = resultInsertTags.get(updateRoleMetaTag);
         assertNotNull(tagValues);
         assertTrue(tagValues.getList().containsAll(updateRoleMetaTagValues));
+        zms.dbService.store = savedStore;
     }
 
     @Test
     public void testProcessDomainWithTagsInsert() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        ObjectStore savedStore = zms.dbService.store;
 
         Map<String, StringList> domainTags = Collections.singletonMap(
             "tagKey", new StringList().setList(Collections.singletonList("tagVal"))
         );
-        Domain domain = new Domain().setName("newDomain").setTags(domainTags);
+        Domain domain = new Domain().setName("newDomainTagInsert").setTags(domainTags);
         Mockito.when(conn.insertDomain(domain)).thenReturn(true);
-        Mockito.when(conn.insertDomainTags("newDomain", domainTags)).thenReturn(true);
+        Mockito.when(conn.insertDomainTags("newDomainTagInsert", domainTags)).thenReturn(true);
+        Mockito.when(conn.insertRole(anyString(), any(Role.class))).thenReturn(true);
+        Mockito.when(conn.insertRoleMember(any(), any(), any(), any(), any())).thenReturn(true);
+        Mockito.when(conn.insertPolicy(any(), any())).thenReturn(true);
+        Mockito.when(conn.insertAssertion(any(), any(), any())).thenReturn(true);
+        Mockito.when(mockObjStore.getConnection(false, true))
+            .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
+        zms.dbService.store = mockObjStore;
 
         Domain createdDomain = zms.dbService.makeDomain(mockDomRsrcCtx, domain, Collections.singletonList(adminUser), null, auditRef);
 
         assertEquals(createdDomain.getTags(), domainTags);
+        zms.dbService.store = savedStore;
     }
 
     @Test
     public void testProcessDomainWithTagsUpdate() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        ObjectStore savedStore = zms.dbService.store;
 
         Map<String, StringList> domainTags = new HashMap<>();
         domainTags.put("tagToBeRemoved", new StringList().setList(Collections.singletonList("val0")));
@@ -9456,17 +9471,19 @@ public class DBServiceTest {
             .flatMap(l -> l.getList().stream())
             .collect(Collectors.toList())
             .containsAll(Arrays.asList("val0", "val1", "val2")));
+        zms.dbService.store = savedStore;
     }
 
     @Test
     public void testProcessDomainWithSameTagsUpdate() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        ObjectStore savedStore = zms.dbService.store;
 
         Map<String, StringList> domainTags = Collections.singletonMap("tagKey", new StringList().setList(Arrays.asList("val1", "val2")));
 
-        Domain domain = new Domain().setName("newDomain").setTags(domainTags);
+        Domain domain = new Domain().setName("newDomainTagsUpdate").setTags(domainTags);
         Mockito.when(conn.insertDomain(domain)).thenReturn(true);
-        Mockito.when(conn.insertDomainTags("newDomain", domainTags)).thenReturn(true);
+        Mockito.when(conn.insertDomainTags("newDomainTagsUpdate", domainTags)).thenReturn(true);
         Mockito.when(conn.insertRole(anyString(), any(Role.class))).thenReturn(true);
         Mockito.when(conn.insertRoleMember(any(), any(), any(), any(), any())).thenReturn(true);
         Mockito.when(conn.insertPolicy(any(), any())).thenReturn(true);
@@ -9484,32 +9501,33 @@ public class DBServiceTest {
         Mockito.when(conn.updateDomain(any(Domain.class))).thenReturn(true);
         Mockito.when(conn.deleteDomainTags(anyString(), anySet())).thenReturn(true);
         Mockito.when(conn.insertDomainTags(anyString(), anyMap())).thenReturn(true);
-        Mockito.when(conn.getDomain("newDomain")).thenReturn(domain);
+        Mockito.when(conn.getDomain("newDomainTagsUpdate")).thenReturn(domain);
 
         Mockito.when(mockObjStore.getConnection(false, true))
             .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
 
         // update domain meta
         DomainMeta meta = new DomainMeta().setTags(newDomainTags);
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "newDomain", meta, null, false, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "newDomainTagsUpdate", meta, null, false, auditRef, "putDomainMeta");
 
         // assert tags to remove is empty
         ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
         Mockito.verify(conn, times(1)).deleteDomainTags(domainCapture.capture(), tagCapture.capture());
-        assertEquals("newDomain", domainCapture.getValue());
+        assertEquals("newDomainTagsUpdate", domainCapture.getValue());
         assertTrue(tagCapture.getValue().isEmpty());
 
         // assert tags to add is empty
         ArgumentCaptor<Map<String, StringList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertDomainTags(domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals("newDomain", domainCapture.getValue());
+        assertEquals("newDomainTagsUpdate", domainCapture.getValue());
         Map<String, StringList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.isEmpty());
 
         // assert first tag insertion
         Map<String, StringList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
         assertEquals(resultFirstInsertTags, Collections.singletonMap("tagKey", new StringList().setList(Arrays.asList("val1", "val2"))));
+        zms.dbService.store = savedStore;
     }
 }

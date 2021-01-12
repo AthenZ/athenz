@@ -96,6 +96,13 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.LookupDomainByRole(args[0], args[1])
 			}
 			return cli.helpCommand(params)
+		case "lookup-domain-by-tag":
+			if argc == 1 {
+				return cli.LookupDomainByTag(args[0], "")
+			} else if argc == 2 {
+				return cli.LookupDomainByTag(args[0], args[1])
+			}
+			return cli.helpCommand(params)
 		case "lookup-domain-by-aws-account", "lookup-domain-by-account":
 			if argc == 1 {
 				return cli.LookupDomainById(args[0], "", nil)
@@ -870,6 +877,16 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			} else if argc == 2 {
 				return cli.ShowRoles(dn, args[0], args[1])
 			}
+		case "add-domain-tag":
+			if argc >= 2 {
+				return cli.AddDomainTags(dn, args[0], args[1:])
+			}
+		case "delete-domain-tag":
+			if argc == 1 {
+				return cli.DeleteDomainTags(dn, args[0], "")
+			} else if argc == 2 {
+				return cli.DeleteDomainTags(dn, args[0], args[1])
+			}
 		default:
 			return nil, fmt.Errorf("unrecognized command '%v'. type 'zms-cli help' to see help information", cmd)
 		}
@@ -1174,6 +1191,36 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   file.yaml : filename where the domain data is stored\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   export-domain coretech /tmp/coretech.yaml\n")
+	case "add-domain-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-domain-tag tag_key tag_value [tag_value ...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   tag_key         : tag key to be added to this domain\n")
+		buf.WriteString("   tag_value       : tag values to be added to this domain, multiple values are allowed\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-domain-tag coretech-tag-key coretech-tag-value-1 coretech-tag-value-2\n")
+	case "delete-domain-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-domain-tag tag_key [tag_value]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   tag_key         : tag key to be removed from to this domain\n")
+		buf.WriteString("   tag_value       : optional, tag value to be removed from this tag value list\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-domain-tag coretech coretech-tag-key coretech-tag-value-1\n")
+	case "lookup-domain-by-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   lookup-domain-by-tag [tag_key] [tag_value]\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   tag_key         : tag name\n")
+		buf.WriteString("   tag_value       : tag value\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   lookup-domain-by-tag tag_key tag_value\n")
 	case "delete-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   delete-domain domain\n")
@@ -2395,6 +2442,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   lookup-domain-by-azure-subscription subscription-id\n")
 	buf.WriteString("   lookup-domain-by-product-id product-id\n")
 	buf.WriteString("   lookup-domain-by-role role-member role-name\n")
+	buf.WriteString("   lookup-domain-by-tag [tag_key] [tag_value]\n")
 	buf.WriteString("   add-domain domain product-id [admin ...] - to add top level domains\n")
 	buf.WriteString("   add-domain domain [admin ...] - to add sub domains\n")
 	buf.WriteString("   set-domain-meta description\n")
@@ -2419,6 +2467,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   get-signed-domains [matching_tag]\n")
 	buf.WriteString("   use-domain [domain]\n")
 	buf.WriteString("   check-domain [domain]\n")
+	buf.WriteString("   add-domain-tag tag_key tag_value [tag_value ...]\n")
+	buf.WriteString("   delete-domain-tag tag_key [tag_value]\n")
 	buf.WriteString("   get-quota\n")
 	buf.WriteString("   set-quota [attrs ...]\n")
 	buf.WriteString("   delete-quota\n")

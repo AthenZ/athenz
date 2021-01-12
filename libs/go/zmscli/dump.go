@@ -157,21 +157,7 @@ func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1
 			buf.WriteString("\n")
 		}
 	}
-	if role.Tags != nil {
-		buf.WriteString(indent2)
-		buf.WriteString("tags:\n")
-		indent3 := indent2 + "  - "
-		indent4 := indent2 + "    "
-		indent5 := indent4 + "  - "
-		for tagKey, tagValues := range role.Tags {
-			buf.WriteString(indent3 + "key: ")
-			buf.WriteString(string(tagKey) + "\n")
-			buf.WriteString(indent4 + "values:\n")
-			for _, tagValue := range tagValues.List {
-				buf.WriteString(indent5 + string(tagValue) + "\n")
-			}
-		}
-	}
+	cli.dumpTags(buf, true, indent2, role.Tags)
 	if auditLog {
 		buf.WriteString(indent2)
 		buf.WriteString("changes: \n")
@@ -190,6 +176,26 @@ func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1
 		buf.WriteString("trust: ")
 		buf.WriteString(string(role.Trust))
 		buf.WriteString("\n")
+	}
+}
+
+func (cli Zms) dumpTags(buf *bytes.Buffer, indentFirst bool, indent2 string, tags map[zms.CompoundName]*zms.StringList) {
+	if tags != nil {
+		if indentFirst {
+			buf.WriteString(indent2)
+		}
+		buf.WriteString("tags:\n")
+		indent3 := indent2 + "  - "
+		indent4 := indent2 + "    "
+		indent5 := indent4 + "  - "
+		for tagKey, tagValues := range tags {
+			buf.WriteString(indent3 + "key: ")
+			buf.WriteString(string(tagKey) + "\n")
+			buf.WriteString(indent4 + "values:\n")
+			for _, tagValue := range tagValues.List {
+				buf.WriteString(indent5 + string(tagValue) + "\n")
+			}
+		}
 	}
 }
 
@@ -550,6 +556,9 @@ func (cli Zms) dumpSignedDomain(buf *bytes.Buffer, signedDomain *zms.SignedDomai
 	buf.WriteString("modified: ")
 	buf.WriteString(domainData.Modified.String())
 	buf.WriteString("\n")
+
+	buf.WriteString(indentLevel1)
+	cli.dumpTags(buf, false, indentLevel1, domainData.Tags)
 
 	buf.WriteString(indentLevel1)
 	buf.WriteString("roles:\n")
