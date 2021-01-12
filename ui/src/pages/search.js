@@ -26,6 +26,8 @@ import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
+import Link from 'next/link';
+import PageUtils from '../components/utils/PageUtils';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -199,17 +201,9 @@ class PageSearchDetails extends React.Component {
             items.push(
                 <ResultsDiv key={domain}>
                     <DomainLogoDiv>{icon}</DomainLogoDiv>
-                    <StyledAnchor
-                        onClick={() =>
-                            self.props.router.push(
-                                `/domain/${domain}/role`,
-                                `/domain/${domain}/role`,
-                                { getInitialProps: true }
-                            )
-                        }
-                    >
-                        {domain}
-                    </StyledAnchor>
+                    <Link href={PageUtils.rolePage(domain)}>
+                        <StyledAnchor>{domain}</StyledAnchor>
+                    </Link>
                 </ResultsDiv>
             );
         });

@@ -87,7 +87,7 @@ export default class Workflow extends React.Component {
             headerDetails: domains[1],
             pendingData: domains[3],
             _csrf: domains[2],
-            nonce: req.headers.rid,
+            nonce: req && req.headers.rid,
         };
     }
 

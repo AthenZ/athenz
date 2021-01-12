@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright 2021 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const withPlugins = require('next-compose-plugins');
+class PageUtils {
+    static homePage() {
+        return `/`;
+    }
+    static rolePage(domain) {
+        return `/domain/${domain}/role`;
+    }
+    static groupPage(domain) {
+        return `/domain/${domain}/group`;
+    }
+    static createDomainPage() {
+        return `/domain/create`;
+    }
+    static manageDomainPage() {
+        return `/domain/manage`;
+    }
+}
 
-module.exports = withPlugins([
-    {
-        useFileSystemPublicRoutes: false,
-        poweredByHeader: false,
-    },
-]);
+export default PageUtils;
