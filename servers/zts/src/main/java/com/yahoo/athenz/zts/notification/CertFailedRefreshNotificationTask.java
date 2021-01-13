@@ -22,6 +22,7 @@ import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.store.DataStore;
@@ -44,13 +45,16 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     private final List<String> providers;
     private final InstanceCertManager instanceCertManager;
     private final NotificationCommon notificationCommon;
+    private final DataStore dataStore;
     private static final Logger LOGGER = LoggerFactory.getLogger(CertFailedRefreshNotificationTask.class);
     private final static String DESCRIPTION = "certificate failed refresh notification";
     private final HostnameResolver hostnameResolver;
     private final CertFailedRefreshNotificationToEmailConverter certFailedRefreshNotificationToEmailConverter;
     private final CertFailedRefreshNotificationToMetricConverter certFailedRefreshNotificationToMetricConverter;
-
     private final GlobStringsMatcher globStringsMatcher;
+
+    private final static String SNOOZED_DOMAIN_TAG_KEY = "zts.DisableCertRefreshNotification";
+    private final static String SNOOZED_DOMAIN_TAG_VALUE = "true";
 
     public CertFailedRefreshNotificationTask(InstanceCertManager instanceCertManager,
                                              DataStore dataStore,
@@ -61,6 +65,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         this.serverName = serverName;
         this.providers = getProvidersList();
         this.instanceCertManager = instanceCertManager;
+        this.dataStore = dataStore;
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dataStore, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.hostnameResolver = hostnameResolver;
@@ -96,7 +101,13 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
             return new ArrayList<>();
         }
 
-        List<X509CertRecord> unrefreshedCertsValidHosts = getRecordsWithValidHosts(unrefreshedCertsValidServices);
+        List<X509CertRecord> unrefreshedCertsUnsnoozed = getRecordsNotSnoozed(unrefreshedCertsValidServices);
+        if (unrefreshedCertsUnsnoozed.isEmpty()) {
+            LOGGER.info("No unrefreshed certificates in un-snoozed domains");
+            return new ArrayList<>();
+        }
+
+        List<X509CertRecord> unrefreshedCertsValidHosts = getRecordsWithValidHosts(unrefreshedCertsUnsnoozed);
         if (unrefreshedCertsValidHosts.isEmpty()) {
             LOGGER.info("No unrefreshed certificates with valid hosts available to send notifications");
             return new ArrayList<>();
@@ -113,6 +124,28 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         return unrefreshedCerts.stream()
                 .filter(record -> !globStringsMatcher.isMatch(record.getService()))
                 .collect(Collectors.toList());
+    }
+
+    private List<X509CertRecord> getRecordsNotSnoozed(List<X509CertRecord> unrefreshedCerts) {
+        List<X509CertRecord> unsnoozedDomains = new ArrayList<>();
+        for (X509CertRecord x509CertRecord : unrefreshedCerts) {
+            String domainName = AthenzUtils.extractPrincipalDomainName(x509CertRecord.getService());
+            DomainData domainData = dataStore.getDomainData(domainName);
+            if (!isDomainSnoozed(domainData)) {
+                unsnoozedDomains.add(x509CertRecord);
+            }
+        }
+
+        return unsnoozedDomains;
+    }
+
+    private boolean isDomainSnoozed(DomainData domainData) {
+        if (domainData == null || domainData.getTags() == null || domainData.getTags().get(SNOOZED_DOMAIN_TAG_KEY) == null || domainData.getTags().get(SNOOZED_DOMAIN_TAG_KEY).getList() == null) {
+            return false;
+        }
+
+        List<String> snoozeTagValues = domainData.getTags().get(SNOOZED_DOMAIN_TAG_KEY).getList();
+        return snoozeTagValues.stream().anyMatch(value -> value.toLowerCase().equals(SNOOZED_DOMAIN_TAG_VALUE));
     }
 
     private List<Notification> generateNotificationsForAdmins(Map<String, List<X509CertRecord>> domainToCertRecordsMap) {

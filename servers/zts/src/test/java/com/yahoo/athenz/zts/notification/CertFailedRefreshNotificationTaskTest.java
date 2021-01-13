@@ -21,6 +21,8 @@ import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.notification.NotificationEmail;
 import com.yahoo.athenz.common.server.notification.NotificationMetric;
+import com.yahoo.athenz.zms.DomainData;
+import com.yahoo.athenz.zms.StringList;
 import com.yahoo.athenz.zts.ZTSTestUtils;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.store.DataStore;
@@ -412,6 +414,110 @@ public class CertFailedRefreshNotificationTaskTest {
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
+    }
+
+    @Test
+    public void testSomeRecordsSnoozed() {
+
+        Date currentDate = new Date();
+        List<X509CertRecord> records = new ArrayList<>();
+        System.setProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST, "provider");
+
+        DataStore snoozedDataStore = Mockito.mock(DataStore.class);
+        for (int i = 0; i < 8; ++i) {
+            X509CertRecord record = getMockX509CertRecord(currentDate, i);
+            records.add(record);
+            NotificationTestsCommon.mockDomainData(i, snoozedDataStore);
+            DomainData domainData = new DomainData();
+            // Make even domains snooze
+            if (i % 2 == 0) {
+                Map<String, StringList> tags = new HashMap<>();
+                tags.put("zts.DisableCertRefreshNotification", new StringList().setList(Arrays.asList("true")));
+                domainData.setTags(tags);
+            }
+
+            Mockito.when(snoozedDataStore.getDomainData("domain" + i)).thenReturn(domainData);
+            Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + i))).thenReturn(true);
+        }
+
+        // Have zts.DisableCertRefreshNotification tag for domain 8 but with value other then "true"
+        X509CertRecord record = getMockX509CertRecord(currentDate, 8);
+        records.add(record);
+        NotificationTestsCommon.mockDomainData(8, snoozedDataStore);
+        DomainData domainData = new DomainData();
+        Map<String, StringList> tags = new HashMap<>();
+        tags.put("zts.DisableCertRefreshNotification", new StringList().setList(Arrays.asList("false", "False","Not True")));
+        domainData.setTags(tags);
+        Mockito.when(snoozedDataStore.getDomainData("domain" + 8)).thenReturn(domainData);
+        Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + 8))).thenReturn(true);
+
+        // Have zts.DisableCertRefreshNotification tag for domain 9 with several values (one of them is true case insensitive)
+        record = getMockX509CertRecord(currentDate, 9);
+        records.add(record);
+        NotificationTestsCommon.mockDomainData(9, snoozedDataStore);
+        domainData = new DomainData();
+        tags = new HashMap<>();
+        tags.put("zts.DisableCertRefreshNotification", new StringList().setList(Arrays.asList("false", "test", "tRue")));
+        domainData.setTags(tags);
+        Mockito.when(snoozedDataStore.getDomainData("domain" + 9)).thenReturn(domainData);
+        Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + 9))).thenReturn(true);
+
+        Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName), anyString())).thenReturn(records);
+        CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
+                instanceCertManager,
+                snoozedDataStore,
+                hostnameResolver,
+                userDomainPrefix,
+                serverName,
+                httpsPort);
+
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        assertEquals(5, notifications.size());
+        assertEquals("domain8", notifications.get(0).getDetails().get("domain"));
+        assertEquals("domain7", notifications.get(1).getDetails().get("domain"));
+        assertEquals("domain5", notifications.get(2).getDetails().get("domain"));
+        assertEquals("domain3", notifications.get(3).getDetails().get("domain"));
+        assertEquals("domain1", notifications.get(4).getDetails().get("domain"));
+
+        System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
+    }
+
+    @Test
+    public void testAllRecordsSnoozed() {
+
+        Date currentDate = new Date();
+        List<X509CertRecord> records = new ArrayList<>();
+        System.setProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST, "provider");
+
+        DataStore snoozedDataStore = Mockito.mock(DataStore.class);
+
+        for (int i = 0; i < 8; ++i) {
+            X509CertRecord record = getMockX509CertRecord(currentDate, i);
+            records.add(record);
+            NotificationTestsCommon.mockDomainData(i, snoozedDataStore);
+            DomainData domainData = new DomainData();
+            // Make all domains snooze
+            Map<String, StringList> tags = new HashMap<>();
+            tags.put("zts.DisableCertRefreshNotification", new StringList().setList(Arrays.asList("true")));
+            domainData.setTags(tags);
+
+            Mockito.when(snoozedDataStore.getDomainData("domain" + i)).thenReturn(domainData);
+            Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + i))).thenReturn(true);
+        }
+
+        Mockito.when(instanceCertManager.getUnrefreshedCertsNotifications(eq(serverName), anyString())).thenReturn(records);
+        CertFailedRefreshNotificationTask certFailedRefreshNotificationTask = new CertFailedRefreshNotificationTask(
+                instanceCertManager,
+                snoozedDataStore,
+                hostnameResolver,
+                userDomainPrefix,
+                serverName,
+                httpsPort);
+
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        assertEquals(new ArrayList<>(), notifications);
+
+        System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
     }
 
     @Test
