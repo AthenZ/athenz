@@ -16,9 +16,7 @@
 package com.yahoo.athenz.zms.store;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
@@ -30,7 +28,6 @@ public class AthenzDomain {
     private List<Group> groups;
     private List<Policy> policies;
     private List<ServiceIdentity> services;
-    private Map<String, StringList> tags;
     private Domain domain = null;
 
     public AthenzDomain(String name) {
@@ -39,7 +36,6 @@ public class AthenzDomain {
         groups = new ArrayList<>();
         policies = new ArrayList<>();
         services = new ArrayList<>();
-        tags = new HashMap<>();
     }
 
     public void setName(String name) {
@@ -84,14 +80,6 @@ public class AthenzDomain {
 
     public List<ServiceIdentity> getServices() {
         return services;
-    }
-
-    public Map<String, StringList> getTags() {
-        return tags;
-    }
-
-    public void setTags(Map<String, StringList> tags) {
-        this.tags = tags;
     }
 
     public Domain getDomain() {

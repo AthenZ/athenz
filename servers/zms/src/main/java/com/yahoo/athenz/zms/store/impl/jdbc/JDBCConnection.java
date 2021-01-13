@@ -3608,7 +3608,6 @@ public class JDBCConnection implements ObjectStoreConnection {
         getAthenzDomainGroups(domainName, domainId, athenzDomain);
         getAthenzDomainPolicies(domainName, domainId, athenzDomain);
         getAthenzDomainServices(domainName, domainId, athenzDomain);
-        athenzDomain.setTags(athenzDomain.getDomain().getTags()); // tags are being query as part of saveDomainSettings..
 
         return athenzDomain;
     }

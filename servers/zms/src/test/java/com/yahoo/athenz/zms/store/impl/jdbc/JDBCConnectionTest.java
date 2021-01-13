@@ -5827,7 +5827,6 @@ public class JDBCConnectionTest {
         assertEquals(1, athenzDomain.getServices().get(0).getHosts().size());
         assertEquals("host1", athenzDomain.getServices().get(0).getHosts().get(0));
 
-        assertEquals(athenzDomain.getTags(), Collections.singletonMap("tag-key", new StringList().setList(Collections.singletonList("tag-val"))));
         assertEquals(athenzDomain.getRoles().get(0).getTags().get("role1-tag-key").getList().get(0), "role1-tag-val");
         assertEquals(athenzDomain.getRoles().get(1).getTags().get("role2-tag-key").getList().get(0), "role2-tag-val");
         jdbcConn.close();

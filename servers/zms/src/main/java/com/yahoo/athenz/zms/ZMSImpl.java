@@ -5182,7 +5182,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setRoles(athenzDomain.getRoles());
         domainData.setServices(athenzDomain.getServices());
         domainData.setGroups(athenzDomain.getGroups());
-        domainData.setTags(athenzDomain.getTags());
+        domainData.setTags(athenzDomain.getDomain().getTags());
 
         // generate the domain policy object that includes the domain
         // name and all policies. Then we'll sign this struct using
