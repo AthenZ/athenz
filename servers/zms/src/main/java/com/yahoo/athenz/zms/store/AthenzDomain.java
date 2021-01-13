@@ -29,7 +29,7 @@ public class AthenzDomain {
     private List<Policy> policies;
     private List<ServiceIdentity> services;
     private Domain domain = null;
-    
+
     public AthenzDomain(String name) {
         this.name = name;
         roles = new ArrayList<>();
@@ -37,7 +37,7 @@ public class AthenzDomain {
         policies = new ArrayList<>();
         services = new ArrayList<>();
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }
@@ -57,15 +57,15 @@ public class AthenzDomain {
     public void setPolicies(List<Policy> policies) {
         this.policies = policies;
     }
-    
+
     public void setDomain(Domain domain) {
         this.domain = domain;
     }
-    
+
     public String getName() {
         return name;
     }
-    
+
     public List<Role> getRoles() {
         return roles;
     }

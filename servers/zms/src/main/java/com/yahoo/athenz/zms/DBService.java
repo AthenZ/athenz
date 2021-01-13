@@ -173,6 +173,14 @@ public class DBService implements RolesProvider {
         return athenzDomain.getRoles();
     }
 
+    public DomainList lookupDomainByTag(String tagKey, String tagValue) {
+        DomainList domList = new DomainList();
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            domList.setNames(con.lookupDomainByTags(tagKey, tagValue));
+        }
+        return domList;
+    }
+
     static class DataCache {
         AthenzDomain athenzDomain;
         long modTime;
@@ -302,6 +310,8 @@ public class DBService implements RolesProvider {
                 quotaCheck.checkSubdomainQuota(con, domainName, caller);
 
                 boolean objectsInserted = con.insertDomain(domain);
+                objectsInserted &= processDomainTags(domain.getTags(), null, domainName, con);
+
                 if (!objectsInserted) {
                     con.rollbackChanges();
                     throw ZMSUtils.requestError("makeDomain: Cannot create domain: " +
@@ -583,7 +593,8 @@ public class DBService implements RolesProvider {
     private boolean processUpdateRoleTags(Role role, Role originalRole, ObjectStoreConnection con, String roleName, String domainName) {
         if (originalRole.getTags() == null || originalRole.getTags().isEmpty()) {
             if (role.getTags() == null || role.getTags().isEmpty()) {
-                return false;
+                // no tags to process..
+                return true;
             }
             return con.insertRoleTags(roleName, domainName, role.getTags());
         }
@@ -2821,7 +2832,8 @@ public class DBService implements RolesProvider {
                         .setRoleCertExpiryMins(domain.getRoleCertExpiryMins())
                         .setServiceCertExpiryMins(domain.getServiceCertExpiryMins())
                         .setSignAlgorithm(domain.getSignAlgorithm())
-                        .setUserAuthorityFilter(domain.getUserAuthorityFilter());
+                        .setUserAuthorityFilter(domain.getUserAuthorityFilter())
+                        .setTags(domain.getTags());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -2833,6 +2845,8 @@ public class DBService implements RolesProvider {
                 }
 
                 con.updateDomain(updatedDomain);
+                processDomainTags(meta.getTags(), domain, domainName, con);
+
                 con.commitChanges();
                 cacheStore.invalidate(domainName);
 
@@ -2863,6 +2877,32 @@ public class DBService implements RolesProvider {
                 }
             }
         }
+    }
+
+    private boolean processDomainTags(Map<String, StringList> domainTags, Domain originalDomain, String domainName, ObjectStoreConnection con) {
+        if (originalDomain == null || originalDomain.getTags() == null || originalDomain.getTags().isEmpty()) {
+            if (domainTags == null || domainTags.isEmpty()) {
+                // no tags to process..
+                return true;
+            }
+            return con.insertDomainTags(domainName, domainTags);
+        }
+        Map<String, StringList> originalDomainTags = originalDomain.getTags();
+
+        Set<String> tagsToRemove = originalDomainTags.entrySet().stream()
+            .filter(curTag -> domainTags.get(curTag.getKey()) == null
+                || !domainTags.get(curTag.getKey()).equals(curTag.getValue()))
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toSet());
+
+        Map<String, StringList> tagsToAdd = domainTags.entrySet().stream()
+            .filter(curTag -> originalDomainTags.get(curTag.getKey()) == null
+                || !originalDomainTags.get(curTag.getKey()).equals(curTag.getValue()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        boolean res = con.deleteDomainTags(originalDomain.getName(), tagsToRemove);
+
+        return res && con.insertDomainTags(originalDomain.getName(), tagsToAdd);
     }
 
     void updateDomainMembersUserAuthorityFilter(ResourceContext ctx, ObjectStoreConnection con, Domain domain,
@@ -3021,6 +3061,9 @@ public class DBService implements RolesProvider {
         }
         if (meta.getSignAlgorithm() != null) {
             domain.setSignAlgorithm(meta.getSignAlgorithm());
+        }
+        if (meta.getTags() != null) {
+            domain.setTags(meta.getTags());
         }
     }
 

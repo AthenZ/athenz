@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/yahoo/athenz/clients/go/zms"
 	"gopkg.in/yaml.v2"
@@ -302,9 +303,9 @@ func (cli Zms) LookupDomainById(account, subscription string, productID *int32) 
 	return nil, err
 }
 
-func (cli Zms) LookupDomainByTag(tagKey zms.CompoundName, tagValue zms.CompoundName) (*string, error) {
+func (cli Zms) LookupDomainByTag(tagKey string, tagValue string) (*string, error) {
 	var buf bytes.Buffer
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "", tagKey, tagValue, "")
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "", zms.CompoundName(tagKey), zms.CompoundName(tagValue), "")
 	if err == nil {
 		buf.WriteString("domain:\n")
 		for _, name := range res.Names {
@@ -412,6 +413,7 @@ func (cli Zms) showDomain(dn string) (*string, error) {
 
 	var buf bytes.Buffer
 	cli.dumpDomain(&buf, domain)
+	cli.dumpTags(&buf, true, indentLevel1, domain.Tags)
 	cli.dumpRoles(&buf, dn, "", "")
 	cli.dumpPolicies(&buf, dn)
 	cli.dumpServices(&buf, dn)
@@ -427,6 +429,19 @@ func (cli Zms) showDomain(dn string) (*string, error) {
 	return &s, nil
 }
 
+func (cli Zms) showDomainTags(dn string) (string, error) {
+
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return "", err
+	}
+	var buf bytes.Buffer
+	cli.dumpTags(&buf, false, indentLevel1, domain.Tags)
+
+	s := buf.String()
+	return s, nil
+}
+
 func getDomainMetaObject(domain *zms.Domain) zms.DomainMeta {
 	return zms.DomainMeta{
 		Description:           domain.Description,
@@ -438,6 +453,7 @@ func getDomainMetaObject(domain *zms.Domain) zms.DomainMeta {
 		MemberExpiryDays:      domain.MemberExpiryDays,
 		ServiceExpiryDays:     domain.ServiceExpiryDays,
 		GroupExpiryDays:       domain.GroupExpiryDays,
+		Tags:                  domain.Tags,
 	}
 }
 
@@ -602,6 +618,94 @@ func (cli Zms) SetDomainRoleCertExpiryMins(dn string, mins int32) (*string, erro
 	}
 	s := "[domain " + dn + " metadata successfully updated]\n"
 	return &s, nil
+}
+
+func (cli Zms) AddDomainTags(dn string, tagKey string, tagValues []string) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+
+	meta := getDomainMetaObject(domain)
+
+	tagValueArr := make([]zms.CompoundName, 0)
+
+	if meta.Tags == nil {
+		meta.Tags = map[zms.CompoundName]*zms.StringList{}
+	} else {
+		// append current tags
+		currentTagValues := meta.Tags[zms.CompoundName(tagKey)]
+		if currentTagValues != nil {
+			tagValueArr = append(tagValueArr, currentTagValues.List...)
+		}
+	}
+
+	for _, tagValue := range tagValues {
+		tagValueArr = append(tagValueArr, zms.CompoundName(tagValue))
+	}
+
+	meta.Tags[zms.CompoundName(tagKey)] = &zms.StringList{List: tagValueArr}
+
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+
+	output, err := cli.showDomainTags(dn)
+	output = "domain " + output
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.showDomainTags(dn)
+	}
+	return &output, err
+
+}
+
+func (cli Zms) DeleteDomainTags(dn string, tagKey string, tagValue string) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	meta := getDomainMetaObject(domain)
+
+	tagValueArr := make([]zms.CompoundName, 0)
+
+	if meta.Tags == nil {
+		meta.Tags = map[zms.CompoundName]*zms.StringList{}
+	}
+
+	// except given tagValue, set the same tags map
+	if tagValue != "" && meta.Tags != nil {
+		currentTagValues := meta.Tags[zms.CompoundName(tagKey)]
+		if currentTagValues != nil {
+			for _, curTagValue := range currentTagValues.List {
+				if tagValue != string(curTagValue) {
+					tagValueArr = append(tagValueArr, curTagValue)
+				}
+			}
+		}
+	}
+
+	meta.Tags[zms.CompoundName(tagKey)] = &zms.StringList{List: tagValueArr}
+
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+
+	output, err := cli.showDomainTags(dn)
+	output = "domain " + output
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.showDomainTags(dn)
+	}
+	return &output, err
 }
 
 func (cli Zms) SetDomainAccount(dn string, account string) (*string, error) {
