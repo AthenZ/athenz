@@ -22,6 +22,14 @@ import (
 	"strings"
 )
 
+var (
+	// VERSION gets set by the build script via the LDFLAGS.
+	VERSION string
+
+	// BUILD_DATE gets set by the build script via the LDFLAGS.
+	BUILD_DATE string
+)
+
 func usage() {
 	fmt.Println("usage: zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] <credentials> -zts <zts-server-url> [-expire-time <time-in-mins>]")
 	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-svc-cacert-file <ca-cert-file>] | ")
@@ -30,10 +38,18 @@ func usage() {
 	os.Exit(1)
 }
 
+func printVersion() {
+	if VERSION == "" {
+		fmt.Println("zts-accesstoken (development version)")
+	} else {
+		fmt.Println("zts-accesstoken " + VERSION + " " + BUILD_DATE)
+	}
+}
+
 func main() {
 	var domain, service, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr, conf, accessToken string
 	var expireTime int
-	var proxy, validate, claims bool
+	var proxy, validate, claims, showVersion bool
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
 	flag.StringVar(&service, "service", "", "name of provider service")
 	flag.StringVar(&roles, "roles", "", "comma separated list of provider roles")
@@ -49,7 +65,13 @@ func main() {
 	flag.BoolVar(&claims, "claims", false, "display all claims from access token")
 	flag.StringVar(&accessToken, "access-token", "", "access token to validate")
 	flag.StringVar(&conf, "conf", "/home/athenz/conf/athenz.conf", "path to configuration file with public keys")
+	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.Parse()
+
+	if showVersion {
+		printVersion()
+		return
+	}
 
 	if validate {
 		validateAccessToken(accessToken, conf, claims)

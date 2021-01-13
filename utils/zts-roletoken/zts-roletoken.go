@@ -19,6 +19,14 @@ import (
 	"github.com/yahoo/athenz/libs/go/zmssvctoken"
 )
 
+var (
+	// VERSION gets set by the build script via the LDFLAGS.
+	VERSION string
+
+	// BUILD_DATE gets set by the build script via the LDFLAGS.
+	BUILD_DATE string
+)
+
 func usage() {
 	fmt.Println("usage: zts-roletoken -domain <domain> [-role <role>] <credentials> -zts <zts-server-url> [-hdr <auth-header-name>] [-expire-time <time-in-mins>]")
 	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-svc-cacert-file <ca-cert-file>] |")
@@ -27,10 +35,18 @@ func usage() {
 	os.Exit(1)
 }
 
+func printVersion() {
+	if VERSION == "" {
+		fmt.Println("zts-roletoken (development version)")
+	} else {
+		fmt.Println("zts-roletoken " + VERSION + " " + BUILD_DATE)
+	}
+}
+
 func main() {
 	var domain, svcKeyFile, svcCertFile, svcCACertFile, role, ntoken, ntokenFile, ztsURL, hdr, roleToken, conf string
 	var expireTime int
-	var proxy, validate bool
+	var proxy, validate, showVersion bool
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
 	flag.StringVar(&role, "role", "", "name of provider role")
 	flag.StringVar(&ntoken, "ntoken", "", "service identity token")
@@ -45,7 +61,13 @@ func main() {
 	flag.BoolVar(&validate, "validate", false, "validate role token")
 	flag.StringVar(&roleToken, "role-token", "", "role token to validate")
 	flag.StringVar(&conf, "conf", "/home/athenz/conf/athenz.conf", "path to configuration file with public keys")
+	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.Parse()
+
+	if showVersion {
+		printVersion()
+		return
+	}
 
 	if validate {
 		validateRoleToken(roleToken, conf)

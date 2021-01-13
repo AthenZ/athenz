@@ -150,6 +150,14 @@ func usage() string {
 	return buf.String()
 }
 
+func printVersion() {
+	if VERSION == "" {
+		fmt.Println("athenz-conf (development version)")
+	} else {
+		fmt.Println("athenz-conf " + VERSION + " " + BUILD_DATE)
+	}
+}
+
 func loadNtokenFromFile(fileName string) (string, error) {
 	buf, err := ioutil.ReadFile(fileName)
 	if err != nil {
@@ -171,6 +179,8 @@ func main() {
 	pSocks := flag.String("s", defaultSocksProxy(), "The SOCKS5 proxy to route requests through, i.e. 127.0.0.1:1080")
 	pSkipVerify := flag.Bool("k", false, "Disable peer verification of SSL certificates")
 	pTimeout := flag.Int("m", 15, "Timeout in seconds for connection requests")
+	pShowVersion := flag.Bool("version", false, "Show version")
+
 	flag.Usage = func() {
 		fmt.Println(usage())
 	}
@@ -179,6 +189,11 @@ func main() {
 	// on the flags we defined above
 
 	flag.Parse()
+
+	if *pShowVersion {
+		printVersion()
+		return
+	}
 
 	zmsConfURL := normalizeServerURL(*pZMS, "/zms/v1")
 	ztsConfURL := normalizeServerURL(*pZTS, "/zts/v1")
@@ -196,11 +211,7 @@ func main() {
 			fmt.Println(usage())
 			return
 		} else if args[0] == "version" {
-			if VERSION == "" {
-				fmt.Println("athenz-conf (development version)")
-			} else {
-				fmt.Println("athenz-conf " + VERSION + " " + BUILD_DATE)
-			}
+			printVersion()
 			return
 		}
 	}
@@ -226,7 +237,7 @@ func main() {
 	var err error
 	if *pNtokenFile == "" {
 		if pKey == nil {
-			ntoken, err = getAuthNToken(identity, "", zmsURL, tr, time.Duration(time.Duration(*pTimeout) * time.Second))
+			ntoken, err = getAuthNToken(identity, "", zmsURL, tr, time.Duration(time.Duration(*pTimeout)*time.Second))
 			if err != nil {
 				log.Fatalf("Unable to get NToken: %v", err)
 			}
