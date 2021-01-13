@@ -169,6 +169,14 @@ func loadNtokenFromFile(fileName string) (string, error) {
 	return strings.TrimSpace(string(buf)), nil
 }
 
+func printVersion() {
+	if VERSION == "" {
+		fmt.Println("zms-cli (development version)")
+	} else {
+		fmt.Println("zms-cli " + VERSION + " " + BUILD_DATE)
+	}
+}
+
 func main() {
 	pZMS := flag.String("z", defaultZmsURL(), "Base URL of the ZMS server to use")
 	pIdentity := flag.String("i", defaultIdentity(), "the identity to authenticate as")
@@ -188,6 +196,8 @@ func main() {
 	pExcludeHeader := flag.Bool("x", false, "Exclude header in user-token output")
 	pX509KeyFile := flag.String("key", "", "x.509 private key file for authentication")
 	pX509CertFile := flag.String("cert", "", "x.509 certificate key file for authentication")
+	pShowVersion := flag.Bool("version", false, "Show version")
+
 	flag.Usage = func() {
 		fmt.Println(usage())
 	}
@@ -196,6 +206,11 @@ func main() {
 	// on the flags we defined above
 
 	flag.Parse()
+
+	if *pShowVersion {
+		printVersion()
+		return
+	}
 
 	if *pZMS == "" {
 		fmt.Println("No ZMS Url specified")
@@ -231,11 +246,7 @@ func main() {
 		}
 		return
 	} else if args[0] == "version" {
-		if VERSION == "" {
-			fmt.Println("zms-cli (development version)")
-		} else {
-			fmt.Println("zms-cli " + VERSION + " " + BUILD_DATE)
-		}
+		printVersion()
 		return
 	}
 

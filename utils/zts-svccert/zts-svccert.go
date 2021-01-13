@@ -28,12 +28,28 @@ type signer struct {
 	algorithm x509.SignatureAlgorithm
 }
 
+var (
+	// VERSION gets set by the build script via the LDFLAGS.
+	VERSION string
+
+	// BUILD_DATE gets set by the build script via the LDFLAGS.
+	BUILD_DATE string
+)
+
+func printVersion() {
+	if VERSION == "" {
+		fmt.Println("zts-svccert (development version)")
+	} else {
+		fmt.Println("zts-svccert " + VERSION + " " + BUILD_DATE)
+	}
+}
+
 func main() {
 	var ztsURL, serviceKey, serviceCert, domain, service, keyID string
 	var caCertFile, certFile, signerCertFile, dnsDomain, hdr, ip string
 	var subjC, subjO, subjOU, uri, provider, instance, instanceId string
 	var attestationDataFile string
-	var csr, spiffe bool
+	var csr, spiffe, showVersion bool
 	var expiryTime int
 	flag.BoolVar(&csr, "csr", false, "request csr only")
 	flag.BoolVar(&spiffe, "spiffe", true, "include spiffe uri in csr")
@@ -56,7 +72,13 @@ func main() {
 	flag.StringVar(&provider, "provider", "", "Athenz Provider")
 	flag.StringVar(&instance, "instance", "", "Instance Id")
 	flag.StringVar(&attestationDataFile, "attestation-data", "", "Attestation Data File")
+	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.Parse()
+
+	if showVersion {
+		printVersion()
+		return
+	}
 
 	if serviceKey == "" || domain == "" || service == "" || dnsDomain == "" {
 		log.Fatalln("Error: missing required attributes. Run with -help for command line arguments")

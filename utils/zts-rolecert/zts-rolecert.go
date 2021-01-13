@@ -27,12 +27,28 @@ type signer struct {
 	algorithm x509.SignatureAlgorithm
 }
 
+var (
+	// VERSION gets set by the build script via the LDFLAGS.
+	VERSION string
+
+	// BUILD_DATE gets set by the build script via the LDFLAGS.
+	BUILD_DATE string
+)
+
+func printVersion() {
+	if VERSION == "" {
+		fmt.Println("zts-rolecert (development version)")
+	} else {
+		fmt.Println("zts-rolecert " + VERSION + " " + BUILD_DATE)
+	}
+}
+
 func main() {
 
 	var ztsURL, svcKeyFile, svcCertFile, roleKeyFile, dom, svc string
 	var caCertFile, roleCertFile, roleDomain, roleName, dnsDomain string
 	var subjC, subjO, subjOU, ip, uri string
-	var spiffe, csr, proxy bool
+	var spiffe, csr, proxy, showVersion bool
 	var expiryTime int
 
 	flag.StringVar(&roleKeyFile, "role-key-file", "", "role cert private key file (default: service identity private key)")
@@ -54,8 +70,14 @@ func main() {
 	flag.BoolVar(&csr, "csr", false, "request csr only")
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes")
 	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
+	flag.BoolVar(&showVersion, "version", false, "Show version")
 
 	flag.Parse()
+
+	if showVersion {
+		printVersion()
+		return
+	}
 
 	if svcKeyFile == "" || svcCertFile == "" || roleDomain == "" || roleName == "" ||
 		ztsURL == "" || dnsDomain == "" {
