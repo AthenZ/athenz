@@ -3,41 +3,12 @@ planning to work on. At Verizon Media, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
-# Q1 2020
+# Q1 2021
 
-- Provide workflow in Athenz UI to approve role membership to satisfy
-  auditing and governance requirements.
-- Support self-serve and review enabled roles which would require
-  2 domain administrator approvals before a member becomes active.
-- Provide auto expiry support at both role and domain level with
-  separate values for human users and services.
-- Email notification support for any active hosts not refreshing their
-  service identity certificates.
-
-# Q2 2020
-
-- Review Reminder (soft expiry) support for role members. The role members
-  and the domain administrators still get expiry notifications, but the user
-  is not expired from the role causing a service outage.
-- Extend support to include additional SAN DNS values in the Service
-  Identity X.509 Certificate requests.
-- Support versioning of server templates. Provide support to auto-update
-  all domains that have a given template applied. Update Athenz UI to
-  display applied templates on a domain.
-
-# Q3 2020
-
-- Principal Group feature. The feature allows grouping users and services
-  and including those groups as principals in roles. Provides easier management
-  of groups, especially from external domains (rather than using delegated roles)
-- UI: Redesign Athenz UI to have better user experience when managing roles
-- Lookup all roles in all domains for given principal
-- Update feature documentation
-- Support saving case-sensitive action/resource values in policy assertions
-- Reduced Scope Service Identity Certificate Support - mark a provider service
-  with this scope such that those certificates cannot be used to make changes
-  in Athenz domains or request further tokens from ZTS.
-- Extend User Authority Filter feature to set at a domain level
+- Deliver OAuth 2.0 Rich Authorization Requests feature based on Internet Draft
+- Deliver Tag support feature for both roles and domains
+- Athenz Client libraries multi-release supporting JDK 8/11
+- Build and require the use of JDK 11 for server components
 
 # Q4 2020
 
@@ -54,9 +25,47 @@ we implement several smaller features as they're requested by our customers.
   access until the User Authority reports otherwise.
 - Improve rate limiting support per principal.
 
+# Q3 2020
+
+- Principal Group feature. The feature allows grouping users and services
+  and including those groups as principals in roles. Provides easier management
+  of groups, especially from external domains (rather than using delegated roles)
+- UI: Redesign Athenz UI to have better user experience when managing roles
+- Lookup all roles in all domains for given principal
+- Update feature documentation
+- Support saving case-sensitive action/resource values in policy assertions
+- Reduced Scope Service Identity Certificate Support - mark a provider service
+  with this scope such that those certificates cannot be used to make changes
+  in Athenz domains or request further tokens from ZTS.
+- Extend User Authority Filter feature to set at a domain level
+
+# Q2 2020
+
+- Review Reminder (soft expiry) support for role members. The role members
+  and the domain administrators still get expiry notifications, but the user
+  is not expired from the role causing a service outage.
+- Extend support to include additional SAN DNS values in the Service
+  Identity X.509 Certificate requests.
+- Support versioning of server templates. Provide support to auto-update
+  all domains that have a given template applied. Update Athenz UI to
+  display applied templates on a domain.
+  
+# Q1 2020
+
+- Provide workflow in Athenz UI to approve role membership to satisfy
+  auditing and governance requirements.
+- Support self-serve and review enabled roles which would require
+  2 domain administrator approvals before a member becomes active.
+- Provide auto expiry support at both role and domain level with
+  separate values for human users and services.
+- Email notification support for any active hosts not refreshing their
+  service identity certificates.
+
 # Future
 
-- Athenz Service Identity Provider for GCP
-- Athenz Client libraries multi-release supporting JDK 8/11
-- Build and require use of JDK 11 for server components
-
+- Unix SSH Access Management solution
+  - Define least privileged access policies in Athenz like who can login, sudo, what sudo commands are permitted for a given set of users, headless accounts, unix groups, headless users incoming and outgoing policies etc 
+  - Provision the access policies on the target hosts in near realtime
+- Micro Segmentation: Service Identity based ACLs (IP Table update) 
+- Athenz Integration with Google Cloud Platform (GCP)
+- Implement SPIFEE workload API to be 100% SPIFEE spec compliant
