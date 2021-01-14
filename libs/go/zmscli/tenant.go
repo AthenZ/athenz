@@ -20,11 +20,12 @@ func (cli Zms) DeleteTenancy(dn string, provider string) (*string, error) {
 	return &s, nil
 }
 
-func (cli Zms) AddTenancy(dn string, provider string) (*string, error) {
+func (cli Zms) AddTenancy(dn string, provider string, createAdminRole bool) (*string, error) {
 	tenancy := zms.Tenancy{
 		Domain:         zms.DomainName(dn),
 		Service:        zms.ServiceName(provider),
 		ResourceGroups: nil,
+		CreateAdminRole: &createAdminRole,
 	}
 	err := cli.Zms.PutTenancy(zms.DomainName(dn), zms.ServiceName(provider), cli.AuditRef, &tenancy)
 	if err != nil {
@@ -133,7 +134,7 @@ func (cli Zms) DeleteProviderResourceGroupRoles(tenantDomain string, providerDom
 	return &s, nil
 }
 
-func (cli Zms) AddProviderResourceGroupRoles(tenantDomain string, providerDomain string, providerService string, resourceGroup string, roleActions []string) (*string, error) {
+func (cli Zms) AddProviderResourceGroupRoles(tenantDomain string, providerDomain string, providerService string, resourceGroup string, createAdminRole bool, roleActions []string) (*string, error) {
 	tenantRoleActions := make([]*zms.TenantRoleAction, 0)
 	for _, item := range roleActions {
 		tokens := strings.Split(item, "=")
@@ -151,7 +152,9 @@ func (cli Zms) AddProviderResourceGroupRoles(tenantDomain string, providerDomain
 		Tenant:        zms.DomainName(tenantDomain),
 		Roles:         tenantRoleActions,
 		ResourceGroup: zms.EntityName(resourceGroup),
+		CreateAdminRole: &createAdminRole,
 	}
+
 	_, err := cli.Zms.PutProviderResourceGroupRoles(zms.DomainName(tenantDomain), zms.DomainName(providerDomain), zms.SimpleName(providerService), zms.EntityName(resourceGroup), cli.AuditRef, &providerRoles)
 	if err != nil {
 		return nil, err

@@ -2673,18 +2673,30 @@ public class ZMSCoreTest {
         assertEquals(t.getDomain(), "test.domain");
         assertEquals(t.getService(), "test-service");
         assertEquals(t.getResourceGroups(), rg);
+        assertTrue(t.getCreateAdminRole());
 
         Tenancy t2 = new Tenancy().setDomain("test.domain").setService("test-service").setResourceGroups(rg);
+        assertNull(t2.getCreateAdminRole());
+        t2.init();
+        assertTrue(t2.getCreateAdminRole());
 
         assertTrue(t2.equals(t));
         assertTrue(t.equals(t));
 
         t2.setResourceGroups(null);
         assertFalse(t2.equals(t));
+        t2.setResourceGroups(rg);
         t2.setService(null);
         assertFalse(t2.equals(t));
+        t2.setService("test-service");
         t2.setDomain(null);
         assertFalse(t2.equals(t));
+        t2.setDomain("test.domain");
+        t2.setCreateAdminRole(null);
+        assertFalse(t2.equals(t));
+        t2.setCreateAdminRole(false);
+        assertFalse(t2.equals(t));
+        t2.setCreateAdminRole(true);
         assertFalse(t2.equals(null));
         assertFalse(t.equals(new String()));
     }
@@ -2849,19 +2861,33 @@ public class ZMSCoreTest {
         ProviderResourceGroupRoles prgr2 = new ProviderResourceGroupRoles().setDomain("test.domain")
                 .setService("test-service").setTenant("test.tenant").setRoles(tral).setResourceGroup("test-group");
 
+        assertNull(prgr2.getCreateAdminRole());
+        prgr2.init();
+        assertTrue(prgr2.getCreateAdminRole());
+
         assertTrue(prgr2.equals(prgr));
         assertTrue(prgr.equals(prgr));
 
         prgr2.setResourceGroup(null);
         assertFalse(prgr2.equals(prgr));
+        prgr2.setResourceGroup("test-group");
         prgr2.setRoles(null);
         assertFalse(prgr2.equals(prgr));
+        prgr2.setRoles(tral);
         prgr2.setTenant(null);
         assertFalse(prgr2.equals(prgr));
+        prgr2.setTenant("test.tenant");
         prgr2.setService(null);
         assertFalse(prgr2.equals(prgr));
+        prgr2.setService("test-service");
         prgr2.setDomain(null);
         assertFalse(prgr2.equals(prgr));
+        prgr2.setDomain("test.domain");
+        prgr2.setCreateAdminRole(null);
+        assertFalse(prgr2.equals(prgr));
+        prgr2.setCreateAdminRole(false);
+        assertFalse(prgr2.equals(prgr));
+        prgr2.setCreateAdminRole(true);
         assertFalse(prgr2.equals(null));
         assertFalse(prgr.equals(new String()));
 

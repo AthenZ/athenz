@@ -651,10 +651,15 @@ public class ZMSImplTest {
 
     private Tenancy createTenantObject(String domain, String service) {
 
+        return createTenantObject(domain, service, true);
+    }
+
+    private Tenancy createTenantObject(String domain, String service, boolean createAdminRole) {
+
         Tenancy tenant = new Tenancy();
         tenant.setDomain(domain);
         tenant.setService(service);
-
+        tenant.setCreateAdminRole(createAdminRole);
         return tenant;
     }
 
@@ -8815,6 +8820,82 @@ public class ZMSImplTest {
         assertNotNull(policy);
 
         assertList = policy.getAssertions();
+        assertEquals(assertList.size(), 1);
+        assertEquals(assertList.get(0).getRole(), "addtenancydom1:role.coretech.storage.res_group.set1.reader");
+
+        policy = zms.getPolicy(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.res_group.set1.writer");
+        assertNotNull(policy);
+
+        assertList = policy.getAssertions();
+        assertEquals(assertList.size(), 1);
+        assertEquals(assertList.get(0).getRole(), "addtenancydom1:role.coretech.storage.res_group.set1.writer");
+
+        zms.deleteTenancy(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage", auditRef);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "AddTenancyDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
+    }
+
+    @Test
+    public void testPutTenancyWithoutAdmin() {
+
+        setupTenantDomainProviderService("AddTenancyDom1", "coretech", "storage",
+                "http://localhost:8090/provider");
+
+        Tenancy tenant = createTenantObject("AddTenancyDom1", "coretech.storage", false);
+        zms.putTenancy(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage", auditRef, tenant);
+
+        // now set up the tenant for the sub domain provider
+
+        List<TenantRoleAction> roleActions = new ArrayList<>();
+        for (Struct.Field f : TABLE_PROVIDER_ROLE_ACTIONS) {
+            roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
+                    (String) f.value()));
+        }
+
+        ProviderResourceGroupRoles providerRoles = new ProviderResourceGroupRoles()
+                .setDomain("coretech").setService("storage")
+                .setTenant("AddTenancyDom1").setRoles(roleActions)
+                .setResourceGroup("set1")
+                .setCreateAdminRole(false);
+        zms.putProviderResourceGroupRoles(mockDomRsrcCtx, "AddTenancyDom1", "coretech",
+                "storage", "set1", auditRef, providerRoles);
+
+
+        Role role;
+        // make sure tenancy admin role is not created
+        try {
+            role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.admin", false, false, false);
+            fail();
+        } catch(ResourceException re) {
+            assertEquals(re.getCode(), 404);
+        }
+
+        // make sure our roles have been created
+        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.admin", false, false, false);
+        assertNotNull(role);
+
+        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.reader", false, false, false);
+        assertNotNull(role);
+
+        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.writer", false, false, false);
+        assertNotNull(role);
+
+        // verify the policies have the correct roles
+
+        Policy policy;
+        // make sure tenancy admin policy is not created
+        try {
+            policy = zms.getPolicy(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.admin");
+            fail();
+        } catch(ResourceException re) {
+            assertEquals(re.getCode(), 404);
+        }
+
+        policy = zms.getPolicy(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.res_group.set1.reader");
+        assertNotNull(policy);
+
+        List<Assertion> assertList = policy.getAssertions();
         assertEquals(assertList.size(), 1);
         assertEquals(assertList.get(0).getRole(), "addtenancydom1:role.coretech.storage.res_group.set1.reader");
 
