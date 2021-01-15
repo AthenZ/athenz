@@ -9,6 +9,7 @@ type Tenancy Struct {
     DomainName domain; //the domain that is to get a tenancy
     ServiceName service; //the provider service on which the tenancy is to reside
     Array<EntityName> resourceGroups (optional); //registered resource groups for this tenant
+    Bool createAdminRole (optional, default=true); //optional flag indicating whether to create a default tenancy admin role
 }
 
 //A representation of tenant role action.
@@ -33,6 +34,7 @@ type ProviderResourceGroupRoles Struct {
     DomainName tenant; //name of the tenant domain
     Array<TenantRoleAction> roles; //the role/action pairs to provision
     EntityName resourceGroup; //tenant resource group
+    Bool createAdminRole (optional, default=true); //optional flag indicating whether to create a default tenancy admin role
 }
 
 //Register the provider service in the tenant's domain.

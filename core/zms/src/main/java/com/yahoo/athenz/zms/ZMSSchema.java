@@ -441,7 +441,8 @@ public class ZMSSchema {
             .comment("A representation of tenant.")
             .field("domain", "DomainName", false, "the domain that is to get a tenancy")
             .field("service", "ServiceName", false, "the provider service on which the tenancy is to reside")
-            .arrayField("resourceGroups", "EntityName", true, "registered resource groups for this tenant");
+            .arrayField("resourceGroups", "EntityName", true, "registered resource groups for this tenant")
+            .field("createAdminRole", "Bool", true, "optional flag indicating whether to create a default tenancy admin role", true);
 
         sb.structType("TenantRoleAction")
             .comment("A representation of tenant role action.")
@@ -462,7 +463,8 @@ public class ZMSSchema {
             .field("service", "SimpleName", false, "name of the provider service")
             .field("tenant", "DomainName", false, "name of the tenant domain")
             .arrayField("roles", "TenantRoleAction", false, "the role/action pairs to provision")
-            .field("resourceGroup", "EntityName", false, "tenant resource group");
+            .field("resourceGroup", "EntityName", false, "tenant resource group")
+            .field("createAdminRole", "Bool", true, "optional flag indicating whether to create a default tenancy admin role", true);
 
         sb.structType("Access")
             .comment("Access can be checked and returned as this resource.")

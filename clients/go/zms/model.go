@@ -5215,6 +5215,11 @@ type Tenancy struct {
 	// registered resource groups for this tenant
 	//
 	ResourceGroups []EntityName `json:"resourceGroups,omitempty" rdl:"optional"`
+
+	//
+	// optional flag indicating whether to create a default tenancy admin role
+	//
+	CreateAdminRole *bool `json:"createAdminRole,omitempty" rdl:"optional"`
 }
 
 //
@@ -5227,7 +5232,18 @@ func NewTenancy(init ...*Tenancy) *Tenancy {
 	} else {
 		o = new(Tenancy)
 	}
-	return o
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *Tenancy) Init() *Tenancy {
+	if self.CreateAdminRole == nil {
+		d := true
+		self.CreateAdminRole = &d
+	}
+	return self
 }
 
 type rawTenancy Tenancy
@@ -5240,7 +5256,7 @@ func (self *Tenancy) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &m)
 	if err == nil {
 		o := Tenancy(m)
-		*self = o
+		*self = *((&o).Init())
 		err = self.Validate()
 	}
 	return err
@@ -5480,6 +5496,11 @@ type ProviderResourceGroupRoles struct {
 	// tenant resource group
 	//
 	ResourceGroup EntityName `json:"resourceGroup"`
+
+	//
+	// optional flag indicating whether to create a default tenancy admin role
+	//
+	CreateAdminRole *bool `json:"createAdminRole,omitempty" rdl:"optional"`
 }
 
 //
@@ -5501,6 +5522,10 @@ func NewProviderResourceGroupRoles(init ...*ProviderResourceGroupRoles) *Provide
 func (self *ProviderResourceGroupRoles) Init() *ProviderResourceGroupRoles {
 	if self.Roles == nil {
 		self.Roles = make([]*TenantRoleAction, 0)
+	}
+	if self.CreateAdminRole == nil {
+		d := true
+		self.CreateAdminRole = &d
 	}
 	return self
 }

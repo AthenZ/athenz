@@ -555,7 +555,13 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "add-tenancy":
 			if argc == 1 {
-				return cli.AddTenancy(dn, args[0])
+				return cli.AddTenancy(dn, args[0], true)
+			} else if argc == 2 {
+				createAdminRole, err := strconv.ParseBool(args[1])
+				if err == nil {
+					return cli.AddTenancy(dn, args[0], createAdminRole)
+				}
+				return nil, err
 			}
 		case "delete-tenancy":
 			if argc == 1 {
@@ -578,8 +584,12 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.ShowProviderResourceGroupRoles(dn, args[0], args[1], args[2])
 			}
 		case "add-provider-resource-group-roles":
-			if argc > 3 {
-				return cli.AddProviderResourceGroupRoles(dn, args[0], args[1], args[2], args[3:])
+			if argc > 4 {
+				createAdminRole, err :=strconv.ParseBool(args[3])
+				if err == nil {
+					return cli.AddProviderResourceGroupRoles(dn, args[0], args[1], args[2], createAdminRole, args[4:])
+				}
+				return nil, err
 			}
 		case "delete-provider-resource-group-roles":
 			if argc == 3 {
@@ -1922,16 +1932,18 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " delete-tenant api weather\n")
 	case "add-tenancy":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " add-tenancy provider\n")
+		buf.WriteString("   " + domainParam + " add-tenancy provider [create_admin_role]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain   : name of the tenant's domain\n")
 		}
-		buf.WriteString("   provider : provider's service name to auto-provision tenancy for the domain\n")
-		buf.WriteString("            : the provider's name must be service common name in <domain>.<service> format\n")
-		buf.WriteString("            : the provider must support auto-provisioning and have configured endpoint in the service\n")
+		buf.WriteString("   provider 	   : provider's service name to auto-provision tenancy for the domain\n")
+		buf.WriteString("                   : the provider's name must be service common name in <domain>.<service> format\n")
+		buf.WriteString("                   : the provider must support auto-provisioning and have configured endpoint in the service\n")
+		buf.WriteString("   create_admin_role : optional flag indicating whether to create a default tenancy admin role\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " add-tenancy weather.storage\n")
+		buf.WriteString("   " + domainExample + " add-tenancy weather.storage false\n")
 	case "delete-tenancy":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " delete-tenancy provider\n")
@@ -2011,7 +2023,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " show-provider-resource-group-roles sports hosted dev_group\n")
 	case "add-provider-resource-group-roles":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " add-provider-resource-group-roles provider_domain provider_service resource_group role=action [role=action ...]\n")
+		buf.WriteString("   " + domainParam + " add-provider-resource-group-roles provider_domain provider_service resource_group create_admin_role role=action [role=action ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain           : tenant's domain name\n")
@@ -2021,12 +2033,14 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   resource_group   : name of the tenant's resource group\n")
 		buf.WriteString("   role             : name of the role to be added\n")
 		buf.WriteString("   action           : the action value for the role\n")
+		buf.WriteString("   create_admin_role: optional flag indicating whether to create a default tenancy admin role\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   tenant domain: coretech\n")
 		buf.WriteString("   provider domain: sports\n")
 		buf.WriteString("   provider service: hosted\n")
 		buf.WriteString("   resource group: dev_group\n")
-		buf.WriteString("   " + domainExample + " add-provider-resource-group-roles sports hosted dev_group readers=read writers=modify\n")
+		buf.WriteString("   create admin role: false\n")
+		buf.WriteString("   " + domainExample + " add-provider-resource-group-roles sports hosted dev_group false readers=read writers=modify\n")
 	case "delete-provider-resource-group-roles":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " delete-provider-resource-group-roles provider_domain provider_service resource_group\n")
@@ -2565,13 +2579,13 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString(" Tenancy commands:\n")
 	buf.WriteString("   add-tenant provider_service tenant_domain\n")
 	buf.WriteString("   delete-tenant provider_service tenant_domain\n")
-	buf.WriteString("   add-tenancy provider\n")
+	buf.WriteString("   add-tenancy provider [create_admin_role]\n")
 	buf.WriteString("   delete-tenancy provider\n")
 	buf.WriteString("   show-tenant-resource-group-roles service tenant_domain resource_group\n")
 	buf.WriteString("   add-tenant-resource-group-roles service tenant_domain resource_group role=action [role=action ...]\n")
 	buf.WriteString("   delete-tenant-resource-group-roles service tenant_domain resource_group\n")
 	buf.WriteString("   show-provider-resource-group-roles provider_domain provider_service resource_group\n")
-	buf.WriteString("   add-provider-resource-group-roles provider_domain provider_service resource_group role=action [role=action ...]\n")
+	buf.WriteString("   add-provider-resource-group-roles provider_domain provider_service resource_group create_admin_role role=action [role=action ...]\n")
 	buf.WriteString("   delete-provider-resource-group-roles provider_domain provider_service resource_group\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Template commands:\n")

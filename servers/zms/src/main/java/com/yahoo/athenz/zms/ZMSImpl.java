@@ -5757,10 +5757,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     + provider + "/" + authorizedService, caller);
         }
 
-        // set up our tenant admin policy so provider can check admin's access
+        if (!Boolean.FALSE.equals(detail.getCreateAdminRole())) {
+            // set up our tenant admin policy so provider can check admin's access
 
-        dbService.setupTenantAdminPolicy(tenantDomain, provSvcDomain,
-                provSvcName, auditRef, caller);
+            dbService.setupTenantAdminPolicy(tenantDomain, provSvcDomain,
+                    provSvcName, auditRef, caller);
+        }
 
         // if this is an authorized service token request then we're going to create
         // the corresponding admin role in the provider domain since that's been
@@ -6515,9 +6517,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 ", detail=" + detail);
         }
 
-        // set up our tenant admin policy so provider can check admin's access
+        if (!Boolean.FALSE.equals(detail.getCreateAdminRole())) {
+            // set up our tenant admin policy so provider can check admin's access
 
-        dbService.setupTenantAdminPolicy(tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
+            dbService.setupTenantAdminPolicy(tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
+        }
 
         // now we're going to setup our roles
 
