@@ -1,0 +1,15 @@
+# Copyright Verizon Media. Licensed under the terms of the Apache 2.0 license. See LICENSE in the project root.
+---
+cache:
+  job:
+    main: [/main_job_cache]
+
+jobs:
+  main:
+    requires: [~pr, ~commit]
+    image: maven:3.6.3-openjdk-8
+
+    steps:
+      - prepare_build: "screwdriver/scripts/prepare_build.sh"
+      - build: mvn install
+      - publish: "screwdriver/scripts/publish.sh"
