@@ -66,6 +66,14 @@ public class AuthzDetailsTest {
 
         assertEquals(fields.get(2).getName(), "resource");
         assertFalse(fields.get(2).isOptional());
+
+        // valid and invalid field names
+
+        assertTrue(entity.isValidField("location"));
+        assertTrue(entity.isValidField("identifier"));
+        assertTrue(entity.isValidField("resource"));
+
+        assertFalse(entity.isValidField("uuid"));
     }
 
     @Test
@@ -111,5 +119,13 @@ public class AuthzDetailsTest {
             fail();
         } catch (JsonProcessingException ignored) {
         }
+    }
+
+    @Test
+    public void testIsValidFieldNull() {
+        AuthzDetailsEntity entity = new AuthzDetailsEntity();
+        assertNull(entity.getFields());
+
+        assertFalse(entity.isValidField("type"));
     }
 }

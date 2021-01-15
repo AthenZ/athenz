@@ -74,12 +74,13 @@ public class SwaggerFilterTest {
         SwaggerFilter swaggerFilter = new SwaggerFilter(ztsHandler);
         swaggerFilter.init(filterConfig);
         swaggerFilter.doFilter(mockServletRequest, mockServletResponse, filterChain);
+        swaggerFilter.destroy();
     }
 
     @Test
     public void testDoFilterFailAuth() throws IOException, ServletException {
         Mockito.doThrow(new com.yahoo.athenz.zts.ResourceException(401,
-                new ResourceError().code(401).message("Unauthanticated"))).when(resourceContext).authenticate();
+                new ResourceError().code(401).message("Unauthenticated"))).when(resourceContext).authenticate();
 
         try {
             SwaggerFilter swaggerFilter = new SwaggerFilter(ztsHandler);

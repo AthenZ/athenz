@@ -15,10 +15,15 @@
  */
 package com.yahoo.athenz.common.server.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.common.config.AuthzDetailsEntity;
+import com.yahoo.athenz.common.config.AuthzDetailsField;
 import com.yahoo.athenz.zms.*;
+import com.yahoo.rdl.JSON;
+import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -737,5 +742,70 @@ public class AuthzHelperTest {
 
         assertTrue(AuthzHelper.checkRoleMemberValidity(members, "user.athenz2", nullFetcher));
         assertFalse(AuthzHelper.checkRoleMemberValidity(members, "user.athenz1", nullFetcher));
+    }
+
+    @Test
+    public void testConvertEntityToAuthzDetailsEntity() throws JsonProcessingException {
+
+        Entity entity = new Entity();
+        entity.setName("authorization_details");
+
+        final String jsonData = "{\"type\":\"message_access\",\"roles\":[{\"name\":\"msg-readers\"," +
+                "\"optional\":true},{\"name\":\"msg-writers\",\"optional\":false},{\"name\":" +
+                "\"msg-editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
+                "{\"name\":\"identifier\",\"optional\":false},{\"name\":\"resource\"}]}";
+
+        entity.setValue(JSON.fromString(jsonData, Struct.class));
+
+        AuthzDetailsEntity authzEntity = AuthzHelper.convertEntityToAuthzDetailsEntity(entity);
+        assertNotNull(authzEntity);
+
+        assertEquals(authzEntity.getType(), "message_access");
+
+        List<AuthzDetailsField> roles = authzEntity.getRoles();
+        assertNotNull(roles);
+        assertEquals(roles.size(), 3);
+
+        assertEquals(roles.get(0).getName(), "msg-readers");
+        assertTrue(roles.get(0).isOptional());
+
+        assertEquals(roles.get(1).getName(), "msg-writers");
+        assertFalse(roles.get(1).isOptional());
+
+        assertEquals(roles.get(2).getName(), "msg-editors");
+        assertFalse(roles.get(2).isOptional());
+
+        List<AuthzDetailsField> fields = authzEntity.getFields();
+        assertNotNull(fields);
+        assertEquals(fields.size(), 3);
+
+        assertEquals(fields.get(0).getName(), "location");
+        assertTrue(fields.get(0).isOptional());
+
+        assertEquals(fields.get(1).getName(), "identifier");
+        assertFalse(fields.get(1).isOptional());
+
+        assertEquals(fields.get(2).getName(), "resource");
+        assertFalse(fields.get(2).isOptional());
+    }
+
+    @Test
+    public void testConvertEntityToAuthzDetailsEntityInvalidDetails() {
+
+        Entity entity = new Entity();
+        entity.setName("authorization_details");
+
+        final String jsonData = "{\"type\":\"message_access\",\"policies\":[{\"name\":\"msg-readers\"," +
+                "\"optional\":true},{\"name\":\"msg-writers\",\"optional\":false},{\"name\":" +
+                "\"msg-editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
+                "{\"name\":\"identifier\",\"optional\":false},{\"name\":\"resource\"}]}";
+
+        entity.setValue(JSON.fromString(jsonData, Struct.class));
+
+        try {
+            AuthzHelper.convertEntityToAuthzDetailsEntity(entity);
+            fail();
+        } catch (JsonProcessingException ignored) {
+        }
     }
 }

@@ -28,6 +28,7 @@ public class AthenzDomain {
     private List<Group> groups;
     private List<Policy> policies;
     private List<ServiceIdentity> services;
+    private List<Entity> entities;
     private Domain domain = null;
 
     public AthenzDomain(String name) {
@@ -36,6 +37,7 @@ public class AthenzDomain {
         groups = new ArrayList<>();
         policies = new ArrayList<>();
         services = new ArrayList<>();
+        entities = new ArrayList<>();
     }
 
     public void setName(String name) {
@@ -56,6 +58,10 @@ public class AthenzDomain {
 
     public void setPolicies(List<Policy> policies) {
         this.policies = policies;
+    }
+
+    public void setEntities(List<Entity> entities) {
+        this.entities = entities;
     }
 
     public void setDomain(Domain domain) {
@@ -80,6 +86,10 @@ public class AthenzDomain {
 
     public List<ServiceIdentity> getServices() {
         return services;
+    }
+
+    public List<Entity> getEntities() {
+        return entities;
     }
 
     public Domain getDomain() {

@@ -65,6 +65,7 @@ public class AccessTokenTest {
         accessToken.setIssuer("athenz");
         accessToken.setProxyPrincipal("proxy.user");
         accessToken.setConfirmEntry("x5t#uri", "spiffe://athenz/sa/api");
+        accessToken.setAuthorizationDetails("[{\"type\":\"message_access\",\"data\":\"resource\"}]");
 
         try {
             Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
@@ -98,6 +99,7 @@ public class AccessTokenTest {
         assertEquals("spiffe://athenz/sa/api", confirm.get("x5t#uri"));
         assertEquals("spiffe://athenz/sa/api", accessToken.getConfirmEntry("x5t#uri"));
         assertNull(accessToken.getConfirmEntry("unknown"));
+        assertEquals("[{\"type\":\"message_access\",\"data\":\"resource\"}]", accessToken.getAuthorizationDetails());
 
         try {
             Path path = Paths.get("src/test/resources/mtls_token_spec.cert");

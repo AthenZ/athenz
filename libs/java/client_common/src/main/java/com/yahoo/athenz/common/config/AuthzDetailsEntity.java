@@ -19,7 +19,7 @@ import java.util.List;
 
 public class AuthzDetailsEntity {
 
-    public final static String ENTITY_NAME = "authorization_details";
+    public final static String ENTITY_NAME_PREFIX = "authorization_details_";
 
     private String type;
     private List<AuthzDetailsField> roles;
@@ -47,5 +47,17 @@ public class AuthzDetailsEntity {
 
     public void setFields(List<AuthzDetailsField> fields) {
         this.fields = fields;
+    }
+
+    public boolean isValidField(final String fieldName) {
+
+        if (fields != null) {
+            for (AuthzDetailsField field : fields) {
+                if (field.getName().equalsIgnoreCase(fieldName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

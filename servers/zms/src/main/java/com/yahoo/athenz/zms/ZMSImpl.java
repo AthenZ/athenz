@@ -22,6 +22,7 @@ import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
+import com.yahoo.athenz.common.config.AuthzDetailsField;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
@@ -188,7 +189,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected int httpsPort;
     protected int statusPort;
     protected int serviceNameMinLength;
-    protected int authzDetailsEntityMaxSize;
     protected Status successServerStatus = null;
     protected Set<String> reservedSystemDomains = null;
     protected File healthCheckFile = null;
@@ -783,11 +783,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // get server region
 
         serverRegion = System.getProperty(ZMSConsts.ZMS_PROP_SERVER_REGION);
-
-        // our max size for authorization details entity object
-
-        authzDetailsEntityMaxSize = Integer.parseInt(System.getProperty(
-                ZMSConsts.ZMS_PROP_AUTHZ_DETAILS_ENTITY_MAX_SIZE, ZMSConsts.ZMS_AUTHZ_DETAILS_ENTITY_MAX_SIZE_DEFAULT));
     }
 
     void loadObjectStore() {
@@ -2594,25 +2589,27 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     void validateAuthorizationDetailsEntity(final String entityName, Entity resource, final String caller) {
 
-        if (!AuthzDetailsEntity.ENTITY_NAME.equals(entityName)) {
+        if (!entityName.startsWith(AuthzDetailsEntity.ENTITY_NAME_PREFIX)) {
             return;
         }
 
-        // get the json representation of the struct and validate that we can
-        // parse into our details entity object
-
-        final String jsonData = JSON.string(resource.getValue());
-        if (jsonData.length() > authzDetailsEntityMaxSize) {
-            throw ZMSUtils.requestError("Authorization details entity too big", caller);
-        }
+        // convert our entity into the expected object
 
         try {
-            AuthzDetailsEntity authzDetailsEntity = jsonMapper.readValue(jsonData, AuthzDetailsEntity.class);
+            AuthzDetailsEntity authzDetailsEntity = AuthzHelper.convertEntityToAuthzDetailsEntity(resource);
 
             // make sure we have a type value present in the
 
             if (StringUtil.isEmpty(authzDetailsEntity.getType())) {
                 throw ZMSUtils.requestError("Authorization details entity object missing type", caller);
+            }
+            List<AuthzDetailsField> roles = authzDetailsEntity.getRoles();
+            if (roles == null || roles.isEmpty()) {
+                throw ZMSUtils.requestError("Authorization details entity object missing roles", caller);
+            }
+            List<AuthzDetailsField> fields = authzDetailsEntity.getFields();
+            if (fields == null || fields.isEmpty()) {
+                throw ZMSUtils.requestError("Authorization details entity object missing fields", caller);
             }
         } catch (JsonProcessingException ex) {
             throw ZMSUtils.requestError("Invalid authorization details entity object provided", caller);
@@ -5177,12 +5174,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             domainData.setTokenExpiryMins(athenzDomain.getDomain().getTokenExpiryMins());
         }
 
-        // set the roles, services, groups and tags
+        // set the domain tags
+
+        domainData.setTags(athenzDomain.getDomain().getTags());
+
+        // set the roles, services, groups and entities
 
         domainData.setRoles(athenzDomain.getRoles());
         domainData.setServices(athenzDomain.getServices());
         domainData.setGroups(athenzDomain.getGroups());
-        domainData.setTags(athenzDomain.getDomain().getTags());
+        domainData.setEntities(athenzDomain.getEntities());
 
         // generate the domain policy object that includes the domain
         // name and all policies. Then we'll sign this struct using

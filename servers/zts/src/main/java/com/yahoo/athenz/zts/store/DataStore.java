@@ -746,6 +746,18 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         }
     }
 
+    void processDomainEntities(DomainData domainData, DataCache domainCache) {
+
+        List<com.yahoo.athenz.zms.Entity> entities = domainData.getEntities();
+        if (entities == null) {
+            return;
+        }
+
+        for (com.yahoo.athenz.zms.Entity entity : entities) {
+            domainCache.processEntity(entity, domainData.getName());
+        }
+    }
+
     public boolean processDomain(SignedDomain signedDomain, boolean saveInStore) {
 
         DomainData domainData = signedDomain.getDomain();
@@ -787,10 +799,14 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         
         processDomainPolicies(domainData, domainCache);
 
-        /* finally process the service identities */
+        // next process the service identities
         
         processDomainServiceIdentities(domainData, domainCache);
-        
+
+        // finally process entities
+
+        processDomainEntities(domainData, domainCache);
+
         /* save the full domain object with the cache entry itself
          * since we need to that information to handle
          * getServiceIdentity and getServiceIdentityList requests */

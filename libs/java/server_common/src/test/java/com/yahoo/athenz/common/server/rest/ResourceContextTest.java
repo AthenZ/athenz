@@ -46,6 +46,9 @@ public class ResourceContextTest {
         assertEquals(context.request(), httpServletRequest);
         assertEquals(context.response(), httpServletResponse);
         assertNull(context.principal());
+
+        context.setRequestDomain("request-domain");
+        assertEquals(context.getRequestDomain(), "request-domain");
     }
 
     @Test

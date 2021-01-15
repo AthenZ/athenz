@@ -17,10 +17,14 @@ package com.yahoo.athenz.zts.cache;
 
 import java.util.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
+import com.yahoo.athenz.common.config.AuthzDetailsEntity;
+import com.yahoo.athenz.common.config.AuthzDetailsField;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +50,7 @@ public class DataCache {
     private final Map<String, List<String>> providerDnsSuffixCache;
     private final Map<String, List<String>> providerHostnameAllowedSuffixCache;
     private final Map<String, List<String>> providerHostnameDeniedSuffixCache;
+    private final Map<String, List<AuthzDetailsEntity>> authzDetailsCache;
 
     public static final String ACTION_ASSUME_ROLE = "assume_role";
     public static final String ACTION_ASSUME_AWS_ROLE = "assume_aws_role";
@@ -68,6 +73,7 @@ public class DataCache {
         providerDnsSuffixCache = new HashMap<>();
         providerHostnameAllowedSuffixCache = new HashMap<>();
         providerHostnameDeniedSuffixCache = new HashMap<>();
+        authzDetailsCache = new HashMap<>();
     }
     
     public void setDomainData(DomainData domainData) {
@@ -397,7 +403,47 @@ public class DataCache {
 
         processServiceIdentityPublicKeys(service.getName(), service.getPublicKeys());
     }
-    
+
+    public void processEntity(com.yahoo.athenz.zms.Entity entity, final String domainName) {
+
+        final String entityName = entity.getName();
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Processing entity: {}", entity.getName());
+        }
+
+        // at this time we're only support authorization_details entities
+        // in ZTS server so we'll ignore any other
+
+        if (!entityName.startsWith(ResourceUtils.entityResourceName(domainName, AuthzDetailsEntity.ENTITY_NAME_PREFIX))) {
+            return;
+        }
+
+        // we're going to convert our entity into authz object
+
+        AuthzDetailsEntity detailsEntity;
+        try {
+            detailsEntity = AuthzHelper.convertEntityToAuthzDetailsEntity(entity);
+        } catch (JsonProcessingException ex) {
+            LOGGER.error("Unable to process entity {}, error {}", entity.toString(), ex.getMessage());
+            return;
+        }
+
+        // go through each role specified in the request add the
+        // entity definition to the cache
+
+        for (AuthzDetailsField role : detailsEntity.getRoles()) {
+
+            final String roleName = role.getName();
+            if (!authzDetailsCache.containsKey(roleName)) {
+                authzDetailsCache.put(roleName, new ArrayList<>());
+            }
+
+            final List<AuthzDetailsEntity> entitiesForRole = authzDetailsCache.get(roleName);
+            entitiesForRole.add(detailsEntity);
+        }
+    }
+
     /**
      * Return roles belonging to a member
      * @param member whose roles we want
@@ -487,5 +533,9 @@ public class DataCache {
 
     public Map<String, List<String>> getProviderHostnameDeniedSuffixCache() {
         return providerHostnameDeniedSuffixCache;
+    }
+
+    public List<AuthzDetailsEntity> getAuthzDetailsEntities(final String role) {
+        return authzDetailsCache.get(role);
     }
 }

@@ -61,5 +61,12 @@ public class X509CertRecordTest {
         assertEquals(certRecord.getLastNotifiedServer(), "server");
         assertEquals(certRecord.getHostName(), "host");
         assertEquals(certRecord.getSvcDataUpdateTime(), now);
+
+        final String certStr = "X509CertRecord{provider='ostk', instanceId='instance-id', service='cn', " +
+                "currentSerial='current-serial', currentTime=" + now + ", currentIP='current-ip', " +
+                "prevSerial='prev-serial', prevTime=" + now  + ", prevIP='prev-ip', clientCert=true, " +
+                "lastNotifiedTime=" + now + ", lastNotifiedServer='server', expiryTime=" + now + ", " +
+                "hostName='host', svcDataUpdateTime=" + now + "}";
+        assertEquals(certRecord.toString(), certStr);
     }
 }

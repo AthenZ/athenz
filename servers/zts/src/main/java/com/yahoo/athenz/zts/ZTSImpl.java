@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response;
 import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
@@ -48,6 +49,7 @@ import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
+import com.yahoo.rdl.*;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -82,9 +84,6 @@ import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
-import com.yahoo.rdl.Schema;
-import com.yahoo.rdl.Timestamp;
-import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
@@ -141,6 +140,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean validateInstanceServiceIdentity = true;
     protected String ztsOAuthIssuer;
     protected File healthCheckFile = null;
+    protected int maxAuthzDetailsLength;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -173,6 +173,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String KEY_GRANT_TYPE = "grant_type";
     private static final String KEY_EXPIRES_IN = "expires_in";
     private static final String KEY_PROXY_FOR_PRINCIPAL = "proxy_for_principal";
+    private static final String KEY_AUTHORIZATION_DETAILS = "authorization_details";
+    private static final String KEY_TYPE = "type";
 
     private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
     private static final String OAUTH_BEARER_TOKEN = "Bearer";
@@ -507,6 +509,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         validateInstanceServiceIdentity = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, "true"));
+
+        // configured max length for authz details claims
+
+        maxAuthzDetailsLength = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_MAX_AUTHZ_DETAILS_LENGTH, "1024"));
     }
     
     static String getServerHostName() {
@@ -1532,6 +1539,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         String grantType = null;
         String scope = null;
         String proxyForPrincipal = null;
+        String authzDetails = null;
         int expiryTime = 0;
 
         String[] comps = request.split("&");
@@ -1567,6 +1575,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 case KEY_PROXY_FOR_PRINCIPAL:
                     proxyForPrincipal = getProxyForPrincipalValue(value.toLowerCase(), principalName,
                             principalDomain, caller);
+                    break;
+                case KEY_AUTHORIZATION_DETAILS:
+                    authzDetails = value;
                     break;
             }
         }
@@ -1617,6 +1628,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw notFoundError("No such domain: " + domainName, caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
+
+        // if we're given authorization details to be included in the
+        // token then we must have only role requested and we need
+        // to make sure the requested fields are valid according
+        // to our configured authorization details entity for the role
+
+        validateAuthorizationDetails(authzDetails, requestedRoles, data, caller, domainName, principalDomain);
 
         // check if the authorized service domain matches to the
         // requested domain name
@@ -1693,6 +1711,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         accessToken.setIssuer(ztsOAuthIssuer);
         accessToken.setProxyPrincipal(proxyUser);
         accessToken.setScope(new ArrayList<>(roles));
+        accessToken.setAuthorizationDetails(authzDetails);
 
         // if we have a certificate used for mTLS authentication then
         // we're going to bind the certificate to the access token
@@ -1749,6 +1768,85 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         return response;
+    }
+
+    private void validateAuthorizationDetails(final String authzDetails, final String[] requestedRoles,
+            DataCache data, final String caller, final String domainName, final String principalDomain) {
+
+        // if we have no authz details specified then there is nothing to check
+
+        if (StringUtil.isEmpty(authzDetails)) {
+            return;
+        }
+
+        // with authz details, we must have a single role name specified
+
+        if (requestedRoles == null || requestedRoles.length != 1) {
+            throw requestError("Authorization Details must be requested for a single role only",
+                    caller, domainName, principalDomain);
+        }
+
+        // authz details must not exceed our configured limit
+
+        if (authzDetails.length() > maxAuthzDetailsLength) {
+            throw requestError("Authorization Details exceeds configured length limit",
+                    caller, domainName, principalDomain);
+        }
+
+        // now extract the authz details defined for the role
+
+        List<AuthzDetailsEntity> roleAuthzDetails = data.getAuthzDetailsEntities(requestedRoles[0]);
+        if (roleAuthzDetails == null) {
+            throw requestError("Role not configured with Authorization Details",
+                    caller, domainName, principalDomain);
+        }
+
+        // let's parse our authz details into a struct first
+
+        List<LinkedHashMap> authzDetailsList = JSON.fromString(authzDetails, List.class);
+        if (authzDetailsList == null) {
+            LOGGER.error("Unable to parse authz details: {}", authzDetails);
+            throw requestError("Invalid Authorization Details data", caller, domainName, principalDomain);
+        }
+
+        // we should iterate through the given authz object and make sure those
+        // are valid for the given role
+
+        for (LinkedHashMap authzDetailsItem : authzDetailsList) {
+            if (!validateAuthzDetailsAgainstConfig(authzDetailsItem, roleAuthzDetails)) {
+                throw requestError("Authorization Details configuration mismatch", caller, domainName, principalDomain);
+            }
+        }
+    }
+
+    boolean validateAuthzDetailsAgainstConfig(LinkedHashMap authzDetailsItem, List<AuthzDetailsEntity> roleAuthzDetails) {
+
+        // first let's look for the config with the same type
+
+        final String type = (String) authzDetailsItem.get(KEY_TYPE);
+        for (AuthzDetailsEntity entity : roleAuthzDetails) {
+
+            if (!entity.getType().equals(type)) {
+                continue;
+            }
+
+            // go through other top level fields and make sure those
+            // are defined as fields in the config
+
+            Set<String> fields = authzDetailsItem.keySet();
+            for (String fieldName : fields) {
+                // skip the type field
+                if (KEY_TYPE.equals(fieldName)) {
+                    continue;
+                }
+                if (!entity.isValidField(fieldName)) {
+                    LOGGER.error("Invalid field name {} in request", fieldName);
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     boolean compareRoleSets(Set<String> set1, Set<String> set2) {
