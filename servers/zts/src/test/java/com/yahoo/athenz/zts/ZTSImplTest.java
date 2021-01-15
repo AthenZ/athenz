@@ -52,6 +52,8 @@ import com.yahoo.athenz.zts.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.MockCloudStore;
 import com.yahoo.athenz.zts.store.MockZMSFileChangeLogStore;
+import com.yahoo.rdl.JSON;
+import com.yahoo.rdl.Struct;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -366,7 +368,38 @@ public class ZTSImplTest {
         role.setName(generateRoleName(domainName, serviceName + ".tenant." + tenantDomain + ".admin"));
         role.setTrust(tenantDomain);
         roles.add(role);
-        
+
+        List<Entity> entities = new ArrayList<>();
+        String authzDetails = "{\"type\":\"message_access\",\"roles\":[" +
+                "{\"name\":\"writers\",\"optional\":false},{\"name\":" +
+                "\"editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
+                "{\"name\":\"identifier\",\"optional\":false},{\"name\":\"resource\"}]}";
+        Entity entity = new Entity().setName(ResourceUtils.entityResourceName(domainName, "authorization_details_setup1"))
+                .setValue(JSON.fromString(authzDetails, Struct.class));
+        entities.add(entity);
+
+        authzDetails = "{\"type\":\"record_access\",\"roles\":[" +
+                "{\"name\":\"writers\",\"optional\":false},{\"name\":" +
+                "\"editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
+                "{\"name\":\"identifier\",\"optional\":false}]}";
+        entity = new Entity().setName(ResourceUtils.entityResourceName(domainName, "authorization_details_setup2"))
+                .setValue(JSON.fromString(authzDetails, Struct.class));
+        entities.add(entity);
+
+        entity = new Entity().setName(ResourceUtils.entityResourceName(domainName, "entity1"))
+                .setValue(new Struct().with("key", "value"));
+        entities.add(entity);
+
+        // this one is invalid and will be skipped
+
+        authzDetails = "{\"type\":\"record_access\",\"data\":[" +
+                "{\"name\":\"writers\",\"optional\":false},{\"name\":" +
+                "\"editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
+                "{\"name\":\"identifier\",\"optional\":false}]}";
+        entity = new Entity().setName(ResourceUtils.entityResourceName(domainName, "authorization_details_setup3"))
+                .setValue(JSON.fromString(authzDetails, Struct.class));
+        entities.add(entity);
+
         List<ServiceIdentity> services = new ArrayList<>();
         
         if (includeServices) {
@@ -430,13 +463,14 @@ public class ZTSImplTest {
         signedPolicies.setContents(domainPolicies);
         signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
         signedPolicies.setKeyId("0");
-        
+
         DomainData domain = new DomainData();
         domain.setName(domainName);
         domain.setRoles(roles);
         domain.setGroups(groups);
         domain.setServices(services);
         domain.setPolicies(signedPolicies);
+        domain.setEntities(entities);
         domain.setModified(Timestamp.fromCurrentTime());
         
         signedDomain.setDomain(domain);
@@ -11279,5 +11313,145 @@ public class ZTSImplTest {
         roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user2");
         assertEquals(roleAccess.getRoles().size(), 1);
         assertTrue(roleAccess.getRoles().contains("role1"));
+    }
+
+    @Test
+    public void testPostAccessTokenRequestWithAuthorizationDetails() throws UnsupportedEncodingException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String authzDetails = "[{\"type\":\"message_access\",\"location\":[\"https://location1\"," +
+            "\"https://location2\"],\"identifier\":\"id1\"}]";
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:role.writers&authorization_details=" + authzDetails);
+        assertNotNull(resp);
+        assertNull(resp.getScope());
+
+        final String accessTokenStr = resp.getAccess_token();
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("coretech", claims.getBody().getAudience());
+        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
+        List<String> scopes = (List<String>) claims.getBody().get("scp");
+        assertNotNull(scopes);
+        assertEquals(1, scopes.size());
+        assertEquals("writers", scopes.get(0));
+        assertEquals(authzDetails, claims.getBody().get("authorization_details"));
+    }
+
+    @Test
+    public void testPostAccessTokenRequestWithAuthorizationDetailsFailures() {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        String authzDetails = "[{\"type\":\"message_access\",\"location\":[\"https://location1\"," +
+                "\"https://location2\"],\"identifier\":\"id1\"}]";
+
+        // no roles - should be rejected
+
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:domain&authorization_details=" + authzDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization Details must be requested for a single role only"));
+        }
+
+        // multiple roles - should be rejected
+
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.writers coretech:role.readers&authorization_details=" + authzDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization Details must be requested for a single role only"));
+        }
+
+        // missing role configuration - readers has no access
+
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.readers&authorization_details=" + authzDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Role not configured with Authorization Details"));
+        }
+
+        // invalid authz details request
+
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.writers&authorization_details={\"type\"}");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid Authorization Details data"));
+        }
+
+        // max length restriction
+
+        ztsImpl.maxAuthzDetailsLength = 10;
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.writers&authorization_details=" + authzDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization Details exceeds configured length limit"));
+        }
+        ztsImpl.maxAuthzDetailsLength = 1024;
+
+        // unknown type of authorization details
+
+        authzDetails = "[{\"type\":\"file_access\",\"location\":[\"https://location1\"," +
+                "\"https://location2\"],\"identifier\":\"id1\"}]";
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.writers&authorization_details=" + authzDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization Details configuration mismatch"));
+        }
+
+        // unknown field value should be rejected
+
+        authzDetails = "[{\"type\":\"message_access\",\"location\":[\"https://location1\"," +
+                "\"https://location2\"],\"uuid\":\"id1\"}]";
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.writers&authorization_details=" + authzDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization Details configuration mismatch"));
+        }
     }
 }

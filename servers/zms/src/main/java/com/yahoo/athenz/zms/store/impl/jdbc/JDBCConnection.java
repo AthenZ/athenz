@@ -208,6 +208,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_LIST_DOMAIN_TEMPLATE = "SELECT template FROM domain_template "
             + "JOIN domain ON domain_template.domain_id=domain.domain_id "
             + "WHERE domain.name=?;";
+    private static final String SQL_GET_DOMAIN_ENTITIES = "SELECT * FROM entity WHERE domain_id=?;";
     private static final String SQL_GET_DOMAIN_ROLES = "SELECT * FROM role WHERE domain_id=?;";
     private static final String SQL_GET_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, "
             + "role_member.review_reminder, role_member.system_disabled FROM principal "
@@ -3580,6 +3581,23 @@ public class JDBCConnection implements ObjectStoreConnection {
         athenzDomain.getServices().addAll(serviceMap.values());
     }
 
+    void getAthenzDomainEntities(String domainName, int domainId, AthenzDomain athenzDomain) {
+
+        final String caller = "getAthenzDomain";
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_ENTITIES)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    athenzDomain.getEntities().add(new Entity()
+                            .setName(ZMSUtils.entityResourceName(domainName, rs.getString(ZMSConsts.DB_COLUMN_NAME)))
+                            .setValue(JSON.fromString(rs.getString(ZMSConsts.DB_COLUMN_VALUE), Struct.class)));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+    }
+
     @Override
     public AthenzDomain getAthenzDomain(String domainName) {
 
@@ -3608,6 +3626,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         getAthenzDomainGroups(domainName, domainId, athenzDomain);
         getAthenzDomainPolicies(domainName, domainId, athenzDomain);
         getAthenzDomainServices(domainName, domainId, athenzDomain);
+        getAthenzDomainEntities(domainName, domainId, athenzDomain);
 
         return athenzDomain;
     }

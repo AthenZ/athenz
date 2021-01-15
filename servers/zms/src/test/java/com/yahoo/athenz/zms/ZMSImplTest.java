@@ -8591,7 +8591,7 @@ public class ZMSImplTest {
     @Test
     public void testPutEntityAuthzDetails() throws JsonProcessingException {
 
-        final String name = "authorization_details";
+        final String name = "authorization_details_setup";
         final String domainName = "put-entity-authz-details";
 
         Entity entity = new Entity();
@@ -8634,7 +8634,7 @@ public class ZMSImplTest {
     @Test
     public void testPutEntityAuthzDetailsInvalid() throws JsonProcessingException {
 
-        final String name = "authorization_details";
+        final String name = "authorization_details_setup";
         final String domainName = "put-entity-authz-details";
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
@@ -8671,23 +8671,32 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Authorization details entity object missing type"));
         }
 
-        // now let's try the size limitation
+        // now let's try without required role attribute
 
-        jsonData = "{\"type\":\"message_access\",\"roles\":[{\"name\":\"msg-readers\"," +
-                "\"optional\":true},{\"name\":\"msg-writers\",\"optional\":false},{\"name\":" +
-                "\"msg-editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
+        jsonData = "{\"type\":\"message_access\",\"fields\":[{\"name\":\"location\",\"optional\":true}," +
                 "{\"name\":\"identifier\",\"optional\":false},{\"name\":\"resource\"}]}";
         entity.setValue(JSON.fromString(jsonData, Struct.class));
 
-        int maxSize = zms.authzDetailsEntityMaxSize;
-        zms.authzDetailsEntityMaxSize = 10;
         try {
             zms.putEntity(mockDomRsrcCtx, domainName, name, auditRef, entity);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Authorization details entity too big"));
+            assertTrue(ex.getMessage().contains("Authorization details entity object missing roles"));
         }
-        zms.authzDetailsEntityMaxSize = maxSize;
+
+        // now let's try without required fields
+
+        jsonData = "{\"type\":\"message_access\",\"roles\":[{\"name\":\"msg-readers\"," +
+                "\"optional\":true},{\"name\":\"msg-writers\",\"optional\":false},{\"name\":" +
+                "\"msg-editors\"}]}";
+        entity.setValue(JSON.fromString(jsonData, Struct.class));
+
+        try {
+            zms.putEntity(mockDomRsrcCtx, domainName, name, auditRef, entity);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization details entity object missing fields"));
+        }
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -25333,6 +25342,45 @@ public class ZMSImplTest {
         // should be the newTags2
         domain = zms.getDomain(mockDomRsrcCtx, domainName);
         assertEquals(domain.getTags(), newTags2);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGetAthenzDomainWithEntities() {
+
+        final String domainName = "athenz-domain-with-entities";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Entity entity1 = createEntityObject("test-entity1");
+        zms.putEntity(mockDomRsrcCtx, domainName, "test-entity1", auditRef, entity1);
+
+        Entity entity2 = createEntityObject("test-entity2");
+        zms.putEntity(mockDomRsrcCtx, domainName, "test-entity2", auditRef, entity2);
+
+        AthenzDomain domain = zms.getAthenzDomain(domainName, false);
+        List<Entity> entities = domain.getEntities();
+        assertNotNull(entities);
+        assertEquals(entities.size(), 2);
+
+        boolean entity1Check = false;
+        boolean entity2Check = false;
+
+        for (Entity entity : entities) {
+            switch (entity.getName()) {
+                case "athenz-domain-with-entities.test-entity1":
+                    entity1Check = true;
+                    break;
+                case "athenz-domain-with-entities.test-entity2":
+                    entity2Check = true;
+                    break;
+            }
+        }
+
+        assertTrue(entity1Check);
+        assertTrue(entity2Check);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }

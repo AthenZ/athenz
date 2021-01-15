@@ -16,9 +16,13 @@
 
 package com.yahoo.athenz.common.server.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Timestamp;
 
@@ -28,6 +32,13 @@ import java.util.List;
 public class AuthzHelper {
 
     private static final String ASSUME_ROLE = "assume_role";
+    private static final ObjectMapper JSON_MAPPER = initJsonMapper();
+
+    static ObjectMapper initJsonMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+        return objectMapper;
+    }
 
     public static void removeRoleMembers(List<RoleMember> originalRoleMembers, List<RoleMember> removeRoleMembers) {
         if (removeRoleMembers == null || originalRoleMembers == null) {
@@ -271,7 +282,12 @@ public class AuthzHelper {
 
         return false;
     }
-    
+
+    public static AuthzDetailsEntity convertEntityToAuthzDetailsEntity(Entity entity) throws JsonProcessingException {
+        final String jsonData = JSON_MAPPER.writeValueAsString(entity.getValue());
+        return JSON_MAPPER.readValue(jsonData, AuthzDetailsEntity.class);
+    }
+
     /**
      * Extract group members for a given group name
      */
@@ -283,4 +299,5 @@ public class AuthzHelper {
          */
         List<GroupMember> getGroupMembers(String groupName);
     }
+
 }

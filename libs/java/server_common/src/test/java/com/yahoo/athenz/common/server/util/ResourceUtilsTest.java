@@ -32,4 +32,16 @@ public class ResourceUtilsTest {
         assertEquals(ResourceUtils.serviceResourceName("athenz", "service1"), "athenz.service1");
         assertEquals(ResourceUtils.serviceResourceName("athenz.api", "service1"), "athenz.api.service1");
     }
+
+    @Test
+    public void testEntityResourceName() {
+        assertEquals(ResourceUtils.entityResourceName("athenz", "entity1"), "athenz.entity1");
+        assertEquals(ResourceUtils.entityResourceName("athenz.api", "entity1"), "athenz.api.entity1");
+    }
+
+    @Test
+    public void testGroupResourceName() {
+        assertEquals(ResourceUtils.groupResourceName("athenz", "group1"), "athenz:group.group1");
+        assertEquals(ResourceUtils.groupResourceName("athenz.api", "group1"), "athenz.api:group.group1");
+    }
 }

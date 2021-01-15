@@ -38,4 +38,8 @@ public class ResourceUtils {
     public static String serviceResourceName(String domainName, String serviceName) {
         return generateResourceName(domainName, serviceName, "");
     }
+
+    public static String entityResourceName(String domainName, String entityName) {
+        return generateResourceName(domainName, entityName, "");
+    }
 }

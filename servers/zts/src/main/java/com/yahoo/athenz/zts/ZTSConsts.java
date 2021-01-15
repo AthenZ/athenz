@@ -194,6 +194,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_SSH_RECORD_STORE_FACTORY_CLASS   = "athenz.zts.ssh_record_store_factory_class";
     public static final String ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS    = "athenz.zts.validate_service_skip_domains";
     public static final String ZTS_PROP_VALIDATE_SERVICE_IDENTITY        = "athenz.zts.validate_service_identity";
+    public static final String ZTS_PROP_MAX_AUTHZ_DETAILS_LENGTH         = "athenz.zts.max_authz_details_length";
 
     public static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS  = "com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStoreFactory";
     public static final String ZTS_PKEY_STORE_FACTORY_CLASS        = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";

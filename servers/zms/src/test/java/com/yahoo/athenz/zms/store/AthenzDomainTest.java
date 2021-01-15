@@ -16,11 +16,10 @@
 package com.yahoo.athenz.zms.store;
 
 import com.yahoo.athenz.zms.*;
+import com.yahoo.rdl.Struct;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.testng.Assert.*;
@@ -36,6 +35,7 @@ public class AthenzDomainTest {
         assertTrue(athenzDomain.getGroups().isEmpty());
         assertTrue(athenzDomain.getPolicies().isEmpty());
         assertTrue(athenzDomain.getServices().isEmpty());
+        assertTrue(athenzDomain.getEntities().isEmpty());
 
         List<Role> roles = new ArrayList<>();
         roles.add(new Role().setName("role1"));
@@ -53,9 +53,14 @@ public class AthenzDomainTest {
         services.add(new ServiceIdentity().setName("service1"));
         athenzDomain.setServices(services);
 
+        List<Entity> entities = new ArrayList<>();
+        entities.add(new Entity().setName("entity1").setValue(new Struct().with("value", "data1")));
+        athenzDomain.setEntities(entities);
+
         assertEquals(athenzDomain.getRoles().size(), 1);
         assertEquals(athenzDomain.getGroups().size(), 1);
         assertEquals(athenzDomain.getPolicies().size(), 1);
         assertEquals(athenzDomain.getServices().size(), 1);
+        assertEquals(athenzDomain.getEntities().size(), 1);
     }
 }

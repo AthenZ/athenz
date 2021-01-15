@@ -41,6 +41,7 @@ public class AccessToken extends OAuth2Token {
     public static final String CLAIM_CLIENT_ID = "client_id";
     public static final String CLAIM_CONFIRM = "cnf";
     public static final String CLAIM_PROXY = "proxy";
+    public static final String CLAIM_AUTHZ_DETAILS = "authorization_details";
 
     public static final String CLAIM_CONFIRM_X509_HASH = "x5t#S256";
 
@@ -55,6 +56,7 @@ public class AccessToken extends OAuth2Token {
     private String clientId;
     private String userId;
     private String proxyPrincipal;
+    private String authorizationDetails;
     private List<String> scope;
     private LinkedHashMap<String, Object> confirm;
 
@@ -196,6 +198,7 @@ public class AccessToken extends OAuth2Token {
         setProxyPrincipal(body.get(CLAIM_PROXY, String.class));
         setScope(body.get(CLAIM_SCOPE, List.class));
         setConfirm(body.get(CLAIM_CONFIRM, LinkedHashMap.class));
+        setAuthorizationDetails(body.get(CLAIM_AUTHZ_DETAILS, String.class));
     }
 
     public String getClientId() {
@@ -212,6 +215,14 @@ public class AccessToken extends OAuth2Token {
 
     public void setProxyPrincipal(String proxyPrincipal) {
         this.proxyPrincipal = proxyPrincipal;
+    }
+
+    public String getAuthorizationDetails() {
+        return authorizationDetails;
+    }
+
+    public void setAuthorizationDetails(String authorizationDetails) {
+        this.authorizationDetails = authorizationDetails;
     }
 
     public String getUserId() {
@@ -394,6 +405,7 @@ public class AccessToken extends OAuth2Token {
                 .claim(CLAIM_CLIENT_ID, clientId)
                 .claim(CLAIM_CONFIRM, confirm)
                 .claim(CLAIM_PROXY, proxyPrincipal)
+                .claim(CLAIM_AUTHZ_DETAILS, authorizationDetails)
                 .setHeaderParam(HDR_KEY_ID, keyId)
                 .setHeaderParam(HDR_TOKEN_TYPE, HDR_TOKEN_JWT)
                 .signWith(key, keyAlg)
