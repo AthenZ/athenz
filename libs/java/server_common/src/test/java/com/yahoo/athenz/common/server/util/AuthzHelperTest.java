@@ -748,7 +748,7 @@ public class AuthzHelperTest {
     public void testConvertEntityToAuthzDetailsEntity() throws JsonProcessingException {
 
         Entity entity = new Entity();
-        entity.setName("authorization_details");
+        entity.setName("athenz:entity.zts.authorization_details_set1");
 
         final String jsonData = "{\"type\":\"message_access\",\"roles\":[{\"name\":\"msg-readers\"," +
                 "\"optional\":true},{\"name\":\"msg-writers\",\"optional\":false},{\"name\":" +
@@ -793,7 +793,7 @@ public class AuthzHelperTest {
     public void testConvertEntityToAuthzDetailsEntityInvalidDetails() {
 
         Entity entity = new Entity();
-        entity.setName("authorization_details");
+        entity.setName("athenz:entity.zts.authorization_details_set1");
 
         final String jsonData = "{\"type\":\"message_access\",\"policies\":[{\"name\":\"msg-readers\"," +
                 "\"optional\":true},{\"name\":\"msg-writers\",\"optional\":false},{\"name\":" +

@@ -39,7 +39,11 @@ public class ResourceUtils {
         return generateResourceName(domainName, serviceName, "");
     }
 
+    public static String policyResourceName(String domainName, String policyName) {
+        return generateResourceName(domainName, policyName, ServerCommonConsts.OBJECT_POLICY);
+    }
+
     public static String entityResourceName(String domainName, String entityName) {
-        return generateResourceName(domainName, entityName, "");
+        return generateResourceName(domainName, entityName, ServerCommonConsts.OBJECT_ENTITY);
     }
 }

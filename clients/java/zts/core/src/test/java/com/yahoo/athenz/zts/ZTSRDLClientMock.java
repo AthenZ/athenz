@@ -34,6 +34,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     private String policyName = null;
     private List<String> tenantDomains = null;
     private int jwkExcCode = 0;
+    private int requestCount = 0;
 
     Map<String, AWSTemporaryCredentials> credsMap = new HashMap<>();
 
@@ -194,6 +195,9 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain+openid+coretech%3Aservice.backend")) {
             tokenResponse.setScope("coretech:role.role1");
             tokenResponse.setId_token("idtoken");
+        } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Arole.role1&authorization_details=%5B%7B%22type%22%3A%22message_access%22%2C%22location%22%3A%5B%22https%3A%2F%2Flocation1%22%2C%22https%3A%2F%2Flocation2%22%5D%2C%22identifier%22%3A%22id1%22%7D%5D")) {
+            tokenResponse.setAccess_token("accesstoken-authz-details");
+            tokenResponse.setExpires_in(3600 + requestCount);
         } else if (request.equals("grant_type=client_credentials&expires_in=500&scope=resourceexception%3Adomain")) {
             throw new ResourceException(400, "Unable to get access token");
         } else if (request.equals("grant_type=client_credentials&expires_in=500&scope=exception%3Adomain")) {
@@ -213,6 +217,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
             }
         }
 
+        requestCount += 1;
         return tokenResponse;
     }
 

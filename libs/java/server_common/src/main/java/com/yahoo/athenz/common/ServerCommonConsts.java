@@ -20,6 +20,8 @@ public final class ServerCommonConsts {
     public static final String ADMIN_ROLE_NAME  = "admin";
     public static final String OBJECT_ROLE      = "role";
     public static final String OBJECT_GROUP     = "group";
+    public static final String OBJECT_POLICY    = "policy";
+    public static final String OBJECT_ENTITY    = "entity";
     public static final String USER_DOMAIN      = "user";
 
     public static final String USER_DOMAIN_PREFIX = "user.";
