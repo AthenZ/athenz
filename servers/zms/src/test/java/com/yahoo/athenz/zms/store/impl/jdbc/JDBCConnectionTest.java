@@ -5353,7 +5353,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Entity entity = jdbcConn.getEntity("my-domain", "entity1");
         assertNotNull(entity);
-        assertEquals("entity1", entity.getName());
+        assertEquals("my-domain:entity.entity1", entity.getName());
         assertEquals("{\"value\":1}", JSON.string(entity.getValue()));
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "entity1");
@@ -5418,7 +5418,8 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Entity entity = new Entity().setName("entity1").setValue(JSON.fromString("{\"value\":1}", Struct.class));
+        Entity entity = new Entity().setName("my-domain:entity.entity1")
+                .setValue(JSON.fromString("{\"value\":1}", Struct.class));
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -5438,7 +5439,8 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Entity entity = new Entity().setName("entity1").setValue(JSON.fromString("{\"value\":1}", Struct.class));
+        Entity entity = new Entity().setName("my-domain:entity.entity1")
+                .setValue(JSON.fromString("{\"value\":1}", Struct.class));
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
         try {
@@ -5455,7 +5457,8 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Entity entity = new Entity().setName("entity1").setValue(JSON.fromString("{\"value\":1}", Struct.class));
+        Entity entity = new Entity().setName("my-domain:entity.entity1")
+                .setValue(JSON.fromString("{\"value\":1}", Struct.class));
 
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
@@ -5475,7 +5478,8 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Entity entity = new Entity().setName("entity1").setValue(JSON.fromString("{\"value\":1}", Struct.class));
+        Entity entity = new Entity().setName("my-domain:entity.entity1")
+                .setValue(JSON.fromString("{\"value\":1}", Struct.class));
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -5496,7 +5500,8 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Entity entity = new Entity().setName("entity1").setValue(JSON.fromString("{\"value\":1}", Struct.class));
+        Entity entity = new Entity().setName("my-domain:entity.entity1")
+                .setValue(JSON.fromString("{\"value\":1}", Struct.class));
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
         try {
@@ -5513,7 +5518,8 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Entity entity = new Entity().setName("entity1").setValue(JSON.fromString("{\"value\":1}", Struct.class));
+        Entity entity = new Entity().setName("my-domain:entity.entity1")
+                .setValue(JSON.fromString("{\"value\":1}", Struct.class));
 
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id

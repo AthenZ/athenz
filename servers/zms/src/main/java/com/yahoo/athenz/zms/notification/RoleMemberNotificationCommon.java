@@ -17,10 +17,10 @@
 package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.notification.*;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.DomainRoleMember;
 import com.yahoo.athenz.zms.MemberRole;
-import com.yahoo.athenz.zms.utils.ZMSUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,7 +80,7 @@ public class RoleMemberNotificationCommon {
 
             Map<String, String> details = processMemberReminder(domainAdmin.getKey(), domainAdmin.getValue(), roleMemberDetailStringer);
             Notification notification = notificationCommon.createNotification(
-                    ZMSUtils.roleResourceName(domainAdmin.getKey(), ADMIN_ROLE_NAME),
+                    ResourceUtils.roleResourceName(domainAdmin.getKey(), ADMIN_ROLE_NAME),
                     details,
                     domainAdminNotificationToEmailConverter,
                     domainAdminNotificationToMetricConverter);

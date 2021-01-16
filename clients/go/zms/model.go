@@ -4078,7 +4078,7 @@ type Entity struct {
 	//
 	// name of the entity object
 	//
-	Name EntityName `json:"name"`
+	Name ResourceName `json:"name"`
 
 	//
 	// value of the entity
@@ -4132,9 +4132,9 @@ func (self *Entity) Validate() error {
 	if self.Name == "" {
 		return fmt.Errorf("Entity.name is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "EntityName", self.Name)
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.Name)
 		if !val.Valid {
-			return fmt.Errorf("Entity.name does not contain a valid EntityName (%v)", val.Error)
+			return fmt.Errorf("Entity.name does not contain a valid ResourceName (%v)", val.Error)
 		}
 	}
 	if self.Value == nil {

@@ -27,7 +27,6 @@ import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
-import com.yahoo.rdl.Array;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 
@@ -275,10 +274,10 @@ public class ZMSClientTest {
         return service;
     }
 
-    private Entity createEntityObject(ZMSClient client, String entityName) {
+    private Entity createEntityObject(ZMSClient client, String domainName, String entityName) {
 
         Entity entity = new Entity();
-        entity.setName(entityName);
+        entity.setName(client.generateEntityName(domainName, entityName));
 
         Struct value = new Struct();
         value.put("Key1", "Value1");
@@ -799,7 +798,7 @@ public class ZMSClientTest {
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
 
-        Entity entity1 = createEntityObject(client, "Entity1");
+        Entity entity1 = createEntityObject(client, "CreateEntityDom1", "Entity1");
         client.putEntity("CreateEntityDom1", "Entity1", AUDIT_REF, entity1);
 
         Entity entity2 = client.getEntity("CreateEntityDom1", "Entity1");
@@ -845,10 +844,10 @@ public class ZMSClientTest {
                 "Test Domain1", "testOrg", adminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
 
-        Entity entity1 = createEntityObject(client, "Entity1");
+        Entity entity1 = createEntityObject(client, "DelEntityDom1", "Entity1");
         client.putEntity("DelEntityDom1", "Entity1", AUDIT_REF, entity1);
 
-        Entity entity2 = createEntityObject(client, "Entity2");
+        Entity entity2 = createEntityObject(client, "DelEntityDom1", "Entity2");
         client.putEntity("DelEntityDom1", "Entity2", AUDIT_REF, entity2);
 
         Entity entityRes = client.getEntity("DelEntityDom1", "Entity1");
@@ -2424,22 +2423,6 @@ public class ZMSClientTest {
         client.close();
     }
 
-    Struct setupRespHdrsStruct() {
-
-        Struct respHdrs = new Struct();
-        Array values = new Array();
-        values.add("Value1A");
-        values.add("Value1B");
-        respHdrs.put("tag1", values);
-
-        values = new Array();
-        values.add("Value2A");
-        values.add("Value2B");
-        respHdrs.put("tag2", values);
-
-        return respHdrs;
-    }
-
     private void setEnv(String key, String value) {
         try {
             Map<String, String> env = System.getenv();
@@ -2458,7 +2441,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testLookupZMSUrl() throws Exception {
+    public void testLookupZMSUrl() {
 
         System.setProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         ZMSClient client = new ZMSClient(getZMSUrl());

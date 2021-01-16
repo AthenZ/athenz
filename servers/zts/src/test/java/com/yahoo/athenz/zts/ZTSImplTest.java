@@ -374,16 +374,16 @@ public class ZTSImplTest {
                 "{\"name\":\"writers\",\"optional\":false},{\"name\":" +
                 "\"editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
                 "{\"name\":\"identifier\",\"optional\":false},{\"name\":\"resource\"}]}";
-        Entity entity = new Entity().setName(ResourceUtils.entityResourceName(domainName, "authorization_details_setup1"))
-                .setValue(JSON.fromString(authzDetails, Struct.class));
+        Entity entity = new Entity().setName(ResourceUtils.entityResourceName(domainName, "zts.authorization_details_setup1"))
+                .setValue(new Struct().with("data", authzDetails));
         entities.add(entity);
 
         authzDetails = "{\"type\":\"record_access\",\"roles\":[" +
                 "{\"name\":\"writers\",\"optional\":false},{\"name\":" +
                 "\"editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
                 "{\"name\":\"identifier\",\"optional\":false}]}";
-        entity = new Entity().setName(ResourceUtils.entityResourceName(domainName, "authorization_details_setup2"))
-                .setValue(JSON.fromString(authzDetails, Struct.class));
+        entity = new Entity().setName(ResourceUtils.entityResourceName(domainName, "zts.authorization_details_setup2"))
+                .setValue(new Struct().with("data", authzDetails));
         entities.add(entity);
 
         entity = new Entity().setName(ResourceUtils.entityResourceName(domainName, "entity1"))
@@ -396,8 +396,8 @@ public class ZTSImplTest {
                 "{\"name\":\"writers\",\"optional\":false},{\"name\":" +
                 "\"editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
                 "{\"name\":\"identifier\",\"optional\":false}]}";
-        entity = new Entity().setName(ResourceUtils.entityResourceName(domainName, "authorization_details_setup3"))
-                .setValue(JSON.fromString(authzDetails, Struct.class));
+        entity = new Entity().setName(ResourceUtils.entityResourceName(domainName, "zts.authorization_details_setup3"))
+                .setValue(new Struct().with("data", authzDetails));
         entities.add(entity);
 
         List<ServiceIdentity> services = new ArrayList<>();
