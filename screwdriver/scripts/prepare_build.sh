@@ -16,3 +16,5 @@ apt-get install -y software-properties-common
 add-apt-repository -y ppa:ubuntu-toolchain-r/test
 apt-get install -y gcc
 apt-get install -y g++
+
+go version
