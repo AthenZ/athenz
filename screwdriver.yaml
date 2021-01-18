@@ -11,5 +11,5 @@ jobs:
 
     steps:
       - prepare_build: "screwdriver/scripts/prepare_build.sh"
-      - build: mvn install
+      - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
