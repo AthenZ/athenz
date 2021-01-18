@@ -5,8 +5,9 @@ apt-get update
 apt-get install -y nodejs
 apt-get install -y npm
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.37.2/install.sh | bash
-source ~/.bashrc
-nvm install 12
+dnf module install nodejs:12
+#source ~/.bashrc
+#nvm install 12
 npm install -g npm@latest
 
 apt-get install -y software-properties-common
