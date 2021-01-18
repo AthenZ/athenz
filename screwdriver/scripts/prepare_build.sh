@@ -6,7 +6,10 @@ apt-get update
 
 apt-get install -y nodejs
 apt-get install -y npm
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.37.2/install.sh | bash
+#curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.37.2/install.sh | bash
+yum install epel-release -y
+yum install dnf -y
+
 dnf module install nodejs:12
 #source ~/.bashrc
 #nvm install 12
