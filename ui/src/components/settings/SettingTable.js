@@ -51,9 +51,9 @@ export default class SettingTable extends React.Component {
         this.onSubmitUpdate = this.onSubmitUpdate.bind(this);
         this.onClickUpdateCancel = this.onClickUpdateCancel.bind(this);
         this.closeModal = this.closeModal.bind(this);
-        this.updateRoleMeta = this.updateRoleMeta.bind(this);
+        this.updateCollectionMeta = this.updateCollectionMeta.bind(this);
         this.onValueChange = this.onValueChange.bind(this);
-
+        this.checkValueChange = this.checkValueChange.bind(this);
         this.state = {
             reviewEnabled: !!props.collectionDetails.reviewEnabled,
             selfServe: !!props.collectionDetails.selfServe,
@@ -68,6 +68,18 @@ export default class SettingTable extends React.Component {
             valueChanged: false,
         };
     }
+
+    componentDidUpdate = (prevProps) => {
+        if (
+            prevProps.collection !== this.props.collection ||
+            prevProps.domain !== this.props.domain ||
+            prevProps.collectionDetails !== this.props.collectionDetails
+        ) {
+            this.setState({
+                collectionDetails: this.props.collectionDetails,
+            });
+        }
+    };
 
     toggleSubmit() {
         this.setState({
@@ -118,7 +130,7 @@ export default class SettingTable extends React.Component {
             });
             return;
         }
-        this.updateRoleMeta();
+        this.updateCollectionMeta();
     }
 
     onClickUpdateCancel() {
@@ -129,47 +141,117 @@ export default class SettingTable extends React.Component {
     }
 
     onValueChange(name, val) {
-        this.setState({
-            valueChanged: true,
-        });
+        let valChanged = false;
         switch (name) {
             case 'reviewEnabled':
                 this.setState({
                     reviewEnabled: val,
                 });
+                if (val !== !!this.props.collectionDetails.reviewEnabled) {
+                    valChanged = true;
+                }
                 break;
             case 'selfServe':
                 this.setState({
                     selfServe: val,
                 });
+                if (val !== !!this.props.collectionDetails.selfServe) {
+                    valChanged = true;
+                }
                 break;
             case 'memberExpiryDays':
                 this.setState({
                     memberExpiryDays: val,
                 });
+                if (val !== this.props.collectionDetails.memberExpiryDays) {
+                    valChanged = true;
+                }
                 break;
             case 'serviceExpiryDays':
                 this.setState({
                     serviceExpiryDays: val,
                 });
+                if (val !== this.props.collectionDetails.serviceExpiryDays) {
+                    valChanged = true;
+                }
                 break;
             case 'tokenExpiryMins':
                 this.setState({
                     tokenExpiryMins: val,
                 });
+                if (val !== this.props.collectionDetails.tokenExpiryMins) {
+                    valChanged = true;
+                }
                 break;
             case 'certExpiryMins':
                 this.setState({
                     certExpiryMins: val,
                 });
+                if (val !== this.props.collectionDetails.certExpiryMins) {
+                    valChanged = true;
+                }
                 break;
             case 'groupExpiryDays':
                 this.setState({
                     groupExpiryDays: val,
                 });
+                if (val !== this.props.collectionDetails.groupExpiryDays) {
+                    valChanged = true;
+                }
                 break;
             default:
                 break;
+        }
+        let tempValueChange = this.checkValueChange(name) || valChanged;
+        this.setState({
+            valueChanged: tempValueChange,
+        });
+    }
+
+    checkValueChange(name) {
+        if (
+            name !== 'reviewEnabled' &&
+            this.state.reviewEnabled !==
+                !!this.props.collectionDetails.reviewEnabled
+        ) {
+            return true;
+        } else if (
+            name !== 'selfServe' &&
+            this.state.selfServe !== !!this.props.collectionDetails.selfServe
+        ) {
+            return true;
+        } else if (
+            name !== 'memberExpiryDays' &&
+            this.state.memberExpiryDays !==
+                this.props.collectionDetails.memberExpiryDays
+        ) {
+            return true;
+        } else if (
+            name !== 'serviceExpiryDays' &&
+            this.state.serviceExpiryDays !==
+                this.props.collectionDetails.serviceExpiryDays
+        ) {
+            return true;
+        } else if (
+            name !== 'tokenExpiryMins' &&
+            this.state.tokenExpiryMins !==
+                this.props.collectionDetails.tokenExpiryMins
+        ) {
+            return true;
+        } else if (
+            name !== 'certExpiryMins' &&
+            this.state.certExpiryMins !==
+                this.props.collectionDetails.certExpiryMins
+        ) {
+            return true;
+        } else if (
+            name !== 'groupExpiryDays' &&
+            this.state.groupExpiryDays !==
+                this.props.collectionDetails.groupExpiryDays
+        ) {
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -180,7 +262,7 @@ export default class SettingTable extends React.Component {
         });
     }
 
-    updateRoleMeta() {
+    updateCollectionMeta() {
         let collectionMeta = {};
 
         collectionMeta.reviewEnabled = this.state.reviewEnabled;
@@ -207,6 +289,7 @@ export default class SettingTable extends React.Component {
                     showSuccess: true,
                     showSubmit: false,
                 });
+                this.props.onSubmit();
             })
             .catch((err) => {
                 this.setState({
@@ -227,7 +310,7 @@ export default class SettingTable extends React.Component {
                 submit={this.onSubmitUpdate}
                 key={this.state.updateName + '-update'}
                 message={
-                    'Are you sure you want to permanently change the setting for' +
+                    'Are you sure you want to permanently change the setting for ' +
                     this.props.category +
                     ' '
                 }
@@ -244,7 +327,7 @@ export default class SettingTable extends React.Component {
                 Submit
             </Button>
         ) : (
-            <Button secondary onClick={this.toggleSubmit}>
+            <Button secondary disabled={true}>
                 Submit
             </Button>
         );
@@ -254,17 +337,21 @@ export default class SettingTable extends React.Component {
                 isOpen={this.state.showSuccess}
                 onClose={this.closeModal}
                 type='success'
-                title='Successfuly update the setting'
+                title='Successfully updated the setting(s)'
             />
         ) : null;
 
+        let reviewDesc =
+            'Flag indicates whether or not ' +
+            this.props.category +
+            ' updates require another review and approval';
         rows.push(
             <StyledSettingRow
                 domain={domain}
                 name='reviewEnabled'
                 label='Review'
                 type='switch'
-                desc='Flag indicates whether or not role updates require another review and approval'
+                desc={reviewDesc}
                 value={this.state.reviewEnabled}
                 api={this.api}
                 onValueChange={this.onValueChange}
@@ -274,13 +361,17 @@ export default class SettingTable extends React.Component {
             />
         );
 
+        let selfServiceDesc =
+            'Flag indicates whether or not ' +
+            this.props.category +
+            ' allows self service';
         rows.push(
             <StyledSettingRow
                 domain={domain}
                 name='selfServe'
                 label='Self-Service'
                 type='switch'
-                desc='Flag indicates whether or not role allows self service'
+                desc={selfServiceDesc}
                 value={this.state.selfServe}
                 api={this.api}
                 onValueChange={this.onValueChange}

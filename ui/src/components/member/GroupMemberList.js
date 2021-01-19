@@ -25,11 +25,11 @@ const StyleTable = styled.table`
     border-spacing: 0;
     display: table;
     border-collapse: separate;
-    border-color: grey;
+    border-color: black;
     box-sizing: border-box;
     margin-top: 5px;
     box-shadow: 0 1px 4px #d9d9d9;
-    border: 1px solid #fff;
+    border: 5px solid #fff;
     -webkit-border-image: none;
     border-image: none;
     -webkit-border-image: initial;

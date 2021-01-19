@@ -525,7 +525,7 @@ const Api = (req) => {
 
         deleteMember(
             domainName,
-            principalName,
+            collectionName,
             memberName,
             auditRef,
             pending,
@@ -542,7 +542,7 @@ const Api = (req) => {
                     .delete('member')
                     .params({
                         domainName,
-                        principalName,
+                        collectionName,
                         memberName,
                         auditRef,
                         pending,
@@ -1069,7 +1069,7 @@ const Api = (req) => {
             });
         },
 
-        putMeta(domainName, principalName, detail, auditRef, _csrf, category) {
+        putMeta(domainName, collectionName, detail, auditRef, _csrf, category) {
             return new Promise((resolve, reject) => {
                 fetchr.updateOptions({
                     context: {
@@ -1080,7 +1080,7 @@ const Api = (req) => {
                     .create('meta')
                     .params({
                         domainName,
-                        principalName,
+                        collectionName,
                         detail,
                         auditRef,
                         category,
@@ -1216,15 +1216,15 @@ const Api = (req) => {
             });
         },
 
-        getGroup(domainName, groupName) {
+        getGroup(domainName, groupName, auditLog = true, pending = true) {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('group')
                     .params({
                         domainName,
                         groupName,
-                        auditLog: true,
-                        pending: true,
+                        auditLog,
+                        pending,
                     })
                     .end((err, data) => {
                         if (err) {

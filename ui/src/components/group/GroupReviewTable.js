@@ -236,7 +236,7 @@ export default class GroupReviewTable extends React.Component {
 
         return (
             <ReviewMembersContainerDiv>
-                <TitleDiv>REVIEW EXPIRING MEMBERS</TitleDiv>
+                <TitleDiv>REVIEW GROUP MEMBERS</TitleDiv>
                 <ReviewMembersSectionDiv data-testid='review-table'>
                     <ReviewMembersTable>
                         <thead>

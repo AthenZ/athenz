@@ -119,6 +119,6 @@ exports[`Header should render delegated role 1`] = `
   >
     home.hga
   </a>
-   )
+  )
 </div>
 `;

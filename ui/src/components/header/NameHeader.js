@@ -104,7 +104,7 @@ class NameHeader extends React.Component {
                     <Link href={PageUtils.rolePage(deDomain)}>
                         <StyledAnchor>{deDomain}</StyledAnchor>
                     </Link>
-                    {' )'}
+                    {')'}
                 </TitleDiv>
             );
         }

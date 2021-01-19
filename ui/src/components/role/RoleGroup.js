@@ -94,7 +94,10 @@ export default class RoleGroup extends React.Component {
         let rows = [];
 
         if (this.state.roles && this.state.roles.length > 0) {
-            let label = this.props.name.toUpperCase();
+            let label = this.props.name;
+            if (this.props.category !== 'group-roles') {
+                label = label.toUpperCase();
+            }
             let length = this.state.roles.length;
 
             if (this.state.expanded) {

@@ -248,7 +248,7 @@ exports[`SettingList should render 1`] = `
       <td
         class="emotion-6 emotion-7"
       >
-        Flag indicates whether or not role updates require another review and approval
+        Flag indicates whether or not undefined updates require another review and approval
       </td>
     </tr>
     <tr
@@ -282,7 +282,7 @@ exports[`SettingList should render 1`] = `
       <td
         class="emotion-6 emotion-7"
       >
-        Flag indicates whether or not role allows self service
+        Flag indicates whether or not undefined allows self service
       </td>
     </tr>
     <div
@@ -291,6 +291,7 @@ exports[`SettingList should render 1`] = `
       <div>
         <button
           class="emotion-24 denali-button"
+          disabled=""
         >
           Submit
         </button>

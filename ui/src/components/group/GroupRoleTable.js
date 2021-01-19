@@ -108,6 +108,7 @@ export default class GroupRoleTable extends React.Component {
                     let roleGroup = (
                         <RoleGroup
                             category={'group-roles'}
+                            key={'group-role:' + name}
                             api={this.api}
                             domain={name}
                             name={name}

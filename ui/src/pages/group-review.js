@@ -70,7 +70,7 @@ export default class GroupReviewPage extends React.Component {
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
-            api.getGroup(props.query.domain, props.query.group),
+            api.getGroup(props.query.domain, props.query.group, false, false),
             api.getPendingDomainMembersList(),
             api.getForm(),
         ]).catch((err) => {

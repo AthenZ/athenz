@@ -1568,6 +1568,7 @@ exports[`SettingPage should render 1`] = `
                 <div>
                   <button
                     class="emotion-143 denali-button"
+                    disabled=""
                   >
                     Submit
                   </button>

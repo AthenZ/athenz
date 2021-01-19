@@ -35,7 +35,7 @@ const ModifiedButton = styled(Button)`
 `;
 
 const StyledAddModal = styled(Modal)`
-    width: 800px;
+    width: 805px;
 `;
 
 export default class AddModal extends React.Component {

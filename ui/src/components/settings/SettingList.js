@@ -30,7 +30,7 @@ export default class SettingList extends React.Component {
         super(props);
         this.api = props.api;
         this.onSubmit = this.onSubmit.bind(this);
-        this.reloadRole = this.reloadRole.bind(this);
+        this.reloadCollection = this.reloadCollection.bind(this);
         this.state = {
             collectionDetails: props.collectionDetails,
             errorMessage: null,
@@ -39,25 +39,30 @@ export default class SettingList extends React.Component {
 
     componentDidUpdate = (prevProps) => {
         if (
-            prevProps.role !== this.props.role ||
-            prevProps.domain !== this.props.domain
+            prevProps.collection !== this.props.collection ||
+            prevProps.domain !== this.props.domain ||
+            prevProps.collectionDetails !== this.props.collectionDetails
         ) {
             this.setState({
-                roleDetails: this.props.roleDetails,
+                collectionDetails: this.props.collectionDetails,
             });
         }
     };
 
     onSubmit() {
-        this.reloadRole();
+        this.reloadCollection();
     }
 
-    reloadRole() {
+    reloadCollection() {
         this.api
-            .getRole(this.props.domain, this.props.role, false, false, false)
-            .then((role) => {
+            .getCollection(
+                this.props.domain,
+                this.props.collection,
+                this.props.category
+            )
+            .then((collection) => {
                 this.setState({
-                    roleDetails: role,
+                    collectionDetails: collection,
                     errorMessage: null,
                 });
             })

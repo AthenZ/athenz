@@ -35,8 +35,15 @@ const StyledInputLabel = styled(InputLabel)`
     float: left;
     font-size: 14px;
     font-weight: 700;
-    padding-top: 12px;
     width: 17%;
+`;
+
+const StyledInputLabelPadding = styled(InputLabel)`
+    float: left;
+    font-size: 14px;
+    font-weight: 700;
+    width: 17%;
+    padding-top: 5px;
 `;
 
 const StyledInput = styled(Input)`
@@ -278,7 +285,9 @@ export default class AddGroup extends React.Component {
                 </SectionDiv>
                 {
                     <SectionDiv>
-                        <StyledInputLabel>Add Member(s)</StyledInputLabel>
+                        <StyledInputLabelPadding>
+                            Add Member(s)
+                        </StyledInputLabelPadding>
                         <ContentDiv>
                             <AddMemberDiv>
                                 <StyledInputUser
@@ -289,7 +298,11 @@ export default class AddGroup extends React.Component {
                                     fluid
                                 />
                                 <ButtonDiv>
-                                    <StyledButton onClick={this.addMember}>
+                                    <StyledButton
+                                        secondary
+                                        size={'small'}
+                                        onClick={this.addMember}
+                                    >
                                         Add
                                     </StyledButton>
                                 </ButtonDiv>
