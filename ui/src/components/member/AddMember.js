@@ -108,6 +108,13 @@ export default class AddMember extends React.Component {
             return;
         }
 
+        if (!this.state.memberName.includes('/')) {
+            this.setState({
+                errorMessage: 'Member name cannot contain /.',
+            });
+            return;
+        }
+
         if (
             this.props.justificationRequired &&
             (this.state.justification === undefined ||

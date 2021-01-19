@@ -137,6 +137,12 @@ export default class AddGroup extends React.Component {
         if (!name) {
             return;
         }
+        if (name.includes('/')) {
+            this.setState({
+                errorMessage: 'Member name cannot contain /',
+            });
+            return;
+        }
         let names = (name || '')
             .replace(/[\r\n\s]+/g, ',')
             .split(',')
@@ -175,11 +181,26 @@ export default class AddGroup extends React.Component {
             return;
         }
 
+        if (groupName.includes('/')) {
+            this.setState({
+                errorMessage: 'Group name cannot contain /',
+            });
+            return;
+        }
+
         let group = { name: groupName };
         group.groupMembers =
             this.state.members.filter((member) => {
                 return member != null || member != undefined;
             }) || [];
+
+        if (this.state.newMemberName.includes('/')) {
+            this.setState({
+                errorMessage: 'Member name cannot contain /',
+            });
+            return;
+        }
+
         if (this.state.newMemberName && this.state.newMemberName !== '') {
             let names = (this.state.newMemberName || '')
                 .replace(/[\r\n\s]+/g, ',')
