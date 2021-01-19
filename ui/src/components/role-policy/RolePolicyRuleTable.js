@@ -197,7 +197,7 @@ export default class RolePolicyRuleTable extends React.Component {
                         {assertion.effect}
                     </TDStyled>
                     <TDStyled color={color} align={left}>
-                        {assertion.action}
+                        {assertion.action.replace(/\s/g, '\u23b5')}
                     </TDStyled>
                     <TDStyled color={color} align={left}>
                         {assertion.role}

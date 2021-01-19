@@ -912,7 +912,7 @@ const Api = (req) => {
                                     domainName
                                 ),
                                 effect,
-                                action,
+                                action: action.trim(),
                                 caseSensitive: true,
                             },
                         ],
@@ -1006,7 +1006,7 @@ const Api = (req) => {
                             domainName
                         ),
                         effect,
-                        action,
+                        action: action.trim(),
                         caseSensitive: true,
                     },
                 };
