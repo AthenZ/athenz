@@ -141,7 +141,115 @@ exports[`SettingTable should render setting table 1`] = `
   background: #d5d5d5;
 }
 
-.emotion-20 {
+.emotion-26 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-28 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-28 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-28.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-28 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-28 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-28 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-28 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-28 input.focused,
+.emotion-28 input:active,
+.emotion-28 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-28 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-28 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-28.error input,
+.emotion-28.error input.focused,
+.emotion-28.error input:active,
+.emotion-28.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-28.error .message {
+  color: #d01111;
+}
+
+.emotion-29 {
+  margin-top: 5px;
+}
+
+.emotion-85 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -160,7 +268,7 @@ exports[`SettingTable should render setting table 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-22 {
+.emotion-87 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -187,21 +295,21 @@ exports[`SettingTable should render setting table 1`] = `
   color: #3697f2;
 }
 
-.emotion-22:first-of-type {
+.emotion-87:first-of-type {
   margin-left: 0;
 }
 
-.emotion-22:disabled {
+.emotion-87:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-22:disabled {
+.emotion-87:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-22:hover:not(:disabled) {
+.emotion-87:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
@@ -240,7 +348,7 @@ exports[`SettingTable should render setting table 1`] = `
     <td
       class="emotion-4 emotion-5"
     >
-      Flag indicates whether or not undefined updates require another review and approval
+      Flag indicates whether or not role updates require another review and approval
     </td>
   </tr>
   <tr
@@ -273,22 +381,222 @@ exports[`SettingTable should render setting table 1`] = `
     <td
       class="emotion-4 emotion-5"
     >
-      Flag indicates whether or not undefined allows self service
+      Flag indicates whether or not role allows self service
+    </td>
+  </tr>
+  <tr
+    class="emotion-2 emotion-3"
+    data-testid="setting-row"
+  >
+    <td
+      class="emotion-4 emotion-5"
+    >
+      User Expiry (Days)
+    </td>
+    <td
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-26 emotion-27"
+      >
+        <div
+          class="emotion-28 denali-input animated emotion-29 emotion-30"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="setting-memberExpiryDays"
+            pattern="[0-9]*"
+            placeholder="Days"
+            value="3"
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </td>
+    <td
+      class="emotion-4 emotion-5"
+    >
+      All user members in the role will have specified max expiry days
+    </td>
+  </tr>
+  <tr
+    class="emotion-2 emotion-3"
+    data-testid="setting-row"
+  >
+    <td
+      class="emotion-4 emotion-5"
+    >
+      Group Expiry (Days)
+    </td>
+    <td
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-26 emotion-27"
+      >
+        <div
+          class="emotion-28 denali-input animated emotion-29 emotion-30"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="setting-groupExpiryDays"
+            pattern="[0-9]*"
+            placeholder="Days"
+            value=""
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </td>
+    <td
+      class="emotion-4 emotion-5"
+    >
+      All group members in the role will have specified max expiry days
+    </td>
+  </tr>
+  <tr
+    class="emotion-2 emotion-3"
+    data-testid="setting-row"
+  >
+    <td
+      class="emotion-4 emotion-5"
+    >
+      Service Expiry (Days)
+    </td>
+    <td
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-26 emotion-27"
+      >
+        <div
+          class="emotion-28 denali-input animated emotion-29 emotion-30"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="setting-serviceExpiryDays"
+            pattern="[0-9]*"
+            placeholder="Days"
+            value="3"
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </td>
+    <td
+      class="emotion-4 emotion-5"
+    >
+      All services in the role will have specified max expiry days
+    </td>
+  </tr>
+  <tr
+    class="emotion-2 emotion-3"
+    data-testid="setting-row"
+  >
+    <td
+      class="emotion-4 emotion-5"
+    >
+      Token Expiry (Mins)
+    </td>
+    <td
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-26 emotion-27"
+      >
+        <div
+          class="emotion-28 denali-input animated emotion-29 emotion-30"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="setting-tokenExpiryMins"
+            pattern="[0-9]*"
+            placeholder="Mins"
+            value="15"
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </td>
+    <td
+      class="emotion-4 emotion-5"
+    >
+      Tokens issued for this role will have specified max timeout in mins
+    </td>
+  </tr>
+  <tr
+    class="emotion-2 emotion-3"
+    data-testid="setting-row"
+  >
+    <td
+      class="emotion-4 emotion-5"
+    >
+      Certificate Expiry (Mins)
+    </td>
+    <td
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-26 emotion-27"
+      >
+        <div
+          class="emotion-28 denali-input animated emotion-29 emotion-30"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="setting-certExpiryMins"
+            pattern="[0-9]*"
+            placeholder="Mins"
+            value="15"
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </td>
+    <td
+      class="emotion-4 emotion-5"
+    >
+      Certs issued for this role will have specified max timeout in mins
     </td>
   </tr>
   <div
-    class="emotion-20 emotion-21"
+    class="emotion-85 emotion-86"
   >
     <div>
       <button
-        class="emotion-22 denali-button"
+        class="emotion-87 denali-button"
         disabled=""
       >
         Submit
       </button>
       
       <button
-        class="emotion-22 denali-button"
+        class="emotion-87 denali-button"
       >
         Reset
       </button>
