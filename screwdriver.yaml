@@ -7,7 +7,7 @@ cache:
 jobs:
   main:
     requires: [~pr, ~commit]
-    image: adoptopenjdk/openjdk8:alpine-jre
+    image: maven:3.6.3-openjdk-8
 
     steps:
       - prepare_build: "screwdriver/scripts/prepare_build.sh"
