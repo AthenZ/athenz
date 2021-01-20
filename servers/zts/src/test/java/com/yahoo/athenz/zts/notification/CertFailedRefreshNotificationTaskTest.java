@@ -86,6 +86,9 @@ public class CertFailedRefreshNotificationTaskTest {
                     "            <b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://testServer:4443/zts/v1/instance/&lt;PROVIDER&gt;/dom1/&lt;SERVICE&gt;/&lt;INSTANCE-ID&gt; </b>\n" +
                     "            <p>Important: Once the certificate record is deleted, the instance will not be able to\n" +
                     "            refresh its certificates so make sure the record is no longer needed.</p>\n" +
+                    "            <p> 3. If you already have monitoring in place for unrefreshed certificates, you may disable unrefreshed\n" +
+                    "            certificate notifications by adding the following domain tag:</p>\n" +
+                    "            <p>Tag: <b>zts.DisableCertRefreshNotification</b> Value: <b>true</b></p>\n" +
                     "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
                     "        </div>\n" +
                     "    </div>\n" +
@@ -130,6 +133,9 @@ public class CertFailedRefreshNotificationTaskTest {
                     "            <b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://testServer:4443/zts/v1/instance/provider1/dom1/service1/instanceid1 </b>\n" +
                     "            <p>Important: Once the certificate record is deleted, the instance will not be able to\n" +
                     "            refresh its certificates so make sure the record is no longer needed.</p>\n" +
+                    "            <p> 3. If you already have monitoring in place for unrefreshed certificates, you may disable unrefreshed\n" +
+                    "            certificate notifications by adding the following domain tag:</p>\n" +
+                    "            <p>Tag: <b>zts.DisableCertRefreshNotification</b> Value: <b>true</b></p>\n" +
                     "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
                     "        </div>\n" +
                     "    </div>\n" +
