@@ -88,7 +88,7 @@ public class CertFailedRefreshNotificationTaskTest {
                     "            refresh its certificates so make sure the record is no longer needed.</p>\n" +
                     "            <p> 3. If you already have monitoring in place for unrefreshed certificates, you may disable unrefreshed\n" +
                     "            certificate notifications by adding the following domain tag:</p>\n" +
-                    "            <p>Tag: <b>zts.DisableCertRefreshNotification</b> Value: <b>true</b></p>\n" +
+                    "            <p>Tag: <b>zts.DisableCertRefreshNotifications</b> Value: <b>true</b></p>\n" +
                     "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
                     "        </div>\n" +
                     "    </div>\n" +
@@ -135,7 +135,7 @@ public class CertFailedRefreshNotificationTaskTest {
                     "            refresh its certificates so make sure the record is no longer needed.</p>\n" +
                     "            <p> 3. If you already have monitoring in place for unrefreshed certificates, you may disable unrefreshed\n" +
                     "            certificate notifications by adding the following domain tag:</p>\n" +
-                    "            <p>Tag: <b>zts.DisableCertRefreshNotification</b> Value: <b>true</b></p>\n" +
+                    "            <p>Tag: <b>zts.DisableCertRefreshNotifications</b> Value: <b>true</b></p>\n" +
                     "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
                     "        </div>\n" +
                     "    </div>\n" +
@@ -438,7 +438,7 @@ public class CertFailedRefreshNotificationTaskTest {
             // Make even domains snooze
             if (i % 2 == 0) {
                 Map<String, StringList> tags = new HashMap<>();
-                tags.put("zts.DisableCertRefreshNotification", new StringList().setList(Arrays.asList("true")));
+                tags.put("zts.DisableCertRefreshNotifications", new StringList().setList(Arrays.asList("true")));
                 domainData.setTags(tags);
             }
 
@@ -446,24 +446,24 @@ public class CertFailedRefreshNotificationTaskTest {
             Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + i))).thenReturn(true);
         }
 
-        // Have zts.DisableCertRefreshNotification tag for domain 8 but with value other then "true"
+        // Have zts.DisableCertRefreshNotifications tag for domain 8 but with value other then "true"
         X509CertRecord record = getMockX509CertRecord(currentDate, 8);
         records.add(record);
         NotificationTestsCommon.mockDomainData(8, snoozedDataStore);
         DomainData domainData = new DomainData();
         Map<String, StringList> tags = new HashMap<>();
-        tags.put("zts.DisableCertRefreshNotification", new StringList().setList(Arrays.asList("false", "False","Not True")));
+        tags.put("zts.DisableCertRefreshNotifications", new StringList().setList(Arrays.asList("false", "False","Not True")));
         domainData.setTags(tags);
         Mockito.when(snoozedDataStore.getDomainData("domain" + 8)).thenReturn(domainData);
         Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + 8))).thenReturn(true);
 
-        // Have zts.DisableCertRefreshNotification tag for domain 9 with several values (one of them is true case insensitive)
+        // Have zts.DisableCertRefreshNotifications tag for domain 9 with several values (one of them is true case insensitive)
         record = getMockX509CertRecord(currentDate, 9);
         records.add(record);
         NotificationTestsCommon.mockDomainData(9, snoozedDataStore);
         domainData = new DomainData();
         tags = new HashMap<>();
-        tags.put("zts.DisableCertRefreshNotification", new StringList().setList(Arrays.asList("false", "test", "tRue")));
+        tags.put("zts.DisableCertRefreshNotifications", new StringList().setList(Arrays.asList("false", "test", "tRue")));
         domainData.setTags(tags);
         Mockito.when(snoozedDataStore.getDomainData("domain" + 9)).thenReturn(domainData);
         Mockito.when(hostnameResolver.isValidHostname(eq("hostName" + 9))).thenReturn(true);
@@ -504,7 +504,7 @@ public class CertFailedRefreshNotificationTaskTest {
             DomainData domainData = new DomainData();
             // Make all domains snooze
             Map<String, StringList> tags = new HashMap<>();
-            tags.put("zts.DisableCertRefreshNotification", new StringList().setList(Arrays.asList("true")));
+            tags.put("zts.DisableCertRefreshNotifications", new StringList().setList(Arrays.asList("true")));
             domainData.setTags(tags);
 
             Mockito.when(snoozedDataStore.getDomainData("domain" + i)).thenReturn(domainData);
