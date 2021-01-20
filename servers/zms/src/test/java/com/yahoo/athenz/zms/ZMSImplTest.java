@@ -24978,6 +24978,57 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testRoleTagsLimit() throws Exception {
+        // define limit of 3 role tags
+        System.setProperty(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG, "3");
+        ZMSImpl zmsTest = zmsInit();
+
+        final String domainName = "sys.auth";
+        final String roleName = "roleWithTagLimit";
+        final String tagKey = "tag-key";
+        
+        //insert role with 4 tags
+        List<String> tagValues = Arrays.asList("val1", "val2", "val3", "val4");
+        Role role = createRoleObject(domainName, roleName, null);
+        role.setTags(Collections.singletonMap(tagKey, new StringList().setList(tagValues)));
+        zmsTest.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
+        Role dbRole = zmsTest.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
+        
+        // expect for only 3 first tags to be presented 
+        assertEquals(dbRole.getTags().get(tagKey).getList().size(), 3);
+        assertTrue(dbRole.getTags().get(tagKey).getList().containsAll(
+            Arrays.asList("val1", "val2", "val3")));
+
+        // new tags map - 2 key with 2 values
+        Map<String, StringList> tags = new HashMap<>();
+        tags.put("newKey", new StringList().setList(Arrays.asList("newVal1", "newVal2")));
+        tags.put("newKey2", new StringList().setList(Arrays.asList("newVal3", "newVal4")));
+        RoleMeta rm = new RoleMeta().setTags(tags);
+
+        // update role tags using role meta
+        zmsTest.putRoleMeta(mockDomRsrcCtx, domainName, roleName, auditRef, rm);
+        dbRole = zmsTest.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
+        
+        // processing order of Map is not guarantee 
+        // expect for 2 tags from one key, and only one from the other..
+        if (dbRole.getTags().get("newKey").getList().size() == 2) {
+            assertTrue(dbRole.getTags().get("newKey").getList().containsAll(
+                Arrays.asList("newVal1", "newVal2")));
+
+            assertEquals(dbRole.getTags().get("newKey2").getList().size(), 1);
+            assertTrue(dbRole.getTags().get("newKey2").getList().contains("newVal3"));
+        } else {
+            assertEquals(dbRole.getTags().get("newKey").getList().size(), 1);
+            assertTrue(dbRole.getTags().get("newKey").getList().contains("newVal1"));
+            
+            assertEquals(dbRole.getTags().get("newKey2").getList().size(), 2);
+            assertTrue(dbRole.getTags().get("newKey2").getList().containsAll(
+                Arrays.asList("newVal3", "newVal4")));
+        }
+        System.clearProperty(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG);
+    }
+
+    @Test
     public void testQueryUpdateRoleWithTags() {
         final String domainName = "sys.auth";
         final String tagKey = "tag-key-update";
@@ -25141,6 +25192,53 @@ public class ZMSImplTest {
         Domain domain = zms.getDomain(mockDomRsrcCtx, domainName);
         assertEquals(domain.getTags(), simpleDomainTag());
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDomainTagsLimit() throws Exception {
+        // define limit of 3 domain tags
+        System.setProperty(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, "3");
+        ZMSImpl zmsTest = zmsInit();
+        
+        final String domainName = "tld-with-tag-limit";
+
+        TopLevelDomain topLevelDomain = createTopLevelDomainObject(domainName, "Test Domain With Tag Limit", "testOrg", adminUser);
+        topLevelDomain.setTags(Collections.singletonMap("tag-key", new StringList().setList(Arrays.asList("val1", "val2", "val3", "val4"))));
+        zmsTest.postTopLevelDomain(mockDomRsrcCtx, auditRef, topLevelDomain);
+        Domain domain = zmsTest.getDomain(mockDomRsrcCtx, domainName);
+
+        // expect for only 3 first tags to be presented 
+        assertEquals(domain.getTags().get("tag-key").getList().size(), 3);
+        assertTrue(domain.getTags().get("tag-key").getList().containsAll(
+            Arrays.asList("val1", "val2", "val3")));
+
+        // new tags map - 2 key with 2 values
+        Map<String, StringList> tags = new HashMap<>();
+        tags.put("newKey", new StringList().setList(Arrays.asList("newVal1", "newVal2")));
+        tags.put("newKey2", new StringList().setList(Arrays.asList("newVal3", "newVal4")));
+        DomainMeta dm = new DomainMeta().setTags(tags);
+
+        // update domain tags using domain meta
+        zmsTest.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, dm);
+        domain = zmsTest.getDomain(mockDomRsrcCtx, domainName);
+        
+        // processing order of Map is not guarantee 
+        // expect for 2 tags from one key, and only one from the other..
+        if (domain.getTags().get("newKey").getList().size() == 2) {
+            assertTrue(domain.getTags().get("newKey").getList().containsAll(
+                Arrays.asList("newVal1", "newVal2")));
+
+            assertEquals(domain.getTags().get("newKey2").getList().size(), 1);
+            assertTrue(domain.getTags().get("newKey2").getList().contains("newVal3"));
+        } else {
+            assertEquals(domain.getTags().get("newKey").getList().size(), 1);
+            assertTrue(domain.getTags().get("newKey").getList().contains("newVal1"));
+
+            assertEquals(domain.getTags().get("newKey2").getList().size(), 2);
+            assertTrue(domain.getTags().get("newKey2").getList().containsAll(
+                Arrays.asList("newVal3", "newVal4")));
+        }
+        System.clearProperty(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG);
     }
 
     @Test

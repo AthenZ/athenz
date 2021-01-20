@@ -33,6 +33,13 @@ public interface ObjectStore {
      * @param opTimeout timeout in seconds
      */
     void setOperationTimeout(int opTimeout);
+
+    /**
+     * Set limitation for number of role and domain tags
+     * @param domainLimit domain tags limit
+     * @param roleLimit role tags limit
+     */
+    void setTagLimit(int domainLimit, int roleLimit);
     
     /**
      * Clear all connections to the object store. This is called when

@@ -73,7 +73,10 @@ public class DBService implements RolesProvider {
 
     AuditReferenceValidator auditReferenceValidator;
     private ScheduledExecutorService userAuthorityFilterExecutor;
-
+    
+    private int roleTagsLimit;
+    private int domainTagsLimit;
+    
     public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig, AuditReferenceValidator auditReferenceValidator) {
 
         this.store = store;
@@ -87,8 +90,11 @@ public class DBService implements RolesProvider {
         if (defaultOpTimeout < 0) {
             defaultOpTimeout = 60;
         }
+        roleTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
+        domainTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         if (this.store != null) {
             this.store.setOperationTimeout(defaultOpTimeout);
+            this.store.setTagLimit(domainTagsLimit, roleTagsLimit);
         }
 
         // retrieve the concurrent update retry count. If we're given an invalid negative
