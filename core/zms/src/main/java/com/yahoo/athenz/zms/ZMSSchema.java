@@ -354,7 +354,7 @@ public class ZMSSchema {
 
         sb.structType("Entity")
             .comment("An entity is a name and a structured value. some entity names/prefixes are reserved (i.e. \"role\",  \"policy\", \"meta\", \"domain\", \"service\")")
-            .field("name", "EntityName", false, "name of the entity object")
+            .field("name", "ResourceName", false, "name of the entity object")
             .field("value", "Struct", false, "value of the entity");
 
         sb.structType("EntityList")

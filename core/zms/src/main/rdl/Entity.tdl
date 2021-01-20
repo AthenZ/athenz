@@ -7,7 +7,7 @@ include "Names.tdl";
 //An entity is a name and a structured value.
 //some entity names/prefixes are reserved (i.e. "role",  "policy", "meta", "domain", "service")
 type Entity Struct {
-    EntityName name; //name of the entity object
+    ResourceName name; //name of the entity object
     Struct value; //value of the entity
 }
 

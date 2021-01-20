@@ -27,6 +27,7 @@ import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
@@ -1227,7 +1228,7 @@ public class DBService implements RolesProvider {
                 if (!requestSuccess) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to put public key: " + keyEntry.getId() +
-                            " in service " + ZMSUtils.serviceResourceName(domainName, serviceName), caller);
+                            " in service " + ResourceUtils.serviceResourceName(domainName, serviceName), caller);
                 }
 
                 // update our service and domain time-stamp and save changes
@@ -1273,7 +1274,7 @@ public class DBService implements RolesProvider {
                 if (!con.deletePublicKeyEntry(domainName, serviceName, keyId)) {
                     con.rollbackChanges();
                     throw ZMSUtils.notFoundError("unable to delete public key: " + keyId +
-                            " in service " + ZMSUtils.serviceResourceName(domainName, serviceName), caller);
+                            " in service " + ResourceUtils.serviceResourceName(domainName, serviceName), caller);
                 }
 
                 // update our service and domain time-stamp and save changes
@@ -1492,7 +1493,7 @@ public class DBService implements RolesProvider {
                 // audit log the request
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
-                        entity.getName(), JSON.string(entity.getValue()));
+                        entityName, JSON.string(entity.getValue()));
 
                 return;
 
@@ -2284,7 +2285,7 @@ public class DBService implements RolesProvider {
             return null;
         }
 
-        final String fullServiceName = ZMSUtils.serviceResourceName(domainName, serviceName);
+        final String fullServiceName = ResourceUtils.serviceResourceName(domainName, serviceName);
         for (ServiceIdentity service : services) {
             if (fullServiceName.equals(service.getName())) {
                 List<PublicKeyEntry> publicKeys = service.getPublicKeys();
@@ -2590,7 +2591,7 @@ public class DBService implements RolesProvider {
 
         // generate our full role name
 
-        String fullRoleName = ZMSUtils.roleResourceName(domainName, roleName);
+        String fullRoleName = ResourceUtils.roleResourceName(domainName, roleName);
 
         // iterate through all policies to see which one has the
         // assume_role assertion for the given role
@@ -3655,7 +3656,7 @@ public class DBService implements RolesProvider {
 
                 checkDomainAuditEnabled(con, tenantDomain, auditRef, caller, provSvcDomain + "." + provSvcName, AUDIT_TYPE_TENANCY);
 
-                String domainAdminRole = ZMSUtils.roleResourceName(tenantDomain, ZMSConsts.ADMIN_ROLE_NAME);
+                String domainAdminRole = ResourceUtils.roleResourceName(tenantDomain, ZMSConsts.ADMIN_ROLE_NAME);
                 String serviceRoleResourceName = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
                         provSvcName, tenantDomain, null) + ZMSConsts.ADMIN_ROLE_NAME;
 
@@ -3664,7 +3665,7 @@ public class DBService implements RolesProvider {
                 final String tenancyResource = "tenancy." + provSvcDomain + '.' + provSvcName;
 
                 String adminName = tenancyResource + ".admin";
-                String tenantAdminRole = ZMSUtils.roleResourceName(tenantDomain, adminName);
+                String tenantAdminRole = ResourceUtils.roleResourceName(tenantDomain, adminName);
 
                 // tenant admin role - if it already exists then we skip it
                 // by default it has no members.
@@ -3678,7 +3679,7 @@ public class DBService implements RolesProvider {
 
                 if (con.getPolicy(tenantDomain, adminName) == null) {
 
-                    Policy adminPolicy = new Policy().setName(ZMSUtils.policyResourceName(tenantDomain, adminName));
+                    Policy adminPolicy = new Policy().setName(ResourceUtils.policyResourceName(tenantDomain, adminName));
                     con.insertPolicy(tenantDomain, adminPolicy);
 
                     // we are going to create 2 assertions - one for the domain admin role
@@ -3770,7 +3771,7 @@ public class DBService implements RolesProvider {
                         throw ZMSUtils.internalServerError("unable to put role: " + trustedRole, caller);
                     }
 
-                    String policyResourceName = ZMSUtils.policyResourceName(provSvcDomain, trustedName);
+                    String policyResourceName = ResourceUtils.policyResourceName(provSvcDomain, trustedName);
                     final String resourceName = provSvcDomain + ":service." +
                             ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, resourceGroup) + '*';
                     List<Assertion> assertions = Collections.singletonList(
@@ -3827,7 +3828,7 @@ public class DBService implements RolesProvider {
         // only if the role does not already exist
 
         String roleName = rolePrefix + role;
-        String roleResourceName = ZMSUtils.roleResourceName(tenantDomain, roleName);
+        String roleResourceName = ResourceUtils.roleResourceName(tenantDomain, roleName);
 
         // retrieve our original role in case one exists
 
@@ -3854,7 +3855,7 @@ public class DBService implements RolesProvider {
         // add a new assertion
 
         String policyName = "tenancy." + roleName;
-        String policyResourceName = ZMSUtils.policyResourceName(tenantDomain, policyName);
+        String policyResourceName = ResourceUtils.policyResourceName(tenantDomain, policyName);
         String serviceRoleResourceName = trustedRolePrefix + role;
         Assertion assertion = new Assertion().setRole(roleResourceName)
                 .setResource(serviceRoleResourceName).setAction(ZMSConsts.ACTION_ASSUME_ROLE)
@@ -4053,7 +4054,7 @@ public class DBService implements RolesProvider {
                 // audit log the request
 
                 auditLogRequest(ctx, tenantDomain, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                        ZMSUtils.entityResourceName(provSvcDomain, provSvcName), null);
+                        ResourceUtils.entityResourceName(provSvcDomain, provSvcName), null);
 
                 return;
 
@@ -5023,7 +5024,7 @@ public class DBService implements RolesProvider {
                 if (ZMSUtils.userAuthorityAttrMissing(roleUserAuthorityFilter, updatedGroup.getUserAuthorityFilter())) {
                     throw ZMSUtils.requestError("Setting " + updatedGroup.getUserAuthorityFilter() +
                             " user authority filter on the group will not satisfy "
-                            + ZMSUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName())
+                            + ResourceUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName())
                             + " role filter requirements", caller);
                 }
             }
@@ -5034,7 +5035,7 @@ public class DBService implements RolesProvider {
                 if (ZMSUtils.userAuthorityAttrMissing(role.getUserAuthorityExpiration(), updatedGroup.getUserAuthorityExpiration())) {
                     throw ZMSUtils.requestError("Setting " + updatedGroup.getUserAuthorityExpiration() +
                             " user authority expiration on the group will not satisfy "
-                            + ZMSUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName())
+                            + ResourceUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName())
                             + " role expiration requirements", caller);
                 }
             }

@@ -141,6 +141,21 @@ public class ZMSUtilsTest {
     }
 
     @Test
+    public void testExtractEntityName() {
+
+        assertEquals("entity1", ZMSUtils.extractEntityName("my-domain1", "my-domain1:entity.entity1"));
+        assertEquals("entity1.entity2", ZMSUtils.extractEntityName("my-domain1", "my-domain1:entity.entity1.entity2"));
+
+        // invalid entity names
+        assertNull(ZMSUtils.extractEntityName("my-domain1", "my-domain1:entity1"));
+        assertNull(ZMSUtils.extractEntityName("my-domain1", "my-domain2:entity.entity1"));
+        assertNull(ZMSUtils.extractEntityName("my-domain1", "my-domain11:entity.entity1"));
+        assertNull(ZMSUtils.extractEntityName("my-domain1", ":entity.entity1"));
+        assertNull(ZMSUtils.extractEntityName("my-domain1", "entity1"));
+        assertNull(ZMSUtils.extractEntityName("my-domain1", "entity1.entity2"));
+    }
+
+    @Test
     public void testExtractServiceName() {
 
         assertEquals("service1", ZMSUtils.extractServiceName("my-domain1", "my-domain1.service1"));

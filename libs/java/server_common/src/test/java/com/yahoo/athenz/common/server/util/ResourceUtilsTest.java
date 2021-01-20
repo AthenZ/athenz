@@ -35,13 +35,19 @@ public class ResourceUtilsTest {
 
     @Test
     public void testEntityResourceName() {
-        assertEquals(ResourceUtils.entityResourceName("athenz", "entity1"), "athenz.entity1");
-        assertEquals(ResourceUtils.entityResourceName("athenz.api", "entity1"), "athenz.api.entity1");
+        assertEquals(ResourceUtils.entityResourceName("athenz", "entity1"), "athenz:entity.entity1");
+        assertEquals(ResourceUtils.entityResourceName("athenz.api", "entity1"), "athenz.api:entity.entity1");
     }
 
     @Test
     public void testGroupResourceName() {
         assertEquals(ResourceUtils.groupResourceName("athenz", "group1"), "athenz:group.group1");
         assertEquals(ResourceUtils.groupResourceName("athenz.api", "group1"), "athenz.api:group.group1");
+    }
+
+    @Test
+    public void testPolicyResourceName() {
+        assertEquals(ResourceUtils.policyResourceName("athenz", "policy1"), "athenz:policy.policy1");
+        assertEquals(ResourceUtils.policyResourceName("athenz.api", "policy1"), "athenz.api:policy.policy1");
     }
 }

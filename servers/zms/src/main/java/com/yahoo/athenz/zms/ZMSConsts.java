@@ -262,6 +262,7 @@ public final class ZMSConsts {
     public static final String OBJECT_PRINCIPAL = "principal";
     public static final String OBJECT_HOST      = "host";
     public static final String OBJECT_GROUP     = "group";
+    public static final String OBJECT_ENTITY    = "entity";
 
     public static final String SYSTEM_META_PRODUCT_ID         = "productid";
     public static final String SYSTEM_META_ACCOUNT            = "account";

@@ -19,10 +19,10 @@ package com.yahoo.athenz.zms.notification;
 import com.google.common.base.Splitter;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.common.server.notification.*;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.ZMSConsts;
-import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Timestamp;
 
 import java.text.MessageFormat;
@@ -65,8 +65,8 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
         Set<String> recipients = new HashSet<>();
         if (role.getAuditEnabled() == Boolean.TRUE) {
 
-            recipients.add(ZMSUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
-            recipients.add(ZMSUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG, org));
+            recipients.add(ResourceUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
+            recipients.add(ResourceUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG, org));
 
         } else {
 
@@ -76,7 +76,7 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
 
             final String notifyRoles = role.getNotifyRoles();
             if (notifyRoles == null || notifyRoles.isEmpty()) {
-                recipients.add(ZMSUtils.roleResourceName(domain, ZMSConsts.ADMIN_ROLE_NAME));
+                recipients.add(ResourceUtils.roleResourceName(domain, ZMSConsts.ADMIN_ROLE_NAME));
             } else {
                 Iterable<String> roleNames = Splitter.on(',')
                         .omitEmptyStrings()
@@ -84,8 +84,8 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
                         .split(notifyRoles);
 
                 for (String roleName : roleNames) {
-                    if (roleName.indexOf(AuthorityConsts.ROLE_SEP) == -1) {
-                        recipients.add(ZMSUtils.roleResourceName(domain, roleName));
+                    if (!roleName.contains(AuthorityConsts.ROLE_SEP)) {
+                        recipients.add(ResourceUtils.roleResourceName(domain, roleName));
                     } else {
                         recipients.add(roleName);
                     }

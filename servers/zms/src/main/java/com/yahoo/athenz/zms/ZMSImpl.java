@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.zms;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.token.PrincipalToken;
@@ -37,6 +36,7 @@ import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.utils.SignUtils;
@@ -2538,12 +2538,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return new Access().setGranted(accessAllowed);
     }
 
-    void validateEntity(String entityName, Entity entity) {
+    void validateEntity(final String domainName, final String entityName, Entity entity) {
 
         final String caller = "validateentity";
 
-        if (!entityName.equals(entity.getName())) {
-            throw ZMSUtils.requestError("validateEntity: Entity name mismatch: " + entityName + " != " + entity.getName(), caller);
+        final String fullEntityName = ResourceUtils.entityResourceName(domainName, entityName);
+        if (!fullEntityName.equals(entity.getName())) {
+            throw ZMSUtils.requestError("validateEntity: Entity name mismatch: " + fullEntityName + " != " + entity.getName(), caller);
         }
         if (entity.getValue() == null) {
             throw ZMSUtils.requestError("validateEntity: Entity value is empty: " + entityName, caller);
@@ -2564,7 +2565,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(entityName, TYPE_ENTITY_NAME, caller);
-        validateEntity(entityName, resource);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -2574,6 +2574,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setRequestDomain(ctx, domainName);
         entityName = entityName.toLowerCase();
         AthenzObject.ENTITY.convertToLowerCase(resource);
+        validateEntity(domainName, entityName, resource);
 
         // if this happens to be an authorization details entity then
         // we need to validate the structure to make sure it is as expected
@@ -2595,24 +2596,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // convert our entity into the expected object
 
+        AuthzDetailsEntity authzDetailsEntity;
         try {
-            AuthzDetailsEntity authzDetailsEntity = AuthzHelper.convertEntityToAuthzDetailsEntity(resource);
-
-            // make sure we have a type value present in the
-
-            if (StringUtil.isEmpty(authzDetailsEntity.getType())) {
-                throw ZMSUtils.requestError("Authorization details entity object missing type", caller);
-            }
-            List<AuthzDetailsField> roles = authzDetailsEntity.getRoles();
-            if (roles == null || roles.isEmpty()) {
-                throw ZMSUtils.requestError("Authorization details entity object missing roles", caller);
-            }
-            List<AuthzDetailsField> fields = authzDetailsEntity.getFields();
-            if (fields == null || fields.isEmpty()) {
-                throw ZMSUtils.requestError("Authorization details entity object missing fields", caller);
-            }
-        } catch (JsonProcessingException ex) {
+            authzDetailsEntity = AuthzHelper.convertEntityToAuthzDetailsEntity(resource);
+        } catch (Exception ex) {
             throw ZMSUtils.requestError("Invalid authorization details entity object provided", caller);
+        }
+
+        // make sure we have a type value present in the
+
+        if (StringUtil.isEmpty(authzDetailsEntity.getType())) {
+            throw ZMSUtils.requestError("Authorization details entity object missing type", caller);
+        }
+        List<AuthzDetailsField> roles = authzDetailsEntity.getRoles();
+        if (roles == null || roles.isEmpty()) {
+            throw ZMSUtils.requestError("Authorization details entity object missing roles", caller);
+        }
+        List<AuthzDetailsField> fields = authzDetailsEntity.getFields();
+        if (fields == null || fields.isEmpty()) {
+            throw ZMSUtils.requestError("Authorization details entity object missing fields", caller);
         }
     }
 
@@ -2659,7 +2661,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Entity entity = dbService.getEntity(domainName, entityName);
         if (entity == null) {
             throw ZMSUtils.notFoundError("getEntity: Entity not found: '" +
-                    ZMSUtils.entityResourceName(domainName, entityName) + "'", caller);
+                    ResourceUtils.entityResourceName(domainName, entityName) + "'", caller);
         }
 
         return entity;
@@ -2941,7 +2943,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Role role = dbService.getRole(domainName, roleName, auditLog, expand, pending);
         if (role == null) {
             throw ZMSUtils.notFoundError("getRole: Role not found: '" +
-                    ZMSUtils.roleResourceName(domainName, roleName) + "'", caller);
+                    ResourceUtils.roleResourceName(domainName, roleName) + "'", caller);
         }
 
         return role;
@@ -3026,7 +3028,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     boolean isConsistentRoleName(final String domainName, final String roleName, Role role) {
 
-        String resourceName = ZMSUtils.roleResourceName(domainName, roleName);
+        String resourceName = ResourceUtils.roleResourceName(domainName, roleName);
 
         // first lets assume we have the expected name specified in the role
 
@@ -3077,7 +3079,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!isConsistentRoleName(domainName, roleName, role)) {
             throw ZMSUtils.requestError("putRole: Inconsistent role names - expected: "
-                    + ZMSUtils.roleResourceName(domainName, roleName) + ", actual: "
+                    + ResourceUtils.roleResourceName(domainName, roleName) + ", actual: "
                     + role.getName(), caller);
         }
 
@@ -4122,7 +4124,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Policy policy = dbService.getPolicy(domainName, policyName);
         if (policy == null) {
             throw ZMSUtils.notFoundError("getPolicy: Policy not found: '" +
-                    ZMSUtils.policyResourceName(domainName, policyName) + "'", caller);
+                    ResourceUtils.policyResourceName(domainName, policyName) + "'", caller);
         }
 
         return policy;
@@ -4149,7 +4151,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Assertion assertion = dbService.getAssertion(domainName, policyName, assertionId);
         if (assertion == null) {
             throw ZMSUtils.notFoundError("getAssertion: Assertion not found: '" +
-                    ZMSUtils.policyResourceName(domainName, policyName) + "' Assertion: '" +
+                    ResourceUtils.policyResourceName(domainName, policyName) + "' Assertion: '" +
                     assertionId + "'", caller);
         }
 
@@ -4295,7 +4297,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     boolean isConsistentPolicyName(final String domainName, final String policyName, Policy policy) {
 
-        String resourceName = ZMSUtils.policyResourceName(domainName, policyName);
+        String resourceName = ResourceUtils.policyResourceName(domainName, policyName);
 
         // first lets assume we have the expected name specified in the policy
 
@@ -4357,7 +4359,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!isConsistentPolicyName(domainName, policyName, policy)) {
             throw ZMSUtils.requestError("putPolicy: Inconsistent policy names - expected: "
-                    + ZMSUtils.policyResourceName(domainName, policyName) + ", actual: "
+                    + ResourceUtils.policyResourceName(domainName, policyName) + ", actual: "
                     + policy.getName(), caller);
         }
 
@@ -4708,7 +4710,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
-        if (!ZMSUtils.serviceResourceName(domainName, serviceName).equals(service.getName())) {
+        if (!ResourceUtils.serviceResourceName(domainName, serviceName).equals(service.getName())) {
             throw ZMSUtils.requestError("putServiceIdentity: Inconsistent service/domain names", caller);
         }
 
@@ -4783,7 +4785,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         ServiceIdentity service = dbService.getServiceIdentity(domainName, serviceName, false);
         if (service == null) {
             throw ZMSUtils.notFoundError("getServiceIdentity: Service not found: '" +
-                    ZMSUtils.serviceResourceName(domainName, serviceName) + "'", caller);
+                    ResourceUtils.serviceResourceName(domainName, serviceName) + "'", caller);
         }
 
         return service;
@@ -4927,7 +4929,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         PublicKeyEntry entry = dbService.getServicePublicKeyEntry(domainName, serviceName, keyId, false);
         if (entry == null) {
             throw ZMSUtils.notFoundError("getPublicKeyEntry: PublicKey " + keyId + " in service " +
-                    ZMSUtils.serviceResourceName(domainName, serviceName) + " not found", caller);
+                    ResourceUtils.serviceResourceName(domainName, serviceName) + " not found", caller);
         }
 
         return entry;
@@ -6995,7 +6997,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         String domainAllResources = domainName + ":*";
-        String domainAdminRole = ZMSUtils.roleResourceName(domainName, ADMIN_ROLE_NAME);
+        String domainAdminRole = ResourceUtils.roleResourceName(domainName, ADMIN_ROLE_NAME);
 
         boolean invalidAssertions = false;
         List<Assertion> assertions = adminPolicy.getAssertions();
@@ -7902,7 +7904,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     Role getRoleFromDomain(final String roleName, AthenzDomain domain) {
         if (domain != null && domain.getRoles() != null) {
             for (Role role : domain.getRoles()) {
-                if (role.getName().equalsIgnoreCase(ZMSUtils.roleResourceName(domain.getName(), roleName))) {
+                if (role.getName().equalsIgnoreCase(ResourceUtils.roleResourceName(domain.getName(), roleName))) {
                     return role;
                 }
             }
@@ -7913,7 +7915,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     Group getGroupFromDomain(final String groupName, AthenzDomain domain) {
         if (domain != null && domain.getGroups() != null) {
             for (Group group : domain.getGroups()) {
-                if (group.getName().equalsIgnoreCase(ZMSUtils.groupResourceName(domain.getName(), groupName))) {
+                if (group.getName().equalsIgnoreCase(ResourceUtils.groupResourceName(domain.getName(), groupName))) {
                     return group;
                 }
             }
@@ -7970,7 +7972,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (domain == null) {
             throw ZMSUtils.notFoundError("Domain not found: " + domainName, "deletePendingMembership");
         }
-        if (isAllowedPutMembershipAccess(principal, domain, ZMSUtils.roleResourceName(domainName, roleName))) {
+        if (isAllowedPutMembershipAccess(principal, domain, ResourceUtils.roleResourceName(domainName, roleName))) {
             return true;
         }
 
@@ -8038,7 +8040,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!isConsistentRoleName(domainName, roleName, role)) {
             throw ZMSUtils.requestError(caller + ": Inconsistent role names - expected: "
-                    + ZMSUtils.roleResourceName(domainName, roleName) + ", actual: "
+                    + ResourceUtils.roleResourceName(domainName, roleName) + ", actual: "
                     + role.getName(), caller);
         }
 
@@ -8151,7 +8153,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Group group = dbService.getGroup(domainName, groupName, auditLog, pending);
         if (group == null) {
             throw ZMSUtils.notFoundError("getGroup: Group not found: '" +
-                    ZMSUtils.groupResourceName(domainName, groupName) + "'", caller);
+                    ResourceUtils.groupResourceName(domainName, groupName) + "'", caller);
         }
 
         return group;
@@ -8159,7 +8161,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     boolean isConsistentGroupName(final String domainName, final String groupName, Group group) {
 
-        String resourceName = ZMSUtils.groupResourceName(domainName, groupName);
+        String resourceName = ResourceUtils.groupResourceName(domainName, groupName);
 
         // first lets assume we have the expected name specified in the group
 
@@ -8292,7 +8294,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!isConsistentGroupName(domainName, groupName, group)) {
             throw ZMSUtils.requestError("putGroup: Inconsistent group names - expected: "
-                    + ZMSUtils.groupResourceName(domainName, groupName) + ", actual: "
+                    + ResourceUtils.groupResourceName(domainName, groupName) + ", actual: "
                     + group.getName(), caller);
         }
 
@@ -8360,7 +8362,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // exceptions - we get 404s if the principal is not part of
         // any roles, for example
 
-        groupMemberConsistencyCheck(domainName, ZMSUtils.groupResourceName(domainName, groupName), false, caller);
+        groupMemberConsistencyCheck(domainName, ResourceUtils.groupResourceName(domainName, groupName), false, caller);
 
         // everything is ok, so we should go ahead and delete the group
 
@@ -8408,7 +8410,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 continue;
             }
             msgBuilder.append(' ');
-            msgBuilder.append(ZMSUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName()));
+            msgBuilder.append(ResourceUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName()));
         }
         throw ZMSUtils.requestError(msgBuilder.toString(), caller);
     }
@@ -8604,7 +8606,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (domain == null) {
             throw ZMSUtils.notFoundError("Domain not found: " + domainName, "deletePendingGroupMembership");
         }
-        if (isAllowedPutMembershipAccess(principal, domain, ZMSUtils.groupResourceName(domainName, groupName))) {
+        if (isAllowedPutMembershipAccess(principal, domain, ResourceUtils.groupResourceName(domainName, groupName))) {
             return true;
         }
 
@@ -8895,7 +8897,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!isConsistentGroupName(domainName, groupName, group)) {
             throw ZMSUtils.requestError(caller + ": Inconsistent group names - expected: "
-                    + ZMSUtils.groupResourceName(domainName, groupName) + ", actual: "
+                    + ResourceUtils.groupResourceName(domainName, groupName) + ", actual: "
                     + group.getName(), caller);
         }
 
