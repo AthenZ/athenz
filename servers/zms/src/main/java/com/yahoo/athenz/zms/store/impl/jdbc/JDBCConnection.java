@@ -497,6 +497,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_PRINCIPAL = "SELECT name FROM principal WHERE system_suspended=?;";
     private static final String SQL_INSERT_ROLE_TAG = "INSERT INTO role_tags"
             + "(role_id, role_tags.key, role_tags.value) VALUES (?,?,?);";
+    private static final String SQL_ROLE_TAG_COUNT = "SELECT COUNT(*) FROM role_tags WHERE role_id=?";
     private static final String SQL_DELETE_ROLE_TAG = "DELETE FROM role_tags WHERE role_id=? AND role_tags.key=?;";
     private static final String SQL_GET_ROLE_TAGS = "SELECT rt.key, rt.value FROM role_tags rt "
             + "JOIN role r ON rt.role_id = r.role_id JOIN domain ON domain.domain_id=r.domain_id "
@@ -507,6 +508,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     private static final String SQL_INSERT_DOMAIN_TAG = "INSERT INTO domain_tags"
         + "(domain_id, domain_tags.key, domain_tags.value) VALUES (?,?,?);";
+    private static final String SQL_DOMAIN_TAG_COUNT = "SELECT COUNT(*) FROM domain_tags WHERE domain_id=?";
     private static final String SQL_DELETE_DOMAIN_TAG = "DELETE FROM domain_tags WHERE domain_id=? AND domain_tags.key=?;";
     private static final String SQL_GET_DOMAIN_TAGS = "SELECT dt.key, dt.value FROM domain_tags dt "
         + "JOIN domain d ON dt.domain_id = d.domain_id WHERE d.name=?";
@@ -528,6 +530,9 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     private static final String MYSQL_SERVER_TIMEZONE = System.getProperty(ZMSConsts.ZMS_PROP_MYSQL_SERVER_TIMEZONE, "GMT");
 
+    private final int roleTagsLimit;
+    private final int domainTagsLimit;
+
     Connection con;
     boolean transactionCompleted;
     int queryTimeout = 60;
@@ -538,6 +543,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         con.setAutoCommit(autoCommit);
         transactionCompleted = autoCommit;
         objectMap = new HashMap<>();
+        roleTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG, 25);
+        domainTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, 25);
     }
 
     @Override
@@ -1033,9 +1040,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
+        int curTagCount = getDomainTagsCount(domainId);
+        int remainingTagsToInsert = domainTagsLimit - curTagCount;
         boolean res = true;
         for (Map.Entry<String, StringList> e : tags.entrySet()) {
-            for (String tagValue : e.getValue().getList()) {
+            for (int i = 0; i < e.getValue().getList().size() && remainingTagsToInsert-- > 0; i++) {
+                String tagValue = e.getValue().getList().get(i);
                 try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_DOMAIN_TAG)) {
                     ps.setInt(1, domainId);
                     ps.setString(2, processInsertValue(e.getKey()));
@@ -1046,7 +1056,26 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         }
+        if (remainingTagsToInsert < 0) {
+            LOG.info("Domain tags limit for domain: [{}] has reached", domainName);
+        }
         return res;
+    }
+
+    private int getDomainTagsCount(int domainId) {
+        final String caller = "getDomainTagsCount";
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_DOMAIN_TAG_COUNT)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
     }
 
     public Map<String, StringList> getDomainTags(String domainName) {
@@ -5977,9 +6006,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (roleId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ResourceUtils.roleResourceName(domainName, roleName));
         }
+        int curTagCount = getRoleTagsCount(roleId);
+        int remainingTagsToInsert = roleTagsLimit - curTagCount;
         boolean res = true;
         for (Map.Entry<String, StringList> e : roleTags.entrySet()) {
-            for (String tagValue : e.getValue().getList()) {
+            for (int i = 0; i < e.getValue().getList().size() && remainingTagsToInsert-- > 0; i++) {
+                String tagValue = e.getValue().getList().get(i);
                 try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_ROLE_TAG)) {
                     ps.setInt(1, roleId);
                     ps.setString(2, processInsertValue(e.getKey()));
@@ -5990,7 +6022,26 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         }
+        if (remainingTagsToInsert < 0) {
+            LOG.info("Role tags limit for role: [{}], domain: [{}] has reached", roleName, domainName);
+        }
         return res;
+    }
+    
+    private int getRoleTagsCount(int roleId) {
+        final String caller = "getRoleTagsCount";
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_ROLE_TAG_COUNT)) {
+            ps.setInt(1, roleId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
     }
 
     @Override

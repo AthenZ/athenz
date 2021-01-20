@@ -12181,7 +12181,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role");
         // tag
-        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "tagKey");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "tagVal");
 
@@ -12483,7 +12483,7 @@ public class JDBCConnectionTest {
         assertTrue(jdbcConn.insertDomainTags("domain", domainTags));
 
         // tag
-        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 5);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "tagKey");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "tagVal");
 
