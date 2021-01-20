@@ -2,7 +2,7 @@
 
 set e
 
-java --version
+java -version
 
 apt-get update
 
@@ -22,4 +22,5 @@ add-apt-repository -y ppa:ubuntu-toolchain-r/test
 apt-get install -y gcc
 apt-get install -y g++
 
-go version
+# install go
+#go version
