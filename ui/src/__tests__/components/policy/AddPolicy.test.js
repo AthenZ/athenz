@@ -123,7 +123,7 @@ describe('AddPolicy', () => {
         fireEvent.change(getByPlaceholderText('Policy Name'), {
             target: { value: 'policyname' },
         });
-        fireEvent.change(getByPlaceholderText('Rule Action'), {
+        fireEvent.change(getByPlaceholderText('Rule Action (Case Sensitive)'), {
             target: { value: 'ruleaction' },
         });
         fireEvent.click(getByText('Submit'));
