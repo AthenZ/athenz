@@ -5,7 +5,7 @@ set e
 apt-get update
 
 #install nodejs 12.x repo
-curl -sL https://rpm.nodesource.com/setup_12.x | sudo bash -
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 apt-get install -y nodejs
 apt-get install -y npm
 apt-get install -y software-properties-common
@@ -15,6 +15,9 @@ apt-get install -y g++
 npm install -g npm@latest
 
 # install go
+wget https://golang.org/dl/go1.13.4.linux-amd64.tar.gz -P /usr/local/
+tar -C /usr/local -xzf go1.13.4.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
 
 # check all installed dependencies
 echo "-----------------Java Version: -----------------"
