@@ -15,7 +15,7 @@ apt-get install -y g++
 npm install -g npm@latest
 
 # install go
-wget https://golang.org/dl/go1.13.4.linux-amd64.tar.gz -P /usr/local/
+wget https://golang.org/dl/go1.13.4.linux-amd64.tar.gz
 tar -C /usr/local -xzf go1.13.4.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 
