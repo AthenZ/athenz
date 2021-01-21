@@ -10,6 +10,7 @@ jobs:
     image: maven:3.6.3-openjdk-8
 
     steps:
-      - prepare_build: "screwdriver/scripts/prepare_build.sh"
-      - build: "screwdriver/scripts/build.sh"
+      - install_dependencies: "screwdriver/scripts/install_deps.sh"
+#      - pre_build: "screwdriver/scripts/prepare_build.sh"
+#      - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
