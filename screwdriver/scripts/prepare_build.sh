@@ -2,8 +2,6 @@
 
 set e
 
-java -version
-
 apt-get update
 
 apt-get install -y nodejs
