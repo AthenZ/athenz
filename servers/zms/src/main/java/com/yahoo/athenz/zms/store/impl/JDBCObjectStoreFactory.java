@@ -46,6 +46,7 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
                 System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "false"));
         readWriteProperties.setProperty(ZMSConsts.DB_PROP_TLS_PROTOCOLS,
                 System.getProperty(ZMSConsts.ZMS_PROP_JDBC_TLS_VERSIONS, "TLSv1.2,TLSv1.3"));
+        readWriteProperties.setProperty(ZMSConsts.DB_PROP_CONN_TIME_ZONE, "SERVER");
 
         PoolableDataSource readWriteSrc = DataSourceFactory.create(jdbcStore, readWriteProperties);
         
@@ -69,6 +70,8 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
                     System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "false"));
             readOnlyProperties.setProperty(ZMSConsts.DB_PROP_TLS_PROTOCOLS,
                     System.getProperty(ZMSConsts.ZMS_PROP_JDBC_TLS_VERSIONS, "TLSv1.2,TLSv1.3"));
+            readOnlyProperties.setProperty(ZMSConsts.DB_PROP_CONN_TIME_ZONE, "SERVER");
+
             readOnlySrc = DataSourceFactory.create(jdbcReadOnlyStore, readOnlyProperties);
         }
         

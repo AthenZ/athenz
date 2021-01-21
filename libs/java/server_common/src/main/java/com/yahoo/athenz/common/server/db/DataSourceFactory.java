@@ -177,6 +177,7 @@ public class DataSourceFactory {
         // another one will occur.
         config.setTestOnBorrow(true);
         config.setTestOnReturn(true);
+
         return config;
     }
     
