@@ -79,6 +79,7 @@ public final class ZMSConsts {
     public static final String DB_PROP_USE_SSL            = "useSSL";
     public static final String DB_PROP_VERIFY_SERVER_CERT = "verifyServerCertificate";
     public static final String DB_PROP_TLS_PROTOCOLS      = "enabledTLSProtocols";
+    public static final String DB_PROP_CONN_TIME_ZONE     = "connectionTimeZone";
 
     public static final String ZMS_PROP_USER_AUTHORITY_CLASS      = "athenz.zms.user_authority_class";
     public static final String ZMS_PROP_PRINCIPAL_AUTHORITY_CLASS = "athenz.zms.principal_authority_class";

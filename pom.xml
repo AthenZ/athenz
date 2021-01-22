@@ -70,30 +70,30 @@
 
   <properties>
     <jetty.version>9.4.35.v20201120</jetty.version>
-    <jersey.version>2.32</jersey.version>
-    <jackson.core.version>2.11.3</jackson.core.version>
-    <jackson.databind.version>2.11.3</jackson.databind.version>
-    <jackson.annotations.version>2.11.3</jackson.annotations.version>
-    <jackson.jaxrs.version>2.11.3</jackson.jaxrs.version>
+    <jersey.version>2.33</jersey.version>
+    <jackson.core.version>2.12.1</jackson.core.version>
+    <jackson.databind.version>2.12.1</jackson.databind.version>
+    <jackson.annotations.version>2.12.1</jackson.annotations.version>
+    <jackson.jaxrs.version>2.12.1</jackson.jaxrs.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <rdl.version>1.5.3</rdl.version>
-    <bouncycastle.version>1.67</bouncycastle.version>
-    <aws.version>1.11.908</aws.version>
-    <guava.version>30.0-jre</guava.version>
+    <bouncycastle.version>1.68</bouncycastle.version>
+    <aws.version>1.11.940</aws.version>
+    <guava.version>30.1-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
     <javax.ws.version>2.1.1</javax.ws.version>
-    <mockito.version>3.6.28</mockito.version>
+    <mockito.version>3.7.7</mockito.version>
     <jmockit.version>1.49</jmockit.version>
     <jjwt.version>0.11.2</jjwt.version>
-    <mysql.connector.version>8.0.22</mysql.connector.version>
+    <mysql.connector.version>8.0.23</mysql.connector.version>
     <commons.daemon.version>1.2.3</commons.daemon.version>
     <apache.httpclient.version>4.5.13</apache.httpclient.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <code.coverage.min>0.95</code.coverage.min>
     <argLine>-Dlogback.configurationFile=src/test/resources/travis_logback.xml</argLine>
-    <swagger.version>2.1.5</swagger.version>
+    <swagger.version>2.1.6</swagger.version>
   </properties>
 
   <modules>

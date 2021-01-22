@@ -6030,9 +6030,9 @@ public class DBServiceTest {
         // Create role1 with two members - oneday and sevenday
         Role role = createRoleObject(domainName1, "role1", null, "user.john", "user.jane");
         Timestamp oneDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
         Timestamp sevenDaysFromNow = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
         RoleMember roleMemberOneDay = new RoleMember().setMemberName("user.oneday").setApproved(true);
         RoleMember roleMemberSevenDays = new RoleMember().setMemberName("user.sevenday").setApproved(true);
         if (isRoleExpire) {
@@ -6050,7 +6050,7 @@ public class DBServiceTest {
         // Create role2 with one member - twoday
         Role role2 = createRoleObject(domainName1, "role2", null, "user.john", "user.jane");
         Timestamp twoDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(2, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(2, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
         RoleMember roleMemberTwoDays = new RoleMember().setMemberName("user.twoday").setApproved(true);
         if (isRoleExpire) {
             roleMemberTwoDays.setExpiration(twoDayFromNow);
@@ -6066,9 +6066,9 @@ public class DBServiceTest {
         // Create role3 with two members - tourteenday and thirtyfiveday
         Role role3 = createRoleObject(domainName2, "role3", null, "user.john", "user.jane");
         Timestamp fourteenDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(14, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(14, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
         Timestamp thirtyfiveDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(35, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(35, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
         RoleMember roleMemberFourteenDays = new RoleMember().setMemberName("user.fourteenday").setApproved(true);
         RoleMember roleMemberThirtyFiveDays = new RoleMember().setMemberName("user.thirtyfiveday").setApproved(true);
         if (isRoleExpire) {
@@ -6116,9 +6116,9 @@ public class DBServiceTest {
         // Create group with two members - oneday and sevenday
         Group group = createGroupObject(domainName1, "group1", "user.john", "user.jane");
         Timestamp oneDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
         Timestamp sevenDaysFromNow = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
         GroupMember groupMemberOneDay = new GroupMember().setMemberName("user.oneday")
                 .setApproved(true).setExpiration(oneDayFromNow);
         GroupMember groupMemberSevenDays = new GroupMember().setMemberName("user.sevenday")
@@ -6128,10 +6128,11 @@ public class DBServiceTest {
 
         zms.dbService.executePutGroup(mockDomRsrcCtx, domainName1, "group1", group, "putGroup");
 
+
         // Create group2 with one member - twoday
         Group group2 = createGroupObject(domainName1, "group2", "user.john", "user.jane");
         Timestamp twoDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(2, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(2, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
         GroupMember groupMemberTwoDays = new GroupMember().setMemberName("user.twoday")
                 .setApproved(true).setExpiration(twoDayFromNow);
         group2.getGroupMembers().add(groupMemberTwoDays);
@@ -6143,9 +6144,9 @@ public class DBServiceTest {
         // Create group3 with two members - tourteenday and thirtyfiveday
         Group group3 = createGroupObject(domainName2, "group3", "user.john", "user.jane");
         Timestamp fourteenDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(14, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(14, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
         Timestamp thirtyfiveDayFromNow = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(35, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(35, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
         GroupMember groupMemberFourteenDays = new GroupMember().setMemberName("user.fourteenday")
                 .setApproved(true).setExpiration(fourteenDayFromNow);
         GroupMember groupMemberThirtyFiveDays = new GroupMember().setMemberName("user.thirtyfiveday")
@@ -6331,7 +6332,7 @@ public class DBServiceTest {
         List<RoleMember> originalMembers = new ArrayList<>(5);
 
         Timestamp thirtyDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
 
         Timestamp currentExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(4, TimeUnit.DAYS));
 
@@ -6433,7 +6434,7 @@ public class DBServiceTest {
         admins.add(adminUser);
 
         Timestamp thirtyDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
 
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc", "org", false,
                 "", 1234, "", 0), admins, null, auditRef);
@@ -6527,7 +6528,7 @@ public class DBServiceTest {
         admins.add(adminUser);
 
         Timestamp thirtyDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
 
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc", "org", false,
                 "", 1234, "", 0), admins, null, auditRef);
@@ -6596,7 +6597,7 @@ public class DBServiceTest {
         admins.add(adminUser);
 
         Timestamp thirtyDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
 
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc", "org", false,
                 "", 1234, "", 0), admins, null, auditRef);
@@ -6667,7 +6668,7 @@ public class DBServiceTest {
         admins.add(adminUser);
 
         Timestamp thirtyDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
 
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc", "org", false,
                 "", 1234, "", 0), admins, null, auditRef);
