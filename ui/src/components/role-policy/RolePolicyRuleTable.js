@@ -20,7 +20,7 @@ import { colors } from '../denali/styles';
 import AddAssertionForRole from './AddAssertionForRole';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
-import { MODAL_TIME_OUT } from '../constants/constants';
+import { DISPLAY_SPACE, MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
 const StyleTable = styled.table`
     width: 100%;
@@ -197,7 +197,7 @@ export default class RolePolicyRuleTable extends React.Component {
                         {assertion.effect}
                     </TDStyled>
                     <TDStyled color={color} align={left}>
-                        {assertion.action.replace(/\s/g, '\u23b5')}
+                        {assertion.action.replace(/\s/g, DISPLAY_SPACE)}
                     </TDStyled>
                     <TDStyled color={color} align={left}>
                         {assertion.role}
