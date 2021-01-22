@@ -5656,8 +5656,8 @@ public class JDBCConnectionTest {
     public void testListModifiedDomains() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false) // 3 domains without tags
-            .thenReturn(true).thenReturn(false).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.next()).thenReturn(true) // 3 domains without tags
+            .thenReturn(true).thenReturn(true).thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
             .thenReturn("domain1").thenReturn("domain2").thenReturn("domain3"); // 3 domains
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACCOUNT))

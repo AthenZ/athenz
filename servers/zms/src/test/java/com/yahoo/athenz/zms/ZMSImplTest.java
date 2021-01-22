@@ -25303,7 +25303,7 @@ public class ZMSImplTest {
             "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
 
-        Response response = zms.getSignedDomains(rsrcCtx, null, null, null, null, null);
+        Response response = zms.getSignedDomains(rsrcCtx, domainName, null, null, null, null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
@@ -25315,7 +25315,7 @@ public class ZMSImplTest {
         assertEquals(signedDomainTags, simpleDomainTag());
 
         // test with meta only
-        response = zms.getSignedDomains(rsrcCtx, null, "true", "all", null, null);
+        response = zms.getSignedDomains(rsrcCtx, domainName, "true", "all", null, null);
         sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
