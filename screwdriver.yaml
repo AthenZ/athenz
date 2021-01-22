@@ -11,7 +11,8 @@ jobs:
     annotations:
       screwdriver.cd/cpu: TURBO
       screwdriver.cd/ram: TURBO
-      screwdriver.cd/disk: HIGH
+      screwdriver.cd/disk: TURBO
+      screwdriver.cd/timeout: 120
 
     steps:
       - install_dependencies: "screwdriver/scripts/install_deps.sh"
