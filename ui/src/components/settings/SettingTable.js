@@ -69,18 +69,6 @@ export default class SettingTable extends React.Component {
         };
     }
 
-    componentDidUpdate = (prevProps) => {
-        if (
-            prevProps.collection !== this.props.collection ||
-            prevProps.domain !== this.props.domain ||
-            prevProps.collectionDetails !== this.props.collectionDetails
-        ) {
-            this.setState({
-                collectionDetails: this.props.collectionDetails,
-            });
-        }
-    };
-
     toggleSubmit() {
         this.setState({
             showSubmit: !this.state.showSubmit,
