@@ -26,6 +26,8 @@ public class JDBCObjectStore implements ObjectStore {
     final PoolableDataSource rwSrc;
     PoolableDataSource roSrc;
     private int opTimeout = 60; //in seconds
+    private int roleTagsLimit;
+    private int domainTagsLimit;
     
     public JDBCObjectStore(PoolableDataSource rwSrc, PoolableDataSource roSrc) {
         this.rwSrc = rwSrc;
@@ -46,6 +48,7 @@ public class JDBCObjectStore implements ObjectStore {
             PoolableDataSource src = readWrite ? rwSrc : roSrc;
             JDBCConnection jdbcConn = new JDBCConnection(src.getConnection(), autoCommit);
             jdbcConn.setOperationTimeout(opTimeout);
+            jdbcConn.setTagLimit(domainTagsLimit, roleTagsLimit);
             return jdbcConn;
         } catch (Exception ex) {
             
@@ -67,6 +70,12 @@ public class JDBCObjectStore implements ObjectStore {
     @Override
     public void setOperationTimeout(int opTimeout) {
         this.opTimeout = opTimeout;
+    }
+
+    @Override
+    public void setTagLimit(int domainLimit, int roleLimit) {
+        this.domainTagsLimit = domainLimit;
+        this.roleTagsLimit = roleLimit;
     }
     
     /**

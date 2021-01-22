@@ -55,6 +55,9 @@
             <b>curl --key &lt;KEY&gt; --cert &lt;CERT&gt; -X DELETE https://{4}/zts/v1/instance/{5}/{6}/{7}/{8} </b>
             <p>Important: Once the certificate record is deleted, the instance will not be able to
             refresh its certificates so make sure the record is no longer needed.</p>
+            <p> 3. If you already have monitoring in place for unrefreshed certificates, you may disable unrefreshed
+            certificate notifications by adding the following domain tag:</p>
+            <p>Tag: <b>zts.DisableCertRefreshNotifications</b> Value: <b>true</b></p>
             <br>For additional support, please contact <a href="{2}">{3}</a>
         </div>
     </div>

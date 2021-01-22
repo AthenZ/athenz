@@ -19,7 +19,7 @@ import java.util.List;
 
 public class AuthzDetailsEntity {
 
-    public final static String ENTITY_NAME_PREFIX = "authorization_details_";
+    public final static String ENTITY_NAME_PREFIX = "zts.authorization_details_";
 
     private String type;
     private List<AuthzDetailsField> roles;

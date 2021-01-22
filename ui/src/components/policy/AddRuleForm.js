@@ -180,7 +180,7 @@ export default class AddRuleForm extends React.Component {
                             name='rule-action'
                             value={this.state.action}
                             onChange={actionChanged}
-                            placeholder={'Rule Action'}
+                            placeholder={'Rule Action (Case Sensitive)'}
                         />
                     </ContentDiv>
                 </SectionDiv>
@@ -209,6 +209,7 @@ export default class AddRuleForm extends React.Component {
                             name='rule-resource'
                             value={this.state.resource}
                             onChange={resourceChanged}
+                            placeholder={'Rule Resource (Case Sensitive)'}
                         />
                     </ContentDiv>
                 </SectionDiv>

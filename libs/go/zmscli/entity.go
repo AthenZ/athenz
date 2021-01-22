@@ -33,7 +33,8 @@ func (cli Zms) AddEntity(dn string, en string, values []string) (*string, error)
 		}
 	}
 	var entity zms.Entity
-	entity.Name = zms.EntityName(en)
+	fullResourceName := dn + ":entity." + en
+	entity.Name = zms.ResourceName(fullResourceName)
 	entity.Value = entityValue
 	err := cli.Zms.PutEntity(zms.DomainName(dn), zms.EntityName(en), cli.AuditRef, &entity)
 	if err != nil {

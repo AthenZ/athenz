@@ -19,6 +19,7 @@ import java.util.*;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -62,45 +63,17 @@ public class ZMSUtils {
             roleMembers.add(roleMember);
         }
         return new Role()
-                .setName(roleResourceName(domainName, ZMSConsts.ADMIN_ROLE_NAME))
+                .setName(ResourceUtils.roleResourceName(domainName, ZMSConsts.ADMIN_ROLE_NAME))
                 .setRoleMembers(roleMembers);
     }
     
     public static Policy makeAdminPolicy(String domainName, Role adminsRole) {
         
         Policy policy = new Policy()
-                .setName(policyResourceName(domainName, ZMSConsts.ADMIN_POLICY_NAME));
+                .setName(ResourceUtils.policyResourceName(domainName, ZMSConsts.ADMIN_POLICY_NAME));
         
         addAssertion(policy, domainName + ":*", "*", adminsRole.getName(), AssertionEffect.ALLOW);
         return policy;
-    }
-    
-    private static String generateResourceName(String domainName, String resName, String resType) {
-        if (resType.isEmpty()) {
-            return domainName + "." + resName;
-        } else {
-            return domainName + ":" + resType + "." + resName;
-        }
-    }
-    
-    public static String roleResourceName(String domainName, String roleName) {
-        return generateResourceName(domainName, roleName, ZMSConsts.OBJECT_ROLE);
-    }
-
-    public static String groupResourceName(String domainName, String groupName) {
-        return generateResourceName(domainName, groupName, ZMSConsts.OBJECT_GROUP);
-    }
-
-    public static String policyResourceName(String domainName, String policyName) {
-        return generateResourceName(domainName, policyName, ZMSConsts.OBJECT_POLICY);
-    }
-    
-    public static String serviceResourceName(String domainName, String serviceName) {
-        return generateResourceName(domainName, serviceName, "");
-    }
-
-    public static String entityResourceName(String domainName, String serviceName) {
-        return generateResourceName(domainName, serviceName, "");
     }
     
     public static String removeDomainPrefix(String objectName, String domainName, String objectPrefix) {
@@ -318,7 +291,11 @@ public class ZMSUtils {
     }
 
     public static String extractPolicyName(String domainName, String fullPolicyName) {
-        return extractObjectName(domainName, fullPolicyName, ":policy.");
+        return extractObjectName(domainName, fullPolicyName, AuthorityConsts.POLICY_SEP);
+    }
+
+    public static String extractEntityName(String domainName, String fullEntityName) {
+        return extractObjectName(domainName, fullEntityName, AuthorityConsts.ENTITY_SEP);
     }
 
     public static String extractServiceName(String domainName, String fullServiceName) {

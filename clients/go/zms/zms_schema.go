@@ -411,7 +411,7 @@ func init() {
 
 	tEntity := rdl.NewStructTypeBuilder("Struct", "Entity")
 	tEntity.Comment("An entity is a name and a structured value. some entity names/prefixes are reserved (i.e. \"role\",  \"policy\", \"meta\", \"domain\", \"service\")")
-	tEntity.Field("name", "EntityName", false, nil, "name of the entity object")
+	tEntity.Field("name", "ResourceName", false, nil, "name of the entity object")
 	tEntity.Field("value", "Struct", false, nil, "value of the entity")
 	sb.AddType(tEntity.Build())
 

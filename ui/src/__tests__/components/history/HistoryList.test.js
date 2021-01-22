@@ -19,8 +19,8 @@ import HistoryList from '../../../components/history/HistoryList';
 
 describe('HistoryList', () => {
     it('should render', () => {
-        const startDate = '2020-01-20 07:51';
-        const endDate = '2020-01-20 07:55';
+        const startDate = '2021-01-20 07:51';
+        const endDate = '2021-01-20 07:55';
         const { getByTestId } = render(
             <HistoryList startDate={startDate} endDate={endDate} />
         );

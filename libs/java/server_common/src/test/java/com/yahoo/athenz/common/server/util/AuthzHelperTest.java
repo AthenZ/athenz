@@ -748,14 +748,13 @@ public class AuthzHelperTest {
     public void testConvertEntityToAuthzDetailsEntity() throws JsonProcessingException {
 
         Entity entity = new Entity();
-        entity.setName("authorization_details");
+        entity.setName("athenz:entity.zts.authorization_details_set1");
 
         final String jsonData = "{\"type\":\"message_access\",\"roles\":[{\"name\":\"msg-readers\"," +
                 "\"optional\":true},{\"name\":\"msg-writers\",\"optional\":false},{\"name\":" +
                 "\"msg-editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
                 "{\"name\":\"identifier\",\"optional\":false},{\"name\":\"resource\"}]}";
-
-        entity.setValue(JSON.fromString(jsonData, Struct.class));
+        entity.setValue(new Struct().with("data", jsonData));
 
         AuthzDetailsEntity authzEntity = AuthzHelper.convertEntityToAuthzDetailsEntity(entity);
         assertNotNull(authzEntity);
@@ -793,19 +792,37 @@ public class AuthzHelperTest {
     public void testConvertEntityToAuthzDetailsEntityInvalidDetails() {
 
         Entity entity = new Entity();
-        entity.setName("authorization_details");
+        entity.setName("athenz:entity.zts.authorization_details_set1");
+
+        // without value we should get back an exception
+
+        try {
+            AuthzHelper.convertEntityToAuthzDetailsEntity(entity);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Entity has no value"));
+        }
+
+        // without data field is also invalid
+
+        entity.setValue(new Struct().with("key", "value"));
+        try {
+            AuthzHelper.convertEntityToAuthzDetailsEntity(entity);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Entity has no data field"));
+        }
 
         final String jsonData = "{\"type\":\"message_access\",\"policies\":[{\"name\":\"msg-readers\"," +
                 "\"optional\":true},{\"name\":\"msg-writers\",\"optional\":false},{\"name\":" +
                 "\"msg-editors\"}],\"fields\":[{\"name\":\"location\",\"optional\":true}," +
                 "{\"name\":\"identifier\",\"optional\":false},{\"name\":\"resource\"}]}";
-
-        entity.setValue(JSON.fromString(jsonData, Struct.class));
+        entity.setValue(new Struct().with("data", jsonData));
 
         try {
             AuthzHelper.convertEntityToAuthzDetailsEntity(entity);
             fail();
-        } catch (JsonProcessingException ignored) {
+        } catch (Exception ignored) {
         }
     }
 }
