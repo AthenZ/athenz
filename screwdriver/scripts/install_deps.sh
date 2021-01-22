@@ -5,7 +5,7 @@ set e
 apt-get update
 
 #install nodejs 12.x repo
-curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_12.x | bash -
 apt-get install -y nodejs
 apt-get install -y npm
 apt-get install -y software-properties-common
