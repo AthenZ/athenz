@@ -9,10 +9,9 @@ jobs:
     requires: [~pr, ~commit]
     image: maven:3.6.3-openjdk-8
     annotations:
-      screwdriver.cd/cpu: 8
-      screwdriver.cd/ram: 16
+      screwdriver.cd/cpu: TURBO
+      screwdriver.cd/ram: TURBO
       screwdriver.cd/disk: HIGH
-      screwdriver.cd/timeout: 600
 
     steps:
       - install_dependencies: "screwdriver/scripts/install_deps.sh"
