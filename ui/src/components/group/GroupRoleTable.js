@@ -16,6 +16,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import RoleGroup from '../role/RoleGroup';
+import {GROUP_ROLES_CATEGORY} from "../constants/constants";
 
 const StyleTable = styled.table`
     width: 100%;
@@ -107,7 +108,7 @@ export default class GroupRoleTable extends React.Component {
                     // group rows
                     let roleGroup = (
                         <RoleGroup
-                            category={'group-roles'}
+                            category={GROUP_ROLES_CATEGORY}
                             key={'group-role:' + name}
                             api={this.api}
                             domain={name}
