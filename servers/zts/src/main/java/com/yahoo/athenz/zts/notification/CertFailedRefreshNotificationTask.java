@@ -53,7 +53,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     private final CertFailedRefreshNotificationToMetricConverter certFailedRefreshNotificationToMetricConverter;
     private final GlobStringsMatcher globStringsMatcher;
 
-    private final static String SNOOZED_DOMAIN_TAG_KEY = "zts.DisableCertRefreshNotification";
+    private final static String SNOOZED_DOMAIN_TAG_KEY = "zts.DisableCertRefreshNotifications";
     private final static String SNOOZED_DOMAIN_TAG_VALUE = "true";
 
     public CertFailedRefreshNotificationTask(InstanceCertManager instanceCertManager,

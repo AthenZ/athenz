@@ -484,7 +484,7 @@ public class ZMSClient implements Closeable {
      * @return full policy name
      */
     public String generatePolicyName(String domain, String policy) {
-        return domain + ":policy." + policy;
+        return domain + AuthorityConsts.POLICY_SEP + policy;
     }
 
     /**
@@ -498,6 +498,19 @@ public class ZMSClient implements Closeable {
      */
     public String generateServiceIdentityName(String domain, String service) {
         return domain + "." + service;
+    }
+
+    /**
+     * Generate an entity name as expected by ZMS Server can be used to
+     * set the entity object's name field
+     * (e.g. entity.setName(name))
+     *
+     * @param domain  name of the domain
+     * @param entity name of the service
+     * @return full entity name
+     */
+    public String generateEntityName(String domain, String entity) {
+        return domain + AuthorityConsts.ENTITY_SEP + entity;
     }
 
     /**

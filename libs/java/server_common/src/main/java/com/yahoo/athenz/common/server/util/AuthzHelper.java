@@ -23,13 +23,20 @@ import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
+import com.yahoo.athenz.common.server.rest.ResourceException;
 import com.yahoo.athenz.zms.*;
+import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
+import org.eclipse.jetty.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class AuthzHelper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthzHelper.class);
 
     private static final String ASSUME_ROLE = "assume_role";
     private static final ObjectMapper JSON_MAPPER = initJsonMapper();
@@ -284,8 +291,20 @@ public class AuthzHelper {
     }
 
     public static AuthzDetailsEntity convertEntityToAuthzDetailsEntity(Entity entity) throws JsonProcessingException {
-        final String jsonData = JSON_MAPPER.writeValueAsString(entity.getValue());
-        return JSON_MAPPER.readValue(jsonData, AuthzDetailsEntity.class);
+
+        Struct value = entity.getValue();
+        if (value == null) {
+            throw new ResourceException(ResourceException.BAD_REQUEST, "Entity has no value");
+        }
+        // the authorization details is the value of the data field
+        final String authzDetails = value.getString("data");
+        if (StringUtil.isEmpty(authzDetails)) {
+            throw new ResourceException(ResourceException.BAD_REQUEST, "Entity has no data field");
+        }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Authorization Details json input: {}", authzDetails);
+        }
+        return JSON_MAPPER.readValue(authzDetails, AuthzDetailsEntity.class);
     }
 
     /**

@@ -350,7 +350,7 @@ func (cli Zms) dumpEntities(buf *bytes.Buffer, dn string, entitynames []string) 
 }
 
 func (cli Zms) dumpEntity(buf *bytes.Buffer, entity zms.Entity, indent1 string, indent2 string) {
-	cli.displayObjectName(buf, string(entity.Name), "", indent1)
+	cli.displayObjectName(buf, string(entity.Name), ":entity.", indent1)
 	buf.WriteString(indent2)
 	buf.WriteString("value:\n")
 	indent3Dash := indent2 + "  - "

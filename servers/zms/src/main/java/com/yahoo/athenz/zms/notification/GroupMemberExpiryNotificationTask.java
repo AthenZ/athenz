@@ -17,8 +17,8 @@
 package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.notification.*;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
-import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,7 +184,7 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
 
             Map<String, String> details = processMemberReminder(domainAdmin.getKey(), domainAdmin.getValue());
             Notification notification = notificationCommon.createNotification(
-                    ZMSUtils.roleResourceName(domainAdmin.getKey(), ADMIN_ROLE_NAME),
+                    ResourceUtils.roleResourceName(domainAdmin.getKey(), ADMIN_ROLE_NAME),
                     details, domainAdminNotificationToEmailConverter, domainAdminNotificationToMetricConverter);
             if (notification != null) {
                 notificationList.add(notification);

@@ -79,6 +79,7 @@ public final class ZMSConsts {
     public static final String DB_PROP_USE_SSL            = "useSSL";
     public static final String DB_PROP_VERIFY_SERVER_CERT = "verifyServerCertificate";
     public static final String DB_PROP_TLS_PROTOCOLS      = "enabledTLSProtocols";
+    public static final String DB_PROP_CONN_TIME_ZONE     = "connectionTimeZone";
 
     public static final String ZMS_PROP_USER_AUTHORITY_CLASS      = "athenz.zms.user_authority_class";
     public static final String ZMS_PROP_PRINCIPAL_AUTHORITY_CLASS = "athenz.zms.principal_authority_class";
@@ -137,7 +138,9 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_SUBDOMAIN    = "athenz.zms.quota_subdomain";
     public static final String ZMS_PROP_QUOTA_GROUP        = "athenz.zms.quota_group";
     public static final String ZMS_PROP_QUOTA_GROUP_MEMBER = "athenz.zms.quota_group_member";
-
+    public static final String ZMS_PROP_QUOTA_ROLE_TAG     = "athenz.zms.quota_role_tag";
+    public static final String ZMS_PROP_QUOTA_DOMAIN_TAG   = "athenz.zms.quota_domain_tag";
+    
     public static final String ZMS_PROP_MYSQL_SERVER_TIMEZONE = "athenz.zms.mysql_server_timezone";
 
     public static final String ZMS_PRINCIPAL_AUTHORITY_CLASS  = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
@@ -147,6 +150,7 @@ public final class ZMSConsts {
     public static final String ZMS_SERVICE            = "zms";
 
     public static final String ZMS_DOMAIN_NAME_MAX_SIZE_DEFAULT = "128";
+    public static final int    ZMS_DEFAULT_TAG_LIMIT   = 25;
 
     public static final String USER_DOMAIN        = "user";
 
@@ -262,6 +266,7 @@ public final class ZMSConsts {
     public static final String OBJECT_PRINCIPAL = "principal";
     public static final String OBJECT_HOST      = "host";
     public static final String OBJECT_GROUP     = "group";
+    public static final String OBJECT_ENTITY    = "entity";
 
     public static final String SYSTEM_META_PRODUCT_ID         = "productid";
     public static final String SYSTEM_META_ACCOUNT            = "account";

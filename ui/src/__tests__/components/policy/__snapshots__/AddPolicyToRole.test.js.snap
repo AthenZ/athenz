@@ -374,7 +374,7 @@ exports[`AddPolicyToRole should render 1`] = `
             data-testid="input-node"
             id="rule-action"
             name="rule-action"
-            placeholder="Rule Action"
+            placeholder="Rule Action (Case Sensitive)"
             value=""
           />
           <div
@@ -405,6 +405,7 @@ exports[`AddPolicyToRole should render 1`] = `
             data-testid="input-node"
             id="rule-resource"
             name="rule-resource"
+            placeholder="Rule Resource (Case Sensitive)"
             value=""
           />
           <div
@@ -792,7 +793,7 @@ exports[`AddPolicyToRole should render fail to submit policy name is required 1`
             data-testid="input-node"
             id="rule-action"
             name="rule-action"
-            placeholder="Rule Action"
+            placeholder="Rule Action (Case Sensitive)"
             value=""
           />
           <div
@@ -823,6 +824,7 @@ exports[`AddPolicyToRole should render fail to submit policy name is required 1`
             data-testid="input-node"
             id="rule-resource"
             name="rule-resource"
+            placeholder="Rule Resource (Case Sensitive)"
             value=""
           />
           <div
@@ -1210,7 +1212,7 @@ exports[`AddPolicyToRole should render failed to submit action is required 1`] =
             data-testid="input-node"
             id="rule-action"
             name="rule-action"
-            placeholder="Rule Action"
+            placeholder="Rule Action (Case Sensitive)"
             value=""
           />
           <div
@@ -1241,6 +1243,7 @@ exports[`AddPolicyToRole should render failed to submit action is required 1`] =
             data-testid="input-node"
             id="rule-resource"
             name="rule-resource"
+            placeholder="Rule Resource (Case Sensitive)"
             value=""
           />
           <div

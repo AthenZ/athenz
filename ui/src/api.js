@@ -913,6 +913,7 @@ const Api = (req) => {
                                 ),
                                 effect,
                                 action,
+                                caseSensitive: true,
                             },
                         ],
                     },
@@ -1006,6 +1007,7 @@ const Api = (req) => {
                         ),
                         effect,
                         action,
+                        caseSensitive: true,
                     },
                 };
                 fetchr

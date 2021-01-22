@@ -5353,7 +5353,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Entity entity = jdbcConn.getEntity("my-domain", "entity1");
         assertNotNull(entity);
-        assertEquals("entity1", entity.getName());
+        assertEquals("my-domain:entity.entity1", entity.getName());
         assertEquals("{\"value\":1}", JSON.string(entity.getValue()));
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "entity1");
@@ -5418,7 +5418,8 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Entity entity = new Entity().setName("entity1").setValue(JSON.fromString("{\"value\":1}", Struct.class));
+        Entity entity = new Entity().setName("my-domain:entity.entity1")
+                .setValue(JSON.fromString("{\"value\":1}", Struct.class));
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -5438,7 +5439,8 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Entity entity = new Entity().setName("entity1").setValue(JSON.fromString("{\"value\":1}", Struct.class));
+        Entity entity = new Entity().setName("my-domain:entity.entity1")
+                .setValue(JSON.fromString("{\"value\":1}", Struct.class));
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
         try {
@@ -5455,7 +5457,8 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Entity entity = new Entity().setName("entity1").setValue(JSON.fromString("{\"value\":1}", Struct.class));
+        Entity entity = new Entity().setName("my-domain:entity.entity1")
+                .setValue(JSON.fromString("{\"value\":1}", Struct.class));
 
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
@@ -5475,7 +5478,8 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Entity entity = new Entity().setName("entity1").setValue(JSON.fromString("{\"value\":1}", Struct.class));
+        Entity entity = new Entity().setName("my-domain:entity.entity1")
+                .setValue(JSON.fromString("{\"value\":1}", Struct.class));
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -5496,7 +5500,8 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Entity entity = new Entity().setName("entity1").setValue(JSON.fromString("{\"value\":1}", Struct.class));
+        Entity entity = new Entity().setName("my-domain:entity.entity1")
+                .setValue(JSON.fromString("{\"value\":1}", Struct.class));
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
         try {
@@ -5513,7 +5518,8 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        Entity entity = new Entity().setName("entity1").setValue(JSON.fromString("{\"value\":1}", Struct.class));
+        Entity entity = new Entity().setName("my-domain:entity.entity1")
+                .setValue(JSON.fromString("{\"value\":1}", Struct.class));
 
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
@@ -5650,8 +5656,8 @@ public class JDBCConnectionTest {
     public void testListModifiedDomains() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false) // 3 domains without tags
-            .thenReturn(true).thenReturn(false).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.next()).thenReturn(true) // 3 domains without tags
+            .thenReturn(true).thenReturn(true).thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
             .thenReturn("domain1").thenReturn("domain2").thenReturn("domain3"); // 3 domains
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACCOUNT))
@@ -12175,7 +12181,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role");
         // tag
-        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "tagKey");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "tagVal");
 
@@ -12477,7 +12483,7 @@ public class JDBCConnectionTest {
         assertTrue(jdbcConn.insertDomainTags("domain", domainTags));
 
         // tag
-        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 5);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "tagKey");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "tagVal");
 

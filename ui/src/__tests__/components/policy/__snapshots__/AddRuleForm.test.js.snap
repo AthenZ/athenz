@@ -468,7 +468,7 @@ exports[`AddRuleForm should render 1`] = `
           data-testid="input-node"
           id="rule-action"
           name="rule-action"
-          placeholder="Rule Action"
+          placeholder="Rule Action (Case Sensitive)"
           value=""
         />
         <div
@@ -562,6 +562,7 @@ exports[`AddRuleForm should render 1`] = `
           data-testid="input-node"
           id="rule-resource"
           name="rule-resource"
+          placeholder="Rule Resource (Case Sensitive)"
           value=""
         />
         <div
@@ -1042,7 +1043,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
           data-testid="input-node"
           id="rule-action"
           name="rule-action"
-          placeholder="Rule Action"
+          placeholder="Rule Action (Case Sensitive)"
           value=""
         />
         <div
@@ -1136,6 +1137,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
           data-testid="input-node"
           id="rule-resource"
           name="rule-resource"
+          placeholder="Rule Resource (Case Sensitive)"
           value=""
         />
         <div

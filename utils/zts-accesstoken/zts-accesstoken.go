@@ -31,7 +31,7 @@ var (
 )
 
 func usage() {
-	fmt.Println("usage: zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] <credentials> -zts <zts-server-url> [-expire-time <time-in-mins>]")
+	fmt.Println("usage: zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] <credentials> -zts <zts-server-url> [-expire-time <time-in-mins>] [-authorization-details <authz-details>]")
 	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-svc-cacert-file <ca-cert-file>] | ")
 	fmt.Println("           	             -ntoken-file <ntoken-file> [-hdr <auth-header-name>]")
 	fmt.Println("       zts-accesstoken -validate -access-token <access-token> -conf <athenz-conf-path> [-claims]")
@@ -47,7 +47,7 @@ func printVersion() {
 }
 
 func main() {
-	var domain, service, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr, conf, accessToken string
+	var domain, service, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr, conf, accessToken, authzDetails string
 	var expireTime int
 	var proxy, validate, claims, showVersion bool
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
@@ -65,6 +65,7 @@ func main() {
 	flag.BoolVar(&claims, "claims", false, "display all claims from access token")
 	flag.StringVar(&accessToken, "access-token", "", "access token to validate")
 	flag.StringVar(&conf, "conf", "/home/athenz/conf/athenz.conf", "path to configuration file with public keys")
+	flag.StringVar(&authzDetails, "authorization-details", "", "Authorization Details (json document)")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.Parse()
 
@@ -76,7 +77,7 @@ func main() {
 	if validate {
 		validateAccessToken(accessToken, conf, claims)
 	} else {
-		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, proxy, expireTime)
+		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxy, expireTime)
 	}
 }
 
@@ -121,7 +122,7 @@ func validateAccessToken(accessToken, conf string, showClaims bool) {
 	fmt.Println("Access Token successfully validated")
 }
 
-func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr string, proxy bool, expireTime int) {
+func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails string, proxy bool, expireTime int) {
 	if domain == "" || ztsURL == "" {
 		usage()
 	}
@@ -145,7 +146,7 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 	}
 
 	// generate the scope for the request, convert time to seconds
-	request := generateRequestString(domain, service, roles, expireTime*60)
+	request := generateRequestString(domain, service, roles, authzDetails, expireTime*60)
 
 	// request an access token
 	accessTokenResponse, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(request))
@@ -161,7 +162,7 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 	fmt.Println(string(data))
 }
 
-func generateRequestString(domain, service, roles string, expiryTime int) string {
+func generateRequestString(domain, service, roles, authzDetails string, expiryTime int) string {
 
 	params := url.Values{}
 	params.Add("grant_type", "client_credentials")
@@ -184,6 +185,9 @@ func generateRequestString(domain, service, roles string, expiryTime int) string
 	}
 
 	params.Add("scope", scope)
+	if authzDetails != "" {
+		params.Add("authorization_details", authzDetails)
+	}
 	return params.Encode()
 }
 
