@@ -647,8 +647,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         return ps.executeQuery();
     }
 
-    Domain saveDomainSettings(String domainName, ResultSet rs) throws SQLException {
-        return new Domain().setName(domainName)
+    Domain saveDomainSettings(String domainName, ResultSet rs, boolean fetchTags) throws SQLException {
+        Domain domain = new Domain().setName(domainName)
                 .setAuditEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED))
                 .setEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_ENABLED))
                 .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
@@ -667,8 +667,11 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setSignAlgorithm(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)))
                 .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0))
                 .setGroupExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_GROUP_EXPIRY_DAYS), 0))
-                .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)))
-                .setTags(getDomainTags(domainName));
+                .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)));
+        if (fetchTags) {
+            domain.setTags(getDomainTags(domainName));
+        }
+        return domain;
     }
 
     @Override
@@ -679,7 +682,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(1, domainName);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
-                    return saveDomainSettings(domainName, rs);
+                    return saveDomainSettings(domainName, rs, true);
                 }
             }
         } catch (SQLException ex) {
@@ -3656,7 +3659,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(1, domainName);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
-                    athenzDomain.setDomain(saveDomainSettings(domainName, rs));
+                    athenzDomain.setDomain(saveDomainSettings(domainName, rs, true));
                     domainId = rs.getInt(ZMSConsts.DB_COLUMN_DOMAIN_ID);
                 }
             }
@@ -3689,7 +3692,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     final String domainName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
-                    nameMods.add(saveDomainSettings(domainName, rs));
+                    nameMods.add(saveDomainSettings(domainName, rs, false));
                 }
             }
         } catch (SQLException ex) {
