@@ -23,8 +23,11 @@ import { colors } from '../denali/styles';
 import AddModal from '../modal/AddModal';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
-import {GROUP_MEMBER_NAME_REGEX, GROUP_NAME_REGEX} from "../constants/constants";
-import MemberUtils from "../utils/MemberUtils";
+import {
+    GROUP_MEMBER_NAME_REGEX,
+    GROUP_NAME_REGEX,
+} from '../constants/constants';
+import MemberUtils from '../utils/MemberUtils';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -145,19 +148,21 @@ export default class AddGroup extends React.Component {
             members.push({
                 memberName: name,
             });
-        })
+        });
         if (names.invalidUsers.length !== 0) {
             this.setState({
                 members,
                 newMemberName: names.invalidUsers.toString(),
-                errorMessage: "Member name doesn't match regex: " + GROUP_MEMBER_NAME_REGEX,
+                errorMessage:
+                    "Member name doesn't match regex: " +
+                    GROUP_MEMBER_NAME_REGEX,
             });
         } else {
             this.setState({
                 members,
                 newMemberName: '',
                 errorMessage: '',
-            })
+            });
         }
     }
 
@@ -183,7 +188,8 @@ export default class AddGroup extends React.Component {
 
         if (!MemberUtils.matchRegexName(groupName, GROUP_NAME_REGEX)) {
             this.setState({
-                errorMessage: "Group name doesn't match regex: " + GROUP_NAME_REGEX,
+                errorMessage:
+                    "Group name doesn't match regex: " + GROUP_NAME_REGEX,
             });
             return;
         }
@@ -195,18 +201,23 @@ export default class AddGroup extends React.Component {
             }) || [];
 
         if (this.state.newMemberName && this.state.newMemberName !== '') {
-            let names = MemberUtils.getUserNames(this.state.newMemberName, GROUP_MEMBER_NAME_REGEX);
+            let names = MemberUtils.getUserNames(
+                this.state.newMemberName,
+                GROUP_MEMBER_NAME_REGEX
+            );
             names.forEach((name) => {
                 group.groupMembers.push({
                     memberName: name,
                 });
-            })
+            });
             if (names.invalidUsers.length !== 0) {
                 this.setState({
                     newMemberName: names.invalidUsers.toString(),
-                    errorMessage: "Member name doesn't match regex: " + GROUP_MEMBER_NAME_REGEX,
+                    errorMessage:
+                        "Member name doesn't match regex: " +
+                        GROUP_MEMBER_NAME_REGEX,
                 });
-                return ;
+                return;
             }
         }
 
@@ -272,18 +283,18 @@ export default class AddGroup extends React.Component {
 
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
-                // dummy place holder so that it can be be used in the form
-                item.approved = true;
-                let remove = this.deleteMember.bind(this, idx);
-                return (
-                    <Member
-                        key={idx}
-                        item={item}
-                        onClickRemove={remove}
-                        noanim
-                    />
-                );
-            })
+                  // dummy place holder so that it can be be used in the form
+                  item.approved = true;
+                  let remove = this.deleteMember.bind(this, idx);
+                  return (
+                      <Member
+                          key={idx}
+                          item={item}
+                          onClickRemove={remove}
+                          noanim
+                      />
+                  );
+              })
             : '';
         let sections = (
             <SectionsDiv>

@@ -24,8 +24,8 @@ import Checkbox from '../denali/CheckBox';
 import DateUtils from '../utils/DateUtils';
 import NameUtils from '../utils/NameUtils';
 import RequestUtils from '../utils/RequestUtils';
-import MemberUtils from "../utils/MemberUtils";
-import {GROUP_MEMBER_NAME_REGEX} from "../constants/constants";
+import MemberUtils from '../utils/MemberUtils';
+import { GROUP_MEMBER_NAME_REGEX } from '../constants/constants';
 
 const SectionsDiv = styled.div`
     width: 760px;
@@ -110,9 +110,16 @@ export default class AddMember extends React.Component {
             return;
         }
 
-        if (!MemberUtils.matchRegexName(this.state.memberName, GROUP_MEMBER_NAME_REGEX)) {
+        if (
+            !MemberUtils.matchRegexName(
+                this.state.memberName,
+                GROUP_MEMBER_NAME_REGEX
+            )
+        ) {
             this.setState({
-                errorMessage: "Member name doesn't match regex: " + GROUP_MEMBER_NAME_REGEX,
+                errorMessage:
+                    "Member name doesn't match regex: " +
+                    GROUP_MEMBER_NAME_REGEX,
             });
             return;
         }
@@ -133,15 +140,15 @@ export default class AddMember extends React.Component {
             expiration:
                 this.state.memberExpiry && this.state.memberExpiry.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                    this.state.memberExpiry
-                    )
+                          this.state.memberExpiry
+                      )
                     : '',
             reviewReminder:
                 this.state.memberReviewReminder &&
                 this.state.memberReviewReminder.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                    this.state.memberReviewReminder
-                    )
+                          this.state.memberReviewReminder
+                      )
                     : '',
         };
         // send api call and then reload existing members component

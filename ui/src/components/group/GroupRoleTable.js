@@ -16,7 +16,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import RoleGroup from '../role/RoleGroup';
-import {GROUP_ROLES_CATEGORY} from "../constants/constants";
+import { GROUP_ROLES_CATEGORY } from '../constants/constants';
 
 const StyleTable = styled.table`
     width: 100%;

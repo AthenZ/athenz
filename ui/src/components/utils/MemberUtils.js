@@ -24,9 +24,7 @@ export default class MemberUtils {
         let invalidUsers = [];
         let validUsers = [];
         names.forEach((name) => {
-            if (
-                MemberUtils.matchRegexName(name, regex)
-            ) {
+            if (MemberUtils.matchRegexName(name, regex)) {
                 validUsers.push(name);
             } else {
                 invalidUsers.push(name);
@@ -39,8 +37,8 @@ export default class MemberUtils {
         };
     }
 
-    static matchRegexName (name, regex) {
+    static matchRegexName(name, regex) {
         let match = name.match(regex);
-        return match && name === match[0]
+        return match && name === match[0];
     }
 }

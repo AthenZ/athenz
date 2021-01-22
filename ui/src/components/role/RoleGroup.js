@@ -18,7 +18,7 @@ import styled from '@emotion/styled';
 import RoleSectionRow from './RoleSectionRow';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
-import {GROUP_ROLES_CATEGORY} from "../constants/constants";
+import { GROUP_ROLES_CATEGORY } from '../constants/constants';
 
 const LeftMarginSpan = styled.span`
     margin-right: 10px;
