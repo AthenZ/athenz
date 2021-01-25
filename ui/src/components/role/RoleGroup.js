@@ -18,6 +18,7 @@ import styled from '@emotion/styled';
 import RoleSectionRow from './RoleSectionRow';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
+import { GROUP_ROLES_CATEGORY } from '../constants/constants';
 
 const LeftMarginSpan = styled.span`
     margin-right: 10px;
@@ -94,7 +95,10 @@ export default class RoleGroup extends React.Component {
         let rows = [];
 
         if (this.state.roles && this.state.roles.length > 0) {
-            let label = this.props.name.toUpperCase();
+            let label = this.props.name;
+            if (this.props.category !== GROUP_ROLES_CATEGORY) {
+                label = label.toUpperCase();
+            }
             let length = this.state.roles.length;
 
             if (this.state.expanded) {

@@ -60,6 +60,12 @@ const StyledMenu = styled(Menu)`
     margin-left: 0px !important;
 `;
 
+const StyledSpan = styled.span`
+    &:hover {
+        cursor: context-menu !important;
+    }
+`;
+
 export default class MemberRow extends React.Component {
     constructor(props) {
         super(props);
@@ -103,7 +109,7 @@ export default class MemberRow extends React.Component {
                 this.state.deleteJustification.trim() === '')
         ) {
             this.setState({
-                errorMessage: 'Justification is required to delete a role',
+                errorMessage: 'Justification is required to delete a member',
             });
             return;
         }
@@ -169,9 +175,12 @@ export default class MemberRow extends React.Component {
                 {member.memberName.includes(':group.') ? (
                     <GroupTDStyled color={color} align={left}>
                         <StyledMenu
+                            triggerOn='click'
                             placement='right'
                             boundary='scrollParent'
-                            trigger={member.memberName}
+                            trigger={
+                                <StyledSpan>{member.memberName}</StyledSpan>
+                            }
                         >
                             <GroupMemberList
                                 api={this.api}

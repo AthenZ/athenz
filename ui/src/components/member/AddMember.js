@@ -24,6 +24,8 @@ import Checkbox from '../denali/CheckBox';
 import DateUtils from '../utils/DateUtils';
 import NameUtils from '../utils/NameUtils';
 import RequestUtils from '../utils/RequestUtils';
+import MemberUtils from '../utils/MemberUtils';
+import { GROUP_MEMBER_NAME_REGEX } from '../constants/constants';
 
 const SectionsDiv = styled.div`
     width: 760px;
@@ -104,6 +106,20 @@ export default class AddMember extends React.Component {
         if (!this.state.memberName || this.state.memberName.trim() === '') {
             this.setState({
                 errorMessage: 'Member name is required.',
+            });
+            return;
+        }
+
+        if (
+            !MemberUtils.matchRegexName(
+                this.state.memberName,
+                GROUP_MEMBER_NAME_REGEX
+            )
+        ) {
+            this.setState({
+                errorMessage:
+                    "Member name doesn't match regex: " +
+                    GROUP_MEMBER_NAME_REGEX,
             });
             return;
         }

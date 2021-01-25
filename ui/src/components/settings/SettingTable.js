@@ -20,6 +20,7 @@ import Button from '../denali/Button';
 import UpdateModal from '../modal/UpdateModal';
 import Alert from '../denali/Alert';
 import RequestUtils from '../utils/RequestUtils';
+import _ from 'lodash';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -27,6 +28,10 @@ const StyleTable = styled.table`
     display: table;
     border-collapse: separate;
     border-color: grey;
+`;
+
+const RolesSectionDiv = styled.div`
+    margin: 20px;
 `;
 
 const StyledSettingRow = styled(SettingRow)`
@@ -49,61 +54,70 @@ export default class SettingTable extends React.Component {
         this.toggleSubmit = this.toggleSubmit.bind(this);
         this.toggleReset = this.toggleReset.bind(this);
         this.onSubmitUpdate = this.onSubmitUpdate.bind(this);
+        this.reloadCollection = this.reloadCollection.bind(this);
         this.onClickUpdateCancel = this.onClickUpdateCancel.bind(this);
         this.closeModal = this.closeModal.bind(this);
-        this.updateRoleMeta = this.updateRoleMeta.bind(this);
+        this.updateCollectionMeta = this.updateCollectionMeta.bind(this);
         this.onValueChange = this.onValueChange.bind(this);
+        this.setCollectionDetails = this.setCollectionDetails.bind(this);
 
+        let originalCollectionDetails = this.setCollectionDetails(
+            this.props.collectionDetails
+        );
+        let copyCollectionDetails = _.cloneDeep(originalCollectionDetails);
         this.state = {
-            reviewEnabled: !!props.collectionDetails.reviewEnabled,
-            selfServe: !!props.collectionDetails.selfServe,
-            memberExpiryDays: props.collectionDetails.memberExpiryDays,
-            groupExpiryDays: props.collectionDetails.groupExpiryDays,
-            serviceExpiryDays: props.collectionDetails.serviceExpiryDays,
-            tokenExpiryMins: props.collectionDetails.tokenExpiryMins,
-            certExpiryMins: props.collectionDetails.certExpiryMins,
+            originalCollectionDetails: originalCollectionDetails,
+            copyCollectionDetails: copyCollectionDetails,
             showSubmit: false,
             showSuccess: false,
             errorMessage: null,
-            valueChanged: false,
+            enableSubmit: false,
         };
+    }
+
+    setCollectionDetails(collection) {
+        let collectionDetails = {
+            reviewEnabled: !!collection.reviewEnabled,
+            selfServe: !!collection.selfServe,
+            memberExpiryDays:
+                collection.memberExpiryDays === undefined
+                    ? ''
+                    : collection.memberExpiryDays.toString(),
+            groupExpiryDays:
+                collection.groupExpiryDays === undefined
+                    ? ''
+                    : collection.groupExpiryDays.toString(),
+            serviceExpiryDays:
+                collection.serviceExpiryDays === undefined
+                    ? ''
+                    : collection.serviceExpiryDays.toString(),
+            tokenExpiryMins:
+                collection.tokenExpiryMins === undefined
+                    ? ''
+                    : collection.tokenExpiryMins.toString(),
+            certExpiryMins:
+                collection.certExpiryMins === undefined
+                    ? ''
+                    : collection.certExpiryMins.toString(),
+        };
+        return collectionDetails;
     }
 
     toggleSubmit() {
         this.setState({
             showSubmit: !this.state.showSubmit,
-            valueChanged: false,
         });
     }
 
     toggleReset() {
         this.setState({
-            reviewEnabled: !!this.props.collectionDetails.reviewEnabled,
-            selfServe: !!this.props.collectionDetails.selfServe,
-            memberExpiryDays:
-                this.props.collectionDetails.memberExpiryDays === undefined
-                    ? ''
-                    : this.props.collectionDetails.memberExpiryDays,
-            groupExpiryDays:
-                this.props.collectionDetails.groupExpiryDays === undefined
-                    ? ''
-                    : this.props.collectionDetails.groupExpiryDays,
-            serviceExpiryDays:
-                this.props.collectionDetails.serviceExpiryDays === undefined
-                    ? ''
-                    : this.props.collectionDetails.serviceExpiryDays,
-            tokenExpiryMins:
-                this.props.collectionDetails.tokenExpiryMins === undefined
-                    ? ''
-                    : this.props.collectionDetails.tokenExpiryMins,
-            certExpiryMins:
-                this.props.collectionDetails.certExpiryMins === undefined
-                    ? ''
-                    : this.props.collectionDetails.certExpiryMins,
+            copyCollectionDetails: _.cloneDeep(
+                this.state.originalCollectionDetails
+            ),
             showSubmit: false,
             showSuccess: false,
             errorMessage: null,
-            valueChanged: false,
+            enableSubmit: false,
         });
     }
 
@@ -118,7 +132,7 @@ export default class SettingTable extends React.Component {
             });
             return;
         }
-        this.updateRoleMeta();
+        this.updateCollectionMeta();
     }
 
     onClickUpdateCancel() {
@@ -129,48 +143,16 @@ export default class SettingTable extends React.Component {
     }
 
     onValueChange(name, val) {
+        let collectionDetails = this.state.copyCollectionDetails;
+        collectionDetails[name] = val;
+
         this.setState({
-            valueChanged: true,
+            copyCollectionDetails: collectionDetails,
+            enableSubmit: !_.isEqual(
+                this.state.originalCollectionDetails,
+                collectionDetails
+            ),
         });
-        switch (name) {
-            case 'reviewEnabled':
-                this.setState({
-                    reviewEnabled: val,
-                });
-                break;
-            case 'selfServe':
-                this.setState({
-                    selfServe: val,
-                });
-                break;
-            case 'memberExpiryDays':
-                this.setState({
-                    memberExpiryDays: val,
-                });
-                break;
-            case 'serviceExpiryDays':
-                this.setState({
-                    serviceExpiryDays: val,
-                });
-                break;
-            case 'tokenExpiryMins':
-                this.setState({
-                    tokenExpiryMins: val,
-                });
-                break;
-            case 'certExpiryMins':
-                this.setState({
-                    certExpiryMins: val,
-                });
-                break;
-            case 'groupExpiryDays':
-                this.setState({
-                    groupExpiryDays: val,
-                });
-                break;
-            default:
-                break;
-        }
     }
 
     closeModal() {
@@ -180,17 +162,36 @@ export default class SettingTable extends React.Component {
         });
     }
 
-    updateRoleMeta() {
+    reloadCollection() {
+        this.api
+            .getCollection(
+                this.props.domain,
+                this.props.collection,
+                this.props.category
+            )
+            .then((collection) => {
+                let collectionDetails = this.setCollectionDetails(collection);
+                this.setState({
+                    originalCollectionDetails: collectionDetails,
+                    copyCollectionDetails: _.cloneDeep(collectionDetails),
+                    errorMessage: null,
+                });
+            })
+            .catch((err) => {
+                this.setState({
+                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                });
+            });
+    }
+
+    updateCollectionMeta() {
         let collectionMeta = {};
 
-        collectionMeta.reviewEnabled = this.state.reviewEnabled;
-        collectionMeta.selfServe = this.state.selfServe;
         if (this.props.category === 'role') {
-            collectionMeta.memberExpiryDays = this.state.memberExpiryDays;
-            collectionMeta.groupExpiryDays = this.state.groupExpiryDays;
-            collectionMeta.serviceExpiryDays = this.state.serviceExpiryDays;
-            collectionMeta.tokenExpiryMins = this.state.tokenExpiryMins;
-            collectionMeta.certExpiryMins = this.state.certExpiryMins;
+            collectionMeta = this.state.copyCollectionDetails;
+        } else if (this.props.category === 'group') {
+            collectionMeta.reviewEnabled = this.state.copyCollectionDetails.reviewEnabled;
+            collectionMeta.selfServe = this.state.copyCollectionDetails.selfServe;
         }
 
         this.api
@@ -206,7 +207,9 @@ export default class SettingTable extends React.Component {
                 this.setState({
                     showSuccess: true,
                     showSubmit: false,
+                    enableSubmit: false,
                 });
+                this.reloadCollection();
             })
             .catch((err) => {
                 this.setState({
@@ -227,7 +230,7 @@ export default class SettingTable extends React.Component {
                 submit={this.onSubmitUpdate}
                 key={this.state.updateName + '-update'}
                 message={
-                    'Are you sure you want to permanently change the setting for' +
+                    'Are you sure you want to permanently change the setting for ' +
                     this.props.category +
                     ' '
                 }
@@ -239,12 +242,12 @@ export default class SettingTable extends React.Component {
             ''
         );
 
-        let submitButton = this.state.valueChanged ? (
+        let submitButton = this.state.enableSubmit ? (
             <Button primary onClick={this.toggleSubmit}>
                 Submit
             </Button>
         ) : (
-            <Button secondary onClick={this.toggleSubmit}>
+            <Button secondary disabled={true}>
                 Submit
             </Button>
         );
@@ -254,18 +257,23 @@ export default class SettingTable extends React.Component {
                 isOpen={this.state.showSuccess}
                 onClose={this.closeModal}
                 type='success'
-                title='Successfuly update the setting'
+                title='Successfully updated the setting(s)'
             />
         ) : null;
 
+        let reviewDesc =
+            'Flag indicates whether or not ' +
+            this.props.category +
+            ' updates require another review and approval';
         rows.push(
             <StyledSettingRow
+                key={'setting-row-reviewEnabled'}
                 domain={domain}
                 name='reviewEnabled'
                 label='Review'
                 type='switch'
-                desc='Flag indicates whether or not role updates require another review and approval'
-                value={this.state.reviewEnabled}
+                desc={reviewDesc}
+                value={this.state.copyCollectionDetails.reviewEnabled}
                 api={this.api}
                 onValueChange={this.onValueChange}
                 _csrf={this.props._csrf}
@@ -274,14 +282,19 @@ export default class SettingTable extends React.Component {
             />
         );
 
+        let selfServiceDesc =
+            'Flag indicates whether or not ' +
+            this.props.category +
+            ' allows self service';
         rows.push(
             <StyledSettingRow
+                key={'setting-row-selfServe'}
                 domain={domain}
                 name='selfServe'
                 label='Self-Service'
                 type='switch'
-                desc='Flag indicates whether or not role allows self service'
-                value={this.state.selfServe}
+                desc={selfServiceDesc}
+                value={this.state.copyCollectionDetails.selfServe}
                 api={this.api}
                 onValueChange={this.onValueChange}
                 _csrf={this.props._csrf}
@@ -293,13 +306,14 @@ export default class SettingTable extends React.Component {
         this.props.category === 'role' &&
             rows.push(
                 <StyledSettingRow
+                    key={'setting-row-memberExpiryDays'}
                     domain={domain}
                     name='memberExpiryDays'
                     label='User Expiry'
                     type='input'
                     desc='All user members in the role will have specified max expiry days'
                     unit='Days'
-                    value={this.state.memberExpiryDays}
+                    value={this.state.copyCollectionDetails.memberExpiryDays}
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
@@ -311,13 +325,14 @@ export default class SettingTable extends React.Component {
         this.props.category === 'role' &&
             rows.push(
                 <StyledSettingRow
+                    key={'setting-row-groupExpiryDays'}
                     domain={domain}
                     name='groupExpiryDays'
                     label='Group Expiry'
                     type='input'
                     desc='All group members in the role will have specified max expiry days'
                     unit='Days'
-                    value={this.state.groupExpiryDays}
+                    value={this.state.copyCollectionDetails.groupExpiryDays}
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
@@ -329,13 +344,14 @@ export default class SettingTable extends React.Component {
         this.props.category === 'role' &&
             rows.push(
                 <StyledSettingRow
+                    key={'setting-row-serviceExpiryDays'}
                     domain={domain}
                     name='serviceExpiryDays'
                     label='Service Expiry'
                     type='input'
                     unit='Days'
                     desc='All services in the role will have specified max expiry days'
-                    value={this.state.serviceExpiryDays}
+                    value={this.state.copyCollectionDetails.serviceExpiryDays}
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
@@ -347,13 +363,14 @@ export default class SettingTable extends React.Component {
         this.props.category === 'role' &&
             rows.push(
                 <StyledSettingRow
+                    key={'setting-row-tokenExpiryMins'}
                     domain={domain}
                     name='tokenExpiryMins'
                     label='Token Expiry'
                     type='input'
                     unit='Mins'
                     desc='Tokens issued for this role will have specified max timeout in mins'
-                    value={this.state.tokenExpiryMins}
+                    value={this.state.copyCollectionDetails.tokenExpiryMins}
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
@@ -365,13 +382,14 @@ export default class SettingTable extends React.Component {
         this.props.category === 'role' &&
             rows.push(
                 <StyledSettingRow
+                    key={'setting-row-certExpiryMins'}
                     domain={domain}
                     name='certExpiryMins'
                     label='Certificate Expiry'
                     type='input'
                     unit='Mins'
                     desc='Certs issued for this role will have specified max timeout in mins'
-                    value={this.state.certExpiryMins}
+                    value={this.state.copyCollectionDetails.certExpiryMins}
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
@@ -380,19 +398,24 @@ export default class SettingTable extends React.Component {
                 />
             );
 
-        rows.push(
-            <AddContainerDiv>
-                <div>
-                    {submitButton}
-                    {submitSettings}
-                    <Button secondary onClick={this.toggleReset}>
-                        Reset
-                    </Button>
-                    {message}
-                </div>
-            </AddContainerDiv>
-        );
+        rows.push();
 
-        return <StyleTable data-testid='setting-table'>{rows}</StyleTable>;
+        return (
+            <RolesSectionDiv>
+                <StyleTable data-testid='setting-table'>
+                    <tbody>{rows}</tbody>
+                </StyleTable>
+                <AddContainerDiv key={'setting-table-button'}>
+                    <div>
+                        {submitButton}
+                        {submitSettings}
+                        <Button secondary onClick={this.toggleReset}>
+                            Reset
+                        </Button>
+                        {message}
+                    </div>
+                </AddContainerDiv>
+            </RolesSectionDiv>
+        );
     }
 }

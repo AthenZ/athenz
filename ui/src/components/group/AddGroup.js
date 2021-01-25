@@ -23,6 +23,12 @@ import { colors } from '../denali/styles';
 import AddModal from '../modal/AddModal';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
+import {
+    GROUP_MEMBER_NAME_REGEX,
+    GROUP_MEMBER_PLACEHOLDER,
+    GROUP_NAME_REGEX,
+} from '../constants/constants';
+import MemberUtils from '../utils/MemberUtils';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -35,8 +41,15 @@ const StyledInputLabel = styled(InputLabel)`
     float: left;
     font-size: 14px;
     font-weight: 700;
-    padding-top: 12px;
     width: 17%;
+`;
+
+const StyledInputLabelPadding = styled(InputLabel)`
+    float: left;
+    font-size: 14px;
+    font-weight: 700;
+    width: 17%;
+    padding-top: 5px;
 `;
 
 const StyledInput = styled(Input)`
@@ -130,22 +143,28 @@ export default class AddGroup extends React.Component {
         if (!name) {
             return;
         }
-        let names = (name || '')
-            .replace(/[\r\n\s]+/g, ',')
-            .split(',')
-            .map((n) => n.trim())
-            .filter((n) => n);
 
-        for (let i = 0; i < names.length; i++) {
+        let names = MemberUtils.getUserNames(name, GROUP_MEMBER_NAME_REGEX);
+        names.validUsers.forEach((name) => {
             members.push({
-                memberName: names[i],
+                memberName: name,
+            });
+        });
+        if (names.invalidUsers.length !== 0) {
+            this.setState({
+                members,
+                newMemberName: names.invalidUsers.toString(),
+                errorMessage:
+                    "Member name doesn't match regex: " +
+                    GROUP_MEMBER_NAME_REGEX,
+            });
+        } else {
+            this.setState({
+                members,
+                newMemberName: '',
+                errorMessage: '',
             });
         }
-
-        this.setState({
-            members,
-            newMemberName: '',
-        });
     }
 
     deleteMember(idx) {
@@ -168,22 +187,38 @@ export default class AddGroup extends React.Component {
             return;
         }
 
+        if (!MemberUtils.matchRegexName(groupName, GROUP_NAME_REGEX)) {
+            this.setState({
+                errorMessage:
+                    "Group name doesn't match regex: " + GROUP_NAME_REGEX,
+            });
+            return;
+        }
+
         let group = { name: groupName };
         group.groupMembers =
             this.state.members.filter((member) => {
                 return member != null || member != undefined;
             }) || [];
-        if (this.state.newMemberName && this.state.newMemberName !== '') {
-            let names = (this.state.newMemberName || '')
-                .replace(/[\r\n\s]+/g, ',')
-                .split(',')
-                .map((n) => n.trim())
-                .filter((n) => n);
 
-            for (let i = 0; i < names.length; i++) {
+        if (this.state.newMemberName && this.state.newMemberName !== '') {
+            let names = MemberUtils.getUserNames(
+                this.state.newMemberName,
+                GROUP_MEMBER_NAME_REGEX
+            );
+            names.validUsers.forEach((name) => {
                 group.groupMembers.push({
-                    memberName: names[i],
+                    memberName: name,
                 });
+            });
+            if (names.invalidUsers.length !== 0) {
+                this.setState({
+                    newMemberName: names.invalidUsers.toString(),
+                    errorMessage:
+                        "Member name doesn't match regex: " +
+                        GROUP_MEMBER_NAME_REGEX,
+                });
+                return;
             }
         }
 
@@ -278,18 +313,24 @@ export default class AddGroup extends React.Component {
                 </SectionDiv>
                 {
                     <SectionDiv>
-                        <StyledInputLabel>Add Member(s)</StyledInputLabel>
+                        <StyledInputLabelPadding>
+                            Add Member(s)
+                        </StyledInputLabelPadding>
                         <ContentDiv>
                             <AddMemberDiv>
                                 <StyledInputUser
-                                    placeholder='user.<userid> or <domain>.<service>'
+                                    placeholder={GROUP_MEMBER_PLACEHOLDER}
                                     value={this.state.newMemberName}
                                     onChange={memberNameChanged}
                                     noanim
                                     fluid
                                 />
                                 <ButtonDiv>
-                                    <StyledButton onClick={this.addMember}>
+                                    <StyledButton
+                                        secondary
+                                        size={'small'}
+                                        onClick={this.addMember}
+                                    >
                                         Add
                                     </StyledButton>
                                 </ButtonDiv>

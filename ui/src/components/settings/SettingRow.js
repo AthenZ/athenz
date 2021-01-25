@@ -55,45 +55,23 @@ export default class SettingRow extends React.Component {
         this.onRadioChange = this.onRadioChange.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
         this.api = props.api;
-
-        this.state = {
-            value: props.value,
-        };
     }
-
-    componentDidUpdate = (prevProps) => {
-        if (prevProps.value !== this.props.value) {
-            this.setState({
-                value: this.props.value,
-            });
-        }
-    };
 
     saveJustification(val) {
         this.setState({ deleteJustification: val });
     }
 
-    toggleSwitchButton() {
-        let prevValue = this.state.value;
-        this.props.onValueChange(this.props.name, !prevValue);
-        this.setState({
-            value: !prevValue,
-        });
+    toggleSwitchButton(evt) {
+        this.props.onValueChange(this.props.name, evt.currentTarget.checked);
     }
 
     onTimeChange(evt) {
         this.props.onValueChange(this.props.name, evt.target.value);
-        this.setState({
-            value: evt.target.value,
-        });
     }
 
     onRadioChange(event) {
         if (event.target.value) {
             this.props.onValueChange(this.props.name, event.target.value);
-            this.setState({
-                value: event.target.value,
-            });
         }
     }
 
@@ -110,8 +88,8 @@ export default class SettingRow extends React.Component {
                 return (
                     <Switch
                         name={'setting' + this.props.name}
-                        value={this.state.value}
-                        checked={this.state.value}
+                        value={this.props.value}
+                        checked={this.props.value}
                         onChange={this.toggleSwitchButton}
                     />
                 );
@@ -125,7 +103,7 @@ export default class SettingRow extends React.Component {
                             id={'setting-' + this.props.name}
                             onChange={this.onTimeChange}
                             onKeyPress={this.numRestricted}
-                            value={this.state.value}
+                            value={this.props.value}
                         />
                     </StyledDiv>
                 );

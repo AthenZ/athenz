@@ -13,4 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as data from '../../config/zms.json';
+
 export const MODAL_TIME_OUT = 2000;
+export const GROUP_NAME_REGEX = data.types[3].StringTypeDef.pattern;
+export const GROUP_MEMBER_NAME_REGEX = data.types[14].StringTypeDef.pattern;
+export const GROUP_ROLES_CATEGORY = 'group-roles';
+export const GROUP_MEMBER_PLACEHOLDER = 'user.<userid> or <domain>.<service>';

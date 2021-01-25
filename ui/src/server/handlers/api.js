@@ -401,7 +401,7 @@ Fetchr.registerService({
                 req.clients.zms.deletePendingGroupMembership(
                     {
                         domainName: params.domainName,
-                        groupName: params.principalName,
+                        groupName: params.collectionName,
                         memberName: params.memberName,
                         auditRef: params.auditRef,
                     },
@@ -415,7 +415,7 @@ Fetchr.registerService({
                 req.clients.zms.deleteGroupMembership(
                     {
                         domainName: params.domainName,
-                        groupName: params.principalName,
+                        groupName: params.collectionName,
                         memberName: params.memberName,
                         auditRef: params.auditRef,
                     },
@@ -431,7 +431,7 @@ Fetchr.registerService({
                 req.clients.zms.deletePendingMembership(
                     {
                         domainName: params.domainName,
-                        roleName: params.principalName,
+                        roleName: params.collectionName,
                         memberName: params.memberName,
                         auditRef: params.auditRef,
                     },
@@ -445,7 +445,7 @@ Fetchr.registerService({
                 req.clients.zms.deleteMembership(
                     {
                         domainName: params.domainName,
-                        roleName: params.principalName,
+                        roleName: params.collectionName,
                         memberName: params.memberName,
                         auditRef: params.auditRef,
                     },
@@ -924,7 +924,7 @@ Fetchr.registerService({
             req.clients.zms.putGroupMeta(
                 {
                     domainName: params.domainName,
-                    groupName: params.principalName,
+                    groupName: params.collectionName,
                     auditRef: params.auditRef,
                     detail: params.detail,
                 },
@@ -934,7 +934,7 @@ Fetchr.registerService({
             req.clients.zms.putRoleMeta(
                 {
                     domainName: params.domainName,
-                    roleName: params.principalName,
+                    roleName: params.collectionName,
                     auditRef: params.auditRef,
                     detail: params.detail,
                 },
