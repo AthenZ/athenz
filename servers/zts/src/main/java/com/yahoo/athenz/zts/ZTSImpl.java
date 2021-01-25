@@ -2170,8 +2170,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate InstanceID in request matches the instanceid in the cert
         if (!validateInstanceId(certReq.getInstanceId(), cert)) {
-            // Todo: minitor the logs, and make this a hard failure in later iteration
-            LOGGER.error("unable to match request id: {} with cert id: {}", certReq.getInstanceId(), X509CertUtils.extractRequestInstanceId(cert));
+            LOGGER.error("unable to match request id: {} with cert id: {}",
+                    certReq.getInstanceId(), X509CertUtils.extractRequestInstanceId(cert));
+            return false;
         }
 
         // validate the ip address if any provided

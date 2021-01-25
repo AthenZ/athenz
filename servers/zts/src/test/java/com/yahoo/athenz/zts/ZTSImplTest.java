@@ -3976,8 +3976,7 @@ public class ZTSImplTest {
         csr = new String(Files.readAllBytes(path));
 
         // if CSR has hostname+instanceid, and cert has only hostname, it should result in false
-        // Todo: ignoring instanceid mismatches. in later iterations, this will be a failure
-        assertTrue(zts.validateRoleCertificateRequest(csr, "athenz.examples", roles, "athenz.examples.httpd",
+        assertFalse(zts.validateRoleCertificateRequest(csr, "athenz.examples", roles, "athenz.examples.httpd",
                 null, cert, "10.0.0.1"));
 
         path = Paths.get("src/test/resources/athenz.examples.uri-instanceid-hostname.pem");
