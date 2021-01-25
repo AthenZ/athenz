@@ -21,13 +21,13 @@ import styled from '@emotion/styled';
 import Head from 'next/head';
 
 import CollectionDetails from '../components/header/CollectionDetails';
-import SettingList from '../components/settings/SettingList';
 import RequestUtils from '../components/utils/RequestUtils';
 import NameHeader from '../components/header/NameHeader';
 import Error from './_error';
 import GroupTabs from '../components/header/GroupTabs';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
+import SettingTable from '../components/settings/SettingTable';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -159,7 +159,7 @@ export default class GroupSettings extends React.Component {
                                             selectedName={'settings'}
                                         />
                                     </PageHeaderDiv>
-                                    <SettingList
+                                    <SettingTable
                                         api={this.api}
                                         domain={domain}
                                         collection={group}

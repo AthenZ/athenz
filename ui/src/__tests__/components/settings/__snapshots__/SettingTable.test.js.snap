@@ -249,358 +249,278 @@ exports[`SettingTable should render setting table 1`] = `
   margin-top: 5px;
 }
 
-.emotion-85 {
-  padding-bottom: 20px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-}
-
-.emotion-87 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  min-width: ;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-87:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-87:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-87:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-87:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
 <table
   class="emotion-0 emotion-1"
   data-testid="setting-table"
 >
-  <tr
-    class="emotion-2 emotion-3"
-    data-testid="setting-row"
-  >
-    <td
-      class="emotion-4 emotion-5"
+  <tbody>
+    <tr
+      class="emotion-2 emotion-3"
+      data-testid="setting-row"
     >
-      Review
-    </td>
-    <td
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-8 denali-switch"
-        data-testid="switch-wrapper"
+      <td
+        class="emotion-4 emotion-5"
       >
-        <input
-          checked=""
-          id="switch-settingreviewEnabled"
-          name="settingreviewEnabled"
-          type="checkbox"
-          value="true"
-        />
-        <label
-          for="switch-settingreviewEnabled"
-        />
-      </div>
-    </td>
-    <td
-      class="emotion-4 emotion-5"
-    >
-      Flag indicates whether or not role updates require another review and approval
-    </td>
-  </tr>
-  <tr
-    class="emotion-2 emotion-3"
-    data-testid="setting-row"
-  >
-    <td
-      class="emotion-4 emotion-5"
-    >
-      Self-Service
-    </td>
-    <td
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-8 denali-switch"
-        data-testid="switch-wrapper"
-      >
-        <input
-          id="switch-settingselfServe"
-          name="settingselfServe"
-          type="checkbox"
-          value="false"
-        />
-        <label
-          for="switch-settingselfServe"
-        />
-      </div>
-    </td>
-    <td
-      class="emotion-4 emotion-5"
-    >
-      Flag indicates whether or not role allows self service
-    </td>
-  </tr>
-  <tr
-    class="emotion-2 emotion-3"
-    data-testid="setting-row"
-  >
-    <td
-      class="emotion-4 emotion-5"
-    >
-      User Expiry (Days)
-    </td>
-    <td
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-26 emotion-27"
+        Review
+      </td>
+      <td
+        class="emotion-4 emotion-5"
       >
         <div
-          class="emotion-28 denali-input animated emotion-29 emotion-30"
-          data-testid="input-wrapper"
+          class="emotion-8 denali-switch"
+          data-testid="switch-wrapper"
         >
           <input
-            autocomplete="off"
-            data-testid="input-node"
-            id="setting-memberExpiryDays"
-            pattern="[0-9]*"
-            placeholder="Days"
-            value="3"
+            checked=""
+            id="switch-settingreviewEnabled"
+            name="settingreviewEnabled"
+            type="checkbox"
+            value="true"
           />
-          <div
-            class="message"
-            data-testid="message"
+          <label
+            for="switch-settingreviewEnabled"
           />
         </div>
-      </div>
-    </td>
-    <td
-      class="emotion-4 emotion-5"
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+      >
+        Flag indicates whether or not role updates require another review and approval
+      </td>
+    </tr>
+    <tr
+      class="emotion-2 emotion-3"
+      data-testid="setting-row"
     >
-      All user members in the role will have specified max expiry days
-    </td>
-  </tr>
-  <tr
-    class="emotion-2 emotion-3"
-    data-testid="setting-row"
-  >
-    <td
-      class="emotion-4 emotion-5"
-    >
-      Group Expiry (Days)
-    </td>
-    <td
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-26 emotion-27"
+      <td
+        class="emotion-4 emotion-5"
+      >
+        Self-Service
+      </td>
+      <td
+        class="emotion-4 emotion-5"
       >
         <div
-          class="emotion-28 denali-input animated emotion-29 emotion-30"
-          data-testid="input-wrapper"
+          class="emotion-8 denali-switch"
+          data-testid="switch-wrapper"
         >
           <input
-            autocomplete="off"
-            data-testid="input-node"
-            id="setting-groupExpiryDays"
-            pattern="[0-9]*"
-            placeholder="Days"
-            value=""
+            id="switch-settingselfServe"
+            name="settingselfServe"
+            type="checkbox"
+            value="false"
           />
-          <div
-            class="message"
-            data-testid="message"
+          <label
+            for="switch-settingselfServe"
           />
         </div>
-      </div>
-    </td>
-    <td
-      class="emotion-4 emotion-5"
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+      >
+        Flag indicates whether or not role allows self service
+      </td>
+    </tr>
+    <tr
+      class="emotion-2 emotion-3"
+      data-testid="setting-row"
     >
-      All group members in the role will have specified max expiry days
-    </td>
-  </tr>
-  <tr
-    class="emotion-2 emotion-3"
-    data-testid="setting-row"
-  >
-    <td
-      class="emotion-4 emotion-5"
-    >
-      Service Expiry (Days)
-    </td>
-    <td
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-26 emotion-27"
+      <td
+        class="emotion-4 emotion-5"
+      >
+        User Expiry (Days)
+      </td>
+      <td
+        class="emotion-4 emotion-5"
       >
         <div
-          class="emotion-28 denali-input animated emotion-29 emotion-30"
-          data-testid="input-wrapper"
+          class="emotion-26 emotion-27"
         >
-          <input
-            autocomplete="off"
-            data-testid="input-node"
-            id="setting-serviceExpiryDays"
-            pattern="[0-9]*"
-            placeholder="Days"
-            value="3"
-          />
           <div
-            class="message"
-            data-testid="message"
-          />
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              id="setting-memberExpiryDays"
+              pattern="[0-9]*"
+              placeholder="Days"
+              value="3"
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
         </div>
-      </div>
-    </td>
-    <td
-      class="emotion-4 emotion-5"
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+      >
+        All user members in the role will have specified max expiry days
+      </td>
+    </tr>
+    <tr
+      class="emotion-2 emotion-3"
+      data-testid="setting-row"
     >
-      All services in the role will have specified max expiry days
-    </td>
-  </tr>
-  <tr
-    class="emotion-2 emotion-3"
-    data-testid="setting-row"
-  >
-    <td
-      class="emotion-4 emotion-5"
-    >
-      Token Expiry (Mins)
-    </td>
-    <td
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-26 emotion-27"
+      <td
+        class="emotion-4 emotion-5"
+      >
+        Group Expiry (Days)
+      </td>
+      <td
+        class="emotion-4 emotion-5"
       >
         <div
-          class="emotion-28 denali-input animated emotion-29 emotion-30"
-          data-testid="input-wrapper"
+          class="emotion-26 emotion-27"
         >
-          <input
-            autocomplete="off"
-            data-testid="input-node"
-            id="setting-tokenExpiryMins"
-            pattern="[0-9]*"
-            placeholder="Mins"
-            value="15"
-          />
           <div
-            class="message"
-            data-testid="message"
-          />
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              id="setting-groupExpiryDays"
+              pattern="[0-9]*"
+              placeholder="Days"
+              value=""
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
         </div>
-      </div>
-    </td>
-    <td
-      class="emotion-4 emotion-5"
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+      >
+        All group members in the role will have specified max expiry days
+      </td>
+    </tr>
+    <tr
+      class="emotion-2 emotion-3"
+      data-testid="setting-row"
     >
-      Tokens issued for this role will have specified max timeout in mins
-    </td>
-  </tr>
-  <tr
-    class="emotion-2 emotion-3"
-    data-testid="setting-row"
-  >
-    <td
-      class="emotion-4 emotion-5"
-    >
-      Certificate Expiry (Mins)
-    </td>
-    <td
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-26 emotion-27"
+      <td
+        class="emotion-4 emotion-5"
+      >
+        Service Expiry (Days)
+      </td>
+      <td
+        class="emotion-4 emotion-5"
       >
         <div
-          class="emotion-28 denali-input animated emotion-29 emotion-30"
-          data-testid="input-wrapper"
+          class="emotion-26 emotion-27"
         >
-          <input
-            autocomplete="off"
-            data-testid="input-node"
-            id="setting-certExpiryMins"
-            pattern="[0-9]*"
-            placeholder="Mins"
-            value="15"
-          />
           <div
-            class="message"
-            data-testid="message"
-          />
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              id="setting-serviceExpiryDays"
+              pattern="[0-9]*"
+              placeholder="Days"
+              value="3"
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
         </div>
-      </div>
-    </td>
-    <td
-      class="emotion-4 emotion-5"
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+      >
+        All services in the role will have specified max expiry days
+      </td>
+    </tr>
+    <tr
+      class="emotion-2 emotion-3"
+      data-testid="setting-row"
     >
-      Certs issued for this role will have specified max timeout in mins
-    </td>
-  </tr>
-  <div
-    class="emotion-85 emotion-86"
-  >
-    <div>
-      <button
-        class="emotion-87 denali-button"
-        disabled=""
+      <td
+        class="emotion-4 emotion-5"
       >
-        Submit
-      </button>
-      
-      <button
-        class="emotion-87 denali-button"
+        Token Expiry (Mins)
+      </td>
+      <td
+        class="emotion-4 emotion-5"
       >
-        Reset
-      </button>
-    </div>
-  </div>
+        <div
+          class="emotion-26 emotion-27"
+        >
+          <div
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              id="setting-tokenExpiryMins"
+              pattern="[0-9]*"
+              placeholder="Mins"
+              value="15"
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
+        </div>
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+      >
+        Tokens issued for this role will have specified max timeout in mins
+      </td>
+    </tr>
+    <tr
+      class="emotion-2 emotion-3"
+      data-testid="setting-row"
+    >
+      <td
+        class="emotion-4 emotion-5"
+      >
+        Certificate Expiry (Mins)
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+      >
+        <div
+          class="emotion-26 emotion-27"
+        >
+          <div
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              id="setting-certExpiryMins"
+              pattern="[0-9]*"
+              placeholder="Mins"
+              value="15"
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
+        </div>
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+      >
+        Certs issued for this role will have specified max timeout in mins
+      </td>
+    </tr>
+  </tbody>
 </table>
 `;
