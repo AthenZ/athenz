@@ -413,7 +413,7 @@ func (cli Zms) showDomain(dn string) (*string, error) {
 
 	var buf bytes.Buffer
 	cli.dumpDomain(&buf, domain)
-	cli.dumpTags(&buf, true, indentLevel1, domain.Tags)
+	cli.dumpTags(&buf, true, "  ", indentLevel1, domain.Tags)
 	cli.dumpRoles(&buf, dn, "", "")
 	cli.dumpPolicies(&buf, dn)
 	cli.dumpServices(&buf, dn)
@@ -436,7 +436,7 @@ func (cli Zms) showDomainTags(dn string) (string, error) {
 		return "", err
 	}
 	var buf bytes.Buffer
-	cli.dumpTags(&buf, false, indentLevel1, domain.Tags)
+	cli.dumpTags(&buf, false, "", indentLevel1, domain.Tags)
 
 	s := buf.String()
 	return s, nil
