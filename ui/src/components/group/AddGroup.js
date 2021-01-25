@@ -24,7 +24,8 @@ import AddModal from '../modal/AddModal';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import {
-    GROUP_MEMBER_NAME_REGEX, GROUP_MEMBER_PLACEHOLDER,
+    GROUP_MEMBER_NAME_REGEX,
+    GROUP_MEMBER_PLACEHOLDER,
     GROUP_NAME_REGEX,
 } from '../constants/constants';
 import MemberUtils from '../utils/MemberUtils';
