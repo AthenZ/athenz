@@ -28,12 +28,12 @@
   <description>Athenz Yahoo Server Metrics Interface implementation for Prometheus</description>
 
   <properties>
-    <athenz.version>1.9.25</athenz.version>
+    <athenz.version>1.9.29</athenz.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <prometheus.version>0.9.0</prometheus.version>
     <logback.version>1.2.3</logback.version>
-    <testng.version>6.14.3</testng.version>
+    <testng.version>7.3.0</testng.version>
     <mockito.version>1.9.5</mockito.version>
     <clover.version>4.3.1</clover.version>
     <maven.compiler.source>1.8</maven.compiler.source>

@@ -25,11 +25,11 @@
   <description>Athenz Instance Provider Example</description>
 
   <properties>
-    <jetty.version>9.4.35.v20201120</jetty.version>
-    <jersey.version>2.32</jersey.version>
-    <jackson.version>2.11.3</jackson.version>
-    <athenz.version>1.9.24</athenz.version>
-    <bouncycastle.version>1.67</bouncycastle.version>
+    <jetty.version>9.4.36.v20210114</jetty.version>
+    <jersey.version>2.33</jersey.version>
+    <jackson.version>2.12.1</jackson.version>
+    <athenz.version>1.9.29</athenz.version>
+    <bouncycastle.version>1.68</bouncycastle.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
