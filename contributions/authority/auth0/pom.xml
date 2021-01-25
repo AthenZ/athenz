@@ -28,10 +28,10 @@
   <description>Athenz Yahoo Server OAuth2 access token implementation for Auth0</description>
 
   <properties>
-    <athenz.version>1.9.2</athenz.version>
-    <jjwt.version>0.11.0</jjwt.version>
-    <testng.version>7.1.0</testng.version>
-    <mockito.version>3.2.4</mockito.version>
+    <athenz.version>1.9.29</athenz.version>
+    <jjwt.version>0.11.2</jjwt.version>
+    <testng.version>7.3.0</testng.version>
+    <mockito.version>3.7.7</mockito.version>
     <clover.version>4.3.1</clover.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -78,13 +78,13 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.5</version>
+      <version>1.7.30</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
-      <version>1.6.4</version>
+      <version>1.7.30</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

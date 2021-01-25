@@ -157,7 +157,7 @@ public class PrometheusMetricTest {
         counter.labels("", "", "", "", "").inc(countValue);
         // assertions
         Assert.assertSame(counter, namesToCollectors.get(metricName));
-        Assert.assertEquals(registry.getSampleValue(metricName, this.labelNames, new String[]{"", "", "", "", ""}), countValue);
+        Assert.assertEquals((double) registry.getSampleValue(metricName, this.labelNames, new String[]{"", "", "", "", ""}), countValue);
 
         // test get
         Counter counter_2 = (Counter) createOrGetCollector.invoke(metric, metricName, builder);
