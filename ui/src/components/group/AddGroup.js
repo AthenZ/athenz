@@ -24,7 +24,7 @@ import AddModal from '../modal/AddModal';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import {
-    GROUP_MEMBER_NAME_REGEX,
+    GROUP_MEMBER_NAME_REGEX, GROUP_MEMBER_PLACEHOLDER,
     GROUP_NAME_REGEX,
 } from '../constants/constants';
 import MemberUtils from '../utils/MemberUtils';
@@ -205,7 +205,7 @@ export default class AddGroup extends React.Component {
                 this.state.newMemberName,
                 GROUP_MEMBER_NAME_REGEX
             );
-            names.forEach((name) => {
+            names.validUsers.forEach((name) => {
                 group.groupMembers.push({
                     memberName: name,
                 });
@@ -318,7 +318,7 @@ export default class AddGroup extends React.Component {
                         <ContentDiv>
                             <AddMemberDiv>
                                 <StyledInputUser
-                                    placeholder='user.<userid> or <domain>.<service>'
+                                    placeholder={GROUP_MEMBER_PLACEHOLDER}
                                     value={this.state.newMemberName}
                                     onChange={memberNameChanged}
                                     noanim

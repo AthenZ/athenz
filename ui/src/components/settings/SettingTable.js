@@ -144,31 +144,7 @@ export default class SettingTable extends React.Component {
 
     onValueChange(name, val) {
         let collectionDetails = this.state.copyCollectionDetails;
-        switch (name) {
-            case 'reviewEnabled':
-                collectionDetails.reviewEnabled = val;
-                break;
-            case 'selfServe':
-                collectionDetails.selfServe = val;
-                break;
-            case 'memberExpiryDays':
-                collectionDetails.memberExpiryDays = val;
-                break;
-            case 'serviceExpiryDays':
-                collectionDetails.serviceExpiryDays = val;
-                break;
-            case 'tokenExpiryMins':
-                collectionDetails.tokenExpiryMins = val;
-                break;
-            case 'certExpiryMins':
-                collectionDetails.certExpiryMins = val;
-                break;
-            case 'groupExpiryDays':
-                collectionDetails.groupExpiryDays = val;
-                break;
-            default:
-                break;
-        }
+        collectionDetails[name] = val;
 
         this.setState({
             copyCollectionDetails: collectionDetails,

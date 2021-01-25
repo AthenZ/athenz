@@ -62,7 +62,6 @@ export default class SettingRow extends React.Component {
     }
 
     toggleSwitchButton(evt) {
-        console.log(evt.currentTarget.checked);
         this.props.onValueChange(this.props.name, evt.currentTarget.checked);
     }
 
