@@ -3,15 +3,17 @@
 set e
 
 apt-get update
+apt-get clean
+apt-get autoremove
 
 echo "-----------------Install libs: -----------------"
-apt-get install -y libaio1 libnuma-dev build-essential libncurses5
+apt-get install -y libaio1 libnuma-dev build-essential libncurses5 aptitude
 
 echo "-----------------Install nodejs: -----------------"
 #install nodejs 12.x repo
 curl -sL https://deb.nodesource.com/setup_12.x | bash -
 apt-get install -y nodejs
-apt-get install -y -f npm
+aptitude install -y npm
 npm install -g npm@latest
 
 echo "-----------------Install gcc: -----------------"
