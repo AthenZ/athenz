@@ -175,7 +175,6 @@ export default class MemberRow extends React.Component {
                 {member.memberName.includes(':group.') ? (
                     <GroupTDStyled color={color} align={left}>
                         <StyledMenu
-                            triggerOn='click'
                             placement='right'
                             boundary='scrollParent'
                             trigger={

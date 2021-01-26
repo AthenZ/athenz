@@ -207,29 +207,34 @@ export default class GroupRolesPage extends React.Component {
                                             selectedName={'roles'}
                                         />
                                     </PageHeaderDiv>
-                                    <ContainerDiv>
-                                        <StyledSearchInputDiv>
-                                            <SearchInput
-                                                dark={false}
-                                                name='search'
-                                                fluid={true}
-                                                value={this.state.searchText}
-                                                placeholder={
-                                                    this.state.showuser
-                                                        ? 'Enter user name'
-                                                        : 'Enter role name'
-                                                }
-                                                error={this.state.error}
-                                                onChange={(event) =>
-                                                    this.setState({
-                                                        searchText:
-                                                            event.target.value,
-                                                        error: false,
-                                                    })
-                                                }
-                                            />
-                                        </StyledSearchInputDiv>
-                                    </ContainerDiv>
+                                    {roles && roles.length > 0 && (
+                                        <ContainerDiv>
+                                            <StyledSearchInputDiv>
+                                                <SearchInput
+                                                    dark={false}
+                                                    name='search'
+                                                    fluid={true}
+                                                    value={
+                                                        this.state.searchText
+                                                    }
+                                                    placeholder={
+                                                        this.state.showuser
+                                                            ? 'Enter user name'
+                                                            : 'Enter role name'
+                                                    }
+                                                    error={this.state.error}
+                                                    onChange={(event) =>
+                                                        this.setState({
+                                                            searchText:
+                                                                event.target
+                                                                    .value,
+                                                            error: false,
+                                                        })
+                                                    }
+                                                />
+                                            </StyledSearchInputDiv>
+                                        </ContainerDiv>
+                                    )}
                                     <TableDiv>
                                         <GroupRoleTable
                                             api={this.api}

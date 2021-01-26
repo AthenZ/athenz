@@ -103,6 +103,7 @@ const StyledTr = styled.tr`
 `;
 
 const StyledTh = styled.th`
+    padding: 6px;
     border: 1px solid #dddddd;
 `;
 

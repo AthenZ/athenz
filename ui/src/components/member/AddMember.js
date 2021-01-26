@@ -111,6 +111,7 @@ export default class AddMember extends React.Component {
         }
 
         if (
+            this.props.category === 'group' &&
             !MemberUtils.matchRegexName(
                 this.state.memberName,
                 GROUP_MEMBER_NAME_REGEX
