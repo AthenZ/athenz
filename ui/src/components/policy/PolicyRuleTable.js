@@ -20,7 +20,7 @@ import { colors } from '../denali/styles';
 import AddAssertion from './AddAssertion';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
-import { MODAL_TIME_OUT } from '../constants/constants';
+import { DISPLAY_SPACE, MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
 
 const StyleTable = styled.table`
@@ -198,7 +198,7 @@ export default class PolicyRuleTable extends React.Component {
                         {assertion.effect}
                     </TDStyled>
                     <TDStyled color={'white'} align={left}>
-                        {assertion.action}
+                        {assertion.action.replace(/\s/g, DISPLAY_SPACE)}
                     </TDStyled>
                     <TDStyled color={'white'} align={left}>
                         {assertion.role}

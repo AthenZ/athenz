@@ -20,3 +20,4 @@ export const GROUP_NAME_REGEX = data.types[3].StringTypeDef.pattern;
 export const GROUP_MEMBER_NAME_REGEX = data.types[14].StringTypeDef.pattern;
 export const GROUP_ROLES_CATEGORY = 'group-roles';
 export const GROUP_MEMBER_PLACEHOLDER = 'user.<userid> or <domain>.<service>';
+export const DISPLAY_SPACE = '\u23b5';

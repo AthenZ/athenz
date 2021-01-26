@@ -105,16 +105,18 @@ export default class RolePolicyList extends React.Component {
                 if (role) {
                     filteredPolicies = data.filter((policy) => {
                         let included = false;
-                        policy.assertions.forEach((element) => {
-                            if (
-                                NameUtils.getShortName(
-                                    ':role.',
-                                    element.role
-                                ) == role
-                            ) {
-                                included = true;
-                            }
-                        });
+                        if (policy.assertions) {
+                            policy.assertions.forEach((element) => {
+                                if (
+                                    NameUtils.getShortName(
+                                        ':role.',
+                                        element.role
+                                    ) == role
+                                ) {
+                                    included = true;
+                                }
+                            });
+                        }
                         return included;
                     });
                 }
