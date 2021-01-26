@@ -4,6 +4,10 @@ set e
 
 apt-get update
 
+echo "-----------------Install libs: -----------------"
+apt-get install libaio1
+apt-get install -y build-essential
+
 echo "-----------------Install nodejs: -----------------"
 #install nodejs 12.x repo
 curl -sL https://deb.nodesource.com/setup_12.x | bash -
@@ -16,7 +20,6 @@ apt-get install -y software-properties-common
 add-apt-repository -y ppa:ubuntu-toolchain-r/test
 apt-get install -y gcc
 apt-get install -y g++
-apt-get install -y build-essential
 
 echo "-----------------Install golang: -----------------"
 # install go
