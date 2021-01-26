@@ -138,7 +138,7 @@
     <module>assembly/zms</module>
     <module>assembly/zts</module>
     <module>assembly/zpu</module>
-    <module>assembly/ui</module>
+<!--    <module>assembly/ui</module>-->
     <module>assembly/utils</module>
   </modules>
 
