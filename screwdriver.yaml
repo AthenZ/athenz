@@ -10,8 +10,8 @@ jobs:
     image: maven:3.6.3-openjdk-8
     annotations:
       screwdriver.cd/cpu: 8
-      screwdriver.cd/ram: 8
-      screwdriver.cd/disk: 8
+      screwdriver.cd/ram: 16
+      screwdriver.cd/disk: HIGH
       screwdriver.cd/timeout: 120
 
     steps:
