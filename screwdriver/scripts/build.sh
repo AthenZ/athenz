@@ -6,4 +6,4 @@ readonly NUM_THREADS=$(( $(nproc) + 2 ))
 
 export MAVEN_OPTS="-Xss1m -Xms128m -Xmx2g"
 
-mvn install --no-snapshot-updates --batch-mode --threads ${NUM_THREADS}
+mvn install --batch-mode --threads ${NUM_THREADS}
