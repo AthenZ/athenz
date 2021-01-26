@@ -317,7 +317,7 @@ public class DBService implements RolesProvider {
                 quotaCheck.checkSubdomainQuota(con, domainName, caller);
 
                 boolean objectsInserted = con.insertDomain(domain);
-                objectsInserted &= processDomainTags(domain.getTags(), null, domainName, con);
+                objectsInserted &= processDomainTags(con, domain.getTags(), null, domainName, false);
 
                 if (!objectsInserted) {
                     con.rollbackChanges();
@@ -2852,7 +2852,16 @@ public class DBService implements RolesProvider {
                 }
 
                 con.updateDomain(updatedDomain);
-                processDomainTags(meta.getTags(), domain, domainName, con);
+
+                // if we're only updating our tags then we need to explicitly
+                // update our domain last mod timestamp since it won't be
+                // updated during the updateDomain call if there are no other
+                // changes present in the request
+
+                if (!processDomainTags(con, meta.getTags(), domain, domainName, true)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.internalServerError(caller + "Unable to update tags", caller);
+                }
 
                 con.commitChanges();
                 cacheStore.invalidate(domainName);
@@ -2886,14 +2895,23 @@ public class DBService implements RolesProvider {
         }
     }
 
-    private boolean processDomainTags(Map<String, StringList> domainTags, Domain originalDomain, String domainName, ObjectStoreConnection con) {
+    private boolean processDomainTags(ObjectStoreConnection con, Map<String, StringList> domainTags,
+            Domain originalDomain, final String domainName, boolean updateDomainLastModTimestamp) {
+
         if (originalDomain == null || originalDomain.getTags() == null || originalDomain.getTags().isEmpty()) {
             if (domainTags == null || domainTags.isEmpty()) {
                 // no tags to process..
                 return true;
             }
-            return con.insertDomainTags(domainName, domainTags);
+            if (!con.insertDomainTags(domainName, domainTags)) {
+                return false;
+            }
+            if (updateDomainLastModTimestamp) {
+                con.updateDomainModTimestamp(domainName);
+            }
+            return true;
         }
+
         Map<String, StringList> originalDomainTags = originalDomain.getTags();
 
         Set<String> tagsToRemove = originalDomainTags.entrySet().stream()
@@ -2902,14 +2920,30 @@ public class DBService implements RolesProvider {
             .map(Map.Entry::getKey)
             .collect(Collectors.toSet());
 
+        boolean tagsChanged = false;
+        if (tagsToRemove != null && !tagsToRemove.isEmpty()) {
+            if (!con.deleteDomainTags(originalDomain.getName(), tagsToRemove)) {
+                return false;
+            }
+            tagsChanged = true;
+        }
+
         Map<String, StringList> tagsToAdd = domainTags.entrySet().stream()
             .filter(curTag -> originalDomainTags.get(curTag.getKey()) == null
                 || !originalDomainTags.get(curTag.getKey()).equals(curTag.getValue()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        boolean res = con.deleteDomainTags(originalDomain.getName(), tagsToRemove);
+        if (tagsToAdd != null && !tagsToAdd.isEmpty()) {
+            if (!con.insertDomainTags(originalDomain.getName(), tagsToAdd)) {
+                return false;
+            }
+            tagsChanged = true;
+        }
 
-        return res && con.insertDomainTags(originalDomain.getName(), tagsToAdd);
+        if (tagsChanged && updateDomainLastModTimestamp) {
+            con.updateDomainModTimestamp(domainName);
+        }
+        return true;
     }
 
     void updateDomainMembersUserAuthorityFilter(ResourceContext ctx, ObjectStoreConnection con, Domain domain,

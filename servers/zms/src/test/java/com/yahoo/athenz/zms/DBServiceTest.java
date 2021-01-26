@@ -9222,7 +9222,7 @@ public class DBServiceTest {
                 .collect(Collectors.toList())
                 .containsAll(Arrays.asList("val3", "val4", "val5", "val6")));
 
-        // asert first tag insertion
+        // assert first tag insertion
         Map<String, StringList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
         assertTrue(resultFirstInsertTags.keySet().containsAll(Arrays.asList("tagKey", "tagToBeRemoved")));
         assertTrue(resultFirstInsertTags.values().stream()
@@ -9516,16 +9516,11 @@ public class DBServiceTest {
         ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
-        Mockito.verify(conn, times(1)).deleteDomainTags(domainCapture.capture(), tagCapture.capture());
-        assertEquals("newDomainTagsUpdate", domainCapture.getValue());
-        assertTrue(tagCapture.getValue().isEmpty());
+        Mockito.verify(conn, times(0)).deleteDomainTags(domainCapture.capture(), tagCapture.capture());
 
         // assert tags to add is empty
         ArgumentCaptor<Map<String, StringList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
-        Mockito.verify(conn, times(2)).insertDomainTags(domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals("newDomainTagsUpdate", domainCapture.getValue());
-        Map<String, StringList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
-        assertTrue(resultInsertTags.isEmpty());
+        Mockito.verify(conn, times(1)).insertDomainTags(domainCapture.capture(), tagInsertCapture.capture());
 
         // assert first tag insertion
         Map<String, StringList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
