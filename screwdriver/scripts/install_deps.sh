@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set e
+set -ev
 
 apt-get update
 apt-get clean
