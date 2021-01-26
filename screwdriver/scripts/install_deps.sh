@@ -5,7 +5,7 @@ set e
 apt-get update
 
 echo "-----------------Install libs: -----------------"
-apt-get install -y libaio1 libnuma-dev build-essential
+apt-get install -y libaio1 libnuma-dev build-essential libncurses5
 
 echo "-----------------Install nodejs: -----------------"
 #install nodejs 12.x repo
