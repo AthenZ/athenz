@@ -1,8 +1,8 @@
 # Copyright Verizon Media. Licensed under the terms of the Apache 2.0 license. See LICENSE in the project root.
-#---
-#cache:
-#  job:
-#    main: [/main_job_cache]
+---
+cache:
+  job:
+    main: [/main_job_cache]
 
 jobs:
   pull-request:
@@ -24,12 +24,18 @@ jobs:
     image: maven:3.6.3-openjdk-8
     annotations:
       screwdriver.cd/cpu: 8
-      screwdriver.cd/ram: 8
-      screwdriver.cd/disk: 8
+      screwdriver.cd/ram: 16
+      screwdriver.cd/disk: HIGH
       screwdriver.cd/timeout: 120
+
+    environment:
+      USER_SHELL_BIN: bash
+      LOCAL_MVN_REPO: "/tmp/athenz/mvnrepo"
+      VESPA_MAVEN_EXTRA_OPTS: "-Dmaven.repo.local=/tmp/athenz/mvnrepo -Dmaven.javadoc.skip=true -Dmaven.source.skip=true"
+      CCACHE_TMP_DIR: "/tmp/ccache_tmp"
+      CCACHE_DATA_DIR: "/tmp/athenz/ccache"
 
     steps:
       - install_dependencies: "screwdriver/scripts/install_deps.sh"
-      #- pre_build: "screwdriver/scripts/prepare_build.sh"
       - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
