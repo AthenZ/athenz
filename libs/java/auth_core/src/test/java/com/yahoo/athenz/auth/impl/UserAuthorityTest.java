@@ -18,67 +18,67 @@ package com.yahoo.athenz.auth.impl;
 //import static org.mockito.ArgumentMatchers.anyLong;
 //import static org.mockito.ArgumentMatchers.anyString;
 //import static org.mockito.Mockito.doReturn;
-//import static org.testng.Assert.*;
-//
+import static org.testng.Assert.*;
+
 //import com.yahoo.athenz.auth.Authority;
-//import org.jvnet.libpam.PAM;
-//import org.jvnet.libpam.PAMException;
-//import org.jvnet.libpam.UnixUser;
-//import org.testng.annotations.Test;
-//
-//import com.yahoo.athenz.auth.Principal;
-//
-//import org.mockito.Mockito;
+import org.jvnet.libpam.PAM;
+import org.jvnet.libpam.PAMException;
+import org.jvnet.libpam.UnixUser;
+import org.testng.annotations.Test;
+
+import com.yahoo.athenz.auth.Principal;
+
+import org.mockito.Mockito;
 
 public class UserAuthorityTest {
 
-//    @Test
-//    public void testUserAuthority() throws PAMException {
-//        PAM pam = Mockito.mock(PAM.class);
-//        UnixUser user = new UnixUser(System.getenv("USER"));
-//        Mockito.when(pam.authenticate("testuser", "testpwd")).thenReturn(user);
-//        UserAuthority userAuthority = new UserAuthority();
-//        userAuthority.setPAM(pam);
-//        String expectedDomain = "user";
-//        assertEquals(userAuthority.getDomain(), expectedDomain);
-//        String expectedHeader = "Authorization";
-//        assertEquals(userAuthority.getHeader(), expectedHeader);
-//        assertTrue(userAuthority.isValidUser("user1"));
-//
-//        StringBuilder errMsg = new StringBuilder();
-//        String testToken = "Basic dGVzdHVzZXI6dGVzdHB3ZA==";
-//        Principal principal = userAuthority.authenticate(testToken, "10.72.118.45", "GET", errMsg);
-//        assertNotNull(principal);
-//
-//        assertEquals(principal.getName(), "testuser");
-//        assertEquals(principal.getDomain(), expectedDomain);
-//        assertEquals(principal.getCredentials(), testToken);
-//        assertEquals(principal.getUnsignedCredentials(), "testuser");
-//
-//        assertNotNull(principal.getAuthority());
-//        assertEquals(principal.getCredentials(), testToken);
-//
-//        assertTrue(userAuthority.isValidUser("user1"));
-//
-//        // authenticate user without password which should fail
-//
-//        principal = userAuthority.authenticate("Basic dGVzdHVzZXIK", "10.72.118.45", "GET", errMsg);
-//        assertNull(principal);
-//    }
-//
-//    @Test
-//    public void testGetPAM() throws PAMException {
-//        UserAuthority userAuthority = new UserAuthority();
-//        assertNotNull(userAuthority.getPAM());
-//    }
-//
-//    @Test
-//    public void testGetID() {
-//        UserAuthority authority = new UserAuthority();
-//        authority.initialize();
-//        assertEquals("Auth-UNIX", authority.getID());
-//    }
-//
+    @Test
+    public void testUserAuthority() throws PAMException {
+        PAM pam = Mockito.mock(PAM.class);
+        UnixUser user = new UnixUser(System.getenv("USER"));
+        Mockito.when(pam.authenticate("testuser", "testpwd")).thenReturn(user);
+        UserAuthority userAuthority = new UserAuthority();
+        userAuthority.setPAM(pam);
+        String expectedDomain = "user";
+        assertEquals(userAuthority.getDomain(), expectedDomain);
+        String expectedHeader = "Authorization";
+        assertEquals(userAuthority.getHeader(), expectedHeader);
+        assertTrue(userAuthority.isValidUser("user1"));
+
+        StringBuilder errMsg = new StringBuilder();
+        String testToken = "Basic dGVzdHVzZXI6dGVzdHB3ZA==";
+        Principal principal = userAuthority.authenticate(testToken, "10.72.118.45", "GET", errMsg);
+        assertNotNull(principal);
+
+        assertEquals(principal.getName(), "testuser");
+        assertEquals(principal.getDomain(), expectedDomain);
+        assertEquals(principal.getCredentials(), testToken);
+        assertEquals(principal.getUnsignedCredentials(), "testuser");
+
+        assertNotNull(principal.getAuthority());
+        assertEquals(principal.getCredentials(), testToken);
+
+        assertTrue(userAuthority.isValidUser("user1"));
+
+        // authenticate user without password which should fail
+
+        principal = userAuthority.authenticate("Basic dGVzdHVzZXIK", "10.72.118.45", "GET", errMsg);
+        assertNull(principal);
+    }
+
+    @Test
+    public void testGetPAM() throws PAMException {
+        UserAuthority userAuthority = new UserAuthority();
+        assertNotNull(userAuthority.getPAM());
+    }
+
+    @Test
+    public void testGetID() {
+        UserAuthority authority = new UserAuthority();
+        authority.initialize();
+        assertEquals("Auth-UNIX", authority.getID());
+    }
+
 //    @Test
 //    public void testUserAuthorityAuthenticateException() throws PAMException {
 //        PAM pam = Mockito.mock(PAM.class);
