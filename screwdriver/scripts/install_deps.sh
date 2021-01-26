@@ -20,6 +20,9 @@ add-apt-repository -y ppa:ubuntu-toolchain-r/test
 apt-get install -y gcc
 apt-get install -y g++
 
+echo "-----------------Install fix: -----------------"
+apt-get install -f
+
 echo "-----------------Install golang: -----------------"
 # install go
 wget https://golang.org/dl/go1.13.4.linux-amd64.tar.gz
