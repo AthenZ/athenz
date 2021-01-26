@@ -64,8 +64,8 @@
   </issueManagement>
 
   <ciManagement>
-    <system>Travis</system>
-    <url>https://travis-ci.org/yahoo/athenz</url>
+    <system>Screwdriver.cd</system>
+    <url>https://cd.screwdriver.cd/pipelines/6418</url>
   </ciManagement>
 
   <properties>

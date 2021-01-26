@@ -1,12 +1,26 @@
 # Copyright Verizon Media. Licensed under the terms of the Apache 2.0 license. See LICENSE in the project root.
----
-cache:
-  job:
-    main: [/main_job_cache]
+#---
+#cache:
+#  job:
+#    main: [/main_job_cache]
 
 jobs:
+  pull-request:
+    requires: [~pr]
+    image: maven:3.6.3-openjdk-8
+    annotations:
+      screwdriver.cd/cpu: 8
+      screwdriver.cd/ram: 8
+      screwdriver.cd/disk: 8
+      screwdriver.cd/timeout: 120
+
+    steps:
+      - install_dependencies: "screwdriver/scripts/install_deps.sh"
+      - build: "screwdriver/scripts/build.sh"
+
+
   main:
-    requires: [~pr, ~commit]
+    requires: [~commit]
     image: maven:3.6.3-openjdk-8
     annotations:
       screwdriver.cd/cpu: 8
