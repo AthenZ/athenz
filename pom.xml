@@ -134,11 +134,11 @@
     <module>libs/nodejs/auth_core</module>
     <module>clients/nodejs/zts</module>
     <module>clients/nodejs/zpe</module>
-<!--    <module>ui</module>-->
+    <module>ui</module>
     <module>assembly/zms</module>
     <module>assembly/zts</module>
     <module>assembly/zpu</module>
-<!--    <module>assembly/ui</module>-->
+    <module>assembly/ui</module>
     <module>assembly/utils</module>
   </modules>
 
