@@ -21,8 +21,7 @@ jobs:
 
   main:
     requires: [~commit]
-#    image: maven:3.5.3-jdk-8
-    image: maven:3.5.4-jdk-8-alpine
+    image: maven:3.5.3-jdk-8
 #    image: openjdk:8u252
     annotations:
       screwdriver.cd/cpu: 8
@@ -33,7 +32,7 @@ jobs:
     environment:
       USER_SHELL_BIN: bash
       LOCAL_MVN_REPO: "/tmp/athenz/mvnrepo"
-      VESPA_MAVEN_EXTRA_OPTS: "-Dmaven.repo.local=/tmp/athenz/mvnrepo -Dmaven.javadoc.skip=true -Dmaven.source.skip=true"
+      ATHENZ_MAVEN_EXTRA_OPTS: "-Dmaven.repo.local=/tmp/athenz/mvnrepo -Dmaven.javadoc.skip=true -Dmaven.source.skip=true"
       CCACHE_TMP_DIR: "/tmp/ccache_tmp"
       CCACHE_DATA_DIR: "/tmp/athenz/ccache"
 
