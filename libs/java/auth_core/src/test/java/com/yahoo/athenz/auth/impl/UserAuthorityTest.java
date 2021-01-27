@@ -92,26 +92,26 @@ public class UserAuthorityTest {
         assertNull(principal);
     }
 
-    @Test
-    public void testNullSimplePrincipal() throws PAMException {
-        PAM pam = Mockito.mock(PAM.class);
-        UnixUser user = new UnixUser(System.getenv("USER"));
-        Mockito.when(pam.authenticate("testuser", "testpwd")).thenReturn(user);
-        UserAuthority authority = new UserAuthority();
-        UserAuthority userAuthority = Mockito.spy(authority);
-        doReturn(null).when(userAuthority).getSimplePrincipal(anyString(), anyString(), anyLong());
-        userAuthority.setPAM(pam);
-        String expectedDomain = "user";
-        assertEquals(userAuthority.getDomain(), expectedDomain);
-        String expectedHeader = "Authorization";
-        assertEquals(userAuthority.getHeader(), expectedHeader);
-        assertTrue(userAuthority.isValidUser("user1"));
-
-        StringBuilder errMsg = new StringBuilder();
-        String testToken = "Basic dGVzdHVzZXI6dGVzdHB3ZA==";
-        Principal principal = userAuthority.authenticate(testToken, "10.72.118.45", "GET", errMsg);
-        assertNull(principal);
-    }
+//    @Test
+//    public void testNullSimplePrincipal() throws PAMException {
+//        PAM pam = Mockito.mock(PAM.class);
+//        UnixUser user = new UnixUser(System.getenv("USER"));
+//        Mockito.when(pam.authenticate("testuser", "testpwd")).thenReturn(user);
+//        UserAuthority authority = new UserAuthority();
+//        UserAuthority userAuthority = Mockito.spy(authority);
+//        doReturn(null).when(userAuthority).getSimplePrincipal(anyString(), anyString(), anyLong());
+//        userAuthority.setPAM(pam);
+//        String expectedDomain = "user";
+//        assertEquals(userAuthority.getDomain(), expectedDomain);
+//        String expectedHeader = "Authorization";
+//        assertEquals(userAuthority.getHeader(), expectedHeader);
+//        assertTrue(userAuthority.isValidUser("user1"));
+//
+//        StringBuilder errMsg = new StringBuilder();
+//        String testToken = "Basic dGVzdHVzZXI6dGVzdHB3ZA==";
+//        Principal principal = userAuthority.authenticate(testToken, "10.72.118.45", "GET", errMsg);
+//        assertNull(principal);
+//    }
 
     @Test
     public void testUserAuthorityInvalidFormat() {
