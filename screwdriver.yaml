@@ -21,7 +21,7 @@ jobs:
 
   main:
     requires: [~commit]
-    image: maven:3.5.3-jdk-8
+    image: maven:3.5.3-jdk-8u252
 #    image: openjdk:8u252
     annotations:
       screwdriver.cd/cpu: 8
