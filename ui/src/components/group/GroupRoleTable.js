@@ -26,6 +26,10 @@ const StyleTable = styled.table`
     border-color: grey;
 `;
 
+const GroupRoleDiv = styled.div`
+    padding-top: 20px;
+`;
+
 const TableHeadStyled = styled.th`
     text-align: ${(props) => props.align};
     border-bottom: 2px solid #d5d5d5;
@@ -123,14 +127,27 @@ export default class GroupRoleTable extends React.Component {
             }
         }
 
+        if (!this.state.roles || this.state.roles.length === 0) {
+            return (
+                <GroupRoleDiv>
+                    The group isn't a member of any role.
+                </GroupRoleDiv>
+            );
+        }
+
         return (
             <StyleTable key='role-table' data-testid='roletable'>
+                <colgroup>
+                    <col style={{ width: 50 + '%' }} />
+                    <col style={{ width: 30 + '%' }} />
+                    <col style={{ width: 20 + '%' }} />
+                </colgroup>
                 <thead>
                     <tr>
                         <TableHeadStyledRoleName align={left}>
                             Role
                         </TableHeadStyledRoleName>
-                        <TableHeadStyled align={center}>
+                        <TableHeadStyled align={left}>
                             Expiry Date
                         </TableHeadStyled>
                         <TableHeadStyled align={center}>

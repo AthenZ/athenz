@@ -229,7 +229,7 @@ export default class GroupReviewTable extends React.Component {
         if (!this.state.list || this.state.list.length === 0) {
             return (
                 <ReviewMembersContainerDiv>
-                    There is no members to review for role: {this.props.group}.
+                    There is no members to review for group: {this.props.group}.
                 </ReviewMembersContainerDiv>
             );
         }

@@ -147,7 +147,9 @@ export default class RoleGroup extends React.Component {
                                 {`${label} Roles (${length})`}
                             </StyledDiv>
                             <StyledDiv>
-                                <StyledTable>{sectionRows}</StyledTable>
+                                <StyledTable>
+                                    <tbody>{sectionRows}</tbody>
+                                </StyledTable>
                             </StyledDiv>
                         </TDStyled>
                     </TrStyled>
