@@ -10,7 +10,7 @@ echo "-----------------Install libs: -----------------"
 apt-get install -y libaio1 libnuma-dev build-essential libncurses5 aptitude
 
 echo "-----------------Install maven: -----------------"
-apt-get install -y maven
+#apt-get install -y maven
 
 echo "-----------------Install nodejs: -----------------"
 #install nodejs 12.x repo
