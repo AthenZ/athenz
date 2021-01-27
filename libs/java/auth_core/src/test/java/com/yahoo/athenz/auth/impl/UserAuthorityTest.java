@@ -15,12 +15,12 @@
  */
 package com.yahoo.athenz.auth.impl;
 
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
+//import static org.mockito.ArgumentMatchers.anyLong;
+//import static org.mockito.ArgumentMatchers.anyString;
+//import static org.mockito.Mockito.doReturn;
 import static org.testng.Assert.*;
 
-import com.yahoo.athenz.auth.Authority;
+//import com.yahoo.athenz.auth.Authority;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
