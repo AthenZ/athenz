@@ -7,7 +7,7 @@ cache:
 jobs:
   pull-request:
     requires: [~pr]
-    image: maven:3.6.2-openjdk-8
+    image: maven:3.6.3-openjdk-8
     annotations:
       screwdriver.cd/cpu: 8
       screwdriver.cd/ram: 16
@@ -21,7 +21,7 @@ jobs:
 
   main:
     requires: [~commit]
-    image: maven:3.6.2-openjdk-8
+    image: maven:3.6.3-openjdk-8
     annotations:
       screwdriver.cd/cpu: 8
       screwdriver.cd/ram: 16
