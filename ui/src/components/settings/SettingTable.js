@@ -21,6 +21,7 @@ import UpdateModal from '../modal/UpdateModal';
 import Alert from '../denali/Alert';
 import RequestUtils from '../utils/RequestUtils';
 import _ from 'lodash';
+import { MODAL_TIME_OUT } from '../constants/constants';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -209,6 +210,13 @@ export default class SettingTable extends React.Component {
                     showSubmit: false,
                     enableSubmit: false,
                 });
+                setTimeout(
+                    () =>
+                        this.setState({
+                            showSuccess: false,
+                        }),
+                    MODAL_TIME_OUT
+                );
                 this.reloadCollection();
             })
             .catch((err) => {

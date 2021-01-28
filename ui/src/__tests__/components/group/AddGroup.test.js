@@ -182,7 +182,7 @@ describe('AddGroup', () => {
         const _csrf = '_csrf';
         let api = API();
         api = {
-            getGroups: jest.fn(() =>
+            listGroups: jest.fn(() =>
                 Promise.resolve([])
             ),
             addGroup: jest.fn(() => Promise.resolve()),
@@ -364,7 +364,7 @@ describe('AddGroup', () => {
         const _csrf = '_csrf';
         let api = API();
         api = {
-            getGroups: jest.fn(() =>
+            listGroups: jest.fn(() =>
                 Promise.resolve([])
             ),
             addGroup: jest.fn(() => Promise.resolve()),

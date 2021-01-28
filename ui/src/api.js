@@ -197,6 +197,40 @@ const Api = (req) => {
             });
         },
 
+        reloadGroups(domainName, groupName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('groups')
+                    .params({ domainName, groupName })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            if (data && data.list) {
+                                resolve(data.list);
+                            } else {
+                                resolve([]);
+                            }
+                        }
+                    });
+            });
+        },
+
+        listGroups(domainName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('groups-list')
+                    .params({ domainName })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         getRole(
             domainName,
             roleName,

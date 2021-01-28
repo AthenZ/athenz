@@ -113,7 +113,8 @@ class GroupRow extends React.Component {
                     errorMessage: null,
                 });
                 this.props.onUpdateSuccess(
-                    `Successfully deleted group ${groupName}`
+                    `Successfully deleted group ${groupName}`,
+                    groupName
                 );
             })
             .catch((err) => {

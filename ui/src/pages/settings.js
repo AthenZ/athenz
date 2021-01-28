@@ -82,7 +82,7 @@ export default class SettingPage extends React.Component {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}];
         });
         return {
             api,
