@@ -64,8 +64,8 @@
   </issueManagement>
 
   <ciManagement>
-    <system>Travis</system>
-    <url>https://travis-ci.org/yahoo/athenz</url>
+    <system>Screwdriver.cd</system>
+    <url>https://cd.screwdriver.cd/pipelines/6418</url>
   </ciManagement>
 
   <properties>
@@ -92,7 +92,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <code.coverage.min>0.95</code.coverage.min>
-    <argLine>-Dlogback.configurationFile=src/test/resources/travis_logback.xml</argLine>
+    <argLine>-Dlogback.configurationFile=src/test/resources/sd_logback.xml</argLine>
     <swagger.version>2.1.6</swagger.version>
   </properties>
 
