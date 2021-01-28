@@ -95,7 +95,7 @@ public class UserAuthorityTest {
     @Test
     public void testNullSimplePrincipal() throws PAMException {
         PAM pam = Mockito.mock(PAM.class);
-        UnixUser user = Mockito.mock(UnixUser.class);;
+        UnixUser user = Mockito.mock(UnixUser.class);
         Mockito.when(pam.authenticate("testuser", "testpwd")).thenReturn(user);
         UserAuthority authority = new UserAuthority();
         UserAuthority userAuthority = Mockito.spy(authority);
