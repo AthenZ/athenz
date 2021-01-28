@@ -234,9 +234,11 @@ export default class AddGroup extends React.Component {
         }
 
         this.api
-            .getGroups(this.props.domain)
+            .listGroups(this.props.domain)
             .then((groups) => {
-                if (groups.includes(groupName)) {
+                if (
+                    groups.includes(this.props.domain + ':group.' + groupName)
+                ) {
                     this.setState({
                         errorMessage: 'Group already exists.',
                     });
@@ -255,7 +257,8 @@ export default class AddGroup extends React.Component {
                     )
                     .then(() => {
                         this.props.onSubmit(
-                            `Successfully created group ${groupName}`
+                            `Successfully created group ${groupName}`,
+                            groupName
                         );
                     })
                     .catch((err) => {

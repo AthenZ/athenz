@@ -18,6 +18,7 @@ import styled from '@emotion/styled';
 import GroupReviewTable from '../group/GroupReviewTable';
 import ReviewTable from './ReviewTable';
 import Alert from '../denali/Alert';
+import { MODAL_TIME_OUT } from '../constants/constants';
 
 const RolesSectionDiv = styled.div`
     margin: 20px;
@@ -54,6 +55,13 @@ export default class ReviewList extends React.Component {
             successMessage,
             errorMessage: null,
         });
+        setTimeout(
+            () =>
+                this.setState({
+                    showSuccess: false,
+                }),
+            MODAL_TIME_OUT
+        );
     }
 
     closeModal() {

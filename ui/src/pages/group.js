@@ -81,7 +81,7 @@ export default class GroupPage extends React.Component {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}];
         });
         let domainDetails = domains[2];
         domainDetails.isAWSTemplateApplied = !!domains[6];

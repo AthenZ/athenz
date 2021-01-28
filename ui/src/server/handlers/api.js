@@ -957,10 +957,47 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'groups',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getGroups(
-            params,
-            responseHandler.bind({ caller: 'getGroups', callback, req })
-        );
+        req.clients.zms.getGroups(params, function (err, data) {
+            if (err) {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error from ZMS while calling getGroups API: ${JSON.stringify(
+                        err
+                    )}`
+                );
+                callback(errorHandler.fetcherError(err));
+            }
+            if (params.groupName) {
+                let groupName =
+                    params.domainName + ':group.' + params.groupName;
+                let found = false;
+                if (data && data.list) {
+                    for (let item of data.list) {
+                        if (item.name === groupName) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        callback(null, data);
+                    } else {
+                        setTimeout(() => {
+                            req.clients.zms.getGroups(
+                                params,
+                                responseHandler.bind({
+                                    caller: 'getGroups',
+                                    callback,
+                                    req,
+                                })
+                            );
+                        }, 500);
+                    }
+                }
+            } else {
+                callback(null, data);
+            }
+        });
     },
 });
 
@@ -971,6 +1008,31 @@ Fetchr.registerService({
             params,
             responseHandler.bind({ caller: 'getRoleList', callback, req })
         );
+    },
+});
+
+Fetchr.registerService({
+    name: 'groups-list',
+    read(req, resource, params, config, callback) {
+        req.clients.zms.getGroups(params, function (err, data) {
+            if (err) {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error from ZMS while calling getGroups API: ${JSON.stringify(
+                        err
+                    )}`
+                );
+                callback(errorHandler.fetcherError(err));
+            }
+            let newData = [];
+            if (data && data.list) {
+                data.list.forEach((item) => {
+                    newData.push(item.name);
+                });
+            }
+            callback(null, newData);
+        });
     },
 });
 

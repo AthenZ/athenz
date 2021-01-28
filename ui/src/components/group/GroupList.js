@@ -73,9 +73,9 @@ export default class GroupList extends React.Component {
         }
     };
 
-    reloadGroups(successMessage) {
+    reloadGroups(successMessage, groupName) {
         this.api
-            .getGroups(this.props.domain)
+            .reloadGroups(this.props.domain, groupName)
             .then((groups) => {
                 this.setState({
                     groups,
@@ -127,25 +127,29 @@ export default class GroupList extends React.Component {
             ''
         );
 
+        let searchInput =
+            this.state.groups.length > 0 ? (
+                <SearchInput
+                    dark={false}
+                    name='search'
+                    fluid={true}
+                    value={this.state.searchText}
+                    placeholder={'Enter group name'}
+                    error={this.state.error}
+                    onChange={(event) =>
+                        this.setState({
+                            searchText: event.target.value,
+                            error: false,
+                        })
+                    }
+                />
+            ) : (
+                'Click on Add Group button to create a new group.'
+            );
         return (
             <GroupsSectionDiv data-testid='grouplist'>
                 <AddContainerDiv>
-                    <StyledSearchInputDiv>
-                        <SearchInput
-                            dark={false}
-                            name='search'
-                            fluid={true}
-                            value={this.state.searchText}
-                            placeholder={'Enter group name'}
-                            error={this.state.error}
-                            onChange={(event) =>
-                                this.setState({
-                                    searchText: event.target.value,
-                                    error: false,
-                                })
-                            }
-                        />
-                    </StyledSearchInputDiv>
+                    <StyledSearchInputDiv>{searchInput}</StyledSearchInputDiv>
                     <div>
                         <Button secondary onClick={this.toggleAddGroup}>
                             Add Group
@@ -153,15 +157,17 @@ export default class GroupList extends React.Component {
                         {addGroup}
                     </div>
                 </AddContainerDiv>
-                <GroupTable
-                    groups={groups}
-                    api={this.api}
-                    domain={this.props.domain}
-                    _csrf={this.props._csrf}
-                    onSubmit={this.reloadGroups}
-                    justificationRequired={this.props.isDomainAuditEnabled}
-                    userProfileLink={this.props.userProfileLink}
-                />
+                {this.state.groups.length > 0 && (
+                    <GroupTable
+                        groups={groups}
+                        api={this.api}
+                        domain={this.props.domain}
+                        _csrf={this.props._csrf}
+                        onSubmit={this.reloadGroups}
+                        justificationRequired={this.props.isDomainAuditEnabled}
+                        userProfileLink={this.props.userProfileLink}
+                    />
+                )}
                 {this.state.showSuccess ? (
                     <Alert
                         isOpen={this.state.showSuccess}
