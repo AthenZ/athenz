@@ -851,9 +851,9 @@ Fetchr.registerService({
                                             errorHandler.fetcherError(err)
                                         );
                                     });
+                            } else {
+                                callback(null, data);
                             }
-                        } else {
-                            callback(null, data);
                         }
                     }
                 );
