@@ -128,10 +128,10 @@ public class UserAuthorityTest {
         PAM pam = Mockito.mock(PAM.class);
         UserAuthority userAuthority = new UserAuthority();
         userAuthority.setPAM(pam);
-        
+
         assertFalse(userAuthority.allowAuthorization());
     }
-    
+
     @Test
     public void testAuthenticateException() throws PAMException {
         PAM pam = Mockito.mock(PAM.class);

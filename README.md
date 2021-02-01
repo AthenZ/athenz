@@ -2,7 +2,7 @@
 
 # Athenz
 
-[![Build Status](https://travis-ci.org/yahoo/athenz.svg?branch=master)](https://travis-ci.org/yahoo/athenz)
+[![Build Status](https://cd.screwdriver.cd/pipelines/6418/events)](https://cd.screwdriver.cd/pipelines/6418/events)
 [![SourceSpy Dashboard](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/yahooathenz/)
 
 > Athenz is an open source platform for X.509 certificate based service authentication and fine grained access control in dynamic infrastructures. It supports provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and industry standard mutual TLS bound oauth2 access tokens. The name “Athenz” is derived from “AuthNZ” (N for authentication and Z for authorization).
