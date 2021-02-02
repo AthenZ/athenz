@@ -14,7 +14,6 @@ exports[`SettingRow should render input type setting row 1`] = `
 }
 
 .emotion-2 {
-  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -184,7 +183,6 @@ exports[`SettingRow should render switch type setting row 1`] = `
 }
 
 .emotion-2 {
-  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;

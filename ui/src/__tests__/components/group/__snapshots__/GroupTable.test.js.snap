@@ -23,7 +23,6 @@ exports[`GroupTable should render 1`] = `
 }
 
 .emotion-4 {
-  text-align: ;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -48,7 +47,6 @@ exports[`GroupTable should render 1`] = `
 }
 
 .emotion-18 {
-  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -60,7 +58,6 @@ exports[`GroupTable should render 1`] = `
 }
 
 .emotion-22 {
-  background-color: ;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;

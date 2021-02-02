@@ -61,7 +61,6 @@ exports[`RoleTable should render 1`] = `
 }
 
 .emotion-20 {
-  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -73,7 +72,6 @@ exports[`RoleTable should render 1`] = `
 }
 
 .emotion-28 {
-  background-color: ;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
