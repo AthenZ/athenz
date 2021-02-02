@@ -82,10 +82,10 @@ credentials for configured AWS IAM roles.
 * Features
     * [Service Identity X.509 Certificates - Copper Argos](docs/copper_argos.md)
 * Developer Guide
-    * [Centralized Access Control](docs/dev_centralized_access.md)
+    * [Centralized Access Control](docs/decent_authz_flow.md)
         * [Java Client/Servlet Example](docs/example_java_centralized_access.md)
         * [Go Client/Server Example](docs/example_go_centralized_access.md)
-    * [Decentralized Access Control](docs/dev_decentralized_access.md)
+    * [Decentralized Access Control](docs/decent_authz_flow.md)
         * [Java Client/Servlet Example](docs/example_java_decentralized_access.md)
 * Customizing Athenz
     * [Principal Authentication](docs/principal_authentication.md)
