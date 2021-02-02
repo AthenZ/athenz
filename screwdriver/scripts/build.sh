@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
-set -ev
+set -e
 
+export PATH=$PATH:/usr/local/go/bin
 mvn install

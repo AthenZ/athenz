@@ -1,41 +1,35 @@
 # Copyright Verizon Media. Licensed under the terms of the Apache 2.0 license. See LICENSE in the project root.
 ---
-cache:
-  job:
-    main: [/main_job_cache]
 
+shared:
+  image: openjdk:8
+  annotations:
+    screwdriver.cd/cpu: 8
+    screwdriver.cd/ram: 16
+    screwdriver.cd/disk: HIGH
+    screwdriver.cd/timeout: 120
+  environment:
+    USER_SHELL_BIN: /bin/bash
+  
 jobs:
   pull-request:
     requires: [~pr]
-    image: openjdk:8
-    annotations:
-      screwdriver.cd/cpu: 8
-      screwdriver.cd/ram: 16
-      screwdriver.cd/disk: HIGH
-      screwdriver.cd/timeout: 120
-
     steps:
       - install_dependencies: "screwdriver/scripts/install_deps.sh"
       - build: "screwdriver/scripts/build.sh"
 
-
   main:
     requires: [~commit]
-    image: openjdk:8
-    annotations:
-      screwdriver.cd/cpu: 8
-      screwdriver.cd/ram: 16
-      screwdriver.cd/disk: HIGH
-      screwdriver.cd/timeout: 120
+    steps:
+      - install_dependencies: "screwdriver/scripts/install_deps.sh"
+      - build: "screwdriver/scripts/build.sh"
 
-    environment:
-      USER_SHELL_BIN: bash
-      LOCAL_MVN_REPO: "/tmp/athenz/mvnrepo"
-      ATHENZ_MAVEN_EXTRA_OPTS: "-Dmaven.repo.local=/tmp/athenz/mvnrepo -Dmaven.javadoc.skip=true -Dmaven.source.skip=true"
-      CCACHE_TMP_DIR: "/tmp/ccache_tmp"
-      CCACHE_DATA_DIR: "/tmp/athenz/ccache"
-
+  publish:
+    requires: [~tag]
     steps:
       - install_dependencies: "screwdriver/scripts/install_deps.sh"
       - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
+    secrets:
+      - BINTRAY_USER
+      - BINTRAY_API_KEY

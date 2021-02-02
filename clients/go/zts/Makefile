@@ -17,7 +17,7 @@ export GOPATH=$(PWD)
 # we're not going to generate our code during our automated builds since
 # builds must be done based on files already checked-in into git
 
-CICD := $(or ${TRAVIS_PULL_REQUEST},${TRAVIS_TAG})
+CICD := $(or ${SCREWDRIVER},${TRAVIS_PULL_REQUEST},${TRAVIS_TAG})
 
 ifdef CICD
 
