@@ -13,7 +13,6 @@ echo "-----------------Install maven: -----------------"
 apt-get install -y maven
 
 echo "-----------------Install nodejs: -----------------"
-#install nodejs 12.x repo
 curl -sL https://deb.nodesource.com/setup_12.x | bash -
 apt-get install -y nodejs
 aptitude install -y npm
@@ -26,9 +25,8 @@ apt-get install -y gcc
 apt-get install -y g++
 
 echo "-----------------Install golang: -----------------"
-# install go
-wget https://golang.org/dl/go1.13.4.linux-amd64.tar.gz
-tar -C /usr/local -xzf go1.13.4.linux-amd64.tar.gz
+wget https://golang.org/dl/go1.15.7.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.15.7.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 
 # check all installed dependencies
