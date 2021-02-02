@@ -37,7 +37,6 @@ exports[`MemberList should render 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -165,7 +164,6 @@ exports[`MemberList should render 1`] = `
 }
 
 .emotion-33 {
-  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -173,7 +171,6 @@ exports[`MemberList should render 1`] = `
 }
 
 .emotion-41 {
-  background-color: ;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -555,7 +552,6 @@ exports[`MemberList should render delegated role 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -683,7 +679,6 @@ exports[`MemberList should render delegated role 1`] = `
 }
 
 .emotion-33 {
-  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -691,7 +686,6 @@ exports[`MemberList should render delegated role 1`] = `
 }
 
 .emotion-41 {
-  background-color: ;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;

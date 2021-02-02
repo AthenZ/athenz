@@ -60,7 +60,6 @@ exports[`RolePolicyPage should render 1`] = `
   display: flex;
   height: 60px;
   position: relative;
-  width: ;
 }
 
 .emotion-3.simple {
@@ -553,7 +552,6 @@ exports[`RolePolicyPage should render 1`] = `
   align-items: stretch;
   background: #f5f8fe;
   border-radius: 2px;
-  box-shadow: ;
   box-sizing: border-box;
   display: inline-grid;
   grid-template-columns: repeat(5, 1fr);
@@ -587,7 +585,6 @@ exports[`RolePolicyPage should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   background: #f5f8fe;
-  border-bottom: ;
   color: #3697f2;
   cursor: pointer;
   display: -webkit-box;
@@ -599,8 +596,6 @@ exports[`RolePolicyPage should render 1`] = `
   -webkit-justify-content: center;
   justify-content: center;
   padding: 8px 20px;
-  -webkit-transition: ;
-  transition: ;
   white-space: nowrap;
   z-index: 1;
 }
@@ -611,7 +606,6 @@ exports[`RolePolicyPage should render 1`] = `
 
 .emotion-49.active {
   background: #fff;
-  border-bottom: ;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
   color: #303030;
@@ -680,7 +674,6 @@ exports[`RolePolicyPage should render 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -797,7 +790,6 @@ exports[`RolePolicyPage should render 1`] = `
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
-  font-weight: ;
 }
 
 .emotion-72 {

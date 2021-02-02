@@ -4,7 +4,6 @@ exports[`AddMemberForm should render 1`] = `
 .emotion-0 {
   width: 100%;
   text-align: left;
-  background-color: ;
   display: grid;
   grid-gap: 24px;
   grid-template-columns: 23% 20% 20% 20% 10%;
@@ -171,7 +170,6 @@ exports[`AddMemberForm should render 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;

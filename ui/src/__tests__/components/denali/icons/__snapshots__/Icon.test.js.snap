@@ -2,7 +2,6 @@
 
 exports[`Icon should render default icon with svg 1`] = `
 .emotion-0 {
-  fill: ;
   cursor: inherit;
   vertical-align: text-bottom;
 }

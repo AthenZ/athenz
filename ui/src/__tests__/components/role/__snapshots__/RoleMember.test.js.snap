@@ -8,7 +8,6 @@ exports[`Member should render 1`] = `
   border: 1px solid transparent;
   box-sizing: border-box;
   color: #303030;
-  cursor: ;
   display: inline-block;
   font-size: 14px;
   height: 28px;

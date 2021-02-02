@@ -409,7 +409,6 @@ exports[`AddAssertion should render 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -462,7 +461,6 @@ exports[`AddAssertion should render 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -1109,7 +1107,6 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -1162,7 +1159,6 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -1809,7 +1805,6 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -1862,7 +1857,6 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;

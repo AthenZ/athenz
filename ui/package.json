@@ -93,7 +93,7 @@
         "@emotion/babel-plugin": "^11.1.2",
         "@emotion/jest": "^11.1.0",
         "@sinonjs/referee": "^7.0.0",
-        "@testing-library/jest-dom": "^5.11.8",
+        "@testing-library/jest-dom": "^5.11.9",
         "@testing-library/react": "^11.2.3",
         "@wdio/cli": "^6.11.3",
         "@wdio/junit-reporter": "^6.11.0",
