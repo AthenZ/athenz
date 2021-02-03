@@ -65,6 +65,7 @@ export default class TagList extends React.Component {
         this.onCancelDeleteTag = this.onCancelDeleteTag.bind(this);
         this.onCancelDeleteTagValue = this.onCancelDeleteTagValue.bind(this);
         this.reloadTags = this.reloadTags.bind(this);
+        this.updateStateAfterReload = this.updateStateAfterReload.bind(this);
         this.closeModal = this.closeModal.bind(this);
         this.onSubmitDeleteTag = this.onSubmitDeleteTag.bind(this);
         this.openAddTag = this.openAddTag.bind(this);
@@ -72,6 +73,9 @@ export default class TagList extends React.Component {
         this.addNewTag = this.addNewTag.bind(this);
         this.validateTagExist = this.validateTagExist.bind(this);
         this.domainMetaObject = this.domainMetaObject.bind(this);
+        this.roleMetaObject = this.roleMetaObject.bind(this);
+        this.updateMetaOnDelete = this.updateMetaOnDelete.bind(this);
+
         this.state = {
             category: props.category,
             tags: props.tags || [],
@@ -108,6 +112,7 @@ export default class TagList extends React.Component {
         this.setState({
             showDelete: false,
             deleteTagName: null,
+            deleteTagValue: null,
         });
     }
 
@@ -170,39 +175,74 @@ export default class TagList extends React.Component {
                         errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                     });
                 });
+        } else if (this.state.category === 'role') {
+            this.api
+                .getRole(this.props.domain, this.props.role)
+                .then((role) => {
+                    let roleMeta = this.roleMetaObject(role);
+                    if (!roleMeta.tags) {
+                        roleMeta.tags = {};
+                    }
+                    roleMeta.tags[tagKey] = {};
+                    roleMeta.tags[tagKey].list = tagValues;
+                    let successMessage = this.state.editMode
+                        ? `Successfully edited tag ${tagKey}`
+                        : `Successfully added tag ${tagKey}`;
+                    this.updateMeta(roleMeta, csrf, successMessage);
+                })
+                .catch((err) => {
+                    this.setState({
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    });
+                });
         }
     }
 
     onSubmitDeleteTag() {
         const csrf = this.props._csrf;
-        this.api
-            .getDomain(this.props.domain)
-            .then((domain) => {
-                let domainMeta = this.domainMetaObject(domain);
-                if (this.state.deleteTagValue) {
-                    //delete specific tag value
-                    let tagValIdx = domainMeta.tags[
-                        this.state.deleteTagName
-                    ].list.indexOf(this.state.deleteTagValue);
-                    domainMeta.tags[this.state.deleteTagName].list.splice(
-                        tagValIdx,
-                        1
-                    );
-                } else {
-                    //delete entire tag
-                    delete domainMeta.tags[this.state.deleteTagName];
-                }
-
-                let successMessage = this.state.deleteTagValue
-                    ? `Successfully deleted ${this.state.deleteTagValue} from tag ${this.state.deleteTagName}`
-                    : `Successfully deleted tag ${this.state.deleteTagName}`;
-                this.updateMeta(domainMeta, csrf, successMessage);
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+        if (this.state.category === 'domain') {
+            this.api
+                .getDomain(this.props.domain)
+                .then((domain) => {
+                    let domainMeta = this.domainMetaObject(domain);
+                    this.updateMetaOnDelete(domainMeta, csrf);
+                })
+                .catch((err) => {
+                    this.setState({
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    });
                 });
-            });
+        } else if (this.state.category === 'role') {
+            this.api
+                .getRole(this.props.domain, this.props.role)
+                .then((role) => {
+                    let roleMeta = this.roleMetaObject(role);
+                    this.updateMetaOnDelete(roleMeta, csrf);
+                })
+                .catch((err) => {
+                    this.setState({
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    });
+                });
+        }
+    }
+
+    updateMetaOnDelete(meta, csrf) {
+        if (this.state.deleteTagValue) {
+            //delete specific tag value
+            let tagValIdx = meta.tags[this.state.deleteTagName].list.indexOf(
+                this.state.deleteTagValue
+            );
+            meta.tags[this.state.deleteTagName].list.splice(tagValIdx, 1);
+        } else {
+            //delete entire tag
+            delete meta.tags[this.state.deleteTagName];
+        }
+
+        let successMessage = this.state.deleteTagValue
+            ? `Successfully deleted ${this.state.deleteTagValue} from tag ${this.state.deleteTagName}`
+            : `Successfully deleted tag ${this.state.deleteTagName}`;
+        this.updateMeta(meta, csrf, successMessage);
     }
 
     domainMetaObject(domain) {
@@ -220,11 +260,32 @@ export default class TagList extends React.Component {
         };
     }
 
+    roleMetaObject(role) {
+        return {
+            selfServe: role.selfServe,
+            certExpiryMins: role.certExpiryMins,
+            reviewEnabled: role.reviewEnabled,
+            notifyRoles: role.notifyRoles,
+            serviceExpiryDays: role.serviceExpiryDays,
+            memberReviewDays: role.memberReviewDays,
+            serviceReviewDays: role.serviceReviewDays,
+            userAuthorityExpiration: role.userAuthorityExpiration,
+            userAuthorityFilter: role.userAuthorityFilter,
+            memberExpiryDays: role.memberExpiryDays,
+            tokenExpiryMins: role.tokenExpiryMins,
+            signAlgorithm: role.signAlgorithm,
+            groupExpiryDays: role.groupExpiryDays,
+            tags: role.tags,
+        };
+    }
+
     updateMeta(meta, csrf, successMessage) {
         this.api
             .putMeta(
                 this.props.domain,
-                this.props.domain,
+                this.state.category === 'domain'
+                    ? this.props.domain
+                    : this.props.role,
                 meta,
                 'Updated ' + this.props.domain + ' Meta using Athenz UI',
                 csrf,
@@ -245,26 +306,18 @@ export default class TagList extends React.Component {
             this.props.api
                 .getDomain(this.props.domain)
                 .then((data) => {
+                    this.updateStateAfterReload(data, successMessage);
+                })
+                .catch((err) => {
                     this.setState({
-                        tags: data.tags,
-                        showSuccess: true,
-                        successMessage,
-                        showDelete: false,
-                        showDeleteTagValue: false,
-                        showAddTag: false,
-                        editMode: false,
-                        editedTagKey: '',
-                        editedTagValues: [],
-                        errorMessage: null,
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                     });
-                    // this is to close the success alert
-                    setTimeout(
-                        () =>
-                            this.setState({
-                                showSuccess: false,
-                            }),
-                        MODAL_TIME_OUT
-                    );
+                });
+        } else if (this.state.category === 'role') {
+            this.props.api
+                .getRole(this.props.domain, this.props.role)
+                .then((data) => {
+                    this.updateStateAfterReload(data, successMessage);
                 })
                 .catch((err) => {
                     this.setState({
@@ -272,6 +325,31 @@ export default class TagList extends React.Component {
                     });
                 });
         }
+    }
+
+    updateStateAfterReload(data, successMessage) {
+        this.setState({
+            tags: data.tags,
+            showSuccess: true,
+            successMessage,
+            showDelete: false,
+            showDeleteTagValue: false,
+            showAddTag: false,
+            editMode: false,
+            editedTagKey: '',
+            editedTagValues: [],
+            errorMessage: null,
+            deleteTagName: null,
+            deleteTagValue: null,
+        });
+        // this is to close the success alert
+        setTimeout(
+            () =>
+                this.setState({
+                    showSuccess: false,
+                }),
+            MODAL_TIME_OUT
+        );
     }
 
     closeModal() {
@@ -324,7 +402,11 @@ export default class TagList extends React.Component {
                 editMode={this.state.editMode}
                 onCancel={this.closeAddTag}
                 onSubmit={this.reloadTags}
-                resource={this.props.domain}
+                resource={
+                    this.state.category === 'domain'
+                        ? this.props.domain
+                        : this.props.role
+                }
                 api={this.api}
                 _csrf={this.props._csrf}
                 addNewTag={addNewTag}

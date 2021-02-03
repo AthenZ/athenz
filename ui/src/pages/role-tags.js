@@ -27,6 +27,9 @@ import Error from './_error';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import TagList from '../components/tag/TagList';
+import NameHeader from '../components/header/NameHeader';
+import CollectionDetails from '../components/header/CollectionDetails';
+import RoleTabs from '../components/header/RoleTabs';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -63,7 +66,7 @@ const TitleDiv = styled.div`
     margin-bottom: 10px;
 `;
 
-export default class TagsPage extends React.Component {
+export default class RoleTagsPage extends React.Component {
     static async getInitialProps(props) {
         let api = API(props.req);
         let reload = false;
@@ -73,12 +76,13 @@ export default class TagsPage extends React.Component {
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
+            api.getRole(props.query.domain, props.query.role, true, true, true),
             api.getForm(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}];
         });
 
         return {
@@ -86,10 +90,12 @@ export default class TagsPage extends React.Component {
             reload,
             notFound,
             error,
+            roleName: props.query.role,
             domains: tagsData[0],
             headerDetails: tagsData[1],
             domainDetails: tagsData[2],
-            _csrf: tagsData[3],
+            roleDetails: tagsData[3],
+            _csrf: tagsData[4],
             domain: props.query.domain,
             nonce: props.req.headers.rid,
         };
@@ -105,7 +111,7 @@ export default class TagsPage extends React.Component {
     }
 
     render() {
-        const { domain, reload, domainDetails, _csrf } = this.props;
+        const { domain, reload, roleName, roleDetails, _csrf } = this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -116,9 +122,9 @@ export default class TagsPage extends React.Component {
 
         return (
             <CacheProvider value={this.cache}>
-                <div data-testid='tags'>
+                <div data-testid='role-tags'>
                     <Head>
-                        <title>Athenz Domain Tags</title>
+                        <title>Athenz Role Tags</title>
                     </Head>
                     <Header
                         showSearch={true}
@@ -130,9 +136,14 @@ export default class TagsPage extends React.Component {
                             <TagsContainerDiv>
                                 <TagsContentDiv>
                                     <PageHeaderDiv>
-                                        <TitleDiv>{domain}</TitleDiv>
-                                        <DomainDetails
-                                            domainDetails={domainDetails}
+                                        <NameHeader
+                                            category={'role'}
+                                            domain={domain}
+                                            collection={roleName}
+                                            collectionDetails={roleDetails}
+                                        />
+                                        <CollectionDetails
+                                            collectionDetails={roleDetails}
                                             api={this.api}
                                             _csrf={_csrf}
                                             productMasterLink={
@@ -140,17 +151,19 @@ export default class TagsPage extends React.Component {
                                                     .productMasterLink
                                             }
                                         />
-                                        <Tabs
+                                        <RoleTabs
                                             api={this.api}
                                             domain={domain}
+                                            role={roleName}
                                             selectedName={'tags'}
                                         />
                                     </PageHeaderDiv>
                                     <TagList
                                         api={this.api}
                                         domain={domain}
-                                        tags={domainDetails.tags}
-                                        category={'domain'}
+                                        role={roleName}
+                                        tags={roleDetails.tags}
+                                        category={'role'}
                                         _csrf={this.props._csrf}
                                     />
                                 </TagsContentDiv>

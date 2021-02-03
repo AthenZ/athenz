@@ -43,6 +43,10 @@ class RoleTabs extends React.Component {
             label: 'History',
             name: 'history',
         },
+        {
+            label: 'Tags',
+            name: 'tags',
+        },
     ];
 
     tabClicked(tab) {
@@ -80,6 +84,13 @@ class RoleTabs extends React.Component {
                 this.props.router.push(
                     `/domain/${domain}/role/${role}/history`,
                     `/domain/${domain}/role/${role}/history`,
+                    { getInitialProps: true }
+                );
+                break;
+            case 'tags':
+                this.props.router.push(
+                    `/domain/${domain}/role/${role}/tags`,
+                    `/domain/${domain}/role/${role}/tags`,
                     { getInitialProps: true }
                 );
                 break;

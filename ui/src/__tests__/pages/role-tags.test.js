@@ -15,9 +15,9 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import TagsPage from '../../pages/tags';
+import RoleTagsPage from '../../pages/role-tags';
 
-describe('Tag Page', () => {
+describe('Roles Tag Page', () => {
     it('should render', () => {
         const query = {
             domain: 'dom',
@@ -47,20 +47,29 @@ describe('Tag Page', () => {
                 },
             ],
         };
+        let roleDetails = {
+            modified: '2020-02-12T21:44:37.792Z',
+            tags: {
+                'tag-name': {
+                    list: ['first', 'second'],
+                },
+            },
+        };
         const { getByTestId } = render(
-            <TagsPage
+            <RoleTagsPage
                 domains={domains}
                 req='req'
                 userId={userId}
                 query={query}
                 reload={false}
                 domainDetails={domainDetails}
+                roleDetails={roleDetails}
                 domain={domain}
                 domainResult={[]}
                 headerDetails={headerDetails}
             />
         );
-        const tagsPage = getByTestId('tags');
-        expect(tagsPage).toMatchSnapshot();
+        const roleTagsPage = getByTestId('role-tags');
+        expect(roleTagsPage).toMatchSnapshot();
     });
 });

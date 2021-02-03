@@ -57,7 +57,7 @@ describe('AddTag', () => {
         expect(screen.getByText('tag1')).toBeInTheDocument();
         expect(screen.getByText('tag2')).toBeInTheDocument();
         expect(screen.getByText('some-err-msg')).toBeInTheDocument();
-        expect(screen.getByText('Add Tag to tag-resource')).toBeInTheDocument();
+        expect(screen.getByText('Edit edit-tag-name Tag')).toBeInTheDocument();
     });
     
     it('should include tag name', async () => {
