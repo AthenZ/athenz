@@ -554,7 +554,7 @@ exports[`SettingPage should render 1`] = `
   border-radius: 2px;
   box-sizing: border-box;
   display: inline-grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   margin-top: 0;
   min-width: 80px;
   position: relative;
@@ -638,11 +638,11 @@ exports[`SettingPage should render 1`] = `
   color: #303030;
 }
 
-.emotion-54 {
+.emotion-55 {
   margin: 20px;
 }
 
-.emotion-56 {
+.emotion-57 {
   width: 100%;
   border-spacing: 0 20px;
   display: table;
@@ -650,7 +650,7 @@ exports[`SettingPage should render 1`] = `
   border-color: grey;
 }
 
-.emotion-58 {
+.emotion-59 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -662,14 +662,14 @@ exports[`SettingPage should render 1`] = `
   height: 50px;
 }
 
-.emotion-60 {
+.emotion-61 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-64 {
+.emotion-65 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -686,7 +686,7 @@ exports[`SettingPage should render 1`] = `
   position: relative;
 }
 
-.emotion-64>input[type='checkbox'] {
+.emotion-65>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   position: absolute;
@@ -694,7 +694,7 @@ exports[`SettingPage should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-64>input[type='checkbox']+label {
+.emotion-65>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -705,7 +705,7 @@ exports[`SettingPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-64>input[type='checkbox']+label .label-content {
+.emotion-65>input[type='checkbox']+label .label-content {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -714,12 +714,12 @@ exports[`SettingPage should render 1`] = `
 }
 
 @-moz-document url-prefix() {
-  .emotion-64>input[type='checkbox']+label .label-content {
+  .emotion-65>input[type='checkbox']+label .label-content {
     margin-top: 1px;
   }
 }
 
-.emotion-64>input[type='checkbox']+label:before {
+.emotion-65>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
   box-sizing: border-box;
@@ -735,7 +735,7 @@ exports[`SettingPage should render 1`] = `
   width: 34px;
 }
 
-.emotion-64>input[type='checkbox']+label::after {
+.emotion-65>input[type='checkbox']+label::after {
   background-color: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -752,43 +752,43 @@ exports[`SettingPage should render 1`] = `
   width: 18px;
 }
 
-.emotion-64>input[type='checkbox']:checked+label::before {
+.emotion-65>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-64>input[type='checkbox']:checked+label::after {
+.emotion-65>input[type='checkbox']:checked+label::after {
   background-color: #15c046;
   border-color: #15c046;
   left: 16px;
 }
 
-.emotion-64>input[type='checkbox']:disabled+label {
+.emotion-65>input[type='checkbox']:disabled+label {
   color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-64>input[type='checkbox']:disabled+label::before {
+.emotion-65>input[type='checkbox']:disabled+label::before {
   background-color: #e8e8e8;
   cursor: not-allowed;
 }
 
-.emotion-64>input[type='checkbox']:disabled+label::after {
+.emotion-65>input[type='checkbox']:disabled+label::after {
   border-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-64>input[type='checkbox']:checked:disabled+label::after {
+.emotion-65>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-82 {
+.emotion-83 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-84 {
+.emotion-85 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -805,7 +805,7 @@ exports[`SettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-84 input {
+.emotion-85 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -831,42 +831,42 @@ exports[`SettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-84.animated input {
+.emotion-85.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-84 input::-webkit-input-placeholder {
+.emotion-85 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-84 input::-moz-placeholder {
+.emotion-85 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-84 input:-ms-input-placeholder {
+.emotion-85 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-84 input::placeholder {
+.emotion-85 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-84 input.focused,
-.emotion-84 input:active,
-.emotion-84 input:focus {
+.emotion-85 input.focused,
+.emotion-85 input:active,
+.emotion-85 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-84 input:invalid {
+.emotion-85 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-84 .message {
+.emotion-85 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -874,22 +874,22 @@ exports[`SettingPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-84.error input,
-.emotion-84.error input.focused,
-.emotion-84.error input:active,
-.emotion-84.error input:focus {
+.emotion-85.error input,
+.emotion-85.error input.focused,
+.emotion-85.error input:active,
+.emotion-85.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-84.error .message {
+.emotion-85.error .message {
   color: #d01111;
 }
 
-.emotion-85 {
+.emotion-86 {
   margin-top: 5px;
 }
 
-.emotion-141 {
+.emotion-142 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -908,7 +908,7 @@ exports[`SettingPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-143 {
+.emotion-144 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -934,25 +934,25 @@ exports[`SettingPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-143:first-of-type {
+.emotion-144:first-of-type {
   margin-left: 0;
 }
 
-.emotion-143:disabled {
+.emotion-144:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-143:disabled {
+.emotion-144:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-143:hover:not(:disabled) {
+.emotion-144:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-145 {
+.emotion-146 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -978,13 +978,13 @@ exports[`SettingPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-147 {
+.emotion-148 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-148 {
+.emotion-149 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -999,7 +999,7 @@ exports[`SettingPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-150 {
+.emotion-151 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1018,28 +1018,28 @@ exports[`SettingPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-152 {
+.emotion-153 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-154 {
+.emotion-155 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-156 {
+.emotion-157 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-160 {
+.emotion-161 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-162 {
+.emotion-163 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1047,12 +1047,12 @@ exports[`SettingPage should render 1`] = `
   display: flex;
 }
 
-.emotion-164 {
+.emotion-165 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-166 {
+.emotion-167 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1277,30 +1277,36 @@ exports[`SettingPage should render 1`] = `
               >
                 History
               </div>
+              <div
+                class="emotion-49 denali-tab"
+                data-active="false"
+              >
+                Tags
+              </div>
             </div>
           </div>
           <div
-            class="emotion-54 emotion-55"
+            class="emotion-55 emotion-56"
           >
             <table
-              class="emotion-56 emotion-57"
+              class="emotion-57 emotion-58"
               data-testid="setting-table"
             >
               <tbody>
                 <tr
-                  class="emotion-58 emotion-59"
+                  class="emotion-59 emotion-60"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     Review
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     <div
-                      class="emotion-64 denali-switch"
+                      class="emotion-65 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -1315,25 +1321,25 @@ exports[`SettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     Flag indicates whether or not role updates require another review and approval
                   </td>
                 </tr>
                 <tr
-                  class="emotion-58 emotion-59"
+                  class="emotion-59 emotion-60"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     Self-Service
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     <div
-                      class="emotion-64 denali-switch"
+                      class="emotion-65 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -1348,28 +1354,28 @@ exports[`SettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     Flag indicates whether or not role allows self service
                   </td>
                 </tr>
                 <tr
-                  class="emotion-58 emotion-59"
+                  class="emotion-59 emotion-60"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     User Expiry (Days)
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     <div
-                      class="emotion-82 emotion-83"
+                      class="emotion-83 emotion-84"
                     >
                       <div
-                        class="emotion-84 denali-input animated emotion-85 emotion-86"
+                        class="emotion-85 denali-input animated emotion-86 emotion-87"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1388,28 +1394,28 @@ exports[`SettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     All user members in the role will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-58 emotion-59"
+                  class="emotion-59 emotion-60"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     Group Expiry (Days)
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     <div
-                      class="emotion-82 emotion-83"
+                      class="emotion-83 emotion-84"
                     >
                       <div
-                        class="emotion-84 denali-input animated emotion-85 emotion-86"
+                        class="emotion-85 denali-input animated emotion-86 emotion-87"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1428,28 +1434,28 @@ exports[`SettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     All group members in the role will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-58 emotion-59"
+                  class="emotion-59 emotion-60"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     Service Expiry (Days)
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     <div
-                      class="emotion-82 emotion-83"
+                      class="emotion-83 emotion-84"
                     >
                       <div
-                        class="emotion-84 denali-input animated emotion-85 emotion-86"
+                        class="emotion-85 denali-input animated emotion-86 emotion-87"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1468,28 +1474,28 @@ exports[`SettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     All services in the role will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-58 emotion-59"
+                  class="emotion-59 emotion-60"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     Token Expiry (Mins)
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     <div
-                      class="emotion-82 emotion-83"
+                      class="emotion-83 emotion-84"
                     >
                       <div
-                        class="emotion-84 denali-input animated emotion-85 emotion-86"
+                        class="emotion-85 denali-input animated emotion-86 emotion-87"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1508,28 +1514,28 @@ exports[`SettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     Tokens issued for this role will have specified max timeout in mins
                   </td>
                 </tr>
                 <tr
-                  class="emotion-58 emotion-59"
+                  class="emotion-59 emotion-60"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     Certificate Expiry (Mins)
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     <div
-                      class="emotion-82 emotion-83"
+                      class="emotion-83 emotion-84"
                     >
                       <div
-                        class="emotion-84 denali-input animated emotion-85 emotion-86"
+                        class="emotion-85 denali-input animated emotion-86 emotion-87"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1548,7 +1554,7 @@ exports[`SettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-60 emotion-61"
+                    class="emotion-61 emotion-62"
                   >
                     Certs issued for this role will have specified max timeout in mins
                   </td>
@@ -1556,18 +1562,18 @@ exports[`SettingPage should render 1`] = `
               </tbody>
             </table>
             <div
-              class="emotion-141 emotion-142"
+              class="emotion-142 emotion-143"
             >
               <div>
                 <button
-                  class="emotion-143 denali-button"
+                  class="emotion-144 denali-button"
                   disabled=""
                 >
                   Submit
                 </button>
                 
                 <button
-                  class="emotion-143 denali-button"
+                  class="emotion-144 denali-button"
                 >
                   Reset
                 </button>
@@ -1580,11 +1586,11 @@ exports[`SettingPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-145 emotion-146"
+          class="emotion-146 emotion-147"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-147"
+            class="emotion-148"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1599,45 +1605,45 @@ exports[`SettingPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-148 emotion-149"
+          class="emotion-149 emotion-150"
         >
           <div
-            class="emotion-150 emotion-151"
+            class="emotion-151 emotion-152"
           >
             <div
-              class="emotion-152 emotion-153"
+              class="emotion-153 emotion-154"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-154 emotion-155"
+                class="emotion-155 emotion-156"
               >
                 Create
               </a>
               <span
-                class="emotion-156 emotion-157"
+                class="emotion-157 emotion-158"
               >
                  | 
               </span>
               <a
-                class="emotion-154 emotion-155"
+                class="emotion-155 emotion-156"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-160 emotion-161"
+            class="emotion-161 emotion-162"
           >
             <div
-              class="emotion-162 emotion-163"
+              class="emotion-163 emotion-164"
             >
               <div
-                class="emotion-164 emotion-165"
+                class="emotion-165 emotion-166"
               >
                 <svg
-                  class="emotion-166"
+                  class="emotion-167"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1658,19 +1664,19 @@ exports[`SettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-154 emotion-155"
+                class="emotion-155 emotion-156"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-162 emotion-163"
+              class="emotion-163 emotion-164"
             >
               <div
-                class="emotion-164 emotion-165"
+                class="emotion-165 emotion-166"
               >
                 <svg
-                  class="emotion-166"
+                  class="emotion-167"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1691,7 +1697,7 @@ exports[`SettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-154 emotion-155"
+                class="emotion-155 emotion-156"
               >
                 athens.ci
               </a>
