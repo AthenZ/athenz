@@ -2,7 +2,9 @@
 
 FROM rdl-athenz-server AS rdl
 
-FROM rdl-athenz-java-model AS rdl-model
+FROM rdl-athenz-java-model AS rdl-java-model
+
+FROM rdl-athenz-go-model AS rdl-go-model
 
 FROM maven:3.6-alpine AS mvn
 # date -u +'%Y-%m-%dT%H:%M:%SZ'
@@ -24,7 +26,8 @@ ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 
 COPY --from=rdl /usr/bin/rdl /usr/bin/rdl
 COPY --from=rdl /usr/bin/rdl-gen-athenz-server /usr/bin/rdl-gen-athenz-server
-COPY --from=rdl-model /usr/bin/rdl-gen-athenz-java-model /usr/bin/rdl-gen-athenz-java-model
+COPY --from=rdl-java-model /usr/bin/rdl-gen-athenz-java-model /usr/bin/rdl-gen-athenz-java-model
+COPY --from=rdl-go-model /usr/bin/rdl-gen-athenz-go-model /usr/bin/rdl-gen-athenz-go-model
 
 # copy pom.xml
 WORKDIR /athenz
@@ -32,6 +35,7 @@ COPY pom.xml .
 # cat pom.xml | grep "<module>.*</module>" | awk -F'[><]' '{ printf "COPY ./%s/pom.xml ./%s/pom.xml\n", $3, $3 }'
 COPY ./rdl/rdl-gen-athenz-server/pom.xml ./rdl/rdl-gen-athenz-server/pom.xml
 COPY ./rdl/rdl-gen-athenz-java-model/pom.xml ./rdl/rdl-gen-athenz-java-model/pom.xml
+COPY ./rdl/rdl-gen-athenz-go-model/pom.xml ./rdl/rdl-gen-athenz-go-model/pom.xml
 COPY ./rdl/rdl-gen-athenz-go-client/pom.xml ./rdl/rdl-gen-athenz-go-client/pom.xml
 COPY ./core/zms/pom.xml ./core/zms/pom.xml
 COPY ./core/zts/pom.xml ./core/zts/pom.xml
