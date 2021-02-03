@@ -1,0 +1,1080 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddTag should render on new tag 1`] = `
+.emotion-0 {
+  text-align: center;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  padding-bottom: 15px;
+}
+
+.emotion-1 {
+  width: 100%;
+  text-align: left;
+  background-color: #fff;
+}
+
+.emotion-2 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-4 {
+  -webkit-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  margin-right: 2%;
+}
+
+.emotion-5 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-6 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-6 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-6.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-6 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-6 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-6 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-6.error .message {
+  color: #d01111;
+}
+
+.emotion-7 {
+  width: 500px;
+}
+
+.emotion-17 {
+  margin-left: 10px;
+}
+
+.emotion-18 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1;
+  margin: 5px;
+  min-width: 70px;
+  outline: 0;
+  padding: 8px 18px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-18:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-18:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-18:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-18:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-19 {
+  width: 125px;
+}
+
+.emotion-23 {
+  width: 65%;
+}
+
+<div
+  class="emotion-0"
+  data-testid="add-modal-message"
+>
+  <div
+    autocomplete="off"
+    class="emotion-1"
+    data-testid="add-tag-form"
+  >
+    <div
+      class="emotion-2"
+    >
+      <label
+        class="emotion-3 denali-input-label emotion-4"
+        for="tag-name"
+      >
+        Tag Name
+      </label>
+      <div
+        class="emotion-5"
+      >
+        <div
+          class="emotion-6 denali-input animated emotion-7"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="tag-name"
+            name="tag-name"
+            placeholder="Enter New Tag Name"
+            value=""
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <label
+        class="emotion-3 denali-input-label emotion-4"
+        for="description"
+      >
+        Tag Value(s)
+      </label>
+      <div
+        class="emotion-5"
+      >
+        <div
+          class="emotion-6 denali-input animated emotion-7"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="tag-val"
+            name="tag-val"
+            placeholder="Enter New Tag Value"
+            value=""
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <label
+        class="emotion-3 denali-input-label emotion-4"
+      />
+      <div
+        class="emotion-17"
+      >
+        <button
+          class="emotion-18 denali-button emotion-19"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <label
+        class="emotion-3 denali-input-label emotion-4"
+      />
+      <div
+        class="emotion-23"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddTagForm should render on edit tag with err message 1`] = `
+.emotion-0 {
+  text-align: center;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  padding-bottom: 15px;
+}
+
+.emotion-1 {
+  width: 100%;
+  text-align: left;
+  background-color: #fff;
+}
+
+.emotion-2 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-4 {
+  -webkit-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  margin-right: 2%;
+}
+
+.emotion-5 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-6 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-6 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-6.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-6 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-6 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-6 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-6.error .message {
+  color: #d01111;
+}
+
+.emotion-7 {
+  width: 500px;
+}
+
+.emotion-17 {
+  margin-left: 10px;
+}
+
+.emotion-18 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1;
+  margin: 5px;
+  min-width: 70px;
+  outline: 0;
+  padding: 8px 18px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-18:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-18:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-18:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-18:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-19 {
+  width: 125px;
+}
+
+.emotion-23 {
+  width: 65%;
+}
+
+.emotion-24 {
+  font-family: Helvetica,Arial,sans-serif;
+  background: rgba(53, 112, 244, 0.08);
+  border-radius: 14px;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  color: #303030;
+  display: inline-block;
+  font-size: 14px;
+  height: 28px;
+  line-height: 26px;
+  margin: 3px;
+  min-width: 50px;
+  padding: 0 12px;
+  position: relative;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.emotion-24:hover {
+  background: #cbd9f9;
+}
+
+.emotion-24 .tag-remove {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #cbd9f9;
+  border-radius: 0 14px 14px 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 28px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  opacity: 0;
+  padding-right: 2px;
+  position: absolute;
+  right: -14px;
+  top: -1px;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  width: 28px;
+}
+
+.emotion-24:hover .tag-remove {
+  box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
+  opacity: 1;
+  right: 0;
+}
+
+.emotion-25 {
+  color: #d5d5d5;
+  font-size: 14px;
+  height: 28px;
+  line-height: 14px;
+  margin: 5px 15px 5px 0;
+  padding: 6px 8px 7px 10px;
+  background: rgba(53, 112, 244, 0.08);
+}
+
+.emotion-25:hover {
+  background: #ffffff;
+}
+
+.emotion-26 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+.emotion-27 {
+  fill: rgba(48,48,48,0.6);
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+<div
+  class="emotion-0"
+  data-testid="add-modal-message"
+>
+  <div
+    autocomplete="off"
+    class="emotion-1"
+    data-testid="add-tag-form"
+  >
+    <div
+      class="emotion-2"
+    >
+      <label
+        class="emotion-3 denali-input-label emotion-4"
+        for="tag-name"
+      >
+        Tag Name
+      </label>
+      <div
+        class="emotion-5"
+      >
+        <div
+          class="emotion-6 denali-input animated emotion-7"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="tag-name"
+            name="tag-name"
+            placeholder="Enter New Tag Name"
+            value="edit-tag-name"
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <label
+        class="emotion-3 denali-input-label emotion-4"
+        for="description"
+      >
+        Tag Value(s)
+      </label>
+      <div
+        class="emotion-5"
+      >
+        <div
+          class="emotion-6 denali-input animated emotion-7"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="tag-val"
+            name="tag-val"
+            placeholder="Enter New Tag Value"
+            value=""
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <label
+        class="emotion-3 denali-input-label emotion-4"
+      />
+      <div
+        class="emotion-17"
+      >
+        <button
+          class="emotion-18 denali-button emotion-19"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <label
+        class="emotion-3 denali-input-label emotion-4"
+      />
+      <div
+        class="emotion-23"
+      >
+        <div
+          class="emotion-24 denali-tag emotion-25"
+          data-testid="tag"
+        >
+          <a
+            class="emotion-26"
+            style="color: rgb(53, 112, 244);"
+          >
+             
+            tag1
+             
+          </a>
+          <div
+            class="tag-remove"
+          >
+            <svg
+              class="emotion-27"
+              data-testid="icon"
+              height="20px"
+              viewBox="0 0 1024 1024"
+              width="20px"
+            >
+              <title>
+                x
+              </title>
+              <path
+                d="M572.373 512l224.427-224.213c8.506-8.066 13.798-19.448 13.798-32.066 0-9.118-2.763-17.59-7.498-24.625l0.1 0.158c-7.858-10.565-20.305-17.335-34.333-17.335-11.534 0-21.999 4.577-29.678 12.013l0.011-0.011-227.2 225.707-226.133-225.707c-7.733-7.792-18.447-12.616-30.289-12.616-14.295 0-26.948 7.030-34.691 17.822l-0.087 0.128c-4.635 6.877-7.398 15.35-7.398 24.467 0 12.618 5.292 24 13.778 32.048l0.020 0.019 224.427 224.213-224.427 224.213c-8.506 8.066-13.798 19.448-13.798 32.066 0 9.118 2.763 17.59 7.498 24.625l-0.1-0.158c7.83 10.919 20.483 17.949 34.778 17.949 11.841 0 22.556-4.824 30.286-12.613l0.003-0.003 226.133-225.707 226.133 225.707c7.668 7.425 18.133 12.002 29.667 12.002 14.028 0 26.476-6.77 34.252-17.222l0.081-0.114c4.635-6.877 7.398-15.35 7.398-24.467 0-12.618-5.292-24-13.778-32.048l-0.020-0.019z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="emotion-24 denali-tag emotion-25"
+          data-testid="tag"
+        >
+          <a
+            class="emotion-26"
+            style="color: rgb(53, 112, 244);"
+          >
+             
+            tag2
+             
+          </a>
+          <div
+            class="tag-remove"
+          >
+            <svg
+              class="emotion-27"
+              data-testid="icon"
+              height="20px"
+              viewBox="0 0 1024 1024"
+              width="20px"
+            >
+              <title>
+                x
+              </title>
+              <path
+                d="M572.373 512l224.427-224.213c8.506-8.066 13.798-19.448 13.798-32.066 0-9.118-2.763-17.59-7.498-24.625l0.1 0.158c-7.858-10.565-20.305-17.335-34.333-17.335-11.534 0-21.999 4.577-29.678 12.013l0.011-0.011-227.2 225.707-226.133-225.707c-7.733-7.792-18.447-12.616-30.289-12.616-14.295 0-26.948 7.030-34.691 17.822l-0.087 0.128c-4.635 6.877-7.398 15.35-7.398 24.467 0 12.618 5.292 24 13.778 32.048l0.020 0.019 224.427 224.213-224.427 224.213c-8.506 8.066-13.798 19.448-13.798 32.066 0 9.118 2.763 17.59 7.498 24.625l-0.1-0.158c7.83 10.919 20.483 17.949 34.778 17.949 11.841 0 22.556-4.824 30.286-12.613l0.003-0.003 226.133-225.707 226.133 225.707c7.668 7.425 18.133 12.002 29.667 12.002 14.028 0 26.476-6.77 34.252-17.222l0.081-0.114c4.635-6.877 7.398-15.35 7.398-24.467 0-12.618-5.292-24-13.778-32.048l-0.020-0.019z"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddTagForm should render on new tag 1`] = `
+.emotion-0 {
+  text-align: center;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  padding-bottom: 15px;
+}
+
+.emotion-1 {
+  width: 100%;
+  text-align: left;
+  background-color: #fff;
+}
+
+.emotion-2 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-4 {
+  -webkit-flex: 0 0 100px;
+  -ms-flex: 0 0 100px;
+  flex: 0 0 100px;
+  margin-right: 2%;
+}
+
+.emotion-5 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-6 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-6 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-6.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-6 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-6 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-6 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-6.error .message {
+  color: #d01111;
+}
+
+.emotion-7 {
+  width: 500px;
+}
+
+.emotion-17 {
+  margin-left: 10px;
+}
+
+.emotion-18 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1;
+  margin: 5px;
+  min-width: 70px;
+  outline: 0;
+  padding: 8px 18px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-18:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-18:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-18:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-18:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-19 {
+  width: 125px;
+}
+
+.emotion-23 {
+  width: 65%;
+}
+
+<div
+  class="emotion-0"
+  data-testid="add-modal-message"
+>
+  <div
+    autocomplete="off"
+    class="emotion-1"
+    data-testid="add-tag-form"
+  >
+    <div
+      class="emotion-2"
+    >
+      <label
+        class="emotion-3 denali-input-label emotion-4"
+        for="tag-name"
+      >
+        Tag Name
+      </label>
+      <div
+        class="emotion-5"
+      >
+        <div
+          class="emotion-6 denali-input animated emotion-7"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="tag-name"
+            name="tag-name"
+            placeholder="Enter New Tag Name"
+            value=""
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <label
+        class="emotion-3 denali-input-label emotion-4"
+        for="description"
+      >
+        Tag Value(s)
+      </label>
+      <div
+        class="emotion-5"
+      >
+        <div
+          class="emotion-6 denali-input animated emotion-7"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="tag-val"
+            name="tag-val"
+            placeholder="Enter New Tag Value"
+            value=""
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <label
+        class="emotion-3 denali-input-label emotion-4"
+      />
+      <div
+        class="emotion-17"
+      >
+        <button
+          class="emotion-18 denali-button emotion-19"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+    <div
+      class="emotion-2"
+    >
+      <label
+        class="emotion-3 denali-input-label emotion-4"
+      />
+      <div
+        class="emotion-23"
+      />
+    </div>
+  </div>
+</div>
+`;

@@ -47,6 +47,10 @@ class Tabs extends React.Component {
             label: 'History',
             name: 'history',
         },
+        {
+            label: 'Tags',
+            name: 'tags',
+        },
     ];
 
     tabClicked(tab) {
@@ -91,6 +95,13 @@ class Tabs extends React.Component {
                 this.props.router.push(
                     `/domain/${domain}/template`,
                     `/domain/${domain}/template`,
+                    { getInitialProps: true }
+                );
+                break;
+            case 'tags':
+                this.props.router.push(
+                    `/domain/${domain}/tags`,
+                    `/domain/${domain}/tags`,
                     { getInitialProps: true }
                 );
                 break;

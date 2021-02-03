@@ -1,0 +1,161 @@
+/*
+ * Copyright 2021 Verizon Media
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import React from 'react';
+import styled from '@emotion/styled';
+import Icon from '../denali/icons/Icon';
+import { colors } from '../denali/styles';
+import Menu from '../denali/Menu/Menu';
+import Tag from '../denali/Tag';
+
+const TdStyled = styled.td`
+    background-color: ${(props) => props.color};
+    text-align: ${(props) => props.align};
+    padding: 5px 0 5px 15px;
+    vertical-align: middle;
+    word-break: break-all;
+`;
+
+const MenuDiv = styled.div`
+    padding: 5px 10px;
+    background-color: black;
+    color: white;
+    font-size: 12px;
+`;
+
+const StyledTag = styled(Tag)`
+    color: #d5d5d5;
+    &:hover {
+        background: #ffffff;
+    }
+    font-size: 14px;
+    height: 28px;
+    line-height: 14px;
+    margin: 5px 15px 5px 0;
+    padding: 6px 8px 7px 10px;
+`;
+
+const StyledTagColor = styled(StyledTag)`
+    background: rgba(53, 112, 244, 0.08);
+`;
+
+const StyledAnchor = styled.a`
+    text-decoration: none;
+`;
+
+const StyledAnchorActiveInline = { color: colors.linkActive };
+
+export default class TagRow extends React.Component {
+    constructor(props) {
+        super(props);
+        this.onClickDeleteTagValue = this.onClickDeleteTagValue.bind(this);
+        this.onClickEditTag = this.onClickEditTag.bind(this);
+        this.state = {
+            applyTag: false,
+            showSuccess: false,
+        };
+    }
+
+    onClickDeleteTagValue(key, val) {
+        this.props.onClickDeleteTagValue(key, val);
+    }
+
+    onClickEditTag(tagKey, tagValues) {
+        this.props.onClickEditTag(tagKey, tagValues);
+    }
+
+    render() {
+        const left = 'left';
+        const center = 'center';
+        const color = this.props.color;
+        const tagValues = this.props.tagValues;
+
+        const tagKey = this.props.tagKey;
+        let onClickEditTag = this.onClickEditTag.bind(
+            this,
+            tagKey,
+            tagValues.list
+        );
+
+        return (
+            <tr data-testid='tag-row'>
+                <TdStyled color={color} align={left}>
+                    {tagKey}
+                </TdStyled>
+
+                <TdStyled color={color} align={left}>
+                    {tagValues.list.map((val) => {
+                        let onClickDeleteTagValue = this.onClickDeleteTagValue.bind(
+                            this,
+                            tagKey,
+                            val
+                        );
+                        return (
+                            <StyledTagColor
+                                key={val}
+                                onClickRemove={onClickDeleteTagValue}
+                            >
+                                <StyledAnchor style={StyledAnchorActiveInline}>
+                                    {' '}
+                                    {val}{' '}
+                                </StyledAnchor>
+                            </StyledTagColor>
+                        );
+                    })}
+                </TdStyled>
+
+                <TdStyled color={color} align={center}>
+                    <Menu
+                        placement='bottom-start'
+                        trigger={
+                            <span>
+                                <Icon
+                                    icon={'edit'}
+                                    onClick={onClickEditTag}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </span>
+                        }
+                    >
+                        <MenuDiv>Edit Tag</MenuDiv>
+                    </Menu>
+                </TdStyled>
+
+                <TdStyled color={color} align={center}>
+                    <Menu
+                        placement='bottom-start'
+                        trigger={
+                            <span>
+                                <Icon
+                                    icon={'trash'}
+                                    onClick={this.props.onClickDeleteTag}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </span>
+                        }
+                    >
+                        <MenuDiv>Delete Tag</MenuDiv>
+                    </Menu>
+                </TdStyled>
+            </tr>
+        );
+    }
+}
