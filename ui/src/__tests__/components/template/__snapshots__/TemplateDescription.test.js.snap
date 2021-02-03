@@ -18,6 +18,10 @@ exports[`TemplateDescription should render 1`] = `
   border-color: #9a9a9a;
 }
 
+.emotion-4 {
+  background-color: ;
+}
+
 .emotion-6 {
   padding: 20px;
   text-align: left;
@@ -25,6 +29,7 @@ exports[`TemplateDescription should render 1`] = `
   word-break: break-all;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   display: table-cell;
+  background-color: ;
 }
 
 <td

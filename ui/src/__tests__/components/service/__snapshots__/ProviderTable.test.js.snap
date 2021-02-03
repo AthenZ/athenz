@@ -8,6 +8,7 @@ exports[`ProviderTable should render 1`] = `
   word-break: break-all;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   display: table-cell;
+  background-color: ;
 }
 
 .emotion-2 {

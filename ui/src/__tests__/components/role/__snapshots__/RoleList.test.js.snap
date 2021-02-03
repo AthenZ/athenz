@@ -257,6 +257,7 @@ exports[`RoleList should render 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -454,6 +455,11 @@ exports[`RoleList should render 1`] = `
           class="emotion-23 emotion-20"
         >
           Policy Rule
+        </th>
+        <th
+          class="emotion-23 emotion-20"
+        >
+          Tags
         </th>
         <th
           class="emotion-23 emotion-20"

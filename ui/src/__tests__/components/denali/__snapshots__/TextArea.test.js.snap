@@ -42,6 +42,8 @@ exports[`TextArea should disable transitions 1`] = `
   outline: none;
   padding: 0.25em 0.75rem;
   text-align: left;
+  -webkit-transition: ;
+  transition: ;
   width: auto;
 }
 

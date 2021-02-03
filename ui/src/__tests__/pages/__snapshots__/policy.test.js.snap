@@ -60,6 +60,7 @@ exports[`PolicyPage should render 1`] = `
   display: flex;
   height: 60px;
   position: relative;
+  width: ;
 }
 
 .emotion-3.simple {
@@ -662,6 +663,7 @@ exports[`PolicyPage should render 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -701,9 +703,10 @@ exports[`PolicyPage should render 1`] = `
   align-items: stretch;
   background: #f5f8fe;
   border-radius: 2px;
+  box-shadow: ;
   box-sizing: border-box;
   display: inline-grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   margin-top: 0;
   min-width: 80px;
   position: relative;
@@ -734,6 +737,7 @@ exports[`PolicyPage should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   background: #f5f8fe;
+  border-bottom: ;
   color: #3697f2;
   cursor: pointer;
   display: -webkit-box;
@@ -745,6 +749,8 @@ exports[`PolicyPage should render 1`] = `
   -webkit-justify-content: center;
   justify-content: center;
   padding: 8px 20px;
+  -webkit-transition: ;
+  transition: ;
   white-space: nowrap;
   z-index: 1;
 }
@@ -755,6 +761,7 @@ exports[`PolicyPage should render 1`] = `
 
 .emotion-69.active {
   background: #fff;
+  border-bottom: ;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
   color: #303030;
@@ -787,11 +794,11 @@ exports[`PolicyPage should render 1`] = `
   color: #303030;
 }
 
-.emotion-75 {
+.emotion-76 {
   margin: 20px;
 }
 
-.emotion-77 {
+.emotion-78 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -811,7 +818,7 @@ exports[`PolicyPage should render 1`] = `
   float: right;
 }
 
-.emotion-80 {
+.emotion-81 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -819,7 +826,7 @@ exports[`PolicyPage should render 1`] = `
   border-color: grey;
 }
 
-.emotion-82 {
+.emotion-83 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -832,7 +839,7 @@ exports[`PolicyPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-86 {
+.emotion-87 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -845,7 +852,7 @@ exports[`PolicyPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-90 {
+.emotion-91 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -871,13 +878,13 @@ exports[`PolicyPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-92 {
+.emotion-93 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-93 {
+.emotion-94 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -892,7 +899,7 @@ exports[`PolicyPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-95 {
+.emotion-96 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -911,28 +918,29 @@ exports[`PolicyPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-97 {
+.emotion-98 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-99 {
+.emotion-100 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
+  font-weight: ;
 }
 
-.emotion-101 {
+.emotion-102 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-105 {
+.emotion-106 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-107 {
+.emotion-108 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -940,12 +948,12 @@ exports[`PolicyPage should render 1`] = `
   display: flex;
 }
 
-.emotion-109 {
+.emotion-110 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-111 {
+.emotion-112 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1230,14 +1238,20 @@ exports[`PolicyPage should render 1`] = `
               >
                 History
               </div>
+              <div
+                class="emotion-69 denali-tab"
+                data-active="false"
+              >
+                Tags
+              </div>
             </div>
           </div>
           <div
-            class="emotion-75 emotion-76"
+            class="emotion-76 emotion-77"
             data-testid="policylist"
           >
             <div
-              class="emotion-77 emotion-78"
+              class="emotion-78 emotion-79"
             >
               <div>
                 <button
@@ -1249,27 +1263,27 @@ exports[`PolicyPage should render 1`] = `
               </div>
             </div>
             <table
-              class="emotion-80 emotion-81"
+              class="emotion-81 emotion-82"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-82 emotion-83"
+                    class="emotion-83 emotion-84"
                   >
                     Policy
                   </th>
                   <th
-                    class="emotion-82 emotion-83"
+                    class="emotion-83 emotion-84"
                   >
                     Modified Date
                   </th>
                   <th
-                    class="emotion-86 emotion-83"
+                    class="emotion-87 emotion-84"
                   >
                     Rules
                   </th>
                   <th
-                    class="emotion-86 emotion-83"
+                    class="emotion-87 emotion-84"
                   >
                     Delete
                   </th>
@@ -1284,11 +1298,11 @@ exports[`PolicyPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-90 emotion-91"
+          class="emotion-91 emotion-92"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-92"
+            class="emotion-93"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1303,45 +1317,45 @@ exports[`PolicyPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-93 emotion-94"
+          class="emotion-94 emotion-95"
         >
           <div
-            class="emotion-95 emotion-96"
+            class="emotion-96 emotion-97"
           >
             <div
-              class="emotion-97 emotion-98"
+              class="emotion-98 emotion-99"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-100 emotion-101"
               >
                 Create
               </a>
               <span
-                class="emotion-101 emotion-102"
+                class="emotion-102 emotion-103"
               >
                  | 
               </span>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-100 emotion-101"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-105 emotion-106"
+            class="emotion-106 emotion-107"
           >
             <div
-              class="emotion-107 emotion-108"
+              class="emotion-108 emotion-109"
             >
               <div
-                class="emotion-109 emotion-110"
+                class="emotion-110 emotion-111"
               >
                 <svg
-                  class="emotion-111"
+                  class="emotion-112"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1362,19 +1376,19 @@ exports[`PolicyPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-100 emotion-101"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-107 emotion-108"
+              class="emotion-108 emotion-109"
             >
               <div
-                class="emotion-109 emotion-110"
+                class="emotion-110 emotion-111"
               >
                 <svg
-                  class="emotion-111"
+                  class="emotion-112"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1395,7 +1409,7 @@ exports[`PolicyPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-100 emotion-101"
               >
                 athens.ci
               </a>

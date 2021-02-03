@@ -24,6 +24,8 @@ exports[`ButtonGroup should disable animations 1`] = `
   height: calc(100% + 4px);
   margin: -2px -2px -2px calc(0% - 2px);
   position: absolute;
+  -webkit-transition: ;
+  transition: ;
   width: calc(25% + 4px);
 }
 
@@ -49,6 +51,8 @@ exports[`ButtonGroup should disable animations 1`] = `
   justify-content: center;
   margin: 3px;
   padding: 0 12px;
+  -webkit-transition: ;
+  transition: ;
   white-space: nowrap;
   z-index: 1;
 }
@@ -79,6 +83,8 @@ exports[`ButtonGroup should disable animations 1`] = `
   justify-content: center;
   margin: 3px;
   padding: 0 12px;
+  -webkit-transition: ;
+  transition: ;
   white-space: nowrap;
   z-index: 1;
 }

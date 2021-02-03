@@ -60,6 +60,7 @@ exports[`Search should render 1`] = `
   display: flex;
   height: 60px;
   position: relative;
+  width: ;
 }
 
 .emotion-3.simple {
@@ -631,6 +632,7 @@ exports[`Search should render 1`] = `
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
+  font-weight: ;
 }
 
 .emotion-52 {

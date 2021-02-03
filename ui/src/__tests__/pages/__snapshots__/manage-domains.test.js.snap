@@ -60,6 +60,7 @@ exports[`PageManageDomains should render 1`] = `
   display: flex;
   height: 60px;
   position: relative;
+  width: ;
 }
 
 .emotion-3.simple {
@@ -529,6 +530,7 @@ exports[`PageManageDomains should render 1`] = `
 }
 
 .emotion-63 {
+  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -536,6 +538,7 @@ exports[`PageManageDomains should render 1`] = `
 }
 
 .emotion-69 {
+  background-color: ;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -618,6 +621,7 @@ exports[`PageManageDomains should render 1`] = `
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
+  font-weight: ;
 }
 
 .emotion-89 {

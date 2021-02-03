@@ -13,11 +13,14 @@ exports[`Button should disable animations 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
   text-shadow: none;
   text-transform: none;
+  -webkit-transition: ;
+  transition: ;
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
@@ -63,6 +66,7 @@ exports[`Button should render a button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -118,6 +122,7 @@ exports[`Button should render a danger button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -165,6 +170,7 @@ exports[`Button should render a dark active button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -220,6 +226,7 @@ exports[`Button should render a dark danger button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -267,6 +274,7 @@ exports[`Button should render a dark disable button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -323,6 +331,7 @@ exports[`Button should render a dark large button 1`] = `
   font-size: 18px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 12px 28px;
   text-align: center;
@@ -378,6 +387,7 @@ exports[`Button should render a dark secondary active button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -430,6 +440,7 @@ exports[`Button should render a dark secondary button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -482,6 +493,7 @@ exports[`Button should render a dark secondary disable button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -591,6 +603,7 @@ exports[`Button should render a disabled button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -647,6 +660,7 @@ exports[`Button should render a large button 1`] = `
   font-size: 18px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 12px 28px;
   text-align: center;
@@ -702,6 +716,7 @@ exports[`Button should render a secondary active button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -754,6 +769,7 @@ exports[`Button should render a secondary button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -806,6 +822,7 @@ exports[`Button should render a secondary disable button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -915,6 +932,7 @@ exports[`Button should render an active button 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;

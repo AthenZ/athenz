@@ -60,6 +60,7 @@ exports[`CreateDomainPage should render 1`] = `
   display: flex;
   height: 60px;
   position: relative;
+  width: ;
 }
 
 .emotion-3.simple {
@@ -738,6 +739,7 @@ exports[`CreateDomainPage should render 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -785,6 +787,7 @@ exports[`CreateDomainPage should render 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -893,6 +896,7 @@ exports[`CreateDomainPage should render 1`] = `
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
+  font-weight: ;
 }
 
 .emotion-95 {

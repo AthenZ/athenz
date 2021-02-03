@@ -276,6 +276,7 @@ exports[`ReviewTable should render review table 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
