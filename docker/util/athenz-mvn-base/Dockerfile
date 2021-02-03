@@ -62,7 +62,6 @@ COPY ./utils/zts-roletoken/pom.xml ./utils/zts-roletoken/pom.xml
 COPY ./utils/zts-accesstoken/pom.xml ./utils/zts-accesstoken/pom.xml
 COPY ./utils/zts-rolecert/pom.xml ./utils/zts-rolecert/pom.xml
 COPY ./utils/zts-svccert/pom.xml ./utils/zts-svccert/pom.xml
-COPY ./aws-setup/athenz-conf-aws/pom.xml ./aws-setup/athenz-conf-aws/pom.xml
 COPY ./libs/nodejs/auth_core/pom.xml ./libs/nodejs/auth_core/pom.xml
 COPY ./clients/nodejs/zts/pom.xml ./clients/nodejs/zts/pom.xml
 COPY ./clients/nodejs/zpe/pom.xml ./clients/nodejs/zpe/pom.xml
