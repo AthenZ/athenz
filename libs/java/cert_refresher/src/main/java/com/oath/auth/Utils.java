@@ -207,7 +207,7 @@ public class Utils {
             throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
         TrustStore trustStore = new TrustStore(trustStorePath,
                 new JavaKeyStoreProvider(trustStorePath, trustStorePassword));
-        return getKeyRefresher(athenzPublicCert, athenzPrivateKey, trustStore);
+        return getKeyRefresher(athenzPublicCert, athenzPrivateKey, trustStore, keyRefresherListener);
     }
 
     /**
