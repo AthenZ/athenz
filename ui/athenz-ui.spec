@@ -2,7 +2,7 @@ Name:           athenz-ui
 Version:        %{PACKAGE_VERSION}
 Release:        %{RELEASE}%{?dist}
 Summary:        User Interface for Athenz
-URL:            https://github.com/yahoo/athenz
+URL:            https://github.com/AthenZ/athenz
 Group:          Installation Script
 License:        Apache License 2.0
 

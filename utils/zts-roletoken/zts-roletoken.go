@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yahoo/athenz/clients/go/zts"
-	"github.com/yahoo/athenz/libs/go/athenzconf"
-	"github.com/yahoo/athenz/libs/go/athenzutils"
-	"github.com/yahoo/athenz/libs/go/zmssvctoken"
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/athenzconf"
+	"github.com/AthenZ/athenz/libs/go/athenzutils"
+	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 )
 
 var (

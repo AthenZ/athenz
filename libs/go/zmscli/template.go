@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/yahoo/athenz/clients/go/zms"
+	"github.com/AthenZ/athenz/clients/go/zms"
 )
 
 func (cli Zms) ListServerTemplates() (*string, error) {

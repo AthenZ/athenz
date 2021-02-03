@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yahoo/athenz/clients/go/zms"
+	"github.com/AthenZ/athenz/clients/go/zms"
 	"gopkg.in/yaml.v2"
 )
 

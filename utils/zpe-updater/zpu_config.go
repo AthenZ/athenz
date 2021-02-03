@@ -11,8 +11,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/yahoo/athenz/libs/go/zmssvctoken"
-	"github.com/yahoo/athenz/utils/zpe-updater/util"
+	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
+	"github.com/AthenZ/athenz/utils/zpe-updater/util"
 )
 
 // Default and maximal startup delay values.

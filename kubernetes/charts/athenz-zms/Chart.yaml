@@ -4,13 +4,13 @@ version: 1.0.0
 appVersion: 1.9.27
 home: https://www.athenz.io
 description: Athenz is a role-based authorization (RBAC) system for provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases.
-icon: https://raw.githubusercontent.com/yahoo/athenz/master/docs/images/athenz-logo-line.svg
+icon: https://raw.githubusercontent.com/AthenZ/athenz/master/docs/images/athenz-logo-line.svg
 keywords:
   - athenz
   - RBAC
   - authorization
 sources:
-  - https://github.com/yahoo/athenz
+  - https://github.com/AthenZ/athenz
 maintainers:
   - name: Windz
     email: windz.athenz@gmail.com

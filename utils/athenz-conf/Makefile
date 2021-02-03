@@ -6,7 +6,7 @@
 # Licensed under the Apache License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
 #
 
-GOPKGNAME = github.com/yahoo/athenz/utils/athenz-conf
+GOPKGNAME = github.com/AthenZ/athenz/utils/athenz-conf
 PKG_DATE=$(shell date '+%Y-%m-%dT%H:%M:%S')
 BINARY=athenz-conf
 SRC=athenz-conf.go

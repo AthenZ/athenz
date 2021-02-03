@@ -29,7 +29,7 @@
     (centralized authorization) use cases as well as serving/runtime
     (decentralized authorization) use cases.
   </description>
-  <url>https://github.com/yahoo/athenz</url>
+  <url>https://github.com/AthenZ/athenz</url>
 
   <organization>
     <name>Yahoo Inc.</name>
@@ -53,14 +53,14 @@
   </licenses>
 
   <scm>
-    <url>https://github.com/yahoo/athenz</url>
-    <connection>scm:git:https://github.com/yahoo/athenz.git</connection>
+    <url>https://github.com/AthenZ/athenz</url>
+    <connection>scm:git:https://github.com/AthenZ/athenz.git</connection>
     <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
     <system>Github</system>
-    <url>https://github.com/yahoo/athenz/issues</url>
+    <url>https://github.com/AthenZ/athenz/issues</url>
   </issueManagement>
 
   <ciManagement>

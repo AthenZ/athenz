@@ -19,7 +19,7 @@ package main
 import (
 	"flag"
 
-	"github.com/yahoo/athenz/provider/azure/sia-vm/devel/ztsmock"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/devel/ztsmock"
 )
 
 func main() {

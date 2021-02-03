@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/yahoo/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/clients/go/zts"
 )
 
 func ZtsClient(ztsUrl, keyFile, certFile, caCertFile string, proxy bool) (*zts.ZTSClient, error) {

@@ -12,7 +12,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/yahoo/athenz/utils/zpe-updater"
+	"github.com/AthenZ/athenz/utils/zpe-updater"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 

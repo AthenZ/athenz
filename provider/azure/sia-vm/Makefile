@@ -1,4 +1,4 @@
-GOPKGNAME:=github.com/yahoo/athenz/provider/azure/sia-vm
+GOPKGNAME:=github.com/AthenZ/athenz/provider/azure/sia-vm
 export GOPATH ?= /tmp/go
 export GOPRIVATE=github.com
 

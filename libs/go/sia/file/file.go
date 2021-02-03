@@ -3,7 +3,7 @@ package siafile
 import (
 	"bytes"
 	"fmt"
-	"github.com/yahoo/athenz/libs/go/sia/verify"
+	"github.com/AthenZ/athenz/libs/go/sia/verify"
 	"io/ioutil"
 	"log"
 	"os"

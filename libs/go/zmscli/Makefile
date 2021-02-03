@@ -6,7 +6,7 @@
 # Licensed under the Apache License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
 #
 
-GOPKGNAME = github.com/yahoo/athenz/libs/go/zmscli
+GOPKGNAME = github.com/AthenZ/athenz/libs/go/zmscli
 
 # check to see if go utility is installed
 GO := $(shell command -v go 2> /dev/null)

@@ -44,22 +44,22 @@ const config = {
             { title: 'Website', url: 'http://www.athenz.io', target: '_blank' },
             {
                 title: 'Getting Started',
-                url: 'https://github.com/yahoo/athenz/blob/master/README.md',
+                url: 'https://github.com/AthenZ/athenz/blob/master/README.md',
                 target: '_blank',
             },
             {
                 title: 'Documentation',
-                url: 'https://github.com/yahoo/athenz/blob/master/README.md',
+                url: 'https://github.com/AthenZ/athenz/blob/master/README.md',
                 target: '_blank',
             },
             {
                 title: 'GitHub',
-                url: 'https://github.com/yahoo/athenz',
+                url: 'https://github.com/AthenZ/athenz',
                 target: '_blank',
             },
             {
                 title: 'Suggest',
-                url: 'https://github.com/yahoo/athenz/issues',
+                url: 'https://github.com/AthenZ/athenz/issues',
                 target: '_blank',
             },
             {

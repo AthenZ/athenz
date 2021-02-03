@@ -47,7 +47,7 @@ Database deployment is not inclued in this chart. Please prepare your database (
     - Kubernetes v1.17+
     - Helm v3.1.1+
 - configuration
-    - MySQL database with required [schema](https://github.com/yahoo/athenz/blob/master/servers/zts/schema/zts_server.sql)
+    - MySQL database with required [schema](https://github.com/AthenZ/athenz/blob/master/servers/zts/schema/zts_server.sql)
     - TLS
         - server certificate
         - trusted CAs

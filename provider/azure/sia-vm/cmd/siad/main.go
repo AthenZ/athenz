@@ -18,11 +18,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/yahoo/athenz/provider/azure/sia-vm"
-	"github.com/yahoo/athenz/provider/azure/sia-vm/data/attestation"
-	"github.com/yahoo/athenz/provider/azure/sia-vm/logutil"
-	"github.com/yahoo/athenz/provider/azure/sia-vm/options"
-	"github.com/yahoo/athenz/provider/azure/sia-vm/util"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/logutil"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/options"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/util"
 	"io"
 	"io/ioutil"
 	"log"

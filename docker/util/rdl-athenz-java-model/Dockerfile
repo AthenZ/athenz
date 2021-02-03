@@ -5,7 +5,7 @@ ENV APP_NAME rdl-gen-athenz-java-model
 RUN set -eux \
     && apk --no-cache add --virtual build-dependencies cmake g++ make unzip curl upx git
 
-WORKDIR ${GOPATH}/src/github.com/yahoo/athenz/rdl/rdl-gen-athenz-java-model
+WORKDIR ${GOPATH}/src/github.com/AthenZ/athenz/rdl/rdl-gen-athenz-java-model
 
 RUN go get -u github.com/ardielle/ardielle-go/... \
     && go get -u github.com/ardielle/ardielle-tools/... \
@@ -37,7 +37,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE
 LABEL org.label-schema.name="rdl-athenz-java-model"
 LABEL org.label-schema.description="base image of RDL"
 LABEL org.label-schema.url="https://www.athenz.io/"
-LABEL org.label-schema.vcs-url="https://github.com/yahoo/athenz"
+LABEL org.label-schema.vcs-url="https://github.com/AthenZ/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
 
 ENV APP_NAME rdl-gen-athenz-java-model

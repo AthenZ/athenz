@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yahoo/athenz/libs/go/zmssvctoken"
-	"github.com/yahoo/athenz/utils/zpe-updater/devel"
+	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
+	"github.com/AthenZ/athenz/utils/zpe-updater/devel"
 )
 
 const (

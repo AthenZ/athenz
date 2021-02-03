@@ -4,7 +4,7 @@
     "description": "React-based UI for Athenz",
     "repository": {
         "type": "git",
-        "url": "git@github.com:yahoo/athenz.git"
+        "url": "git@github.com:AthenZ/athenz.git"
     },
     "contributors": [
         {
@@ -22,7 +22,7 @@
     ],
     "main": "app.js",
     "bugs": {
-        "url": "https://github.com/yahoo/athenz/issues"
+        "url": "https://github.com/AthenZ/athenz/issues"
     },
     "scripts": {
         "dev": "DEBUG=AthenzUI:* next dev",

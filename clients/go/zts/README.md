@@ -13,12 +13,12 @@ Version 1.0 (2016-09-06)
 
 To get it into your workspace:
 
-    go get github.com/yahoo/athenz/clients/go/zts
+    go get github.com/AthenZ/athenz/clients/go/zts
 
 Then in your Go code:
 
     import (
-        zts "github.com/yahoo/athenz/clients/go/zts"
+        zts "github.com/AthenZ/athenz/clients/go/zts"
     )
     func main() {
          var principal rdl.Principal /* NToken */

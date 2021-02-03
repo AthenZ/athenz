@@ -29,7 +29,7 @@
 
 ## IAM Role Setup
 
-Create an EC2 profile role for ZMS using the following [cloudformation template](https://github.com/yahoo/athenz/blob/master/aws-setup/zms-setup/cloud-formation/athens-zms-aws-roles-setup.yaml).
+Create an EC2 profile role for ZMS using the following [cloudformation template](https://github.com/AthenZ/athenz/blob/master/aws-setup/zms-setup/cloud-formation/athens-zms-aws-roles-setup.yaml).
 This template creates a role named `athenz.zms-service`.
 
 ## S3 Bucket for ELB Access Logs
@@ -57,7 +57,7 @@ Refer to [AWS ELB Documentation](https://docs.aws.amazon.com/elasticloadbalancin
 
 ## VPC Setup
 
-Setup a VPC using the following [cloudformation template](https://github.com/yahoo/athenz/blob/master/aws-setup/zms-setup/cloud-formation/athens-zms-aws-resource-setup.yaml) by giving the these mandatory parameters:
+Setup a VPC using the following [cloudformation template](https://github.com/AthenZ/athenz/blob/master/aws-setup/zms-setup/cloud-formation/athens-zms-aws-resource-setup.yaml) by giving the these mandatory parameters:
 
 - `Route53HostedZoneName`
 - `Route53RecordName`
@@ -83,7 +83,7 @@ Following resources will be created after executing the template:
 
 ### Create Aurora MySQL cluster
 
-Setup an Aurora MySQL compatible cluster using the following [cloudformation template](https://github.com/yahoo/athenz/blob/master/aws-setup/zms-setup/cloud-formation/athens-zms-aws-rds-setup.yaml) by giving the following mandatory parameters:
+Setup an Aurora MySQL compatible cluster using the following [cloudformation template](https://github.com/AthenZ/athenz/blob/master/aws-setup/zms-setup/cloud-formation/athens-zms-aws-rds-setup.yaml) by giving the following mandatory parameters:
 
 - `Route53HostedZoneName`
 - `Route53RecordName`
@@ -101,7 +101,7 @@ The other parameters are set by default. Change them as per your requirements.
 mysql -h <RDS_CLUSTER_ENDPOINT> -P 3306 -u <DB_USER> -p
 ```
 
-- Copy the [zms_server.sql](https://github.com/yahoo/athenz/blob/master/servers/zms/schema/zms_server.sql) file from the Athenz Git repository onto this host and create the database using the following command:
+- Copy the [zms_server.sql](https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/zms_server.sql) file from the Athenz Git repository onto this host and create the database using the following command:
 
 ```
 mysql -h <RDS_CLUSTER_ENDPOINT> -P 3306 -u <DB_USER> -p  < zms_server.sql
@@ -304,7 +304,7 @@ If you modified the truststore and keystore paths and password in the `aws_init.
 
 ### Packer VPC Setup
 
-Setup packer vpc by using the [cloudformation template](https://github.com/yahoo/athenz/blob/master/aws-setup/cloud-formation/packer_vpc.yaml) and update `packer.json` file accordingly.
+Setup packer vpc by using the [cloudformation template](https://github.com/AthenZ/athenz/blob/master/aws-setup/cloud-formation/packer_vpc.yaml) and update `packer.json` file accordingly.
 
 ```
 {
@@ -332,7 +332,7 @@ packer build packer/aws/packer.json
 
 ## Deploy ZMS
 
-Run [cloudformation template](https://github.com/yahoo/athenz/blob/master/aws-setup/zms-setup/cloud-formation/athenz-zms-aws-instance-deployment.yaml) to bring up the zms-instances in 2 availability zones.
+Run [cloudformation template](https://github.com/AthenZ/athenz/blob/master/aws-setup/zms-setup/cloud-formation/athenz-zms-aws-instance-deployment.yaml) to bring up the zms-instances in 2 availability zones.
 
 - The imageID parameter should be set to the image created in previous step.
 
