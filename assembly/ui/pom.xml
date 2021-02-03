@@ -58,22 +58,6 @@
               </descriptors>
             </configuration>
           </execution>
-          <execution>
-            <id>package-ui-assembly-aws</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <attach>false</attach>
-              <tarLongFileMode>posix</tarLongFileMode>
-              <outputDirectory>../../../athenz/aws-setup/ui-setup/tars/</outputDirectory>
-              <finalName>athenz-ui</finalName>
-              <descriptors>
-                <descriptor>ui.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
     </plugins>
