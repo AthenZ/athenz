@@ -697,7 +697,6 @@ exports[`Input should render a small input with an icon 1`] = `
 }
 
 .emotion-1 {
-  fill: ;
   cursor: inherit;
   vertical-align: text-bottom;
 }
@@ -1005,7 +1004,6 @@ exports[`Input should render an input with an icon 1`] = `
 }
 
 .emotion-1 {
-  fill: ;
   cursor: inherit;
   vertical-align: text-bottom;
 }

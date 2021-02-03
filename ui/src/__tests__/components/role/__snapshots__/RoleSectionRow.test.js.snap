@@ -1,10 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RoleRow should render 1`] = `
-.emotion-0 {
-  background-color: ;
-}
-
 .emotion-2 {
   background-color: #3570f40D;
   text-align: left;

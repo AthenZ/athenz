@@ -2,21 +2,19 @@
 
 exports[`TagRow should click edit and delete 1`] = `
 .emotion-0 {
-  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-4 {
+.emotion-2 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
   border: 1px solid transparent;
   box-sizing: border-box;
   color: #303030;
-  cursor: ;
   display: inline-block;
   font-size: 14px;
   height: 28px;
@@ -33,11 +31,11 @@ exports[`TagRow should click edit and delete 1`] = `
   white-space: nowrap;
 }
 
-.emotion-4:hover {
+.emotion-2:hover {
   background: #cbd9f9;
 }
 
-.emotion-4 .tag-remove {
+.emotion-2 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -65,13 +63,13 @@ exports[`TagRow should click edit and delete 1`] = `
   width: 28px;
 }
 
-.emotion-4:hover .tag-remove {
+.emotion-2:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-5 {
+.emotion-3 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -81,30 +79,29 @@ exports[`TagRow should click edit and delete 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-5:hover {
+.emotion-3:hover {
   background: #ffffff;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-9 {
+.emotion-5 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-16 {
-  background-color: ;
+.emotion-10 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-18 {
+.emotion-11 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -114,19 +111,19 @@ exports[`TagRow should click edit and delete 1`] = `
   data-testid="tag-row"
 >
   <td
-    class="emotion-0 emotion-1"
+    class="emotion-0"
   >
     tagName
   </td>
   <td
-    class="emotion-0 emotion-1"
+    class="emotion-0"
   >
     <div
-      class="emotion-4 denali-tag emotion-5 emotion-6"
+      class="emotion-2 denali-tag emotion-3"
       data-testid="tag"
     >
       <a
-        class="emotion-7 emotion-8"
+        class="emotion-4"
         style="color: rgb(53, 112, 244);"
       >
          
@@ -137,7 +134,7 @@ exports[`TagRow should click edit and delete 1`] = `
         class="tag-remove"
       >
         <svg
-          class="emotion-9"
+          class="emotion-5"
           data-testid="icon"
           height="20px"
           viewBox="0 0 1024 1024"
@@ -153,11 +150,11 @@ exports[`TagRow should click edit and delete 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 denali-tag emotion-5 emotion-6"
+      class="emotion-2 denali-tag emotion-3"
       data-testid="tag"
     >
       <a
-        class="emotion-7 emotion-8"
+        class="emotion-4"
         style="color: rgb(53, 112, 244);"
       >
          
@@ -168,7 +165,7 @@ exports[`TagRow should click edit and delete 1`] = `
         class="tag-remove"
       >
         <svg
-          class="emotion-9"
+          class="emotion-5"
           data-testid="icon"
           height="20px"
           viewBox="0 0 1024 1024"
@@ -185,11 +182,11 @@ exports[`TagRow should click edit and delete 1`] = `
     </div>
   </td>
   <td
-    class="emotion-16 emotion-1"
+    class="emotion-10"
   >
     <span>
       <svg
-        class="emotion-18"
+        class="emotion-11"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -205,11 +202,11 @@ exports[`TagRow should click edit and delete 1`] = `
     </span>
   </td>
   <td
-    class="emotion-16 emotion-1"
+    class="emotion-10"
   >
     <span>
       <svg
-        class="emotion-18"
+        class="emotion-11"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -232,21 +229,19 @@ exports[`TagRow should click edit and delete 1`] = `
 
 exports[`TagRow should render tag row 1`] = `
 .emotion-0 {
-  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-4 {
+.emotion-2 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
   border: 1px solid transparent;
   box-sizing: border-box;
   color: #303030;
-  cursor: ;
   display: inline-block;
   font-size: 14px;
   height: 28px;
@@ -263,11 +258,11 @@ exports[`TagRow should render tag row 1`] = `
   white-space: nowrap;
 }
 
-.emotion-4:hover {
+.emotion-2:hover {
   background: #cbd9f9;
 }
 
-.emotion-4 .tag-remove {
+.emotion-2 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -295,13 +290,13 @@ exports[`TagRow should render tag row 1`] = `
   width: 28px;
 }
 
-.emotion-4:hover .tag-remove {
+.emotion-2:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-5 {
+.emotion-3 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -311,30 +306,29 @@ exports[`TagRow should render tag row 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-5:hover {
+.emotion-3:hover {
   background: #ffffff;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-9 {
+.emotion-5 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-16 {
-  background-color: ;
+.emotion-10 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-18 {
+.emotion-11 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -344,19 +338,19 @@ exports[`TagRow should render tag row 1`] = `
   data-testid="tag-row"
 >
   <td
-    class="emotion-0 emotion-1"
+    class="emotion-0"
   >
     tagName
   </td>
   <td
-    class="emotion-0 emotion-1"
+    class="emotion-0"
   >
     <div
-      class="emotion-4 denali-tag emotion-5 emotion-6"
+      class="emotion-2 denali-tag emotion-3"
       data-testid="tag"
     >
       <a
-        class="emotion-7 emotion-8"
+        class="emotion-4"
         style="color: rgb(53, 112, 244);"
       >
          
@@ -367,7 +361,7 @@ exports[`TagRow should render tag row 1`] = `
         class="tag-remove"
       >
         <svg
-          class="emotion-9"
+          class="emotion-5"
           data-testid="icon"
           height="20px"
           viewBox="0 0 1024 1024"
@@ -383,11 +377,11 @@ exports[`TagRow should render tag row 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 denali-tag emotion-5 emotion-6"
+      class="emotion-2 denali-tag emotion-3"
       data-testid="tag"
     >
       <a
-        class="emotion-7 emotion-8"
+        class="emotion-4"
         style="color: rgb(53, 112, 244);"
       >
          
@@ -398,7 +392,7 @@ exports[`TagRow should render tag row 1`] = `
         class="tag-remove"
       >
         <svg
-          class="emotion-9"
+          class="emotion-5"
           data-testid="icon"
           height="20px"
           viewBox="0 0 1024 1024"
@@ -415,11 +409,11 @@ exports[`TagRow should render tag row 1`] = `
     </div>
   </td>
   <td
-    class="emotion-16 emotion-1"
+    class="emotion-10"
   >
     <span>
       <svg
-        class="emotion-18"
+        class="emotion-11"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -435,11 +429,11 @@ exports[`TagRow should render tag row 1`] = `
     </span>
   </td>
   <td
-    class="emotion-16 emotion-1"
+    class="emotion-10"
   >
     <span>
       <svg
-        class="emotion-18"
+        class="emotion-11"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"

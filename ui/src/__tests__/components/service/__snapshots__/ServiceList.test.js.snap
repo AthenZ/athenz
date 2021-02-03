@@ -37,7 +37,6 @@ exports[`ServiceList should render add service modal after click 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -303,7 +302,6 @@ exports[`ServiceList should render delete service modal error(other) after click
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -560,7 +558,6 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -817,7 +814,6 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -1074,7 +1070,6 @@ exports[`ServiceList should render serviceList again after confirm delete 1`] = 
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -1231,7 +1226,6 @@ exports[`ServiceList should render with services 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -1488,7 +1482,6 @@ exports[`ServiceList should render without services 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;

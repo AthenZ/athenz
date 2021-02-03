@@ -7,7 +7,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
   background-color: #fff;
 }
 
-.emotion-2 {
+.emotion-1 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -23,7 +23,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-4 {
+.emotion-2 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -31,21 +31,21 @@ exports[`AddTagForm should render on edit tag 1`] = `
   white-space: nowrap;
 }
 
-.emotion-5 {
+.emotion-3 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-9 {
+.emotion-5 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -62,7 +62,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
   width: 250px;
 }
 
-.emotion-9 input {
+.emotion-5 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -88,42 +88,42 @@ exports[`AddTagForm should render on edit tag 1`] = `
   width: 100%;
 }
 
-.emotion-9.animated input {
+.emotion-5.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-9 input::-webkit-input-placeholder {
+.emotion-5 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input::-moz-placeholder {
+.emotion-5 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input:-ms-input-placeholder {
+.emotion-5 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input::placeholder {
+.emotion-5 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input.focused,
-.emotion-9 input:active,
-.emotion-9 input:focus {
+.emotion-5 input.focused,
+.emotion-5 input:active,
+.emotion-5 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-9 input:invalid {
+.emotion-5 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-9 .message {
+.emotion-5 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -131,26 +131,26 @@ exports[`AddTagForm should render on edit tag 1`] = `
   top: 2.571rem;
 }
 
-.emotion-9.error input,
-.emotion-9.error input.focused,
-.emotion-9.error input:active,
-.emotion-9.error input:focus {
+.emotion-5.error input,
+.emotion-5.error input.focused,
+.emotion-5.error input:active,
+.emotion-5.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-9.error .message {
+.emotion-5.error .message {
   color: #d01111;
 }
 
-.emotion-10 {
+.emotion-6 {
   width: 500px;
 }
 
-.emotion-27 {
+.emotion-16 {
   margin-left: 10px;
 }
 
-.emotion-29 {
+.emotion-17 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -177,40 +177,39 @@ exports[`AddTagForm should render on edit tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-29:first-of-type {
+.emotion-17:first-of-type {
   margin-left: 0;
 }
 
-.emotion-29:disabled {
+.emotion-17:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-29:disabled {
+.emotion-17:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-29:hover:not(:disabled) {
+.emotion-17:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-30 {
+.emotion-18 {
   width: 125px;
 }
 
-.emotion-37 {
+.emotion-22 {
   width: 65%;
 }
 
-.emotion-39 {
+.emotion-23 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
   border: 1px solid transparent;
   box-sizing: border-box;
   color: #303030;
-  cursor: ;
   display: inline-block;
   font-size: 14px;
   height: 28px;
@@ -227,11 +226,11 @@ exports[`AddTagForm should render on edit tag 1`] = `
   white-space: nowrap;
 }
 
-.emotion-39:hover {
+.emotion-23:hover {
   background: #cbd9f9;
 }
 
-.emotion-39 .tag-remove {
+.emotion-23 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -259,13 +258,13 @@ exports[`AddTagForm should render on edit tag 1`] = `
   width: 28px;
 }
 
-.emotion-39:hover .tag-remove {
+.emotion-23:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-40 {
+.emotion-24 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -275,16 +274,16 @@ exports[`AddTagForm should render on edit tag 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-40:hover {
+.emotion-24:hover {
   background: #ffffff;
 }
 
-.emotion-42 {
+.emotion-25 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-44 {
+.emotion-26 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
@@ -292,23 +291,23 @@ exports[`AddTagForm should render on edit tag 1`] = `
 
 <div
   autocomplete="off"
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-tag-form"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
       for="tag-name"
     >
       Tag Name
     </label>
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
-        class="emotion-9 denali-input animated emotion-10 emotion-11"
+        class="emotion-5 denali-input animated emotion-6"
         data-testid="input-wrapper"
       >
         <input
@@ -327,19 +326,19 @@ exports[`AddTagForm should render on edit tag 1`] = `
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
       for="description"
     >
       Tag Value(s)
     </label>
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
-        class="emotion-9 denali-input animated emotion-10 emotion-11"
+        class="emotion-5 denali-input animated emotion-6"
         data-testid="input-wrapper"
       >
         <input
@@ -358,36 +357,36 @@ exports[`AddTagForm should render on edit tag 1`] = `
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
     />
     <div
-      class="emotion-27 emotion-28"
+      class="emotion-16"
     >
       <button
-        class="emotion-29 denali-button emotion-30 emotion-31"
+        class="emotion-17 denali-button emotion-18"
       >
         Add
       </button>
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
     />
     <div
-      class="emotion-37 emotion-38"
+      class="emotion-22"
     >
       <div
-        class="emotion-39 denali-tag emotion-40 emotion-41"
+        class="emotion-23 denali-tag emotion-24"
         data-testid="tag"
       >
         <a
-          class="emotion-42 emotion-43"
+          class="emotion-25"
           style="color: rgb(53, 112, 244);"
         >
            
@@ -398,7 +397,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
           class="tag-remove"
         >
           <svg
-            class="emotion-44"
+            class="emotion-26"
             data-testid="icon"
             height="20px"
             viewBox="0 0 1024 1024"
@@ -414,11 +413,11 @@ exports[`AddTagForm should render on edit tag 1`] = `
         </div>
       </div>
       <div
-        class="emotion-39 denali-tag emotion-40 emotion-41"
+        class="emotion-23 denali-tag emotion-24"
         data-testid="tag"
       >
         <a
-          class="emotion-42 emotion-43"
+          class="emotion-25"
           style="color: rgb(53, 112, 244);"
         >
            
@@ -429,7 +428,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
           class="tag-remove"
         >
           <svg
-            class="emotion-44"
+            class="emotion-26"
             data-testid="icon"
             height="20px"
             viewBox="0 0 1024 1024"
@@ -456,7 +455,7 @@ exports[`AddTagForm should render on new tag 1`] = `
   background-color: #fff;
 }
 
-.emotion-2 {
+.emotion-1 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -472,7 +471,7 @@ exports[`AddTagForm should render on new tag 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-4 {
+.emotion-2 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -480,21 +479,21 @@ exports[`AddTagForm should render on new tag 1`] = `
   white-space: nowrap;
 }
 
-.emotion-5 {
+.emotion-3 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-9 {
+.emotion-5 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -511,7 +510,7 @@ exports[`AddTagForm should render on new tag 1`] = `
   width: 250px;
 }
 
-.emotion-9 input {
+.emotion-5 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -537,42 +536,42 @@ exports[`AddTagForm should render on new tag 1`] = `
   width: 100%;
 }
 
-.emotion-9.animated input {
+.emotion-5.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-9 input::-webkit-input-placeholder {
+.emotion-5 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input::-moz-placeholder {
+.emotion-5 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input:-ms-input-placeholder {
+.emotion-5 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input::placeholder {
+.emotion-5 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input.focused,
-.emotion-9 input:active,
-.emotion-9 input:focus {
+.emotion-5 input.focused,
+.emotion-5 input:active,
+.emotion-5 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-9 input:invalid {
+.emotion-5 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-9 .message {
+.emotion-5 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -580,26 +579,26 @@ exports[`AddTagForm should render on new tag 1`] = `
   top: 2.571rem;
 }
 
-.emotion-9.error input,
-.emotion-9.error input.focused,
-.emotion-9.error input:active,
-.emotion-9.error input:focus {
+.emotion-5.error input,
+.emotion-5.error input.focused,
+.emotion-5.error input:active,
+.emotion-5.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-9.error .message {
+.emotion-5.error .message {
   color: #d01111;
 }
 
-.emotion-10 {
+.emotion-6 {
   width: 500px;
 }
 
-.emotion-27 {
+.emotion-16 {
   margin-left: 10px;
 }
 
-.emotion-29 {
+.emotion-17 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -626,51 +625,51 @@ exports[`AddTagForm should render on new tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-29:first-of-type {
+.emotion-17:first-of-type {
   margin-left: 0;
 }
 
-.emotion-29:disabled {
+.emotion-17:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-29:disabled {
+.emotion-17:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-29:hover:not(:disabled) {
+.emotion-17:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-30 {
+.emotion-18 {
   width: 125px;
 }
 
-.emotion-37 {
+.emotion-22 {
   width: 65%;
 }
 
 <div
   autocomplete="off"
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-tag-form"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
       for="tag-name"
     >
       Tag Name
     </label>
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
-        class="emotion-9 denali-input animated emotion-10 emotion-11"
+        class="emotion-5 denali-input animated emotion-6"
         data-testid="input-wrapper"
       >
         <input
@@ -689,19 +688,19 @@ exports[`AddTagForm should render on new tag 1`] = `
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
       for="description"
     >
       Tag Value(s)
     </label>
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
-        class="emotion-9 denali-input animated emotion-10 emotion-11"
+        class="emotion-5 denali-input animated emotion-6"
         data-testid="input-wrapper"
       >
         <input
@@ -720,29 +719,29 @@ exports[`AddTagForm should render on new tag 1`] = `
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
     />
     <div
-      class="emotion-27 emotion-28"
+      class="emotion-16"
     >
       <button
-        class="emotion-29 denali-button emotion-30 emotion-31"
+        class="emotion-17 denali-button emotion-18"
       >
         Add
       </button>
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
     />
     <div
-      class="emotion-37 emotion-38"
+      class="emotion-22"
     />
   </div>
 </div>

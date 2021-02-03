@@ -7,13 +7,13 @@ exports[`AddTag should render on new tag 1`] = `
   padding-bottom: 15px;
 }
 
-.emotion-2 {
+.emotion-1 {
   width: 100%;
   text-align: left;
   background-color: #fff;
 }
 
-.emotion-4 {
+.emotion-2 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -29,7 +29,7 @@ exports[`AddTag should render on new tag 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-6 {
+.emotion-3 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -37,21 +37,21 @@ exports[`AddTag should render on new tag 1`] = `
   white-space: nowrap;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-9 {
+.emotion-5 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-11 {
+.emotion-6 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -68,7 +68,7 @@ exports[`AddTag should render on new tag 1`] = `
   width: 250px;
 }
 
-.emotion-11 input {
+.emotion-6 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -94,42 +94,42 @@ exports[`AddTag should render on new tag 1`] = `
   width: 100%;
 }
 
-.emotion-11.animated input {
+.emotion-6.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-11 input::-webkit-input-placeholder {
+.emotion-6 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input::-moz-placeholder {
+.emotion-6 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input:-ms-input-placeholder {
+.emotion-6 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input::placeholder {
+.emotion-6 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input.focused,
-.emotion-11 input:active,
-.emotion-11 input:focus {
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-11 input:invalid {
+.emotion-6 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-11 .message {
+.emotion-6 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -137,26 +137,26 @@ exports[`AddTag should render on new tag 1`] = `
   top: 2.571rem;
 }
 
-.emotion-11.error input,
-.emotion-11.error input.focused,
-.emotion-11.error input:active,
-.emotion-11.error input:focus {
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-11.error .message {
+.emotion-6.error .message {
   color: #d01111;
 }
 
-.emotion-12 {
+.emotion-7 {
   width: 500px;
 }
 
-.emotion-29 {
+.emotion-17 {
   margin-left: 10px;
 }
 
-.emotion-31 {
+.emotion-18 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -183,55 +183,55 @@ exports[`AddTag should render on new tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-31:first-of-type {
+.emotion-18:first-of-type {
   margin-left: 0;
 }
 
-.emotion-31:disabled {
+.emotion-18:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-31:disabled {
+.emotion-18:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-31:hover:not(:disabled) {
+.emotion-18:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-32 {
+.emotion-19 {
   width: 125px;
 }
 
-.emotion-39 {
+.emotion-23 {
   width: 65%;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-modal-message"
 >
   <div
     autocomplete="off"
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     data-testid="add-tag-form"
   >
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="tag-name"
       >
         Tag Name
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -250,19 +250,19 @@ exports[`AddTag should render on new tag 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="description"
       >
         Tag Value(s)
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -281,29 +281,29 @@ exports[`AddTag should render on new tag 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
       />
       <div
-        class="emotion-29 emotion-30"
+        class="emotion-17"
       >
         <button
-          class="emotion-31 denali-button emotion-32 emotion-33"
+          class="emotion-18 denali-button emotion-19"
         >
           Add
         </button>
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
       />
       <div
-        class="emotion-39 emotion-40"
+        class="emotion-23"
       />
     </div>
   </div>

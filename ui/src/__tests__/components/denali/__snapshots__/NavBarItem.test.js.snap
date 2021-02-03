@@ -13,7 +13,6 @@ exports[`NavBarItem should disable animations 1`] = `
   display: flex;
   height: 60px;
   position: relative;
-  width: ;
 }
 
 .emotion-0.simple {
@@ -21,8 +20,6 @@ exports[`NavBarItem should disable animations 1`] = `
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
   padding: 0 12px;
-  -webkit-transition: ;
-  transition: ;
 }
 
 .emotion-0.simple.nav-link {
@@ -55,8 +52,6 @@ exports[`NavBarItem should disable animations 1`] = `
   font-size: 16px;
   height: 100%;
   padding: 0 12px;
-  -webkit-transition: ;
-  transition: ;
 }
 
 .emotion-0.nav-link .nav-title {
@@ -104,8 +99,6 @@ exports[`NavBarItem should disable animations 1`] = `
 .emotion-0 .nav-icon circle,
 .emotion-0:hover .nav-icon circle {
   fill: #fff;
-  -webkit-transition: ;
-  transition: ;
 }
 
 .emotion-0.nav-link:hover .nav-icon path,
@@ -136,7 +129,6 @@ exports[`NavBarItem should render a basic item 1`] = `
   display: flex;
   height: 60px;
   position: relative;
-  width: ;
 }
 
 .emotion-0.simple {
@@ -259,7 +251,6 @@ exports[`NavBarItem should render a complex active link item 1`] = `
   display: flex;
   height: 60px;
   position: relative;
-  width: ;
 }
 
 .emotion-0.simple {
@@ -391,7 +382,6 @@ exports[`NavBarItem should render a complex item 1`] = `
   display: flex;
   height: 60px;
   position: relative;
-  width: ;
 }
 
 .emotion-0.simple {
@@ -523,7 +513,6 @@ exports[`NavBarItem should render a link item 1`] = `
   display: flex;
   height: 60px;
   position: relative;
-  width: ;
 }
 
 .emotion-0.simple {
@@ -646,7 +635,6 @@ exports[`NavBarItem should render a right-aligned item 1`] = `
   display: flex;
   height: 60px;
   position: relative;
-  width: ;
 }
 
 .emotion-0.simple {
@@ -769,7 +757,6 @@ exports[`NavBarItem should render an active item 1`] = `
   display: flex;
   height: 60px;
   position: relative;
-  width: ;
 }
 
 .emotion-0.simple {
@@ -892,7 +879,6 @@ exports[`NavBarItem should render an active link item 1`] = `
   display: flex;
   height: 60px;
   position: relative;
-  width: ;
 }
 
 .emotion-0.simple {

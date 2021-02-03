@@ -47,8 +47,6 @@ exports[`RadioButton should disabled animation 1`] = `
   height: 16px;
   line-height: 16px;
   margin: 0px 3px -3px 0px;
-  -webkit-transition: ;
-  transition: ;
   width: 16px;
 }
 
@@ -84,8 +82,6 @@ exports[`RadioButton should disabled animation 1`] = `
   left: 4px;
   position: absolute;
   top: 4px;
-  -webkit-transition: ;
-  transition: ;
   width: 8px;
 }
 
