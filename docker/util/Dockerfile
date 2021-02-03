@@ -9,7 +9,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE
 LABEL org.label-schema.name="athenz-cli-util"
 LABEL org.label-schema.description="All in one image containing all Athenz CLI utilities"
 LABEL org.label-schema.url="https://www.athenz.io/"
-LABEL org.label-schema.vcs-url="https://github.com/yahoo/athenz"
+LABEL org.label-schema.vcs-url="https://github.com/AthenZ/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
 # LABEL maintainer "YJ Athenz Team <>"
 
@@ -17,7 +17,7 @@ LABEL org.label-schema.vcs-ref=$VCS_REF
 # install go
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev openssl make go git
 ENV GOPATH="/root/go"
-WORKDIR ${GOPATH}/src/github.com/yahoo/athenz
+WORKDIR ${GOPATH}/src/github.com/AthenZ/athenz
 COPY . .
 
 # cache maven dependency

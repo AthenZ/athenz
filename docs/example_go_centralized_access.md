@@ -135,7 +135,7 @@ that utilizes our zmssvctoken go library to generate
 service identity tokens. The full client source code is
 available from:
 
-<https://github.com/yahoo/athenz/blob/master/utils/zms-svctoken/zms-svctoken.go>
+<https://github.com/AthenZ/athenz/blob/master/utils/zms-svctoken/zms-svctoken.go>
 
 #### Client Import Dependency Update
 ------------------------------------
@@ -145,7 +145,7 @@ token library.
 
 ```go
 import (
-    "github.com/yahoo/athenz/libs/go/zmssvctoken"
+    "github.com/AthenZ/athenz/libs/go/zmssvctoken"
 )
 ```
 
@@ -195,7 +195,7 @@ To download, compile and install zms_svctoken utility, execute
 the following command:
 
 ```shell
-$ go get github.com/yahoo/athenz/utils/zms-svctoken/...
+$ go get github.com/AthenZ/athenz/utils/zms-svctoken/...
 ```
 
 ### Server Changes
@@ -203,7 +203,7 @@ $ go get github.com/yahoo/athenz/utils/zms-svctoken/...
 
 The full server source code is available from:
 
-<https://github.com/yahoo/athenz/tree/master/examples/go/centralized-use-case/server>
+<https://github.com/AthenZ/athenz/tree/master/examples/go/centralized-use-case/server>
 
 #### Server Import Dependency Update
 ------------------------------------
@@ -213,7 +213,7 @@ library.
 
 ```go
 import (
-    "github.com/yahoo/athenz/clients/go/zms"
+    "github.com/AthenZ/athenz/clients/go/zms"
 )
 ```
 
@@ -292,7 +292,7 @@ Finally, we are going to contact ZMS for the authorization check.
 Checkout and build the server component:
 
 ```shell
-$ go get github.com/yahoo/athenz/examples/go/centralized-use-case/server
+$ go get github.com/AthenZ/athenz/examples/go/centralized-use-case/server
 ```
 
 ## Deploying Example Server

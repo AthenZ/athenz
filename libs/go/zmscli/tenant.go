@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yahoo/athenz/clients/go/zms"
+	"github.com/AthenZ/athenz/clients/go/zms"
 )
 
 func (cli Zms) DeleteTenancy(dn string, provider string) (*string, error) {

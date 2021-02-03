@@ -16,10 +16,10 @@ import (
 	"time"
 
 	"github.com/ardielle/ardielle-go/rdl"
-	"github.com/yahoo/athenz/clients/go/zts"
-	"github.com/yahoo/athenz/libs/go/athenzutils"
-	"github.com/yahoo/athenz/libs/go/zmssvctoken"
-	"github.com/yahoo/athenz/utils/zpe-updater/util"
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/athenzutils"
+	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
+	"github.com/AthenZ/athenz/utils/zpe-updater/util"
 )
 
 func PolicyUpdater(config *ZpuConfiguration) error {

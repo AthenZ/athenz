@@ -34,7 +34,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/yahoo/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/clients/go/zts"
 )
 
 var caKeyStr string

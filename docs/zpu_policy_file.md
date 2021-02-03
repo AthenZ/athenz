@@ -47,7 +47,7 @@ public-key:
 The public key is encoded in YBase64 encoding so it must be decoded
 before the public key can be used to validate the signature.
 
-Checkout [YBase64](https://github.com/yahoo/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/util/YBase64.java) class implemenation in `athenz-auth-core` library for details.
+Checkout [YBase64](https://github.com/AthenZ/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/util/YBase64.java) class implemenation in `athenz-auth-core` library for details.
 
 b) Validate the signature of the extracted `<zts-data>` string using Bouncycastle.
 `<signature>` field is also YBase64 encoded, so it must be decoded before
@@ -87,7 +87,7 @@ public-key:
 The public key is encoded in YBase64 encoding so it must be decoded
 before the public key can be used to validate the signature.
 
-Checkout [YBase64](https://github.com/yahoo/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/util/YBase64.java) class implemenation in `athenz-auth-core` library for details.
+Checkout [YBase64](https://github.com/AthenZ/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/util/YBase64.java) class implemenation in `athenz-auth-core` library for details.
 
 b) Validate the signature of the extracted `<zms-data>` string using Bouncycastle.
 `<signature>` field is also YBase64 encoded, so it must be decoded before

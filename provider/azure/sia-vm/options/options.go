@@ -23,9 +23,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/yahoo/athenz/provider/azure/sia-vm/data/attestation"
-	"github.com/yahoo/athenz/provider/azure/sia-vm/logutil"
-	"github.com/yahoo/athenz/provider/azure/sia-vm/util"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/logutil"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/util"
 	"io"
 	"strings"
 )

@@ -16,11 +16,11 @@
 
 ## IAM role setup
 
-Create EC2 profile role for UI using [cloudformation template](https://github.com/yahoo/athenz/blob/master/aws-setup/ui-setup/cloud-formation/athens-ui-aws-roles-setup.yaml). This template creates a role named `athenz.ui-service`
+Create EC2 profile role for UI using [cloudformation template](https://github.com/AthenZ/athenz/blob/master/aws-setup/ui-setup/cloud-formation/athens-ui-aws-roles-setup.yaml). This template creates a role named `athenz.ui-service`
 
 ## VPC Setup
 
-Setup VPC using the [cloudformation template](https://github.com/yahoo/athenz/blob/master/aws-setup/ui-setup/cloud-formation/athens-ui-aws-resource-setup.yaml) and giving the following mandatory parameters:
+Setup VPC using the [cloudformation template](https://github.com/AthenZ/athenz/blob/master/aws-setup/ui-setup/cloud-formation/athens-ui-aws-resource-setup.yaml) and giving the following mandatory parameters:
 
 - `Route53HostedZoneName`
 - `Route53RecordName`
@@ -164,7 +164,7 @@ packer build packer/aws/packer.json
 
 ## Deploy UI
 
-Run [cloudformation template](https://github.com/yahoo/athenz/blob/master/aws-setup/ui-setup/cloud-formation/athenz-ui-aws-instance-deployment.yaml) to bring up the ui-instances in 2 availability zones.
+Run [cloudformation template](https://github.com/AthenZ/athenz/blob/master/aws-setup/ui-setup/cloud-formation/athenz-ui-aws-instance-deployment.yaml) to bring up the ui-instances in 2 availability zones.
 
 - The imageID parameter should be set to the image created in above step.
 

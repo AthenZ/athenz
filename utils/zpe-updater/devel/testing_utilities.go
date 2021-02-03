@@ -12,7 +12,7 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/yahoo/athenz/utils/zpe-updater/util"
+	"github.com/AthenZ/athenz/utils/zpe-updater/util"
 
 	"net"
 )

@@ -35,7 +35,7 @@ echo "Generate the server stubs"
 rdl -s generate -o="src/main/java" java-server $RDL_FILE
 
 echo "Removing not needed InstanceProvider Server file..."
-rm src/main/java/com/yahoo/athenz/instance/provider/InstanceProviderServer.java
+rm src/main/java/com/AthenZ/athenz/instance/provider/InstanceProviderServer.java
 
 # Copyright 2017 Yahoo Inc.
 # Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.

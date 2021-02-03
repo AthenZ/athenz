@@ -6,7 +6,7 @@
 # Licensed under the Apache License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
 #
 
-GOPKGNAME = github.com/yahoo/athenz/utils/zts-rolecert
+GOPKGNAME = github.com/AthenZ/athenz/utils/zts-rolecert
 PKG_DATE=$(shell date '+%Y-%m-%dT%H:%M:%S')
 BINARY=zts-rolecert
 SRC=zts-rolecert.go

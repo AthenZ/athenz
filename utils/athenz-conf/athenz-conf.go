@@ -20,7 +20,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"golang.org/x/net/proxy"
 
-	"github.com/yahoo/athenz/clients/go/zms"
+	"github.com/AthenZ/athenz/clients/go/zms"
 )
 
 var (

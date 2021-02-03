@@ -70,7 +70,7 @@ Running this setup script completes the following tasks:
 
 For authenticating services using X509 certificates, ZTS Servers expect 
 the configured cert signer factory class names in its `athenz.zts.cert_signer_factory_class` system property.
-Self Cert Signer [com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory](https://github.com/yahoo/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/SelfCertSigner.java)
+Self Cert Signer [com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory](https://github.com/AthenZ/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/SelfCertSigner.java)
 is a sample implementation of cert Signer we have for development environment.
 
 You can use SelfCertSigner or have your implementation of Cert Signer.

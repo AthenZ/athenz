@@ -54,7 +54,7 @@ tree "${PROD_UI_DIR}"
 tree "${UI_DIR}"
 
 echo '5. register UI service to Athenz' | colored_cat g
-# encode public key in ybase64, reference: https://github.com/yahoo/athenz/blob/545d9487a866cad10ba864b435bdb7ece390d4bf/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/util/Crypto.java#L334-L343
+# encode public key in ybase64, reference: https://github.com/AthenZ/athenz/blob/545d9487a866cad10ba864b435bdb7ece390d4bf/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/util/Crypto.java#L334-L343
 ENCODED_UI_PUBLIC_KEY="$(base64 -w 0 "${UI_PUBLIC_KEY_PATH}" | tr '\+\=\/' '\.\-\_')"
 
 DOMAIN_DATA='{"name":"athenz","description":"domain for local ui","org":"uiorg","ypmId":4455,"adminUsers":["'"${DOMAIN_ADMIN}"'","user.uiuser"]}'

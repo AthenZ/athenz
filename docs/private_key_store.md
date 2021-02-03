@@ -30,13 +30,13 @@ rather than a file).
 To provide ZMS/ZTS servers with private keys, the following two
 interfaces must be implemented:
 
-* [PrivateKeyStoreFactory](https://github.com/yahoo/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/PrivateKeyStoreFactory.java)
+* [PrivateKeyStoreFactory](https://github.com/AthenZ/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/PrivateKeyStoreFactory.java)
 
 The job of the PrivateKeyStoreFactory class is to implement a single
 `create()` method which returns an instance of `PrivateKeyStore` class
 implementation.
 
-* [PrivateKeyStore](https://github.com/yahoo/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/PrivateKeyStore.java)
+* [PrivateKeyStore](https://github.com/AthenZ/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/PrivateKeyStore.java)
 
 The job of the PrivateKeyStore class is to return a private key
 for a given host in a PEM format. The hostname is passed as the first

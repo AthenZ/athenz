@@ -5,11 +5,11 @@ ENV APP_NAME athenz-conf
 RUN set -eux \
     && apk --no-cache add --virtual build-dependencies cmake g++ make unzip curl upx git
 
-WORKDIR ${GOPATH}/src/github.com/yahoo/athenz
+WORKDIR ${GOPATH}/src/github.com/AthenZ/athenz
 
 COPY . .
 
-WORKDIR ${GOPATH}/src/github.com/yahoo/athenz/utils/athenz-conf
+WORKDIR ${GOPATH}/src/github.com/AthenZ/athenz/utils/athenz-conf
 
 RUN CGO_ENABLED=1 \
     CGO_CXXFLAGS="-g -Ofast -march=native" \
@@ -35,7 +35,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE
 LABEL org.label-schema.name="athenz-conf"
 LABEL org.label-schema.description="athenz-conf CLI"
 LABEL org.label-schema.url="https://www.athenz.io/"
-LABEL org.label-schema.vcs-url="https://github.com/yahoo/athenz"
+LABEL org.label-schema.vcs-url="https://github.com/AthenZ/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
 # LABEL maintainer "YJ Athenz Team <>"
 

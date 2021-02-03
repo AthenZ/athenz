@@ -19,8 +19,8 @@ package attestation
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/yahoo/athenz/provider/azure/sia-vm/data/meta"
-	"github.com/yahoo/athenz/provider/azure/sia-vm/logutil"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/meta"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/logutil"
 	"io"
 )
 

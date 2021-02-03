@@ -20,13 +20,13 @@ following [section](copper_argos.md).
 For ZTS servers to issue X509 certificates, the following two
 interfaces must be implemented:
 
-* [CertSignerFactory](https://github.com/yahoo/athenz/blob/master/libs/java/server_common/src/main/java/com/yahoo/athenz/common/server/cert/CertSignerFactory.java).
+* [CertSignerFactory](https://github.com/AthenZ/athenz/blob/master/libs/java/server_common/src/main/java/com/yahoo/athenz/common/server/cert/CertSignerFactory.java).
 
 The job of the CertSignerFactory class is to implement a single
 `create()` method which returns an instance of CertSigner class
 implementation.
 
-* [CertSigner](https://github.com/yahoo/athenz/blob/master/libs/java/server_common/src/main/java/com/yahoo/athenz/common/server/cert/CertSigner.java). 
+* [CertSigner](https://github.com/AthenZ/athenz/blob/master/libs/java/server_common/src/main/java/com/yahoo/athenz/common/server/cert/CertSigner.java). 
 
 This class implements six methods listed below:
   
@@ -82,7 +82,7 @@ brief description of each one.
 Class: com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory
 
 This factory class creates and returns an object of SelfCertSigner class
-[com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory](https://github.com/yahoo/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/SelfCertSigner.java) 
+[com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory](https://github.com/AthenZ/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/SelfCertSigner.java) 
 The private key file name, private key password and the DN for self signer can be configured by
 using the following system properties:
 
@@ -98,7 +98,7 @@ The key file must be a PEM encoded either RSA or EC private key.
 Class: com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory
 
 This factory class creates and returns a object of HttpCertSigner class
-[com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory](https://github.com/yahoo/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/HttpCertSigner.java)
+[com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory](https://github.com/AthenZ/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/HttpCertSigner.java)
 This signer assumes you have a certificate singing daemon that
 implements POST/GET REST /x509 and /ssh endpoints to sign and
 return x.509 certificates.

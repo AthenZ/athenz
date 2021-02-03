@@ -20,7 +20,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/yahoo/athenz/provider/aws/sia-ec2/devel/metamock"
+	"github.com/AthenZ/athenz/provider/aws/sia-ec2/devel/metamock"
 	"io"
 	"io/ioutil"
 	"log"

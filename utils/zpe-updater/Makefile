@@ -6,7 +6,7 @@
 # Licensed under the Apache License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
 #
 
-GOPKGNAME = github.com/yahoo/athenz/utils/zpe-updater
+GOPKGNAME = github.com/AthenZ/athenz/utils/zpe-updater
 PKG_DATE=$(shell date '+%Y-%m-%dT%H:%M:%S')
 BINARY=zpu
 SRC=cmd/tools/main.go

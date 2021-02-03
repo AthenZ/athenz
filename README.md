@@ -2,10 +2,19 @@
 
 # Athenz
 
-[![Build Status](https://cd.screwdriver.cd/pipelines/6418/events)](https://cd.screwdriver.cd/pipelines/6418/events)
+[![Pipeline Status][status-image]][status-url]
+[![Publish Status][publish-status-image]][status-url]
 [![SourceSpy Dashboard](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/yahooathenz/)
 
-> Athenz is an open source platform for X.509 certificate based service authentication and fine grained access control in dynamic infrastructures. It supports provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and industry standard mutual TLS bound oauth2 access tokens. The name “Athenz” is derived from “AuthNZ” (N for authentication and Z for authorization).
+[status-image]: https://cd.screwdriver.cd/pipelines/6606/badge
+[publish-status-image]: https://cd.screwdriver.cd/pipelines/6606/publish/badge
+[status-url]: https://cd.screwdriver.cd/pipelines/6606
+
+> Athenz is an open source platform for X.509 certificate based service authentication and fine-grained
+> access control in dynamic infrastructures. It supports provisioning and configuration (centralized
+> authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz
+> authorization system utilizes x.509 certificates and industry standard mutual TLS bound oauth2 access
+> tokens. The name “Athenz” is derived from “AuthNZ” (N for authentication and Z for authorization).
 
 ## Table of Contents
 
@@ -18,7 +27,7 @@
 ## Background
 
 Athenz is an open source platform for X.509 certificate based service authentication
-and fine grained role based access control in dynamic infrastructures. It provides
+and fine-grained role based access control in dynamic infrastructures. It provides
 support for the following three major functional areas.
 
 ### Service Authentication
@@ -27,11 +36,11 @@ Athenz provides secure identity in the form of short lived X.509 certificate
 for every workload or service deployed in private (e.g. Openstack, K8S, Screwdriver)
 or public cloud (e.g. AWS EC2, ECS, Fargate, Lambda). Using these X.509 certificates
 clients and services establish secure connections and through mutual TLS authentication verify
-each other's identity. The service identity certificates are valid for 30 days only
+each other's identity. The service identity certificates are valid for 30 days only,
 and the service identity agents (SIA) part of those frameworks automatically refresh
 them daily. The term service within Athenz is more generic than a traditional service.
 A service identity could represent a command, job, daemon, workflow, as well as both an
-application client and an application service.
+application client, and an application service.
 
 Since Athenz service authentication is based on
 [X.509 certificates](https://en.wikipedia.org/wiki/X.509), it is

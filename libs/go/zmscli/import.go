@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/ardielle/ardielle-go/rdl"
-	"github.com/yahoo/athenz/clients/go/zms"
+	"github.com/AthenZ/athenz/clients/go/zms"
 )
 
 func parseRoleMember(memberLine string) *zms.RoleMember {

@@ -31,11 +31,11 @@
 
 ## IAM Role Setup
 
-Create an EC2 profile role for ZTS using [cloudformation template](https://github.com/yahoo/athenz/blob/master/aws-setup/zts-setup/cloud-formation/athens-zts-aws-roles-setup.yaml). This template creates a role named `athenz.zts-service`
+Create an EC2 profile role for ZTS using [cloudformation template](https://github.com/AthenZ/athenz/blob/master/aws-setup/zts-setup/cloud-formation/athens-zts-aws-roles-setup.yaml). This template creates a role named `athenz.zts-service`
 
 ## VPC Setup
 
-Setup VPC using the [cloudformation template](https://github.com/yahoo/athenz/blob/master/aws-setup/zts-setup/cloud-formation/athens-zts-aws-resource-setup.yaml) and giving the following mandatory parameters:
+Setup VPC using the [cloudformation template](https://github.com/AthenZ/athenz/blob/master/aws-setup/zts-setup/cloud-formation/athens-zts-aws-resource-setup.yaml) and giving the following mandatory parameters:
 
 - `Route53HostedZoneName`
 - `Route53RecordName`
@@ -62,7 +62,7 @@ Following resources will be created after executing the template:
 
 ### Create Aurora MySQL cluster
 
-Setup an Aurora MySQL cluster using cloudformation [template](https://github.com/yahoo/athenz/blob/master/aws-setup/zts-setup/cloud-formation/athens-zts-aws-rds-setup.yaml) by giving the following mandatory parameters:
+Setup an Aurora MySQL cluster using cloudformation [template](https://github.com/AthenZ/athenz/blob/master/aws-setup/zts-setup/cloud-formation/athens-zts-aws-rds-setup.yaml) by giving the following mandatory parameters:
 
 - `Route53HostedZoneName`
 - `Route53RecordName`
@@ -80,7 +80,7 @@ Create an instance in your private subnet and ssh login into it. After logging i
 mysql -h <RDS_CLUSTER_ENDPOINT> -P 3306 -u <DB_USER> -p
 ```
 
-Copy the [zts_server.sql](https://github.com/yahoo/athenz/blob/master/servers/zts/schema/zts_server.sql) file from the Athenz Git repository onto this host and create the database using the following command
+Copy the [zts_server.sql](https://github.com/AthenZ/athenz/blob/master/servers/zts/schema/zts_server.sql) file from the Athenz Git repository onto this host and create the database using the following command
 
 ```
 mysql -h <RDS_CLUSTER_ENDPOINT> -P 3306 -u <DB_USER> -p  < zts_server.sql
@@ -351,7 +351,7 @@ packer build packer/aws/packer.json
 
 ## Deploy ZTS
 
-Run [cloudformation template](https://github.com/yahoo/athenz/blob/master/aws-setup/zts-setup/cloud-formation/athenz-zts-aws-instance-deployment.yaml) to bring up the zts-instances in 2 availability zones.
+Run [cloudformation template](https://github.com/AthenZ/athenz/blob/master/aws-setup/zts-setup/cloud-formation/athenz-zts-aws-instance-deployment.yaml) to bring up the zts-instances in 2 availability zones.
 
 - The imageID parameter should be set to the image created in above step.
 

@@ -151,7 +151,7 @@ that Access Token to determine if it request should be processed or not.
 
 The full client source code is available from:
 
-https://github.com/yahoo/athenz/tree/master/examples/java/decentralized-use-case/client
+https://github.com/AthenZ/athenz/tree/master/examples/java/decentralized-use-case/client
 
 #### Client Project Dependency Update
 -------------------------------------
@@ -239,7 +239,7 @@ Once we have our Access Token, we can use it in the Authorization header.
 Checkout and build the client component:
 
 ```shell
-$ git clone https://github.com/yahoo/athenz.git
+$ git clone https://github.com/AthenZ/athenz.git
 $ cd examples/java/decentralized-use-case/client/
 $ mvn clean package
 ```
@@ -266,7 +266,7 @@ usage: http-example-client
 
 The full servlet source code is available from:
 
-https://github.com/yahoo/athenz/tree/master/examples/java/decentralized-use-case/servlet
+https://github.com/AthenZ/athenz/tree/master/examples/java/decentralized-use-case/servlet
 
 #### Servlet Project Dependency Update
 --------------------------------------
@@ -389,7 +389,7 @@ is to use ZPE client library for the authorization check.
 Checkout and build the servlet component:
 
 ```shell
-$ git clone https://github.com/yahoo/athenz.git
+$ git clone https://github.com/AthenZ/athenz.git
 $ cd examples/java/decentralized-use-case/servlet/
 $ mvn clean package
 ```

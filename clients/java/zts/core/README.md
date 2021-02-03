@@ -22,7 +22,7 @@ from the RDL, and includes zts-core and all other dependencies.
 - `athenz.zts.client.truststore_type`: Trust store types.  Default is `pkcs12`
 - `athenz.zts.client.truststore_password`: Trust Store password.
 - `athenz.zts.client.truststore_pwd_app_name`: Trust Store password application name. Default: none
-- `athenz.zts.client.private_keystore_factory_class`: Private key store factory class implements [com.yahoo.athenz.auth.PrivateKeyStoreFactory](https://github.com/yahoo/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/PrivateKeyStoreFactory.java) 
+- `athenz.zts.client.private_keystore_factory_class`: Private key store factory class implements [com.yahoo.athenz.auth.PrivateKeyStoreFactory](https://github.com/AthenZ/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/PrivateKeyStoreFactory.java) 
 which will be used for retrieving passwords. Default: `com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory`.
 
 - `athenz.zts.client.client_ssl_protocol`: Client TLS protocol. Default: `TLSv1.2`
@@ -45,7 +45,7 @@ which will be used for retrieving passwords. Default: `com.yahoo.athenz.auth.imp
 
 Using X.509 Certificates when communicating with ZTS Server:
 
-[ZTS Client with TLS Support](https://github.com/yahoo/athenz/tree/master/clients/java/zts/core/examples/tls-support)
+[ZTS Client with TLS Support](https://github.com/AthenZ/athenz/tree/master/clients/java/zts/core/examples/tls-support)
 
 ## License
 

@@ -104,9 +104,9 @@ For authenticating services using X509 certificates, ZTS Servers expect
 the configured cert signer factory class names in its `athenz.zts.cert_signer_factory_class` system property.
 We already have below implementation of cert Signer:
  
-* Self Cert Signer [com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory](https://github.com/yahoo/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/SelfCertSigner.java) 
+* Self Cert Signer [com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory](https://github.com/AthenZ/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/SelfCertSigner.java) 
   for the dev environment.
-* Http Cert Signer [com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory](https://github.com/yahoo/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/HttpCertSigner.java) 
+* Http Cert Signer [com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory](https://github.com/AthenZ/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/HttpCertSigner.java) 
   for the production environment.
   
 You can use HttpCert Signer or have your implementation of Cert Signer.

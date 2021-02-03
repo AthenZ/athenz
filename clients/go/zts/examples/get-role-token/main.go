@@ -13,7 +13,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/yahoo/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/clients/go/zts"
 )
 
 func main() {

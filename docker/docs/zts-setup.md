@@ -144,7 +144,7 @@ openssl pkcs12 -export -noiter -nomaciter \
 
 <a id="markdown-httpcertsigner" name="httpcertsigner"></a>
 #### HttpCertSigner
-For production environment, we suggest to use the [HttpCertSigner.java](https://github.com/yahoo/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/HttpCertSigner.java), so that you do not need to manage the signer CA's private key in Athenz server. For details, please refer to [HttpCertSigner Details](./zts-setup.md#httpcertsigner-details).
+For production environment, we suggest to use the [HttpCertSigner.java](https://github.com/AthenZ/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/HttpCertSigner.java), so that you do not need to manage the signer CA's private key in Athenz server. For details, please refer to [HttpCertSigner Details](./zts-setup.md#httpcertsigner-details).
 
 <a id="markdown-keystorecertsigner" name="keystorecertsigner"></a>
 #### KeyStoreCertSigner
@@ -261,7 +261,7 @@ ls -l "${DOMAIN_ADMIN_CERT_PATH}"
 ```
 - Add ZTS service using ZMS API
 ```bash
-# encode public key in ybase64, reference: https://github.com/yahoo/athenz/blob/545d9487a866cad10ba864b435bdb7ece390d4bf/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/util/Crypto.java#L334-L343
+# encode public key in ybase64, reference: https://github.com/AthenZ/athenz/blob/545d9487a866cad10ba864b435bdb7ece390d4bf/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/util/Crypto.java#L334-L343
 ENCODED_ZTS_PUBLIC_KEY="$(base64 -w 0 "${ZTS_PUBLIC_KEY_PATH}" | tr '\+\=\/' '\.\-\_')"
 # ENCODED_ZTS_PUBLIC_KEY="$(base64 -w 0 "${ZTS_PUBLIC_KEY_PATH}" | sed 's/+/./g; s/=/-/g; s:_:/:g')"
 # decode: cat <file> | tr '\.\-\_' '\+\=\/' | base64 -d

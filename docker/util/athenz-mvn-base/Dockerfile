@@ -15,7 +15,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE
 LABEL org.label-schema.name="athenz-mvn-base"
 LABEL org.label-schema.description="base image for maven cache"
 LABEL org.label-schema.url="https://www.athenz.io/"
-LABEL org.label-schema.vcs-url="https://github.com/yahoo/athenz"
+LABEL org.label-schema.vcs-url="https://github.com/AthenZ/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
 # LABEL maintainer "YJ Athenz Team <>"
 

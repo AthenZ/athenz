@@ -37,7 +37,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE
 LABEL org.label-schema.name="athenz-ui"
 LABEL org.label-schema.description="Athenz UI server"
 LABEL org.label-schema.url="https://www.athenz.io/"
-LABEL org.label-schema.vcs-url="https://github.com/yahoo/athenz"
+LABEL org.label-schema.vcs-url="https://github.com/AthenZ/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
 
 ARG GID=1001

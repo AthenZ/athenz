@@ -15,12 +15,12 @@ Version 1.0 (2016-09-06)
 
 To get it into your workspace:
 
-    go get github.com/yahoo/athenz/clients/go/zms
+    go get github.com/AthenZ/athenz/clients/go/zms
 
 Then in your Go code:
 
     import (
-        zms "github.com/yahoo/athenz/clients/go/zms"
+        zms "github.com/AthenZ/athenz/clients/go/zms"
     )
     func main() {
          var principal rdl.Principal /* init this from an actual user credential */
@@ -34,7 +34,7 @@ Then in your Go code:
 To use the ZMSAuthorizer from your RDL-generated server:
 
     import (
-        zms "github.com/yahoo/athenz/clients/go/zms"
+        zms "github.com/AthenZ/athenz/clients/go/zms"
     )
     ...
     endpoint := "localhost:4080"

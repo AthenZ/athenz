@@ -19,7 +19,7 @@ package attestation
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/yahoo/athenz/provider/azure/sia-vm/devel/metamock"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/devel/metamock"
 	"os"
 	"testing"
 )
