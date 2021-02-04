@@ -1440,6 +1440,12 @@ exports[`RolePage should render 1`] = `
                 class="emotion-66 denali-tab"
                 data-active="false"
               >
+                Tags
+              </div>
+              <div
+                class="emotion-66 denali-tab"
+                data-active="false"
+              >
                 Templates
               </div>
               <div
@@ -1447,12 +1453,6 @@ exports[`RolePage should render 1`] = `
                 data-active="false"
               >
                 History
-              </div>
-              <div
-                class="emotion-66 denali-tab"
-                data-active="false"
-              >
-                Tags
               </div>
             </div>
           </div>

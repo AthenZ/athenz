@@ -21,10 +21,10 @@ export default class AddTag extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;
-        this.onSubmit = this.onSubmit.bind(this);
 
         if (props.editedTagKey && props.editedTagValues) {
             this.state = {
+                editMode: true,
                 showModal: !!this.props.showAddTag,
                 tagName: props.editedTagKey,
                 tagValues: props.editedTagValues,
@@ -66,12 +66,13 @@ export default class AddTag extends React.Component {
     }
 
     onUpdate(tagKey, tagValues) {
-        this.state.tagName = tagKey;
-        this.state.tagValues = tagValues;
+        this.setState({
+            tagName: tagKey,
+            tagValues: tagValues,
+        });
     }
 
     render() {
-        let onUpdate = this.onUpdate.bind(this);
         const title = this.props.editMode
             ? 'Edit ' + this.state.tagName + ' Tag'
             : 'Add Tag to ' + this.props.resource;
@@ -79,7 +80,7 @@ export default class AddTag extends React.Component {
             <AddModal
                 isOpen={this.state.showModal}
                 cancel={this.props.onCancel}
-                submit={this.onSubmit}
+                submit={() => this.onSubmit()}
                 title={title}
                 errorMessage={
                     this.props.errorMessage || this.state.errorMessage
@@ -87,9 +88,12 @@ export default class AddTag extends React.Component {
                 sections={
                     <AddTagForm
                         api={this.api}
-                        onUpdate={onUpdate}
+                        onUpdate={(tagKey, tagValues) =>
+                            this.onUpdate(tagKey, tagValues)
+                        }
                         editedTagKey={this.state.tagName}
                         editedTagValues={this.state.tagValues}
+                        editMode={this.state.editMode}
                     />
                 }
             />

@@ -19,9 +19,6 @@ import UserDomains from '../components/domain/UserDomains';
 import API from '../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-
-import DomainDetails from '../components/header/DomainDetails';
-import Tabs from '../components/header/Tabs';
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
 import createCache from '@emotion/cache';
@@ -59,11 +56,6 @@ const TagsContentDiv = styled.div``;
 const PageHeaderDiv = styled.div`
     background: linear-gradient(to top, #f2f2f2, #fff);
     padding: 20px 30px 0;
-`;
-
-const TitleDiv = styled.div`
-    font: 600 20px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
-    margin-bottom: 10px;
 `;
 
 export default class RoleTagsPage extends React.Component {
@@ -162,6 +154,7 @@ export default class RoleTagsPage extends React.Component {
                                         api={this.api}
                                         domain={domain}
                                         role={roleName}
+                                        roleObj={roleDetails}
                                         tags={roleDetails.tags}
                                         category={'role'}
                                         _csrf={this.props._csrf}

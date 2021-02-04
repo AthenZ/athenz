@@ -36,16 +36,16 @@ class RoleTabs extends React.Component {
             name: 'policies',
         },
         {
+            label: 'Tags',
+            name: 'tags',
+        },
+        {
             label: 'Settings',
             name: 'settings',
         },
         {
             label: 'History',
             name: 'history',
-        },
-        {
-            label: 'Tags',
-            name: 'tags',
         },
     ];
 

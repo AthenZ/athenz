@@ -40,16 +40,16 @@ class Tabs extends React.Component {
             name: 'policies',
         },
         {
+            label: 'Tags',
+            name: 'tags',
+        },
+        {
             label: 'Templates',
             name: 'templates',
         },
         {
             label: 'History',
             name: 'history',
-        },
-        {
-            label: 'Tags',
-            name: 'tags',
         },
     ];
 

@@ -962,6 +962,12 @@ exports[`ReviewPage should render 1`] = `
                 class="emotion-49 denali-tab"
                 data-active="false"
               >
+                Tags
+              </div>
+              <div
+                class="emotion-49 denali-tab"
+                data-active="false"
+              >
                 Settings
               </div>
               <div
@@ -969,12 +975,6 @@ exports[`ReviewPage should render 1`] = `
                 data-active="false"
               >
                 History
-              </div>
-              <div
-                class="emotion-49 denali-tab"
-                data-active="false"
-              >
-                Tags
               </div>
             </div>
           </div>

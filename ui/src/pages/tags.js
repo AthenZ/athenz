@@ -149,6 +149,7 @@ export default class TagsPage extends React.Component {
                                     <TagList
                                         api={this.api}
                                         domain={domain}
+                                        domainObj={domainDetails}
                                         tags={domainDetails.tags}
                                         category={'domain'}
                                         _csrf={this.props._csrf}

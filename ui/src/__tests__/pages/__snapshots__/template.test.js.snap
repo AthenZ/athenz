@@ -1199,6 +1199,12 @@ exports[`Template Page should render 1`] = `
                 Policies
               </div>
               <div
+                class="emotion-69 denali-tab"
+                data-active="false"
+              >
+                Tags
+              </div>
+              <div
                 class="emotion-69 denali-tab active"
                 data-active="true"
               >
@@ -1209,12 +1215,6 @@ exports[`Template Page should render 1`] = `
                 data-active="false"
               >
                 History
-              </div>
-              <div
-                class="emotion-69 denali-tab"
-                data-active="false"
-              >
-                Tags
               </div>
             </div>
           </div>

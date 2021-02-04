@@ -35,7 +35,7 @@ const MenuDiv = styled.div`
     font-size: 12px;
 `;
 
-const StyledTag = styled(Tag)`
+const StyledTagColor = styled(Tag)`
     color: #d5d5d5;
     &:hover {
         background: #ffffff;
@@ -45,9 +45,6 @@ const StyledTag = styled(Tag)`
     line-height: 14px;
     margin: 5px 15px 5px 0;
     padding: 6px 8px 7px 10px;
-`;
-
-const StyledTagColor = styled(StyledTag)`
     background: rgba(53, 112, 244, 0.08);
 `;
 
@@ -60,8 +57,6 @@ const StyledAnchorActiveInline = { color: colors.linkActive };
 export default class TagRow extends React.Component {
     constructor(props) {
         super(props);
-        this.onClickDeleteTagValue = this.onClickDeleteTagValue.bind(this);
-        this.onClickEditTag = this.onClickEditTag.bind(this);
         this.state = {
             applyTag: false,
             showSuccess: false,
@@ -81,13 +76,7 @@ export default class TagRow extends React.Component {
         const center = 'center';
         const color = this.props.color;
         const tagValues = this.props.tagValues;
-
         const tagKey = this.props.tagKey;
-        let onClickEditTag = this.onClickEditTag.bind(
-            this,
-            tagKey,
-            tagValues.list
-        );
 
         return (
             <tr data-testid='tag-row'>
@@ -97,15 +86,12 @@ export default class TagRow extends React.Component {
 
                 <TdStyled color={color} align={left}>
                     {tagValues.list.map((val) => {
-                        let onClickDeleteTagValue = this.onClickDeleteTagValue.bind(
-                            this,
-                            tagKey,
-                            val
-                        );
                         return (
                             <StyledTagColor
                                 key={val}
-                                onClickRemove={onClickDeleteTagValue}
+                                onClickRemove={() =>
+                                    this.onClickDeleteTagValue(tagKey, val)
+                                }
                             >
                                 <StyledAnchor style={StyledAnchorActiveInline}>
                                     {' '}
@@ -123,7 +109,12 @@ export default class TagRow extends React.Component {
                             <span>
                                 <Icon
                                     icon={'edit'}
-                                    onClick={onClickEditTag}
+                                    onClick={() =>
+                                        this.onClickEditTag(
+                                            tagKey,
+                                            tagValues.list
+                                        )
+                                    }
                                     color={colors.icons}
                                     isLink
                                     size={'1.25em'}

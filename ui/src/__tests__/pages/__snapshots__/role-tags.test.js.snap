@@ -1161,6 +1161,12 @@ exports[`Roles Tag Page should render 1`] = `
                 Policy Rules
               </div>
               <div
+                class="emotion-49 denali-tab active"
+                data-active="true"
+              >
+                Tags
+              </div>
+              <div
                 class="emotion-49 denali-tab"
                 data-active="false"
               >
@@ -1171,12 +1177,6 @@ exports[`Roles Tag Page should render 1`] = `
                 data-active="false"
               >
                 History
-              </div>
-              <div
-                class="emotion-49 denali-tab active"
-                data-active="true"
-              >
-                Tags
               </div>
             </div>
           </div>

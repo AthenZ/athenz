@@ -20,6 +20,7 @@ import Input from '../denali/Input';
 import { colors } from '../denali/styles';
 import Button from '../denali/Button';
 import Tag from '../denali/Tag';
+import AppUtils from '../utils/AppUtils';
 
 const SectionsDiv = styled.div`
     width: 100%;
@@ -60,7 +61,7 @@ const StyledIncludedValuesDiv = styled.div`
     width: 65%;
 `;
 
-const StyledTag = styled(Tag)`
+const StyledTagColor = styled(Tag)`
     color: #d5d5d5;
     &:hover {
         background: #ffffff;
@@ -70,9 +71,6 @@ const StyledTag = styled(Tag)`
     line-height: 14px;
     margin: 5px 15px 5px 0;
     padding: 6px 8px 7px 10px;
-`;
-
-const StyledTagColor = styled(StyledTag)`
     background: rgba(53, 112, 244, 0.08);
 `;
 
@@ -86,7 +84,6 @@ export default class AddTagForm extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
-        this.addTagValue = this.addTagValue.bind(this);
 
         if (props.editedTagKey && props.editedTagValues) {
             this.state = {
@@ -117,7 +114,7 @@ export default class AddTagForm extends React.Component {
 
     addTagValue() {
         let name = this.state.newTagValue;
-        let tagValues = this.state.tagValues;
+        let tagValues = AppUtils.deepClone(this.state.tagValues);
 
         if (!name) {
             return;
@@ -144,7 +141,7 @@ export default class AddTagForm extends React.Component {
     }
 
     removeValue(idx) {
-        let tagValues = this.state.tagValues;
+        let tagValues = AppUtils.deepClone(this.state.tagValues);
         tagValues.splice(idx, 1);
         this.setState({ tagValues }, () =>
             this.props.onUpdate(this.state.tagName, this.state.tagValues)
@@ -152,9 +149,6 @@ export default class AddTagForm extends React.Component {
     }
 
     render() {
-        let tagValueChanged = this.inputChanged.bind(this, 'newTagValue');
-        let tagNameChanged = this.inputChanged.bind(this, 'tagName');
-
         let tagValues = this.state.tagValues
             ? this.state.tagValues.map((val, idx) => {
                   let remove = this.removeValue.bind(this, idx);
@@ -181,7 +175,10 @@ export default class AddTagForm extends React.Component {
                             name='tag-name'
                             placeholder='Enter New Tag Name'
                             value={this.state.tagName}
-                            onChange={tagNameChanged}
+                            onChange={(evt) =>
+                                this.inputChanged('tagName', evt)
+                            }
+                            readOnly={this.props.editMode}
                         />
                     </ContentDiv>
                 </SectionDiv>
@@ -195,7 +192,9 @@ export default class AddTagForm extends React.Component {
                             name='tag-val'
                             placeholder='Enter New Tag Value'
                             value={this.state.newTagValue}
-                            onChange={tagValueChanged}
+                            onChange={(evt) =>
+                                this.inputChanged('newTagValue', evt)
+                            }
                         />
                     </ContentDiv>
                 </SectionDiv>
@@ -205,7 +204,7 @@ export default class AddTagForm extends React.Component {
                         <StyledButton
                             secondary
                             size={'small'}
-                            onClick={this.addTagValue}
+                            onClick={() => this.addTagValue()}
                         >
                             Add
                         </StyledButton>

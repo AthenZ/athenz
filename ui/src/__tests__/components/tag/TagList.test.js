@@ -206,6 +206,7 @@ describe('TagList', () => {
             category={'domain'}
             api={api}
             tags={tags}
+            domainObj={toReturnGetDomain}
         />);
         const tagList = getByTestId('tag-list');
         expect(tagList).toMatchSnapshot();
@@ -275,6 +276,7 @@ describe('TagList', () => {
             tags={tags}
             api={api}
             category={'domain'}
+            domainObj={toReturnGetDomain}
         />);
         const tagList = getByTestId('tag-list');
         expect(tagList).toMatchSnapshot();
@@ -293,4 +295,128 @@ describe('TagList', () => {
         );
     });
 
+    it('should add new role tag', async () => {
+
+        let emptyObj = {}; // no tags
+        let toReturnGetRole = {
+            tags: {
+                'tag-name': {
+                    list: ['first', 'second']
+                }
+            }
+        }
+
+        const api = {
+            getRole: jest.fn()
+                .mockReturnValueOnce(new Promise((resolve, reject) => {
+                    resolve(emptyObj);
+                }))
+                .mockReturnValueOnce(new Promise((resolve, reject) => {
+                    resolve(toReturnGetRole);
+                })),
+            putMeta: jest.fn()
+                .mockReturnValue(new Promise((resolve, reject) => {
+                    resolve(true);
+                })),
+        };
+
+        let tags = {'tag-exist': {
+                list: ['v1', 'v2']
+            }};
+
+        const { getByTestId } = render(<TagList
+            domain={'domain'}
+            role={'role'}
+            category={'role'}
+            api={api}
+            tags={tags}
+            roleObj={toReturnGetRole}
+        />);
+        const tagList = getByTestId('tag-list');
+        expect(tagList).toMatchSnapshot();
+
+        // open add tag
+        fireEvent.click(
+            screen.getByText('Add Tag')
+        );
+        await waitFor(() =>
+            screen.getByText('Add Tag to role')
+        );
+        expect(screen.getByText('Add Tag to role')).toBeInTheDocument();
+
+        // add tag name
+        fireEvent.change(
+            screen.getByPlaceholderText('Enter New Tag Name'),
+            {
+                target: { value: 'tag-name' },
+            }
+        );
+
+        // add tag values
+        fireEvent.change(
+            screen.getByPlaceholderText('Enter New Tag Value'),
+            {
+                target: { value: 'first,second' },
+            }
+        );
+        // click add button
+        fireEvent.click(
+            screen.getByText('Add')
+        );
+        expect(screen.getByText('first')).toBeInTheDocument();
+        expect(screen.getByText('second')).toBeInTheDocument();
+
+        // click Submit button
+        fireEvent.click(
+            screen.getByText('Submit')
+        );
+    });
+
+    it('should delete role tag', async () => {
+
+        let toReturnGetRole = {
+            tags: {
+                'tag-name': {
+                    list: ['first', 'second']
+                }
+            }
+        }
+
+        const api = {
+            getRole: jest.fn()
+                .mockReturnValue(new Promise((resolve, reject) => {
+                    resolve(toReturnGetRole);
+                })),
+            putMeta: jest.fn()
+                .mockResolvedValue(true),
+        };
+
+        let tags = {'tag-name': {
+                list: ['first', 'second']
+            }};
+
+        const { getByTestId } = render(<TagList
+            domain={'domain'}
+            tags={tags}
+            api={api}
+            role={'role'}
+            category={'role'}
+            roleObj={toReturnGetRole}
+        />);
+        const tagList = getByTestId('tag-list');
+        expect(tagList).toMatchSnapshot();
+
+        fireEvent.click(
+            screen.getByTitle('trash')
+        );
+        await waitFor(() =>
+            screen.getByText('This deletion is permanent')
+        );
+        expect(screen.getByText('This deletion is permanent')).toBeInTheDocument();
+
+        // delete the tag
+        fireEvent.click(
+            screen.getByText('Delete')
+        );
+    });
 });

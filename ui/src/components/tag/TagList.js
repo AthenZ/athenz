@@ -23,6 +23,7 @@ import RequestUtils from '../utils/RequestUtils';
 import DeleteModal from '../modal/DeleteModal';
 import Button from '../denali/Button';
 import AddTag from './AddTag';
+import AppUtils from '../utils/AppUtils';
 
 const TagsSectionDiv = styled.div`
     margin: 20px;
@@ -62,23 +63,11 @@ export default class TagList extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
-        this.onCancelDeleteTag = this.onCancelDeleteTag.bind(this);
-        this.onCancelDeleteTagValue = this.onCancelDeleteTagValue.bind(this);
-        this.reloadTags = this.reloadTags.bind(this);
-        this.updateStateAfterReload = this.updateStateAfterReload.bind(this);
-        this.closeModal = this.closeModal.bind(this);
-        this.onSubmitDeleteTag = this.onSubmitDeleteTag.bind(this);
-        this.openAddTag = this.openAddTag.bind(this);
-        this.closeAddTag = this.closeAddTag.bind(this);
-        this.addNewTag = this.addNewTag.bind(this);
-        this.validateTagExist = this.validateTagExist.bind(this);
-        this.domainMetaObject = this.domainMetaObject.bind(this);
-        this.roleMetaObject = this.roleMetaObject.bind(this);
-        this.updateMetaOnDelete = this.updateMetaOnDelete.bind(this);
-
         this.state = {
             category: props.category,
-            tags: props.tags || [],
+            tags: props.tags || {},
+            roleObj: props.roleObj,
+            domainObj: props.domainObj,
             successMessage: '',
         };
     }
@@ -150,80 +139,48 @@ export default class TagList extends React.Component {
     }
 
     validateTagExist(tagName) {
-        return this.state.tags[tagName] != null;
+        return this.state.tags && this.state.tags[tagName] != null;
     }
 
     addNewTag(tagKey, tagValues) {
         const csrf = this.props._csrf;
         if (this.state.category === 'domain') {
-            this.api
-                .getDomain(this.props.domain)
-                .then((domain) => {
-                    let domainMeta = this.domainMetaObject(domain);
-                    if (!domainMeta.tags) {
-                        domainMeta.tags = {};
-                    }
-                    domainMeta.tags[tagKey] = {};
-                    domainMeta.tags[tagKey].list = tagValues;
-                    let successMessage = this.state.editMode
-                        ? `Successfully edited tag ${tagKey}`
-                        : `Successfully added tag ${tagKey}`;
-                    this.updateMeta(domainMeta, csrf, successMessage);
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
+            let domainMeta = this.domainMetaObject(
+                AppUtils.deepClone(this.state.domainObj)
+            );
+            this.updateMetaOnAdd(domainMeta, tagKey, tagValues, csrf);
         } else if (this.state.category === 'role') {
-            this.api
-                .getRole(this.props.domain, this.props.role)
-                .then((role) => {
-                    let roleMeta = this.roleMetaObject(role);
-                    if (!roleMeta.tags) {
-                        roleMeta.tags = {};
-                    }
-                    roleMeta.tags[tagKey] = {};
-                    roleMeta.tags[tagKey].list = tagValues;
-                    let successMessage = this.state.editMode
-                        ? `Successfully edited tag ${tagKey}`
-                        : `Successfully added tag ${tagKey}`;
-                    this.updateMeta(roleMeta, csrf, successMessage);
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
+            let roleMeta = this.roleMetaObject(
+                AppUtils.deepClone(this.state.roleObj)
+            );
+            this.updateMetaOnAdd(roleMeta, tagKey, tagValues, csrf);
         }
+    }
+
+    updateMetaOnAdd(meta, tagKey, tagValues, csrf) {
+        if (!meta.tags) {
+            meta.tags = {};
+        }
+        meta.tags[tagKey] = {};
+        meta.tags[tagKey].list = tagValues;
+        let successMessage = this.state.editMode
+            ? `Successfully edited tag ${tagKey}`
+            : `Successfully added tag ${tagKey}`;
+        this.updateMeta(meta, csrf, successMessage);
     }
 
     onSubmitDeleteTag() {
         const csrf = this.props._csrf;
         if (this.state.category === 'domain') {
-            this.api
-                .getDomain(this.props.domain)
-                .then((domain) => {
-                    let domainMeta = this.domainMetaObject(domain);
-                    this.updateMetaOnDelete(domainMeta, csrf);
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
+            let domainMeta = this.domainMetaObject(
+                AppUtils.deepClone(this.state.domainObj)
+            );
+            this.updateMetaOnDelete(domainMeta, csrf);
         } else if (this.state.category === 'role') {
-            this.api
-                .getRole(this.props.domain, this.props.role)
-                .then((role) => {
-                    let roleMeta = this.roleMetaObject(role);
-                    this.updateMetaOnDelete(roleMeta, csrf);
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
+            let roleMeta = this.roleMetaObject(
+                AppUtils.deepClone(this.state.roleObj)
+            );
+            this.updateMetaOnDelete(roleMeta, csrf);
         }
     }
 
@@ -306,6 +263,7 @@ export default class TagList extends React.Component {
             this.props.api
                 .getDomain(this.props.domain)
                 .then((data) => {
+                    this.setState({ domainObj: data });
                     this.updateStateAfterReload(data, successMessage);
                 })
                 .catch((err) => {
@@ -317,6 +275,7 @@ export default class TagList extends React.Component {
             this.props.api
                 .getRole(this.props.domain, this.props.role)
                 .then((data) => {
+                    this.setState({ roleObj: data });
                     this.updateStateAfterReload(data, successMessage);
                 })
                 .catch((err) => {
@@ -329,7 +288,7 @@ export default class TagList extends React.Component {
 
     updateStateAfterReload(data, successMessage) {
         this.setState({
-            tags: data.tags,
+            tags: data.tags || {},
             showSuccess: true,
             successMessage,
             showDelete: false,
@@ -360,48 +319,43 @@ export default class TagList extends React.Component {
     }
 
     render() {
-        let addNewTag = this.addNewTag.bind(this);
-        let validateTagExist = this.validateTagExist.bind(this);
         const left = 'left';
         const center = 'center';
         let rows = '';
-        if (this.state.tags) {
-            const clonedTags = JSON.parse(JSON.stringify(this.state.tags));
-            rows = Object.entries(clonedTags).map((item, i) => {
-                const tagKey = item[0];
-                const tagValues = item[1];
-                let onClickDeleteTag = this.onClickDeleteTag.bind(this, tagKey);
-                let onClickDeleteTagValue = this.onClickDeleteTagValue.bind(
-                    this
-                );
-                let onClickEditTag = this.onClickEditTag.bind(this);
-                let color = '';
-                if (i % 2 === 0) {
-                    color = colors.row;
-                }
-                let toReturn = [];
-                toReturn.push(
-                    <TagRow
-                        key={tagKey}
-                        tagKey={tagKey}
-                        tagValues={tagValues}
-                        color={color}
-                        api={this.api}
-                        _csrf={this.props._csrf}
-                        onClickDeleteTag={onClickDeleteTag}
-                        onClickDeleteTagValue={onClickDeleteTagValue}
-                        onClickEditTag={onClickEditTag}
-                    />
-                );
-                return toReturn;
-            });
-        }
+        const clonedTags = AppUtils.deepClone(this.state.tags);
+        rows = Object.entries(clonedTags).map((item, i) => {
+            const tagKey = item[0];
+            const tagValues = item[1];
+            let color = '';
+            if (i % 2 === 0) {
+                color = colors.row;
+            }
+            let toReturn = [];
+            toReturn.push(
+                <TagRow
+                    key={tagKey}
+                    tagKey={tagKey}
+                    tagValues={tagValues}
+                    color={color}
+                    api={this.api}
+                    _csrf={this.props._csrf}
+                    onClickDeleteTag={() => this.onClickDeleteTag(tagKey)}
+                    onClickDeleteTagValue={(tagKey, tagValue) =>
+                        this.onClickDeleteTagValue(tagKey, tagValue)
+                    }
+                    onClickEditTag={(tagKey, tagValues) =>
+                        this.onClickEditTag(tagKey, tagValues)
+                    }
+                />
+            );
+            return toReturn;
+        });
+
         let addTag = this.state.showAddTag ? (
             <AddTag
                 showAddTag={this.state.showAddTag}
                 editMode={this.state.editMode}
-                onCancel={this.closeAddTag}
-                onSubmit={this.reloadTags}
+                onCancel={() => this.closeAddTag()}
                 resource={
                     this.state.category === 'domain'
                         ? this.props.domain
@@ -409,11 +363,13 @@ export default class TagList extends React.Component {
                 }
                 api={this.api}
                 _csrf={this.props._csrf}
-                addNewTag={addNewTag}
+                addNewTag={(tagName, tagValues) =>
+                    this.addNewTag(tagName, tagValues)
+                }
                 editedTagKey={this.state.editedTagKey}
                 editedTagValues={this.state.editedTagValues}
                 errorMessage={this.state.errorMessage}
-                validateTagExist={validateTagExist}
+                validateTagExist={(tagName) => this.validateTagExist(tagName)}
             />
         ) : (
             ''
@@ -422,36 +378,40 @@ export default class TagList extends React.Component {
             <TagsSectionDiv data-testid='tag-list'>
                 <AddContainerDiv>
                     <div>
-                        <Button secondary onClick={this.openAddTag}>
+                        <Button secondary onClick={() => this.openAddTag()}>
                             Add Tag
                         </Button>
                         {addTag}
                     </div>
                 </AddContainerDiv>
-                <TagTable>
-                    <thead>
-                        <tr>
-                            <TableHeadStyled align={left}>
-                                TAG NAME
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                TAG VALUES
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                EDIT
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                DELETE
-                            </TableHeadStyled>
-                        </tr>
-                    </thead>
-                    <tbody>{rows}</tbody>
-                </TagTable>
+                {Object.keys(this.state.tags).length > 0 ? (
+                    <TagTable>
+                        <thead>
+                            <tr>
+                                <TableHeadStyled align={left}>
+                                    TAG NAME
+                                </TableHeadStyled>
+                                <TableHeadStyled align={left}>
+                                    TAG VALUES
+                                </TableHeadStyled>
+                                <TableHeadStyled align={center}>
+                                    EDIT
+                                </TableHeadStyled>
+                                <TableHeadStyled align={center}>
+                                    DELETE
+                                </TableHeadStyled>
+                            </tr>
+                        </thead>
+                        <tbody>{rows}</tbody>
+                    </TagTable>
+                ) : (
+                    'Click on Add Tag to create a new tag'
+                )}
                 {this.state.showSuccess ? (
                     <Alert
                         isOpen={this.state.showSuccess}
                         title={this.state.successMessage}
-                        onClose={this.closeModal}
+                        onClose={() => this.closeModal()}
                         type='success'
                     />
                 ) : null}
@@ -459,8 +419,8 @@ export default class TagList extends React.Component {
                     <DeleteModal
                         name={this.state.deleteTagName}
                         isOpen={this.state.showDelete}
-                        cancel={this.onCancelDeleteTag}
-                        submit={this.onSubmitDeleteTag}
+                        cancel={() => this.onCancelDeleteTag()}
+                        submit={() => this.onSubmitDeleteTag()}
                         errorMessage={this.state.errorMessage}
                         message={
                             'Are you sure you want to permanently delete the Tag '
@@ -471,8 +431,8 @@ export default class TagList extends React.Component {
                     <DeleteModal
                         name={this.state.deleteTagValue}
                         isOpen={this.state.showDeleteTagValue}
-                        cancel={this.onCancelDeleteTagValue}
-                        submit={this.onSubmitDeleteTag}
+                        cancel={() => this.onCancelDeleteTagValue()}
+                        submit={() => this.onSubmitDeleteTag()}
                         errorMessage={this.state.errorMessage}
                         message={`Are you sure you want to permanently delete the Tag Value `}
                     />

@@ -126,6 +126,12 @@ exports[`Tabs should render 1`] = `
     class="emotion-1 denali-tab"
     data-active="false"
   >
+    Tags
+  </div>
+  <div
+    class="emotion-1 denali-tab"
+    data-active="false"
+  >
     Templates
   </div>
   <div
@@ -133,12 +139,6 @@ exports[`Tabs should render 1`] = `
     data-active="true"
   >
     History
-  </div>
-  <div
-    class="emotion-1 denali-tab"
-    data-active="false"
-  >
-    Tags
   </div>
 </div>
 `;
