@@ -20,7 +20,7 @@ import Input from '../denali/Input';
 import { colors } from '../denali/styles';
 import Button from '../denali/Button';
 import Tag from '../denali/Tag';
-import AppUtils from "../utils/AppUtils";
+import AppUtils from '../utils/AppUtils';
 
 const SectionsDiv = styled.div`
     width: 780px;
@@ -129,7 +129,11 @@ export default class AddTagForm extends React.Component {
             value = evt ? evt : '';
         }
         this.setState({ [key]: value }, () =>
-            this.props.onUpdate(this.state.tagName, this.state.newTagValue, this.state.tagValues)
+            this.props.onUpdate(
+                this.state.tagName,
+                this.state.newTagValue,
+                this.state.tagValues
+            )
         );
     }
 
@@ -157,7 +161,12 @@ export default class AddTagForm extends React.Component {
                 tagValues,
                 newTagValue: '',
             },
-            () => this.props.onUpdate(this.state.tagName, this.state.newTagValue, this.state.tagValues)
+            () =>
+                this.props.onUpdate(
+                    this.state.tagName,
+                    this.state.newTagValue,
+                    this.state.tagValues
+                )
         );
     }
 
@@ -165,23 +174,27 @@ export default class AddTagForm extends React.Component {
         let tagValues = AppUtils.deepClone(this.state.tagValues);
         tagValues.splice(idx, 1);
         this.setState({ tagValues }, () =>
-            this.props.onUpdate(this.state.tagName, this.state.newTagValue, this.state.tagValues)
+            this.props.onUpdate(
+                this.state.tagName,
+                this.state.newTagValue,
+                this.state.tagValues
+            )
         );
     }
 
     render() {
         let tagValues = this.state.tagValues
             ? this.state.tagValues.map((val, idx) => {
-                let remove = this.removeValue.bind(this, idx);
-                return (
-                    <StyledTagColor key={val} onClickRemove={remove}>
-                        <StyledAnchor style={StyledAnchorActiveInline}>
-                            {' '}
-                            {val}{' '}
-                        </StyledAnchor>
-                    </StyledTagColor>
-                );
-            })
+                  let remove = this.removeValue.bind(this, idx);
+                  return (
+                      <StyledTagColor key={val} onClickRemove={remove}>
+                          <StyledAnchor style={StyledAnchorActiveInline}>
+                              {' '}
+                              {val}{' '}
+                          </StyledAnchor>
+                      </StyledTagColor>
+                  );
+              })
             : '';
 
         return (
@@ -196,7 +209,9 @@ export default class AddTagForm extends React.Component {
                             name='tag-name'
                             placeholder='Enter New Tag Name'
                             value={this.state.tagName}
-                            onChange={(evt) => this.inputChanged('tagName', evt)}
+                            onChange={(evt) =>
+                                this.inputChanged('tagName', evt)
+                            }
                             readOnly={this.props.editMode}
                         />
                     </ContentDiv>
@@ -212,7 +227,9 @@ export default class AddTagForm extends React.Component {
                                 name='tag-val'
                                 placeholder='Enter New Tag Value'
                                 value={this.state.newTagValue}
-                                onChange={(evt) => this.inputChanged('newTagValue', evt)}
+                                onChange={(evt) =>
+                                    this.inputChanged('newTagValue', evt)
+                                }
                             />
                             <ButtonDiv>
                                 <StyledButton

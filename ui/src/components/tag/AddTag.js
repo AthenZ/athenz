@@ -16,7 +16,7 @@
 import React from 'react';
 import AddModal from '../modal/AddModal';
 import AddTagForm from './AddTagForm';
-import AppUtils from "../utils/AppUtils";
+import AppUtils from '../utils/AppUtils';
 
 export default class AddTag extends React.Component {
     constructor(props) {
@@ -29,14 +29,14 @@ export default class AddTag extends React.Component {
                 showModal: !!this.props.showAddTag,
                 tagName: props.editedTagKey,
                 tagValues: props.editedTagValues,
-                newTagValue: ''
+                newTagValue: '',
             };
         } else {
             this.state = {
                 showModal: !!this.props.showAddTag,
                 tagName: '',
                 tagValues: [],
-                newTagValue: ''
+                newTagValue: '',
             };
         }
     }
@@ -58,8 +58,10 @@ export default class AddTag extends React.Component {
             return;
         }
 
-        if (!this.state.newTagValue && 
-            (!this.state.tagValues || this.state.tagValues.length === 0)) {
+        if (
+            !this.state.newTagValue &&
+            (!this.state.tagValues || this.state.tagValues.length === 0)
+        ) {
             this.setState({
                 errorMessage: 'Tag value is required.',
             });
@@ -69,11 +71,18 @@ export default class AddTag extends React.Component {
         if (notAddedTag) {
             let tagValues = AppUtils.deepClone(this.state.tagValues);
             tagValues.push(notAddedTag);
-            this.setState({
-                tagValues: tagValues,
-            }, () => this.props.addNewTag(this.state.tagName, this.state.tagValues));
+            this.setState(
+                {
+                    tagValues: tagValues,
+                },
+                () =>
+                    this.props.addNewTag(
+                        this.state.tagName,
+                        this.state.tagValues
+                    )
+            );
         } else {
-            this.props.addNewTag(this.state.tagName, this.state.tagValues);   
+            this.props.addNewTag(this.state.tagName, this.state.tagValues);
         }
     }
 
@@ -101,7 +110,9 @@ export default class AddTag extends React.Component {
                 sections={
                     <AddTagForm
                         api={this.api}
-                        onUpdate={(tagKey, newTagValue, tagValues) => this.onUpdate(tagKey, newTagValue, tagValues)}
+                        onUpdate={(tagKey, newTagValue, tagValues) =>
+                            this.onUpdate(tagKey, newTagValue, tagValues)
+                        }
                         editedTagKey={this.state.tagName}
                         editedTagValues={this.state.tagValues}
                         editMode={this.state.editMode}
