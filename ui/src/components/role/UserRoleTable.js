@@ -211,6 +211,8 @@ export default class UserRoleTable extends React.Component {
                 this.state.deleteJustification
                     ? this.state.deleteJustification
                     : 'deleted using Athenz UI',
+                false,
+                'role',
                 this.props._csrf
             )
             .then(() => {
