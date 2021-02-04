@@ -20,10 +20,10 @@ import Input from '../denali/Input';
 import { colors } from '../denali/styles';
 import Button from '../denali/Button';
 import Tag from '../denali/Tag';
-import AppUtils from '../utils/AppUtils';
+import AppUtils from "../utils/AppUtils";
 
 const SectionsDiv = styled.div`
-    width: 100%;
+    width: 780px;
     text-align: left;
     background-color: ${colors.white};
 `;
@@ -41,16 +41,37 @@ const ContentDiv = styled.div`
 `;
 
 const StyledInputLabel = styled(InputLabel)`
-    flex: 0 0 100px;
-    margin-right: 2%;
+    float: left;
+    font-size: 14px;
+    font-weight: 700;
+    width: 17%;
+`;
+
+const StyledInputLabelPadding = styled(InputLabel)`
+    float: left;
+    font-size: 14px;
+    font-weight: 700;
+    width: 17%;
+    padding-top: 5px;
 `;
 
 const StyledInput = styled(Input)`
     width: 500px;
 `;
 
+const AddTagValueDiv = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+`;
+
+const StyledInputTag = styled(Input)`
+    margin-top: 5px;
+    flex: 60%;
+`;
+
 const ButtonDiv = styled.div`
     margin-left: 10px;
+    flex: 35%;
 `;
 
 const StyledButton = styled(Button)`
@@ -108,7 +129,7 @@ export default class AddTagForm extends React.Component {
             value = evt ? evt : '';
         }
         this.setState({ [key]: value }, () =>
-            this.props.onUpdate(this.state.tagName, this.state.tagValues)
+            this.props.onUpdate(this.state.tagName, this.state.newTagValue, this.state.tagValues)
         );
     }
 
@@ -136,7 +157,7 @@ export default class AddTagForm extends React.Component {
                 tagValues,
                 newTagValue: '',
             },
-            () => this.props.onUpdate(this.state.tagName, this.state.tagValues)
+            () => this.props.onUpdate(this.state.tagName, this.state.newTagValue, this.state.tagValues)
         );
     }
 
@@ -144,23 +165,23 @@ export default class AddTagForm extends React.Component {
         let tagValues = AppUtils.deepClone(this.state.tagValues);
         tagValues.splice(idx, 1);
         this.setState({ tagValues }, () =>
-            this.props.onUpdate(this.state.tagName, this.state.tagValues)
+            this.props.onUpdate(this.state.tagName, this.state.newTagValue, this.state.tagValues)
         );
     }
 
     render() {
         let tagValues = this.state.tagValues
             ? this.state.tagValues.map((val, idx) => {
-                  let remove = this.removeValue.bind(this, idx);
-                  return (
-                      <StyledTagColor key={val} onClickRemove={remove}>
-                          <StyledAnchor style={StyledAnchorActiveInline}>
-                              {' '}
-                              {val}{' '}
-                          </StyledAnchor>
-                      </StyledTagColor>
-                  );
-              })
+                let remove = this.removeValue.bind(this, idx);
+                return (
+                    <StyledTagColor key={val} onClickRemove={remove}>
+                        <StyledAnchor style={StyledAnchorActiveInline}>
+                            {' '}
+                            {val}{' '}
+                        </StyledAnchor>
+                    </StyledTagColor>
+                );
+            })
             : '';
 
         return (
@@ -175,40 +196,35 @@ export default class AddTagForm extends React.Component {
                             name='tag-name'
                             placeholder='Enter New Tag Name'
                             value={this.state.tagName}
-                            onChange={(evt) =>
-                                this.inputChanged('tagName', evt)
-                            }
+                            onChange={(evt) => this.inputChanged('tagName', evt)}
                             readOnly={this.props.editMode}
                         />
                     </ContentDiv>
                 </SectionDiv>
                 <SectionDiv>
-                    <StyledInputLabel htmlFor='description'>
+                    <StyledInputLabelPadding htmlFor='description'>
                         Tag Value(s)
-                    </StyledInputLabel>
+                    </StyledInputLabelPadding>
                     <ContentDiv>
-                        <StyledInput
-                            id='tag-val'
-                            name='tag-val'
-                            placeholder='Enter New Tag Value'
-                            value={this.state.newTagValue}
-                            onChange={(evt) =>
-                                this.inputChanged('newTagValue', evt)
-                            }
-                        />
+                        <AddTagValueDiv>
+                            <StyledInputTag
+                                id='tag-val'
+                                name='tag-val'
+                                placeholder='Enter New Tag Value'
+                                value={this.state.newTagValue}
+                                onChange={(evt) => this.inputChanged('newTagValue', evt)}
+                            />
+                            <ButtonDiv>
+                                <StyledButton
+                                    secondary
+                                    size={'small'}
+                                    onClick={() => this.addTagValue()}
+                                >
+                                    Add
+                                </StyledButton>
+                            </ButtonDiv>
+                        </AddTagValueDiv>
                     </ContentDiv>
-                </SectionDiv>
-                <SectionDiv>
-                    <StyledInputLabel />
-                    <ButtonDiv>
-                        <StyledButton
-                            secondary
-                            size={'small'}
-                            onClick={() => this.addTagValue()}
-                        >
-                            Add
-                        </StyledButton>
-                    </ButtonDiv>
                 </SectionDiv>
                 <SectionDiv>
                     <StyledInputLabel />

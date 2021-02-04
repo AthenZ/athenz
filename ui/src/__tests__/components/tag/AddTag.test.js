@@ -122,6 +122,11 @@ describe('AddTag', () => {
         );
         expect(screen.getByText('Tag value is required.')).toBeInTheDocument();
 
+        // click add before value exist - should do nothing
+        fireEvent.click(
+            screen.getByText('Add')
+        );
+        
         // add tag values
         fireEvent.change(
             screen.getByPlaceholderText('Enter New Tag Value'),
@@ -136,6 +141,14 @@ describe('AddTag', () => {
         expect(screen.getByText('first')).toBeInTheDocument();
         expect(screen.getByText('second')).toBeInTheDocument();
 
+        // add third tag without add button
+        fireEvent.change(
+            screen.getByPlaceholderText('Enter New Tag Value'),
+            {
+                target: { value: 'third' },
+            }
+        );
+        
         // click Submit button
         fireEvent.click(
             screen.getByText('Submit')

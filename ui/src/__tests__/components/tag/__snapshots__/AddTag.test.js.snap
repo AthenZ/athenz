@@ -8,7 +8,7 @@ exports[`AddTag should render on new tag 1`] = `
 }
 
 .emotion-2 {
-  width: 100%;
+  width: 780px;
   text-align: left;
   background-color: #fff;
 }
@@ -38,10 +38,10 @@ exports[`AddTag should render on new tag 1`] = `
 }
 
 .emotion-7 {
-  -webkit-flex: 0 0 100px;
-  -ms-flex: 0 0 100px;
-  flex: 0 0 100px;
-  margin-right: 2%;
+  float: left;
+  font-size: 14px;
+  font-weight: 700;
+  width: 17%;
 }
 
 .emotion-9 {
@@ -152,11 +152,40 @@ exports[`AddTag should render on new tag 1`] = `
   width: 500px;
 }
 
-.emotion-29 {
-  margin-left: 10px;
+.emotion-17 {
+  float: left;
+  font-size: 14px;
+  font-weight: 700;
+  width: 17%;
+  padding-top: 5px;
 }
 
-.emotion-31 {
+.emotion-21 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-wrap: wrap;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+.emotion-24 {
+  margin-top: 5px;
+  -webkit-flex: 60%;
+  -ms-flex: 60%;
+  flex: 60%;
+}
+
+.emotion-26 {
+  margin-left: 10px;
+  -webkit-flex: 35%;
+  -ms-flex: 35%;
+  flex: 35%;
+}
+
+.emotion-28 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -183,29 +212,29 @@ exports[`AddTag should render on new tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-31:first-of-type {
+.emotion-28:first-of-type {
   margin-left: 0;
 }
 
-.emotion-31:disabled {
+.emotion-28:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-31:disabled {
+.emotion-28:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-31:hover:not(:disabled) {
+.emotion-28:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-32 {
+.emotion-29 {
   width: 125px;
 }
 
-.emotion-39 {
+.emotion-36 {
   width: 65%;
 }
 
@@ -253,7 +282,7 @@ exports[`AddTag should render on new tag 1`] = `
       class="emotion-4 emotion-5"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-6 denali-input-label emotion-17 emotion-18"
         for="description"
       >
         Tag Value(s)
@@ -262,21 +291,34 @@ exports[`AddTag should render on new tag 1`] = `
         class="emotion-9 emotion-10"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
-          data-testid="input-wrapper"
+          class="emotion-21 emotion-22"
         >
-          <input
-            autocomplete="off"
-            data-testid="input-node"
-            id="tag-val"
-            name="tag-val"
-            placeholder="Enter New Tag Value"
-            value=""
-          />
           <div
-            class="message"
-            data-testid="message"
-          />
+            class="emotion-11 denali-input animated emotion-24 emotion-25"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              id="tag-val"
+              name="tag-val"
+              placeholder="Enter New Tag Value"
+              value=""
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
+          <div
+            class="emotion-26 emotion-27"
+          >
+            <button
+              class="emotion-28 denali-button emotion-29 emotion-30"
+            >
+              Add
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -287,23 +329,7 @@ exports[`AddTag should render on new tag 1`] = `
         class="emotion-6 denali-input-label emotion-7 emotion-8"
       />
       <div
-        class="emotion-29 emotion-30"
-      >
-        <button
-          class="emotion-31 denali-button emotion-32 emotion-33"
-        >
-          Add
-        </button>
-      </div>
-    </div>
-    <div
-      class="emotion-4 emotion-5"
-    >
-      <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
-      />
-      <div
-        class="emotion-39 emotion-40"
+        class="emotion-36 emotion-37"
       />
     </div>
   </div>

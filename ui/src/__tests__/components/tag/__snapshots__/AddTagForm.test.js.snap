@@ -2,7 +2,7 @@
 
 exports[`AddTagForm should render on edit tag 1`] = `
 .emotion-0 {
-  width: 100%;
+  width: 780px;
   text-align: left;
   background-color: #fff;
 }
@@ -32,10 +32,10 @@ exports[`AddTagForm should render on edit tag 1`] = `
 }
 
 .emotion-5 {
-  -webkit-flex: 0 0 100px;
-  -ms-flex: 0 0 100px;
-  flex: 0 0 100px;
-  margin-right: 2%;
+  float: left;
+  font-size: 14px;
+  font-weight: 700;
+  width: 17%;
 }
 
 .emotion-7 {
@@ -146,11 +146,40 @@ exports[`AddTagForm should render on edit tag 1`] = `
   width: 500px;
 }
 
-.emotion-27 {
-  margin-left: 10px;
+.emotion-15 {
+  float: left;
+  font-size: 14px;
+  font-weight: 700;
+  width: 17%;
+  padding-top: 5px;
 }
 
-.emotion-29 {
+.emotion-19 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-wrap: wrap;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+.emotion-22 {
+  margin-top: 5px;
+  -webkit-flex: 60%;
+  -ms-flex: 60%;
+  flex: 60%;
+}
+
+.emotion-24 {
+  margin-left: 10px;
+  -webkit-flex: 35%;
+  -ms-flex: 35%;
+  flex: 35%;
+}
+
+.emotion-26 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -177,33 +206,33 @@ exports[`AddTagForm should render on edit tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-29:first-of-type {
+.emotion-26:first-of-type {
   margin-left: 0;
 }
 
-.emotion-29:disabled {
+.emotion-26:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-29:disabled {
+.emotion-26:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-29:hover:not(:disabled) {
+.emotion-26:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-30 {
+.emotion-27 {
   width: 125px;
 }
 
-.emotion-37 {
+.emotion-34 {
   width: 65%;
 }
 
-.emotion-39 {
+.emotion-36 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
@@ -226,11 +255,11 @@ exports[`AddTagForm should render on edit tag 1`] = `
   white-space: nowrap;
 }
 
-.emotion-39:hover {
+.emotion-36:hover {
   background: #cbd9f9;
 }
 
-.emotion-39 .tag-remove {
+.emotion-36 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -258,13 +287,13 @@ exports[`AddTagForm should render on edit tag 1`] = `
   width: 28px;
 }
 
-.emotion-39:hover .tag-remove {
+.emotion-36:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-40 {
+.emotion-37 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -274,16 +303,16 @@ exports[`AddTagForm should render on edit tag 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-40:hover {
+.emotion-37:hover {
   background: #ffffff;
 }
 
-.emotion-42 {
+.emotion-39 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-44 {
+.emotion-41 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
@@ -329,7 +358,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
     class="emotion-2 emotion-3"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-4 denali-input-label emotion-15 emotion-16"
       for="description"
     >
       Tag Value(s)
@@ -338,21 +367,34 @@ exports[`AddTagForm should render on edit tag 1`] = `
       class="emotion-7 emotion-8"
     >
       <div
-        class="emotion-9 denali-input animated emotion-10 emotion-11"
-        data-testid="input-wrapper"
+        class="emotion-19 emotion-20"
       >
-        <input
-          autocomplete="off"
-          data-testid="input-node"
-          id="tag-val"
-          name="tag-val"
-          placeholder="Enter New Tag Value"
-          value=""
-        />
         <div
-          class="message"
-          data-testid="message"
-        />
+          class="emotion-9 denali-input animated emotion-22 emotion-23"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="tag-val"
+            name="tag-val"
+            placeholder="Enter New Tag Value"
+            value=""
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+        <div
+          class="emotion-24 emotion-25"
+        >
+          <button
+            class="emotion-26 denali-button emotion-27 emotion-28"
+          >
+            Add
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -363,30 +405,14 @@ exports[`AddTagForm should render on edit tag 1`] = `
       class="emotion-4 denali-input-label emotion-5 emotion-6"
     />
     <div
-      class="emotion-27 emotion-28"
-    >
-      <button
-        class="emotion-29 denali-button emotion-30 emotion-31"
-      >
-        Add
-      </button>
-    </div>
-  </div>
-  <div
-    class="emotion-2 emotion-3"
-  >
-    <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
-    />
-    <div
-      class="emotion-37 emotion-38"
+      class="emotion-34 emotion-35"
     >
       <div
-        class="emotion-39 denali-tag emotion-40 emotion-41"
+        class="emotion-36 denali-tag emotion-37 emotion-38"
         data-testid="tag"
       >
         <a
-          class="emotion-42 emotion-43"
+          class="emotion-39 emotion-40"
           style="color: rgb(53, 112, 244);"
         >
            
@@ -397,7 +423,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
           class="tag-remove"
         >
           <svg
-            class="emotion-44"
+            class="emotion-41"
             data-testid="icon"
             height="20px"
             viewBox="0 0 1024 1024"
@@ -413,11 +439,11 @@ exports[`AddTagForm should render on edit tag 1`] = `
         </div>
       </div>
       <div
-        class="emotion-39 denali-tag emotion-40 emotion-41"
+        class="emotion-36 denali-tag emotion-37 emotion-38"
         data-testid="tag"
       >
         <a
-          class="emotion-42 emotion-43"
+          class="emotion-39 emotion-40"
           style="color: rgb(53, 112, 244);"
         >
            
@@ -428,7 +454,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
           class="tag-remove"
         >
           <svg
-            class="emotion-44"
+            class="emotion-41"
             data-testid="icon"
             height="20px"
             viewBox="0 0 1024 1024"
@@ -450,7 +476,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
 
 exports[`AddTagForm should render on new tag 1`] = `
 .emotion-0 {
-  width: 100%;
+  width: 780px;
   text-align: left;
   background-color: #fff;
 }
@@ -480,10 +506,10 @@ exports[`AddTagForm should render on new tag 1`] = `
 }
 
 .emotion-5 {
-  -webkit-flex: 0 0 100px;
-  -ms-flex: 0 0 100px;
-  flex: 0 0 100px;
-  margin-right: 2%;
+  float: left;
+  font-size: 14px;
+  font-weight: 700;
+  width: 17%;
 }
 
 .emotion-7 {
@@ -594,11 +620,40 @@ exports[`AddTagForm should render on new tag 1`] = `
   width: 500px;
 }
 
-.emotion-27 {
-  margin-left: 10px;
+.emotion-15 {
+  float: left;
+  font-size: 14px;
+  font-weight: 700;
+  width: 17%;
+  padding-top: 5px;
 }
 
-.emotion-29 {
+.emotion-19 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-wrap: wrap;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+.emotion-22 {
+  margin-top: 5px;
+  -webkit-flex: 60%;
+  -ms-flex: 60%;
+  flex: 60%;
+}
+
+.emotion-24 {
+  margin-left: 10px;
+  -webkit-flex: 35%;
+  -ms-flex: 35%;
+  flex: 35%;
+}
+
+.emotion-26 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -625,29 +680,29 @@ exports[`AddTagForm should render on new tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-29:first-of-type {
+.emotion-26:first-of-type {
   margin-left: 0;
 }
 
-.emotion-29:disabled {
+.emotion-26:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-29:disabled {
+.emotion-26:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-29:hover:not(:disabled) {
+.emotion-26:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-30 {
+.emotion-27 {
   width: 125px;
 }
 
-.emotion-37 {
+.emotion-34 {
   width: 65%;
 }
 
@@ -691,7 +746,7 @@ exports[`AddTagForm should render on new tag 1`] = `
     class="emotion-2 emotion-3"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-4 denali-input-label emotion-15 emotion-16"
       for="description"
     >
       Tag Value(s)
@@ -700,21 +755,34 @@ exports[`AddTagForm should render on new tag 1`] = `
       class="emotion-7 emotion-8"
     >
       <div
-        class="emotion-9 denali-input animated emotion-10 emotion-11"
-        data-testid="input-wrapper"
+        class="emotion-19 emotion-20"
       >
-        <input
-          autocomplete="off"
-          data-testid="input-node"
-          id="tag-val"
-          name="tag-val"
-          placeholder="Enter New Tag Value"
-          value=""
-        />
         <div
-          class="message"
-          data-testid="message"
-        />
+          class="emotion-9 denali-input animated emotion-22 emotion-23"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="tag-val"
+            name="tag-val"
+            placeholder="Enter New Tag Value"
+            value=""
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+        <div
+          class="emotion-24 emotion-25"
+        >
+          <button
+            class="emotion-26 denali-button emotion-27 emotion-28"
+          >
+            Add
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -725,23 +793,7 @@ exports[`AddTagForm should render on new tag 1`] = `
       class="emotion-4 denali-input-label emotion-5 emotion-6"
     />
     <div
-      class="emotion-27 emotion-28"
-    >
-      <button
-        class="emotion-29 denali-button emotion-30 emotion-31"
-      >
-        Add
-      </button>
-    </div>
-  </div>
-  <div
-    class="emotion-2 emotion-3"
-  >
-    <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
-    />
-    <div
-      class="emotion-37 emotion-38"
+      class="emotion-34 emotion-35"
     />
   </div>
 </div>

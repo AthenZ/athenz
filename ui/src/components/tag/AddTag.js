@@ -16,6 +16,7 @@
 import React from 'react';
 import AddModal from '../modal/AddModal';
 import AddTagForm from './AddTagForm';
+import AppUtils from "../utils/AppUtils";
 
 export default class AddTag extends React.Component {
     constructor(props) {
@@ -28,12 +29,14 @@ export default class AddTag extends React.Component {
                 showModal: !!this.props.showAddTag,
                 tagName: props.editedTagKey,
                 tagValues: props.editedTagValues,
+                newTagValue: ''
             };
         } else {
             this.state = {
                 showModal: !!this.props.showAddTag,
                 tagName: '',
                 tagValues: [],
+                newTagValue: ''
             };
         }
     }
@@ -55,19 +58,29 @@ export default class AddTag extends React.Component {
             return;
         }
 
-        if (!this.state.tagValues || this.state.tagValues.length === 0) {
+        if (!this.state.newTagValue && 
+            (!this.state.tagValues || this.state.tagValues.length === 0)) {
             this.setState({
                 errorMessage: 'Tag value is required.',
             });
             return;
         }
-
-        this.props.addNewTag(this.state.tagName, this.state.tagValues);
+        let notAddedTag = this.state.newTagValue.trim();
+        if (notAddedTag) {
+            let tagValues = AppUtils.deepClone(this.state.tagValues);
+            tagValues.push(notAddedTag);
+            this.setState({
+                tagValues: tagValues,
+            }, () => this.props.addNewTag(this.state.tagName, this.state.tagValues));
+        } else {
+            this.props.addNewTag(this.state.tagName, this.state.tagValues);   
+        }
     }
 
-    onUpdate(tagKey, tagValues) {
+    onUpdate(tagKey, newTagValue, tagValues) {
         this.setState({
             tagName: tagKey,
+            newTagValue: newTagValue,
             tagValues: tagValues,
         });
     }
@@ -88,9 +101,7 @@ export default class AddTag extends React.Component {
                 sections={
                     <AddTagForm
                         api={this.api}
-                        onUpdate={(tagKey, tagValues) =>
-                            this.onUpdate(tagKey, tagValues)
-                        }
+                        onUpdate={(tagKey, newTagValue, tagValues) => this.onUpdate(tagKey, newTagValue, tagValues)}
                         editedTagKey={this.state.tagName}
                         editedTagValues={this.state.tagValues}
                         editMode={this.state.editMode}
