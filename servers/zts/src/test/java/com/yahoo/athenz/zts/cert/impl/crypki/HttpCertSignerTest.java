@@ -10,6 +10,7 @@ import static org.testng.Assert.fail;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -64,7 +65,7 @@ public class HttpCertSignerTest {
     }
     
     @Test
-    public void testGenerateX509CertificateException() throws Exception {
+    public void testGenerateX509CertificateExceptionNoRetry() throws Exception {
  
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
 
@@ -74,8 +75,24 @@ public class HttpCertSignerTest {
         
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenThrow(new IOException());
         assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
-        Mockito.verify(httpClient, times(2)).execute(Mockito.any(HttpPost.class));
+        Mockito.verify(httpClient, times(1)).execute(Mockito.any(HttpPost.class));
         
+        certSigner.close();
+    }
+
+    @Test
+    public void testGenerateX509CertificateExceptionWithRetry() throws Exception {
+
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
+
+        Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenThrow(new ConnectException());
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
+        Mockito.verify(httpClient, times(2)).execute(Mockito.any(HttpPost.class));
+
         certSigner.close();
     }
 
