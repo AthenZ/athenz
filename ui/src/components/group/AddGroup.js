@@ -331,7 +331,6 @@ export default class AddGroup extends React.Component {
                                 <ButtonDiv>
                                     <StyledButton
                                         secondary
-                                        size={'small'}
                                         onClick={this.addMember}
                                     >
                                         Add
