@@ -255,5 +255,38 @@ public class X509RoleCertRequestTest {
         // mismatch proxy user
         assertFalse(certReq.validate(roles, "coretech", "sports.api", "proxy2.user", orgValues));
     }
+
+    @Test
+    public void testRoleCertValidatePrincipalURINoEmail() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_role_principal_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        assertTrue(certReq.validate(Collections.singleton("readers"), "user-domain", "athenz.production", null, null));
+        assertFalse(certReq.validate(Collections.singleton("readers"), "user-domain", "athenz.api", null, null));
+    }
+
+    @Test
+    public void testRoleCertValidatePrincipalURIWithEmail() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_role_principal_uri_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        assertTrue(certReq.validate(Collections.singleton("readers"), "user-domain", "athenz.production", null, null));
+        assertFalse(certReq.validate(Collections.singleton("readers"), "user-domain", "athenz.api", null, null));
+    }
+
+    @Test
+    public void testRoleCertValidatePrincipalURIWithEmailMismatch() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_role_principal_uri_email_mismatch.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        assertFalse(certReq.validate(Collections.singleton("readers"), "user-domain", "athenz.production", null, null));
+        assertFalse(certReq.validate(Collections.singleton("readers"), "user-domain", "athenz.api", null, null));
+    }
 }
 

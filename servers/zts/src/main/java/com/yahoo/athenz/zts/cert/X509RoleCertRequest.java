@@ -20,6 +20,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +31,11 @@ public class X509RoleCertRequest extends X509CertRequest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(X509RoleCertRequest.class);
 
+    protected String rolePrincipal;
+
     public X509RoleCertRequest(String csr) throws CryptoException {
         super(csr);
+        rolePrincipal = X509CertUtils.extractItemFromURI(uris, ZTSConsts.ZTS_CERT_PRINCIPAL_URI);
     }
 
     public Map<String, String[]> getRequestedRoleList() {
@@ -63,11 +67,7 @@ public class X509RoleCertRequest extends X509CertRequest {
             }
 
             final String domainName = roleUri.substring(0, idx);
-            List<String> rolesForDomain = domainRoles.get(domainName);
-            if (rolesForDomain == null) {
-                rolesForDomain = new ArrayList<>();
-                domainRoles.put(domainName, rolesForDomain);
-            }
+            List<String> rolesForDomain = domainRoles.computeIfAbsent(domainName, k -> new ArrayList<>());
             rolesForDomain.add(roleUri.substring(idx + 1));
         }
 
@@ -142,13 +142,44 @@ public class X509RoleCertRequest extends X509CertRequest {
         return true;
     }
 
-    boolean validateEmail(final String principal) {
+    boolean validateRolePrincipal(final String principal) {
+
+        // let's get our email fields which we're going to
+        // use for our principal validation (this is the old
+        // format)
+
+        List<String> emails = Crypto.extractX509CSREmails(certReq);
+
+        // if we already have a principal extracted from the uri
+        // we'll use that for verification
+
+        if (!StringUtil.isEmpty(rolePrincipal)) {
+
+            if (!principal.equalsIgnoreCase(rolePrincipal)) {
+                LOGGER.error("validateRolePrincipal: role principal mismatch {} vs {}", principal, rolePrincipal);
+                return false;
+            }
+
+            // we need to make sure we don't have any email
+            // fields (old format) specified in the request
+            // otherwise we're going to validate that as well
+
+            if (emails.isEmpty()) {
+                return true;
+            }
+        }
+
+        // now let's check if we have an rfc822 field for the principal
+
+        return validateEmail(emails, principal);
+    }
+
+    boolean validateEmail(List<String> emails, final String principal) {
 
         // now let's check if we have an rfc822 field specified in the
         // request. it must be of the following format: principal@[dns-suffix]
         // and we must have only a single value specified
 
-        List<String> emails = Crypto.extractX509CSREmails(certReq);
         if (emails.size() != 1) {
             LOGGER.error("validateRoleCertificateRequest: csr has incorrect number of emails: {}",
                     emails.size());
@@ -178,9 +209,9 @@ public class X509RoleCertRequest extends X509CertRequest {
             return false;
         }
 
-        // now let's check if we have an rfc822 field for the principal
+        // now let's check if we have a valid role principal
 
-        if (!validateEmail(principal)) {
+        if (!validateRolePrincipal(principal)) {
             return false;
         }
 

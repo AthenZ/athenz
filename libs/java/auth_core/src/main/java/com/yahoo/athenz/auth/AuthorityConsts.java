@@ -33,6 +33,8 @@ public final class AuthorityConsts {
     public static final String ATHENZ_PROP_USER_DOMAIN = "athenz.user_domain";
     public static final String ATHENZ_PROP_RESTRICTED_OU = "athenz.crypto.restricted_ou";
 
+    public static final String ZTS_CERT_PRINCIPAL_URI    = "athenz://principal/";
+
     // prevent object creation
     private AuthorityConsts() {
     }
