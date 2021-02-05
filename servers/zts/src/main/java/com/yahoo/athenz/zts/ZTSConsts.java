@@ -175,6 +175,7 @@ public final class ZTSConsts {
     public static final String ZTS_CERT_INSTANCE_ID_DNS  = ".instanceid.athenz.";
     public static final String ZTS_CERT_INSTANCE_ID_URI  = "athenz://instanceid/";
     public static final String ZTS_CERT_HOSTNAME_URI     = "athenz://hostname/";
+    public static final String ZTS_CERT_PRINCIPAL_URI    = "athenz://principal/";
     public static final String ZTS_CERT_SPIFFE_URI       = "spiffe://";
     public static final String ZTS_CERT_ROLE_URI         = "athenz://role/";
     public static final String ZTS_CERT_PROXY_USER_URI   = "athenz://proxyuser/";
