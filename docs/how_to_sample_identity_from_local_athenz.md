@@ -10,31 +10,59 @@ As part of local set up, an example domain by the name "athenz" is created and "
 
 To see the workflow of obtaining a service identity certificate from Athenz, please use following steps -
 
-* Create a public private key pair, register the new service and its public key in Athenz Management Service
+* Download latest Athenz Utils & add it in the current shell PATH variable
 
 ```shell
-docker run --rm -t --network="athenz" -v "$(git rev-parse --show-toplevel):/athenz" --user "$(id -u):$(id -g)" athenz/athenz-setup-env sh /athenz/docker/setup-scripts/sample-identity/sample-service-setup.sh
+latestVer=$(curl -Ls -o /dev/null -w %{url_effective} https://bintray.com/yahoo/maven/athenz-utils/_latestVersion\#files | cut -d'/' -f 7)
+athenzUtilsLocation=$(mktemp -d)
+curl -Ls https://bintray.com/yahoo/maven/download_file?file_path=com%2Fyahoo%2Fathenz%2Fathenz-utils%2F$latestVer%2Fathenz-utils-$latestVer-bin.tar.gz -o $athenzUtilsLocation/athenz-utils-$latestVer.tar.gz
+tar -xf $athenzUtilsLocation/athenz-utils-$latestVer.tar.gz -C $athenzUtilsLocation
+export PATH=$athenzUtilsLocation/athenz-utils-$latestVer/bin/`uname`:$PATH
+```
+
+* Create a public private key pair, register the new service and its public key in Athenz Management Service. Athenz Management Service (ZMS) is running inside a docker container exposed over local port 4443. 
+
+```shell
+mkdir -p docker/sample/example-service
+openssl genrsa -out docker/sample/example-service/athenz.example-service.key.pem 4096 2> /dev/null
+openssl rsa -pubout -in docker/sample/example-service/athenz.example-service.key.pem -out docker/sample/example-service/athenz.example-service.pub.pem
+zms-cli -z https://127.0.0.1:4443/zms/v1 -cert docker/sample/domain-admin/team_admin_cert.pem -key docker/sample/domain-admin/team_admin_key.pem \
+      -d athenz add-service example-service v0 docker/sample/example-service/athenz.example-service.pub.pem
 ```
 
 Now to obtain a service identity certificate, first domain admin needs to allow a provider. Athenz uses a generalized model for service providers to launch other service identities in an authorized way through a callback-based verification model.
 For more details please refer to [copper argos](copper_argos.md)
+In this case we will be using Athenz Token Service itself as a provider. In production, it can be any provider like Kubernetes, Openstack, AWS EC2 etc.
 
-In this case we will be using Athenz Token Service itself as a provider. In production it can be any provider like Kubernetes, Openstack, AWS EC2 etc.
-
-Add Athenz Token Service as a provider
+* Add Athenz Token Service as a provider
 
 ```shell
 docker run --rm -t --network="athenz" -v "$(git rev-parse --show-toplevel):/athenz" --user "$(id -u):$(id -g)" athenz/athenz-setup-env sh /athenz/docker/setup-scripts/sample-identity/zts-provider-setup.sh
 ```
 
-Domain administrators has a full control over which provider they can authorize to launch their domains' services. Run following command to authorize Athenz Token Service to provide identity certificate for the service created previously
+* Domain administrators have a full control over which provider they can authorize to launch their domains' services. Run following command to authorize Athenz Token Service to issue identity certificates for the service created previously
 
 ```shell
-docker run --rm -t --network="athenz" -v "$(git rev-parse --show-toplevel):/athenz" --user "$(id -u):$(id -g)" athenz/athenz-setup-env sh /athenz/docker/setup-scripts/sample-identity/launch-authorization.sh
+zms-cli -z https://127.0.0.1:4443/zms/v1 -cert docker/sample/domain-admin/team_admin_cert.pem -key docker/sample/domain-admin/team_admin_key.pem \
+      -d athenz set-domain-template zts_instance_launch_provider service=example-service
 ```
 
-Use `zts-svccert` utility to obtain the service identity certificate from Athenz. Athenz also provides agents which can do this for you automatically. 
+Wait for 1-2 minutes for Athenz Token Service to receive the launch authorization changes from Management Service. Athenz Token Service (ZTS) is running inside a docker container exposed over local port 8443.
+
+* Use `zts-svccert` utility to obtain the service identity certificate from Athenz. Athenz also provides agents which can do this for you automatically. 
 
 ```shell
-docker run --rm -t --network="athenz" -v "$(git rev-parse --show-toplevel):/athenz" --user "$(id -u):$(id -g)" athenz/athenz-setup-env sh /athenz/docker/setup-scripts/sample-identity/obtain-identity.sh
+zts-svccert -domain athenz -service example-service \
+      -private-key docker/sample/example-service/athenz.example-service.key.pem -key-version v0 -zts https://127.0.0.1:8443/zts/v1 \
+      -dns-domain zts.athenz.cloud -cert-file docker/sample/example-service/athenz.example-service.cert.pem \
+      -cacert docker/sample/CAs/athenz_ca.pem -provider sys.auth.zts -instance instance123
+```
+
+!!! Note
+    If you get an error message - "403 provider 'sys.auth.zts' not authorized to launch instances in Athenz", wait for another minute or so for Token Service to receive changes from Management Service.
+
+* Verify the Common Name ( CN ) in the certificate
+
+```shell
+openssl x509 -in docker/sample/example-service/athenz.example-service.cert.pem -noout -subject
 ```
