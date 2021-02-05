@@ -31,16 +31,3 @@ git clone https://github.com/AthenZ/athenz.git
 
 Access the UI at https://localhost. For your convenience local set up uses a TestUserAuthority which accepts any username and password as far as it's a same string.
    To look at a pre-created "athenz" domain during start up, login with "athenz-admin" as username and password.
-
-
-To experience getting an identity x.509 certificate from Athenz, perform following steps -
-
-```shell
-docker run --rm -t --network="athenz" -v "$(git rev-parse --show-toplevel):/athenz" --user "$(id -u):$(id -g)" athenz/athenz-setup-env sh /athenz/docker/setup-scripts/sample-identity.sh
-```
-This script will -
-
-* generate a public private key pair
-* register a new service ( example-service ) in the "athenz" domain with the generated public key
-* set up Athenz Token Service as an identity provider
-* get the x.509 identity certificate from Athenz for the example-service
