@@ -15,7 +15,7 @@
     
     
       
-        <title>ZTS OAuth2 Access Token Client - Athenz</title>
+        <title>Principal Groups - Athenz</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#overview" class="md-skip">
+        <a href="#resource-uri" class="md-skip">
           Skip to content
         </a>
       
@@ -87,7 +87,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              ZTS OAuth2 Access Token Client
+              Principal Groups
             
           </span>
         </div>
@@ -406,10 +406,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" checked>
     
     <label class="md-nav__link" for="nav-2">
       Management
@@ -547,11 +549,86 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="../principal_groups/" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Principal Groups
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="./" class="md-nav__link md-nav__link--active">
       Principal Groups
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#resource-uri" class="md-nav__link">
+    Resource URI
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#group-management" class="md-nav__link">
+    Group Management
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#governance-audit-support" class="md-nav__link">
+    Governance / Audit Support
+  </a>
+  
+    <nav class="md-nav" aria-label="Governance / Audit Support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#audit-enabled-mode" class="md-nav__link">
+    Audit Enabled Mode
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#review-enabled-mode" class="md-nav__link">
+    Review Enabled Mode
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-service-mode" class="md-nav__link">
+    Self Service Mode
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -1044,12 +1121,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
     
     <label class="md-nav__link" for="nav-9">
       User Guide
@@ -1103,79 +1178,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        ZTS OAuth2 Access Token Client
-        <span class="md-nav__icon md-icon"></span>
-      </label>
-    
-    <a href="./" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../zts_accesstoken/" class="md-nav__link">
       ZTS OAuth2 Access Token Client
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    Overview
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#getting-software" class="md-nav__link">
-    Getting Software
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    Prerequisites
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    Usage
-  </a>
-  
-    <nav class="md-nav" aria-label="Usage">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#using-athenz-identity-x509-certificates" class="md-nav__link">
-    Using Athenz Identity X.509 Certificates
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -1292,37 +1299,44 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    Overview
+  <a href="#resource-uri" class="md-nav__link">
+    Resource URI
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-software" class="md-nav__link">
-    Getting Software
+  <a href="#group-management" class="md-nav__link">
+    Group Management
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    Prerequisites
+  <a href="#governance-audit-support" class="md-nav__link">
+    Governance / Audit Support
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    Usage
-  </a>
-  
-    <nav class="md-nav" aria-label="Usage">
+    <nav class="md-nav" aria-label="Governance / Audit Support">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#using-athenz-identity-x509-certificates" class="md-nav__link">
-    Using Athenz Identity X.509 Certificates
+  <a href="#audit-enabled-mode" class="md-nav__link">
+    Audit Enabled Mode
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#review-enabled-mode" class="md-nav__link">
+    Review Enabled Mode
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-service-mode" class="md-nav__link">
+    Self Service Mode
   </a>
   
 </li>
@@ -1344,48 +1358,78 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/zts_accesstoken.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/principal_groups.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                  <h1>ZTS OAuth2 Access Token Client</h1>
+                  <h1>Principal Groups</h1>
                 
-                <ul>
-<li><a href="#overview">Overview</a></li>
-<li><a href="#getting-software">Getting Software</a></li>
-<li><a href="#prerequisites">Prerequisites</a></li>
-<li><a href="#usage">Usage</a></li>
-</ul>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<hr />
-<p>ZTS OAuth2 Access Token Client application in Go to request an access token from
-ZTS Server for the given identity to access a role in a provider domain.</p>
-<h2 id="getting-software">Getting Software<a class="headerlink" href="#getting-software" title="Permanent link">&para;</a></h2>
-<hr />
-<p>Download latest ZTS OAuth2 Access Token Client binary release from Bintray - click
-on the <code>Files</code> tab, choose the latest version directory and then
-download the <code>athenz-utils-&lt;latest-version&gt;-bin.tar.gz</code> file::</p>
-<p><a href="https://bintray.com/yahoo/maven/athenz-utils/_latestVersion"> <img alt="Download" src="https://api.bintray.com/packages/yahoo/maven/athenz-utils/images/download.svg" /> </a></p>
-<div class="highlight"><pre><span></span><code>$ tar xvfz athenz-utils-X.Y-bin.tar.gz
+                <p>To simplify management of principals in roles, the users and services can be included
+in Groups. Then, the Group can be added as a principal to any role
+within Athenz thus granting the members of that group access to the configured
+resources.</p>
+<p>For example, if you need to add your development team members to
+multiple roles in your domain, you can create a group called <code>dev-team</code>, add
+those users into that group and then include the group as a member in the
+corresponding roles. When you need to remove or add a member, then you only
+need to modify the membership of your <code>dev-team</code> group. The groups cannot
+contain other groups.</p>
+<h2 id="resource-uri">Resource URI<a class="headerlink" href="#resource-uri" title="Permanent link">&para;</a></h2>
+<p>The groups are identified in Athenz with the following resource uri:</p>
+<div class="highlight"><pre><span></span><code>&lt;domain&gt;:group.&lt;group-name&gt;
 </code></pre></div>
-<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
-<hr />
-<p>Before you can use the ZTS AccessToken utility, you need to have
-asked the Athenz administrators to create your top level domain.</p>
-<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
-<hr />
-<p>An access token from ZTS service can be fetched using Service Identity x.509 certificates.</p>
-<p>The optional <code>expire-time</code> argument specifies how long the access
-token should be valid for. The value must be specified in minutes. The
-default if no value is specified is 120 minutes.</p>
-<p>The optional <code>roles</code> argument requests an access token for the given roles
-only (comma separated) as opposed to all the roles the service identity has
-access to in the requested domain.</p>
-<p>The optional <code>service</code> argument requests an id token for the given service.
-The full <code>domain.service</code> value will be set as the audience for the id token.</p>
-<h3 id="using-athenz-identity-x509-certificates">Using Athenz Identity X.509 Certificates<a class="headerlink" href="#using-athenz-identity-x509-certificates" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>$ zts-accesstoken -domain &lt;domain&gt; [-roles &lt;roles&gt;] [-service &lt;service&gt;] -svc-key-file &lt;private-key-file&gt; -svc-cert-file &lt;service-cert-file&gt; -zts &lt;ZTS url&gt; [-expire-time &lt;expire-time-in-mins&gt;]
+<h2 id="group-management">Group Management<a class="headerlink" href="#group-management" title="Permanent link">&para;</a></h2>
+<p>The group name can only include alpha numeric characters including - and _. Currently,
+groups can only be provisioned with <code>zms-cli</code> command line utility:</p>
+<div class="highlight"><pre><span></span><code>zms-cli -d &lt;domain-name&gt; add-group &lt;group-name&gt; &lt;member&gt; [&lt;member&gt; ...]
+</code></pre></div>
+<p>Once provisioned, they can be added to any role as a regular member. For example,
+if I need to create a group called <code>dev-team</code> in my <code>sports</code> domain and add it to
+my <code>readers</code> role in <code>fantasy</code> domain, I would execute the following zms-cli commands:</p>
+<div class="highlight"><pre><span></span><code>zms-cli -d sports add-group dev-team user.hga user.pgote
+zms-cli -d fantasy add-member readers sports:group.dev-team
+</code></pre></div>
+<p>Similar to roles api, groups can be managed by adding and removing members:</p>
+<div class="highlight"><pre><span></span><code>zms-cli -d &lt;domain-name&gt; add-group-member &lt;group-name&gt; &lt;member&gt; [&lt;member&gt; ...]
+zms-cli -d &lt;domain-name&gt; delete-group-member &lt;group-name&gt; &lt;member&gt; [&lt;member&gt; ...]
+</code></pre></div>
+<p>To enforce the least privilege access principle, there are several restrictions placed on groups:</p>
+<ul>
+<li>You cannot use wildcards <code>*</code> when adding members to a group.</li>
+<li>The ZMS Server will verify that all users and services are valid before
+  they can be added to a group.</li>
+<li>Groups are not allowed to be added to admin groups. We strongly recommend limiting
+  the number of users who are identified as domain administrators.</li>
+<li>Groups cannot include other groups (no inheritance). However, a role can include
+  multiple groups as a member, and those groups could be from different domains.</li>
+<li>Groups cannot be references in policies. They can only be added as members of a role.</li>
+<li>Groups cannot be deleted if they're referenced in other roles. The domain
+  administrator must first remove the group as a member (the role might be in a different
+  domain) before deleting it.</li>
+<li>Groups do not support temporary members. If you need to give temporary access to
+  a specific principal, that principal with expiration must be added to the role directly.</li>
+</ul>
+<h2 id="governance-audit-support">Governance / Audit Support<a class="headerlink" href="#governance-audit-support" title="Permanent link">&para;</a></h2>
+<p>Similar to roles, groups support multiple features to satisfy auditing and governance requirements:</p>
+<h3 id="audit-enabled-mode">Audit Enabled Mode<a class="headerlink" href="#audit-enabled-mode" title="Permanent link">&para;</a></h3>
+<p>If the domain is marked as audit enabled, then specific groups within that domain can
+also be set in audit enabled mode thus requiring an explicit approval process for any
+member addition to that group.</p>
+<div class="highlight"><pre><span></span><code>zms-cli -d &lt;domain-name&gt; set-group-audit-enabled &lt;group-name&gt; true
+</code></pre></div>
+<p>Unlike a regular group, when any one of the domain administrators adds a user
+in an audit enabled group, it will be added in pending/inactive state until it is
+approved by one of the organization approvers configured for the domain.</p>
+<h3 id="review-enabled-mode">Review Enabled Mode<a class="headerlink" href="#review-enabled-mode" title="Permanent link">&para;</a></h3>
+<p>The domain administrator can also mark a group as review enabled thus requiring two
+domain administrator approvals before a principal is added to a group.</p>
+<div class="highlight"><pre><span></span><code>zms-cli -d &lt;domain-name&gt; set-group-review-enabled &lt;group-name&gt; true
+</code></pre></div>
+<h3 id="self-service-mode">Self Service Mode<a class="headerlink" href="#self-service-mode" title="Permanent link">&para;</a></h3>
+<p>The users can only add themselves to any self-served groups. Their access is not active
+until one of the domain administrators approves the request.</p>
+<div class="highlight"><pre><span></span><code>zms-cli -d &lt;domain-name&gt; set-group-self-serve &lt;group-name&gt; true
 </code></pre></div>
                 
               
@@ -1405,7 +1449,7 @@ The full <code>domain.service</code> value will be set as the audience for the i
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../zts_rolecert/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../athenz_templates/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
             </div>
@@ -1414,19 +1458,19 @@ The full <code>domain.service</code> value will be set as the audience for the i
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                ZTS Role Certificate Client Utility
+                Athenz Templates
               </div>
             </div>
           </a>
         
         
-          <a href="../reg_service_guide/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../service_x509_credentials_aws/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Registering ZMS Service Identity
+                Athenz Service Identity X.509 Certificate for AWS EC2 instances
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
