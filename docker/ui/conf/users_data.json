@@ -1,14 +1,14 @@
 [
     {
         "is_human": 1,
-        "login": "user.github-7654321",
-        "gecos": "Default Admin",
+        "login": "user.github-<REPLACE>",
+        "gecos": "System Admin",
         "enabled_status": 1
     },
     {
         "is_human": 1,
-        "login": "user.uiuser",
-        "gecos": "UI User",
+        "login": "user.athenz-admin",
+        "gecos": "Athenz Admin",
         "enabled_status": 1
     }
 ]
