@@ -24,12 +24,12 @@ import com.yahoo.athenz.common.server.notification.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -128,7 +128,7 @@ public class EmailNotificationService implements NotificationService {
         // Add subject, from and to lines.
         message.setSubject(subject, CHARSET_UTF_8);
         message.setFrom(new InternetAddress(from));
-        message.setRecipients(javax.mail.Message.RecipientType.BCC, InternetAddress.parse(String.join(",", recipients)));
+        message.setRecipients(jakarta.mail.Message.RecipientType.BCC, InternetAddress.parse(String.join(",", recipients)));
 
         // Set the HTML part.
         MimeBodyPart htmlPart = new MimeBodyPart();
