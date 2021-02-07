@@ -105,7 +105,7 @@ export default class AddTagForm extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
-
+        AppUtils.bindClassMethods(this);
         if (props.editedTagKey && props.editedTagValues) {
             this.state = {
                 newTagValue: '',
@@ -185,9 +185,11 @@ export default class AddTagForm extends React.Component {
     render() {
         let tagValues = this.state.tagValues
             ? this.state.tagValues.map((val, idx) => {
-                  let remove = this.removeValue.bind(this, idx);
                   return (
-                      <StyledTagColor key={val} onClickRemove={remove}>
+                      <StyledTagColor
+                          key={val}
+                          onClickRemove={() => this.removeValue(idx)}
+                      >
                           <StyledAnchor style={StyledAnchorActiveInline}>
                               {' '}
                               {val}{' '}
@@ -235,7 +237,7 @@ export default class AddTagForm extends React.Component {
                                 <StyledButton
                                     secondary
                                     size={'small'}
-                                    onClick={() => this.addTagValue()}
+                                    onClick={this.addTagValue}
                                 >
                                     Add
                                 </StyledButton>

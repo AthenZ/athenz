@@ -22,7 +22,7 @@ export default class AddTag extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;
-
+        AppUtils.bindClassMethods(this);
         if (props.editedTagKey && props.editedTagValues) {
             this.state = {
                 editMode: true,
@@ -102,7 +102,7 @@ export default class AddTag extends React.Component {
             <AddModal
                 isOpen={this.state.showModal}
                 cancel={this.props.onCancel}
-                submit={() => this.onSubmit()}
+                submit={this.onSubmit}
                 title={title}
                 errorMessage={
                     this.props.errorMessage || this.state.errorMessage
@@ -110,9 +110,7 @@ export default class AddTag extends React.Component {
                 sections={
                     <AddTagForm
                         api={this.api}
-                        onUpdate={(tagKey, newTagValue, tagValues) =>
-                            this.onUpdate(tagKey, newTagValue, tagValues)
-                        }
+                        onUpdate={this.onUpdate}
                         editedTagKey={this.state.tagName}
                         editedTagValues={this.state.tagValues}
                         editMode={this.state.editMode}

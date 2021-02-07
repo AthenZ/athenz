@@ -63,6 +63,7 @@ export default class TagList extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
+        AppUtils.bindClassMethods(this);
         this.state = {
             category: props.category,
             tags: props.tags || {},
@@ -340,12 +341,8 @@ export default class TagList extends React.Component {
                     api={this.api}
                     _csrf={this.props._csrf}
                     onClickDeleteTag={() => this.onClickDeleteTag(tagKey)}
-                    onClickDeleteTagValue={(tagKey, tagValue) =>
-                        this.onClickDeleteTagValue(tagKey, tagValue)
-                    }
-                    onClickEditTag={(tagKey, tagValues) =>
-                        this.onClickEditTag(tagKey, tagValues)
-                    }
+                    onClickDeleteTagValue={this.onClickDeleteTagValue}
+                    onClickEditTag={this.onClickEditTag}
                 />
             );
             return toReturn;
@@ -355,7 +352,7 @@ export default class TagList extends React.Component {
             <AddTag
                 showAddTag={this.state.showAddTag}
                 editMode={this.state.editMode}
-                onCancel={() => this.closeAddTag()}
+                onCancel={this.closeAddTag}
                 resource={
                     this.state.category === 'domain'
                         ? this.props.domain
@@ -363,13 +360,11 @@ export default class TagList extends React.Component {
                 }
                 api={this.api}
                 _csrf={this.props._csrf}
-                addNewTag={(tagName, tagValues) =>
-                    this.addNewTag(tagName, tagValues)
-                }
+                addNewTag={this.addNewTag}
                 editedTagKey={this.state.editedTagKey}
                 editedTagValues={this.state.editedTagValues}
                 errorMessage={this.state.errorMessage}
-                validateTagExist={(tagName) => this.validateTagExist(tagName)}
+                validateTagExist={this.validateTagExist}
             />
         ) : (
             ''
@@ -378,7 +373,7 @@ export default class TagList extends React.Component {
             <TagsSectionDiv data-testid='tag-list'>
                 <AddContainerDiv>
                     <div>
-                        <Button secondary onClick={() => this.openAddTag()}>
+                        <Button secondary onClick={this.openAddTag}>
                             Add Tag
                         </Button>
                         {addTag}
@@ -411,7 +406,7 @@ export default class TagList extends React.Component {
                     <Alert
                         isOpen={this.state.showSuccess}
                         title={this.state.successMessage}
-                        onClose={() => this.closeModal()}
+                        onClose={this.closeModal}
                         type='success'
                     />
                 ) : null}
@@ -419,8 +414,8 @@ export default class TagList extends React.Component {
                     <DeleteModal
                         name={this.state.deleteTagName}
                         isOpen={this.state.showDelete}
-                        cancel={() => this.onCancelDeleteTag()}
-                        submit={() => this.onSubmitDeleteTag()}
+                        cancel={this.onCancelDeleteTag}
+                        submit={this.onSubmitDeleteTag}
                         errorMessage={this.state.errorMessage}
                         message={
                             'Are you sure you want to permanently delete the Tag '
@@ -431,8 +426,8 @@ export default class TagList extends React.Component {
                     <DeleteModal
                         name={this.state.deleteTagValue}
                         isOpen={this.state.showDeleteTagValue}
-                        cancel={() => this.onCancelDeleteTagValue()}
-                        submit={() => this.onSubmitDeleteTag()}
+                        cancel={this.onCancelDeleteTagValue}
+                        submit={this.onSubmitDeleteTag}
                         errorMessage={this.state.errorMessage}
                         message={`Are you sure you want to permanently delete the Tag Value `}
                     />

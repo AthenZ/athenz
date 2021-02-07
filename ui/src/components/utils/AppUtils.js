@@ -18,6 +18,25 @@ class AppUtils {
     static deepClone(obj) {
         return JSON.parse(JSON.stringify(obj));
     }
+
+    /**
+     * Iterate through a class methods and binds them to itself
+     * @param classObj - the class object to bind
+     */
+    static bindClassMethods(classObj) {
+        const prototype = classObj.constructor.prototype;
+        const propertyNames = Object.getOwnPropertyNames(
+            Object.getPrototypeOf(classObj)
+        );
+        for (const prop of propertyNames) {
+            if (
+                prop !== 'constructor' &&
+                typeof prototype[prop] === 'function'
+            ) {
+                classObj[prop] = classObj[prop].bind(classObj);
+            }
+        }
+    }
 }
 
 export default AppUtils;
