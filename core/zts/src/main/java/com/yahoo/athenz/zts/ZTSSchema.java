@@ -444,7 +444,7 @@ public class ZTSSchema {
 ;
 
         sb.resource("RoleCertificateRequest", "POST", "/domain/{domainName}/role/{roleName}/token")
-            .comment("Return a TLS certificate for the specific role in the namespace that the principal can assume. Role certificates are valid for 30 days by default")
+            .comment("Return a TLS certificate for the specific role in the namespace that the principal can assume. Role certificates are valid for 30 days by default. This is deprecated and \"POST /rolecert\" api should be used instead.")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of role")
             .input("req", "RoleCertificateRequest", "csr request")
@@ -666,7 +666,7 @@ public class ZTSSchema {
 ;
 
         sb.resource("RoleCertificateRequest", "POST", "/rolecert")
-            .comment("Return a TLS certificate for the list of roles that the principal can assume. Role certificates are valid for 7 days by default The principal is in the CN field of the Subject and the SAN URI field contains the athenz roles the principal can assume")
+            .comment("Return a TLS certificate for a role that the principal can assume. The role arn is in the CN field of the Subject and the principal is in the SAN URI field.")
             .name("PostRoleCertificateRequestExt")
             .input("req", "RoleCertificateRequest", "csr request")
             .auth("", "", true)

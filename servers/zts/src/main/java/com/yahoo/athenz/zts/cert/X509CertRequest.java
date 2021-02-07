@@ -59,7 +59,6 @@ public class X509CertRequest {
             throw new CryptoException("Invalid csr provided");
         }
 
-
         // extract the dns names but we can't process them now
         // since we need to know what the provider and domain
         // allowed dns suffix values
@@ -89,6 +88,7 @@ public class X509CertRequest {
         }
 
         // extract and set uriHostname, if present
+
         uriHostname = X509CertUtils.extractItemFromURI(uris, ZTSConsts.ZTS_CERT_HOSTNAME_URI);
 
         // extract instanceId

@@ -271,7 +271,7 @@ public class ZTSResources {
     @Path("/domain/{domainName}/role/{roleName}/token")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Return a TLS certificate for the specific role in the namespace that the principal can assume. Role certificates are valid for 30 days by default")
+    @Operation(description = "Return a TLS certificate for the specific role in the namespace that the principal can assume. Role certificates are valid for 30 days by default. This is deprecated and \"POST /rolecert\" api should be used instead.")
     public RoleToken postRoleCertificateRequest(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of role", required = true) @PathParam("roleName") String roleName,
@@ -777,7 +777,7 @@ public class ZTSResources {
     @Path("/rolecert")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Return a TLS certificate for the list of roles that the principal can assume. Role certificates are valid for 7 days by default The principal is in the CN field of the Subject and the SAN URI field contains the athenz roles the principal can assume")
+    @Operation(description = "Return a TLS certificate for a role that the principal can assume. The role arn is in the CN field of the Subject and the principal is in the SAN URI field.")
     public RoleCertificate postRoleCertificateRequestExt(
         @Parameter(description = "csr request", required = true) RoleCertificateRequest req) {
         int code = ResourceException.OK;

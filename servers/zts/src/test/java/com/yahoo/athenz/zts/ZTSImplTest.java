@@ -52,7 +52,6 @@ import com.yahoo.athenz.zts.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.MockCloudStore;
 import com.yahoo.athenz.zts.store.MockZMSFileChangeLogStore;
-import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -3853,28 +3852,15 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testValidateRoleCertificateRequestMismatchRole() throws IOException {
-        
-        Path path = Paths.get("src/test/resources/valid_email.csr");
-        String csr = new String(Files.readAllBytes(path));
-
-        Set<String> roles = new HashSet<>();
-        roles.add("writer");
-        zts.validCertSubjectOrgValues = null;
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
-                null, null, "10.0.0.1"));
-    }
-    
-    @Test
     public void testValidateRoleCertificateRequestMismatchEmail() throws IOException {
         
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        Set<String> roles = new HashSet<>();
-        roles.add("readers");
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+
         zts.validCertSubjectOrgValues = null;
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.standings",
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports.standings",
                 null, null, "10.0.0.1"));
     }
     
@@ -3884,10 +3870,10 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_noemail.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        Set<String> roles = new HashSet<>();
-        roles.add("readers");
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+
         zts.validCertSubjectOrgValues = null;
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "no-email", null,
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "no-email", null,
                 null, "10.0.0.1"));
     }
 
@@ -3897,13 +3883,12 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        Set<String> roles = new HashSet<>();
-        roles.add("readers");
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("InvalidCompany");
         zts.validCertSubjectOrgValues = validOValues;
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports.scores",
                 null, null, "10.0.0.1"));
     }
 
@@ -3913,16 +3898,16 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        Set<String> roles = new HashSet<>();
-        roles.add("readers");
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+
         zts.validCertSubjectOrgValues = null;
-        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports.scores",
                 null, null, "10.0.0.1"));
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("Athenz");
         zts.validCertSubjectOrgValues = validOValues;
-        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores", null,
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports.scores", null,
                 null, "10.0.0.1"));
     }
 
@@ -3932,8 +3917,6 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        Set<String> roles = new HashSet<>();
-        roles.add("readers");
         zts.validCertSubjectOrgValues = null;
 
         Set<String> ouValues = new HashSet<>();
@@ -3941,12 +3924,11 @@ public class ZTSImplTest {
         zts.validCertSubjectOrgUnitValues = ouValues;
         zts.verifyCertSubjectOU = true;
 
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
-                null, null, "10.0.0.1"));
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports.scores", null, null, "10.0.0.1"));
 
         ouValues.add("Testing Domain");
-        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
-                null, null, "10.0.0.1"));
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports.scores", null, null, "10.0.0.1"));
     }
 
     @Test
@@ -3958,32 +3940,32 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        Set<String> roles = new HashSet<>();
-        roles.add("readers");
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
 
         // if the CSR has hostname, but the cert doesn't have hostname, it should result in false
-        assertFalse(zts.validateRoleCertificateRequest(csr, "athenz.examples", roles, "athenz.examples.httpd",
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "athenz.examples.httpd",
                 null, cert, "10.0.0.1"));
 
         path = Paths.get("src/test/resources/athenz.examples.uri-hostname-only.pem");
         pem = new String(Files.readAllBytes(path));
         cert = Crypto.loadX509Certificate(pem);
 
-        assertTrue(zts.validateRoleCertificateRequest(csr, "athenz.examples", roles, "athenz.examples.httpd",
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "athenz.examples.httpd",
                 null, cert, "10.0.0.1"));
 
         path = Paths.get("src/test/resources/athenz.examples.role-uri-instanceid-hostname.csr");
         csr = new String(Files.readAllBytes(path));
+        certReq = new X509RoleCertRequest(csr);
 
         // if CSR has hostname+instanceid, and cert has only hostname, it should result in false
-        assertFalse(zts.validateRoleCertificateRequest(csr, "athenz.examples", roles, "athenz.examples.httpd",
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "athenz.examples.httpd",
                 null, cert, "10.0.0.1"));
 
         path = Paths.get("src/test/resources/athenz.examples.uri-instanceid-hostname.pem");
         pem = new String(Files.readAllBytes(path));
         cert = Crypto.loadX509Certificate(pem);
 
-        assertTrue(zts.validateRoleCertificateRequest(csr, "athenz.examples", roles, "athenz.examples.httpd",
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "athenz.examples.httpd",
                 null, cert, "10.0.0.1"));
     }
 
@@ -4039,8 +4021,8 @@ public class ZTSImplTest {
         pem = new String(Files.readAllBytes(path));
         X509Certificate invalidCert = Crypto.loadX509Certificate(pem);
 
-        Set<String> roles = new HashSet<>();
-        roles.add("readers");
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+
         zts.validCertSubjectOrgValues = null;
 
         Set<String> ouValues = new HashSet<>();
@@ -4048,10 +4030,10 @@ public class ZTSImplTest {
         zts.validCertSubjectOrgUnitValues = ouValues;
         zts.verifyCertSubjectOU = true;
 
-        assertFalse(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "sports.scores",
                 null, invalidCert, "10.0.0.1"));
 
-        assertTrue(zts.validateRoleCertificateRequest(csr, "sports", roles, "sports.scores",
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "sports.scores",
                 null, validCert, "10.0.0.1"));
     }
 
@@ -4065,25 +4047,55 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        Set<String> roles = new HashSet<>();
-        roles.add("writers");
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
 
         // disable IP validation and we should get success
 
         zts.verifyCertRequestIP = false;
         zts.validCertSubjectOrgValues = null;
-        assertTrue(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "athenz.production",
                 null, cert, "10.11.12.13"));
-        assertTrue(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "athenz.production",
                 null, cert, "10.11.12.14"));
 
         // enable validation and the mismatch one should fail
 
         zts.verifyCertRequestIP = true;
-        assertTrue(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
+        assertTrue(zts.validateRoleCertificateRequest(certReq, "athenz.production",
                 null, cert, "10.11.12.13"));
-        assertFalse(zts.validateRoleCertificateRequest(csr, "athenz", roles, "athenz.production",
+        assertFalse(zts.validateRoleCertificateRequest(certReq, "athenz.production",
                 null, cert, "10.11.12.14"));
+    }
+
+    @Test
+    public void testProcessRoleCertificateRequestFailedValidation() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        RoleCertificateRequest req = new RoleCertificateRequest();
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(ROLE_CERT_CORETECH_REQUEST);
+
+        Set<String> origUnitValues = zts.validCertSubjectOrgUnitValues;
+        boolean verifyCertSubjectOU = zts.verifyCertSubjectOU;
+
+        zts.verifyCertSubjectOU = true;
+        zts.validCertSubjectOrgUnitValues = new HashSet<>();
+
+        try {
+            zts.processRoleCertificateRequest(context, principal, "user_domain", certReq, null, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+        }
+
+        zts.verifyCertSubjectOU = verifyCertSubjectOU;
+        zts.validCertSubjectOrgUnitValues = origUnitValues;
     }
 
     @Test
@@ -4111,6 +4123,127 @@ public class ZTSImplTest {
         // allow 10 sec offset (output is in seconds while input was in minutes)
         long diffExpiryTime = roleToken.getExpiryTime() - System.currentTimeMillis() / 1000;
         assertTrue(Math.abs(diffExpiryTime - expiry * 60) < 10);
+    }
+
+    @Test
+    public void testPostRoleCertificateRequestUnauthorizedRole() {
+
+        long expiry = 3600;
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        // user101 does not have access to role readers
+
+        Principal principal = SimplePrincipal.create("user_domain", "user101",
+                "v=U1;d=user_domain;n=user101;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "readers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
+            assertTrue(ex.getMessage().contains("is not included in the requested role(s)"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateRequestUnknownDomain() {
+
+        long expiry = 3600;
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "readers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(404, ex.getCode());
+            assertTrue(ex.getMessage().contains("No such domain: coretech"));
+        }
+    }
+
+    @Test
+    public void testPostRoleCertificateRequestFailValidation() {
+
+        // this csr is for sports:role.readers role
+        long expiry = 3600;
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        RoleToken roleToken = zts.postRoleCertificateRequest(context, "coretech",
+                "readers", req);
+        assertNotNull(roleToken);
+        // allow 10 sec offset (output is in seconds while input was in minutes)
+        long diffExpiryTime = roleToken.getExpiryTime() - System.currentTimeMillis() / 1000;
+        assertTrue(Math.abs(diffExpiryTime - expiry * 60) < 10);
+    }
+
+    @Test
+    public void testPostRoleCertificateRequestInvalidCSR() throws IOException {
+
+        long expiry = 3600;
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(csr).setExpiryTime(expiry);
+
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        // invalid csr due to service cn instead of cn
+
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "readers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("Unable to parse PKCS10 CSR"));
+        }
+
+        // invalid csr
+
+        req.setCsr("invalid-csr");
+        try {
+            zts.postRoleCertificateRequest(context, "coretech", "readers", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("Unable to parse PKCS10 CSR"));
+        }
     }
 
     @Test
@@ -4269,8 +4402,6 @@ public class ZTSImplTest {
     @Test
     public void testPostRoleCertificateRequestInvalidRequests() {
 
-        // this csr is for sports:role.readers role
-
         RoleCertificateRequest req = new RoleCertificateRequest()
                 .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L);
         
@@ -4282,17 +4413,17 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         // this time we're passing an invalid role name so we should
-        // get no access - 403
+        // 400 - role name / cn mismatch
         
         try {
             zts.postRoleCertificateRequest(context, "coretech", "unknownrole", req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 403);
+            assertEquals(ex.getCode(), 400);
         }
         
-        // this time we're passing an role name that the user has access to
-        // but it's not the readers role as in the csr
+        // this time we're a different role name which should still
+        // fail the cn/role name match and return 400
         
         try {
             zts.postRoleCertificateRequest(context, "coretech", "writers", req);
@@ -4307,7 +4438,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequest(context, "unknown-domain", "readers", req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 404);
+            assertEquals(ex.getCode(), 400);
         }
     }
     
@@ -4348,10 +4479,8 @@ public class ZTSImplTest {
         principal.setAuthorizedService("athenz.api");
         ResourceContext context = createResourceContext(principal);
 
-        // this time we're passing an invalid role name
-
         try {
-            zts.postRoleCertificateRequest(context, "coretech", "readers", req);
+            zts.postRoleCertificateRequest(context, "sports", "readers", req);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -9002,20 +9131,6 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testValidateRoleCertificateRequestInvalidCSR() {
-
-        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                privateKey, "0");
-
-        DataStore store = new DataStore(structStore, null);
-        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
-
-        ztsImpl.validCertSubjectOrgValues = null;
-        assertFalse((ztsImpl.validateRoleCertificateRequest("invalid-csr", null,
-                null, null, null, null, "10.0.0.1")));
-    }
-
-    @Test
     public void testGetAuditLogMsgBuilderUnsignedCreds() {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
@@ -9880,15 +9995,11 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostRoleCertificateExtRequest() throws IOException {
+    public void testPostRoleCertificateExtRequest() {
 
-        Path path = Paths.get("src/test/resources/athenz_coretech_role_uri.csr");
-        String csr = new String(Files.readAllBytes(path));
-
-        // this csr is for coretech:role.readers and coretech:role.writers roles
-
+        long expiry = 3600;
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(csr).setExpiryTime(3600L);
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -9906,53 +10017,64 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostRoleCertificateExtProxyUserRequest() throws IOException {
+    public void testPostRoleCertificateExtRequestUnknownDomain() {
 
-        Path path = Paths.get("src/test/resources/athenz_coretech_proxy_role_uri.csr");
-        String csr = new String(Files.readAllBytes(path));
-
-        // this csr is for coretech:role.readers and coretech:role.writers roles
-
+        long expiry = 3600;
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(csr).setExpiryTime(3600L)
-                .setProxyForPrincipal("user_domain.user1");
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
 
-        List<RoleMember> writers = new ArrayList<>();
-        writers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
-        writers.add(new RoleMember().setMemberName("user_domain.user1"));
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
 
-        List<RoleMember> readers = new ArrayList<>();
-        readers.add(new RoleMember().setMemberName("user_domain.proxy-user1"));
-        readers.add(new RoleMember().setMemberName("user_domain.user4"));
-        readers.add(new RoleMember().setMemberName("user_domain.user1"));
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
 
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
-                readers, true);
+        try {
+            zts.postRoleCertificateRequestExt(context, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(404, ex.getCode());
+            assertTrue(ex.getMessage().contains("No such domain: coretech"));
+        }
+    }
 
+    @Test
+    public void testPostRoleCertificateRequestExtUnauthorizedRole() {
+
+        long expiry = 3600;
+        RoleCertificateRequest req = new RoleCertificateRequest()
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
         zts.cloudStore = cloudStore;
 
-        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
-                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        // user101 does not have access to role readers
+
+        Principal principal = SimplePrincipal.create("user_domain", "user101",
+                "v=U1;d=user_domain;n=user101;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
 
-        RoleCertificate roleCertificate = zts.postRoleCertificateRequestExt(context, req);
-        assertNotNull(roleCertificate);
+        try {
+            zts.postRoleCertificateRequestExt(context, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
+            assertTrue(ex.getMessage().contains("is not included in the requested role(s)"));
+        }
     }
 
     @Test
-    public void testPostRoleCertificateExtInvalidProxyUserRequest() throws IOException {
+    public void testPostRoleCertificateExtInvalidProxyUserRequest() {
 
-        Path path = Paths.get("src/test/resources/athenz_coretech_proxy_role_uri.csr");
-        String csr = new String(Files.readAllBytes(path));
-
-        // this csr is for coretech:role.readers and coretech:role.writers roles
-
+        long expiry = 3600;
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(csr).setExpiryTime(3600L)
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry)
                 .setProxyForPrincipal("user_domain.user1");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
@@ -9975,15 +10097,11 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostRoleCertificateExtAuthzService() throws IOException {
+    public void testPostRoleCertificateExtAuthzService() {
 
-        Path path = Paths.get("src/test/resources/athenz_coretech_proxy_role_uri.csr");
-        String csr = new String(Files.readAllBytes(path));
-
-        // this csr is for coretech:role.readers and coretech:role.writers roles
-
+        long expiry = 3600;
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(csr).setExpiryTime(3600L);
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -10007,8 +10125,6 @@ public class ZTSImplTest {
     @Test
     public void testPostRoleCertificateExtInvalidCSR() {
 
-        // this csr is for coretech:role.readers and coretech:role.writers roles
-
         RoleCertificateRequest req = new RoleCertificateRequest()
                 .setCsr("invalid-csr").setExpiryTime(3600L);
 
@@ -10031,78 +10147,12 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostRoleCertificateExtNoRoleURI() throws IOException {
-
-        Path path = Paths.get("src/test/resources/role_single_ip.csr");
-        String csr = new String(Files.readAllBytes(path));
+    public void testPostRoleCertificateExtUserAccessForbidden() {
 
         // this csr is for coretech:role.readers and coretech:role.writers roles
 
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(csr).setExpiryTime(3600L);
-
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
-
-        CloudStore cloudStore = new MockCloudStore();
-        store.setCloudStore(cloudStore);
-        zts.cloudStore = cloudStore;
-
-        Principal principal = SimplePrincipal.create("user_domain", "user1",
-                "v=U1;d=user_domain;n=user1;s=signature", 0, null);
-        ResourceContext context = createResourceContext(principal);
-
-        try {
-            zts.postRoleCertificateRequestExt(context, req);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("No roles requested in CSR"));
-        }
-    }
-
-    @Test
-    public void testPostRoleCertificateExtSingleRoleOnly() throws IOException {
-
-        Path path = Paths.get("src/test/resources/athenz_role_uri.csr");
-        String csr = new String(Files.readAllBytes(path));
-
-        // this csr is for coretech:role.readers and coretech:role.writers roles
-
-        RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(csr).setExpiryTime(3600L);
-
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
-
-        CloudStore cloudStore = new MockCloudStore();
-        store.setCloudStore(cloudStore);
-        zts.cloudStore = cloudStore;
-
-        Principal principal = SimplePrincipal.create("user_domain", "user1",
-                "v=U1;d=user_domain;n=user;s=signature", 0, null);
-        ResourceContext context = createResourceContext(principal);
-
-        zts.singleDomainInRoleCert = true;
-        try {
-            zts.postRoleCertificateRequestExt(context, req);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("cannot contain roles from multiple domains"));
-        }
-    }
-
-    @Test
-    public void testPostRoleCertificateExtUserAccessForbidden() throws IOException {
-
-        Path path = Paths.get("src/test/resources/athenz_coretech_proxy_role_uri.csr");
-        String csr = new String(Files.readAllBytes(path));
-
-        // this csr is for coretech:role.readers and coretech:role.writers roles
-
-        RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(csr).setExpiryTime(3600L)
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L)
                 .setProxyForPrincipal("user_domain.user1");
 
         List<RoleMember> writers = new ArrayList<>();
@@ -10131,20 +10181,17 @@ public class ZTSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
-            assertTrue(ex.getMessage().contains("Not authorized to assume all requested roles by proxy principal"));
+            assertTrue(ex.getMessage().contains("principal user_domain.user1 is not included in the requested role(s) in domain coretech"));
         }
     }
 
     @Test
-    public void testPostRoleCertificateExtProxyAccessForbidden() throws IOException {
-
-        Path path = Paths.get("src/test/resources/athenz_coretech_proxy_role_uri.csr");
-        String csr = new String(Files.readAllBytes(path));
+    public void testPostRoleCertificateExtProxyAccessForbidden() {
 
         // this csr is for coretech:role.readers and coretech:role.writers roles
 
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(csr).setExpiryTime(3600L)
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L)
                 .setProxyForPrincipal("user_domain.user1");
 
         List<RoleMember> writers = new ArrayList<>();
@@ -10173,20 +10220,17 @@ public class ZTSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
-            assertTrue(ex.getMessage().contains("Not authorized to assume all requested roles by user principal"));
+            assertTrue(ex.getMessage().contains("principal user_domain.proxy-user1 is not included in the requested role(s) in domain coretech"));
         }
     }
 
     @Test
     public void testPostRoleCertificateExtValidateFailed() throws IOException {
 
-        Path path = Paths.get("src/test/resources/athenz_coretech_proxy_role_uri.csr");
-        String csr = new String(Files.readAllBytes(path));
-
         // this csr is for coretech:role.readers and coretech:role.writers roles
 
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(csr).setExpiryTime(3600L)
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L)
                 .setProxyForPrincipal("user_domain.user1");
 
         List<RoleMember> writers = new ArrayList<>();
@@ -10223,13 +10267,10 @@ public class ZTSImplTest {
     @Test
     public void testPostRoleCertificateExtRequestNullCertReturn() throws IOException {
 
-        Path path = Paths.get("src/test/resources/athenz_coretech_role_uri.csr");
-        String csr = new String(Files.readAllBytes(path));
-
         // this csr is for coretech:role.readers and coretech:role.writers roles
 
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(csr).setExpiryTime(3600L);
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -10243,8 +10284,8 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
-        Mockito.when(certManager.generateIdentity("aws", null, csr, "user_domain.user1",
-                "client", 3600)).thenReturn(null);
+        Mockito.when(certManager.generateIdentity("aws", null, ROLE_CERT_CORETECH_REQUEST,
+                "user_domain.user1", "client", 3600)).thenReturn(null);
         zts.instanceCertManager = certManager;
 
         try {
@@ -10257,15 +10298,12 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostRoleCertificateExtInvalidRoleDomain() throws IOException {
-
-        Path path = Paths.get("src/test/resources/athenz_coretech_role_uri.csr");
-        String csr = new String(Files.readAllBytes(path));
+    public void testPostRoleCertificateExtInvalidRoleDomain() {
 
         // this csr is for coretech:role.readers and coretech:role.writers roles
 
         RoleCertificateRequest req = new RoleCertificateRequest()
-                .setCsr(csr).setExpiryTime(3600L);
+                .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -10279,47 +10317,10 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequestExt(context, req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 403);
-            assertTrue(ex.getMessage().contains("Not authorized to assume all requested roles by user principal"));
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("No such domain: coretech"));
         }
     }
-
-    @Test
-    public void testValidateRoleCertificateExtRequest() throws IOException {
-
-        Path path = Paths.get("src/test/resources/athenz_coretech_role_uri_ip.csr");
-        String csr = new String(Files.readAllBytes(path));
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
-
-        assertTrue(zts.validateRoleCertificateExtRequest(certReq, "user_domain.user1", null, null, "10.11.12.13"));
-    }
-
-    @Test
-    public void testValidateRoleCertificateExtRequestInvalidOU() throws IOException {
-
-        Path path = Paths.get("src/test/resources/athenz_coretech_role_uri.csr");
-        String csr = new String(Files.readAllBytes(path));
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
-
-        zts.verifyCertSubjectOU = true;
-        assertFalse(zts.validateRoleCertificateExtRequest(certReq, "user_domain.user1", null, null, null));
-    }
-
-    @Test
-    public void testValidateRoleCertificateExtRequestInvalidIP() throws IOException {
-
-        Path path = Paths.get("src/test/resources/athenz_coretech_role_uri_ip.csr");
-        String csr = new String(Files.readAllBytes(path));
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
-
-        assertFalse(zts.validateRoleCertificateExtRequest(certReq, "user_domain.user1", null, null, "10.20.20.20"));
-
-        // with disabled ip check, we should get success
-
-        zts.verifyCertRequestIP = false;
-        assertTrue(zts.validateRoleCertificateExtRequest(certReq, "user_domain.user1", null, null, "10.20.20.20"));
-    }
-
 
     @Test
     public void testGetPrincipalDomain() {

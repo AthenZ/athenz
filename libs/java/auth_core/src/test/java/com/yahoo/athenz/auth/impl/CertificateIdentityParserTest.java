@@ -232,45 +232,4 @@ public class CertificateIdentityParserTest {
             assertNull(certId);
         }
     }
-
-    @Test
-    public void testParseCertificateRoleURIs() throws Exception {
-        CertificateIdentityParser parser = new CertificateIdentityParser(null, false);
-
-        X509Certificate[] certs = new X509Certificate[]{ this.readCert("role_cert_multiple_uri.cert") };
-        CertificateIdentity certId = parser.parse(certs);
-        assertNotNull(certId);
-        assertEquals(certId.getRoles(), Arrays.asList("coretech:role.readers", "coretech:role.writers"));
-    }
-
-    @Test
-    public void testParseCertificateRoleURIsExcluded() throws Exception {
-        CertificateIdentityParser parser = new CertificateIdentityParser(null, true);
-
-        X509Certificate[] certs = new X509Certificate[]{ this.readCert("role_cert_multiple_uri.cert") };
-        CertificateIdentity certId = null;
-        try {
-            certId = parser.parse(certs);
-        } catch (CertificateIdentityException e) {
-            assertEquals(e.getMessage(), "Role Certificates not allowed");
-        } finally {
-            assertNull(certId);
-        }
-    }
-
-    @Test
-    public void testParseCertificateInvalidRoleURI() throws Exception {
-        CertificateIdentityParser parser = new CertificateIdentityParser(null, true);
-
-        X509Certificate[] certs = new X509Certificate[]{ this.readCert("role_cert_invalid_uri.cert") };
-        CertificateIdentity certId = null;
-        try {
-            certId = parser.parse(certs);
-        } catch (CertificateIdentityException e) {
-            assertEquals(e.getMessage(), "Invalid role cert, invalid uri SAN entry");
-        } finally {
-            assertNull(certId);
-        }
-    }
-
 }
