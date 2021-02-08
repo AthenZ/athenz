@@ -25,15 +25,15 @@ const LeftMarginSpan = styled.span`
     verticalalign: bottom；;
 `;
 
-const TDStyled = styled.td`
+const TDStyled = styled.div`
     background-color: ${(props) => props.color};
     text-align: ${(props) => props.align};
-    padding: 5px 0 5px 15px;
     vertical-align: middle;
     word-break: break-all;
+    width: 100%;
 `;
 
-const TrStyled = styled.tr`
+const TrStyled = styled.div`
     box-sizing: border-box;
     margin-top: 5px;
     box-shadow: 0 1px 4px #d9d9d9;
@@ -42,7 +42,8 @@ const TrStyled = styled.tr`
     border-image: none;
     -webkit-border-image: initial;
     border-image: initial;
-    height: 50px;
+    display: flex;
+    padding: 10px 0 10px 0;
 `;
 
 const StyledDiv = styled.div`
@@ -50,7 +51,8 @@ const StyledDiv = styled.div`
     width: 100%;
 `;
 
-const StyledTable = styled.table`
+const StyledPaddingLeft = styled.div`
+    padding-left: 20px;
     width: 100%;
 `;
 
@@ -128,8 +130,8 @@ export default class RoleGroup extends React.Component {
 
                 rows.push(
                     <TrStyled key='aws-role-section' data-testid='role-group'>
-                        <TDStyled align={left} colSpan='8'>
-                            <StyledDiv>
+                        <TDStyled align={left}>
+                            <StyledPaddingLeft>
                                 <LeftMarginSpan>
                                     <Icon
                                         icon={
@@ -145,12 +147,8 @@ export default class RoleGroup extends React.Component {
                                     />
                                 </LeftMarginSpan>
                                 {`${label} Roles (${length})`}
-                            </StyledDiv>
-                            <StyledDiv>
-                                <StyledTable>
-                                    <tbody>{sectionRows}</tbody>
-                                </StyledTable>
-                            </StyledDiv>
+                            </StyledPaddingLeft>
+                            <StyledDiv>{sectionRows}</StyledDiv>
                         </TDStyled>
                     </TrStyled>
                 );
@@ -158,21 +156,23 @@ export default class RoleGroup extends React.Component {
                 rows.push(
                     <TrStyled key='aws-role-section' data-testid='role-group'>
                         <TDStyled align={left}>
-                            <LeftMarginSpan>
-                                <Icon
-                                    icon={
-                                        this.state.expanded
-                                            ? arrowup
-                                            : arrowdown
-                                    }
-                                    onClick={expandRole}
-                                    color={colors.icons}
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </LeftMarginSpan>
-                            {`${label} Roles (${length})`}
+                            <StyledPaddingLeft>
+                                <LeftMarginSpan>
+                                    <Icon
+                                        icon={
+                                            this.state.expanded
+                                                ? arrowup
+                                                : arrowdown
+                                        }
+                                        onClick={expandRole}
+                                        color={colors.icons}
+                                        isLink
+                                        size={'1.25em'}
+                                        verticalAlign={'text-bottom'}
+                                    />
+                                </LeftMarginSpan>
+                                {`${label} Roles (${length})`}
+                            </StyledPaddingLeft>
                         </TDStyled>
                         <TDStyled align={center} />
                     </TrStyled>
@@ -181,7 +181,7 @@ export default class RoleGroup extends React.Component {
 
             return rows;
         } else {
-            return <div />;
+            return null;
         }
     }
 }

@@ -8,6 +8,7 @@ exports[`TabGroup should disable animations 1`] = `
   align-items: stretch;
   background: #f5f8fe;
   border-radius: 2px;
+  box-shadow: ;
   box-sizing: border-box;
   display: inline-grid;
   grid-template-columns: repeat(3, 1fr);
@@ -41,6 +42,7 @@ exports[`TabGroup should disable animations 1`] = `
   -ms-flex-align: center;
   align-items: center;
   background: #f5f8fe;
+  border-bottom: ;
   color: #3697f2;
   cursor: pointer;
   display: -webkit-box;
@@ -52,6 +54,8 @@ exports[`TabGroup should disable animations 1`] = `
   -webkit-justify-content: center;
   justify-content: center;
   padding: 8px 20px;
+  -webkit-transition: ;
+  transition: ;
   white-space: nowrap;
   z-index: 1;
 }
@@ -62,6 +66,7 @@ exports[`TabGroup should disable animations 1`] = `
 
 .emotion-1.active {
   background: #fff;
+  border-bottom: ;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
   color: #303030;
@@ -103,6 +108,7 @@ exports[`TabGroup should disable animations 1`] = `
   -ms-flex-align: center;
   align-items: center;
   background: #f5f8fe;
+  border-bottom: ;
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
   display: -webkit-box;
@@ -114,6 +120,8 @@ exports[`TabGroup should disable animations 1`] = `
   -webkit-justify-content: center;
   justify-content: center;
   padding: 8px 20px;
+  -webkit-transition: ;
+  transition: ;
   white-space: nowrap;
   z-index: 1;
 }
@@ -124,6 +132,7 @@ exports[`TabGroup should disable animations 1`] = `
 
 .emotion-3.active {
   background: #fff;
+  border-bottom: ;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
   color: #303030;
@@ -195,6 +204,7 @@ exports[`TabGroup should render primary tabs 1`] = `
   align-items: stretch;
   background: #f5f8fe;
   border-radius: 2px;
+  box-shadow: ;
   box-sizing: border-box;
   display: inline-grid;
   grid-template-columns: repeat(3, 1fr);
@@ -228,6 +238,7 @@ exports[`TabGroup should render primary tabs 1`] = `
   -ms-flex-align: center;
   align-items: center;
   background: #f5f8fe;
+  border-bottom: ;
   color: #3697f2;
   cursor: pointer;
   display: -webkit-box;
@@ -251,6 +262,7 @@ exports[`TabGroup should render primary tabs 1`] = `
 
 .emotion-1.active {
   background: #fff;
+  border-bottom: ;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
   color: #303030;
@@ -292,6 +304,7 @@ exports[`TabGroup should render primary tabs 1`] = `
   -ms-flex-align: center;
   align-items: center;
   background: #f5f8fe;
+  border-bottom: ;
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
   display: -webkit-box;
@@ -315,6 +328,7 @@ exports[`TabGroup should render primary tabs 1`] = `
 
 .emotion-3.active {
   background: #fff;
+  border-bottom: ;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
   color: #303030;
@@ -582,6 +596,7 @@ exports[`TabGroup should render vertical tabs 1`] = `
   align-items: stretch;
   background: #f5f8fe;
   border-radius: 2px;
+  box-shadow: ;
   box-sizing: border-box;
   display: inline-grid;
   grid-template-columns: repeat(3, 1fr);
@@ -615,6 +630,7 @@ exports[`TabGroup should render vertical tabs 1`] = `
   -ms-flex-align: center;
   align-items: center;
   background: #f5f8fe;
+  border-bottom: ;
   color: #3697f2;
   cursor: pointer;
   display: -webkit-box;
@@ -638,6 +654,7 @@ exports[`TabGroup should render vertical tabs 1`] = `
 
 .emotion-1.active {
   background: #fff;
+  border-bottom: ;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
   color: #303030;
@@ -679,6 +696,7 @@ exports[`TabGroup should render vertical tabs 1`] = `
   -ms-flex-align: center;
   align-items: center;
   background: #f5f8fe;
+  border-bottom: ;
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
   display: -webkit-box;
@@ -702,6 +720,7 @@ exports[`TabGroup should render vertical tabs 1`] = `
 
 .emotion-3.active {
   background: #fff;
+  border-bottom: ;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
   color: #303030;

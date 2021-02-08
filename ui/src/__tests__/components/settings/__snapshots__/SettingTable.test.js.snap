@@ -22,6 +22,7 @@ exports[`SettingTable should render setting table 1`] = `
 }
 
 .emotion-4 {
+  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;

@@ -135,6 +135,7 @@ exports[`UserDomains should render 1`] = `
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
+  font-weight: ;
 }
 
 .emotion-11 {

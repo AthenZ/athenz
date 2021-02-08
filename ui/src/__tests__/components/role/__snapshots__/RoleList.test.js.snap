@@ -257,6 +257,7 @@ exports[`RoleList should render 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
+  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -298,42 +299,32 @@ exports[`RoleList should render 1`] = `
 }
 
 .emotion-17 {
-  text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
+  border-bottom: 2px solid rgb(213, 213, 213);
+  color: rgb(154, 154, 154);
   font-size: 0.8rem;
-  padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
-  padding: 5px 0 5px 35px;
+  padding: 5px 0px 5px 15px;
   word-break: break-all;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
 }
 
 .emotion-19 {
   text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
+  width: 28%;
 }
 
-.emotion-23 {
+.emotion-21 {
+  text-align: left;
+  width: 15%;
+}
+
+.emotion-25 {
   text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
+  width: 7%;
 }
 
 <div
@@ -419,55 +410,59 @@ exports[`RoleList should render 1`] = `
       
     </div>
   </div>
-  <table
+  <div
     class="emotion-15 emotion-16"
     data-testid="roletable"
   >
-    <thead>
-      <tr>
-        <th
-          class="emotion-17 emotion-18"
-        >
-          Role
-        </th>
-        <th
-          class="emotion-19 emotion-20"
-        >
-          Modified Date
-        </th>
-        <th
-          class="emotion-19 emotion-20"
-        >
-          Reviewed Date
-        </th>
-        <th
-          class="emotion-23 emotion-20"
-        >
-          Members
-        </th>
-        <th
-          class="emotion-23 emotion-20"
-        >
-          Review
-        </th>
-        <th
-          class="emotion-23 emotion-20"
-        >
-          Policy Rule
-        </th>
-        <th
-          class="emotion-23 emotion-20"
-        >
-          Settings
-        </th>
-        <th
-          class="emotion-23 emotion-20"
-        >
-          Delete
-        </th>
-      </tr>
-    </thead>
-    <tbody />
-  </table>
+    <div
+      class="emotion-17 emotion-18"
+    >
+      <div
+        class="emotion-19 emotion-20"
+      >
+        Role
+      </div>
+      <div
+        class="emotion-21 emotion-22"
+      >
+        Modified Date
+      </div>
+      <div
+        class="emotion-21 emotion-22"
+      >
+        Reviewed Date
+      </div>
+      <div
+        class="emotion-25 emotion-26"
+      >
+        Members
+      </div>
+      <div
+        class="emotion-25 emotion-26"
+      >
+        Review
+      </div>
+      <div
+        class="emotion-25 emotion-26"
+      >
+        Policy Rule
+      </div>
+      <div
+        class="emotion-25 emotion-26"
+      >
+        Settings
+      </div>
+      <div
+        class="emotion-25 emotion-26"
+      >
+        History
+      </div>
+      <div
+        class="emotion-25 emotion-26"
+      >
+        Delete
+      </div>
+    </div>
+  </div>
 </div>
 `;

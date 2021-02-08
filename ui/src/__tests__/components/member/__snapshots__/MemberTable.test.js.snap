@@ -96,6 +96,7 @@ exports[`MemberTable should render member table 1`] = `
 }
 
 .emotion-28 {
+  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -103,6 +104,7 @@ exports[`MemberTable should render member table 1`] = `
 }
 
 .emotion-36 {
+  background-color: ;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;

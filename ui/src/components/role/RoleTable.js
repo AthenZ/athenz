@@ -18,7 +18,7 @@ import styled from '@emotion/styled';
 import RoleRow from './RoleRow';
 import RoleGroup from './RoleGroup';
 
-const StyleTable = styled.table`
+const StyleTable = styled.div`
     width: 100%;
     border-spacing: 0 15px;
     display: table;
@@ -26,17 +26,30 @@ const StyleTable = styled.table`
     border-color: grey;
 `;
 
-const TableHeadStyled = styled.th`
-    text-align: ${(props) => props.align};
-    border-bottom: 2px solid #d5d5d5;
-    color: #9a9a9a;
-    font-weight: 600;
+const TableHeadStyled = styled.div`
+    border-bottom: 2px solid rgb(213, 213, 213);
+    color: rgb(154, 154, 154);
     font-size: 0.8rem;
-    padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
-    padding: 5px 0 5px 15px;
+    padding: 5px 0px 5px 15px;
     word-break: break-all;
+    display: flex;
+`;
+
+const StyledNameCol = styled.div`
+    text-align: ${(props) => props.align};
+    width: 28%;
+`;
+
+const StyledTimeCol = styled.div`
+    text-align: ${(props) => props.align};
+    width: 15%;
+`;
+
+const StyledIconCol = styled.div`
+    text-align: ${(props) => props.align};
+    width: 7%;
 `;
 
 const TableHeadStyledRoleName = styled.th`
@@ -196,31 +209,19 @@ export default class RoleTable extends React.Component {
 
         return (
             <StyleTable key='role-table' data-testid='roletable'>
-                <thead>
-                    <tr>
-                        <TableHeadStyledRoleName align={left}>
-                            Role
-                        </TableHeadStyledRoleName>
-                        <TableHeadStyled align={left}>
-                            Modified Date
-                        </TableHeadStyled>
-                        <TableHeadStyled align={left}>
-                            Reviewed Date
-                        </TableHeadStyled>
-                        <TableHeadStyled align={center}>
-                            Members
-                        </TableHeadStyled>
-                        <TableHeadStyled align={center}>Review</TableHeadStyled>
-                        <TableHeadStyled align={center}>
-                            Policy Rule
-                        </TableHeadStyled>
-                        <TableHeadStyled align={center}>
-                            Settings
-                        </TableHeadStyled>
-                        <TableHeadStyled align={center}>Delete</TableHeadStyled>
-                    </tr>
-                </thead>
-                <tbody>{rows}</tbody>
+                <TableHeadStyled>
+                    <StyledNameCol align={left}>Role</StyledNameCol>
+                    <StyledTimeCol align={left}>Modified Date</StyledTimeCol>
+                    <StyledTimeCol align={left}>Reviewed Date</StyledTimeCol>
+                    <StyledIconCol align={center}>Members</StyledIconCol>
+                    <StyledIconCol align={center}>Review</StyledIconCol>
+                    <StyledIconCol align={center}>Policy Rule</StyledIconCol>
+                    <StyledIconCol align={center}>Settings</StyledIconCol>
+                    <StyledIconCol align={center}>History</StyledIconCol>
+                    <StyledIconCol align={center}>Delete</StyledIconCol>
+                </TableHeadStyled>
+                {/* <tbody>{rows}</tbody> */}
+                {rows}
             </StyleTable>
         );
     }

@@ -3,6 +3,7 @@
 exports[`PolicyRuleTable should render 1`] = `
 .emotion-0 {
   padding: 30px 20px;
+  background-color: ;
 }
 
 .emotion-2 {
@@ -229,6 +230,7 @@ exports[`PolicyRuleTable should render 1`] = `
 exports[`PolicyRuleTable should render 2`] = `
 .emotion-0 {
   padding: 30px 20px;
+  background-color: ;
 }
 
 .emotion-2 {

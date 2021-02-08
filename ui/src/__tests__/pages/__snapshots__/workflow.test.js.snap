@@ -60,6 +60,7 @@ exports[`PendingApprovalPage should render 1`] = `
   display: flex;
   height: 60px;
   position: relative;
+  width: ;
 }
 
 .emotion-3.simple {

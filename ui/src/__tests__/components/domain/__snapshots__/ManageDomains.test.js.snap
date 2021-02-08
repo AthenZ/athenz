@@ -172,6 +172,7 @@ exports[`ManageDomains should render 1`] = `
 }
 
 .emotion-35 {
+  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -179,6 +180,7 @@ exports[`ManageDomains should render 1`] = `
 }
 
 .emotion-41 {
+  background-color: ;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -520,6 +522,7 @@ exports[`ManageDomains should render no domain 1`] = `
 }
 
 .emotion-35 {
+  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -527,6 +530,7 @@ exports[`ManageDomains should render no domain 1`] = `
 }
 
 .emotion-41 {
+  background-color: ;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -892,6 +896,7 @@ exports[`ManageDomains should render personal domain 1`] = `
 }
 
 .emotion-35 {
+  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -899,6 +904,7 @@ exports[`ManageDomains should render personal domain 1`] = `
 }
 
 .emotion-41 {
+  background-color: ;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -1240,6 +1246,7 @@ exports[`ManageDomains should render top level domain 1`] = `
 }
 
 .emotion-35 {
+  background-color: ;
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -1247,6 +1254,7 @@ exports[`ManageDomains should render top level domain 1`] = `
 }
 
 .emotion-41 {
+  background-color: ;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;

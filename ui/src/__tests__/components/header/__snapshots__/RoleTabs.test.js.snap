@@ -8,6 +8,7 @@ exports[`Tabs should render 1`] = `
   align-items: stretch;
   background: #f5f8fe;
   border-radius: 2px;
+  box-shadow: ;
   box-sizing: border-box;
   display: inline-grid;
   grid-template-columns: repeat(5, 1fr);
@@ -41,6 +42,7 @@ exports[`Tabs should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   background: #f5f8fe;
+  border-bottom: ;
   color: #3697f2;
   cursor: pointer;
   display: -webkit-box;
@@ -52,6 +54,8 @@ exports[`Tabs should render 1`] = `
   -webkit-justify-content: center;
   justify-content: center;
   padding: 8px 20px;
+  -webkit-transition: ;
+  transition: ;
   white-space: nowrap;
   z-index: 1;
 }
@@ -62,6 +66,7 @@ exports[`Tabs should render 1`] = `
 
 .emotion-1.active {
   background: #fff;
+  border-bottom: ;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
   color: #303030;
