@@ -8,7 +8,6 @@ exports[`PublicKeyTable should reloadService after successful delete 1`] = `
   word-break: break-all;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   display: table-cell;
-  background-color: ;
 }
 
 .emotion-2 {
@@ -129,7 +128,6 @@ exports[`PublicKeyTable should render 1`] = `
   word-break: break-all;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   display: table-cell;
-  background-color: ;
 }
 
 .emotion-2 {
@@ -503,7 +501,6 @@ exports[`PublicKeyTable should render addKey after click addKey 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;
@@ -556,7 +553,6 @@ exports[`PublicKeyTable should render addKey after click addKey 1`] = `
   font-size: 14px;
   line-height: 1;
   margin: 5px;
-  min-width: ;
   outline: 0;
   padding: 10px 24px;
   text-align: center;

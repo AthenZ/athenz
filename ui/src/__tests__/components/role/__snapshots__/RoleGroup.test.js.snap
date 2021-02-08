@@ -18,7 +18,6 @@ exports[`RoleGroup should render 1`] = `
 }
 
 .emotion-2 {
-  background-color: ;
   text-align: left;
   vertical-align: middle;
   word-break: break-all;
@@ -42,7 +41,6 @@ exports[`RoleGroup should render 1`] = `
 }
 
 .emotion-9 {
-  background-color: ;
   text-align: center;
   vertical-align: middle;
   word-break: break-all;

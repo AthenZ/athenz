@@ -2,7 +2,6 @@
 
 exports[`RoleRow should render 1`] = `
 .emotion-0 {
-  background-color: ;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
