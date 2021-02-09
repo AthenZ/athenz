@@ -475,7 +475,7 @@ func init() {
 	sb.AddResource(mGetRoleToken.Build())
 
 	mPostRoleCertificateRequest := rdl.NewResourceBuilder("RoleToken", "POST", "/domain/{domainName}/role/{roleName}/token")
-	mPostRoleCertificateRequest.Comment("Return a TLS certificate for the specific role in the namespace that the principal can assume. Role certificates are valid for 30 days by default")
+	mPostRoleCertificateRequest.Comment("Return a TLS certificate for the specific role in the namespace that the principal can assume. Role certificates are valid for 30 days by default. This is deprecated and \"POST /rolecert\" api should be used instead.")
 	mPostRoleCertificateRequest.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mPostRoleCertificateRequest.Input("roleName", "EntityName", true, "", "", false, nil, "name of role")
 	mPostRoleCertificateRequest.Input("req", "RoleCertificateRequest", false, "", "", false, nil, "csr request")
@@ -641,7 +641,7 @@ func init() {
 	sb.AddResource(mPostAccessTokenRequest.Build())
 
 	mPostRoleCertificateRequestExt := rdl.NewResourceBuilder("RoleCertificate", "POST", "/rolecert")
-	mPostRoleCertificateRequestExt.Comment("Return a TLS certificate for the list of roles that the principal can assume. Role certificates are valid for 7 days by default The principal is in the CN field of the Subject and the SAN URI field contains the athenz roles the principal can assume")
+	mPostRoleCertificateRequestExt.Comment("Return a TLS certificate for a role that the principal can assume. The role arn is in the CN field of the Subject and the principal is in the SAN URI field.")
 	mPostRoleCertificateRequestExt.Name("PostRoleCertificateRequestExt")
 	mPostRoleCertificateRequestExt.Input("req", "RoleCertificateRequest", false, "", "", false, nil, "csr request")
 	mPostRoleCertificateRequestExt.Auth("", "", true, "")
