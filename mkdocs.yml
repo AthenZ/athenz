@@ -69,9 +69,6 @@ nav:
 - AWS Setup:
     - AWS Temp Credentials: aws_temp_creds.md
     - Introduction: aws_athenz_setup.md
-    - ZMS Server : aws_zms_setup.md
-    - ZTS Server: aws_zts_setup.md
-    - UI Server: aws_ui_setup.md
 - Architecture:
     - Data Model: data_model.md
     - System View: system_view.md
