@@ -940,6 +940,15 @@ Fetchr.registerService({
                 },
                 responseHandler.bind({ caller: 'putRoleMeta', callback, req })
             );
+        } else if (params.category === 'domain') {
+            req.clients.zms.putDomainMeta(
+                {
+                    name: params.domainName,
+                    auditRef: params.auditRef,
+                    detail: params.detail,
+                },
+                responseHandler.bind({ caller: 'putRoleMeta', callback, req })
+            );
         }
     },
 });

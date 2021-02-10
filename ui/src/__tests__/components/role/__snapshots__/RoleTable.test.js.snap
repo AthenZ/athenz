@@ -48,7 +48,7 @@ exports[`RoleTable should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-18 {
+.emotion-20 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -60,25 +60,25 @@ exports[`RoleTable should render 1`] = `
   height: 50px;
 }
 
-.emotion-20 {
+.emotion-22 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-22 {
+.emotion-24 {
   padding-left: 20px;
 }
 
-.emotion-28 {
+.emotion-30 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-30 {
+.emotion-32 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -123,6 +123,11 @@ exports[`RoleTable should render 1`] = `
       <th
         class="emotion-8 emotion-5"
       >
+        Tags
+      </th>
+      <th
+        class="emotion-8 emotion-5"
+      >
         Settings
       </th>
       <th
@@ -134,36 +139,36 @@ exports[`RoleTable should render 1`] = `
   </thead>
   <tbody>
     <tr
-      class="emotion-18 emotion-19"
+      class="emotion-20 emotion-21"
       data-testid="role-row"
     >
       <td
-        class="emotion-20 emotion-21"
+        class="emotion-22 emotion-23"
       >
         
         
         <span
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
         >
            a
         </span>
       </td>
       <td
-        class="emotion-20 emotion-21"
+        class="emotion-22 emotion-23"
       >
         Invalid date
       </td>
       <td
-        class="emotion-20 emotion-21"
+        class="emotion-22 emotion-23"
       >
         N/A
       </td>
       <td
-        class="emotion-28 emotion-21"
+        class="emotion-30 emotion-23"
       >
         <span>
           <svg
-            class="emotion-30"
+            class="emotion-32"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -185,11 +190,11 @@ exports[`RoleTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-28 emotion-21"
+        class="emotion-30 emotion-23"
       >
         <span>
           <svg
-            class="emotion-30"
+            class="emotion-32"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -211,11 +216,11 @@ exports[`RoleTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-28 emotion-21"
+        class="emotion-30 emotion-23"
       >
         <span>
           <svg
-            class="emotion-30"
+            class="emotion-32"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -231,11 +236,34 @@ exports[`RoleTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-28 emotion-21"
+        class="emotion-30 emotion-23"
       >
         <span>
           <svg
-            class="emotion-30"
+            class="emotion-32"
+            data-testid="icon"
+            height="1.25em"
+            viewBox="0 0 1024 1024"
+            width="1.25em"
+          >
+            <title>
+              tag
+            </title>
+            <path
+              d="M492.8 145.067l360.533 360.533v347.733h-347.733l-360.533-360.533 347.733-347.733zM492.8 42.667c-11.712 0.172-22.255 5.037-29.86 12.793l-0.007 0.007-407.467 407.467c-8.083 7.434-13.13 18.061-13.13 29.867s5.047 22.432 13.101 29.84l0.029 0.026 416 416h424.533c23.564 0 42.667-19.103 42.667-42.667v0-424.533l-416-416c-7.612-7.763-18.155-12.628-29.835-12.8l-0.032-0z"
+            />
+            <path
+              d="M746.667 661.333c0 47.128-38.205 85.333-85.333 85.333s-85.333-38.205-85.333-85.333c0-47.128 38.205-85.333 85.333-85.333s85.333 38.205 85.333 85.333z"
+            />
+          </svg>
+        </span>
+      </td>
+      <td
+        class="emotion-30 emotion-23"
+      >
+        <span>
+          <svg
+            class="emotion-32"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -254,11 +282,11 @@ exports[`RoleTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-28 emotion-21"
+        class="emotion-30 emotion-23"
       >
         <span>
           <svg
-            class="emotion-30"
+            class="emotion-32"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -278,36 +306,36 @@ exports[`RoleTable should render 1`] = `
       </td>
     </tr>
     <tr
-      class="emotion-18 emotion-19"
+      class="emotion-20 emotion-21"
       data-testid="role-row"
     >
       <td
-        class="emotion-20 emotion-21"
+        class="emotion-22 emotion-23"
       >
         
         
         <span
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
         >
            b
         </span>
       </td>
       <td
-        class="emotion-20 emotion-21"
+        class="emotion-22 emotion-23"
       >
         Invalid date
       </td>
       <td
-        class="emotion-20 emotion-21"
+        class="emotion-22 emotion-23"
       >
         N/A
       </td>
       <td
-        class="emotion-28 emotion-21"
+        class="emotion-30 emotion-23"
       >
         <span>
           <svg
-            class="emotion-30"
+            class="emotion-32"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -329,11 +357,11 @@ exports[`RoleTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-28 emotion-21"
+        class="emotion-30 emotion-23"
       >
         <span>
           <svg
-            class="emotion-30"
+            class="emotion-32"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -355,11 +383,11 @@ exports[`RoleTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-28 emotion-21"
+        class="emotion-30 emotion-23"
       >
         <span>
           <svg
-            class="emotion-30"
+            class="emotion-32"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -375,11 +403,34 @@ exports[`RoleTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-28 emotion-21"
+        class="emotion-30 emotion-23"
       >
         <span>
           <svg
-            class="emotion-30"
+            class="emotion-32"
+            data-testid="icon"
+            height="1.25em"
+            viewBox="0 0 1024 1024"
+            width="1.25em"
+          >
+            <title>
+              tag
+            </title>
+            <path
+              d="M492.8 145.067l360.533 360.533v347.733h-347.733l-360.533-360.533 347.733-347.733zM492.8 42.667c-11.712 0.172-22.255 5.037-29.86 12.793l-0.007 0.007-407.467 407.467c-8.083 7.434-13.13 18.061-13.13 29.867s5.047 22.432 13.101 29.84l0.029 0.026 416 416h424.533c23.564 0 42.667-19.103 42.667-42.667v0-424.533l-416-416c-7.612-7.763-18.155-12.628-29.835-12.8l-0.032-0z"
+            />
+            <path
+              d="M746.667 661.333c0 47.128-38.205 85.333-85.333 85.333s-85.333-38.205-85.333-85.333c0-47.128 38.205-85.333 85.333-85.333s85.333 38.205 85.333 85.333z"
+            />
+          </svg>
+        </span>
+      </td>
+      <td
+        class="emotion-30 emotion-23"
+      >
+        <span>
+          <svg
+            class="emotion-32"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -398,11 +449,11 @@ exports[`RoleTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-28 emotion-21"
+        class="emotion-30 emotion-23"
       >
         <span>
           <svg
-            class="emotion-30"
+            class="emotion-32"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"

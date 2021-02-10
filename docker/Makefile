@@ -30,6 +30,7 @@ else
 endif
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t rdl-athenz-server -f ./util/rdl-athenz-server/Dockerfile ../rdl/rdl-gen-athenz-server
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t rdl-athenz-java-model -f ./util/rdl-athenz-java-model/Dockerfile ../rdl/rdl-gen-athenz-java-model
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t rdl-athenz-go-model -f ./util/rdl-athenz-go-model/Dockerfile ../rdl/rdl-gen-athenz-go-model
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-mvn-base -f ./util/athenz-mvn-base/Dockerfile ../
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-builder -f ./util/athenz-builder/Dockerfile ../
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) $(GID_ARG) $(UID_ARG) -t athenz-zms-server -f ./zms/Dockerfile ../
@@ -37,9 +38,10 @@ endif
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-zms-db -f ./db/zms/Dockerfile ../servers/zms/schema
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-zts-db -f ./db/zts/Dockerfile ../servers/zts/schema
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-conf -f ./util/athenz-conf/Dockerfile ../
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-cli-util -f ./util/Dockerfile ../
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-setup-env -f ./setup-scripts/Dockerfile ../
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) $(GID_ARG) $(UID_ARG) -t athenz-ui -f ./ui/Dockerfile ../ui
-	# DOCKER_BUILDKIT=1 docker build -t athenz-cli-util -f ./util/Dockerfile ../
+
 ifneq ($(TAG_COMMIT),)
 	git checkout -
 endif

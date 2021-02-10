@@ -40,6 +40,10 @@ class Tabs extends React.Component {
             name: 'policies',
         },
         {
+            label: 'Tags',
+            name: 'tags',
+        },
+        {
             label: 'Templates',
             name: 'templates',
         },
@@ -91,6 +95,13 @@ class Tabs extends React.Component {
                 this.props.router.push(
                     `/domain/${domain}/template`,
                     `/domain/${domain}/template`,
+                    { getInitialProps: true }
+                );
+                break;
+            case 'tags':
+                this.props.router.push(
+                    `/domain/${domain}/tags`,
+                    `/domain/${domain}/tags`,
                     { getInitialProps: true }
                 );
                 break;

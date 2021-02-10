@@ -28,6 +28,14 @@ export DEV_DOMAIN_ADMIN_CSR_PATH="${DEV_DOMAIN_ADMIN_DIR}/domain_admin_csr.pem"
 export DEV_DOMAIN_ADMIN_CERT_PATH="${DEV_DOMAIN_ADMIN_DIR}/domain_admin_cert.pem"
 
 ### ----------------------------------------------------------------
+### team admin
+export DEV_TEAM_ADMIN="${DEV_TEAM_ADMIN:-user.athenz-admin}"
+export DEV_TEAM_ADMIN_DIR="${SAMPLE_DIR}/domain-admin"
+export DEV_TEAM_ADMIN_CERT_KEY_PATH="${DEV_TEAM_ADMIN_DIR}/team_admin_key.pem"
+export DEV_TEAM_ADMIN_CSR_PATH="${DEV_TEAM_ADMIN_DIR}/team_admin_csr.pem"
+export DEV_TEAM_ADMIN_CERT_PATH="${DEV_TEAM_ADMIN_DIR}/team_admin_cert.pem"
+
+### ----------------------------------------------------------------
 ### ZMS
 export DEV_ZMS_DIR="${SAMPLE_DIR}/zms"
 export DEV_ZMS_CERT_KEY_PATH="${DEV_ZMS_DIR}/zms_key.pem"

@@ -45,7 +45,8 @@ type RoleCertificateRequest Struct {
 
 //Return a TLS certificate for the specific role in the namespace that
 //the principal can assume. Role certificates are valid for 30 days
-//by default
+//by default.
+//This is deprecated and "POST /rolecert" api should be used instead.
 resource RoleToken POST "/domain/{domainName}/role/{roleName}/token" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of role

@@ -427,6 +427,11 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     }
 
     @Override
+    public RoleCertificate postRoleCertificateRequestExt(RoleCertificateRequest req) {
+        return new RoleCertificate().setX509Certificate("x509cert");
+    }
+
+    @Override
     public Access getAccess(String domainName, String roleName, String principal) {
         if (domainName.equals("exc")) {
             throw new ResourceException(400, "Invalid request");

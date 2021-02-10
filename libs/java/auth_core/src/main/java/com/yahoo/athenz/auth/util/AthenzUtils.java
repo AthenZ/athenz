@@ -25,6 +25,7 @@ import com.yahoo.athenz.auth.AuthorityConsts;
 
 public class AthenzUtils {
 
+
     /**
      * Return the Athenz Service principal for the given certificate which
      * could be either a service certificate or a role certificate.
@@ -49,28 +50,54 @@ public class AthenzUtils {
         if (principal.contains(AuthorityConsts.ROLE_SEP)) {
 
             // it's a role certificate so we're going to extract
-            // our service principal from the SAN email field
-            // verify that we must have only a single email
-            // field in the certificate
+            // our service principal from the SAN uri or email field
+            // first we're going to check the uri field
 
-            final List<String> emails = Crypto.extractX509CertEmails(x509Cert);
-            if (emails.size() != 1) {
-                return null;
+            principal = extractPrincipalFromUri(x509Cert);
+
+            // if it's not available in the uri then we're going
+            // to extract from the email san field
+
+            if (principal == null) {
+                principal = extractPrincipalFromEmail(x509Cert);
             }
-
-            // athenz always verifies that we include a valid
-            // email in the certificate
-
-            final String email = emails.get(0);
-            int idx = email.indexOf('@');
-            if (idx == -1) {
-                return null;
-            }
-
-            principal = email.substring(0, idx);
         }
 
         return principal;
+    }
+
+    static String extractPrincipalFromEmail(X509Certificate x509Cert) {
+
+        // verify that we must have only a single email
+        // field in the certificate
+
+        final List<String> emails = Crypto.extractX509CertEmails(x509Cert);
+        if (emails.size() != 1) {
+            return null;
+        }
+
+        // athenz always verifies that we include a valid
+        // email in the certificate
+
+        final String email = emails.get(0);
+        int idx = email.indexOf('@');
+        if (idx == -1) {
+            return null;
+        }
+
+        return email.substring(0, idx);
+    }
+
+    static String extractPrincipalFromUri(X509Certificate x509Cert) {
+
+        final List<String> uris = Crypto.extractX509CertURIs(x509Cert);
+        for (String uri : uris) {
+            if (uri.startsWith(AuthorityConsts.ZTS_CERT_PRINCIPAL_URI)) {
+                return uri.substring(AuthorityConsts.ZTS_CERT_PRINCIPAL_URI.length());
+            }
+        }
+
+        return null;
     }
 
     /**

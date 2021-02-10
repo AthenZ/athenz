@@ -133,3 +133,19 @@ athenz-conf \
     -z "https://${ZMS_HOST}:${ZMS_PORT}" \
     -t "https://${ZTS_HOST}:${ZTS_PORT}" \
     -o "${ZTS_CONF_DIR}/athenz.conf"
+
+echo '11. setup ZTS as identity provider' | colored_cat g
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d sys.auth add-group-role providers sys.auth.zts
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d sys.auth add-policy providers grant launch to providers on 'instance'
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d sys.auth add-group-role provider.sys.auth.zts sys.auth.zts
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d sys.auth add-policy provider.sys.auth.zts grant launch to provider.sys.auth.zts on 'dns.zts.athenz.cloud'
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d sys.auth set-service-endpoint zts class://com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider

@@ -9,8 +9,29 @@ theme:
     logo: 'images/athenz-icon.png'
 extra_css: [extra.css]
 markdown_extensions:
-  - codehilite
-
+    - admonition
+    - codehilite
+    - pymdownx.arithmatex
+    - markdown_include.include:
+          base_path: docs
+    - pymdownx.betterem:
+          smart_enable: all
+    - pymdownx.caret
+    - pymdownx.critic
+    - pymdownx.details
+    - pymdownx.inlinehilite
+    - pymdownx.magiclink
+    - pymdownx.mark
+    - pymdownx.smartsymbols
+    - pymdownx.superfences
+    - pymdownx.tabbed
+    - pymdownx.tasklist:
+          custom_checkbox: true
+    - pymdownx.tilde
+    - meta:
+    - toc:
+          permalink: true
+          toc_depth: 4
 nav:
 - Getting Started:
     - About: index.md
@@ -48,9 +69,6 @@ nav:
 - AWS Setup:
     - AWS Temp Credentials: aws_temp_creds.md
     - Introduction: aws_athenz_setup.md
-    - ZMS Server : aws_zms_setup.md
-    - ZTS Server: aws_zts_setup.md
-    - UI Server: aws_ui_setup.md
 - Architecture:
     - Data Model: data_model.md
     - System View: system_view.md
@@ -77,6 +95,8 @@ nav:
     - ZTS Role Certificate Client Utility: zts_rolecert.md
     - ZTS OAuth2 Access Token Client: zts_accesstoken.md
     - Registering ZMS Service Identity: reg_service_guide.md
+    - Using Athenz on local docker: local_athenz_on_docker.md
+    - Quick Guide to obtain identity cert using local docker: how_to_sample_identity_from_local_athenz.md
 - References:
       - ZMS REST API: zms_api.md
       - ZTS REST API: zts_api.md
