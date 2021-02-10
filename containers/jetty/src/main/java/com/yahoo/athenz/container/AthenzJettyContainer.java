@@ -63,7 +63,7 @@ public class AthenzJettyContainer {
     private static final Logger LOG = LoggerFactory.getLogger(AthenzJettyContainer.class);
     private static String ROOT_DIR;
     private static final String DEFAULT_WEBAPP_DESCRIPTOR = "/etc/webdefault.xml";
-
+// THIS IS JUST TO TEST SD WORKS OK
     static final String ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
 
     private Server server = null;
