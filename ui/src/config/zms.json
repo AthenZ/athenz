@@ -272,6 +272,14 @@
                         "type": "String",
                         "optional": true,
                         "comment": "associated azure subscription id (system attribute - uniqueness check)"
+                    },
+                    {
+                        "name": "tags",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "key-value pair tags, tag might contain multiple values",
+                        "items": "StringList",
+                        "keys": "CompoundName"
                     }
                 ],
                 "closed": false
@@ -1477,7 +1485,7 @@
                 "fields": [
                     {
                         "name": "name",
-                        "type": "EntityName",
+                        "type": "ResourceName",
                         "optional": false,
                         "comment": "name of the entity object"
                     },
@@ -1935,6 +1943,13 @@
                         "optional": true,
                         "comment": "registered resource groups for this tenant",
                         "items": "EntityName"
+                    },
+                    {
+                        "name": "createAdminRole",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "optional flag indicating whether to create a default tenancy admin role",
+                        "default": true
                     }
                 ],
                 "closed": false
@@ -2039,6 +2054,13 @@
                         "type": "EntityName",
                         "optional": false,
                         "comment": "tenant resource group"
+                    },
+                    {
+                        "name": "createAdminRole",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "optional flag indicating whether to create a default tenancy admin role",
+                        "default": true
                     }
                 ],
                 "closed": false
@@ -2608,6 +2630,24 @@
                     "comment": "restrict to domain names that have specified azure subscription name",
                     "pathParam": false,
                     "queryParam": "azure",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "tagKey",
+                    "type": "CompoundName",
+                    "comment": "flag to query all domains that have a given tagName",
+                    "pathParam": false,
+                    "queryParam": "tagKey",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "tagValue",
+                    "type": "CompoundName",
+                    "comment": "flag to query all domains that have a given tag name and value",
+                    "pathParam": false,
+                    "queryParam": "tagValue",
                     "optional": true,
                     "flag": false
                 },
@@ -4036,7 +4076,7 @@
             "type": "Membership",
             "method": "PUT",
             "path": "/domain/{domainName}/role/{roleName}/member/{memberName}",
-            "comment": "Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )",
+            "comment": "Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )",
             "inputs": [
                 {
                     "name": "domainName",
@@ -4109,7 +4149,7 @@
             "type": "Membership",
             "method": "DELETE",
             "path": "/domain/{domainName}/role/{roleName}/member/{memberName}",
-            "comment": "Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
+            "comment": "Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\")",
             "inputs": [
                 {
                     "name": "domainName",
@@ -4146,9 +4186,7 @@
                 }
             ],
             "auth": {
-                "authenticate": false,
-                "action": "update",
-                "resource": "{domainName}:role.{roleName}"
+                "authenticate": true
             },
             "expected": "NO_CONTENT",
             "exceptions": {

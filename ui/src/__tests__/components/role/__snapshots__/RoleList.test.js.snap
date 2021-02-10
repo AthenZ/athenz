@@ -458,6 +458,11 @@ exports[`RoleList should render 1`] = `
         <th
           class="emotion-23 emotion-20"
         >
+          Tags
+        </th>
+        <th
+          class="emotion-23 emotion-20"
+        >
           Settings
         </th>
         <th

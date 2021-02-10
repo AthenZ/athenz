@@ -36,6 +36,10 @@ class RoleTabs extends React.Component {
             name: 'policies',
         },
         {
+            label: 'Tags',
+            name: 'tags',
+        },
+        {
             label: 'Settings',
             name: 'settings',
         },
@@ -80,6 +84,13 @@ class RoleTabs extends React.Component {
                 this.props.router.push(
                     `/domain/${domain}/role/${role}/history`,
                     `/domain/${domain}/role/${role}/history`,
+                    { getInitialProps: true }
+                );
+                break;
+            case 'tags':
+                this.props.router.push(
+                    `/domain/${domain}/role/${role}/tags`,
+                    `/domain/${domain}/role/${role}/tags`,
                     { getInitialProps: true }
                 );
                 break;

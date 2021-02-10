@@ -214,6 +214,7 @@ export default class RoleTable extends React.Component {
                         <TableHeadStyled align={center}>
                             Policy Rule
                         </TableHeadStyled>
+                        <TableHeadStyled align={center}>Tags</TableHeadStyled>
                         <TableHeadStyled align={center}>
                             Settings
                         </TableHeadStyled>
