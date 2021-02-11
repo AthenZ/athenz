@@ -2634,6 +2634,9 @@ public class ZTSClientTest {
         RoleToken roleToken = client.postRoleCertificateRequest("coretech", "role1", req);
         assertNotNull(roleToken);
 
+        RoleCertificate roleCertificate = client.postRoleCertificateRequest(req);
+        assertNotNull(roleCertificate);
+
         try {
             client.postRoleCertificateRequest("exc", "no-role", req);
             fail();

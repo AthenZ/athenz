@@ -449,6 +449,11 @@ exports[`RoleList should render 1`] = `
       <div
         class="emotion-25 emotion-26"
       >
+        Tags
+      </div>
+      <div
+        class="emotion-25 emotion-26"
+      >
         Settings
       </div>
       <div
@@ -462,6 +467,7 @@ exports[`RoleList should render 1`] = `
         Delete
       </div>
     </div>
+    <tbody />
   </div>
 </div>
 `;

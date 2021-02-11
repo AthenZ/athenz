@@ -78,9 +78,6 @@ credentials for configured AWS IAM roles.
     * [UI Server](docs/setup_ui_prod.md)
 * AWS Production Environment Setup
     * [Introduction](docs/aws_athenz_setup.md)
-    * [ZMS Server](docs/aws_zms_setup.md)
-    * [ZTS Server](docs/aws_zts_setup.md)
-    * [UI Server](docs/aws_ui_setup.md)
 
 ## Usage
 

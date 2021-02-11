@@ -16,7 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification;
 
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMessage;
 import java.util.Collection;
 
 public interface EmailProvider {

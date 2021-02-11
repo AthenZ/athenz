@@ -180,6 +180,10 @@ class RoleRow extends React.Component {
             this,
             `/domain/${this.props.domain}/role/${this.state.name}/history`
         );
+        let clickTag = this.onClickFunction.bind(
+            this,
+            `/domain/${this.props.domain}/role/${this.state.name}/tags`
+        );
 
         let clickDelete = this.onClickDelete.bind(this, this.state.name);
         let submitDelete = this.onSubmitDelete.bind(this, this.props.domain);
@@ -316,6 +320,25 @@ class RoleRow extends React.Component {
                         }
                     >
                         <MenuDiv>Rule Policy</MenuDiv>
+                    </Menu>
+                </TDStyledIcon>
+                <TDStyledIcon color={color} align={center}>
+                    <Menu
+                        placement='bottom-start'
+                        trigger={
+                            <span>
+                                <Icon
+                                    icon={'tag'}
+                                    onClick={clickTag}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </span>
+                        }
+                    >
+                        <MenuDiv>Tags</MenuDiv>
                     </Menu>
                 </TDStyledIcon>
                 <TDStyledIcon color={color} align={center}>

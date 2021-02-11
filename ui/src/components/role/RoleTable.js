@@ -216,12 +216,12 @@ export default class RoleTable extends React.Component {
                     <StyledIconCol align={center}>Members</StyledIconCol>
                     <StyledIconCol align={center}>Review</StyledIconCol>
                     <StyledIconCol align={center}>Policy Rule</StyledIconCol>
+                    <StyledIconCol align={center}>Tags</StyledIconCol>
                     <StyledIconCol align={center}>Settings</StyledIconCol>
                     <StyledIconCol align={center}>History</StyledIconCol>
                     <StyledIconCol align={center}>Delete</StyledIconCol>
                 </TableHeadStyled>
-                {/* <tbody>{rows}</tbody> */}
-                {rows}
+                <tbody>{rows}</tbody>
             </StyleTable>
         );
     }

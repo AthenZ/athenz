@@ -407,7 +407,7 @@ public class Utils {
             } else if (key instanceof PrivateKeyInfo) {
                 privateKey = pemConverter.getPrivateKey((PrivateKeyInfo) key);
             } else {
-                throw new KeyRefresherException("Unknown object type: " + key.getClass().getName());
+                throw new KeyRefresherException("Unknown object type: " + key == null ? "null" : key.getClass().getName());
             }
 
             //noinspection unchecked

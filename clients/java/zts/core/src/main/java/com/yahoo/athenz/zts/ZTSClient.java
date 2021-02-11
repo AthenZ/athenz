@@ -1313,6 +1313,7 @@ public class ZTSClient implements Closeable {
      * @param req Role Certificate Request (csr)
      * @return RoleToken that includes client x509 role certificate
      */
+    @Deprecated
     public RoleToken postRoleCertificateRequest(String domainName, String roleName,
             RoleCertificateRequest req) {
         
@@ -1325,7 +1326,24 @@ public class ZTSClient implements Closeable {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
+    /**
+     * For the specified requester(user/service) return the corresponding Role Certificate
+     * @param req Role Certificate Request (csr)
+     * @return RoleCertificate that includes client x509 role certificate
+     */
+    public RoleCertificate postRoleCertificateRequest(RoleCertificateRequest req) {
+
+        updateServicePrincipal();
+        try {
+            return ztsClient.postRoleCertificateRequestExt(req);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getMessage());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
     /**
      * Generate a Role Certificate request that could be sent to ZTS
      * to obtain a X509 Certificate for the requested role.

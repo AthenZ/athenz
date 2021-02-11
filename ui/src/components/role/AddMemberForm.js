@@ -136,6 +136,7 @@ export default class AddMemberForm extends React.Component {
             });
         }
         // send api call and then reload existing members component
+        // TODO check if this file is needed
         let newMember = this.state.newMember;
         this.api
             .addMember(
@@ -146,6 +147,7 @@ export default class AddMemberForm extends React.Component {
                 this.state.justification
                     ? this.state.justification
                     : 'added using Athenz UI',
+                'role',
                 this.props._csrf
             )
             .then(() => {

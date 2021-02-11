@@ -10,7 +10,7 @@ exports[`Tabs should render 1`] = `
   border-radius: 2px;
   box-sizing: border-box;
   display: inline-grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   margin-top: 0;
   min-width: 80px;
   position: relative;
@@ -121,6 +121,12 @@ exports[`Tabs should render 1`] = `
     data-active="false"
   >
     Policies
+  </div>
+  <div
+    class="emotion-1 denali-tab"
+    data-active="false"
+  >
+    Tags
   </div>
   <div
     class="emotion-1 denali-tab"

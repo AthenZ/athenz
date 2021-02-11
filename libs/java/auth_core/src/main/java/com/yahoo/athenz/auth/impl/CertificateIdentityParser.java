@@ -37,7 +37,6 @@ public class CertificateIdentityParser {
     /**
      * Role prefix inside X509Certificate
      */
-    public static final String ZTS_CERT_ROLE_URI = "athenz://role/";
 
     public static final String EMPTY_CERT_ERR_MSG = "No certificate available in request";
 
@@ -118,25 +117,6 @@ public class CertificateIdentityParser {
                 throw new CertificateIdentityException("Invalid role cert, invalid email SAN entry");
             }
             principalName = email.substring(0, idx);
-        }
-
-        // check to see if we have a role certificate where roles
-        // are presented as URIs in the SAN
-
-        List<String> uris = Crypto.extractX509CertURIs(x509Cert);
-        for (String uri : uris) {
-            if (!uri.toLowerCase().startsWith(ZTS_CERT_ROLE_URI)) {
-                continue;
-            }
-            if (roles == null) {
-                roles = new ArrayList<>();
-            }
-            final String roleUri = uri.substring(ZTS_CERT_ROLE_URI.length());
-            idx = roleUri.indexOf('/');
-            if (idx == -1) {
-                throw new CertificateIdentityException("Invalid role cert, invalid uri SAN entry");
-            }
-            roles.add(roleUri.substring(0, idx) + AuthorityConsts.ROLE_SEP + roleUri.substring(idx + 1));
         }
 
         if (this.excludeRoleCertificates && roles != null) {

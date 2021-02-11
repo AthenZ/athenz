@@ -58,6 +58,16 @@ public class AthenzUtilsTest {
     }
 
     @Test
+    public void testExtractServicePrincipalRoleCertUri() throws Exception {
+        try (InputStream inStream = new FileInputStream("src/test/resources/role_cert_principal_uri_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            assertEquals("athenz.production", AthenzUtils.extractServicePrincipal(cert));
+        }
+    }
+
+    @Test
     public void testExtractServicePrincipalNoCn() throws Exception {
         try (InputStream inStream = new FileInputStream("src/test/resources/no_cn_x509.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");

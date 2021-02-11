@@ -57,8 +57,10 @@ echo '5. register UI service to Athenz' | colored_cat g
 # encode public key in ybase64, reference: https://github.com/AthenZ/athenz/blob/545d9487a866cad10ba864b435bdb7ece390d4bf/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/util/Crypto.java#L334-L343
 ENCODED_UI_PUBLIC_KEY="$(base64 -w 0 "${UI_PUBLIC_KEY_PATH}" | tr '\+\=\/' '\.\-\_')"
 
-DOMAIN_DATA='{"name":"athenz","description":"domain for local ui","org":"uiorg","ypmId":4455,"adminUsers":["'"${DOMAIN_ADMIN}"'","user.uiuser"]}'
+DOMAIN_DATA='{"name":"athenz","description":"test domain for local","org":"myorg","ypmId":4455,"adminUsers":["'"${DOMAIN_ADMIN}"'","user.athenz-admin"]}'
 DATA='{"name": "athenz.ui-server","publicKeys": [{"id": "0","key": "'"${ENCODED_UI_PUBLIC_KEY}"'"}]}'
+
+sed -i "s/user\.github-<REPLACE>/${DOMAIN_ADMIN}/g" "${UI_CONF_DIR}/users_data.json"
 
 # add UI service using ZMS API
 ZMS_URL="https://${ZMS_HOST}:${ZMS_PORT}"
