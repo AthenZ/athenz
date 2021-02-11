@@ -71,11 +71,4 @@
     </plugins>
   </build>
 
-  <distributionManagement>
-    <repository>
-      <id>bintray-athenz-zpu-repo</id>
-      <url>https://api.bintray.com/maven/yahoo/maven/athenz-zpu/;publish=1</url>
-    </repository>
-  </distributionManagement>
-
 </project>

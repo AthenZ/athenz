@@ -63,11 +63,4 @@
     </plugins>
   </build>
 
-  <distributionManagement>
-    <repository>
-      <id>bintray-athenz-utils-repo</id>
-      <url>https://api.bintray.com/maven/yahoo/maven/athenz-utils/;publish=1</url>
-    </repository>
-  </distributionManagement>
-
 </project>

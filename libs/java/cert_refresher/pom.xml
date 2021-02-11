@@ -49,13 +49,6 @@
     </dependency>
   </dependencies>
 
-  <distributionManagement>
-    <repository>
-      <id>bintray-athenz-cert-refresher-repo</id>
-      <url>https://api.bintray.com/maven/yahoo/maven/athenz-cert-refresher/;publish=1</url>
-    </repository>
-  </distributionManagement>
-
   <build>
     <plugins>
       <plugin>
