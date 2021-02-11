@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.9.33-SNAPSHOT</version>
+    <version>1.10.4-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -153,21 +153,28 @@
     <dependency>
       <groupId>com.gu</groupId>
       <artifactId>kinesis-logback-appender</artifactId>
-      <version>1.4.4</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.amazonaws</groupId>
-          <artifactId>aws-java-sdk-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.amazonaws</groupId>
-          <artifactId>aws-java-sdk-kinesis</artifactId>
-        </exclusion>
-      </exclusions>
+      <version>2.0.1</version>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-kinesis</artifactId>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>core</artifactId>
+      <version>${aws2.version}</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sts</artifactId>
+      <version>${aws2.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>firehose</artifactId>
+      <version>${aws2.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>kinesis</artifactId>
+      <version>${aws2.version}</version>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
@@ -199,12 +206,5 @@
       </plugin>
     </plugins>
   </build>
-
-  <distributionManagement>
-    <repository>
-      <id>bintray-athenz-jetty-container-repo</id>
-      <url>https://api.bintray.com/maven/yahoo/maven/athenz-jetty-container/;publish=1</url>
-    </repository>
-  </distributionManagement>
 
 </project>
