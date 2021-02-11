@@ -31,5 +31,5 @@ jobs:
       - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
     secrets:
-      - BINTRAY_USER
-      - BINTRAY_API_KEY
+      - GITHUB_USER
+      - GITHUB_TOKEN
