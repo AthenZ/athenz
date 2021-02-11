@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.9.33-SNAPSHOT</version>
+    <version>1.10.4-SNAPSHOT</version>
     <relativePath>../../../../pom.xml</relativePath>
   </parent>
 
@@ -289,12 +289,5 @@
       </build>
     </profile>
   </profiles>
-
-  <distributionManagement>
-    <repository>
-      <id>bintray-athenz-zts-java-client-core-repo</id>
-      <url>https://api.bintray.com/maven/yahoo/maven/athenz-zts-java-client-core/;publish=1</url>
-    </repository>
-  </distributionManagement>
 
 </project>

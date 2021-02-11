@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.9.33-SNAPSHOT</version>
+    <version>1.10.4-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -81,12 +81,5 @@
       </plugin>
     </plugins>
   </build>
-
-  <distributionManagement>
-    <repository>
-      <id>bintray-athenz-zms-core-repo</id>
-      <url>https://api.bintray.com/maven/yahoo/maven/athenz-zms-core/;publish=1</url>
-    </repository>
-  </distributionManagement>
 
 </project>
