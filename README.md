@@ -110,7 +110,7 @@ credentials for configured AWS IAM roles.
 
 ## Contribute
 
-Please refer to the [contributing file](docs/contributing.md) for information about how to get involved. We welcome issues, questions, and pull requests.
+Please refer to the [contributing file](CONTRIBUTING.md) for information about how to get involved. We welcome issues, questions, and pull requests.
 
 You can also contact us for any user and development discussions through our groups:
 
