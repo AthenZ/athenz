@@ -10,7 +10,11 @@ exports[`RoleRow should render 1`] = `
   border-image: none;
   -webkit-border-image: initial;
   border-image: initial;
-  height: 50px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  padding: 5px 0 5px 15px;
 }
 
 .emotion-2 {
@@ -19,10 +23,20 @@ exports[`RoleRow should render 1`] = `
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
+  width: 28%;
 }
 
 .emotion-4 {
   padding-left: 20px;
+}
+
+.emotion-6 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  width: 16%;
 }
 
 .emotion-10 {
@@ -31,6 +45,7 @@ exports[`RoleRow should render 1`] = `
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
+  width: 7%;
 }
 
 .emotion-12 {
@@ -39,11 +54,11 @@ exports[`RoleRow should render 1`] = `
   vertical-align: text-bottom;
 }
 
-<tr
+<div
   class="emotion-0 emotion-1"
   data-testid="role-row"
 >
-  <td
+  <div
     class="emotion-2 emotion-3"
     color="#3570f40D"
   >
@@ -54,21 +69,21 @@ exports[`RoleRow should render 1`] = `
     >
        ztssia_cert_rotate
     </span>
-  </td>
-  <td
-    class="emotion-2 emotion-3"
+  </div>
+  <div
+    class="emotion-6 emotion-7"
     color="#3570f40D"
   >
     2017-08-03 18:44 UTC
-  </td>
-  <td
-    class="emotion-2 emotion-3"
+  </div>
+  <div
+    class="emotion-6 emotion-7"
     color="#3570f40D"
   >
     N/A
-  </td>
-  <td
-    class="emotion-10 emotion-3"
+  </div>
+  <div
+    class="emotion-10 emotion-11"
     color="#3570f40D"
   >
     <span>
@@ -93,9 +108,9 @@ exports[`RoleRow should render 1`] = `
         />
       </svg>
     </span>
-  </td>
-  <td
-    class="emotion-10 emotion-3"
+  </div>
+  <div
+    class="emotion-10 emotion-11"
     color="#3570f40D"
   >
     <span>
@@ -120,9 +135,9 @@ exports[`RoleRow should render 1`] = `
         />
       </svg>
     </span>
-  </td>
-  <td
-    class="emotion-10 emotion-3"
+  </div>
+  <div
+    class="emotion-10 emotion-11"
     color="#3570f40D"
   >
     <span>
@@ -141,9 +156,9 @@ exports[`RoleRow should render 1`] = `
         />
       </svg>
     </span>
-  </td>
-  <td
-    class="emotion-10 emotion-3"
+  </div>
+  <div
+    class="emotion-10 emotion-11"
     color="#3570f40D"
   >
     <span>
@@ -165,9 +180,9 @@ exports[`RoleRow should render 1`] = `
         />
       </svg>
     </span>
-  </td>
-  <td
-    class="emotion-10 emotion-3"
+  </div>
+  <div
+    class="emotion-10 emotion-11"
     color="#3570f40D"
   >
     <span>
@@ -189,9 +204,33 @@ exports[`RoleRow should render 1`] = `
         />
       </svg>
     </span>
-  </td>
-  <td
-    class="emotion-10 emotion-3"
+  </div>
+  <div
+    class="emotion-10 emotion-11"
+    color="#3570f40D"
+  >
+    <span>
+      <svg
+        class="emotion-12"
+        data-testid="icon"
+        height="1.25em"
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          time-history
+        </title>
+        <path
+          d="M981.333 512c-1.127 258.351-210.821 467.35-469.329 467.35-183.080 0-341.676-104.828-419.040-257.735l-1.23-2.682c-3.724-6.205-5.927-13.692-5.927-21.694 0-13.702 6.458-25.895 16.497-33.701l0.096-0.072c7.082-5.427 16.067-8.696 25.816-8.696 16.626 0 31.031 9.51 38.072 23.387l0.112 0.243c63.468 129.74 194.499 217.51 346.030 217.51 212.077 0 384-171.923 384-384s-171.923-384-384-384c-113.597 0-215.674 49.327-285.979 127.729l-0.318 0.361h113.067c0.244-0.005 0.531-0.007 0.819-0.007 21.726 0 39.84 15.466 43.934 35.989l0.048 0.286c0.307 1.924 0.483 4.143 0.483 6.403 0 23.564-19.103 42.667-42.667 42.667-0.17 0-0.34-0.001-0.509-0.003l0.026 0h-213.333c-23.564 0-42.667-19.103-42.667-42.667v0-211.2c-0.005-0.244-0.007-0.531-0.007-0.819 0-21.726 15.466-39.84 35.989-43.934l0.286-0.048c1.924-0.307 4.143-0.483 6.403-0.483 23.564 0 42.667 19.103 42.667 42.667 0 0.17-0.001 0.34-0.003 0.509l0-0.026v104.533c85.767-90.732 206.955-147.207 341.333-147.207 259.206 0 469.333 210.128 469.333 469.333 0 0.003-0 0.005-0 0.008l0-0.001z"
+        />
+        <path
+          d="M725.333 682.667c-0.223 0.005-0.486 0.008-0.749 0.008-7.696 0-14.832-2.397-20.703-6.486l0.118 0.078-234.667-140.8v-236.8c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667v0 189.867l192 115.2c12.808 6.981 21.354 20.347 21.354 35.708 0 8.131-2.394 15.703-6.516 22.049l0.096-0.157c-6.984 12.799-20.345 21.337-35.7 21.337-0.199 0-0.398-0.001-0.597-0.004l0.030 0z"
+        />
+      </svg>
+    </span>
+  </div>
+  <div
+    class="emotion-10 emotion-11"
     color="#3570f40D"
   >
     <span>
@@ -213,6 +252,6 @@ exports[`RoleRow should render 1`] = `
         />
       </svg>
     </span>
-  </td>
-</tr>
+  </div>
+</div>
 `;

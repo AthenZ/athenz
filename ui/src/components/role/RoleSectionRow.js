@@ -24,53 +24,36 @@ import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import { withRouter } from 'next/router';
 
-const TDName = styled.td`
+const TDName = styled.div`
     background-color: ${(props) => props.color};
     text-align: ${(props) => props.align};
     padding: 5px 0 5px 0;
     vertical-align: middle;
     word-break: break-all;
-    width: 29%;
+    width: 28%;
 `;
 
-const TDModified = styled.td`
+const TDTime = styled.div`
     background-color: ${(props) => props.color};
     text-align: ${(props) => props.align};
     padding: 5px 0 5px 0;
     vertical-align: middle;
     word-break: break-all;
-    width: 17%;
+    width: 15%;
 `;
 
-const TDReview = styled.td`
+const TDIcon = styled.div`
     background-color: ${(props) => props.color};
     text-align: ${(props) => props.align};
     padding: 5px 0 5px 0;
     vertical-align: middle;
     word-break: break-all;
-    width: 12%;
+    width: 7%;
 `;
 
-const TDIcon = styled.td`
+const TrStyled = styled.div`
     background-color: ${(props) => props.color};
-    text-align: ${(props) => props.align};
-    padding: 5px 0 5px 0;
-    vertical-align: middle;
-    word-break: break-all;
-    width: 9%;
-`;
-
-const TDDelete = styled.td`
-    background-color: ${(props) => props.color};
-    text-align: ${(props) => props.align};
-    padding: 5px 0 5px 0;
-    vertical-align: middle;
-    word-break: break-all;
-    width: 6%;
-`;
-
-const TrStyled = styled.tr`
-    background-color: ${(props) => props.color};
+    display: flex;
 `;
 
 const MenuDiv = styled.div`
@@ -169,7 +152,6 @@ class RoleSectionRow extends React.Component {
         let center = 'center';
         let role = this.props.details;
         let color = this.props.color;
-        let idx = this.props.idx;
 
         let clickMembers = this.onClickFunction.bind(
             this,
@@ -186,6 +168,10 @@ class RoleSectionRow extends React.Component {
         let clickPolicy = this.onClickFunction.bind(
             this,
             `/domain/${this.props.domain}/role/${this.state.name}/policy`
+        );
+        let clickHistory = this.onClickFunction.bind(
+            this,
+            `/domain/${this.props.domain}/role/${this.state.name}/history`
         );
         let clickTag = this.onClickFunction.bind(
             this,
@@ -253,7 +239,7 @@ class RoleSectionRow extends React.Component {
                         {roleAuditIcon}
                         {roleNameSpan}
                     </TDName>
-                    <TDModified color={color} align={left}>
+                    <TDTime color={color} align={left}>
                         {role.expiration
                             ? this.localDate.getLocalDate(
                                   role.expiration,
@@ -261,7 +247,7 @@ class RoleSectionRow extends React.Component {
                                   'UTC'
                               )
                             : 'N/A'}
-                    </TDModified>
+                    </TDTime>
                     <TDIcon color={color} align={center}>
                         <Menu
                             placement='bottom-start'
@@ -291,14 +277,14 @@ class RoleSectionRow extends React.Component {
                         {roleAuditIcon}
                         {roleNameSpan}
                     </TDName>
-                    <TDModified color={color} align={left}>
+                    <TDTime color={color} align={left}>
                         {this.localDate.getLocalDate(
                             role.modified,
                             'UTC',
                             'UTC'
                         )}
-                    </TDModified>
-                    <TDReview color={color} align={left}>
+                    </TDTime>
+                    <TDTime color={color} align={left}>
                         {role.lastReviewedDate
                             ? this.localDate.getLocalDate(
                                   role.lastReviewedDate,
@@ -306,7 +292,7 @@ class RoleSectionRow extends React.Component {
                                   'UTC'
                               )
                             : 'N/A'}
-                    </TDReview>
+                    </TDTime>
                     <TDIcon color={color} align={center}>
                         <Menu
                             placement='bottom-start'
@@ -402,7 +388,26 @@ class RoleSectionRow extends React.Component {
                             <MenuDiv>Settings</MenuDiv>
                         </Menu>
                     </TDIcon>
-                    <TDDelete color={color} align={center}>
+                    <TDIcon color={color} align={center}>
+                        <Menu
+                            placement='bottom-start'
+                            trigger={
+                                <span>
+                                    <Icon
+                                        icon={'time-history'}
+                                        onClick={clickHistory}
+                                        color={colors.icons}
+                                        isLink
+                                        size={'1.25em'}
+                                        verticalAlign={'text-bottom'}
+                                    />
+                                </span>
+                            }
+                        >
+                            <MenuDiv>History</MenuDiv>
+                        </Menu>
+                    </TDIcon>
+                    <TDIcon color={color} align={center}>
                         <Menu
                             placement='bottom-start'
                             trigger={
@@ -420,7 +425,7 @@ class RoleSectionRow extends React.Component {
                         >
                             <MenuDiv>Delete Role</MenuDiv>
                         </Menu>
-                    </TDDelete>
+                    </TDIcon>
                 </TrStyled>
             );
         }

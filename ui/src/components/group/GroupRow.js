@@ -41,7 +41,7 @@ const TrStyled = styled.tr`
     border-image: none;
     -webkit-border-image: initial;
     border-image: initial;
-    height: 50px;
+    padding: 5px 0 5px 15px;
 `;
 
 const MenuDiv = styled.div`
@@ -147,6 +147,10 @@ class GroupRow extends React.Component {
         let clickSettings = this.onClickFunction.bind(
             this,
             `/domain/${this.props.domain}/group/${this.state.name}/settings`
+        );
+        let clickHistory = this.onClickFunction.bind(
+            this,
+            `/domain/${this.props.domain}/group/${this.state.name}/history`
         );
         let clickRoles = this.onClickFunction.bind(
             this,
@@ -259,6 +263,25 @@ class GroupRow extends React.Component {
                         }
                     >
                         <MenuDiv>Settings</MenuDiv>
+                    </Menu>
+                </TDStyled>
+                <TDStyled color={color} align={center}>
+                    <Menu
+                        placement='bottom-start'
+                        trigger={
+                            <span>
+                                <Icon
+                                    icon={'time-history'}
+                                    onClick={clickHistory}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </span>
+                        }
+                    >
+                        <MenuDiv>History</MenuDiv>
                     </Menu>
                 </TDStyled>
                 <TDStyled color={color} align={center}>
