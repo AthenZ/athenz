@@ -211,11 +211,4 @@
     </profile>
   </profiles>
 
-  <distributionManagement>
-    <repository>
-      <id>bintray-athenz-zpe-java-client-repo</id>
-      <url>https://api.bintray.com/maven/yahoo/maven/athenz-zpe-java-client/;publish=1</url>
-    </repository>
-  </distributionManagement>
-
 </project>

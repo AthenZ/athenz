@@ -78,11 +78,4 @@
     </plugins>
   </build>
 
-  <distributionManagement>
-    <repository>
-      <id>bintray-athenz-zts-core-repo</id>
-      <url>https://api.bintray.com/maven/yahoo/maven/athenz-zts-core/;publish=1</url>
-    </repository>
-  </distributionManagement>
-
 </project>

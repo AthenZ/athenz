@@ -347,8 +347,9 @@
 
   <distributionManagement>
     <repository>
-      <id>bintray-athenz-parent-repo</id>
-      <url>https://api.bintray.com/maven/yahoo/maven/athenz-parent/;publish=1</url>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/athenz/athenz</url>
     </repository>
   </distributionManagement>
 

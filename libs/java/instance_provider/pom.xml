@@ -118,11 +118,4 @@
     </dependency>
   </dependencies>
 
-  <distributionManagement>
-    <repository>
-      <id>bintray-athenz-instance-provider-repo</id>
-      <url>https://api.bintray.com/maven/yahoo/maven/athenz-instance-provider/;publish=1</url>
-    </repository>
-  </distributionManagement>
-
 </project>

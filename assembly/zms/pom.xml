@@ -77,11 +77,4 @@
     </plugins>
   </build>
 
-  <distributionManagement>
-    <repository>
-      <id>bintray-athenz-zms-repo</id>
-      <url>https://api.bintray.com/maven/yahoo/maven/athenz-zms/;publish=1</url>
-    </repository>
-  </distributionManagement>
-
 </project>
