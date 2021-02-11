@@ -79,6 +79,7 @@
     <rdl.version>1.5.3</rdl.version>
     <bouncycastle.version>1.68</bouncycastle.version>
     <aws.version>1.11.942</aws.version>
+    <aws2.version>2.10.11</aws2.version>
     <guava.version>30.1-jre</guava.version>
     <logback.version>1.2.3</logback.version>
     <javax.version>3.1.0</javax.version>
