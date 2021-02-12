@@ -68,6 +68,7 @@ public interface InstanceProvider {
     /**
      * Get Provider scheme. Currently supported schemes are HTTP
      * or CLASS. By default we'll return UNKNOWN.
+     * @return the scheme for the provider
      */
     default Scheme getProviderScheme() {
         return Scheme.UNKNOWN;
@@ -86,7 +87,7 @@ public interface InstanceProvider {
 
     /**
      * Set hostnameResolver for all provider level name lookups
-     * @param hostnameResolver
+     * @param hostnameResolver the resolver object
      */
     default void setHostnameResolver(HostnameResolver hostnameResolver) {
     };

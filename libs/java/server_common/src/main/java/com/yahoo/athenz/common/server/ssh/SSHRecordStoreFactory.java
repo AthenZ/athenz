@@ -21,6 +21,7 @@ public interface SSHRecordStoreFactory {
 
     /**
      * Create and return a new SSHRecordStore instance
+     * @param pkeyStore private key store object for fetching any secrets
      * @return SSHRecordStore instance
      */
     SSHRecordStore create(PrivateKeyStore pkeyStore);

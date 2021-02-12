@@ -28,21 +28,22 @@ import javax.servlet.ServletResponse;
 /**
  * AthenzQoSFilter is disabled by default unlike QoSFilter.
  * FilterConfig is replaced by System properties to allow configuration through properties files.
- * 
+ *
+ * {@literal
  * <filter>
-        <filter-name>AthenzQoSFilter</filter-name>
-        <filter-class>com.yahoo.athenz.common.filter.impl.AthenzQoSFilter</filter-class>
-        <init-param>
-            <param-name>athenz.qos.war</param-name>
-            <param-value>zts</param-value>
-        </init-param>
-    </filter>
-    <filter-mapping>
-        <filter-name>AthenzQoSFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-    
- * @author charlesk
+ *   <filter-name>AthenzQoSFilter</filter-name>
+ *   <filter-class>com.yahoo.athenz.common.filter.impl.AthenzQoSFilter</filter-class>
+ *   <init-param>
+ *     <param-name>athenz.qos.war</param-name>
+ *     <param-value>zts</param-value>
+ *   </init-param>
+ *   </filter>
+ *   <filter-mapping>
+ *     <filter-name>AthenzQoSFilter</filter-name>
+ *     <url-pattern>/*</url-pattern>
+ *   </filter-mapping>
+ * </filter>
+ * }
  *
  */
 public class AthenzQoSFilter extends org.eclipse.jetty.servlets.QoSFilter {

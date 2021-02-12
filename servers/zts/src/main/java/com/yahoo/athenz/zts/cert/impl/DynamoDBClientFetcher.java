@@ -24,8 +24,8 @@ public interface DynamoDBClientFetcher {
      * Returns a DynamoDBClient and the AWS credential provider used for authentication.
      * The credentialProvider should be closed after DynamoDBClient is no longer needed.
      * (GC might not run for a long period of time)
-     * @param ztsClientNotificationSender
-     * @param keyStore
+     * @param ztsClientNotificationSender notification sender object
+     * @param keyStore private key store object for fetching any secrets
      * @return DynamoDBClientAndCredentials which contains both a DynamoDB client and the credentialProvider used
      */
     DynamoDBClientAndCredentials getDynamoDBClient(ZTSClientNotificationSender ztsClientNotificationSender, PrivateKeyStore keyStore);

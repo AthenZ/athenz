@@ -19,6 +19,7 @@ public interface AuditLogMsgBuilder {
 
     /**
      * A unique identifier
+     * @param UUID message UUID value
      * @return this
      */
     AuditLogMsgBuilder uuId(String UUID);

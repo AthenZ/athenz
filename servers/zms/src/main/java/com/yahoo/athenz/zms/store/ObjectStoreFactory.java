@@ -21,6 +21,7 @@ public interface ObjectStoreFactory {
 
     /**
      * Create and return a new ObjectStore instance
+     * @param pkeyStore private key store object for fetching secrets
      * @return ObjectStore instance
      */
     ObjectStore create(PrivateKeyStore pkeyStore);

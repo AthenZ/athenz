@@ -498,6 +498,7 @@ public class DataCache {
     
     /**
      * Return the number of members in the cache
+     * @return member count
      */
     public int getMemberCount() {
         return memberRoleCache.size();
