@@ -4,7 +4,7 @@
 
 [![Pipeline Status][status-image]][status-url]
 [![Publish Status][publish-status-image]][status-url]
-[![SourceSpy Dashboard](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/yahooathenz/)
+[![SourceSpy Dashboard](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/athenzathenz/)
 
 [status-image]: https://cd.screwdriver.cd/pipelines/6606/badge
 [publish-status-image]: https://cd.screwdriver.cd/pipelines/6606/publish/badge

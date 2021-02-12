@@ -24,10 +24,10 @@
 
   <name>AthenZ</name>
   <description>
-    AthenZ is a set of services and libraries supporting
-    role-based authorization for provisioning and configuration
-    (centralized authorization) use cases as well as serving/runtime
-    (decentralized authorization) use cases.
+    Open source platform for X.509 certificate based service authentication
+    and fine grained access control in dynamic infrastructures. Athenz
+    supports provisioning and configuration (centralized authorization) use
+    cases as well as serving/runtime (decentralized authorization) use cases.
   </description>
   <url>https://github.com/AthenZ/athenz</url>
 
@@ -39,8 +39,9 @@
 
   <developers>
     <developer>
-      <organization>Yahoo Inc.</organization>
-      <organizationUrl>https://www.yahoo.com/</organizationUrl>
+      <name>Athenz Maintainers</name>
+      <organization>Cloud Native Computing Foundation</organization>
+      <organizationUrl>https://www.cncf.io/sandbox-projects/</organizationUrl>
     </developer>
   </developers>
 
@@ -55,6 +56,7 @@
   <scm>
     <url>https://github.com/AthenZ/athenz</url>
     <connection>scm:git:https://github.com/AthenZ/athenz.git</connection>
+    <developerConnection>scm:git:https://github.com/AthenZ/athenz.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
@@ -210,6 +212,19 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.4</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.5</version>
@@ -343,13 +358,60 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>ossrh</id>
+      <properties>
+        <gpg.executable>gpg</gpg.executable>
+        <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
+        <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
+        <gpg.defaultKeyring>false</gpg.defaultKeyring>
+      </properties>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.7</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
     <repository>
-      <id>github</id>
-      <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/athenz/athenz</url>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
 
