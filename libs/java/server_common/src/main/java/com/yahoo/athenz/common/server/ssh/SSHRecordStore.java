@@ -56,9 +56,9 @@ public interface SSHRecordStore {
     /**
      * Enable notifications to be sent regarding the store health (by supported implementers)
      * All arguments must be provided (non-null)
-     * @param notificationManager
-     * @param rolesProvider
-     * @param serverName
+     * @param notificationManager notification manager
+     * @param rolesProvider provider for role members
+     * @param serverName name of the server
      * @return true if notifications were enabled successfully
      */
     boolean enableNotifications(NotificationManager notificationManager, RolesProvider rolesProvider, final String serverName);

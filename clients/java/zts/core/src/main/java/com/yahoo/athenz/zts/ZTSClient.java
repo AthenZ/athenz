@@ -1181,6 +1181,7 @@ public class ZTSClient implements Closeable {
      *          is the specified service (only service name e.g. api) in the
      *          domainName domain.
      * @param proxyForPrincipal (optional) this request is proxy for this principal
+     * @param authorizationDetails (optional) rich authorization request details
      * @param expiryTime (optional) specifies that the returned Access must be
      *          at least valid for specified number of seconds. Pass 0 to use
      *          server default timeout.

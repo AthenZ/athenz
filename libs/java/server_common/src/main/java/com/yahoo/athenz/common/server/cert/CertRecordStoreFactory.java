@@ -21,6 +21,7 @@ public interface CertRecordStoreFactory {
 
     /**
      * Create and return a new CertRecordStore instance
+     * @param pkeyStore private key store object for fetching any secrets
      * @return CertRecordStore instance
      */
     CertRecordStore create(PrivateKeyStore pkeyStore);

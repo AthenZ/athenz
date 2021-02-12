@@ -26,7 +26,7 @@ import java.util.List;
 public interface RolesProvider {
     /**
      *
-     * @param domain
+     * @param domain name of the domain
      * @return List of roles from the domain
      */
     List<Role> getRolesByDomain(String domain);

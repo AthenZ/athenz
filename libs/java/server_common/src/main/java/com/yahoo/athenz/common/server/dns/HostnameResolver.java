@@ -37,7 +37,7 @@ public interface HostnameResolver {
 
     /**
      * returns the set of IP addresses that host resolves to
-     * @param host
+     * @param host name of the host
      * @return a set of IP addresses as strings
      */
     default Set<String> getAllByName(String host) {

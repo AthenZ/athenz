@@ -86,13 +86,13 @@ public class KeyRefresher {
     
     /**
      * 
-     * @param athenzPublicCert
-     * @param athenzPrivateKey
-     * @param trustStore
-     * @param keyManagerProxy
-     * @param trustManagerProxy
-     * @param keyRefresherListener
-     * @throws NoSuchAlgorithmException
+     * @param athenzPublicCert x.509 certificate file path
+     * @param athenzPrivateKey private key path
+     * @param trustStore truststore path
+     * @param keyManagerProxy key manager proxy object
+     * @param trustManagerProxy trust manager proxy object
+     * @param keyRefresherListener key refresher listener - called when key/cert have been reloaded
+     * @throws NoSuchAlgorithmException is thrown when a particular cryptographic algorithm is requested but is not available in the environment
      */
     public KeyRefresher(final String athenzPublicCert, final String athenzPrivateKey, final TrustStore trustStore,
                         final KeyManagerProxy keyManagerProxy, final TrustManagerProxy trustManagerProxy,
@@ -106,10 +106,18 @@ public class KeyRefresher {
         this.keyRefresherListener = keyRefresherListener;
     }
 
+    /**
+     * Return key manager proxy object
+     * @return key manager proxy object
+     */
     public KeyManagerProxy getKeyManagerProxy() {
         return keyManagerProxy;
     }
 
+    /**
+     * Return trust manager proxy object
+     * @return trust manager proxy object
+     */
     public TrustManagerProxy getTrustManagerProxy() {
         return trustManagerProxy;
     }
@@ -161,6 +169,9 @@ public class KeyRefresher {
         LOGGER.info("Started KeyRefresher thread.");
     }
 
+    /**
+     * shutdown the key refresher
+     */
     public void shutdown() {
         shutdown = true;
         if (scanForFileChangesThread != null) {
@@ -168,10 +179,17 @@ public class KeyRefresher {
         }
     }
 
+    /**
+     * Start the refresher file scan task
+     */
     public void startup() {
         startup(DEFAULT_RETRY_CHECK_FREQUENCY);
     }
 
+    /**
+     * Start the refresher file scan task with given interval
+     * @param retryFrequency how often check for file changes
+     */
     public void startup(int retryFrequency) {
         this.retryFrequency = retryFrequency;
         shutdown = false;

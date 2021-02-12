@@ -126,6 +126,13 @@ public class ZMSUtils {
     
     /**
      * Setup a new AuditLogMsgBuilder object with common values.
+     * @param ctx resource context object
+     * @param auditLogger audit logger object
+     * @param domainName domain name
+     * @param auditRef audit reference value provided in the request
+     * @param caller api name
+     * @param method http method name
+     * @return audit log message builder object
     **/
     public static AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx,
             AuditLogger auditLogger, String domainName, String auditRef, String caller,
