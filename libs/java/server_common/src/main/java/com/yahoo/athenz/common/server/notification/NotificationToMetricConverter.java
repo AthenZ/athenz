@@ -21,8 +21,8 @@ import com.yahoo.rdl.Timestamp;
 public interface NotificationToMetricConverter {
     /**
      *
-     * @param notification
-     * @param currentTime
+     * @param notification object to be converted for metric notification
+     * @param currentTime current timestamp
      * @return Metric attributes
      */
     NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime);

@@ -850,6 +850,7 @@ public class InstanceCertManager {
     /**
      * validates hostname against the resolver, and verifies that the ssh principals map to hostname
      * @param hostname of the instance
+     * @param sshCertRecord ssh certificate record stored in db
      * @param sshHostCsr ssh host csr from the sia
      * @return boolean true or false
      */

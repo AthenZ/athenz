@@ -19,7 +19,7 @@ package com.yahoo.athenz.common.server.notification;
 public interface NotificationToEmailConverter {
     /**
      *
-     * @param notification
+     * @param notification object to be converted to email
      * @return The Email content for the given Notification
      */
     NotificationEmail getNotificationAsEmail(Notification notification);

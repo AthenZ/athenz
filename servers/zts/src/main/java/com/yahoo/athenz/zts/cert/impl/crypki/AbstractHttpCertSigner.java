@@ -172,12 +172,18 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
 
     /**
      * Return x.509 certificate uri based on server uri
+     * @param serverBaseUri server's base uri
+     * @param provider provider service name
      * @return uri
      */
     public abstract String getX509CertUri(String serverBaseUri, String provider);
 
     /**
      * Return object based on given csr, usage and expiry
+     * @param provider provider service name
+     * @param csr certificate signing request
+     * @param keyUsage client or server usage for the certificate
+     * @param expireMins expiry time in minutes for the certificate
      * @return CSR Object
      */
     public abstract Object getX509CertSigningRequest(String provider, String csr, String keyUsage, int expireMins);
@@ -186,6 +192,7 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
      * Parse the response from certificate sisnger
      * @param response input stream
      * @return response as string
+     * @throws IOException for any IO errors
      */
     public abstract String parseResponse(InputStream response) throws IOException;
 

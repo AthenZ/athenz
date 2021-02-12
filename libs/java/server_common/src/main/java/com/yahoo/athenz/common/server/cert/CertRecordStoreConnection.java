@@ -83,8 +83,8 @@ public interface CertRecordStoreConnection extends Closeable {
      * 2. Update all records matching the criteria with the "lastNotifiedTime" and "lastNotifiedServer".
      * You can look at JDBCCertRecordStoreConnection and updateUnrefreshedCertificatesNotificationTimestamp for example implementations of JDBC and DynamoDB respectively
      * @param lastNotifiedServer - Name of athenz server
-     * @param lastNotifiedTime
-     * @param provider
+     * @param lastNotifiedTime last nofitification time
+     * @param provider name of the provider
      * @return List of certificates that failed to refresh
      */
     List<X509CertRecord> updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
