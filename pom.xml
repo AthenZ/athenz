@@ -310,6 +310,17 @@
     </dependency>
   </dependencies>
 
+  <repositories>
+    <repository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>bintray-yahoo-maven</id>
+      <name>bintray</name>
+      <url>https://yahoo.bintray.com/maven</url>
+    </repository>
+  </repositories>
+  
   <profiles>
     <profile>
       <id>coverage</id>
