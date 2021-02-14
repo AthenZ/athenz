@@ -10,12 +10,12 @@ As part of local set up, an example domain by the name "athenz" is created and "
 
 To see the workflow of obtaining a service identity certificate from Athenz, please use following steps -
 
-* Download latest Athenz Utils & add it in the current shell PATH variable
+* Download latest Athenz Utils from [Maven Central](https://search.maven.org/artifact/com.yahoo.athenz/athenz-utils)
+  (click on the `Browse` button, choose the latest version directory and then
+  download the `athenz-utils-$latestVer-bin.tar.gz` file)
+  & add it in the current shell PATH variable.
 
 ```shell
-latestVer=$(curl -Ls -o /dev/null -w %{url_effective} https://bintray.com/yahoo/maven/athenz-utils/_latestVersion\#files | cut -d'/' -f 7)
-athenzUtilsLocation=$(mktemp -d)
-curl -Ls https://bintray.com/yahoo/maven/download_file?file_path=com%2Fyahoo%2Fathenz%2Fathenz-utils%2F$latestVer%2Fathenz-utils-$latestVer-bin.tar.gz -o $athenzUtilsLocation/athenz-utils-$latestVer.tar.gz
 tar -xf $athenzUtilsLocation/athenz-utils-$latestVer.tar.gz -C $athenzUtilsLocation
 export PATH=$athenzUtilsLocation/athenz-utils-$latestVer/bin/`uname`:$PATH
 ```

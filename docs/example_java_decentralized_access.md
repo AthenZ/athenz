@@ -158,8 +158,8 @@ https://github.com/AthenZ/athenz/tree/master/examples/java/decentralized-use-cas
 
 First you need to update your Java project `pom.xml` file to indicate
 the dependency on the Athenz auth_core and zts java client libraries. Checkout the
-[Bintray Athenz Cert Refresher Package](https://bintray.com/yahoo/maven/athenz-cert-refresher/)
-and [Bintray ZTS Java Client Package](https://bintray.com/yahoo/maven/athenz-zts-java-client/)
+[Maven Central Athenz Cert Refresher Package](https://search.maven.org/artifact/com.yahoo.athenz/athenz-cert-refresher)
+and [Maven Central ZTS Java Client Package](https://search.maven.org/artifact/com.yahoo.athenz/athenz-zts-java-client)
 pages to make sure you're using the latest release version:
 
 ```
@@ -173,14 +173,6 @@ pages to make sure you're using the latest release version:
   <artifactId>athenz-zts-java-client</artifactId>
   <version>VERSION-NUMBER</version>
 </dependency>
-
-<repositories>
-  <repository>
-    <id>bintray-yahoo-maven</id>
-    <name>bintray</name>
-    <url>https://yahoo.bintray.com/maven</url>
-  </repository>
-</repositories>
 ```
 
 #### Obtaining Access Tokens from ZTS Server
@@ -273,7 +265,7 @@ https://github.com/AthenZ/athenz/tree/master/examples/java/decentralized-use-cas
 
 First you need to update your Java project `pom.xml` file to indicate
 the dependency on the Athenz ZPE Java Client Library. Checkout the
-[Bintray ZPE Client Package Page](https://bintray.com/yahoo/maven/athenz-zpe-java-client/)
+[Maven Central ZPE Client Package Page](https://search.maven.org/artifact/com.yahoo.athenz/athenz-zpe-java-client)
 to make sure you're using the latest release version:
 
 ```
@@ -282,14 +274,6 @@ to make sure you're using the latest release version:
   <artifactId>athenz-zpe-java-client</artifactId>
   <version>VERSION-NUMBER</version>
 </dependency>
-
-<repositories>
-  <repository>
-    <id>bintray-yahoo-maven</id>
-    <name>bintray</name>
-    <url>https://yahoo.bintray.com/maven</url>
-  </repository>
-</repositories>
 ```
 
 #### Authorization Checks

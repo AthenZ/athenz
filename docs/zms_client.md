@@ -37,12 +37,11 @@ administrators.
 ## Getting Software
 -------------------
 
-Download latest ZMS Client utility binary release from Bintray - click
-on the `Files` tab, choose the latest version directory and then
-download the `athenz-utils-<latest-version>-bin.tar.gz` file::
-
-[ ![Download](https://api.bintray.com/packages/yahoo/maven/athenz-utils/images/download.svg) ](https://bintray.com/yahoo/maven/athenz-utils/_latestVersion)
-
+Download latest ZMS Client utility binary release from
+[Maven Central](https://search.maven.org/artifact/com.yahoo.athenz/athenz-utils):
+click on the `Browse` button, choose the latest version directory and then
+download the `athenz-utils-<latest-version>-bin.tar.gz`.
+  
 ```shell
 $ tar xvfz athenz-utils-X.Y-bin.tar.gz
 ```

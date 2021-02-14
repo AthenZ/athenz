@@ -56,7 +56,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("The log file:%v cannot be opened, Error:%v. \n "+
 				"If you do not have write access to the log file at \"%v\", use the -logFile flag to overwrite the default value. \n"+
-				"Usage : zpu -athenzConf <Athenz log file> -zpuConf <zpu conf file> -logFile <log file name>. ", logFile, logFile, err)
+				"Usage : zpu -athenzConf <Athenz conf file> -zpuConf <zpu conf file> -logFile <log file name>. ", logFile, logFile, err)
 		}
 		f.Close()
 		log.SetOutput(&logger)

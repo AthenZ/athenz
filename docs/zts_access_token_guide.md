@@ -205,7 +205,7 @@ following the [RFC7519: Section 7.2:  Validating a JWT](https://tools.ietf.org/h
 
 First you need to update your Java project `pom.xml` file to indicate
 the dependency on the Athenz zts java client library. Checkout the
-[Bintray ZTS Java Client Package](https://bintray.com/yahoo/maven/athenz-zts-java-client/)
+[Maven Central ZTS Java Client Package](https://search.maven.org/artifact/com.yahoo.athenz/athenz-zts-java-client/)
 page to make sure you're using the latest release version (You must use
 1.8.37 or newer version of the client library). 
 

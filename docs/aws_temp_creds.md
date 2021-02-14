@@ -205,8 +205,8 @@ When calling ZTS to fetch temporary credentials using AssumeRole, the `awsRoleNa
 
 First you need to update your Java project `pom.xml` file to indicate
 the dependency on the Athenz cert refresher and zts java client libraries. Checkout the
-[Bintray Athenz Cert Refresher Package](https://bintray.com/yahoo/maven/athenz-cert-refresher/)
-and [Bintray ZTS Java Client Package](https://bintray.com/yahoo/maven/athenz-zts-java-client/)
+[Maven Central Athenz Cert Refresher Package](https://search.maven.org/artifact/com.yahoo.athenz/athenz-cert-refresher)
+and [Maven Central ZTS Java Client Package](https://search.maven.org/artifact/com.yahoo.athenz/athenz-zts-java-client/)
 pages to make sure you're using the latest release version:
 
 ```xml

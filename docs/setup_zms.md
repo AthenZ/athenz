@@ -28,12 +28,10 @@ it should run successfully with OpenJDK 8 as well.
 ## Getting Software
 -------------------
 
-Download latest ZMS binary release from Bintray - click on the `Files` tab,
-choose the latest version directory and then download the
-`athenz-zms-<latest-version>-bin.tar.gz` file:
-
-[ ![Download](https://api.bintray.com/packages/yahoo/maven/athenz-zms/images/download.svg) ](https://bintray.com/yahoo/maven/athenz-zms/_latestVersion)
-
+Build the latest ZMS binary release by following the
+[development instructions](dev_environment.md). The binary release
+packages  will be created automatically in the `assembly` subdirectory.
+Copy the `athenz-zms-X.Y-bin.tar.gz` to your desired setup directory.
 
 ```shell
 $ tar xvfz athenz-zms-X.Y-bin.tar.gz
