@@ -146,7 +146,7 @@ https://github.com/AthenZ/athenz/tree/master/libs/java/cert_refresher/examples/t
 
 First you need to update your Java project `pom.xml` file to indicate
 the dependency on the Athenz Cert Refresher Library. Checkout the
-[Bintray Athenz Cert Refresher Package](https://bintray.com/yahoo/maven/athenz-cert-refresher/)
+[Maven Central Athenz Cert Refresher Package](https://search.maven.org/artifact/com.yahoo.athenz/athenz-cert-refresher)
 to make sure you're using the latest release version:
 
 ```
@@ -155,14 +155,6 @@ to make sure you're using the latest release version:
     <artifactId>athenz-cert-refresher</artifactId>
     <version>VERSION-NUMBER</version>
 </dependency>
-
-<repositories>
-  <repository>
-    <id>bintray-yahoo-maven</id>
-    <name>bintray</name>
-    <url>https://yahoo.bintray.com/maven</url>
-  </repository>
-</repositories>
 ```
 
 #### Build Http Client Utility
@@ -201,7 +193,7 @@ https://github.com/AthenZ/athenz/tree/master/examples/java/centralized-use-case/
 
 First you need to update your Java project `pom.xml` file to indicate
 the dependency on the Athenz ZMS Java Client Library and the Athenz Cert Refresher Libarry.
-Checkout [Bintray ZMS Client Package Page](https://bintray.com/yahoo/maven/athenz-zms-java-client/) and [Bintray Athenz Cert Refresher Package](https://bintray.com/yahoo/maven/athenz-cert-refresher/)
+Checkout [Maven Central  ZMS Client Package Page](https://search.maven.org/artifact/com.yahoo.athenz/athenz-zms-java-client) and [Maven Central Athenz Cert Refresher Package](https://search.maven.org/artifact/com.yahoo.athenz/athenz-cert-refresher)
 to make sure you're using the latest release version:
 
 ```
@@ -215,14 +207,6 @@ to make sure you're using the latest release version:
     <artifactId>athenz-cert-refresher</artifactId>
     <version>VERSION-NUMBER</version>
 </dependency>
-
-<repositories>
-  <repository>
-    <id>bintray-yahoo-maven</id>
-    <name>bintray</name>
-    <url>https://yahoo.bintray.com/maven</url>
-  </repository>
-</repositories>
 ```
 #### Enable TLS Client Certificate Authentication
 -------------------------------------------------

@@ -157,15 +157,4 @@ are available in the `athenz-zts-core` library.
       <version>1.7.51</version>
     </dependency>
   </dependencies>
-
-  <repositories>
-    <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>bintray-yahoo-maven</id>
-      <name>bintray</name>
-      <url>https://yahoo.bintray.com/maven</url>
-    </repository>
-  </repositories>
 ```

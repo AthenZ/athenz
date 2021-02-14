@@ -36,11 +36,10 @@ $ nodemon --version
 ## Getting Software
 -------------------
 
-Download latest Athenz UI release from Bintray - click on the `Files` tab,
-choose the latest version directory and then download the
-`athenz-ui-<latest-version>-bin.tar.gz` file:
-
-[ ![Download](https://api.bintray.com/packages/yahoo/maven/athenz-ui/images/download.svg) ](https://bintray.com/yahoo/maven/athenz-ui/_latestVersion)
+Build the latest UI binary release by following the
+[development instructions](dev_environment.md). The binary release
+packages  will be created automatically in the `assembly` subdirectory.
+Copy the `athenz-ui-X.Y-bin.tar.gz` to your desired setup directory.
 
 ```shell
 $ tar xvfz athenz-ui-X.Y-bin.tar.gz

@@ -31,11 +31,10 @@ it should run successfully with OpenJDK 8 as well.
 ## Getting Software
 -------------------
 
-Download latest ZTS binary release from
-
-```
-https://bintray.com/yahoo/maven/athenz-zts/_latestVersion#files
-```
+Build the latest ZTS binary release by following the
+[development instructions](dev_environment.md). The binary release
+packages  will be created automatically in the `assembly` subdirectory.
+Copy the `athenz-zts-X.Y-bin.tar.gz` to your desired setup directory.
 
 ```shell
 $ tar xvfz athenz-zts-X.Y-bin.tar.gz

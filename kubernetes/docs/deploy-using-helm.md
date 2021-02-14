@@ -315,7 +315,9 @@ admin_curl --request GET --url "${ZMS_URL}/zms/v1/domain/sys.auth/service/zms" |
 
 <a id="markdown-8-generate-athenz_confjson" name="8-generate-athenz_confjson"></a>
 ### 8. Generate athenz_conf.json
-Download athenz-utils-${ATHENZ_TAG}-bin.tar.gz [this page](https://bintray.com/yahoo/maven/athenz-utils/_latestVersion#files).
+Download athenz-utils-${ATHENZ_TAG}-bin.tar.gz from [Maven Central](https://search.maven.org/artifact/com.yahoo.athenz/athenz-utils)
+(click on the `Browse` button, choose the latest version directory).
+
 ```bash
 tar xvfz athenz-utils-${ATHENZ_TAG}-bin.tar.gz
 cp athenz-utils-${ATHENZ_TAG}/bin/<PLATFORM>/athenz-conf ./

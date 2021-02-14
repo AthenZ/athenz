@@ -125,7 +125,7 @@ For example, here is a quick program that can be compiled and packaged into lamb
 
 First you need to update your Java project `pom.xml` file to indicate
 the dependency on the Athenz zts java client libraries. Checkout the
-[Bintray ZTS Java Client Package](https://bintray.com/yahoo/maven/athenz-zts-java-client/)
+[Maven Central ZTS Java Client Package](https://search.maven.org/artifact/com.yahoo.athenz/athenz-zts-java-client/)
 pages to make sure you're using the latest release version:
 
 ```xml
@@ -133,7 +133,7 @@ pages to make sure you're using the latest release version:
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
       <artifactId>athenz-zts-java-client</artifactId>
-      <version>1.8.37</version>
+      <version>1.10.4</version>
     </dependency>
   </dependencies>
 ```

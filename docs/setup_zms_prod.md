@@ -71,11 +71,10 @@ We recommend to have a strong admin password for better security.
 ## Getting Software
 -------------------
 
-Download latest ZMS binary release from
-
-```
-https://bintray.com/yahoo/maven/athenz-zms/_latestVersion#files
-```
+Build the latest ZMS binary release by following the
+[development instructions](dev_environment.md). The binary release
+packages  will be created automatically in the `assembly` subdirectory.
+Copy the `athenz-zms-X.Y-bin.tar.gz` to your desired setup directory.
 
 ```shell
 $ tar xvfz athenz-zms-X.Y-bin.tar.gz

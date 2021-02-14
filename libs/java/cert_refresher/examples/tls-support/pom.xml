@@ -27,7 +27,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <athenz.version>1.8.31</athenz.version>
+    <athenz.version>1.10.4</athenz.version>
   </properties>
 
   <dependencies>
@@ -47,17 +47,6 @@
       <version>1.2.3</version>
     </dependency>
   </dependencies>
-
-  <repositories>
-    <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>bintray-yahoo-maven</id>
-      <name>bintray</name>
-      <url>https://yahoo.bintray.com/maven</url>
-    </repository>
-  </repositories>
 
   <build>
     <plugins>
