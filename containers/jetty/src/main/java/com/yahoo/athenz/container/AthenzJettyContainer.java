@@ -22,6 +22,8 @@ import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 
+import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger;
+import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLoggerFactory;
 import org.eclipse.jetty.deploy.DeploymentManager;
 import org.eclipse.jetty.deploy.PropertiesConfigurationManager;
 import org.eclipse.jetty.deploy.bindings.DebugListenerBinding;
@@ -70,6 +72,7 @@ public class AthenzJettyContainer {
     private String banner = null;
     private HandlerCollection handlers = null;
     private PrivateKeyStore privateKeyStore;
+    private final JettyConnectionLoggerFactory jettyConnectionLoggerFactory = new JettyConnectionLoggerFactory();
     
     public AthenzJettyContainer() {
         loadServicePrivateKey();
@@ -411,7 +414,7 @@ public class AthenzJettyContainer {
     }
     
     void addHTTPSConnector(HttpConfiguration httpConfig, int httpsPort, boolean proxyProtocol,
-            String listenHost, int idleTimeout, boolean needClientAuth) {
+            String listenHost, int idleTimeout, boolean needClientAuth, JettyConnectionLogger connectionLogger) {
         
         // SSL Context Factory
     
@@ -441,6 +444,7 @@ public class AthenzJettyContainer {
         if (listenHost != null) {
             sslConnector.setHost(listenHost);
         }
+        sslConnector.addBean(connectionLogger);
         server.addConnector(sslConnector);
     }
     
@@ -458,14 +462,16 @@ public class AthenzJettyContainer {
         if (httpPort > 0) {
             addHTTPConnector(httpConfig, httpPort, proxyProtocol, listenHost, idleTimeout);
         }
-        
+
         // HTTPS Connector
-        
+
+        JettyConnectionLogger connectionLogger = jettyConnectionLoggerFactory.create();
         if (httpsPort > 0) {
             boolean needClientAuth = Boolean.parseBoolean(
                     System.getProperty(AthenzConsts.ATHENZ_PROP_CLIENT_AUTH, "false"));
+
             addHTTPSConnector(httpConfig, httpsPort, proxyProtocol, listenHost,
-                    idleTimeout, needClientAuth);
+                    idleTimeout, needClientAuth, connectionLogger);
         }
         
         // Status Connector - only if it's different from HTTP/HTTPS
@@ -473,13 +479,13 @@ public class AthenzJettyContainer {
         if (statusPort > 0 && statusPort != httpPort && statusPort != httpsPort) {
             
             if (httpsPort > 0) {
-                addHTTPSConnector(httpConfig, statusPort, false, listenHost, idleTimeout, false);
+                addHTTPSConnector(httpConfig, statusPort, false, listenHost, idleTimeout, false, connectionLogger);
             } else if (httpPort > 0) {
                 addHTTPConnector(httpConfig, statusPort, false, listenHost, idleTimeout);
             }
         }
     }
-    
+
     /**
      * Set the banner that get displayed when server is started up.
      * @param banner Banner text to be displayed
@@ -525,7 +531,7 @@ public class AthenzJettyContainer {
         int maxThreads = Integer.parseInt(System.getProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS,
                 Integer.toString(AthenzConsts.ATHENZ_HTTP_MAX_THREADS)));
         container.createServer(maxThreads);
-        
+
         HttpConfiguration httpConfig = container.newHttpConfiguration();
         container.addHTTPConnectors(httpConfig, httpPort, httpsPort, statusPort);
         container.addServletHandlers(serverHostName);

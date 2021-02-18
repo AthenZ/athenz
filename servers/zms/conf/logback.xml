@@ -37,9 +37,30 @@
     </encoder>
   </appender>
 
+  <!-- Logger used exclusively for SSL Connection logging -->
+  <appender name="SSLCONNECTION" class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+    <file>${LOG_DIR}/sslconn.log</file>
+    <append>true</append>
+
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_DIR}/sslconn.%d.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+      <cleanHistoryOnStart>true</cleanHistoryOnStart>
+    </rollingPolicy>
+
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
   <logger name="org.eclipse" level="INFO"/>
   <logger name="AuditSoxLogger" level="INFO" additivity="false">
     <appender-ref ref="AUDIT" />
+  </logger>
+  
+  <logger name="SSLConnectionLog" level="INFO" >
+    <appender-ref ref="SSLCONNECTION" />
   </logger>
 
   <root>
