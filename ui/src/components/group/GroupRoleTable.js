@@ -118,9 +118,7 @@ export default class GroupRoleTable extends React.Component {
         }
 
         if (
-            this.state.roles &&
-            this.state.roles.length === 0 &&
-            this.state.searchText === ''
+            !this.props.displayTable
         ) {
             return (
                 <GroupRoleDiv>
