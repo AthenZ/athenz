@@ -2101,7 +2101,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("ResourceAccessList", "GET", "/resource")
-            .comment("Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified unless the caller has authorization from sys.auth domain to check access for all user principals. (action: access, resource: resource-lookup-all)")
+            .comment("Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified")
             .queryParam("principal", "principal", "ResourceName", null, "specifies principal to query the resource list for")
             .queryParam("action", "action", "ActionName", null, "action as specified in the policy assertion")
             .auth("", "", true)

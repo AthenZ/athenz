@@ -258,12 +258,22 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON policy.domain_id=domain.domain_id";
     private static final String SQL_LIST_ROLE_ASSERTION_QUERY_ACTION = " WHERE assertion.action=?;";
     private static final String SQL_LIST_ROLE_ASSERTION_NO_ACTION = " WHERE assertion.action!='assume_role';";
-    private static final String SQL_LIST_ROLE_PRINCIPALS = "SELECT principal.name, role_member.expiration, role_member.review_reminder, role.domain_id, "
+    private static final String SQL_LIST_ROLE_PRINCIPALS = "SELECT role.domain_id, role.name AS role_name FROM principal "
+            + "JOIN role_member ON principal.principal_id=role_member.principal_id "
+            + "JOIN role ON role_member.role_id=role.role_id WHERE principal.name=? "
+            + "AND principal.system_suspended=0 AND role_member.system_disabled=0 "
+            + "AND (role_member.expiration IS NULL OR role_member.expiration > CURRENT_TIME);";
+    private static final String SQL_LIST_ROLE_GROUP_PRINCIPALS = "SELECT principal.name, role.domain_id, "
             + "role.name AS role_name FROM principal "
             + "JOIN role_member ON principal.principal_id=role_member.principal_id "
-            + "JOIN role ON role_member.role_id=role.role_id";
-    private static final String SQL_LIST_ROLE_PRINCIPALS_USER_ONLY = " WHERE principal.name LIKE ?;";
-    private static final String SQL_LIST_ROLE_PRINCIPALS_QUERY = " WHERE principal.name=?;";
+            + "JOIN role ON role_member.role_id=role.role_id WHERE principal.name LIKE '%:group.%' "
+            + "AND principal.system_suspended=0 AND role_member.system_disabled=0 "
+            + "AND (role_member.expiration IS NULL OR role_member.expiration > CURRENT_TIME);";
+    private static final String SQL_LIST_GROUP_FOR_PRINCIPAL = "SELECT principal_group.name, domain.name AS domain_name "
+            + "FROM principal_group_member  JOIN principal_group ON principal_group.group_id=principal_group_member.group_id "
+            + "JOIN domain ON domain.domain_id=principal_group.domain_id JOIN principal ON principal.principal_id=principal_group_member.principal_id "
+            + "WHERE principal.name=? AND principal.system_suspended=0 AND principal_group_member.system_disabled=0 "
+            + "AND (principal_group_member.expiration IS NULL OR principal_group_member.expiration > CURRENT_TIME);";
     private static final String SQL_LIST_TRUSTED_STANDARD_ROLES = "SELECT role.domain_id, role.name, "
             + "policy.domain_id AS assert_domain_id, assertion.role FROM role "
             + "JOIN domain ON domain.domain_id=role.domain_id "
@@ -1319,7 +1329,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         } catch (SQLException ex) {
-            LOG.error("unable to get polcy id for name: " + policyName +
+            LOG.error("unable to get policy id for name: " + policyName +
                     " error code: " + ex.getErrorCode() + " msg: " + ex.getMessage());
         }
 
@@ -3767,52 +3777,86 @@ public class JDBCConnection implements ObjectStoreConnection {
         return roleAssertions;
     }
 
-    PreparedStatement prepareRolePrincipalsStatement(String principal,
-            String userDomain, boolean awsQuery) throws SQLException {
+    Set<String> getRolePrincipals(final String principalName, final String caller) {
 
-        PreparedStatement ps;
-        if (principal != null && principal.length() > 0) {
-            ps = con.prepareStatement(SQL_LIST_ROLE_PRINCIPALS + SQL_LIST_ROLE_PRINCIPALS_QUERY);
-            ps.setString(1, principal);
-        } else if (awsQuery) {
-            final String principalPattern = userDomain + ".%";
-            ps = con.prepareStatement(SQL_LIST_ROLE_PRINCIPALS + SQL_LIST_ROLE_PRINCIPALS_USER_ONLY);
-            ps.setString(1, principalPattern);
-        } else {
-            ps = con.prepareStatement(SQL_LIST_ROLE_PRINCIPALS);
+        // first let's find out all the roles that given principal is member of
+
+        Set<String> rolePrincipals = getRolesForPrincipal(principalName, caller);
+
+        // next let's extract all groups that the given principal is member of
+        // if the group list is not empty then we need to extract all the roles
+        // where groups are member of and include those roles that match our
+        // extracted groups in the role principals map
+
+        Set<String> groups = getGroupsForPrincipal(principalName, caller);
+        if (!groups.isEmpty()) {
+            updatePrincipalRoleGroupMembership(rolePrincipals, groups, principalName, caller);
         }
-        return ps;
+        return rolePrincipals;
     }
 
-    Map<String, List<String>> getRolePrincipals(String principal, boolean awsQuery,
-            String userDomain, String caller) {
+    void updatePrincipalRoleGroupMembership(Set<String> rolePrincipals, final Set<String> groups,
+            final String principalName, final String caller) {
 
-        Map<String, List<String>> rolePrincipals = new HashMap<>();
-        try (PreparedStatement ps = prepareRolePrincipalsStatement(principal, userDomain, awsQuery)) {
-            long now = System.currentTimeMillis();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_ROLE_GROUP_PRINCIPALS)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
 
-                    // first check make sure the member is not expired
-
-                    String principalName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
-                    java.sql.Timestamp expiration = rs.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION);
-                    if (expiration != null && now > expiration.getTime()) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("{}: skipping expired principal {}", caller, principalName);
-                        }
+                    final String groupName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
+                    if (!groups.contains(groupName)) {
                         continue;
                     }
 
-                    String roleName = rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME);
-                    String index = roleIndex(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID), roleName);
-                    List<String> principals = rolePrincipals.computeIfAbsent(index, k -> new ArrayList<>());
+                    final String roleName = rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME);
+                    final String index = roleIndex(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID), roleName);
 
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{}: adding principal {} for {}", caller, principalName, index);
                     }
 
-                    principals.add(principalName);
+                    rolePrincipals.add(index);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+    }
+
+    Set<String> getGroupsForPrincipal(final String principalName, final String caller) {
+
+        Set<String> groups = new HashSet<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_GROUP_FOR_PRINCIPAL)) {
+            ps.setString(1, principalName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    final String groupName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
+                    final String domainName = rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_NAME);
+                    groups.add(ResourceUtils.groupResourceName(domainName, groupName));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        return groups;
+    }
+
+    Set<String> getRolesForPrincipal(final String principalName, final String caller) {
+
+        Set<String> rolePrincipals = new HashSet<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_ROLE_PRINCIPALS)) {
+            ps.setString(1, principalName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+
+                    final String roleName = rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME);
+                    final String index = roleIndex(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID), roleName);
+
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}: adding principal {} for {}", caller, principalName, index);
+                    }
+
+                    rolePrincipals.add(index);
                 }
             }
         } catch (SQLException ex) {
@@ -3866,37 +3910,6 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         return awsDomains;
-    }
-
-    boolean skipAwsUserQuery(Map<String, String> awsDomains, String queryPrincipal,
-            String rolePincipal, String userDomain) {
-
-        // if no aws domains specified then it's not an aws query
-
-        if (awsDomains == null) {
-            return false;
-        }
-
-        // check if our query principal is not specified
-
-        if (queryPrincipal != null && !queryPrincipal.isEmpty()) {
-            return false;
-        }
-
-        // so now we know this is a global aws role query so we're only
-        // going to keep actual users - everyone else is skipped
-
-        // make sure the principal starts with the user domain prefix
-
-        String userDomainPrefix = userDomain + ".";
-        if (!rolePincipal.startsWith(userDomainPrefix)) {
-            return true;
-        }
-
-        // make sure this is not a service within the user's
-        // personal domain
-
-        return rolePincipal.substring(userDomainPrefix.length()).indexOf('.') != -1;
     }
 
     void addRoleAssertions(List<Assertion> principalAssertions, List<Assertion> roleAssertions,
@@ -3988,27 +4001,23 @@ public class JDBCConnection implements ObjectStoreConnection {
         // the action query
 
         boolean awsQuery = (action != null && action.equals(ZMSConsts.ACTION_ASSUME_AWS_ROLE));
-        boolean singlePrincipalQuery = (principal != null && !principal.isEmpty());
 
         // first let's get the principal list that we're asked to check for
         // since if we have no matches then we have nothing to do
 
-        Map<String, List<String>> rolePrincipals = getRolePrincipals(principal, awsQuery,
-                userDomain, caller);
+        Set<String> rolePrincipals = getRolePrincipals(principal, caller);
         if (rolePrincipals.isEmpty()) {
-            if (singlePrincipalQuery) {
 
-                // so the given principal is not available as a role member
-                // so before returning an empty response let's make sure
-                // that it has been registered in Athenz otherwise we'll
-                // just return 404 - not found exception
+            // so the given principal is not available as a role member
+            // so before returning an empty response let's make sure
+            // that it has been registered in Athenz otherwise we'll
+            // just return 404 - not found exception
 
-                if (getPrincipalId(principal) == 0) {
-                    throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
-                }
-
-                resources.add(getResourceAccessObject(principal, null));
+            if (getPrincipalId(principal) == 0) {
+                throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
             }
+
+            resources.add(getResourceAccessObject(principal, null));
             return rsrcAccessList;
         }
 
@@ -4017,9 +4026,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         Map<String, List<Assertion>> roleAssertions = getRoleAssertions(action, caller);
         if (roleAssertions.isEmpty()) {
-            if (singlePrincipalQuery) {
-                resources.add(getResourceAccessObject(principal, null));
-            }
+            resources.add(getResourceAccessObject(principal, null));
             return rsrcAccessList;
         }
 
@@ -4027,12 +4034,10 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         Map<String, List<String>> trustedRoles = getTrustedRoles(caller);
 
-        // couple of special cases - if we're asked for action assume_aws_role
-        // then we're looking for role access in AWS. So we're going to retrieve
+        // if we're asked for action assume_aws_role then we're looking
+        // for role access in AWS. So we're going to retrieve
         // the domains that have aws account configured only and update
-        // the resource to generate aws role resources. If the action is
-        // assume_aws_role with no principal - then another special case to
-        // look for actual users only
+        // the resource to generate aws role resources.
 
         Map<String, String> awsDomains = null;
         if (awsQuery) {
@@ -4046,52 +4051,30 @@ public class JDBCConnection implements ObjectStoreConnection {
         // to look at the trust role map in case it's a trusted role
 
         Map<String, List<Assertion>> principalAssertions = new HashMap<>();
-        for (Map.Entry<String, List<String>> entry : rolePrincipals.entrySet()) {
-
-            String roleIndex = entry.getKey();
+        for (String roleIndex : rolePrincipals) {
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug(caller + ": processing role: " + roleIndex);
             }
 
-            // get the list of principals for this role
+            List<Assertion> assertions = principalAssertions.computeIfAbsent(principal, k -> new ArrayList<>());
 
-            List<String> rPrincipals = entry.getValue();
-            for (String rPrincipal : rPrincipals) {
+            // retrieve the assertions for this role
 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(caller + ": processing role principal: " + rPrincipal);
-                }
+            addRoleAssertions(assertions, roleAssertions.get(roleIndex), awsDomains);
 
-                // if running an aws query with no principals specified then make
-                // sure this is real user and not some service
+            // check to see if this is a trusted role. There might be multiple
+            // roles all being mapped as trusted, so we need to process them all
 
-                if (skipAwsUserQuery(awsDomains, principal, rPrincipal, userDomain)) {
+            List<String> mappedTrustedRoles = trustedRoles.get(roleIndex);
+            if (mappedTrustedRoles != null) {
+                for (String mappedTrustedRole : mappedTrustedRoles) {
+
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug(caller + ": skipping non-user: " + rPrincipal);
+                        LOG.debug(caller + ": processing trusted role: " + mappedTrustedRole);
                     }
-                    continue;
-                }
 
-                List<Assertion> assertions = principalAssertions.computeIfAbsent(rPrincipal, k -> new ArrayList<>());
-
-                // retrieve the assertions for this role
-
-                addRoleAssertions(assertions, roleAssertions.get(roleIndex), awsDomains);
-
-                // check to see if this is a trusted role. There might be multiple
-                // roles all being mapped as trusted, so we need to process them all
-
-                List<String> mappedTrustedRoles = trustedRoles.get(roleIndex);
-                if (mappedTrustedRoles != null) {
-                    for (String mappedTrustedRole : mappedTrustedRoles) {
-
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(caller + ": processing trusted role: " + mappedTrustedRole);
-                        }
-
-                        addRoleAssertions(assertions, roleAssertions.get(mappedTrustedRole), awsDomains);
-                    }
+                    addRoleAssertions(assertions, roleAssertions.get(mappedTrustedRole), awsDomains);
                 }
             }
         }
@@ -4099,22 +4082,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         // finally we need to create resource access list objects and return
 
         for (Map.Entry<String, List<Assertion>> entry : principalAssertions.entrySet()) {
-
-            // if this is a query for all principals in Athenz then we're
-            // automatically going to skip any principals who have no
-            // assertions
-
-            List<Assertion> assertions = entry.getValue();
-            if (!singlePrincipalQuery && (assertions == null || assertions.isEmpty())) {
-                continue;
-            }
-
-            resources.add(getResourceAccessObject(entry.getKey(), assertions));
+            resources.add(getResourceAccessObject(entry.getKey(), entry.getValue()));
         }
 
         return rsrcAccessList;
     }
-
 
     @Override
     public Quota getQuota(String domainName) {

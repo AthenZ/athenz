@@ -2997,7 +2997,7 @@ public class ZMSResources {
     @GET
     @Path("/resource")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified unless the caller has authorization from sys.auth domain to check access for all user principals. (action: access, resource: resource-lookup-all)")
+    @Operation(description = "Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified")
     public ResourceAccessList getResourceAccessList(
         @Parameter(description = "specifies principal to query the resource list for", required = false) @QueryParam("principal") String principal,
         @Parameter(description = "action as specified in the policy assertion", required = false) @QueryParam("action") String action) {

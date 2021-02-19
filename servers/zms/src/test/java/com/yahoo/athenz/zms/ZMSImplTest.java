@@ -47,7 +47,6 @@ import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
-import com.yahoo.rdl.JSON;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -8878,18 +8877,16 @@ public class ZMSImplTest {
         zms.putProviderResourceGroupRoles(mockDomRsrcCtx, "AddTenancyDom1", "coretech",
                 "storage", "set1", auditRef, providerRoles);
 
-
-        Role role;
         // make sure tenancy admin role is not created
         try {
-            role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.admin", false, false, false);
+            zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.admin", false, false, false);
             fail();
         } catch(ResourceException re) {
             assertEquals(re.getCode(), 404);
         }
 
         // make sure our roles have been created
-        role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.admin", false, false, false);
+        Role role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.admin", false, false, false);
         assertNotNull(role);
 
         role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.reader", false, false, false);
@@ -8898,18 +8895,15 @@ public class ZMSImplTest {
         role = zms.getRole(mockDomRsrcCtx, "AddTenancyDom1", "coretech.storage.res_group.set1.writer", false, false, false);
         assertNotNull(role);
 
-        // verify the policies have the correct roles
-
-        Policy policy;
         // make sure tenancy admin policy is not created
         try {
-            policy = zms.getPolicy(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.admin");
+            zms.getPolicy(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.admin");
             fail();
         } catch(ResourceException re) {
             assertEquals(re.getCode(), 404);
         }
 
-        policy = zms.getPolicy(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.res_group.set1.reader");
+        Policy policy = zms.getPolicy(mockDomRsrcCtx, "AddTenancyDom1", "tenancy.coretech.storage.res_group.set1.reader");
         assertNotNull(policy);
 
         List<Assertion> assertList = policy.getAssertions();
@@ -16473,14 +16467,6 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testIsAllowedResourceLookForAllUsers() {
-        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
-                "10.11.12.13", "GET", null);
-        assertFalse(zms.isAllowedResourceLookForAllUsers(principal1));
-    }
-
-    @Test
     public void testDeleteDomainTemplate() {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
@@ -16538,94 +16524,241 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testGetResourceAccessList() {
-
-        ZMSImpl zmsImpl = zmsInit();
-
-        DBService dbService = Mockito.mock(DBService.class);
-        Mockito.when(dbService.getResourceAccessList("sys.zts", "update"))
-                .thenReturn(new ResourceAccessList());
-        zmsImpl.dbService = dbService;
-
+    public void testGetResourceAccessListNullPrincipal() {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
                 "10.11.12.13", "GET", null);
-        ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
-        ResourceAccessList accessList = zmsImpl.getResourceAccessList(rsrcCtx, "sys.zts", "UPDATE");
-        assertNotNull(accessList);
+        ResourceContext rsrcCtx1 = createResourceContext(principal1);
 
-        zmsImpl.objectStore.clearConnections();
-    }
-
-    @Test
-    public void testGetResourceAccessListNullPrincipalAction() {
-
-        Policy policy1 = createPolicyObject("sys.auth", "resource-access");
-        zms.putPolicy(mockDomRsrcCtx, "sys.auth", "resource-access", auditRef, policy1);
-
-        Role role1 = createRoleObject("sys.auth", "Role1", null, "sys.zts", null);
-        zms.putRole(mockDomRsrcCtx, "sys.auth", "Role1", auditRef, role1);
-
-        AthenzDomain domain = zms.getAthenzDomain("sys.auth", false);
-
-        // now create our mock zms and db service objects
-
-        ZMSImpl zmsImpl = zmsInit();
-
-        DBService dbService = Mockito.mock(DBService.class);
-        Mockito.when(dbService.getResourceAccessList(null, null))
-                .thenReturn(new ResourceAccessList());
-        Mockito.when(dbService.getAthenzDomain("sys.auth", false)).thenReturn(domain);
-
-        zmsImpl.dbService = dbService;
-
-        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
-                "10.11.12.13", "GET", null);
-        ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
-        ResourceAccessList accessList = zmsImpl.getResourceAccessList(rsrcCtx, null, null);
-        assertNotNull(accessList);
-
-        zmsImpl.objectStore.clearConnections();
-    }
-
-    @Test
-    public void testGetResourceAccessListNullPrincipalActionNotAuthorized() {
-
-        Policy policy1 = createPolicyObject("sys.auth", "resource-access");
-        zms.putPolicy(mockDomRsrcCtx, "sys.auth", "resource-access", auditRef, policy1);
-
-        // we're authorizing sys.auth.zts and not sys.zts that our principal is using
-
-        Role role1 = createRoleObject("sys.auth", "Role1", null, "sys.auth.zts", null);
-        zms.putRole(mockDomRsrcCtx, "sys.auth", "Role1", auditRef, role1);
-
-        AthenzDomain domain = zms.getAthenzDomain("sys.auth", false);
-
-        // now create our mock zms and db service objects
-
-        ZMSImpl zmsImpl = zmsInit();
-
-        DBService dbService = Mockito.mock(DBService.class);
-        Mockito.when(dbService.getResourceAccessList(null, null))
-                .thenReturn(new ResourceAccessList());
-        Mockito.when(dbService.getAthenzDomain("sys.auth", false)).thenReturn(domain);
-
-        zmsImpl.dbService = dbService;
-
-        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
-                "10.11.12.13", "GET", null);
-        ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
-
-        try {
-            zmsImpl.getResourceAccessList(rsrcCtx, null, null);
+        try{
+            zms.getResourceAccessList(rsrcCtx1, "", "UPDATE");
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        } catch(ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("principal is required for resource access list"));
         }
 
-        zmsImpl.objectStore.clearConnections();
+        try{
+            zms.getResourceAccessList(rsrcCtx1, null, "UPDATE");
+            fail();
+        } catch(ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("principal is required for resource access list"));
+        }
+    }
+
+    @Test
+    public void testGetResourceAccessList() {
+
+        final String domainName1 = "resource-aws1";
+        final String domainName2 = "resource-aws2";
+        final String domainName3 = "resource-aws3";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName1,
+                "Test Domain1", "testOrg", adminUser);
+        dom1.setAccount("aws-1234");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject(domainName2,
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        TopLevelDomain dom3 = createTopLevelDomainObject(domainName3,
+                "Test Domain3", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
+
+        Group group31 = createGroupObject(domainName3, "group31", "user.john", "user.joe");
+        zms.putGroup(mockDomRsrcCtx, domainName3, "group31", auditRef, group31);
+
+        Group group32 = createGroupObject(domainName3, "group32", "user.john", "user.joe");
+        zms.putGroup(mockDomRsrcCtx, domainName3, "group32", auditRef, group32);
+
+        Group group33 = createGroupObject(domainName3, "group33", "user.jack", "user.joe");
+        zms.putGroup(mockDomRsrcCtx, domainName3, "group33", auditRef, group33);
+
+        // two roles in domain1 with aws access
+
+        Role role1 = createRoleObject(domainName1, "aws-role1", null, "user.joe",
+                ResourceUtils.groupResourceName(domainName3, "group31"));
+        zms.putRole(mockDomRsrcCtx, domainName1, "aws-role1", auditRef, role1);
+
+        Role role2 = createRoleObject(domainName1, "aws-role2", null, "user.jane",
+                ResourceUtils.groupResourceName(domainName3, "group32"));
+        zms.putRole(mockDomRsrcCtx, domainName1, "aws-role2", auditRef, role2);
+
+        // same roles in domain2 without aws access
+
+        role1 = createRoleObject(domainName2, "aws-role1", null, "user.joe",
+                ResourceUtils.groupResourceName(domainName3, "group31"));
+        zms.putRole(mockDomRsrcCtx, domainName2, "aws-role1", auditRef, role1);
+
+        role2 = createRoleObject(domainName2, "aws-role2", null, "user.jane",
+                ResourceUtils.groupResourceName(domainName3, "group32"));
+        zms.putRole(mockDomRsrcCtx, domainName2, "aws-role2", auditRef, role2);
+
+        // similar roles in domain3 without any policies
+
+        role1 = createRoleObject(domainName3, "aws-role1", null, "user.joe",
+                ResourceUtils.groupResourceName(domainName3, "group33"));
+        zms.putRole(mockDomRsrcCtx, domainName3, "aws-role1", auditRef, role1);
+
+        role2 = createRoleObject(domainName3, "aws-role2", null, "user.jane",
+                ResourceUtils.groupResourceName(domainName3, "group33"));
+        zms.putRole(mockDomRsrcCtx, domainName3, "aws-role2", auditRef, role2);
+
+        // create the policies with assume_aws_role action
+
+        Policy policy1 = createPolicyObject(domainName1, "policy1", "aws-role1",
+                "assume_aws_role", domainName1 + ":role1-resource", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName1, "policy1", auditRef, policy1);
+
+        Policy policy2 = createPolicyObject(domainName1, "policy2", "aws-role2",
+                "assume_aws_role", domainName1 + ":role2-resource", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName1, "policy2", auditRef, policy2);
+
+        // same policies in domain 2 without aws access
+
+        policy1 = createPolicyObject(domainName2, "policy1", "aws-role1",
+                "assume_aws_role", domainName2 + ":role1-resource", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName2, "policy1", auditRef, policy1);
+
+        policy2 = createPolicyObject(domainName2, "policy2", "aws-role2",
+                "assume_aws_role", domainName2 + ":role2-resource", AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domainName2, "policy2", auditRef, policy2);
+
+        // get the list of resources for user.joe with assume_aws_role action
+
+        ResourceAccessList resourceAccessList = zms.getResourceAccessList(mockDomRsrcCtx, "user.joe", "assume_aws_role");
+        assertNotNull(resourceAccessList);
+
+        List<ResourceAccess> resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        ResourceAccess rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.joe");
+        assertEquals(rsrcAccess.getAssertions().size(), 2);
+        Set<String> resourceCheck = new HashSet<>();
+        for (Assertion assertion : rsrcAccess.getAssertions()) {
+            resourceCheck.add(assertion.getResource());
+        }
+        assertTrue(resourceCheck.contains("arn:aws:iam::aws-1234:role/role1-resource"));
+        assertTrue(resourceCheck.contains("arn:aws:iam::aws-1234:role/role2-resource"));
+
+        // get the list of resources for user.jane with assume_aws_role action
+
+        resourceAccessList = zms.getResourceAccessList(mockDomRsrcCtx, "user.jane", "assume_aws_role");
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.jane");
+        assertEquals(rsrcAccess.getAssertions().size(), 1);
+        assertEquals(rsrcAccess.getAssertions().get(0).getResource(), "arn:aws:iam::aws-1234:role/role2-resource");
+
+        // get the list of resources for user.john with assume_aws_role action
+
+        resourceAccessList = zms.getResourceAccessList(mockDomRsrcCtx, "user.john", "assume_aws_role");
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.john");
+        assertEquals(rsrcAccess.getAssertions().size(), 2);
+        resourceCheck = new HashSet<>();
+        for (Assertion assertion : rsrcAccess.getAssertions()) {
+            resourceCheck.add(assertion.getResource());
+        }
+        assertTrue(resourceCheck.contains("arn:aws:iam::aws-1234:role/role1-resource"));
+        assertTrue(resourceCheck.contains("arn:aws:iam::aws-1234:role/role2-resource"));
+
+        // get the list of resources for unknown user with assume_aws_role action
+
+        try {
+            zms.getResourceAccessList(mockDomRsrcCtx, "user.unknown", "assume_aws_role");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        // get the list of resources for user.joe with unknown action
+
+        resourceAccessList = zms.getResourceAccessList(mockDomRsrcCtx, "user.joe", "unknown");
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.joe");
+        assertTrue(rsrcAccess.getAssertions().isEmpty());
+
+        // get the list of resources for user.joe with null action
+
+        resourceAccessList = zms.getResourceAccessList(mockDomRsrcCtx, "user.joe", null);
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.joe");
+        assertEquals(rsrcAccess.getAssertions().size(), 4);
+        resourceCheck = new HashSet<>();
+        for (Assertion assertion : rsrcAccess.getAssertions()) {
+            resourceCheck.add(assertion.getResource());
+        }
+        assertTrue(resourceCheck.contains(domainName1 + ":role1-resource"));
+        assertTrue(resourceCheck.contains(domainName1 + ":role2-resource"));
+        assertTrue(resourceCheck.contains(domainName2 + ":role1-resource"));
+        assertTrue(resourceCheck.contains(domainName2 + ":role2-resource"));
+
+        // get the list of resources for user.jane with null action
+
+        resourceAccessList = zms.getResourceAccessList(mockDomRsrcCtx, "user.jane", null);
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.jane");
+        assertEquals(rsrcAccess.getAssertions().size(), 2);
+        resourceCheck = new HashSet<>();
+        for (Assertion assertion : rsrcAccess.getAssertions()) {
+            resourceCheck.add(assertion.getResource());
+        }
+        assertTrue(resourceCheck.contains(domainName1 + ":role2-resource"));
+        assertTrue(resourceCheck.contains(domainName2 + ":role2-resource"));
+
+        // get the list of resources for user.john with null action
+
+        resourceAccessList = zms.getResourceAccessList(mockDomRsrcCtx, "user.john", null);
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.john");
+        assertEquals(rsrcAccess.getAssertions().size(), 4);
+        resourceCheck = new HashSet<>();
+        for (Assertion assertion : rsrcAccess.getAssertions()) {
+            resourceCheck.add(assertion.getResource());
+        }
+        assertTrue(resourceCheck.contains(domainName1 + ":role1-resource"));
+        assertTrue(resourceCheck.contains(domainName1 + ":role2-resource"));
+        assertTrue(resourceCheck.contains(domainName2 + ":role1-resource"));
+        assertTrue(resourceCheck.contains(domainName2 + ":role2-resource"));
+
+        // get the list of resources for unknown user with null action
+
+        try {
+            zms.getResourceAccessList(mockDomRsrcCtx, "user.unknown", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName3, auditRef);
     }
 
     @Test
@@ -20795,14 +20928,14 @@ public class ZMSImplTest {
 
         // valid values
 
-        zms.validateIntegerValue(Integer.valueOf(10), "positive");
-        zms.validateIntegerValue(Integer.valueOf(0), "zero");
+        zms.validateIntegerValue(10, "positive");
+        zms.validateIntegerValue(0, "zero");
         zms.validateIntegerValue(null, "null");
 
         // invalid value
 
         try {
-            zms.validateIntegerValue(Integer.valueOf(-1), "negative");
+            zms.validateIntegerValue(-1, "negative");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);

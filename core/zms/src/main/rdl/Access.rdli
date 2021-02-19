@@ -61,9 +61,8 @@ type ResourceAccessList Struct {
     Array<ResourceAccess> resources;
 }
 
-//Return list of resources that the given principal has access to. Even though the principal
-//is marked as optional, it must be specified unless the caller has authorization from sys.auth
-//domain to check access for all user principals. (action: access, resource: resource-lookup-all)
+//Return list of resources that the given principal has access to. Even
+//though the principal is marked as optional, it must be specified
 resource ResourceAccessList GET "/resource?principal={principal}&action={action}" {
     ResourceName principal (optional); //specifies principal to query the resource list for
     ActionName action (optional); //action as specified in the policy assertion

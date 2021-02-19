@@ -1618,23 +1618,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return accessStatus == AccessStatus.ALLOWED;
     }
 
-    boolean isAllowedResourceLookForAllUsers(Principal principal) {
-
-        // the authorization policy resides in official sys.auth domain
-
-        AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
-
-        // evaluate our domain's roles and policies to see if access
-        // is allowed or not for the given operation and resource
-        // our action are always converted to lowercase
-
-        String resource = SYS_AUTH + ":resource-lookup-all";
-        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "access",
-                resource, null, null, principal);
-
-        return accessStatus == AccessStatus.ALLOWED;
-    }
-
     public void deleteSubDomain(ResourceContext ctx, String parent, String name, String auditRef) {
 
         final String caller = ctx.getApiName();
@@ -7354,34 +7337,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             String action) {
 
         final String caller = ctx.getApiName();
-
         logPrincipal(ctx);
-
         validateRequest(ctx.request(), caller);
+
+        if (StringUtil.isEmpty(principal)) {
+            throw ZMSUtils.requestError("principal is required for resource access list", caller);
+        }
 
         Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
         if (LOG.isDebugEnabled()) {
             LOG.debug("getResourceAccessList:({}, {}, {})", ctxPrincipal, principal, action);
         }
 
-        if (principal != null) {
-            validate(principal, TYPE_RESOURCE_NAME, caller);
-            principal = normalizeDomainAliasUser(principal.toLowerCase());
-        }
+        validate(principal, TYPE_RESOURCE_NAME, caller);
+        principal = normalizeDomainAliasUser(principal.toLowerCase());
+
         if (action != null) {
             validate(action, TYPE_COMPOUND_NAME, caller);
             action = action.toLowerCase();
-        }
-
-        // if principal is null then we it's a special case
-        // so we need to make sure the caller is authorized
-        // to make this request
-
-        if (principal == null || principal.isEmpty()) {
-            if (!isAllowedResourceLookForAllUsers(ctxPrincipal)) {
-                throw ZMSUtils.forbiddenError("Principal: " + ctxPrincipal.getFullName() +
-                        " not authorized to lookup resources for all users in Athenz", caller);
-            }
         }
 
         return dbService.getResourceAccessList(principal, action);
