@@ -687,7 +687,7 @@ public class CertFailedRefreshNotificationTaskTest {
 
     @Test
     public void testGetNotificationAsMetric() {
-        Timestamp currentTimeStamp = Timestamp.fromMillis(System.currentTimeMillis());
+        Timestamp currentTimeStamp = Timestamp.fromCurrentTime();
         Timestamp fiveDaysAgo = ZTSTestUtils.addDays(currentTimeStamp, -5);
         Timestamp twentyFiveDaysFromNow = ZTSTestUtils.addDays(currentTimeStamp, 25);
 

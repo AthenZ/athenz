@@ -1807,7 +1807,7 @@ func init() {
 	sb.AddResource(mGetAccessExt.Build())
 
 	mGetResourceAccessList := rdl.NewResourceBuilder("ResourceAccessList", "GET", "/resource")
-	mGetResourceAccessList.Comment("Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified unless the caller has authorization from sys.auth domain to check access for all user principals. (action: access, resource: resource-lookup-all)")
+	mGetResourceAccessList.Comment("Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified")
 	mGetResourceAccessList.Input("principal", "ResourceName", false, "principal", "", true, nil, "specifies principal to query the resource list for")
 	mGetResourceAccessList.Input("action", "ActionName", false, "action", "", true, nil, "action as specified in the policy assertion")
 	mGetResourceAccessList.Auth("", "", true, "")

@@ -27,13 +27,11 @@ import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.util.StringUtil;
-import org.testng.internal.junit.ArrayAsserts;
 
 import java.io.File;
 import java.security.PrivateKey;
 import java.util.*;
-
-import static org.testng.AssertJUnit.assertEquals;
+import java.util.concurrent.TimeUnit;
 
 public class ZTSTestUtils {
 
@@ -384,10 +382,7 @@ public class ZTSTestUtils {
     }
 
     public static Timestamp addDays(Timestamp date, int days) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(date.millis());
-        cal.add(Calendar.DATE, days);
-        return Timestamp.fromMillis(cal.getTime().getTime());
+        return Timestamp.fromMillis(date.millis() + TimeUnit.MILLISECONDS.convert(days, TimeUnit.DAYS));
     }
 
     public static Map<String, AttributeValue> generateAttributeValues(String service,
