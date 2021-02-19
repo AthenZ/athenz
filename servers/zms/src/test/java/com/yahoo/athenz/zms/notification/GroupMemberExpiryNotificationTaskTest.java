@@ -275,7 +275,7 @@ public class GroupMemberExpiryNotificationTaskTest {
 
     @Test
     public void testGetNotificationAsMetric() {
-        Timestamp currentTimeStamp = Timestamp.fromMillis(System.currentTimeMillis());
+        Timestamp currentTimeStamp = Timestamp.fromCurrentTime();
         Timestamp twentyDaysFromNow = ZMSTestUtils.addDays(currentTimeStamp, 20);
         Timestamp twentyFiveDaysFromNow = ZMSTestUtils.addDays(currentTimeStamp, 25);
 
