@@ -104,29 +104,44 @@ export default class RoleGroup extends React.Component {
             let length = this.state.roles.length;
 
             if (this.state.expanded) {
-                let sectionRows = this.state.roles.map((item, i) => {
-                    let color = '';
-                    if (i % 2 === 0) {
-                        color = colors.row;
-                    }
-                    return (
-                        <RoleSectionRow
-                            category={this.props.category}
-                            api={this.api}
-                            details={item}
-                            idx={i}
-                            color={color}
-                            domain={domain}
-                            key={item.name}
-                            onUpdateSuccess={this.props.onUpdateSuccess}
-                            _csrf={this.props._csrf}
-                            justificationRequired={
-                                this.props.justificationRequired
-                            }
-                            userProfileLink={this.props.userProfileLink}
-                        />
-                    );
-                });
+                let sectionRows = this.state.roles
+                    .sort((a, b) => {
+                        if (this.props.category === GROUP_ROLES_CATEGORY) {
+                            return a.roleName.localeCompare(b.roleName);
+                        } else {
+                            return a.name.localeCompare(b.name);
+                        }
+                    })
+                    .map((item, i) => {
+                        let color = '';
+                        if (i % 2 === 0) {
+                            color = colors.row;
+                        }
+                        let key = '';
+                        if (this.props.category === GROUP_ROLES_CATEGORY) {
+                            key = item.roleName + '-' + item.domainName;
+                        } else {
+                            key = item.name;
+                        }
+                        return (
+                            <RoleSectionRow
+                                category={this.props.category}
+                                api={this.api}
+                                details={item}
+                                idx={i}
+                                color={color}
+                                domain={domain}
+                                key={key}
+                                onUpdateSuccess={this.props.onUpdateSuccess}
+                                _csrf={this.props._csrf}
+                                justificationRequired={
+                                    this.props.justificationRequired
+                                }
+                                userProfileLink={this.props.userProfileLink}
+                                newRole={this.props.newRole}
+                            />
+                        );
+                    });
 
                 rows.push(
                     <TrStyled key='aws-role-section' data-testid='role-group'>

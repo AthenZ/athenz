@@ -72,7 +72,6 @@ export default class AddAssertion extends React.Component {
             });
             return;
         }
-
         this.api
             .addAssertion(
                 this.props.domain,
@@ -85,7 +84,8 @@ export default class AddAssertion extends React.Component {
             )
             .then((data) => {
                 this.props.submit(
-                    `Successfully created assertion for policy ${this.props.name}`
+                    `${this.props.name}-${this.state.role}-${this.state.resource}-${this.state.action}`,
+                    false
                 );
             })
             .catch((err) => {

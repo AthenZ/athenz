@@ -175,6 +175,7 @@ export default class RoleTable extends React.Component {
                             roles={this.state.rows[name]}
                             onUpdateSuccess={this.props.onSubmit}
                             _csrf={this.props._csrf}
+                            newRole={this.props.newRole}
                         />
                     );
 
@@ -200,6 +201,7 @@ export default class RoleTable extends React.Component {
                                 this.props.justificationRequired
                             }
                             userProfileLink={this.props.userProfileLink}
+                            newRole={this.props.newRole}
                         />
                     );
                 });

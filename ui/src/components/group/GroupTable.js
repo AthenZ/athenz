@@ -98,6 +98,7 @@ export default class GroupTable extends React.Component {
                                 this.props.justificationRequired
                             }
                             userProfileLink={this.props.userProfileLink}
+                            newGroup={this.props.newGroup}
                         />
                     );
                 });

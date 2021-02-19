@@ -78,7 +78,8 @@ export default class AddAssertionForRole extends React.Component {
             )
             .then((data) => {
                 this.props.submit(
-                    `Successfully created assertion for policy ${this.props.name}`
+                    `${this.props.name}-${this.props.role}-${this.state.resource}-${this.state.action}`,
+                    false
                 );
             })
             .catch((err) => {

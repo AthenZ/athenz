@@ -79,7 +79,7 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-17 {
+.emotion-19 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -87,7 +87,7 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-27 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -95,14 +95,14 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-28 {
+.emotion-32 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-36 {
+.emotion-40 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -167,32 +167,33 @@ exports[`MemberTable should render member table 1`] = `
   </thead>
   <tbody>
     <tr
+      class="emotion-17 emotion-18"
       data-testid="member-row"
     >
       <td
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         color="#3570f40D"
       >
         user1
       </td>
       <td
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         color="#3570f40D"
       />
       <td
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         color="#3570f40D"
       >
         N/A
       </td>
       <td
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         color="#3570f40D"
       >
         N/A
       </td>
       <td
-        class="emotion-25 emotion-18"
+        class="emotion-27 emotion-20"
         color="#3570f40D"
       >
         <span>
@@ -217,32 +218,33 @@ exports[`MemberTable should render member table 1`] = `
       </td>
     </tr>
     <tr
+      class="emotion-17 emotion-18"
       data-testid="member-row"
     >
       <td
-        class="emotion-28 emotion-18"
+        class="emotion-32 emotion-20"
         color=""
       >
         user2
       </td>
       <td
-        class="emotion-28 emotion-18"
+        class="emotion-32 emotion-20"
         color=""
       />
       <td
-        class="emotion-28 emotion-18"
+        class="emotion-32 emotion-20"
         color=""
       >
         N/A
       </td>
       <td
-        class="emotion-28 emotion-18"
+        class="emotion-32 emotion-20"
         color=""
       >
         N/A
       </td>
       <td
-        class="emotion-36 emotion-18"
+        class="emotion-40 emotion-20"
         color=""
       >
         <span>
@@ -267,32 +269,33 @@ exports[`MemberTable should render member table 1`] = `
       </td>
     </tr>
     <tr
+      class="emotion-17 emotion-18"
       data-testid="member-row"
     >
       <td
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         color="#3570f40D"
       >
         user3
       </td>
       <td
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         color="#3570f40D"
       />
       <td
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         color="#3570f40D"
       >
         N/A
       </td>
       <td
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         color="#3570f40D"
       >
         N/A
       </td>
       <td
-        class="emotion-25 emotion-18"
+        class="emotion-27 emotion-20"
         color="#3570f40D"
       >
         <span>
@@ -317,32 +320,33 @@ exports[`MemberTable should render member table 1`] = `
       </td>
     </tr>
     <tr
+      class="emotion-17 emotion-18"
       data-testid="member-row"
     >
       <td
-        class="emotion-28 emotion-18"
+        class="emotion-32 emotion-20"
         color=""
       >
         user4
       </td>
       <td
-        class="emotion-28 emotion-18"
+        class="emotion-32 emotion-20"
         color=""
       />
       <td
-        class="emotion-28 emotion-18"
+        class="emotion-32 emotion-20"
         color=""
       >
         N/A
       </td>
       <td
-        class="emotion-28 emotion-18"
+        class="emotion-32 emotion-20"
         color=""
       >
         N/A
       </td>
       <td
-        class="emotion-36 emotion-18"
+        class="emotion-40 emotion-20"
         color=""
       >
         <span>

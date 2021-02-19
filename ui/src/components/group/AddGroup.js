@@ -257,8 +257,9 @@ export default class AddGroup extends React.Component {
                     )
                     .then(() => {
                         this.props.onSubmit(
-                            `Successfully created group ${groupName}`,
-                            groupName
+                            `${this.props.domain}-${groupName}`,
+                            groupName,
+                            false
                         );
                     })
                     .catch((err) => {

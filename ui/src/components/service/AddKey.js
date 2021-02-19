@@ -81,7 +81,8 @@ export default class AddKey extends React.Component {
             )
             .then(() => {
                 this.props.onSubmit(
-                    `Successfully created key with key id ${this.state.keyId} for service ${this.props.service}`
+                    `${this.state.keyId}-${this.props.service}`,
+                    false
                 );
             })
             .catch((err) => {

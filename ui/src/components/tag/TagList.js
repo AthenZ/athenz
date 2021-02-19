@@ -164,10 +164,8 @@ export default class TagList extends React.Component {
         }
         meta.tags[tagKey] = {};
         meta.tags[tagKey].list = tagValues;
-        let successMessage = this.state.editMode
-            ? `Successfully edited tag ${tagKey}`
-            : `Successfully added tag ${tagKey}`;
-        this.updateMeta(meta, csrf, successMessage);
+        let successMessage = tagKey;
+        this.updateMeta(meta, csrf, successMessage, false);
     }
 
     onSubmitDeleteTag() {
@@ -200,7 +198,7 @@ export default class TagList extends React.Component {
         let successMessage = this.state.deleteTagValue
             ? `Successfully deleted ${this.state.deleteTagValue} from tag ${this.state.deleteTagName}`
             : `Successfully deleted tag ${this.state.deleteTagName}`;
-        this.updateMeta(meta, csrf, successMessage);
+        this.updateMeta(meta, csrf, successMessage, true);
     }
 
     domainMetaObject(domain) {
@@ -237,7 +235,7 @@ export default class TagList extends React.Component {
         };
     }
 
-    updateMeta(meta, csrf, successMessage) {
+    updateMeta(meta, csrf, successMessage, showSuccess = true) {
         this.api
             .putMeta(
                 this.props.domain,
@@ -250,7 +248,7 @@ export default class TagList extends React.Component {
                 this.state.category
             )
             .then(() => {
-                this.reloadTags(successMessage, true);
+                this.reloadTags(successMessage, showSuccess);
             })
             .catch((err) => {
                 this.setState({
@@ -259,13 +257,17 @@ export default class TagList extends React.Component {
             });
     }
 
-    reloadTags(successMessage) {
+    reloadTags(successMessage, showSuccess = true) {
         if (this.state.category === 'domain') {
             this.props.api
                 .getDomain(this.props.domain)
                 .then((data) => {
                     this.setState({ domainObj: data });
-                    this.updateStateAfterReload(data, successMessage);
+                    this.updateStateAfterReload(
+                        data,
+                        successMessage,
+                        showSuccess
+                    );
                 })
                 .catch((err) => {
                     this.setState({
@@ -277,7 +279,11 @@ export default class TagList extends React.Component {
                 .getRole(this.props.domain, this.props.role)
                 .then((data) => {
                     this.setState({ roleObj: data });
-                    this.updateStateAfterReload(data, successMessage);
+                    this.updateStateAfterReload(
+                        data,
+                        successMessage,
+                        showSuccess
+                    );
                 })
                 .catch((err) => {
                     this.setState({
@@ -287,10 +293,10 @@ export default class TagList extends React.Component {
         }
     }
 
-    updateStateAfterReload(data, successMessage) {
+    updateStateAfterReload(data, successMessage, showSuccess = true) {
         this.setState({
             tags: data.tags || {},
-            showSuccess: true,
+            showSuccess,
             successMessage,
             showDelete: false,
             showDeleteTagValue: false,
@@ -307,6 +313,7 @@ export default class TagList extends React.Component {
             () =>
                 this.setState({
                     showSuccess: false,
+                    successMessage: '',
                 }),
             MODAL_TIME_OUT
         );
@@ -332,6 +339,7 @@ export default class TagList extends React.Component {
                 color = colors.row;
             }
             let toReturn = [];
+            const updatedTagKey = this.state.successMessage === tagKey;
             toReturn.push(
                 <TagRow
                     key={tagKey}
@@ -343,6 +351,7 @@ export default class TagList extends React.Component {
                     onClickDeleteTag={() => this.onClickDeleteTag(tagKey)}
                     onClickDeleteTagValue={this.onClickDeleteTagValue}
                     onClickEditTag={this.onClickEditTag}
+                    updatedTagKey={updatedTagKey}
                 />
             );
             return toReturn;

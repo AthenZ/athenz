@@ -20,6 +20,7 @@ import styled from '@emotion/styled';
 import PolicyRuleTable from './PolicyRuleTable';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
+import { css, keyframes } from '@emotion/react';
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -31,6 +32,28 @@ const TdStyled = styled.td`
 
 const TrStyled = styled.tr`
     background-color: ${(props) => props.color};
+    ${(props) =>
+        props.isSuccess === true &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
+`;
+
+const TrStyledPolicy = styled.tr`
+    ${(props) =>
+        props.isSuccess === true &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
+`;
+
+const colorTransition = keyframes`
+        0% {
+            background-color: rgba(21, 192, 70, 0.20);
+        }
+        100% {
+            background-color: transparent;
+        }
 `;
 
 export default class PolicyRow extends React.Component {
@@ -70,7 +93,11 @@ export default class PolicyRow extends React.Component {
         let left = 'left';
         let center = 'center';
         rows.push(
-            <tr key={this.state.name} data-testid='policy-row'>
+            <TrStyledPolicy
+                key={this.state.name}
+                data-testid='policy-row'
+                isSuccess={this.props.newPolicy}
+            >
                 <TdStyled color={this.props.color} align={left}>
                     {this.state.name}
                 </TdStyled>
@@ -101,7 +128,7 @@ export default class PolicyRow extends React.Component {
                         verticalAlign={'text-bottom'}
                     />
                 </TdStyled>
-            </tr>
+            </TrStyledPolicy>
         );
         if (this.state.assertions) {
             rows.push(

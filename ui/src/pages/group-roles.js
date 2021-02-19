@@ -207,40 +207,43 @@ export default class GroupRolesPage extends React.Component {
                                             selectedName={'roles'}
                                         />
                                     </PageHeaderDiv>
-                                    {roles && roles.length > 0 && (
-                                        <ContainerDiv>
-                                            <StyledSearchInputDiv>
-                                                <SearchInput
-                                                    dark={false}
-                                                    name='search'
-                                                    fluid={true}
-                                                    value={
-                                                        this.state.searchText
-                                                    }
-                                                    placeholder={
-                                                        this.state.showuser
-                                                            ? 'Enter user name'
-                                                            : 'Enter role name'
-                                                    }
-                                                    error={this.state.error}
-                                                    onChange={(event) =>
-                                                        this.setState({
-                                                            searchText:
-                                                                event.target
-                                                                    .value,
-                                                            error: false,
-                                                        })
-                                                    }
-                                                />
-                                            </StyledSearchInputDiv>
-                                        </ContainerDiv>
-                                    )}
+                                    {this.state.roles &&
+                                        this.state.roles.length > 0 && (
+                                            <ContainerDiv>
+                                                <StyledSearchInputDiv>
+                                                    <SearchInput
+                                                        dark={false}
+                                                        name='search'
+                                                        fluid={true}
+                                                        value={
+                                                            this.state
+                                                                .searchText
+                                                        }
+                                                        placeholder={
+                                                            this.state.showuser
+                                                                ? 'Enter user name'
+                                                                : 'Enter role name'
+                                                        }
+                                                        error={this.state.error}
+                                                        onChange={(event) =>
+                                                            this.setState({
+                                                                searchText:
+                                                                    event.target
+                                                                        .value,
+                                                                error: false,
+                                                            })
+                                                        }
+                                                    />
+                                                </StyledSearchInputDiv>
+                                            </ContainerDiv>
+                                        )}
                                     <TableDiv>
                                         <GroupRoleTable
                                             api={this.api}
                                             domain={this.domain}
                                             roles={roles}
                                             prefixes={prefix}
+                                            searchText={this.state.searchText}
                                         />
                                     </TableDiv>
                                 </RolesContentDiv>

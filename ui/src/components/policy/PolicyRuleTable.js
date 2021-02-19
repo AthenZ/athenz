@@ -22,6 +22,8 @@ import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
 import { DISPLAY_SPACE, MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
+import { css, keyframes } from '@emotion/react';
+import NameUtils from '../utils/NameUtils';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -91,6 +93,28 @@ const StyledAnchor = styled.a`
     cursor: pointer;
 `;
 
+const TrStyled = styled.tr`
+    ${(props) =>
+        props.isSuccess === true &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
+    ${(props) =>
+        props.isSuccess === false &&
+        css`
+            background-color: white;
+        `}
+`;
+
+const colorTransition = keyframes`
+        0% {
+            background-color: rgba(21, 192, 70, 0.20);
+        }
+        100% {
+            background-color: white;
+        }
+`;
+
 export default class PolicyRuleTable extends React.Component {
     constructor(props) {
         super(props);
@@ -111,7 +135,7 @@ export default class PolicyRuleTable extends React.Component {
         this.setState({ addAssertion: !this.state.addAssertion });
     }
 
-    reLoadAssertions(successMessage) {
+    reLoadAssertions(successMessage, showSuccess) {
         this.api
             .getPolicy(this.props.domain, this.props.name)
             .then((assertions) => {
@@ -120,7 +144,7 @@ export default class PolicyRuleTable extends React.Component {
                     addAssertion: false,
                     successMessage,
                     showDelete: false,
-                    showSuccess: true,
+                    showSuccess,
                     errorMessage: null,
                 });
                 // this is to close the success alert
@@ -192,21 +216,35 @@ export default class PolicyRuleTable extends React.Component {
                 assertion.role,
                 assertion.id
             );
+            let tempRole = NameUtils.getShortName(
+                this.props.domain + ':role.',
+                assertion.role
+            );
+            let tempResource = NameUtils.getShortName(
+                this.props.domain + ':',
+                assertion.resource
+            );
+            let newAssertion =
+                this.props.name +
+                    '-' +
+                    tempRole +
+                    '-' +
+                    tempResource +
+                    '-' +
+                    assertion.action ===
+                this.state.successMessage;
             rows.push(
-                <tr key={this.props.name + i + '-assertion'}>
-                    <TDStyled color={'white'} align={left}>
-                        {assertion.effect}
-                    </TDStyled>
-                    <TDStyled color={'white'} align={left}>
+                <TrStyled
+                    key={this.props.name + i + '-assertion'}
+                    isSuccess={newAssertion}
+                >
+                    <TDStyled align={left}>{assertion.effect}</TDStyled>
+                    <TDStyled align={left}>
                         {assertion.action.replace(/\s/g, DISPLAY_SPACE)}
                     </TDStyled>
-                    <TDStyled color={'white'} align={left}>
-                        {assertion.role}
-                    </TDStyled>
-                    <TDStyled color={'white'} align={left}>
-                        {assertion.resource}
-                    </TDStyled>
-                    <TDStyled color={'white'} align={center}>
+                    <TDStyled align={left}>{assertion.role}</TDStyled>
+                    <TDStyled align={left}>{assertion.resource}</TDStyled>
+                    <TDStyled align={center}>
                         <Icon
                             icon={'trash'}
                             onClick={onClickDeleteAssertion}
@@ -216,7 +254,7 @@ export default class PolicyRuleTable extends React.Component {
                             verticalAlign={'text-bottom'}
                         />
                     </TDStyled>
-                </tr>
+                </TrStyled>
             );
         });
         let addAssertion = '';

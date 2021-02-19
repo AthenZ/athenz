@@ -79,6 +79,7 @@ export default class RoleList extends React.Component {
         this.setState({
             showuser: !this.state.showuser,
             selectedView: selected,
+            successMessage: '',
         });
     }
 
@@ -107,14 +108,14 @@ export default class RoleList extends React.Component {
         }
     };
 
-    reloadRoles(successMessage) {
+    reloadRoles(successMessage, showSuccess = true) {
         this.api
             .getRoles(this.props.domain)
             .then((roles) => {
                 this.setState({
                     roles,
                     showAddRole: false,
-                    showSuccess: true,
+                    showSuccess,
                     successMessage,
                     errorMessage: null,
                 });
@@ -123,6 +124,7 @@ export default class RoleList extends React.Component {
                     () =>
                         this.setState({
                             showSuccess: false,
+                            successMessage: '',
                         }),
                     MODAL_TIME_OUT
                 );
@@ -228,6 +230,7 @@ export default class RoleList extends React.Component {
                         domain={this.props.domain}
                         _csrf={this.props._csrf}
                         justificationRequired={this.props.isDomainAuditEnabled}
+                        newMember={this.state.successMessage}
                     />
                 ) : (
                     <RoleTable
@@ -239,6 +242,7 @@ export default class RoleList extends React.Component {
                         onSubmit={this.reloadRoles}
                         justificationRequired={this.props.isDomainAuditEnabled}
                         userProfileLink={this.props.userProfileLink}
+                        newRole={this.state.successMessage}
                     />
                 )}
                 {this.state.showSuccess ? (

@@ -147,7 +147,7 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-22 {
+.emotion-24 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -155,7 +155,7 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-30 {
+.emotion-32 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -163,14 +163,14 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-33 {
+.emotion-37 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-41 {
+.emotion-45 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -251,32 +251,33 @@ exports[`MemberList should render 1`] = `
     </thead>
     <tbody>
       <tr
+        class="emotion-22 emotion-23"
         data-testid="member-row"
       >
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         >
           user1
         </td>
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         />
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         >
           N/A
         </td>
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         >
           N/A
         </td>
         <td
-          class="emotion-30 emotion-23"
+          class="emotion-32 emotion-25"
           color="#3570f40D"
         >
           <span>
@@ -301,32 +302,33 @@ exports[`MemberList should render 1`] = `
         </td>
       </tr>
       <tr
+        class="emotion-22 emotion-23"
         data-testid="member-row"
       >
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         >
           user4
         </td>
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         />
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         >
           N/A
         </td>
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         >
           N/A
         </td>
         <td
-          class="emotion-41 emotion-23"
+          class="emotion-45 emotion-25"
           color=""
         >
           <span>
@@ -411,32 +413,33 @@ exports[`MemberList should render 1`] = `
     </thead>
     <tbody>
       <tr
+        class="emotion-22 emotion-23"
         data-testid="member-row"
       >
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         >
           user2
         </td>
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         />
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         >
           N/A
         </td>
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         >
           N/A
         </td>
         <td
-          class="emotion-30 emotion-23"
+          class="emotion-32 emotion-25"
           color="#3570f40D"
         >
           <span>
@@ -461,32 +464,33 @@ exports[`MemberList should render 1`] = `
         </td>
       </tr>
       <tr
+        class="emotion-22 emotion-23"
         data-testid="member-row"
       >
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         >
           user3
         </td>
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         />
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         >
           N/A
         </td>
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         >
           N/A
         </td>
         <td
-          class="emotion-41 emotion-23"
+          class="emotion-45 emotion-25"
           color=""
         >
           <span>
@@ -662,7 +666,7 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-22 {
+.emotion-24 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -670,7 +674,7 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-30 {
+.emotion-32 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -678,14 +682,14 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-33 {
+.emotion-37 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-41 {
+.emotion-45 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -766,32 +770,33 @@ exports[`MemberList should render delegated role 1`] = `
     </thead>
     <tbody>
       <tr
+        class="emotion-22 emotion-23"
         data-testid="member-row"
       >
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         >
           user1
         </td>
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         />
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         >
           N/A
         </td>
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         >
           N/A
         </td>
         <td
-          class="emotion-30 emotion-23"
+          class="emotion-32 emotion-25"
           color="#3570f40D"
         >
           <span>
@@ -816,32 +821,33 @@ exports[`MemberList should render delegated role 1`] = `
         </td>
       </tr>
       <tr
+        class="emotion-22 emotion-23"
         data-testid="member-row"
       >
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         >
           user2
         </td>
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         />
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         >
           N/A
         </td>
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         >
           N/A
         </td>
         <td
-          class="emotion-41 emotion-23"
+          class="emotion-45 emotion-25"
           color=""
         >
           <span>
@@ -866,32 +872,33 @@ exports[`MemberList should render delegated role 1`] = `
         </td>
       </tr>
       <tr
+        class="emotion-22 emotion-23"
         data-testid="member-row"
       >
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         >
           user3
         </td>
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         />
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         >
           N/A
         </td>
         <td
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
           color="#3570f40D"
         >
           N/A
         </td>
         <td
-          class="emotion-30 emotion-23"
+          class="emotion-32 emotion-25"
           color="#3570f40D"
         >
           <span>
@@ -916,32 +923,33 @@ exports[`MemberList should render delegated role 1`] = `
         </td>
       </tr>
       <tr
+        class="emotion-22 emotion-23"
         data-testid="member-row"
       >
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         >
           user4
         </td>
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         />
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         >
           N/A
         </td>
         <td
-          class="emotion-33 emotion-23"
+          class="emotion-37 emotion-25"
           color=""
         >
           N/A
         </td>
         <td
-          class="emotion-41 emotion-23"
+          class="emotion-45 emotion-25"
           color=""
         >
           <span>

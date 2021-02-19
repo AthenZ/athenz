@@ -22,6 +22,7 @@ import Menu from '../denali/Menu/Menu';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import GroupMemberList from './GroupMemberList';
+import { css, keyframes } from '@emotion/react';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -40,8 +41,21 @@ const GroupTDStyled = styled.td`
     text-decoration: dashed underline;
 `;
 
+const colorTransition = keyframes`
+        0% {
+            background-color: rgba(21, 192, 70, 0.20);
+        }
+        100% {
+            background-color: transparent;
+        }
+`;
+
 const TrStyled = styled.tr`
-    background-color: ${(props) => props.color};
+    ${(props) =>
+        props.isSuccess === true &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
 `;
 
 const MenuDiv = styled.div`
@@ -72,20 +86,12 @@ export default class MemberRow extends React.Component {
         this.api = this.props.api;
         this.onSubmitDelete = this.onSubmitDelete.bind(this);
         this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
-        this.onReviewSubmit = this.onReviewSubmit.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
         this.state = {
             deleteName: this.props.details.memberName,
             showDelete: false,
         };
         this.localDate = new DateUtils();
-    }
-
-    onReviewSubmit(message) {
-        this.setState({ reviewMembers: false });
-        if (message) {
-            this.props.onUpdateSuccess(message);
-        }
     }
 
     saveJustification(val) {
@@ -136,11 +142,13 @@ export default class MemberRow extends React.Component {
                 //TODO add logic for pending vs non-pending
                 if (this.props.pending) {
                     this.props.onUpdateSuccess(
-                        `Successfully deleted pending member ${name}`
+                        `Successfully deleted pending member ${name}`,
+                        true
                     );
                 } else {
                     this.props.onUpdateSuccess(
-                        `Successfully deleted member ${name}`
+                        `Successfully deleted member ${name}`,
+                        true
                     );
                 }
             })
@@ -169,9 +177,21 @@ export default class MemberRow extends React.Component {
         let clickDelete = this.onClickDelete.bind(this, this.state.deleteName);
         let submitDelete = this.onSubmitDelete.bind(this, this.props.domain);
         let clickDeleteCancel = this.onClickDeleteCancel.bind(this);
-
+        let isSuccess =
+            member.memberName +
+                '-' +
+                this.props.category +
+                '-' +
+                this.props.domain +
+                '-' +
+                this.props.collection ===
+            this.props.newMember;
         rows.push(
-            <tr key={this.state.name} data-testid='member-row'>
+            <TrStyled
+                key={member.memberName}
+                data-testid='member-row'
+                isSuccess={isSuccess}
+            >
                 {member.memberName.includes(':group.') ? (
                     <GroupTDStyled color={color} align={left}>
                         <StyledMenu
@@ -236,7 +256,7 @@ export default class MemberRow extends React.Component {
                         <MenuDiv>Delete Member</MenuDiv>
                     </Menu>
                 </TDStyled>
-            </tr>
+            </TrStyled>
         );
 
         if (this.state.showDelete) {

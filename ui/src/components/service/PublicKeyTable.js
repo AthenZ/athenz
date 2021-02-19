@@ -24,6 +24,7 @@ import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
+import { css, keyframes } from '@emotion/react';
 
 const HeaderDiv = styled.div`
     display: flex;
@@ -69,7 +70,11 @@ const PublicKeyDiv = styled.div`
     display: flex;
     flex-flow: row wrap;
     padding: 15px 0;
-}
+    ${(props) =>
+        props.isSuccess === true &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
 `;
 
 const KeyLabelDiv = styled.div`
@@ -99,6 +104,15 @@ const StyledAnchor = styled.a`
     cursor: pointer;
 `;
 
+const colorTransition = keyframes`
+        0% {
+            background-color: rgba(21, 192, 70, 0.20);
+        }
+        100% {
+            background-color: transparent;
+        }
+`;
+
 export default class PublicKeyTable extends React.Component {
     constructor(props) {
         super(props);
@@ -121,7 +135,7 @@ export default class PublicKeyTable extends React.Component {
         });
     }
 
-    reloadKeys(successMessage) {
+    reloadKeys(successMessage, showSuccess) {
         this.api
             .getService(this.props.domain, this.props.service)
             .then((detail) => {
@@ -130,7 +144,7 @@ export default class PublicKeyTable extends React.Component {
                     pubKeys: detail.publicKeys,
                     showAddKey: null,
                     successMessage,
-                    showSuccess: true,
+                    showSuccess,
                     showDelete: false,
                 });
                 // this is to close the success alert
@@ -138,6 +152,7 @@ export default class PublicKeyTable extends React.Component {
                     () =>
                         this.setState({
                             showSuccess: false,
+                            successMessage: '',
                         }),
                     MODAL_TIME_OUT
                 );
@@ -171,7 +186,8 @@ export default class PublicKeyTable extends React.Component {
             )
             .then(() => {
                 this.reloadKeys(
-                    `Successfully deleted key id ${this.state.deleteKeyId} from service ${this.props.service}`
+                    `Successfully deleted key id ${this.state.deleteKeyId} from service ${this.props.service}`,
+                    true
                 );
             })
             .catch((err) => {
@@ -213,9 +229,15 @@ export default class PublicKeyTable extends React.Component {
             const keys = this.state.pubKeys;
             keys.map((key) => {
                 let onClickDeleteKey = this.onClickDeleteKey.bind(this, key.id);
+                let newKey =
+                    key.id + '-' + this.props.service ===
+                    this.state.successMessage;
                 const formattedKey = ServiceKeyUtils.y64Decode(key.key);
                 publicKeys.push(
-                    <PublicKeyDiv key={this.props.service + key.id}>
+                    <PublicKeyDiv
+                        key={this.props.service + key.id}
+                        isSuccess={newKey}
+                    >
                         <KeyLabelDiv>Public Key Version: {key.id}</KeyLabelDiv>
                         <KeyContentDiv>{formattedKey}</KeyContentDiv>
                         <IconDiv>

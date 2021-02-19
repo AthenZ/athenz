@@ -20,6 +20,7 @@ import styled from '@emotion/styled';
 import RolePolicyRuleTable from './RolePolicyRuleTable';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
+import { css, keyframes } from '@emotion/react';
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -29,7 +30,33 @@ const TdStyled = styled.td`
     word-break: break-all;
 `;
 
+const colorTransition = keyframes`
+        0% {
+            background-color: rgba(21, 192, 70, 0.20);
+        }
+        100% {
+            background-color: transparent;
+        }
+`;
+
 const TrStyled = styled.tr`
+    ${(props) =>
+        props.isSuccess === true &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
+    box-sizing: border-box;
+    margin-top: 10px;
+    box-shadow: 0 1px 4px #d9d9d9;
+    border: 1px solid #fff;
+    -webkit-border-image: none;
+    border-image: none;
+    -webkit-border-image: initial;
+    border-image: initial;
+    height: 50px;
+`;
+
+const TrStyledExpanded = styled.tr`
     box-sizing: border-box;
     margin-top: 10px;
     box-shadow: 0 1px 4px #d9d9d9;
@@ -59,13 +86,17 @@ export default class RolePolicyRow extends React.Component {
         this.state = {
             name: this.props.name,
             errorMessage: null,
+            newPolicy: this.props.newPolicy,
         };
         this.localDate = new DateUtils();
     }
 
     toggleAssertions() {
         if (this.state.assertions) {
-            this.setState({ assertions: null });
+            this.setState({
+                assertions: null,
+                newPolicy: false,
+            });
         } else {
             this.api
                 .getPolicy(this.props.domain, this.state.name)
@@ -73,6 +104,7 @@ export default class RolePolicyRow extends React.Component {
                     this.setState({
                         assertions: assertions.assertions,
                         errorMessage: null,
+                        newPolicy: false,
                     });
                 })
                 .catch((err) => {
@@ -89,10 +121,12 @@ export default class RolePolicyRow extends React.Component {
         const arrowup = 'arrowhead-up-circle-solid';
         const arrowdown = 'arrowhead-down-circle';
         let id = this.props.id;
-
         if (this.state.assertions) {
             rows.push(
-                <TrStyled key={this.state.name + id} data-testid='policy-row'>
+                <TrStyledExpanded
+                    key={this.state.name + id}
+                    data-testid='policy-row'
+                >
                     <TdStyled align={left}>
                         <StyledDiv>
                             <LeftMarginSpan>
@@ -123,11 +157,15 @@ export default class RolePolicyRow extends React.Component {
                             />
                         </StyledDiv>
                     </TdStyled>
-                </TrStyled>
+                </TrStyledExpanded>
             );
         } else {
             rows.push(
-                <TrStyled key={this.state.name} data-testid='role-policy-row'>
+                <TrStyled
+                    key={this.state.name}
+                    data-testid='role-policy-row'
+                    isSuccess={this.state.newPolicy}
+                >
                     <TdStyled align={left}>
                         <LeftMarginSpan>
                             <Icon

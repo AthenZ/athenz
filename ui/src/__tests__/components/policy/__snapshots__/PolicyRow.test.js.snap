@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PolicyRow should render 1`] = `
-.emotion-0 {
+.emotion-2 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -9,7 +9,7 @@ exports[`PolicyRow should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-4 {
+.emotion-6 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -17,33 +17,34 @@ exports[`PolicyRow should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-6 {
+.emotion-8 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <tr
+  class="emotion-0 emotion-1"
   data-testid="policy-row"
 >
   <td
-    class="emotion-0 emotion-1"
+    class="emotion-2 emotion-3"
     color="#3570f40D"
   >
     sections
   </td>
   <td
-    class="emotion-0 emotion-1"
+    class="emotion-2 emotion-3"
     color="#3570f40D"
   >
     Invalid date
   </td>
   <td
-    class="emotion-4 emotion-1"
+    class="emotion-6 emotion-3"
     color="#3570f40D"
   >
     <svg
-      class="emotion-6"
+      class="emotion-8"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"
@@ -58,11 +59,11 @@ exports[`PolicyRow should render 1`] = `
     </svg>
   </td>
   <td
-    class="emotion-4 emotion-1"
+    class="emotion-6 emotion-3"
     color="#3570f40D"
   >
     <svg
-      class="emotion-6"
+      class="emotion-8"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"

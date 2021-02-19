@@ -75,21 +75,23 @@ exports[`PolicyRuleTable should render 1`] = `
 
 .emotion-24 {
   background-color: white;
+}
+
+.emotion-26 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-32 {
-  background-color: white;
+.emotion-34 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-34 {
+.emotion-36 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -168,37 +170,34 @@ exports[`PolicyRuleTable should render 1`] = `
                 </tr>
               </thead>
               <tbody>
-                <tr>
+                <tr
+                  class="emotion-24 emotion-25"
+                >
                   <td
-                    class="emotion-24 emotion-25"
-                    color="white"
+                    class="emotion-26 emotion-27"
                   >
                     ALLOW
                   </td>
                   <td
-                    class="emotion-24 emotion-25"
-                    color="white"
+                    class="emotion-26 emotion-27"
                   >
                     aaa
                   </td>
                   <td
-                    class="emotion-24 emotion-25"
-                    color="white"
+                    class="emotion-26 emotion-27"
                   >
                     home.pgote:role.allunixusers
                   </td>
                   <td
-                    class="emotion-24 emotion-25"
-                    color="white"
+                    class="emotion-26 emotion-27"
                   >
                     home.pgote:aaaa
                   </td>
                   <td
-                    class="emotion-32 emotion-25"
-                    color="white"
+                    class="emotion-34 emotion-27"
                   >
                     <svg
-                      class="emotion-34"
+                      class="emotion-36"
                       data-testid="icon"
                       height="1.25em"
                       viewBox="0 0 1024 1024"
@@ -301,21 +300,23 @@ exports[`PolicyRuleTable should render 2`] = `
 
 .emotion-24 {
   background-color: white;
+}
+
+.emotion-26 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-32 {
-  background-color: white;
+.emotion-34 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-34 {
+.emotion-36 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -394,37 +395,34 @@ exports[`PolicyRuleTable should render 2`] = `
                 </tr>
               </thead>
               <tbody>
-                <tr>
+                <tr
+                  class="emotion-24 emotion-25"
+                >
                   <td
-                    class="emotion-24 emotion-25"
-                    color="white"
+                    class="emotion-26 emotion-27"
                   >
                     ALLOW
                   </td>
                   <td
-                    class="emotion-24 emotion-25"
-                    color="white"
+                    class="emotion-26 emotion-27"
                   >
                     aaa
                   </td>
                   <td
-                    class="emotion-24 emotion-25"
-                    color="white"
+                    class="emotion-26 emotion-27"
                   >
                     home.pgote:role.allunixusers
                   </td>
                   <td
-                    class="emotion-24 emotion-25"
-                    color="white"
+                    class="emotion-26 emotion-27"
                   >
                     home.pgote:aaaa
                   </td>
                   <td
-                    class="emotion-32 emotion-25"
-                    color="white"
+                    class="emotion-34 emotion-27"
                   >
                     <svg
-                      class="emotion-34"
+                      class="emotion-36"
                       data-testid="icon"
                       height="1.25em"
                       viewBox="0 0 1024 1024"

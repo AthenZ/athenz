@@ -148,6 +148,7 @@ export default class MemberTable extends React.Component {
                                 this.props.justificationRequired
                             }
                             userProfileLink={this.props.userProfileLink}
+                            newMember={this.props.newMember}
                         />
                     );
                 });

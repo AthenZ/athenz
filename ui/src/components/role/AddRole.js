@@ -316,7 +316,8 @@ export default class AddRole extends React.Component {
                     )
                     .then(() => {
                         this.props.onSubmit(
-                            `Successfully created role ${roleName}`
+                            `${this.props.domain}-${roleName}`,
+                            false
                         );
                     })
                     .catch((err) => {
