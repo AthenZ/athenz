@@ -78,7 +78,7 @@
     <jackson.annotations.version>2.12.1</jackson.annotations.version>
     <jackson.jaxrs.version>2.12.1</jackson.jaxrs.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
-    <rdl.version>1.5.3</rdl.version>
+    <rdl.version>1.5.4</rdl.version>
     <bouncycastle.version>1.68</bouncycastle.version>
     <aws.version>1.11.942</aws.version>
     <aws2.version>2.10.11</aws2.version>
@@ -309,17 +309,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <repositories>
-    <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>bintray-yahoo-maven</id>
-      <name>bintray</name>
-      <url>https://yahoo.bintray.com/maven</url>
-    </repository>
-  </repositories>
   
   <profiles>
     <profile>
