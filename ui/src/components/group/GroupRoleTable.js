@@ -117,9 +117,7 @@ export default class GroupRoleTable extends React.Component {
             }
         }
 
-        if (
-            !this.props.displayTable
-        ) {
+        if (!this.props.displayTable) {
             return (
                 <GroupRoleDiv>
                     The group isn't a member of any role.
