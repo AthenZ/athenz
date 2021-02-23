@@ -39,6 +39,7 @@ public class OAuth2TokenTest {
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
 
         String token = Jwts.builder().setSubject("subject")
+                    .setId("id001")
                     .setIssuedAt(Date.from(Instant.ofEpochSecond(now)))
                     .setExpiration(Date.from(Instant.ofEpochSecond(now)))
                     .setNotBefore(Date.from(Instant.ofEpochSecond(now)))
@@ -62,6 +63,7 @@ public class OAuth2TokenTest {
         assertEquals(oAuth2Token.getExpiryTime(), now);
         assertEquals(oAuth2Token.getNotBeforeTime(), now);
         assertEquals(oAuth2Token.getAuthTime(), now);
+        assertEquals(oAuth2Token.getJwtId(), "id001");
     }
 
     @Test

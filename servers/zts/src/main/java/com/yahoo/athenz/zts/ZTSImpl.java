@@ -1697,6 +1697,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
+        accessToken.setJwtId(Crypto.randomSalt());
         accessToken.setAudience(domainName);
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);

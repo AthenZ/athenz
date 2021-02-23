@@ -37,6 +37,7 @@ public class AccessToken extends OAuth2Token {
     public static final String HDR_TOKEN_JWT = "at+jwt";
 
     public static final String CLAIM_SCOPE = "scp";
+    public static final String CLAIM_SCOPE_STD = "scope";
     public static final String CLAIM_UID = "uid";
     public static final String CLAIM_CLIENT_ID = "client_id";
     public static final String CLAIM_CONFIRM = "cnf";
@@ -57,6 +58,7 @@ public class AccessToken extends OAuth2Token {
     private String userId;
     private String proxyPrincipal;
     private String authorizationDetails;
+    private String scopeStd;
     private List<String> scope;
     private LinkedHashMap<String, Object> confirm;
 
@@ -196,6 +198,7 @@ public class AccessToken extends OAuth2Token {
         setClientId(body.get(CLAIM_CLIENT_ID, String.class));
         setUserId(body.get(CLAIM_UID, String.class));
         setProxyPrincipal(body.get(CLAIM_PROXY, String.class));
+        setScopeStd(body.get(CLAIM_SCOPE_STD, String.class));
         setScope(body.get(CLAIM_SCOPE, List.class));
         setConfirm(body.get(CLAIM_CONFIRM, LinkedHashMap.class));
         setAuthorizationDetails(body.get(CLAIM_AUTHZ_DETAILS, String.class));
@@ -239,6 +242,17 @@ public class AccessToken extends OAuth2Token {
 
     public void setScope(List<String> scope) {
         this.scope = scope;
+        if (scope != null && !scope.isEmpty() && scopeStd == null) {
+            scopeStd = String.join(" ", scope);
+        }
+    }
+
+    public String getScopeStd() {
+        return scopeStd;
+    }
+
+    public void setScopeStd(String scopeStd) {
+        this.scopeStd = scopeStd;
     }
 
     public LinkedHashMap<String, Object> getConfirm() {
@@ -394,6 +408,7 @@ public class AccessToken extends OAuth2Token {
             final SignatureAlgorithm keyAlg) {
 
         return Jwts.builder().setSubject(subject)
+                .setId(jwtId)
                 .setIssuedAt(Date.from(Instant.ofEpochSecond(issueTime)))
                 .setExpiration(Date.from(Instant.ofEpochSecond(expiryTime)))
                 .setIssuer(issuer)
@@ -401,6 +416,7 @@ public class AccessToken extends OAuth2Token {
                 .claim(CLAIM_AUTH_TIME, authTime)
                 .claim(CLAIM_VERSION, version)
                 .claim(CLAIM_SCOPE, scope)
+                .claim(CLAIM_SCOPE_STD, scopeStd)
                 .claim(CLAIM_UID, userId)
                 .claim(CLAIM_CLIENT_ID, clientId)
                 .claim(CLAIM_CONFIRM, confirm)
