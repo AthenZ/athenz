@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -1697,7 +1698,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
-        accessToken.setJwtId(Crypto.randomSalt());
+        accessToken.setJwtId(UUID.randomUUID().toString());
         accessToken.setAudience(domainName);
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);
