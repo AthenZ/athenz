@@ -85,6 +85,16 @@ openssl x509 -outform pem -in "${ATHENZ_CA_PATH}" | keytool -importcert -nopromp
     -keystore "${ZTS_SIGNER_TRUSTSTORE_PATH}" -storepass "${ZTS_SIGNER_TRUSTSTORE_PASS}" \
     -storetype JKS -alias "${CERT_ALIAS}"
 
+if [ "$(ls -A ${BASE_DIR}/docker/zts/conf/awscas)" ]; then
+  for FILE in ${BASE_DIR}/docker/zts/conf/awscas/*
+  do
+    echo "Processing $FILE file..."
+    keytool -importcert -noprompt -file "${FILE}" \
+      -keystore "${ZTS_SIGNER_TRUSTSTORE_PATH}" -storepass "${ZTS_SIGNER_TRUSTSTORE_PASS}" \
+      -storetype JKS -alias "${FILE}"
+  done
+fi
+
 echo '7. set up for ZMS connection' | colored_cat g
 # create key store
 openssl pkcs12 -export -noiter -nomaciter \
@@ -134,12 +144,82 @@ athenz-conf \
     -t "https://${ZTS_HOST}:${ZTS_PORT}" \
     -o "${ZTS_CONF_DIR}/athenz.conf"
 
-echo '11. setup ZTS as identity provider' | colored_cat g
+echo '11. setup provider domains'  | colored_cat g
+
+# top level domain
+
+DOMAIN_DATA='{"name":"athenz","description":"test domain for local","org":"myorg","ypmId":4455,"adminUsers":["user.athenz-admin"]}'
+
+curl --silent --fail --show-error --request POST \
+    --cacert "${ATHENZ_CA_PATH}" \
+    --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
+    --cert "${DOMAIN_ADMIN_CERT_PATH}" \
+    --url "${ZMS_URL}/zms/v1/domain" \
+    --header 'content-type: application/json' \
+    --data "${DOMAIN_DATA}"
+
+# EC2
+DOMAIN_DATA='{"name":"aws","parent":"athenz","adminUsers":["user.athenz-admin"]}'
+
+curl --silent --fail --show-error --request POST \
+    --cacert "${ATHENZ_CA_PATH}" \
+    --key "${TEAM_ADMIN_CERT_KEY_PATH}" \
+    --cert "${TEAM_ADMIN_CERT_PATH}" \
+    --url "${ZMS_URL}/zms/v1/subdomain/athenz" \
+    --header 'content-type: application/json' \
+    --data "${DOMAIN_DATA}"
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${TEAM_ADMIN_CERT_KEY_PATH}" --cert "${TEAM_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d athenz.aws add-service us-west-2
+
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
-    -d sys.auth add-group-role providers sys.auth.zts
+    -d athenz.aws set-service-endpoint us-west-2 class://com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider
+
+# ECS
+
+DOMAIN_DATA='{"name":"aws-ecs","parent":"athenz","adminUsers":["user.athenz-admin"]}'
+
+curl --silent --fail --show-error --request POST \
+    --cacert "${ATHENZ_CA_PATH}" \
+    --key "${TEAM_ADMIN_CERT_KEY_PATH}" \
+    --cert "${TEAM_ADMIN_CERT_PATH}" \
+    --url "${ZMS_URL}/zms/v1/subdomain/athenz" \
+    --header 'content-type: application/json' \
+    --data "${DOMAIN_DATA}"
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${TEAM_ADMIN_CERT_KEY_PATH}" --cert "${TEAM_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d athenz.aws-ecs add-service us-west-2
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d athenz.aws-ecs set-service-endpoint us-west-2 class://com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider
+
+#Lambda
+DOMAIN_DATA='{"name":"aws-lambda","parent":"athenz","adminUsers":["user.athenz-admin"]}'
+
+curl --silent --fail --show-error --request POST \
+    --cacert "${ATHENZ_CA_PATH}" \
+    --key "${TEAM_ADMIN_CERT_KEY_PATH}" \
+    --cert "${TEAM_ADMIN_CERT_PATH}" \
+    --url "${ZMS_URL}/zms/v1/subdomain/athenz" \
+    --header 'content-type: application/json' \
+    --data "${DOMAIN_DATA}"
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${TEAM_ADMIN_CERT_KEY_PATH}" --cert "${TEAM_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d athenz.aws-lambda add-service us-west-2
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d athenz.aws-lambda set-service-endpoint us-west-2 class://com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider
+
+echo '12. setup general providers role for all providers' | colored_cat g
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d sys.auth add-group-role providers sys.auth.zts athenz.aws.us-west-2 athenz.aws-ecs.us-west-2 athenz.aws-lambda.us-west-2
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
     -d sys.auth add-policy providers grant launch to providers on 'instance'
+
+
+echo '13. setup ZTS as identity provider' | colored_cat g
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
     -d sys.auth add-group-role provider.sys.auth.zts sys.auth.zts
@@ -149,3 +229,23 @@ zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${D
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
     -d sys.auth set-service-endpoint zts class://com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider
+
+echo '14. setup AWS identity provider' | colored_cat g
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d sys.auth add-group-role provider.athenz.aws.us-west-2 athenz.aws.us-west-2
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d sys.auth add-policy provider.athenz.aws.us-west-2 grant launch to provider.athenz.aws.us-west-2 on 'dns.aws.athenz.cloud'
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d sys.auth add-group-role provider.athenz.aws-ecs.us-west-2 athenz.aws-ecs.us-west-2
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d sys.auth add-policy provider.athenz.aws-ecs.us-west-2 grant launch to provider.athenz.aws-ecs.us-west-2 on 'dns.aws.athenz.cloud'
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d sys.auth add-group-role provider.athenz.aws-lambda.us-west-2 athenz.aws-lambda.us-west-2
+
+zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
+    -d sys.auth add-policy provider.athenz.aws-lambda.us-west-2 grant launch to provider.athenz.aws-lambda.us-west-2 on 'dns.aws.athenz.cloud'

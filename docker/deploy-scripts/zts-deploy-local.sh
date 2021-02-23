@@ -9,6 +9,11 @@ cd "$(dirname "$0")"
 # import functions
 . ../setup-scripts/common/color-print.sh
 
+# import local nameserver config
+. ../local-nameserver.sh
+
+echo "\"${LOCAL_ENV_NS}\" will be added to docker run command for ZTS container"
+
 #################################################
 ### ZTS Deploy
 #################################################
@@ -90,8 +95,9 @@ docker exec --user mysql:mysql \
 echo '4. start ZTS' | colored_cat g
 docker run -d -h "${ZTS_HOST}" \
     -p "${ZTS_PORT}:${ZTS_PORT}" \
-    --dns="${DOCKER_DNS}" \
     --network="${DOCKER_NETWORK}" \
+    --dns="${DOCKER_DNS}" \
+    ${LOCAL_ENV_NS} \
     --user "$(id -u):$(id -g)" \
     -v "${DOCKER_DIR}/zts/var:/opt/athenz/zts/var" \
     -v "${DOCKER_DIR}/zts/conf:/opt/athenz/zts/conf/zts_server" \

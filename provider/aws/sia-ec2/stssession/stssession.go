@@ -17,9 +17,9 @@
 package stssession
 
 import (
+	"github.com/AthenZ/athenz/provider/aws/sia-ec2/logutil"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/logutil"
 	"io"
 )
 

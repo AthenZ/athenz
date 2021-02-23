@@ -57,40 +57,31 @@ echo '5. register UI service to Athenz' | colored_cat g
 # encode public key in ybase64, reference: https://github.com/AthenZ/athenz/blob/545d9487a866cad10ba864b435bdb7ece390d4bf/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/util/Crypto.java#L334-L343
 ENCODED_UI_PUBLIC_KEY="$(base64 -w 0 "${UI_PUBLIC_KEY_PATH}" | tr '\+\=\/' '\.\-\_')"
 
-DOMAIN_DATA='{"name":"athenz","description":"test domain for local","org":"myorg","ypmId":4455,"adminUsers":["'"${DOMAIN_ADMIN}"'","user.athenz-admin"]}'
 DATA='{"name": "athenz.ui-server","publicKeys": [{"id": "0","key": "'"${ENCODED_UI_PUBLIC_KEY}"'"}]}'
 
 sed -i "s/user\.github-<REPLACE>/${DOMAIN_ADMIN}/g" "${UI_CONF_DIR}/users_data.json"
 
 # add UI service using ZMS API
 ZMS_URL="https://${ZMS_HOST}:${ZMS_PORT}"
-curl --silent --fail --show-error --request POST \
-    --cacert "${ATHENZ_CA_PATH}" \
-    --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
-    --cert "${DOMAIN_ADMIN_CERT_PATH}" \
-    --url "${ZMS_URL}/zms/v1/domain" \
-    --header 'content-type: application/json' \
-    --data "${DOMAIN_DATA}"
-echo 'created athenz domain for ui service'
 
 curl --silent --fail --show-error --request PUT \
     --cacert "${ATHENZ_CA_PATH}" \
-    --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
-    --cert "${DOMAIN_ADMIN_CERT_PATH}" \
+    --key "${TEAM_ADMIN_CERT_KEY_PATH}" \
+    --cert "${TEAM_ADMIN_CERT_PATH}" \
     --url "${ZMS_URL}/zms/v1/domain/athenz/service/ui-server" \
     --header 'content-type: application/json' \
     --data "${DATA}"
 # verify
 curl --silent --fail --show-error --request GET \
     --cacert "${ATHENZ_CA_PATH}" \
-    --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
-    --cert "${DOMAIN_ADMIN_CERT_PATH}" \
+    --key "${TEAM_ADMIN_CERT_KEY_PATH}" \
+    --cert "${TEAM_ADMIN_CERT_PATH}" \
     --url "${ZMS_URL}/zms/v1/domain/athenz/service/ui-server"; echo '';
 
 echo '6. create athenz.conf' | colored_cat g
 athenz-conf \
-    -svc-key-file "${DOMAIN_ADMIN_CERT_KEY_PATH}" \
-    -svc-cert-file "${DOMAIN_ADMIN_CERT_PATH}" \
+    -svc-key-file "${TEAM_ADMIN_CERT_KEY_PATH}" \
+    -svc-cert-file "${TEAM_ADMIN_CERT_PATH}" \
     -c "${ATHENZ_CA_PATH}" \
     -z "https://${ZMS_HOST}:${ZMS_PORT}" \
     -t "https://${UI_HOST}:${UI_PORT}" \

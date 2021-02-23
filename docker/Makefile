@@ -4,6 +4,7 @@ UID=$(DOCKER_UID)
 GID_ARG := $(if $(GID),--build-arg GID=$(GID),--build-arg GID)
 UID_ARG := $(if $(UID),--build-arg UID=$(UID),--build-arg UID)
 
+LOCAL_ENV_NS := $(shell ./local-nameserver.sh)
 DOCKER_DNS := $(if $(DOCKER_DNS),$(DOCKER_DNS),8.8.8.8)
 DOCKER_NETWORK := $(if $(DOCKER_NETWORK),$(DOCKER_NETWORK),athenz)
 BASE_DIR=$(shell git rev-parse --show-toplevel)
@@ -66,6 +67,7 @@ deploy-local:
 	sh "./deploy-scripts/zms-deploy-local.sh"
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh /athenz/docker/deploy-scripts/zms-debug.sh
 	# ZTS
+	sh "./amazon-trust.sh"
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh /athenz/docker/setup-scripts/zts-auto-config.sh
 	sh "./deploy-scripts/zts-deploy-local.sh"
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh /athenz/docker/deploy-scripts/zts-debug.sh
