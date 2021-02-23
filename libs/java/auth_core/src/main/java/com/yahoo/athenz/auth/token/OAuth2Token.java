@@ -38,6 +38,7 @@ public class OAuth2Token {
     protected String audience;
     protected String issuer;
     protected String subject;
+    protected String jwtId;
     protected Jws<Claims> claims = null;
 
     public OAuth2Token() {
@@ -107,6 +108,7 @@ public class OAuth2Token {
         setAuthTime(parseLongValue(body, CLAIM_AUTH_TIME));
         setIssuer(body.getIssuer());
         setSubject(body.getSubject());
+        setJwtId(body.getId());
     }
 
     public int getVersion() {
@@ -171,5 +173,13 @@ public class OAuth2Token {
 
     public void setAuthTime(long authTime) {
         this.authTime = authTime;
+    }
+
+    public String getJwtId() {
+        return jwtId;
+    }
+
+    public void setJwtId(String jwtId) {
+        this.jwtId = jwtId;
     }
 }

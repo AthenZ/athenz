@@ -9333,8 +9333,10 @@ public class ZTSImplTest {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
         assertNotNull(claims);
+        assertNotNull(claims.getBody().getId());
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech", claims.getBody().getAudience());
+        assertEquals("writers", claims.getBody().get("scope"));
         assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
         List<String> scopes = (List<String>) claims.getBody().get("scp");
         assertNotNull(scopes);
@@ -9363,6 +9365,7 @@ public class ZTSImplTest {
         assertEquals("user_domain.user1", claims.getBody().getSubject());
         assertEquals("coretech", claims.getBody().getAudience());
         assertEquals(100 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
+        assertEquals("readers writers", claims.getBody().get("scope"));
     }
 
     @Test
@@ -9446,6 +9449,7 @@ public class ZTSImplTest {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
         assertNotNull(claims);
+        assertNotNull(claims.getBody().getId());
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech", claims.getBody().getAudience());
         assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
@@ -9453,6 +9457,7 @@ public class ZTSImplTest {
         assertNotNull(scopes);
         assertEquals(1, scopes.size());
         assertEquals("writers", scopes.get(0));
+        assertEquals("writers", claims.getBody().get("scope"));
 
         LinkedHashMap<String, Object> cnf = (LinkedHashMap<String, Object>) claims.getBody().get("cnf");
         assertEquals("A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0", cnf.get("x5t#S256"));
@@ -9491,6 +9496,7 @@ public class ZTSImplTest {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
         assertNotNull(claims);
+        assertNotNull(claims.getBody().getId());
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech", claims.getBody().getAudience());
         assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
@@ -9498,6 +9504,7 @@ public class ZTSImplTest {
         assertNotNull(scopes);
         assertEquals(1, scopes.size());
         assertEquals("writers", scopes.get(0));
+        assertEquals("writers", claims.getBody().get("scope"));
     }
 
     @Test
@@ -9561,7 +9568,7 @@ public class ZTSImplTest {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
         assertNotNull(claims);
-
+        assertEquals("writers", claims.getBody().get("scope"));
         assertEquals(240 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
     }
 
