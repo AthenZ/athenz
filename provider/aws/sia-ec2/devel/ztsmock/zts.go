@@ -33,8 +33,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/gorilla/mux"
 )
 
 var caKeyStr string

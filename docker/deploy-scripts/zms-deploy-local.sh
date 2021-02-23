@@ -9,6 +9,11 @@ cd "$(dirname "$0")"
 # import functions
 . ../setup-scripts/common/color-print.sh
 
+# import local nameserver config
+. ../local-nameserver.sh
+
+echo "\"${LOCAL_ENV_NS}\" will be added to docker run command for ZMS container"
+
 #################################################
 ### ZMS Deploy
 #################################################
@@ -92,6 +97,7 @@ docker run -d -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \
     --dns="${DOCKER_DNS}" \
     --network="${DOCKER_NETWORK}" \
+    ${LOCAL_ENV_NS} \
     --user "$(id -u):$(id -g)" \
     -v "${DOCKER_DIR}/zms/var:/opt/athenz/zms/var" \
     -v "${DOCKER_DIR}/zms/conf:/opt/athenz/zms/conf/zms_server" \

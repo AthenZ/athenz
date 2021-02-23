@@ -3,6 +3,8 @@ In this introduction to Athenz, you will be able to run Athenz on your workstati
 
 ## Prerequisites
 * Docker
+* Git
+* Make toolset
 
 ## Steps
 

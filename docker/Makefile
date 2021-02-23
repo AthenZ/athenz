@@ -55,7 +55,6 @@ deploy-dev:
 	sh "./deploy-scripts/zms-deploy.sh"
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/deploy-scripts/zms-debug.sh
 	# ZTS
-	sh "./amazon-trust.sh"
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/setup-scripts/zts-auto-config.sh
 	sh "./deploy-scripts/zts-deploy.sh"
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz-setup-env sh /athenz/docker/deploy-scripts/zts-debug.sh
@@ -68,6 +67,7 @@ deploy-local:
 	sh "./deploy-scripts/zms-deploy-local.sh"
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh /athenz/docker/deploy-scripts/zms-debug.sh
 	# ZTS
+	sh "./amazon-trust.sh"
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh /athenz/docker/setup-scripts/zts-auto-config.sh
 	sh "./deploy-scripts/zts-deploy-local.sh"
 	docker run --rm -t --network="$(DOCKER_NETWORK)" -v "$(BASE_DIR):/athenz" --user "$(shell id -u):$(shell id -g)" athenz/athenz-setup-env sh /athenz/docker/deploy-scripts/zts-debug.sh

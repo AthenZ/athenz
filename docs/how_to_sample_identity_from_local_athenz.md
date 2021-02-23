@@ -14,10 +14,11 @@ To see the workflow of obtaining a service identity certificate from Athenz, ple
   (click on the `Browse` button, choose the latest version directory and then
   download the `athenz-utils-$latestVer-bin.tar.gz` file)
   & add it in the current shell PATH variable.
+  Below `$athenzUtilsLocation` denotes the path where file is downloaded from Maven Central.
 
 ```shell
-tar -xf $athenzUtilsLocation/athenz-utils-$latestVer.tar.gz -C $athenzUtilsLocation
-export PATH=$athenzUtilsLocation/athenz-utils-$latestVer/bin/`uname`:$PATH
+tar -xf $athenzUtilsLocation/athenz-utils-$latestVer-bin.tar.gz -C $athenzUtilsLocation
+export PATH=$athenzUtilsLocation/athenz-utils-$latestVer/bin/`uname | tr '[:upper:]' '[:lower:]'`:$PATH
 ```
 
 * Create a public private key pair, register the new service and its public key in Athenz Management Service. Athenz Management Service (ZMS) is running inside a docker container exposed over local port 4443. 

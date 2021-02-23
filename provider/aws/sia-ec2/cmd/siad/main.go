@@ -52,6 +52,7 @@ func main() {
 	ztsServerName := flag.String("ztsservername", "", "zts server name for tls connections")
 	ztsCACert := flag.String("ztscacert", "", "zts CA certificate file")
 	ztsAwsDomain := flag.String("ztsawsdomain", "", "ZTS AWS Domain")
+	ztsPort := flag.Int("ztsport", 4443, "ZTS port number")
 	pConf := flag.String("config", "/etc/sia/sia_config", "The config file to run against")
 
 	flag.Parse()
@@ -104,7 +105,7 @@ func main() {
 	//30 days by default
 	rotationInterval := 24 * 60 * time.Minute
 
-	ztsUrl := fmt.Sprintf("https://%s:4443/zts/v1", *ztsEndPoint)
+	ztsUrl := fmt.Sprintf("https://%s:%d/zts/v1", *ztsEndPoint, *ztsPort)
 
 	err = util.SetupSIADirs(siaMainDir, siaLinkDir, sysLogger)
 	if err != nil {

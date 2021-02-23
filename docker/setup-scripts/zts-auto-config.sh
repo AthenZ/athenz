@@ -85,13 +85,15 @@ openssl x509 -outform pem -in "${ATHENZ_CA_PATH}" | keytool -importcert -nopromp
     -keystore "${ZTS_SIGNER_TRUSTSTORE_PATH}" -storepass "${ZTS_SIGNER_TRUSTSTORE_PASS}" \
     -storetype JKS -alias "${CERT_ALIAS}"
 
-for FILE in ${BASE_DIR}/docker/zts/conf/awscas/*
-do
-  echo "Processing $FILE file..."
-  keytool -importcert -noprompt -file "${FILE}" \
-    -keystore "${ZTS_SIGNER_TRUSTSTORE_PATH}" -storepass "${ZTS_SIGNER_TRUSTSTORE_PASS}" \
-    -storetype JKS -alias "${FILE}"
-done
+if [ "$(ls -A ${BASE_DIR}/docker/zts/conf/awscas)" ]; then
+  for FILE in ${BASE_DIR}/docker/zts/conf/awscas/*
+  do
+    echo "Processing $FILE file..."
+    keytool -importcert -noprompt -file "${FILE}" \
+      -keystore "${ZTS_SIGNER_TRUSTSTORE_PATH}" -storepass "${ZTS_SIGNER_TRUSTSTORE_PASS}" \
+      -storetype JKS -alias "${FILE}"
+  done
+fi
 
 echo '7. set up for ZMS connection' | colored_cat g
 # create key store

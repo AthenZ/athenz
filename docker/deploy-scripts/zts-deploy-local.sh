@@ -12,6 +12,8 @@ cd "$(dirname "$0")"
 # import local nameserver config
 . ../local-nameserver.sh
 
+echo "\"${LOCAL_ENV_NS}\" will be added to docker run command for ZTS container"
+
 #################################################
 ### ZTS Deploy
 #################################################
@@ -95,7 +97,7 @@ docker run -d -h "${ZTS_HOST}" \
     -p "${ZTS_PORT}:${ZTS_PORT}" \
     --network="${DOCKER_NETWORK}" \
     --dns="${DOCKER_DNS}" \
-    "${LOCAL_ENV_NS}" \
+    ${LOCAL_ENV_NS} \
     --user "$(id -u):$(id -g)" \
     -v "${DOCKER_DIR}/zts/var:/opt/athenz/zts/var" \
     -v "${DOCKER_DIR}/zts/conf:/opt/athenz/zts/conf/zts_server" \
