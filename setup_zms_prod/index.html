@@ -847,42 +847,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zms_setup/" class="md-nav__link">
-      ZMS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zts_setup/" class="md-nav__link">
-      ZTS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_ui_setup/" class="md-nav__link">
-      UI Server
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -1553,9 +1517,10 @@ mysql&gt; FLUSH PRIVILEGES;
 <p>We recommend to have a strong admin password for better security.</p>
 <h2 id="getting-software">Getting Software<a class="headerlink" href="#getting-software" title="Permanent link">&para;</a></h2>
 <hr />
-<p>Download latest ZMS binary release from</p>
-<div class="highlight"><pre><span></span><code>https://bintray.com/yahoo/maven/athenz-zms/_latestVersion#files
-</code></pre></div>
+<p>Build the latest ZMS binary release by following the
+<a href="../dev_environment/">development instructions</a>. The binary release
+packages  will be created automatically in the <code>assembly</code> subdirectory.
+Copy the <code>athenz-zms-X.Y-bin.tar.gz</code> to your desired setup directory.</p>
 <div class="highlight"><pre><span></span><code>$ tar xvfz athenz-zms-X.Y-bin.tar.gz
 $ <span class="nb">cd</span> athenz-zms-X.Y
 </code></pre></div>

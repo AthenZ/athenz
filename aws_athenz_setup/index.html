@@ -707,96 +707,10 @@
       
     
     
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        Introduction
-        <span class="md-nav__icon md-icon"></span>
-      </label>
-    
     <a href="./" class="md-nav__link md-nav__link--active">
       Introduction
     </a>
     
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#build-the-project" class="md-nav__link">
-    Build the Project
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#zms-setup" class="md-nav__link">
-    ZMS Setup
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#zts-setup" class="md-nav__link">
-    ZTS Setup
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ui-setup" class="md-nav__link">
-    UI Setup
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zms_setup/" class="md-nav__link">
-      ZMS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zts_setup/" class="md-nav__link">
-      ZTS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_ui_setup/" class="md-nav__link">
-      UI Server
-    </a>
   </li>
 
         
@@ -1278,42 +1192,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#build-the-project" class="md-nav__link">
-    Build the Project
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#zms-setup" class="md-nav__link">
-    ZMS Setup
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#zts-setup" class="md-nav__link">
-    ZTS Setup
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ui-setup" class="md-nav__link">
-    UI Setup
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1330,25 +1208,9 @@
                 
                 
                 <h1 id="athenz-setup-on-aws">Athenz Setup on AWS<a class="headerlink" href="#athenz-setup-on-aws" title="Permanent link">&para;</a></h1>
-<ul>
-<li><a href="#build-the-project">Build the Project</a></li>
-<li><a href="#zms-setup">ZMS Setup</a></li>
-<li><a href="#zts-setup">ZTS Setup</a></li>
-<li><a href="#ui-setup">UI Setup</a></li>
-</ul>
-<h2 id="build-the-project">Build the Project<a class="headerlink" href="#build-the-project" title="Permanent link">&para;</a></h2>
-<p><code>mvn clean install</code></p>
-<p>Make sure to have the following tar files:</p>
-<div class="highlight"><pre><span></span><code>aws-setup/zms-setup/tars/athenz-zms-bin.tar.gz
-aws-setup/zts-setup/tars/athenz-zts-bin.tar.gz
-aws-setup/ui-setup/tars/athenz-ui-bin.tar.gz
-</code></pre></div>
-<h2 id="zms-setup">ZMS Setup<a class="headerlink" href="#zms-setup" title="Permanent link">&para;</a></h2>
-<p>Refer <a href="../aws_zms_setup/">AWS ZMS Setup</a> for details</p>
-<h2 id="zts-setup">ZTS Setup<a class="headerlink" href="#zts-setup" title="Permanent link">&para;</a></h2>
-<p>Refer <a href="../aws_zts_setup/">AWS ZTS Setup</a> for details</p>
-<h2 id="ui-setup">UI Setup<a class="headerlink" href="#ui-setup" title="Permanent link">&para;</a></h2>
-<p>Refer <a href="../aws_ui_setup/">AWS UI Setup</a> for details</p>
+<p>Athenz Team provides a set of instructions using CloudFormation Templates to deploy
+Athenz ZMS, ZTS and UI components on Linux EC2 instances in AWS.</p>
+<p><a href="https://github.com/AthenZ/athenz-aws-cf-setup/blob/master/README.md">https://github.com/AthenZ/athenz-aws-cf-setup/blob/master/README.md</a></p>
                 
               
               
@@ -1382,13 +1244,13 @@ aws-setup/ui-setup/tars/athenz-ui-bin.tar.gz
           </a>
         
         
-          <a href="../aws_zms_setup/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../data_model/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                ZMS Server
+                Data Model
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

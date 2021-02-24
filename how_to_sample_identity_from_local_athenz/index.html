@@ -703,42 +703,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zms_setup/" class="md-nav__link">
-      ZMS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zts_setup/" class="md-nav__link">
-      ZTS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_ui_setup/" class="md-nav__link">
-      UI Server
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -1321,13 +1285,14 @@
 <p>As part of local set up, an example domain by the name "athenz" is created and "athenz-admin" user is added as a domain administrator of that domain. Please refer to <a href="../data_model/#domains">concepts</a> to understand more about domains.</p>
 <p>To see the workflow of obtaining a service identity certificate from Athenz, please use following steps -</p>
 <ul>
-<li>Download latest Athenz Utils &amp; add it in the current shell PATH variable</li>
+<li>Download latest Athenz Utils from <a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-utils">Maven Central</a>
+  (click on the <code>Browse</code> button, choose the latest version directory and then
+  download the <code>athenz-utils-$latestVer-bin.tar.gz</code> file)
+  &amp; add it in the current shell PATH variable.
+  Below <code>$athenzUtilsLocation</code> denotes the path where file is downloaded from Maven Central.</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="nv">latestVer</span><span class="o">=</span><span class="k">$(</span>curl -Ls -o /dev/null -w %<span class="o">{</span>url_effective<span class="o">}</span> https://bintray.com/yahoo/maven/athenz-utils/_latestVersion<span class="se">\#</span>files <span class="p">|</span> cut -d<span class="s1">&#39;/&#39;</span> -f <span class="m">7</span><span class="k">)</span>
-<span class="nv">athenzUtilsLocation</span><span class="o">=</span><span class="k">$(</span>mktemp -d<span class="k">)</span>
-curl -Ls https://bintray.com/yahoo/maven/download_file?file_path<span class="o">=</span>com%2Fyahoo%2Fathenz%2Fathenz-utils%2F<span class="nv">$latestVer</span>%2Fathenz-utils-<span class="nv">$latestVer</span>-bin.tar.gz -o <span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>.tar.gz
-tar -xf <span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>.tar.gz -C <span class="nv">$athenzUtilsLocation</span>
-<span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>/bin/<span class="sb">`</span>uname<span class="sb">`</span>:<span class="nv">$PATH</span>
+<div class="highlight"><pre><span></span><code>tar -xf <span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>-bin.tar.gz -C <span class="nv">$athenzUtilsLocation</span>
+<span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>/bin/<span class="sb">`</span>uname <span class="p">|</span> tr <span class="s1">&#39;[:upper:]&#39;</span> <span class="s1">&#39;[:lower:]&#39;</span><span class="sb">`</span>:<span class="nv">$PATH</span>
 </code></pre></div>
 <ul>
 <li>Create a public private key pair, register the new service and its public key in Athenz Management Service. Athenz Management Service (ZMS) is running inside a docker container exposed over local port 4443. </li>

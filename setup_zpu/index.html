@@ -703,42 +703,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zms_setup/" class="md-nav__link">
-      ZMS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zts_setup/" class="md-nav__link">
-      ZTS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_ui_setup/" class="md-nav__link">
-      UI Server
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -1116,19 +1080,6 @@
     Requirements
   </a>
   
-    <nav class="md-nav" aria-label="Requirements">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#jdk-8" class="md-nav__link">
-    JDK 8
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1356,19 +1307,6 @@
     Requirements
   </a>
   
-    <nav class="md-nav" aria-label="Requirements">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#jdk-8" class="md-nav__link">
-    JDK 8
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1470,10 +1408,6 @@ The policy updater is the utility that retrieves from ZTS
 the policy files for provisioned domains on a host, which ZPE uses to
 evaluate access requests.</p>
 <ul>
-<li><a href="#requirements">Requirements</a><ul>
-<li><a href="#jdk-8">JDK 8</a></li>
-</ul>
-</li>
 <li><a href="#getting-software">Getting Software</a></li>
 <li><a href="#configuration">Configuration</a><ul>
 <li><a href="#domain-setting">Domain Setting</a></li>
@@ -1492,20 +1426,13 @@ evaluate access requests.</p>
 <hr />
 <p>The following tools are required to be installed on hosts
 configured to run ZPE Policy Updater.</p>
-<h3 id="jdk-8">JDK 8<a class="headerlink" href="#jdk-8" title="Permanent link">&para;</a></h3>
-<hr />
-<p>ZPU Utility is a java application.</p>
-<p><a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">Oracle Java Platform JDK 8</a></p>
-<p>While ZPU has been developed and tested with Oracle Java Platform JDK 8
-it should run successfully with OpenJDK 8 as well.</p>
 <h2 id="getting-software">Getting Software<a class="headerlink" href="#getting-software" title="Permanent link">&para;</a></h2>
 <hr />
-<p>Download latest ZPU binary release from Bintray - click on the <code>Files</code> tab,
-choose the latest version directory and then download the
-<code>athenz-zpu-&lt;latest-version&gt;-bin.tar.gz</code> file::</p>
-<p><a href="https://bintray.com/yahoo/maven/athenz-zpu/_latestVersion"> <img alt="Download" src="https://api.bintray.com/packages/yahoo/maven/athenz-zpu/images/download.svg" /> </a></p>
-<div class="highlight"><pre><span></span><code>$ tar xvfz athenz-zpu-X.Y-bin.tar.gz
-$ <span class="nb">cd</span> athenz-zpu-X.Y
+<p>Download latest ZPU binary release from from
+<a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-utils">Maven Central</a>:
+click on the <code>Browse</code> button, choose the latest version directory and then 
+download the <code>athenz-utils-&lt;latest-version&gt;-bin.tar.gz</code>.</p>
+<div class="highlight"><pre><span></span><code>$ tar xvfz athenz-utils-X.Y-bin.tar.gz
 </code></pre></div>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <hr />
@@ -1517,9 +1444,12 @@ truststore the utility.</p>
 <p>Before running ZPU utility, the system administrator must
 configure what domains are provisioned on the host so the
 utility can retrieve the policy files for those domains
-only.</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-zpu-X.Y
-$ vi conf/zpe_policy_updater/zpu.conf
+only. Create a configuration settings file with the
+following content:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+  <span class="nt">&quot;domains&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;domain1&gt;,&lt;domain2&gt;&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;caCertFile&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;path to caCert file&gt;&quot;</span>
+<span class="p">}</span>
 </code></pre></div>
 <p>In the json file, edit the value for the "domains" field
 and specify a comma separated list of domain names.</p>
@@ -1531,39 +1461,32 @@ running with a self-signed certificate, we need to generate a
 truststore for the java http client to use when communicating
 with the ZTS Server. From your ZTS Server installation, copy
 the <code>zts_cert.pem</code> file from the <code>athenz-zts-X.Y/var/zts_server/certs</code>
-directory to the <code>athenz-zpu-X.Y/var/zpe_policy_updater/certs</code>
-directory and execute the following command:</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-zpu-X.Y/var/zpe_policy_updater/certs
-$ keytool -importcert -noprompt -alias zts -keystore zpu_truststore.jks -file zts_cert.pem -storepass athenz
-</code></pre></div>
+directory to another directory that is configured as the value
+of the <code>caCertFile</code> setting in the zpu configuration file.</p>
 <h3 id="generate-athenz-configuration-file">Generate Athenz Configuration File<a class="headerlink" href="#generate-athenz-configuration-file" title="Permanent link">&para;</a></h3>
 <hr />
-<p>Generate an Athenz configuration file <code>athenz.conf</code> in
-<code>athenz-zpu-X.Y/conf/zpe_policy_updater</code> directory to include
-the ZTS Server URL and the registered public keys that the
+<p>Generate an Athenz configuration file <code>athenz.conf</code> in a directory to
+include the ZTS Server URL and the registered public keys that the
 athenz client libraries and utilities will use to establish
 connection and validate any data signed by the ZMS and ZTS
 Servers. To communicate with ZMS over SSL, the utility needs
-to have access to the ZMS Server's public certificate so you
+to have access to the ZMS Server's public certificate, so you
 need to copy the <code>zms_cert.pem</code> file from the
-<code>athenz-zms-X.Y/var/zms_server/certs</code> directory to the
-<code>athenz-zpu-X.Y/var/zpe_policy_updater/certs</code> directory</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-zpu-X.Y
-$ bin/&lt;platform&gt;/athenz-conf -o conf/zpe_policy_updater/athenz.conf -c var/zpe_policy_updater/certs/zms_cert.pem -z https://&lt;zms-server&gt;:4443/ -t https://&lt;zts-server&gt;:8443/
+<code>athenz-zms-X.Y/var/zms_server/certs</code> directory to a local directory
+and execute the following cmmmand:</p>
+<div class="highlight"><pre><span></span><code>$ bin/&lt;platform&gt;/athenz-conf -o &lt;path-to-athenz.conf&gt; -c &lt;path-to-zms_cert.pem&gt; -z https://&lt;zms-server&gt;:4443/ -t https://&lt;zts-server&gt;:8443/
 </code></pre></div>
 <h3 id="zpe-policy-directory">ZPE Policy Directory<a class="headerlink" href="#zpe-policy-directory" title="Permanent link">&para;</a></h3>
 <hr />
 <p>By default ZPU will save any downloaded policy files in the
 <code>${ROOT}/var/zpe</code> directory. You need to make sure this is the
-directory where ZPE is configured to look for policy files.
-To change this directory, please update the UTILITY_POLICY_FILE_DIR
-setting in the <code>conf/zpe_policy_updater/utility_settings</code> file.</p>
+directory where ZPE is configured to look for policy files.</p>
 <h2 id="run-zpu-utility">Run ZPU Utility<a class="headerlink" href="#run-zpu-utility" title="Permanent link">&para;</a></h2>
 <hr />
-<p>Set the required Athenz ROOT environment variable to the <code>athenz-zpu-X.Y</code>
+<p>Set the required Athenz ROOT environment variable to the required
 directory and from there start the ZPU utility by executing:</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">export</span> <span class="nv">ROOT</span><span class="o">=</span>&lt;full-path-to-athenz-zpu-X.Y&gt;
-$ bin/zpu_run.sh
+<div class="highlight"><pre><span></span><code>$ <span class="nb">export</span> <span class="nv">ROOT</span><span class="o">=</span>&lt;full-path-to-required-root-directory&gt;
+$ zpu -athenzConf &lt;Athenz conf file&gt; -zpuConf &lt;zpu conf file&gt; 
 </code></pre></div>
 <h3 id="periodic-update">Periodic Update<a class="headerlink" href="#periodic-update" title="Permanent link">&para;</a></h3>
 <hr />

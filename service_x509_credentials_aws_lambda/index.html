@@ -794,42 +794,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zms_setup/" class="md-nav__link">
-      ZMS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zts_setup/" class="md-nav__link">
-      ZTS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_ui_setup/" class="md-nav__link">
-      UI Server
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -1483,13 +1447,13 @@ public AWSLambdaIdentity getAWSLambdaServiceCertificate(String domainName,
 <p>For example, here is a quick program that can be compiled and packaged into lambda.jar and deployed as a Lambda function in AWS. It retrieves a private key and the corresponding x.509 certificate and returns as output.</p>
 <p>First you need to update your Java project <code>pom.xml</code> file to indicate
 the dependency on the Athenz zts java client libraries. Checkout the
-<a href="https://bintray.com/yahoo/maven/athenz-zts-java-client/">Bintray ZTS Java Client Package</a>
+<a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-zts-java-client/">Maven Central ZTS Java Client Package</a>
 pages to make sure you're using the latest release version:</p>
 <div class="highlight"><pre><span></span><code>  <span class="nt">&lt;dependencies&gt;</span>
     <span class="nt">&lt;dependency&gt;</span>
       <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
       <span class="nt">&lt;artifactId&gt;</span>athenz-zts-java-client<span class="nt">&lt;/artifactId&gt;</span>
-      <span class="nt">&lt;version&gt;</span>1.8.37<span class="nt">&lt;/version&gt;</span>
+      <span class="nt">&lt;version&gt;</span>1.10.4<span class="nt">&lt;/version&gt;</span>
     <span class="nt">&lt;/dependency&gt;</span>
   <span class="nt">&lt;/dependencies&gt;</span>
 </code></pre></div>

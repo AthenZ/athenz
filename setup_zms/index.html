@@ -799,42 +799,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zms_setup/" class="md-nav__link">
-      ZMS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zts_setup/" class="md-nav__link">
-      ZTS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_ui_setup/" class="md-nav__link">
-      UI Server
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -1424,10 +1388,10 @@ configured to run ZMS server.</p>
 it should run successfully with OpenJDK 8 as well.</p>
 <h2 id="getting-software">Getting Software<a class="headerlink" href="#getting-software" title="Permanent link">&para;</a></h2>
 <hr />
-<p>Download latest ZMS binary release from Bintray - click on the <code>Files</code> tab,
-choose the latest version directory and then download the
-<code>athenz-zms-&lt;latest-version&gt;-bin.tar.gz</code> file:</p>
-<p><a href="https://bintray.com/yahoo/maven/athenz-zms/_latestVersion"> <img alt="Download" src="https://api.bintray.com/packages/yahoo/maven/athenz-zms/images/download.svg" /> </a></p>
+<p>Build the latest ZMS binary release by following the
+<a href="../dev_environment/">development instructions</a>. The binary release
+packages  will be created automatically in the <code>assembly</code> subdirectory.
+Copy the <code>athenz-zms-X.Y-bin.tar.gz</code> to your desired setup directory.</p>
 <div class="highlight"><pre><span></span><code>$ tar xvfz athenz-zms-X.Y-bin.tar.gz
 </code></pre></div>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>

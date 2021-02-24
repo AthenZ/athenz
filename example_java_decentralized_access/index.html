@@ -703,42 +703,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zms_setup/" class="md-nav__link">
-      ZMS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zts_setup/" class="md-nav__link">
-      ZTS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_ui_setup/" class="md-nav__link">
-      UI Server
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -1763,8 +1727,8 @@ that Access Token to determine if it request should be processed or not.</p>
 <hr />
 <p>First you need to update your Java project <code>pom.xml</code> file to indicate
 the dependency on the Athenz auth_core and zts java client libraries. Checkout the
-<a href="https://bintray.com/yahoo/maven/athenz-cert-refresher/">Bintray Athenz Cert Refresher Package</a>
-and <a href="https://bintray.com/yahoo/maven/athenz-zts-java-client/">Bintray ZTS Java Client Package</a>
+<a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-cert-refresher">Maven Central Athenz Cert Refresher Package</a>
+and <a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-zts-java-client">Maven Central ZTS Java Client Package</a>
 pages to make sure you're using the latest release version:</p>
 <div class="highlight"><pre><span></span><code>&lt;dependency&gt;
   &lt;groupId&gt;com.yahoo.athenz&lt;/groupId&gt;
@@ -1776,14 +1740,6 @@ pages to make sure you're using the latest release version:</p>
   &lt;artifactId&gt;athenz-zts-java-client&lt;/artifactId&gt;
   &lt;version&gt;VERSION-NUMBER&lt;/version&gt;
 &lt;/dependency&gt;
-
-&lt;repositories&gt;
-  &lt;repository&gt;
-    &lt;id&gt;bintray-yahoo-maven&lt;/id&gt;
-    &lt;name&gt;bintray&lt;/name&gt;
-    &lt;url&gt;https://yahoo.bintray.com/maven&lt;/url&gt;
-  &lt;/repository&gt;
-&lt;/repositories&gt;
 </code></pre></div>
 <h4 id="obtaining-access-tokens-from-zts-server">Obtaining Access Tokens from ZTS Server<a class="headerlink" href="#obtaining-access-tokens-from-zts-server" title="Permanent link">&para;</a></h4>
 <hr />
@@ -1855,21 +1811,13 @@ usage: http-example-client
 <hr />
 <p>First you need to update your Java project <code>pom.xml</code> file to indicate
 the dependency on the Athenz ZPE Java Client Library. Checkout the
-<a href="https://bintray.com/yahoo/maven/athenz-zpe-java-client/">Bintray ZPE Client Package Page</a>
+<a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-zpe-java-client">Maven Central ZPE Client Package Page</a>
 to make sure you're using the latest release version:</p>
 <div class="highlight"><pre><span></span><code>&lt;dependency&gt;
   &lt;groupId&gt;com.yahoo.athenz&lt;/groupId&gt;
   &lt;artifactId&gt;athenz-zpe-java-client&lt;/artifactId&gt;
   &lt;version&gt;VERSION-NUMBER&lt;/version&gt;
 &lt;/dependency&gt;
-
-&lt;repositories&gt;
-  &lt;repository&gt;
-    &lt;id&gt;bintray-yahoo-maven&lt;/id&gt;
-    &lt;name&gt;bintray&lt;/name&gt;
-    &lt;url&gt;https://yahoo.bintray.com/maven&lt;/url&gt;
-  &lt;/repository&gt;
-&lt;/repositories&gt;
 </code></pre></div>
 <h4 id="authorization-checks">Authorization Checks<a class="headerlink" href="#authorization-checks" title="Permanent link">&para;</a></h4>
 <hr />

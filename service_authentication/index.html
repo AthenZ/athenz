@@ -703,42 +703,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zms_setup/" class="md-nav__link">
-      ZMS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zts_setup/" class="md-nav__link">
-      ZTS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_ui_setup/" class="md-nav__link">
-      UI Server
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -1284,10 +1248,10 @@ using two approaches discussed below:</p>
 <li>Use the private key to obtain X.509 certificate from ZTS using zts-svccert 
    utility as below:</li>
 </ol>
-<p>Download latest ZTS SVCCERT utility binary release from Bintray - click
-   on the <code>Files</code> tab, choose the latest version directory and then
-   download the <code>athenz-utils-&lt;latest-version&gt;-bin.tar.gz</code> file:</p>
-<p><a href="https://bintray.com/yahoo/maven/athenz-utils/_latestVersion"> <img alt="Download" src="https://api.bintray.com/packages/yahoo/maven/athenz-utils/images/download.svg" /> </a></p>
+<p>Download latest ZTS SVCCERT utility binary release from
+   <a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-utils">Maven Central</a>:
+    click on the <code>Browse</code> button, choose the latest version directory and then
+    download the <code>athenz-utils-&lt;latest-version&gt;-bin.tar.gz</code>.</p>
 <p><div class="highlight"><pre><span></span><code>$ tar xvfz athenz-utils-X.Y-bin.tar.gz
 </code></pre></div>
    You need to make sure to pass the correct <code>key-version</code> argument that matches to the key identifier

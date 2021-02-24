@@ -15,7 +15,7 @@
     
     
       
-        <title>Verizon Media Open Source Code of Conduct - Athenz</title>
+        <title>Local athenz on docker ec2 - Athenz</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#verizon-media-open-source-code-of-conduct" class="md-skip">
+        <a href="#overview" class="md-skip">
           Skip to content
         </a>
       
@@ -87,7 +87,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              Verizon Media Open Source Code of Conduct
+              Local athenz on docker ec2
             
           </span>
         </div>
@@ -703,42 +703,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zms_setup/" class="md-nav__link">
-      ZMS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_zts_setup/" class="md-nav__link">
-      ZTS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../aws_ui_setup/" class="md-nav__link">
-      UI Server
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -1214,8 +1178,6 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1224,56 +1186,22 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
-    Summary
+  <a href="#overview" class="md-nav__link">
+    Overview
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#details" class="md-nav__link">
-    Details
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
   </a>
-  
-    <nav class="md-nav" aria-label="Details">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#expected-behaviors" class="md-nav__link">
-    Expected Behaviors
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#unacceptable-behaviors" class="md-nav__link">
-    Unacceptable Behaviors
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#reporting-issues" class="md-nav__link">
-    Reporting Issues
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#scope" class="md-nav__link">
-    Scope
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#license-and-acknowledgment" class="md-nav__link">
-    License and Acknowledgment.
+  <a href="#steps" class="md-nav__link">
+    Steps
   </a>
   
 </li>
@@ -1290,53 +1218,90 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/code_of_conduct.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/local_athenz_on_docker_ec2.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="verizon-media-open-source-code-of-conduct">Verizon Media Open Source Code of Conduct<a class="headerlink" href="#verizon-media-open-source-code-of-conduct" title="Permanent link">&para;</a></h1>
-<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
-<p>This Code of Conduct is our way to encourage good behavior and discourage bad behavior in our open source projects. We invite participation from many people to bring different perspectives to our projects. We will do our part to foster a welcoming and professional environment free of harassment. We expect participants to communicate professionally and thoughtfully during their involvement with this project. </p>
-<p>Participants may lose their good standing by engaging in misconduct. For example: insulting, threatening, or conveying unwelcome sexual content. We ask participants who observe conduct issues to report the incident directly to the project's Response Team at <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#111;&#112;&#101;&#110;&#115;&#111;&#117;&#114;&#99;&#101;&#45;&#99;&#111;&#110;&#100;&#117;&#99;&#116;&#64;&#118;&#101;&#114;&#105;&#122;&#111;&#110;&#109;&#101;&#100;&#105;&#97;&#46;&#99;&#111;&#109;">&#111;&#112;&#101;&#110;&#115;&#111;&#117;&#114;&#99;&#101;&#45;&#99;&#111;&#110;&#100;&#117;&#99;&#116;&#64;&#118;&#101;&#114;&#105;&#122;&#111;&#110;&#109;&#101;&#100;&#105;&#97;&#46;&#99;&#111;&#109;</a>. Verizon Media will assign a respondent to address the issue. We may remove harassers from this project. </p>
-<p>This code does not replace the terms of service or acceptable use policies of the websites used to support this project. We acknowledge that participants may be subject to additional conduct terms based on their employment which may govern their online expressions.</p>
-<h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">&para;</a></h2>
-<p>This Code of Conduct makes our expectations of participants in this community explicit.
-* We forbid harassment and abusive speech within this community.
-* We request participants to report misconduct to the project’s Response Team.
-* We urge participants to refrain from using discussion forums to play out a fight.</p>
-<h3 id="expected-behaviors">Expected Behaviors<a class="headerlink" href="#expected-behaviors" title="Permanent link">&para;</a></h3>
-<p>We expect participants in this community to conduct themselves professionally. Since our primary mode of communication is text on an online forum (e.g. issues, pull requests, comments, emails, or chats) devoid of vocal tone, gestures, or other context that is often vital to understanding, it is important that participants are attentive to their interaction style.</p>
+                  <h1>Local athenz on docker ec2</h1>
+                
+                <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>In this introduction to Athenz, you will be able to run Athenz on your EC2 instance in AWS.</p>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Assume positive intent.</strong> We ask community members to assume positive intent on the part of other people’s communications. We may disagree on details, but we expect all suggestions to be supportive of the community goals.</li>
-<li><strong>Respect participants.</strong> We expect occasional disagreements. Open Source projects are learning experiences. Ask, explore, challenge, and then <em>respectfully</em> state if you agree or disagree. If your idea is rejected, be more persuasive not bitter.</li>
-<li><strong>Welcoming to new members.</strong> New members bring new perspectives. Some ask questions that have been addressed before. <em>Kindly</em> point to existing discussions. Everyone is new to every project once.</li>
-<li><strong>Be kind to beginners.</strong> Beginners use open source projects to get experience. They might not be talented coders yet, and projects should not accept poor quality code. But we were all beginners once, and we need to engage kindly.</li>
-<li><strong>Consider your impact on others.</strong> Your work will be used by others, and you depend on the work of others. We expect community members to be considerate and establish a balance their self-interest with communal interest.</li>
-<li><strong>Use words carefully.</strong> We may not understand intent when you say something ironic. Often, people will misinterpret sarcasm in online communications. We ask community members to communicate plainly.</li>
-<li><strong>Leave with class.</strong> When you wish to resign from participating in this project for any reason, you are free to fork the code and create a competitive project. Open Source explicitly allows this. Your exit should not be dramatic or bitter. </li>
+<li>AWS account with access to make changes to policies, IAM roles etc.</li>
 </ul>
-<h3 id="unacceptable-behaviors">Unacceptable Behaviors<a class="headerlink" href="#unacceptable-behaviors" title="Permanent link">&para;</a></h3>
-<p>Participants remain in good standing when they do not engage in misconduct or harassment (some examples follow). We do not list all forms of harassment, nor imply some forms of harassment are not worthy of action. Any participant who <em>feels</em> harassed or <em>observes</em> harassment, should report the incident to the Response Team. 
-* <strong>Don't be a bigot.</strong> Calling out project members by their identity or background in a negative or insulting manner. This includes, but is not limited to, slurs or insinuations related to protected or suspect classes e.g. race, color, citizenship, national origin, political belief, religion, sexual orientation, gender identity and expression, age, size, culture, ethnicity, genetic features, language, profession, national minority status, mental or physical ability.
-* <strong>Don't insult.</strong> Insulting remarks about a person’s lifestyle practices.
-* <strong>Don't dox.</strong> Revealing private information about other participants without explicit permission.
-* <strong>Don't intimidate.</strong> Threats of violence or intimidation of any project member.
-* <strong>Don't creep.</strong> Unwanted sexual attention or content unsuited for the subject of this project.
-* <strong>Don't inflame.</strong> We ask that victim of harassment not address their grievances in the public forum, as this often intensifies the problem. Report it, and let us address it off-line.
-* <strong>Don't disrupt.</strong> Sustained disruptions in a discussion.</p>
-<h3 id="reporting-issues">Reporting Issues<a class="headerlink" href="#reporting-issues" title="Permanent link">&para;</a></h3>
-<p>If you experience or witness misconduct, or have any other concerns about the conduct of members of this project, please report it by contacting our Response Team at <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#111;&#112;&#101;&#110;&#115;&#111;&#117;&#114;&#99;&#101;&#45;&#99;&#111;&#110;&#100;&#117;&#99;&#116;&#64;&#118;&#101;&#114;&#105;&#122;&#111;&#110;&#109;&#101;&#100;&#105;&#97;&#46;&#99;&#111;&#109;">&#111;&#112;&#101;&#110;&#115;&#111;&#117;&#114;&#99;&#101;&#45;&#99;&#111;&#110;&#100;&#117;&#99;&#116;&#64;&#118;&#101;&#114;&#105;&#122;&#111;&#110;&#109;&#101;&#100;&#105;&#97;&#46;&#99;&#111;&#109;</a> who will handle your report with discretion. Your report should include:
-* Your preferred contact information. We cannot process anonymous reports.
-* Names (real or usernames) of those involved in the incident.
-* Your account of what occurred, and if the incident is ongoing. Please provide links to or transcripts of the publicly available records (e.g. a mailing list archive or a public IRC logger), so that we can review it.
-* Any additional information that may be helpful to achieve resolution.</p>
-<p>After filing a report, a representative will contact you directly to review the incident and ask additional questions. If a member of the Verizon Media Response Team is named in an incident report, that member will be recused from handling your incident. If the complaint originates from a member of the Response Team, it will be addressed by a different member of the Response Team. We will consider reports to be confidential for the purpose of protecting victims of abuse. </p>
-<h3 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h3>
-<p>Verizon Media will assign a Response Team member with admin rights on the project and legal rights on the project copyright. The Response Team is empowered to restrict some privileges to the project as needed. Since this project is governed by an open source license, any participant may fork the code under the terms of the project license. The Response Team’s goal is to preserve the project if possible, and will restrict or remove participation from those who disrupt the project. </p>
-<p>This code does not replace the terms of service or acceptable use policies that are provided by the websites used to support this community. Nor does this code apply to communications or actions that take place outside of the context of this community. Many participants in this project are also subject to codes of conduct based on their employment. This code is a social-contract that informs participants of our social expectations. It is not a terms of service or legal contract.</p>
-<h2 id="license-and-acknowledgment">License and Acknowledgment.<a class="headerlink" href="#license-and-acknowledgment" title="Permanent link">&para;</a></h2>
-<p>This text is shared under the <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0 license</a>. This code is based on a study conducted by the <a href="https://todogroup.org/">TODO Group</a> of many codes used in the open source community. If you have feedback about this code, contact our Response Team at the address listed above.</p>
+<h2 id="steps">Steps<a class="headerlink" href="#steps" title="Permanent link">&para;</a></h2>
+<p>Create a new policy with following JSON</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Version&quot;</span><span class="p">:</span> <span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;Statement&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;sts:AssumeRole&quot;</span>
+            <span class="p">],</span>
+            <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;arn:aws:iam::*:role/*&quot;</span>
+            <span class="p">]</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;logs:CreateLogGroup&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;logs:CreateLogStream&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;logs:PutLogEvents&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;logs:DescribeLogStreams&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;logs:DescribeLogGroups&quot;</span>
+            <span class="p">],</span>
+            <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;arn:aws:logs:*:*:*&quot;</span>
+            <span class="p">]</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;ec2:DescribeTags&quot;</span>
+            <span class="p">],</span>
+            <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;*&quot;</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Create a new IAM role and associate the above created policy with it.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Make sure your VPC is set up  with an Internet Gateway and necessary NACL, Route Table rules to allow EC2 instances in that VPC to be
+able to reach internet.</p>
+</div>
+<p>Create a new EC2 instance in your VPC with the above created role as instance profile role. We will be using Amazon Linux 2 AMI and t2.2xlarge
+instance type since we will be running 5 docker containers for the purpose of this demo.</p>
+<p>SSH to the EC2 instance and run following commands to install git and docker -</p>
+<div class="highlight"><pre><span></span><code>sudo yum update -y
+sudo yum install git
+sudo yum install docker -y
+sudo usermod -a -G docker ec2-user
+sudo service docker start
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You might have to log out and log back in for ec2-user's docker group membership to come into effect.</p>
+</div>
+<p>Checkout Athenz from Github
+<div class="highlight"><pre><span></span><code>git clone https://github.com/AthenZ/athenz.git
+</code></pre></div>
+<code>cd</code> to checked out directory and run following command:
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span> athenz <span class="o">&amp;&amp;</span> ./start-local-athenz.sh
+</code></pre></div></p>
+<p>This script will -</p>
+<ul>
+<li>download Athenz components docker images from DockerHub</li>
+<li>generate self-signed certificates to be used by Athenz components</li>
+<li>configure Athenz with meaningful defaults suitable for local environment ( for production set up, please refer to "Production set up" section of docs.)</li>
+<li>start local containers corresponding to Athenz components (ZMS, ZMS DB, ZTS, ZTS DB, UI)</li>
+</ul>
                 
               
               
