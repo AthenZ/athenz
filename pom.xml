@@ -353,6 +353,8 @@
         <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
         <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
         <gpg.defaultKeyring>false</gpg.defaultKeyring>
+        <gpg.publicKeyring>screwdriver/pubring.gpg</gpg.publicKeyring>
+        <gpg.secretKeyring>screwdriver/secring.gpg</gpg.secretKeyring>
       </properties>
       <activation>
         <property>
