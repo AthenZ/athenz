@@ -353,8 +353,9 @@
         <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
         <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
         <gpg.defaultKeyring>false</gpg.defaultKeyring>
-        <gpg.publicKeyring>screwdriver/pubring.gpg</gpg.publicKeyring>
-        <gpg.secretKeyring>screwdriver/secring.gpg</gpg.secretKeyring>
+        <gpg.homedir>./screwdriver</gpg.homedir>
+        <gpg.publickeyring>pubring.gpg</gpg.publickeyring>
+        <gpg.secretkeyring>secring.gpg</gpg.secretkeyring>
       </properties>
       <activation>
         <property>
@@ -367,7 +368,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.5</version>
+            <version>1.6</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -375,6 +376,12 @@
                 <goals>
                   <goal>sign</goal>
                 </goals>
+                <configuration>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
               </execution>
             </executions>
           </plugin>
