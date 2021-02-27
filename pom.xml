@@ -77,7 +77,6 @@
     <jackson.databind.version>2.12.1</jackson.databind.version>
     <jackson.annotations.version>2.12.1</jackson.annotations.version>
     <jackson.jaxrs.version>2.12.1</jackson.jaxrs.version>
-    <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <rdl.version>1.5.4</rdl.version>
     <bouncycastle.version>1.68</bouncycastle.version>
     <aws.version>1.11.942</aws.version>
@@ -92,11 +91,16 @@
     <mysql.connector.version>8.0.23</mysql.connector.version>
     <commons.daemon.version>1.2.3</commons.daemon.version>
     <apache.httpclient.version>4.5.13</apache.httpclient.version>
+    <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+    <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
+    <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
+    <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+    <exec-maven-plugin.version>1.1.1</exec-maven-plugin.version>
+    <swagger.version>2.1.6</swagger.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <code.coverage.min>0.95</code.coverage.min>
     <argLine>-Dlogback.configurationFile=src/test/resources/sd_logback.xml</argLine>
-    <swagger.version>2.1.6</swagger.version>
   </properties>
 
   <modules>
@@ -213,7 +217,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.10.4</version>
+        <version>${maven-javadoc-plugin.version}</version>
         <executions>
           <execution>
             <id>attach-javadocs</id>
