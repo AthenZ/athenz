@@ -6,8 +6,12 @@ set -e
 # warning but that option does not exist in openssl 1.0.x
 
 export GPG_TTY=$(tty)
-openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE -in screwdriver/pubring.gpg.enc -out screwdriver/pubring.gpg -pbkdf2 -d
-openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE -in screwdriver/secring.gpg.enc -out screwdriver/secring.gpg -pbkdf2 -d
+
+mkdir screwdriver/deploy
+chmod 0400 screwdriver/deploy
+
+openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE -in screwdriver/pubring.gpg.enc -out screwdriver/deploy/pubring.gpg -pbkdf2 -d
+openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE -in screwdriver/secring.gpg.enc -out screwdriver/deploy/secring.gpg -pbkdf2 -d
 
 mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz --settings screwdriver/settings/settings-publish.xml
 mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zms-core --settings screwdriver/settings/settings-publish.xml
@@ -23,3 +27,5 @@ mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz
 mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-instance-provider --settings screwdriver/settings/settings-publish.xml
 mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-jetty-container --settings screwdriver/settings/settings-publish.xml
 mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-utils --settings screwdriver/settings/settings-publish.xml
+
+rm -rf screwdriver/deploy
