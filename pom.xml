@@ -353,7 +353,7 @@
         <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
         <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
         <gpg.defaultKeyring>false</gpg.defaultKeyring>
-        <gpg.homedir>./screwdriver</gpg.homedir>
+        <gpg.homedir>${env.SD_SOURCE_DIR}/screwdriver/deploy</gpg.homedir>
         <gpg.publickeyring>pubring.gpg</gpg.publickeyring>
         <gpg.secretkeyring>secring.gpg</gpg.secretkeyring>
       </properties>
