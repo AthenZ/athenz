@@ -19,15 +19,13 @@
 package com.yahoo.athenz.common.server.log.jetty;
 
 import com.yahoo.athenz.common.metrics.Metric;
-import com.yahoo.athenz.common.server.log.jetty.ConnectionLog;
-import com.yahoo.athenz.common.server.log.jetty.ConnectionLogEntry;
-import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger;
 import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.io.SocketChannelEndPoint;
 import org.eclipse.jetty.io.ssl.SslConnection;
 import org.eclipse.jetty.io.ssl.SslHandshakeListener;
 import org.eclipse.jetty.server.ProxyConnectionFactory;
-import org.junit.Test;
+import org.testng.annotations.Test;
+
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -40,9 +38,10 @@ import java.util.List;
 
 import static com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger.GENERAL_SSL_ERROR;
 import static com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger.METRIC_NAME;
-import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+
+import static org.testng.Assert.*;
 
 public class JettyConnectionLoggerTest {
 

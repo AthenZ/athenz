@@ -12,14 +12,11 @@ import com.yahoo.athenz.zts.ZTSTestUtils;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.Assert.*;
+import static org.testng.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -98,7 +95,7 @@ public class DynamoDBNotificationsHelperTest {
                 "testHost1");
 
         Item itemThreeDaysAgo = ItemUtils.toItem(threeDaysAgoMap);
-        List<Item> allItems = Arrays.asList(itemThreeDaysAgo);
+        List<Item> allItems = Collections.singletonList(itemThreeDaysAgo);
         DynamoDBNotificationsHelper dynamoDBNotificationsHelper = new DynamoDBNotificationsHelper();
 
         assertTrue(dynamoDBNotificationsHelper.isMostUpdatedRecordBasedOnAttribute(itemThreeDaysAgo, allItems, "currentTime", "primaryKey"));
@@ -163,7 +160,7 @@ public class DynamoDBNotificationsHelperTest {
     }
 
     @Test
-    public void testUpdateLastNotifiedItemRetryFailed() throws TimeoutException, InterruptedException {
+    public void testUpdateLastNotifiedItemRetryFailed() throws InterruptedException {
         Date now = new Date(1591706189000L);
         long lastNotifiedTime = now.getTime();
         long yesterday = lastNotifiedTime - TimeUnit.DAYS.toMillis(1);
