@@ -18,12 +18,10 @@
 
 package com.yahoo.athenz.common.server.log.jetty;
 
-import com.yahoo.athenz.common.server.log.jetty.ExceptionCauseFetcher;
-import org.junit.Test;
-
+import org.testng.annotations.Test;
 import javax.net.ssl.SSLHandshakeException;
 
-import static org.junit.Assert.assertEquals;
+import static org.testng.Assert.*;
 
 public class ExceptionCauseFetcherTest {
 
