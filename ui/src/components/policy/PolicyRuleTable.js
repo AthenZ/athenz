@@ -95,12 +95,12 @@ const StyledAnchor = styled.a`
 
 const TrStyled = styled.tr`
     ${(props) =>
-        props.isSuccess === true &&
+        props.isSuccess &&
         css`
             animation: ${colorTransition} 3s ease;
         `}
     ${(props) =>
-        props.isSuccess === false &&
+        !props.isSuccess &&
         css`
             background-color: white;
         `}
