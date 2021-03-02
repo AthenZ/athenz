@@ -444,7 +444,9 @@ public class AthenzJettyContainer {
         if (listenHost != null) {
             sslConnector.setHost(listenHost);
         }
-        //sslConnector.addBean(connectionLogger);
+        if (connectionLogger != null) {
+            sslConnector.addBean(connectionLogger);
+        }
         server.addConnector(sslConnector);
     }
     
@@ -463,9 +465,18 @@ public class AthenzJettyContainer {
             addHTTPConnector(httpConfig, httpPort, proxyProtocol, listenHost, idleTimeout);
         }
 
+        // check to see if we need to create our connection logger
+        // for TLS connection failures
+
+        boolean logSSLFailures = Boolean.parseBoolean(
+                System.getProperty(AthenzConsts.ATHENZ_PROP_SSL_LOG_FAILURES, "false"));
+        JettyConnectionLogger connectionLogger = null;
+        if (logSSLFailures) {
+            connectionLogger = jettyConnectionLoggerFactory.create();
+        }
+
         // HTTPS Connector
 
-        JettyConnectionLogger connectionLogger = jettyConnectionLoggerFactory.create();
         if (httpsPort > 0) {
             boolean needClientAuth = Boolean.parseBoolean(
                     System.getProperty(AthenzConsts.ATHENZ_PROP_CLIENT_AUTH, "false"));

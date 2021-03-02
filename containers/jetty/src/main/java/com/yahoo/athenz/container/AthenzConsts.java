@@ -42,6 +42,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_CLIENT_AUTH            = "athenz.ssl_need_client_auth";
     public static final String ATHENZ_PROP_ENABLE_OCSP            = "athenz.ssl_enable_ocsp";
     public static final String ATHENZ_PROP_RENEGOTIATION_ALLOWED  = "athenz.ssl_renegotiation_allowed";
+    public static final String ATHENZ_PROP_SSL_LOG_FAILURES       = "athenz.ssl_log_failures";
     public static final String ATHENZ_PROP_IDLE_TIMEOUT           = "athenz.http_idle_timeout";
     public static final String ATHENZ_PROP_PROXY_PROTOCOL         = "athenz.proxy_protocol";
     public static final String ATHENZ_PROP_SEND_SERVER_VERSION    = "athenz.http_send_server_version";
