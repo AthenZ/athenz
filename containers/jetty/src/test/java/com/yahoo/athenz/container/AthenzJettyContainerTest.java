@@ -78,6 +78,7 @@ public class AthenzJettyContainerTest {
         System.clearProperty(AthenzConsts.ATHENZ_PROP_KEEP_ALIVE);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_SSL_LOG_FAILURES);
     }
     
     @AfterClass
@@ -110,6 +111,7 @@ public class AthenzJettyContainerTest {
         // negative number should be ignored
         System.setProperty(AthenzConsts.ATHENZ_PROP_ACCESS_LOG_RETAIN_DAYS, "-3");
         System.setProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS, "100");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_SSL_LOG_FAILURES, "true");
 
         AthenzJettyContainer container = new AthenzJettyContainer();
         container.createServer(100);
