@@ -4505,11 +4505,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     boolean assertionMatch(Assertion assertion, String identity, String action, String resource,
             String domain, List<Role> roles, List<String> authenticatedRoles, String trustDomain) {
 
-        // Lowercase action and resource in assertion as it is possible to store them case-sensitive
-        assertion.setResource(assertion.getResource().toLowerCase());
-        assertion.setAction(assertion.getAction().toLowerCase());
-
-        String actionPattern = StringUtils.patternFromGlob(assertion.getAction());
+        String actionPattern = StringUtils.patternFromGlob(assertion.getAction().toLowerCase());
         if (LOG.isDebugEnabled()) {
             LOG.debug("assertionMatch: action '{}' pattern '{}'", action, actionPattern);
         }
@@ -4517,7 +4513,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return false;
         }
 
-        String rezPattern = StringUtils.patternFromGlob(assertion.getResource());
+        String rezPattern = StringUtils.patternFromGlob(assertion.getResource().toLowerCase());
         if (LOG.isDebugEnabled()) {
             LOG.debug("assertionMatch: resource '{}' pattern '{}'", resource, rezPattern);
         }
