@@ -444,7 +444,7 @@ public class AthenzJettyContainer {
         if (listenHost != null) {
             sslConnector.setHost(listenHost);
         }
-        sslConnector.addBean(connectionLogger);
+        //sslConnector.addBean(connectionLogger);
         server.addConnector(sslConnector);
     }
     
