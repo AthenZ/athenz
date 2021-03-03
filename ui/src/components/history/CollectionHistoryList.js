@@ -260,7 +260,7 @@ export default class CollectionHistoryList extends React.Component {
                 color = colors.row;
             }
             return (
-                <tr key={item.epoch}>
+                <tr key={i}>
                     <TDStyled color={color} align={left}>
                         {item.action}
                     </TDStyled>

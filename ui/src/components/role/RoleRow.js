@@ -23,6 +23,7 @@ import Menu from '../denali/Menu/Menu';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import { withRouter } from 'next/router';
+import { css, keyframes } from '@emotion/react';
 
 const TDStyledName = styled.div`
     background-color: ${(props) => props.color};
@@ -62,6 +63,20 @@ const TrStyled = styled.div`
     border-image: initial;
     display: flex;
     padding: 5px 0 5px 15px;
+    ${(props) =>
+        props.isSuccess &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
+`;
+
+const colorTransition = keyframes`
+        0% {
+            background-color: rgba(21, 192, 70, 0.20);
+        }
+        100% {
+            background-color: transparent;
+        }
 `;
 
 const MenuDiv = styled.div`
@@ -241,9 +256,14 @@ class RoleRow extends React.Component {
             ) : (
                 <span>{' ' + this.state.name}</span>
             );
-
+        let newRole =
+            this.props.newRole === this.props.domain + '-' + this.state.name;
         rows.push(
-            <TrStyled key={this.state.name} data-testid='role-row'>
+            <TrStyled
+                key={this.state.name}
+                data-testid='role-row'
+                isSuccess={newRole}
+            >
                 <TDStyledName color={color} align={left}>
                     {roleTypeIcon}
                     {roleAuditIcon}

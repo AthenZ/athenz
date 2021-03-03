@@ -176,9 +176,9 @@ export default class AddMemberToRoles extends React.Component {
                     showModal: false,
                     justification: '',
                 });
-                const successRoles = this.state.checkedRoles.join(', ');
                 this.props.onSubmit(
-                    `Successfully added ${this.state.memberName} to roles: ${successRoles}`
+                    `${this.props.domain}-${this.state.memberName}`,
+                    false
                 );
             })
             .catch((err) => {

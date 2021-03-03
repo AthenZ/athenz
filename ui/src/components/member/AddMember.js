@@ -171,7 +171,8 @@ export default class AddMember extends React.Component {
                     justification: '',
                 });
                 this.props.onSubmit(
-                    `Successfully added ${this.state.memberName} to ${this.props.category}: ${this.props.collection}`
+                    `${this.state.memberName}-${this.props.category}-${this.props.domain}-${this.props.collection}`,
+                    false
                 );
             })
             .catch((err) => {

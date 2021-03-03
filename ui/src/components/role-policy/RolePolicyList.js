@@ -69,7 +69,8 @@ export default class RolePolicyList extends React.Component {
             )
             .then(() => {
                 this.reloadPolicies(
-                    `Successfully deleted policy ${this.state.deletePolicyName}`
+                    `Successfully deleted policy ${this.state.deletePolicyName}`,
+                    true
                 );
             })
             .catch((err) => {
@@ -95,7 +96,7 @@ export default class RolePolicyList extends React.Component {
         });
     }
 
-    reloadPolicies(successMessage) {
+    reloadPolicies(successMessage, showSuccess = true) {
         let role = this.props.role;
 
         this.api
@@ -124,7 +125,7 @@ export default class RolePolicyList extends React.Component {
                 this.setState({
                     list: filteredPolicies,
                     showAddPolicy: false,
-                    showSuccess: true,
+                    showSuccess,
                     successMessage,
                     showDelete: false,
                 });
@@ -164,6 +165,7 @@ export default class RolePolicyList extends React.Component {
                     this,
                     name
                 );
+                let newPolicy = name === this.state.successMessage;
                 return (
                     <RolePolicyRow
                         id={name}
@@ -175,6 +177,7 @@ export default class RolePolicyList extends React.Component {
                         key={item.name}
                         _csrf={this.props._csrf}
                         onClickDeletePolicy={onClickDeletePolicy}
+                        newPolicy={newPolicy}
                     />
                 );
             });

@@ -19,6 +19,7 @@ import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import Menu from '../denali/Menu/Menu';
 import Tag from '../denali/Tag';
+import { css, keyframes } from '@emotion/react';
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -33,6 +34,23 @@ const MenuDiv = styled.div`
     background-color: black;
     color: white;
     font-size: 12px;
+`;
+
+const colorTransition = keyframes`
+        0% {
+            background-color: rgba(21, 192, 70, 0.20);
+        }
+        100% {
+            background-color: transparent;
+        }
+`;
+
+const TrStyled = styled.tr`
+    ${(props) =>
+        props.isSuccess === true &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
 `;
 
 const StyledTagColor = styled(Tag)`
@@ -77,9 +95,11 @@ export default class TagRow extends React.Component {
         const color = this.props.color;
         const tagValues = this.props.tagValues;
         const tagKey = this.props.tagKey;
-
         return (
-            <tr data-testid='tag-row'>
+            <TrStyled
+                data-testid='tag-row'
+                isSuccess={this.props.updatedTagKey}
+            >
                 <TdStyled color={color} align={left}>
                     {tagKey}
                 </TdStyled>
@@ -146,7 +166,7 @@ export default class TagRow extends React.Component {
                         <MenuDiv>Delete Tag</MenuDiv>
                     </Menu>
                 </TdStyled>
-            </tr>
+            </TrStyled>
         );
     }
 }

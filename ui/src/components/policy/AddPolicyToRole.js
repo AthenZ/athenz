@@ -63,9 +63,7 @@ export default class AddPolicyToRole extends React.Component {
             )
             .then((data) => {
                 this.setState({ showModal: false });
-                this.props.onSubmit(
-                    `Successfully created policy ${this.state.name}`
-                );
+                this.props.onSubmit(`${this.state.name}`, false);
             })
             .catch((err) => {
                 this.setState({

@@ -69,7 +69,7 @@ export default class MemberList extends React.Component {
         }
     };
 
-    reloadMembers(successMessage) {
+    reloadMembers(successMessage, showSuccess = true) {
         this.api
             .getCollectionMembers(
                 this.props.domain,
@@ -81,7 +81,7 @@ export default class MemberList extends React.Component {
                 this.setState({
                     members: members,
                     showAddMember: false,
-                    showSuccess: true,
+                    showSuccess,
                     successMessage: successMessage,
                     errorMessage: null,
                 });
@@ -89,6 +89,7 @@ export default class MemberList extends React.Component {
                     () =>
                         this.setState({
                             showSuccess: false,
+                            successMessage: '',
                         }),
                     MODAL_TIME_OUT
                 );
@@ -151,7 +152,7 @@ export default class MemberList extends React.Component {
         );
 
         let showPending = pendingMembers.length > 0;
-
+        let newMember = this.state.successMessage;
         return (
             <MembersSectionDiv data-testid='member-list'>
                 {addMemberButton}
@@ -166,6 +167,7 @@ export default class MemberList extends React.Component {
                     onSubmit={this.reloadMembers}
                     justificationRequired={justificationReq}
                     userProfileLink={this.props.userProfileLink}
+                    newMember={newMember}
                 />
                 <br />
                 {showPending ? (
@@ -181,6 +183,7 @@ export default class MemberList extends React.Component {
                         onSubmit={this.reloadMembers}
                         justificationRequired={justificationReq}
                         userProfileLink={this.props.userProfileLink}
+                        newMember={newMember}
                     />
                 ) : null}
                 {this.state.showSuccess ? (

@@ -22,6 +22,7 @@ import Alert from '../denali/Alert';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
+import { keyframes, css } from '@emotion/react';
 
 const StyleTable = styled.div`
     width: 100%;
@@ -75,6 +76,20 @@ const TrStyled = styled.div`
     -webkit-border-image: initial;
     border-image: initial;
     display: flex;
+    ${(props) =>
+        props.isSuccess === true &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
+`;
+
+const colorTransition = keyframes`
+        0% {
+            background-color: rgba(21, 192, 70, 0.20);
+        }
+        100% {
+            background-color: transparent;
+        }
 `;
 
 const StyledTd = styled.div`
@@ -124,6 +139,12 @@ export default class UserRoleTable extends React.Component {
             this.setState({
                 searchText: this.props.searchText,
             });
+        }
+        if (
+            prevProps.roles !== this.props.roles ||
+            prevProps.users !== this.props.users
+        ) {
+            this.loadRoleByUser();
         }
     }
 
@@ -374,10 +395,15 @@ export default class UserRoleTable extends React.Component {
                     );
 
                     let toReturn = [];
-
+                    let newMember =
+                        this.props.domain + '-' + item.memberName ===
+                        this.props.newMember;
                     if (!this.state.contents[item.memberName]) {
                         toReturn.push(
-                            <TrStyled key={item.memberName}>
+                            <TrStyled
+                                key={item.memberName}
+                                isSuccess={newMember}
+                            >
                                 <TDStyledMember align={left}>
                                     <LeftMarginSpan>
                                         <Icon
@@ -418,7 +444,10 @@ export default class UserRoleTable extends React.Component {
                         );
                     } else {
                         toReturn.push(
-                            <TrStyled key={item.memberName}>
+                            <TrStyled
+                                key={item.memberName}
+                                isSuccess={newMember}
+                            >
                                 <StyledTd>
                                     <StyledTable>
                                         <FlexDiv>

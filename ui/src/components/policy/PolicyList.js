@@ -84,7 +84,8 @@ export default class PolicyList extends React.Component {
             )
             .then(() => {
                 this.reloadPolicies(
-                    `Successfully deleted policy ${this.state.deletePolicyName}`
+                    `Successfully deleted policy ${this.state.deletePolicyName}`,
+                    true
                 );
             })
             .catch((err) => {
@@ -109,7 +110,7 @@ export default class PolicyList extends React.Component {
         });
     }
 
-    reloadPolicies(successMessage) {
+    reloadPolicies(successMessage, showSuccess) {
         let role = this.props.role;
 
         this.api
@@ -136,7 +137,7 @@ export default class PolicyList extends React.Component {
                 this.setState({
                     list: filteredPolicies,
                     showAddPolicy: false,
-                    showSuccess: true,
+                    showSuccess,
                     successMessage,
                     showDelete: false,
                 });
@@ -177,6 +178,7 @@ export default class PolicyList extends React.Component {
                 color = colors.row;
             }
             let onClickDeletePolicy = this.onClickDeletePolicy.bind(this, name);
+            let newPolicy = name === this.state.successMessage;
             return (
                 <PolicyRow
                     name={name}
@@ -188,6 +190,7 @@ export default class PolicyList extends React.Component {
                     key={item.name}
                     _csrf={this.props._csrf}
                     onClickDeletePolicy={onClickDeletePolicy}
+                    newPolicy={newPolicy}
                 />
             );
         });

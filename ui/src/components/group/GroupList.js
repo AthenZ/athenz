@@ -73,14 +73,14 @@ export default class GroupList extends React.Component {
         }
     };
 
-    reloadGroups(successMessage, groupName) {
+    reloadGroups(successMessage, groupName, showSuccess = true) {
         this.api
             .reloadGroups(this.props.domain, groupName)
             .then((groups) => {
                 this.setState({
                     groups,
                     showAddGroup: false,
-                    showSuccess: true,
+                    showSuccess,
                     successMessage,
                     errorMessage: null,
                 });
@@ -89,6 +89,7 @@ export default class GroupList extends React.Component {
                     () =>
                         this.setState({
                             showSuccess: false,
+                            successMessage: '',
                         }),
                     MODAL_TIME_OUT
                 );
@@ -166,6 +167,7 @@ export default class GroupList extends React.Component {
                         onSubmit={this.reloadGroups}
                         justificationRequired={this.props.isDomainAuditEnabled}
                         userProfileLink={this.props.userProfileLink}
+                        newGroup={this.state.successMessage}
                     />
                 )}
                 {this.state.showSuccess ? (

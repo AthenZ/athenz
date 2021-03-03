@@ -168,7 +168,7 @@ export default class GroupRolesPage extends React.Component {
                 return role.roleName.includes(this.state.searchText.trim());
             });
         }
-
+        let displayData = this.state.roles && this.state.roles.length > 0;
         return (
             <CacheProvider value={this.cache}>
                 <div data-testid='member'>
@@ -207,7 +207,7 @@ export default class GroupRolesPage extends React.Component {
                                             selectedName={'roles'}
                                         />
                                     </PageHeaderDiv>
-                                    {roles && roles.length > 0 && (
+                                    {displayData && (
                                         <ContainerDiv>
                                             <StyledSearchInputDiv>
                                                 <SearchInput
@@ -241,6 +241,8 @@ export default class GroupRolesPage extends React.Component {
                                             domain={this.domain}
                                             roles={roles}
                                             prefixes={prefix}
+                                            searchText={this.state.searchText}
+                                            displayTable={displayData}
                                         />
                                     </TableDiv>
                                 </RolesContentDiv>

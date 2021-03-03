@@ -23,6 +23,7 @@ import Menu from '../denali/Menu/Menu';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import { withRouter } from 'next/router';
+import { css, keyframes } from '@emotion/react';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -42,6 +43,20 @@ const TrStyled = styled.tr`
     -webkit-border-image: initial;
     border-image: initial;
     padding: 5px 0 5px 15px;
+    ${(props) =>
+        props.isSuccess &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
+`;
+
+const colorTransition = keyframes`
+        0% {
+            background-color: rgba(21, 192, 70, 0.20);
+        }
+        100% {
+            background-color: transparent;
+        }
 `;
 
 const MenuDiv = styled.div`
@@ -189,9 +204,15 @@ class GroupRow extends React.Component {
             ) : (
                 <span>{' ' + this.state.name}</span>
             );
+        let newGroupAnimation =
+            this.props.domain + '-' + this.state.name === this.props.newGroup;
 
         rows.push(
-            <TrStyled key={this.state.name} data-testid='group-row'>
+            <TrStyled
+                key={this.state.name}
+                data-testid='group-row'
+                isSuccess={newGroupAnimation}
+            >
                 <TDStyled color={color} align={left}>
                     {AuditIcon}
                     {NameSpan}

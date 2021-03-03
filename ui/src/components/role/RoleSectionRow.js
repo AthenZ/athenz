@@ -23,6 +23,7 @@ import Menu from '../denali/Menu/Menu';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import { withRouter } from 'next/router';
+import { keyframes, css } from '@emotion/react';
 
 const TDName = styled.div`
     background-color: ${(props) => props.color};
@@ -31,6 +32,11 @@ const TDName = styled.div`
     vertical-align: middle;
     word-break: break-all;
     width: 28%;
+    ${(props) =>
+        props.category === 'group' &&
+        css`
+            width: 50% !important;
+        `}
 `;
 
 const TDTime = styled.div`
@@ -40,6 +46,11 @@ const TDTime = styled.div`
     vertical-align: middle;
     word-break: break-all;
     width: 15%;
+    ${(props) =>
+        props.category === 'group' &&
+        css`
+            width: 25% !important;
+        `}
 `;
 
 const TDIcon = styled.div`
@@ -49,11 +60,30 @@ const TDIcon = styled.div`
     vertical-align: middle;
     word-break: break-all;
     width: 7%;
+    ${(props) =>
+        props.category === 'group' &&
+        css`
+            width: 25% !important;
+        `}
 `;
 
 const TrStyled = styled.div`
     background-color: ${(props) => props.color};
     display: flex;
+    ${(props) =>
+        props.isSuccess === true &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
+`;
+
+const colorTransition = keyframes`
+        0% {
+            background-color: rgba(21, 192, 70, 0.20);
+        }
+        100% {
+            background-color: transparent;
+        }
 `;
 
 const MenuDiv = styled.div`
@@ -232,14 +262,15 @@ class RoleSectionRow extends React.Component {
                 <span>{' ' + this.state.name}</span>
             );
         if (this.props.category === 'group-roles') {
+            let category = 'group';
             rows.push(
                 <TrStyled key={this.state.name} data-testid='role-section-row'>
-                    <TDName color={color} align={left}>
+                    <TDName color={color} align={left} category={category}>
                         {roleTypeIcon}
                         {roleAuditIcon}
                         {roleNameSpan}
                     </TDName>
-                    <TDTime color={color} align={left}>
+                    <TDTime color={color} align={left} category={category}>
                         {role.expiration
                             ? this.localDate.getLocalDate(
                                   role.expiration,
@@ -248,7 +279,7 @@ class RoleSectionRow extends React.Component {
                               )
                             : 'N/A'}
                     </TDTime>
-                    <TDIcon color={color} align={center}>
+                    <TDIcon color={color} align={center} category={category}>
                         <Menu
                             placement='bottom-start'
                             trigger={
@@ -270,8 +301,15 @@ class RoleSectionRow extends React.Component {
                 </TrStyled>
             );
         } else {
+            let newRole =
+                this.props.newRole ===
+                this.props.domain + '-' + this.state.name;
             rows.push(
-                <TrStyled key={this.state.name} data-testid='role-section-row'>
+                <TrStyled
+                    key={this.state.name}
+                    data-testid='role-section-row'
+                    isSuccess={newRole}
+                >
                     <TDName color={color} align={left}>
                         {roleTypeIcon}
                         {roleAuditIcon}
