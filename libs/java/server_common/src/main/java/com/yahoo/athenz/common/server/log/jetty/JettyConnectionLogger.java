@@ -118,6 +118,10 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements Connecti
                     metric.increment(METRIC_NAME, info.toMetric());
                 }
                 connectionInfo.remove(endpoint);
+                if (connection instanceof SslConnection) {
+                    SSLEngine sslEngine = ((SslConnection) connection).getSSLEngine();
+                    sslToConnectionInfo.remove(sslEngine);
+                }
             }
         });
     }
@@ -140,9 +144,13 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements Connecti
     public void handshakeFailed(Event event, Throwable failure) {
         SSLEngine sslEngine = event.getSSLEngine();
         handleListenerInvocation("SslHandshakeListener", "handshakeFailed", "sslEngine=%h,failure=%s", Stream.of(sslEngine, failure).collect(Collectors.toList()), () -> {
-            LOGGER.error(failure.getMessage());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(failure.getMessage());
+            }
             ConnectionInfo info = sslToConnectionInfo.remove(sslEngine);
-            info.setSslHandshakeFailure(failure);
+            if (info != null) {
+                info.setSslHandshakeFailure(failure);
+            }
         });
     }
     //
