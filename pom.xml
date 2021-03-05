@@ -103,6 +103,9 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <code.coverage.min>0.95</code.coverage.min>
     <argLine>-Dlogback.configurationFile=src/test/resources/sd_logback.xml</argLine>
+    <sonar.projectKey>AthenzSonar-${project.groupId}:${project.artifactId}</sonar.projectKey>
+    <sonar.organization>athenz</sonar.organization>
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
   </properties>
 
   <modules>

@@ -3,4 +3,4 @@
 set -e
 
 export PATH=$PATH:/usr/local/go/bin
-mvn install
+mvn -B install
