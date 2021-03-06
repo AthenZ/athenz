@@ -66,7 +66,7 @@ public class ZTSClientTimeoutTest {
             ztsClient.getRoleAccess("testDomain", "testPrincipal");
             fail("read timeout not set");
         } catch (ZTSClientException expected) {
-            assertEquals(expected.code, ZTSClientException.BAD_REQUEST);
+            assertEquals(expected.code, ResourceException.BAD_REQUEST);
             assertEquals(
                     expected.getMessage(),
                     "ResourceException (400): java.net.SocketTimeoutException: Read timed out");
@@ -90,7 +90,7 @@ public class ZTSClientTimeoutTest {
             ztsClient.getRoleAccess("testDomain", "testPrincipal");
             fail("read timeout not set");
         } catch (ZTSClientException expected) {
-            assertEquals(expected.code, ZTSClientException.BAD_REQUEST);
+            assertEquals(expected.code, ResourceException.BAD_REQUEST);
             assertEquals(
                     expected.getMessage(),
                     "ResourceException (400): RESTEASY004655: Unable to invoke request: java.net.SocketTimeoutException: Read timed out");

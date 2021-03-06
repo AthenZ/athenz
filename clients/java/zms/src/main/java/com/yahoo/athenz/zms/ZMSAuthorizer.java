@@ -145,13 +145,13 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
             }
             
             switch (e.getCode()) {
-            case ZMSClientException.NOT_FOUND:
-                throw new ZMSClientException(ZMSClientException.FORBIDDEN, "Not found: " + rn);
+            case ResourceException.NOT_FOUND:
+                throw new ZMSClientException(ResourceException.FORBIDDEN, "Not found: " + rn);
             default:
                 throw e;
             }
         } catch (Throwable th) {
-            throw new ZMSClientException(ZMSClientException.FORBIDDEN, "Cannot contact ZMS");
+            throw new ZMSClientException(ResourceException.FORBIDDEN, "Cannot contact ZMS");
         }
     }
     

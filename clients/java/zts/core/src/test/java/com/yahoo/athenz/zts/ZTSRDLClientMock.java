@@ -262,7 +262,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         String key = domainName + ":" + roleName;
         if (credsMap.isEmpty()) {
             lastRoleTokenFailTime.put(key, System.currentTimeMillis());
-            throw new ZTSClientException(ZTSClientException.NOT_FOUND, "role is not assumed");
+            throw new ZTSClientException(ResourceException.NOT_FOUND, "role is not assumed");
         } else {
             lastRoleTokenFailTime.put(key, -1L);
         }
