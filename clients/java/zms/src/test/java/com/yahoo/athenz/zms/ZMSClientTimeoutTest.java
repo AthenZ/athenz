@@ -69,7 +69,7 @@ public class ZMSClientTimeoutTest {
             zmsClient.getDomain("test");
             fail("read timeout not set");
         } catch (ZMSClientException expected) {
-            assertEquals(expected.code, ZMSClientException.BAD_REQUEST);
+            assertEquals(expected.code, ResourceException.BAD_REQUEST);
             assertEquals(
                     expected.getMessage(),
                     "ResourceException (400): java.net.SocketTimeoutException: Read timed out");
@@ -92,7 +92,7 @@ public class ZMSClientTimeoutTest {
             zmsClient.getDomain("test");
             fail("read timeout not set");
         } catch (ZMSClientException expected) {
-            assertEquals(expected.code, ZMSClientException.BAD_REQUEST);
+            assertEquals(expected.code, ResourceException.BAD_REQUEST);
             assertEquals(
                     expected.getMessage(),
                     "ResourceException (400): RESTEASY004655: Unable to invoke request: java.net.SocketTimeoutException: Read timed out");

@@ -312,6 +312,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
+            <version>${maven-compiler-plugin.version}</version>
             <executions>
               <execution>
                 <id>jdk11</id>
@@ -333,6 +334,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-jar-plugin</artifactId>
+            <version>${maven-jar-plugin.version}</version>
             <executions>
               <execution>
                 <id>default-jar</id>
