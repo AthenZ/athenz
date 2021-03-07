@@ -179,7 +179,7 @@ public class AthenzJettyContainer {
             rewriteHandler.addRule(disableKeepAliveRule);
         }
         
-        // Security: Respond the "Expect-CT: max-age=31536000, report-uri=..." header (see http://yo/expect-ct)
+        // Security: Respond the "Expect-CT: max-age=31536000, report-uri=..." header
 
         HeaderPatternRule expectCtRule = new HeaderPatternRule();
         expectCtRule.setPattern("/*");
@@ -187,7 +187,7 @@ public class AthenzJettyContainer {
         expectCtRule.setValue("max-age=31536000, report-uri=\"http://csp.yahoo.com/beacon/csp?src=yahoocom-expect-ct-report-only\"");
         rewriteHandler.addRule(expectCtRule);
 
-        // Security: Respond the "Strict-Transport-Security: max-age=31536000" header (see http://yo/hsts)
+        // Security: Respond the "Strict-Transport-Security: max-age=31536000" header
 
         HeaderPatternRule hstsRule = new HeaderPatternRule();
         hstsRule.setPattern("/*");
