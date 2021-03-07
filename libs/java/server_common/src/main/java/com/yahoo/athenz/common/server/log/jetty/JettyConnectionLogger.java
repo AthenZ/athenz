@@ -19,36 +19,27 @@
 package com.yahoo.athenz.common.server.log.jetty;
 
 import com.yahoo.athenz.common.metrics.Metric;
-import org.eclipse.jetty.io.Connection;
-import org.eclipse.jetty.io.EndPoint;
-import org.eclipse.jetty.io.SocketChannelEndPoint;
-import org.eclipse.jetty.io.ssl.SslConnection;
 import org.eclipse.jetty.io.ssl.SslHandshakeListener;
-import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLHandshakeException;
-import java.net.InetSocketAddress;
 import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.yahoo.athenz.common.server.log.jetty.ExceptionCauseFetcher.getInnerCause;
 
-public class JettyConnectionLogger extends AbstractLifeCycle implements Connection.Listener, HttpChannel.Listener, SslHandshakeListener {
+public class JettyConnectionLogger extends AbstractLifeCycle implements SslHandshakeListener {
 
     public static final String GENERAL_SSL_ERROR = "General SSLEngine problem";
     public static final String METRIC_NAME = "ssl_error";
     private static final Logger LOGGER = LoggerFactory.getLogger(JettyConnectionLogger.class.getName());
-
-    private final ConcurrentMap<SocketChannelEndPoint, ConnectionInfo> connectionInfo = new ConcurrentHashMap<>();
-    private final ConcurrentMap<SSLEngine, ConnectionInfo> sslToConnectionInfo = new ConcurrentHashMap<>();
 
     private final ConnectionLog connectionLog;
     private final Metric metric;
@@ -79,83 +70,16 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements Connecti
     // AbstractLifeCycle methods stop
     //
 
-    //
-    // Connection.Listener methods start
-    //
-    @Override
-    public void onOpened(Connection connection) {
-        handleListenerInvocation("Connection.Listener", "onOpened", "%h", Stream.of(connection).collect(Collectors.toList()), () -> {
-            SocketChannelEndPoint endpoint = findUnderlyingSocketEndpoint(connection.getEndPoint());
-            ConnectionInfo info = connectionInfo.get(endpoint);
-            if (info == null) {
-                info = ConnectionInfo.from(endpoint);
-                connectionInfo.put(endpoint, info);
-            }
-            if (connection instanceof SslConnection) {
-                SSLEngine sslEngine = ((SslConnection) connection).getSSLEngine();
-                sslToConnectionInfo.put(sslEngine, info);
-            }
-            if (connection.getEndPoint() instanceof ProxyConnectionFactory.ProxyEndPoint) {
-                InetSocketAddress remoteAddress = connection.getEndPoint().getRemoteAddress();
-                info.setRemoteAddress(remoteAddress);
-            }
-        });
-    }
-
-    @Override
-    public void onClosed(Connection connection) {
-        handleListenerInvocation("Connection.Listener", "onClosed", "%h", Stream.of(connection).collect(Collectors.toList()), () -> {
-            SocketChannelEndPoint endpoint = findUnderlyingSocketEndpoint(connection.getEndPoint());
-            ConnectionInfo info = connectionInfo.get(endpoint);
-            if (info == null) {
-                return; // Closed connection already handled
-            }
-            if (!endpoint.isOpen()) {
-                info.setClosedAt(System.currentTimeMillis());
-                // Only print / report failed connections
-                if (info.sslHandshakeFailureException != null) {
-                    connectionLog.log(info.toLogEntry());
-                    metric.increment(METRIC_NAME, info.toMetric());
-                }
-                connectionInfo.remove(endpoint);
-                if (connection instanceof SslConnection) {
-                    SSLEngine sslEngine = ((SslConnection) connection).getSSLEngine();
-                    sslToConnectionInfo.remove(sslEngine);
-                }
-            }
-        });
-    }
-    //
-    // Connection.Listener methods end
-    //
-
-    //
-    // SslHandshakeListener methods start
-    //
-    @Override
-    public void handshakeSucceeded(Event event) {
-        SSLEngine sslEngine = event.getSSLEngine();
-        handleListenerInvocation("SslHandshakeListener", "handshakeSucceeded", "sslEngine=%h", Stream.of(sslEngine).collect(Collectors.toList()), () -> {
-            sslToConnectionInfo.remove(sslEngine);
-        });
-    }
-
     @Override
     public void handshakeFailed(Event event, Throwable failure) {
         SSLEngine sslEngine = event.getSSLEngine();
         handleListenerInvocation("SslHandshakeListener", "handshakeFailed", "sslEngine=%h,failure=%s", Stream.of(sslEngine, failure).collect(Collectors.toList()), () -> {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(failure.getMessage());
-            }
-            ConnectionInfo info = sslToConnectionInfo.remove(sslEngine);
-            if (info != null) {
-                info.setSslHandshakeFailure(failure);
-            }
+            ConnectionInfo info = ConnectionInfo.from(sslEngine);
+            info.setSslHandshakeFailure(failure);
+            connectionLog.log(info.toLogEntry());
+            metric.increment(METRIC_NAME, info.toMetric());
         });
     }
-    //
-    // SslHandshakeListener methods end
-    //
 
     private void handleListenerInvocation(
             String listenerType, String methodName, String methodArgumentsFormat, List<Object> methodArguments, ListenerHandler handler) {
@@ -169,23 +93,6 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements Connecti
         }
     }
 
-    /**
-     * Protocol layers are connected through each {@link Connection}'s {@link EndPoint} reference.
-     * This methods iterates through the endpoints recursively to find the underlying socket endpoint.
-     */
-    private static SocketChannelEndPoint findUnderlyingSocketEndpoint(EndPoint endpoint) {
-        if (endpoint instanceof SocketChannelEndPoint) {
-            return (SocketChannelEndPoint) endpoint;
-        } else if (endpoint instanceof SslConnection.DecryptedEndPoint) {
-            SslConnection.DecryptedEndPoint decryptedEndpoint = (SslConnection.DecryptedEndPoint) endpoint;
-            return findUnderlyingSocketEndpoint(decryptedEndpoint.getSslConnection().getEndPoint());
-        } else if (endpoint instanceof ProxyConnectionFactory.ProxyEndPoint) {
-            ProxyConnectionFactory.ProxyEndPoint proxyEndpoint = (ProxyConnectionFactory.ProxyEndPoint) endpoint;
-            return findUnderlyingSocketEndpoint(proxyEndpoint.unwrap());
-        } else {
-            throw new IllegalArgumentException("Unknown connection endpoint type: " + endpoint.getClass().getName());
-        }
-    }
 
     @FunctionalInterface
     private interface ListenerHandler {
@@ -194,40 +101,25 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements Connecti
 
     private static class ConnectionInfo {
         private final UUID uuid;
-        private final long createdAt;
-        private final InetSocketAddress localAddress;
-        private final InetSocketAddress peerAddress;
+        private final String peerHost;
+        private final int peerPort;
 
-        private long closedAt = 0;
-        private InetSocketAddress remoteAddress;
         private String sslHandshakeFailureException;
         private String sslHandshakeFailureMessage;
         private String sslHandshakeFailureCause;
         private String sslHandshakeFailureType;
 
-        private ConnectionInfo(UUID uuid, long createdAt, InetSocketAddress localAddress, InetSocketAddress peerAddress) {
+        private ConnectionInfo(UUID uuid, String peerHost, int peerPort) {
             this.uuid = uuid;
-            this.createdAt = createdAt;
-            this.localAddress = localAddress;
-            this.peerAddress = peerAddress;
+            this.peerHost = peerHost;
+            this.peerPort = peerPort;
         }
 
-        static ConnectionInfo from(SocketChannelEndPoint endpoint) {
+        static ConnectionInfo from(SSLEngine sslEngine) {
             return new ConnectionInfo(
                     UUID.randomUUID(),
-                    endpoint.getCreatedTimeStamp(),
-                    endpoint.getLocalAddress(),
-                    endpoint.getRemoteAddress());
-        }
-
-        synchronized ConnectionInfo setClosedAt(long closedAt) {
-            this.closedAt = closedAt;
-            return this;
-        }
-
-        synchronized ConnectionInfo setRemoteAddress(InetSocketAddress remoteAddress) {
-            this.remoteAddress = remoteAddress;
-            return this;
+                    sslEngine.getPeerHost(),
+                    sslEngine.getPeerPort());
         }
 
         synchronized ConnectionInfo setSslHandshakeFailure(Throwable exception) {
@@ -235,7 +127,7 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements Connecti
             this.sslHandshakeFailureException = sslHandshakeException.getClass().getName();
             this.sslHandshakeFailureMessage = sslHandshakeException.getMessage();
             // If the error isn't clear, try to get it from the exception inner cause
-            if (exception.getCause() != null && this.sslHandshakeFailureMessage == GENERAL_SSL_ERROR) {
+            if (exception.getCause() != null && GENERAL_SSL_ERROR.equals(this.sslHandshakeFailureMessage)) {
                 this.sslHandshakeFailureCause = getInnerCause(exception, sslHandshakeException.getMessage());
             }
             this.sslHandshakeFailureType = SslHandshakeFailure.fromSslHandshakeException(sslHandshakeException)
@@ -245,21 +137,10 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements Connecti
         }
 
         synchronized ConnectionLogEntry toLogEntry() {
-            ConnectionLogEntry.Builder builder = ConnectionLogEntry.builder(uuid, Instant.ofEpochMilli(createdAt));
-            if (closedAt > 0) {
-                builder.withDuration((closedAt - createdAt) / 1000D);
-            }
-            if (peerAddress != null) {
-                builder.withPeerAddress(peerAddress.getHostString())
-                        .withPeerPort(peerAddress.getPort());
-            }
-            if (localAddress != null) {
-                builder.withLocalAddress(localAddress.getHostString())
-                        .withLocalPort(localAddress.getPort());
-            }
-            if (remoteAddress != null) {
-                builder.withRemoteAddress(remoteAddress.getHostString())
-                        .withRemotePort(remoteAddress.getPort());
+            ConnectionLogEntry.Builder builder = ConnectionLogEntry.builder(uuid, Instant.now());
+            if (peerHost != null) {
+                builder.withPeerAddress(peerHost);
+                builder.withPeerPort(peerPort);
             }
             if (sslHandshakeFailureException != null && sslHandshakeFailureMessage != null && sslHandshakeFailureType != null) {
                 builder.withSslHandshakeFailureException(sslHandshakeFailureException)
@@ -277,8 +158,8 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements Connecti
             String peerAddressValue = "unknown";
             String failureTypeKey = "failureType";
             String failureTypeValue = "unknown";
-            if (peerAddress != null) {
-                peerAddressValue = peerAddress.getHostString();
+            if (peerHost != null) {
+                peerAddressValue = peerHost + ":" + peerPort;
             }
             if (sslHandshakeFailureType != null) {
                 failureTypeValue = sslHandshakeFailureType;

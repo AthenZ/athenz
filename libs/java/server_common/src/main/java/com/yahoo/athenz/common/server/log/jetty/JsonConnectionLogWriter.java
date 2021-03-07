@@ -22,8 +22,6 @@ import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,12 +33,10 @@ import java.util.Optional;
 class JsonConnectionLogWriter {
 
     private final JsonFactory jsonFactory = new JsonFactory(new ObjectMapper());
-    private static final Logger LOG = LoggerFactory.getLogger(JsonConnectionLogWriter.class);
-    
+
     public String logEntryToString(ConnectionLogEntry record) throws IOException {
-        OutputStream outputStream = new ByteArrayOutputStream();
-        try {
-            try (JsonGenerator generator = createJsonGenerator(outputStream)) {
+            try (OutputStream outputStream = new ByteArrayOutputStream();
+                 JsonGenerator generator = createJsonGenerator(outputStream)) {
                 generator.writeStartObject();
                 generator.writeStringField("id", record.id());
                 generator.writeStringField("timestamp", record.timestamp().toString());
@@ -48,10 +44,6 @@ class JsonConnectionLogWriter {
                 writeOptionalSeconds(generator, "duration", unwrap(record.durationSeconds()));
                 writeOptionalString(generator, "peerAddress", unwrap(record.peerAddress()));
                 writeOptionalInteger(generator, "peerPort", unwrap(record.peerPort()));
-                writeOptionalString(generator, "localAddress", unwrap(record.localAddress()));
-                writeOptionalInteger(generator, "localPort", unwrap(record.localPort()));
-                writeOptionalString(generator, "remoteAddress", unwrap(record.remoteAddress()));
-                writeOptionalInteger(generator, "remotePort", unwrap(record.remotePort()));
 
                 String sslHandshakeFailureException = unwrap(record.sslHandshakeFailureException());
                 String sslHandshakeFailureMessage = unwrap(record.sslHandshakeFailureMessage());
@@ -67,11 +59,10 @@ class JsonConnectionLogWriter {
 
                     generator.writeEndObject();
                 }
+                generator.writeEndObject();
+                generator.flush();
+                return outputStream.toString();
             }
-            return outputStream.toString();
-        } finally {
-            outputStream.close();
-        }
     }
 
     private void writeOptionalString(JsonGenerator generator, String name, String value) throws IOException {
