@@ -18,6 +18,7 @@ package com.yahoo.athenz.container;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.security.Security;
 import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
@@ -178,6 +179,46 @@ public class AthenzJettyContainer {
             rewriteHandler.addRule(disableKeepAliveRule);
         }
         
+        // Security: Respond the "Expect-CT: max-age=31536000, report-uri=..." header (see http://yo/expect-ct)
+
+        HeaderPatternRule expectCtRule = new HeaderPatternRule();
+        expectCtRule.setPattern("/*");
+        expectCtRule.setName("Expect-CT");
+        expectCtRule.setValue("max-age=31536000, report-uri=\"http://csp.yahoo.com/beacon/csp?src=yahoocom-expect-ct-report-only\"");
+        rewriteHandler.addRule(expectCtRule);
+
+        // Security: Respond the "Strict-Transport-Security: max-age=31536000" header (see http://yo/hsts)
+
+        HeaderPatternRule hstsRule = new HeaderPatternRule();
+        hstsRule.setPattern("/*");
+        hstsRule.setName(HttpHeader.STRICT_TRANSPORT_SECURITY.asString());
+        hstsRule.setValue("max-age=31536000");
+        rewriteHandler.addRule(hstsRule);
+
+        // Security: Respond the "X-Content-Type-Options: nosniff" header (see https://docs.google.com/document/d/1ovG_qSqpbS1q2OpEX1Jo08w8dVdi4un1JT7CLz5unX4/edit)
+
+        HeaderPatternRule noSnifRule = new HeaderPatternRule();
+        noSnifRule.setPattern("/*");
+        noSnifRule.setName("X-Content-Type-Options");
+        noSnifRule.setValue("nosniff");
+        rewriteHandler.addRule(noSnifRule);
+
+        // Security: Respond the "Referrer-Policy: strict-origin-when-cross-origin" header (see https://docs.google.com/document/d/1ovG_qSqpbS1q2OpEX1Jo08w8dVdi4un1JT7CLz5unX4/edit)
+
+        HeaderPatternRule referrerPolicyRule = new HeaderPatternRule();
+        referrerPolicyRule.setPattern("/*");
+        referrerPolicyRule.setName("Referrer-Policy");
+        referrerPolicyRule.setValue("strict-origin-when-cross-origin");
+        rewriteHandler.addRule(referrerPolicyRule);
+
+        // Security: Respond the "Cache-Control: must-revalidate,no-cache,no-store" header (see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
+
+        HeaderPatternRule cacheControlRule = new HeaderPatternRule();
+        cacheControlRule.setPattern("/*");
+        cacheControlRule.setName(HttpHeader.CACHE_CONTROL.asString());
+        cacheControlRule.setValue("must-revalidate,no-cache,no-store");
+        rewriteHandler.addRule(cacheControlRule);
+
         // Return a Host field in the response so during debugging
         // we know what server was handling request
         
@@ -343,8 +384,8 @@ public class AthenzJettyContainer {
         final String excludedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES);
         final String excludedProtocols = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS,
                 ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
-        boolean enableOCSP = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_ENABLE_OCSP, "false"));
-        boolean renegotiationAllowed = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_RENEGOTIATION_ALLOWED, "true"));
+        boolean enableOCSP = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_ENABLE_OCSP, "true"));
+        boolean renegotiationAllowed = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_RENEGOTIATION_ALLOWED, "false"));
 
         SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setEndpointIdentificationAlgorithm(null);
@@ -389,7 +430,15 @@ public class AthenzJettyContainer {
             sslContextFactory.setWantClientAuth(true);
         }
 
-        sslContextFactory.setEnableOCSP(enableOCSP);
+        if (enableOCSP) {
+            // https://stackoverflow.com/questions/49904935/jetty-9-enable-ocsp-stapling-for-domain-validated-certificate
+            Security.setProperty("ocsp.enable", "true");
+            System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
+            System.setProperty("com.sun.net.ssl.checkRevocation", "true");
+            sslContextFactory.setEnableOCSP(true);
+            sslContextFactory.setValidateCerts(true);   // not sure what this does... OCSP works even without this - but it is recommended.
+        }
+
         sslContextFactory.setRenegotiationAllowed(renegotiationAllowed);
 
         return sslContextFactory;
