@@ -15,8 +15,6 @@
  */
 package com.yahoo.athenz.container;
 
-import sun.security.provider.certpath.OCSP;
-
 /**
  * Contains constants shared by classes throughout the service.
  **/

@@ -164,15 +164,15 @@ public class AthenzJettyContainer {
     public void addServletHandlers(String serverHostName) {
 
         // Handler Structure
-
+        
         RewriteHandler rewriteHandler = new RewriteHandler();
-
+        
         // Check whether or not to disable Keep-Alive support in Jetty.
         // This will be the first handler in our array so we always set
         // the appropriate header in response. However, since we're now
         // behind ATS, we want to keep the connections alive so ATS
         // can re-use them as necessary
-
+        
         boolean keepAlive = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_KEEP_ALIVE, "true"));
 
         if (!keepAlive) {
@@ -182,7 +182,7 @@ public class AthenzJettyContainer {
             disableKeepAliveRule.setValue(HttpHeaderValue.CLOSE.asString());
             rewriteHandler.addRule(disableKeepAliveRule);
         }
-
+        
         // Add response-headers, according to configuration
 
         String responseHeadersJson = System.getProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON, "");
@@ -416,7 +416,7 @@ public class AthenzJettyContainer {
         }
 
         if (enableOCSP) {
-            // https://stackoverflow.com/questions/49904935/jetty-9-enable-ocsp-stapling-for-domain-validated-certificate
+            // See https://stackoverflow.com/questions/49904935/jetty-9-enable-ocsp-stapling-for-domain-validated-certificate
             Security.setProperty("ocsp.enable", "true");
             System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
             System.setProperty("com.sun.net.ssl.checkRevocation", "true");
