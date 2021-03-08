@@ -18,10 +18,15 @@ package com.yahoo.athenz.container;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.security.Security;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.DispatcherType;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLoggerFactory;
 import org.eclipse.jetty.deploy.DeploymentManager;
@@ -178,6 +183,27 @@ public class AthenzJettyContainer {
             rewriteHandler.addRule(disableKeepAliveRule);
         }
         
+        // Add response-headers, according to configuration
+
+        String responseHeadersJson = System.getProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON, "");
+        if (!responseHeadersJson.isEmpty()) {
+            HashMap<String, String> responseHeaders;
+            try {
+                responseHeaders = new ObjectMapper().readValue(responseHeadersJson, new TypeReference<HashMap<String, String>>() {
+                });
+            } catch (Exception exception) {
+                throw new RuntimeException("System-property \"" + AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON + "\" must be a JSON object with string values. System property's value: " + responseHeadersJson);
+            }
+
+            for (Map.Entry<String, String>  responseHeader : responseHeaders.entrySet()) {
+                HeaderPatternRule rule = new HeaderPatternRule();
+                rule.setPattern("/*");
+                rule.setName(responseHeader.getKey());
+                rule.setValue(responseHeader.getValue());
+                rewriteHandler.addRule(rule);
+            }
+        }
+
         // Return a Host field in the response so during debugging
         // we know what server was handling request
         
@@ -343,8 +369,8 @@ public class AthenzJettyContainer {
         final String excludedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES);
         final String excludedProtocols = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS,
                 ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
-        boolean enableOCSP = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_ENABLE_OCSP, "false"));
-        boolean renegotiationAllowed = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_RENEGOTIATION_ALLOWED, "true"));
+        boolean enableOCSP = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_ENABLE_OCSP, "true"));
+        boolean renegotiationAllowed = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_RENEGOTIATION_ALLOWED, "false"));
 
         SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setEndpointIdentificationAlgorithm(null);
@@ -389,7 +415,15 @@ public class AthenzJettyContainer {
             sslContextFactory.setWantClientAuth(true);
         }
 
-        sslContextFactory.setEnableOCSP(enableOCSP);
+        if (enableOCSP) {
+            // See https://stackoverflow.com/questions/49904935/jetty-9-enable-ocsp-stapling-for-domain-validated-certificate
+            Security.setProperty("ocsp.enable", "true");
+            System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
+            System.setProperty("com.sun.net.ssl.checkRevocation", "true");
+            sslContextFactory.setEnableOCSP(true);
+            sslContextFactory.setValidateCerts(true);   // not sure what this does... OCSP works even without this - but it is recommended.
+        }
+
         sslContextFactory.setRenegotiationAllowed(renegotiationAllowed);
 
         return sslContextFactory;
