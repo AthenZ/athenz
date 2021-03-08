@@ -46,165 +46,32 @@ import static org.testng.Assert.*;
 public class JettyConnectionLoggerTest {
 
     @Test
-    public void testStartConnection() throws Exception {
-        ConnectionLog connectionLog = Mockito.mock(ConnectionLog.class);
-        Metric metric = Mockito.mock(Metric.class);
-        JettyConnectionLogger jettyConnectionLogger = new JettyConnectionLogger(connectionLog, metric);
-        SslConnection mockConnection = getMockConnection().sslConnection;
-        jettyConnectionLogger.onOpened(mockConnection);
-        Mockito.verify(mockConnection, Mockito.times(2)).getEndPoint();
-        Mockito.verify(mockConnection.getEndPoint(), Mockito.times(1)).getLocalAddress();
-        Mockito.verify(mockConnection.getEndPoint(), Mockito.times(1)).getRemoteAddress();
-        Mockito.verify(mockConnection.getEndPoint(), Mockito.times(1)).getCreatedTimeStamp();
-        Mockito.verify(mockConnection, Mockito.times(1)).getSSLEngine();
-    }
-
-    @Test
-    public void testStartStopConnectionSuccessfulHandshake() throws Exception {
-        // First start 2 connections
-        ConnectionLog connectionLog = Mockito.mock(ConnectionLog.class);
-        Metric metric = Mockito.mock(Metric.class);
-        JettyConnectionLogger jettyConnectionLogger = new JettyConnectionLogger(connectionLog, metric);
-        jettyConnectionLogger.doStart();
-        SslConnection mockConnection1 = getMockConnection().sslConnection;
-        jettyConnectionLogger.onOpened(mockConnection1);
-
-        MockedConnection mockConnectionSuccessful = getMockConnection();
-        SslConnection mockConnection2 = mockConnectionSuccessful.sslConnection;
-        jettyConnectionLogger.onOpened(mockConnection1);
-        jettyConnectionLogger.onOpened(mockConnection2);
-
-        // Now keep endpoint open for mockConnection1 and verify it isn't logged
-        when(mockConnection1.getEndPoint().isOpen()).thenReturn(true);
-        jettyConnectionLogger.onClosed(mockConnection1);
-        Mockito.verify(connectionLog, Mockito.times(0)).log(any());
-
-        // Now close endpoint for mockConnection2 and verify it isn'g logged because the handshake was successful
-        SslHandshakeListener.Event event = Mockito.mock(SslHandshakeListener.Event.class);
-        when(event.getSSLEngine()).thenReturn(mockConnectionSuccessful.sslEngine);
-        jettyConnectionLogger.handshakeSucceeded(event);
-
-        when(mockConnection2.getEndPoint().isOpen()).thenReturn(false);
-        jettyConnectionLogger.onClosed(mockConnection2);
-        Mockito.verify(connectionLog, Mockito.times(0)).log(any());
-        jettyConnectionLogger.doStop();
-    }
-
-    @Test
     public void testStartStopConnectionFailedHandshake() throws Exception {
         // First start 2 connections
         ConnectionLog connectionLog = Mockito.mock(ConnectionLog.class);
         Metric metric = Mockito.mock(Metric.class);
 
         JettyConnectionLogger jettyConnectionLogger = new JettyConnectionLogger(connectionLog, metric);
-        SslConnection mockConnection1 = getMockConnection().sslConnection;
-        jettyConnectionLogger.onOpened(mockConnection1);
 
         MockedConnection failedMockedConnection = getMockConnection();
         SslConnection mockConnection2 = failedMockedConnection.sslConnection;
-        jettyConnectionLogger.onOpened(mockConnection2);
 
         // Now simulate handshake failure for mockConnection2
         SslHandshakeListener.Event event = Mockito.mock(SslHandshakeListener.Event.class);
         when(event.getSSLEngine()).thenReturn(failedMockedConnection.sslEngine);
         SSLHandshakeException sslHandshakeException = new SSLHandshakeException("no cipher suites in common");
-        jettyConnectionLogger.handshakeFailed(event, sslHandshakeException);
 
-        // Now keep endpoint open for mockConnection1 and verify it isn't logged
-        when(mockConnection1.getEndPoint().isOpen()).thenReturn(true);
-        jettyConnectionLogger.onClosed(mockConnection1);
-        Mockito.verify(connectionLog, Mockito.times(0)).log(any());
-
-        // Now close endpoint for mockConnection2 and verify it is logged (due to the failed handshake)
         ArgumentCaptor<ConnectionLogEntry> connectionLogEntryArgumentCaptor = ArgumentCaptor.forClass(ConnectionLogEntry.class);
         ArgumentCaptor<String[]> metricArgumentCaptor = ArgumentCaptor.forClass(String[].class);
         when(mockConnection2.getEndPoint().isOpen()).thenReturn(false);
-        jettyConnectionLogger.onClosed(mockConnection2);
-        Mockito.verify(connectionLog, Mockito.times(1)).log(connectionLogEntryArgumentCaptor.capture());
-        Mockito.verify(metric, Mockito.times(1)).increment(Mockito.eq(METRIC_NAME), metricArgumentCaptor.capture());
-        assertEquals("no cipher suites in common", connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureMessage().get());
-        assertFalse(connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureCause().isPresent());
-        assertFalse(connectionLogEntryArgumentCaptor.getValue().remoteAddress().isPresent());
-        List<String[]> allMetricValues = metricArgumentCaptor.getAllValues();
-        assertEquals(4, allMetricValues.size());
-        assertEquals("peerAddress", allMetricValues.get(0));
-        assertNotNull(allMetricValues.get(1));
-        assertEquals("failureType", allMetricValues.get(2));
-        assertEquals("INCOMPATIBLE_CLIENT_CIPHER_SUITES", allMetricValues.get(3));
-    }
 
-    @Test
-    public void testStartStopConnectionFailedHandshakeClosedTwice() throws Exception {
-        // First start a connections
-        ConnectionLog connectionLog = Mockito.mock(ConnectionLog.class);
-        Metric metric = Mockito.mock(Metric.class);
-
-        JettyConnectionLogger jettyConnectionLogger = new JettyConnectionLogger(connectionLog, metric);
-
-        MockedConnection failedMockedConnection = getMockConnection();
-        SslConnection mockConnection = failedMockedConnection.sslConnection;
-        jettyConnectionLogger.onOpened(mockConnection);
-
-        // Now simulate handshake failure for mockConnection
-        SslHandshakeListener.Event event = Mockito.mock(SslHandshakeListener.Event.class);
-        when(event.getSSLEngine()).thenReturn(failedMockedConnection.sslEngine);
-        SSLHandshakeException sslHandshakeException = new SSLHandshakeException("no cipher suites in common");
         jettyConnectionLogger.handshakeFailed(event, sslHandshakeException);
 
-        // Now close endpoint for mockConnection twice and verify it is logged only once
-        ArgumentCaptor<ConnectionLogEntry> connectionLogEntryArgumentCaptor = ArgumentCaptor.forClass(ConnectionLogEntry.class);
-        ArgumentCaptor<String[]> metricArgumentCaptor = ArgumentCaptor.forClass(String[].class);
-        when(mockConnection.getEndPoint().isOpen()).thenReturn(false);
-        jettyConnectionLogger.onClosed(mockConnection);
-        jettyConnectionLogger.onClosed(mockConnection);
+
         Mockito.verify(connectionLog, Mockito.times(1)).log(connectionLogEntryArgumentCaptor.capture());
         Mockito.verify(metric, Mockito.times(1)).increment(Mockito.eq(METRIC_NAME), metricArgumentCaptor.capture());
         assertEquals("no cipher suites in common", connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureMessage().get());
         assertFalse(connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureCause().isPresent());
-        assertFalse(connectionLogEntryArgumentCaptor.getValue().remoteAddress().isPresent());
-        List<String[]> allMetricValues = metricArgumentCaptor.getAllValues();
-        assertEquals(4, allMetricValues.size());
-        assertEquals("peerAddress", allMetricValues.get(0));
-        assertNotNull(allMetricValues.get(1));
-        assertEquals("failureType", allMetricValues.get(2));
-        assertEquals("INCOMPATIBLE_CLIENT_CIPHER_SUITES", allMetricValues.get(3));
-    }
-
-    @Test
-    public void testStartStopConnectionFailedHandshakeProxy() throws Exception {
-        // First start 2 connections
-        ConnectionLog connectionLog = Mockito.mock(ConnectionLog.class);
-        Metric metric = Mockito.mock(Metric.class);
-
-        JettyConnectionLogger jettyConnectionLogger = new JettyConnectionLogger(connectionLog, metric);
-        SslConnection mockConnection1 = getMockedProxyConncetion().sslConnection;
-        jettyConnectionLogger.onOpened(mockConnection1);
-
-        MockedConnection failedMockedConnection = getMockedProxyConncetion();
-        SslConnection mockConnection2 = failedMockedConnection.sslConnection;
-        jettyConnectionLogger.onOpened(mockConnection2);
-
-        // Now simulate handshake failure for mockConnection2
-        SslHandshakeListener.Event event = Mockito.mock(SslHandshakeListener.Event.class);
-        when(event.getSSLEngine()).thenReturn(failedMockedConnection.sslEngine);
-        SSLHandshakeException sslHandshakeException = new SSLHandshakeException("no cipher suites in common");
-        jettyConnectionLogger.handshakeFailed(event, sslHandshakeException);
-
-        // Now keep endpoint open for mockConnection1 and verify it isn't logged
-        when(mockConnection1.getEndPoint().isOpen()).thenReturn(true);
-        jettyConnectionLogger.onClosed(mockConnection1);
-        Mockito.verify(connectionLog, Mockito.times(0)).log(any());
-
-        // Now close endpoint for mockConnection2 and verify it is logged (due to the failed handshake)
-        ArgumentCaptor<ConnectionLogEntry> connectionLogEntryArgumentCaptor = ArgumentCaptor.forClass(ConnectionLogEntry.class);
-        ArgumentCaptor<String[]> metricArgumentCaptor = ArgumentCaptor.forClass(String[].class);
-        when(mockConnection2.getEndPoint().isOpen()).thenReturn(false);
-        jettyConnectionLogger.onClosed(mockConnection2);
-        Mockito.verify(connectionLog, Mockito.times(1)).log(connectionLogEntryArgumentCaptor.capture());
-        Mockito.verify(metric, Mockito.times(1)).increment(Mockito.eq(METRIC_NAME), metricArgumentCaptor.capture());
-        assertEquals("no cipher suites in common", connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureMessage().get());
-        assertFalse(connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureCause().isPresent());
-        assertTrue(connectionLogEntryArgumentCaptor.getValue().remoteAddress().isPresent());
         List<String[]> allMetricValues = metricArgumentCaptor.getAllValues();
         assertEquals(4, allMetricValues.size());
         assertEquals("peerAddress", allMetricValues.get(0));
@@ -222,7 +89,6 @@ public class JettyConnectionLoggerTest {
 
         MockedConnection failedMockedConnection = getMockConnection();
         SslConnection mockConnection = failedMockedConnection.sslConnection;
-        jettyConnectionLogger.onOpened(mockConnection);
 
         // Now simulate handshake failure for mockConnection
         SslHandshakeListener.Event event = Mockito.mock(SslHandshakeListener.Event.class);
@@ -234,12 +100,13 @@ public class JettyConnectionLoggerTest {
         innerCause2.initCause(innerCause3);
         innerCause1.initCause(innerCause2);
         sslHandshakeException.initCause(innerCause1);
-        jettyConnectionLogger.handshakeFailed(event, sslHandshakeException);
 
-        // Now close endpoint for mockConnection and verify it is logged (due to the failed handshake)
         ArgumentCaptor<ConnectionLogEntry> connectionLogEntryArgumentCaptor = ArgumentCaptor.forClass(ConnectionLogEntry.class);
         when(mockConnection.getEndPoint().isOpen()).thenReturn(false);
-        jettyConnectionLogger.onClosed(mockConnection);
+
+        jettyConnectionLogger.handshakeFailed(event, sslHandshakeException);
+
+
         Mockito.verify(connectionLog, Mockito.times(1)).log(connectionLogEntryArgumentCaptor.capture());
         assertEquals(GENERAL_SSL_ERROR, connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureMessage().get());
         assertEquals("Last cause (most specific reason)", connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureCause().get());

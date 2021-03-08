@@ -31,8 +31,7 @@ public class SSLConnectionLog implements ConnectionLog {
     @Override
     public void log(ConnectionLogEntry connectionLogEntry) {
         try {
-            String logEntry = jsonConnectionLogWriter.logEntryToString(connectionLogEntry);
-            LOG.info(logEntry);
+            LOG.info(jsonConnectionLogWriter.logEntryToString(connectionLogEntry));
         } catch (IOException exception) {
             LOG.error("Failed to write connectionLogEntry. ex: {}", exception);
         }

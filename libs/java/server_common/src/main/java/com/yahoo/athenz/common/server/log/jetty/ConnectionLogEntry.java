@@ -28,10 +28,6 @@ public class ConnectionLogEntry {
     private final Double durationSeconds;
     private final String peerAddress;
     private final Integer peerPort;
-    private final String localAddress;
-    private final Integer localPort;
-    private final String remoteAddress;
-    private final Integer remotePort;
     private final String sslHandshakeFailureException;
     private final String sslHandshakeFailureMessage;
     private final String sslHandshakeFailureCause;
@@ -44,10 +40,6 @@ public class ConnectionLogEntry {
         this.durationSeconds = builder.durationSeconds;
         this.peerAddress = builder.peerAddress;
         this.peerPort = builder.peerPort;
-        this.localAddress = builder.localAddress;
-        this.localPort = builder.localPort;
-        this.remoteAddress = builder.remoteAddress;
-        this.remotePort = builder.remotePort;
         this.sslHandshakeFailureException = builder.sslHandshakeFailureException;
         this.sslHandshakeFailureMessage = builder.sslHandshakeFailureMessage;
         this.sslHandshakeFailureCause = builder.sslHandshakeFailureCause;
@@ -78,22 +70,6 @@ public class ConnectionLogEntry {
         return Optional.ofNullable(peerPort);
     }
 
-    public Optional<String> localAddress() {
-        return Optional.ofNullable(localAddress);
-    }
-
-    public Optional<Integer> localPort() {
-        return Optional.ofNullable(localPort);
-    }
-
-    public Optional<String> remoteAddress() {
-        return Optional.ofNullable(remoteAddress);
-    }
-
-    public Optional<Integer> remotePort() {
-        return Optional.ofNullable(remotePort);
-    }
-
     public Optional<String> sslHandshakeFailureException() {
         return Optional.ofNullable(sslHandshakeFailureException);
     }
@@ -116,12 +92,7 @@ public class ConnectionLogEntry {
         private Double durationSeconds;
         private String peerAddress;
         private Integer peerPort;
-        private String localAddress;
-        private Integer localPort;
-        private String remoteAddress;
         private Integer remotePort;
-        private Long httpBytesReceived;
-        private Long httpBytesSent;
         private String sslHandshakeFailureException;
         private String sslHandshakeFailureMessage;
         private String sslHandshakeFailureCause;
@@ -145,26 +116,6 @@ public class ConnectionLogEntry {
 
         public Builder withPeerPort(int peerPort) {
             this.peerPort = peerPort;
-            return this;
-        }
-
-        public Builder withLocalAddress(String localAddress) {
-            this.localAddress = localAddress;
-            return this;
-        }
-
-        public Builder withLocalPort(int localPort) {
-            this.localPort = localPort;
-            return this;
-        }
-
-        public Builder withRemoteAddress(String remoteAddress) {
-            this.remoteAddress = remoteAddress;
-            return this;
-        }
-
-        public Builder withRemotePort(int remotePort) {
-            this.remotePort = remotePort;
             return this;
         }
 
