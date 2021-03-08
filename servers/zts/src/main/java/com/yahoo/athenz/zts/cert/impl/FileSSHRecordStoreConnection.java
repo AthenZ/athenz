@@ -19,6 +19,8 @@ import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
 import com.yahoo.athenz.common.server.util.FilesHelper;
 import com.yahoo.rdl.JSON;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -28,6 +30,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileSSHRecordStoreConnection.class);
 
     File rootDir;
     FilesHelper filesHelper;
@@ -113,7 +117,8 @@ public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
         try {
             Path path = Paths.get(file.toURI());
             record = JSON.fromBytes(Files.readAllBytes(path), SSHCertRecord.class);
-        } catch (IOException ignored) {
+        } catch (IOException ex) {
+            LOGGER.error("Unable to get ssh certificate record", ex);
         }
         return record;
     }
@@ -122,12 +127,11 @@ public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
         
         File file = new File(rootDir, getRecordFileName(certRecord.getInstanceId(), certRecord.getService()));
         String data = JSON.string(certRecord);
-        try {
-            FileWriter fileWriter = new FileWriter(file);
+        try (FileWriter fileWriter = new FileWriter(file)) {
             fileWriter.write(data);
             fileWriter.flush();
-            fileWriter.close();
-        } catch (IOException ignored) {
+        } catch (IOException ex) {
+            LOGGER.error("Unable to get save ssh certificate record", ex);
         }
     }
 
@@ -135,7 +139,8 @@ public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
         File file = new File(rootDir, getRecordFileName(instanceId, service));
         try {
             filesHelper.delete(file);
-        } catch (IOException ignored) {
+        } catch (IOException ex) {
+            LOGGER.error("Unable to delete ssh certificate record", ex);
         }
     }
 }
