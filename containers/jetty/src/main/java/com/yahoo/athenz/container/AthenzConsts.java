@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.container;
 
+import sun.security.provider.certpath.OCSP;
+
 /**
  * Contains constants shared by classes throughout the service.
  **/
@@ -52,6 +54,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_RESPONSE_HEADER_SIZE   = "athenz.http_response_header_size";
     public static final String ATHENZ_PROP_LISTEN_HOST            = "athenz.listen_host";
     public static final String ATHENZ_PROP_KEEP_ALIVE             = "athenz.keep_alive";
+    public static final String ATHENZ_PROP_RESPONSE_HEADERS_JSON  = "athenz.response_headers_json";
     public static final String ATHENZ_PROP_GZIP_SUPPORT           = "athenz.gzip_support";
     public static final String ATHENZ_PROP_GZIP_MIN_SIZE          = "athenz.gzip_min_size";
     public static final String ATHENZ_PROP_MAX_THREADS            = "athenz.http_max_threads";

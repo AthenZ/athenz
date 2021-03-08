@@ -20,9 +20,13 @@ import java.io.File;
 import java.net.InetAddress;
 import java.security.Security;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.DispatcherType;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLoggerFactory;
 import org.eclipse.jetty.deploy.DeploymentManager;
@@ -160,15 +164,15 @@ public class AthenzJettyContainer {
     public void addServletHandlers(String serverHostName) {
 
         // Handler Structure
-        
+
         RewriteHandler rewriteHandler = new RewriteHandler();
-        
+
         // Check whether or not to disable Keep-Alive support in Jetty.
         // This will be the first handler in our array so we always set
         // the appropriate header in response. However, since we're now
         // behind ATS, we want to keep the connections alive so ATS
         // can re-use them as necessary
-        
+
         boolean keepAlive = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_KEEP_ALIVE, "true"));
 
         if (!keepAlive) {
@@ -178,46 +182,27 @@ public class AthenzJettyContainer {
             disableKeepAliveRule.setValue(HttpHeaderValue.CLOSE.asString());
             rewriteHandler.addRule(disableKeepAliveRule);
         }
-        
-        // Security: Respond the "Expect-CT: max-age=31536000, report-uri=..." header
 
-        HeaderPatternRule expectCtRule = new HeaderPatternRule();
-        expectCtRule.setPattern("/*");
-        expectCtRule.setName("Expect-CT");
-        expectCtRule.setValue("max-age=31536000, report-uri=\"http://csp.yahoo.com/beacon/csp?src=yahoocom-expect-ct-report-only\"");
-        rewriteHandler.addRule(expectCtRule);
+        // Add response-headers, according to configuration
 
-        // Security: Respond the "Strict-Transport-Security: max-age=31536000" header
+        String responseHeadersJson = System.getProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON, "");
+        if (!responseHeadersJson.isEmpty()) {
+            HashMap<String, String> responseHeaders;
+            try {
+                responseHeaders = new ObjectMapper().readValue(responseHeadersJson, new TypeReference<HashMap<String, String>>() {
+                });
+            } catch (Exception exception) {
+                throw new RuntimeException("System-property \"" + AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON + "\" must be a JSON object with string values. System property's value: " + responseHeadersJson);
+            }
 
-        HeaderPatternRule hstsRule = new HeaderPatternRule();
-        hstsRule.setPattern("/*");
-        hstsRule.setName(HttpHeader.STRICT_TRANSPORT_SECURITY.asString());
-        hstsRule.setValue("max-age=31536000");
-        rewriteHandler.addRule(hstsRule);
-
-        // Security: Respond the "X-Content-Type-Options: nosniff" header (see https://docs.google.com/document/d/1ovG_qSqpbS1q2OpEX1Jo08w8dVdi4un1JT7CLz5unX4/edit)
-
-        HeaderPatternRule noSnifRule = new HeaderPatternRule();
-        noSnifRule.setPattern("/*");
-        noSnifRule.setName("X-Content-Type-Options");
-        noSnifRule.setValue("nosniff");
-        rewriteHandler.addRule(noSnifRule);
-
-        // Security: Respond the "Referrer-Policy: strict-origin-when-cross-origin" header (see https://docs.google.com/document/d/1ovG_qSqpbS1q2OpEX1Jo08w8dVdi4un1JT7CLz5unX4/edit)
-
-        HeaderPatternRule referrerPolicyRule = new HeaderPatternRule();
-        referrerPolicyRule.setPattern("/*");
-        referrerPolicyRule.setName("Referrer-Policy");
-        referrerPolicyRule.setValue("strict-origin-when-cross-origin");
-        rewriteHandler.addRule(referrerPolicyRule);
-
-        // Security: Respond the "Cache-Control: must-revalidate,no-cache,no-store" header (see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
-
-        HeaderPatternRule cacheControlRule = new HeaderPatternRule();
-        cacheControlRule.setPattern("/*");
-        cacheControlRule.setName(HttpHeader.CACHE_CONTROL.asString());
-        cacheControlRule.setValue("must-revalidate,no-cache,no-store");
-        rewriteHandler.addRule(cacheControlRule);
+            for (Map.Entry<String, String>  responseHeader : responseHeaders.entrySet()) {
+                HeaderPatternRule rule = new HeaderPatternRule();
+                rule.setPattern("/*");
+                rule.setName(responseHeader.getKey());
+                rule.setValue(responseHeader.getValue());
+                rewriteHandler.addRule(rule);
+            }
+        }
 
         // Return a Host field in the response so during debugging
         // we know what server was handling request
