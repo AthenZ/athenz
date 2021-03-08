@@ -3326,10 +3326,7 @@ public class DBService implements RolesProvider {
                 auditDetails.append("{\"templates\": ");
 
                 Template template = zmsConfig.getServerSolutionTemplates().get(templateName);
-                if (!deleteSolutionTemplate(con, domainName, templateName, template, auditDetails)) {
-                    con.rollbackChanges();
-                    throw ZMSUtils.internalServerError("unable to delete domain template: " + domainName, caller);
-                }
+                deleteSolutionTemplate(con, domainName, templateName, template, auditDetails);
 
                 auditDetails.append("}");
 
@@ -3478,7 +3475,7 @@ public class DBService implements RolesProvider {
         return true;
     }
 
-    boolean deleteSolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
+    void deleteSolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
             Template template, StringBuilder auditDetails) {
 
         // currently there is no support for dynamic templates since the
@@ -3491,7 +3488,7 @@ public class DBService implements RolesProvider {
 
         if (template == null) {
             auditDetails.append("}");
-            return true;
+            return;
         }
 
         boolean firstEntry = true;
@@ -3540,9 +3537,7 @@ public class DBService implements RolesProvider {
         // delete the template from the current list
 
         con.deleteDomainTemplate(domainName, templateName, null);
-
         auditDetails.append("}");
-        return true;
     }
 
     Role updateTemplateRole(Role role, String domainName, List<TemplateParam> params) {

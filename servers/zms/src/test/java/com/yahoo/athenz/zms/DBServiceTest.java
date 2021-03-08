@@ -3228,8 +3228,7 @@ public class DBServiceTest {
         assertEquals("{\"name\": \"template1\"}", auditDetails.toString());
 
         auditDetails.setLength(0);
-        assertTrue(zms.dbService.deleteSolutionTemplate(null, null, "template1",
-                null, auditDetails));
+        zms.dbService.deleteSolutionTemplate(null, null, "template1", null, auditDetails);
         assertEquals("{\"name\": \"template1\"}", auditDetails.toString());
     }
 
