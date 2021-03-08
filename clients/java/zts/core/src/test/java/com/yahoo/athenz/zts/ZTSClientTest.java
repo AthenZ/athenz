@@ -2921,68 +2921,68 @@ public class ZTSClientTest {
 
         // identity domain check
 
-        item1.identityDomain("domain1");
-        item2.identityDomain("domain2");
+        item1.setIdentityDomain("domain1");
+        item2.setIdentityDomain("domain2");
         assertNotEquals(item1.hashCode(), item2.hashCode());
         assertNotEquals(item1, item2);
 
-        item2.identityDomain("domain1");
+        item2.setIdentityDomain("domain1");
         assertEquals(item1.hashCode(), item2.hashCode());
         assertEquals(item1, item2);
 
         // identity name check
 
-        item1.identityName("name1");
-        item2.identityName("name2");
+        item1.setIdentityName("name1");
+        item2.setIdentityName("name2");
         assertNotEquals(item1.hashCode(), item2.hashCode());
         assertNotEquals(item1, item2);
 
-        item2.identityName("name1");
+        item2.setIdentityName("name1");
         assertEquals(item1.hashCode(), item2.hashCode());
         assertEquals(item1, item2);
 
         // is invalid check
 
-        item1.isInvalid(false);
-        item2.isInvalid(true);
+        item1.setIsInvalid(false);
+        item2.setIsInvalid(true);
         assertNotEquals(item1.hashCode(), item2.hashCode());
         assertNotEquals(item1, item2);
 
-        item2.isInvalid(false);
+        item2.setIsInvalid(false);
         assertEquals(item1.hashCode(), item2.hashCode());
         assertEquals(item1, item2);
 
         // domainname check
 
-        item1.domainName("dom1");
+        item1.setDomainName("dom1");
         assertNotEquals(item1, item2);
 
-        item2.domainName("dom2");
+        item2.setDomainName("dom2");
         assertNotEquals(item1, item2);
 
-        item2.domainName("dom1");
+        item2.setDomainName("dom1");
         assertEquals(item1, item2);
 
         // external id check
 
-        item1.externalId("id1");
+        item1.setExternalId("id1");
         assertNotEquals(item1, item2);
 
-        item2.externalId("id2");
+        item2.setExternalId("id2");
         assertNotEquals(item1, item2);
 
-        item2.externalId("id1");
+        item2.setExternalId("id1");
         assertEquals(item1, item2);
 
         // proxy for principal check
 
-        item1.proxyForPrincipal("proxy1");
+        item1.setProxyForPrincipal("proxy1");
         assertNotEquals(item1, item2);
 
-        item2.proxyForPrincipal("proxy2");
+        item2.setProxyForPrincipal("proxy2");
         assertNotEquals(item1, item2);
 
-        item2.proxyForPrincipal("proxy1");
+        item2.setProxyForPrincipal("proxy1");
         assertEquals(item1, item2);
     }
 

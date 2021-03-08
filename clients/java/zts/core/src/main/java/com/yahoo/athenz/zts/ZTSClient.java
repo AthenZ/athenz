@@ -1668,7 +1668,7 @@ public class ZTSClient implements Closeable {
 
                     // update the expiry time
 
-                    item.expiresAtUTC(token.getExpiryTime());
+                    item.setExpiresAtUTC(token.getExpiryTime());
                     break;
 
                 case ACCESS:
@@ -1678,7 +1678,7 @@ public class ZTSClient implements Closeable {
 
                     // update the expiry time
 
-                    item.expiresAtUTC(System.currentTimeMillis() / 1000 + response.getExpires_in());
+                    item.setExpiresAtUTC(System.currentTimeMillis() / 1000 + response.getExpires_in());
                     break;
 
                 case AWS:
@@ -1688,7 +1688,7 @@ public class ZTSClient implements Closeable {
 
                     // update the expiry time
 
-                    item.expiresAtUTC(awsCred.getExpiration().millis() / 1000);
+                    item.setExpiresAtUTC(awsCred.getExpiration().millis() / 1000);
                     break;
 
                 case SVC_ROLE:
@@ -1698,7 +1698,7 @@ public class ZTSClient implements Closeable {
                     // remove it from the fetch list
 
                     if (svcLoaderCache != null && !svcLoaderCache.contains(item.cacheKey)) {
-                        item.isInvalid(true);
+                        item.setIsInvalid(true);
                         PREFETCH_SCHEDULED_ITEMS.remove(item);
                     }
                     break;
@@ -1706,8 +1706,8 @@ public class ZTSClient implements Closeable {
 
             // update the fetch/fail times
 
-            item.fetchTime(currentTime);
-            item.lastFailTime(0);
+            item.setFetchTime(currentTime);
+            item.setLastFailTime(0);
 
         } catch (ZTSClientException ex) {
 
@@ -1725,11 +1725,11 @@ public class ZTSClient implements Closeable {
                 // our list so that we don't match other active requests
                 // that might have been already added to the queue
 
-                item.isInvalid(true);
-                item.lastFailTime(currentTime);
+                item.setIsInvalid(true);
+                item.setLastFailTime(currentTime);
                 PREFETCH_SCHEDULED_ITEMS.remove(item);
             } else {
-                item.lastFailTime(currentTime);
+                item.setLastFailTime(currentTime);
             }
 
         } catch (Exception ex) {
@@ -1739,8 +1739,8 @@ public class ZTSClient implements Closeable {
             // our list so that we don't match other active requests
             // that might have been already added to the queue
 
-            item.lastFailTime(currentTime);
-            item.isInvalid(true);
+            item.setLastFailTime(currentTime);
+            item.setIsInvalid(true);
             PREFETCH_SCHEDULED_ITEMS.remove(item);
             LOG.error("PrefetchTask: Error while trying to prefetch token", ex);
         }
@@ -1882,32 +1882,32 @@ public class ZTSClient implements Closeable {
         }
 
         PrefetchTokenScheduledItem item = new PrefetchTokenScheduledItem()
-                .tokenType(tokenType)
-                .fetchTime(System.currentTimeMillis() / 1000)
-                .domainName(domainName)
-                .roleName(roleName)
-                .roleNames(roleNames)
-                .proxyForPrincipal(proxyForPrincipal)
-                .externalId(externalId)
-                .minDuration(minExpiryTime)
-                .maxDuration(maxExpiryTime)
-                .expiresAtUTC(expiryTimeUTC)
-                .idTokenServiceName(idTokenServiceName)
-                .authorizationDetails(authorizationDetails)
-                .identityDomain(domain)
-                .identityName(service)
-                .tokenMinExpiryTime(ZTSClient.tokenMinExpiryTime)
-                .providedZTSUrl(this.ztsUrl)
-                .siaIdentityProvider(siaProvider)
-                .sslContext(sslContext)
-                .proxyUrl(proxyUrl)
-                .notificationSender(notificationSender);
+                .setTokenType(tokenType)
+                .setFetchTime(System.currentTimeMillis() / 1000)
+                .setDomainName(domainName)
+                .setRoleName(roleName)
+                .setRoleNames(roleNames)
+                .setProxyForPrincipal(proxyForPrincipal)
+                .setExternalId(externalId)
+                .setMinDuration(minExpiryTime)
+                .setMaxDuration(maxExpiryTime)
+                .setExpiresAtUTC(expiryTimeUTC)
+                .setIdTokenServiceName(idTokenServiceName)
+                .setAuthorizationDetails(authorizationDetails)
+                .setIdentityDomain(domain)
+                .setIdentityName(service)
+                .setTokenMinExpiryTime(ZTSClient.tokenMinExpiryTime)
+                .setProvidedZTSUrl(this.ztsUrl)
+                .setSiaIdentityProvider(siaProvider)
+                .setSslContext(sslContext)
+                .setProxyUrl(proxyUrl)
+                .setNotificationSender(notificationSender);
         
         // include our zts client only if it was overridden by
         // the caller (most likely for unit test mock)
         
         if (ztsClientOverride) {
-             item.ztsClient(this.ztsClient);
+             item.setZtsClient(this.ztsClient);
         }
 
         // we need to make sure we don't have duplicates in
@@ -2803,151 +2803,151 @@ public class ZTSClient implements Closeable {
     static class PrefetchTokenScheduledItem {
 
         TokenType tokenType = TokenType.ACCESS;
-        PrefetchTokenScheduledItem tokenType(TokenType type) {
+        PrefetchTokenScheduledItem setTokenType(TokenType type) {
             tokenType = type;
             return this;
         }
 
         String providedZTSUrl;
-        PrefetchTokenScheduledItem providedZTSUrl(String u) {
+        PrefetchTokenScheduledItem setProvidedZTSUrl(String u) {
             providedZTSUrl = u;
             return this;
         }
         
         ServiceIdentityProvider siaProvider;
-        PrefetchTokenScheduledItem siaIdentityProvider(ServiceIdentityProvider s) {
+        PrefetchTokenScheduledItem setSiaIdentityProvider(ServiceIdentityProvider s) {
             siaProvider = s;
             return this;
         }
         
         ZTSRDLGeneratedClient ztsClient;
-        PrefetchTokenScheduledItem ztsClient(ZTSRDLGeneratedClient z) {
+        PrefetchTokenScheduledItem setZtsClient(ZTSRDLGeneratedClient z) {
             ztsClient = z;
             return this;
         }
         
         boolean isInvalid = false;
-        PrefetchTokenScheduledItem isInvalid(boolean invalid) {
+        PrefetchTokenScheduledItem setIsInvalid(boolean invalid) {
             isInvalid = invalid;
             return this;
         }
         
         String identityDomain;
-        PrefetchTokenScheduledItem identityDomain(String d) {
+        PrefetchTokenScheduledItem setIdentityDomain(String d) {
             identityDomain = d;
             return this;
         }
         
         String identityName;
-        PrefetchTokenScheduledItem identityName(String d) {
+        PrefetchTokenScheduledItem setIdentityName(String d) {
             identityName = d;
             return this;
         }
         
         String domainName;
-        PrefetchTokenScheduledItem domainName(String d) {
+        PrefetchTokenScheduledItem setDomainName(String d) {
             domainName = d;
             return this;
         }
 
         String cacheKey;
-        PrefetchTokenScheduledItem cacheKey(String key) {
+        PrefetchTokenScheduledItem setCacheKey(String key) {
             cacheKey = key;
             return this;
         }
 
         String roleName;
-        PrefetchTokenScheduledItem roleName(String s) {
+        PrefetchTokenScheduledItem setRoleName(String s) {
             roleName = s;
             return this;
         }
 
         List<String> roleNames;
-        PrefetchTokenScheduledItem roleNames(List<String> stringList) {
+        PrefetchTokenScheduledItem setRoleNames(List<String> stringList) {
             roleNames = stringList;
             return this;
         }
 
         String proxyForPrincipal;
-        PrefetchTokenScheduledItem proxyForPrincipal(String u) {
+        PrefetchTokenScheduledItem setProxyForPrincipal(String u) {
             proxyForPrincipal = u;
             return this;
         }
 
         String externalId;
-        PrefetchTokenScheduledItem externalId(String id) {
+        PrefetchTokenScheduledItem setExternalId(String id) {
             externalId = id;
             return this;
         }
 
         String authorizationDetails;
-        PrefetchTokenScheduledItem authorizationDetails(String details) {
+        PrefetchTokenScheduledItem setAuthorizationDetails(String details) {
             authorizationDetails = details;
             return this;
         }
 
         String idTokenServiceName;
-        PrefetchTokenScheduledItem idTokenServiceName(String serviceName) {
+        PrefetchTokenScheduledItem setIdTokenServiceName(String serviceName) {
             idTokenServiceName = serviceName;
             return this;
         }
 
         Integer minDuration;
-        PrefetchTokenScheduledItem minDuration(Integer min) {
+        PrefetchTokenScheduledItem setMinDuration(Integer min) {
             minDuration = min;
             return this;
         }
         
         Integer maxDuration;
-        PrefetchTokenScheduledItem maxDuration(Integer max) {
+        PrefetchTokenScheduledItem setMaxDuration(Integer max) {
             maxDuration = max;
             return this;
         }
         
         long expiresAtUTC = 0;
-        PrefetchTokenScheduledItem expiresAtUTC(long e) {
+        PrefetchTokenScheduledItem setExpiresAtUTC(long e) {
             expiresAtUTC = e;
             return this;
         }
 
         long fetchTime = 0;
-        PrefetchTokenScheduledItem fetchTime(long time) {
+        PrefetchTokenScheduledItem setFetchTime(long time) {
             fetchTime = time;
             return this;
         }
 
         ZTSClientNotificationSender notificationSender = null;
-        PrefetchTokenScheduledItem notificationSender(ZTSClientNotificationSender notificationSender) {
+        PrefetchTokenScheduledItem setNotificationSender(ZTSClientNotificationSender notificationSender) {
             this.notificationSender = notificationSender;
             return this;
         }
 
         long lastFailTime = 0;
-        PrefetchTokenScheduledItem lastFailTime(long time) {
+        PrefetchTokenScheduledItem setLastFailTime(long time) {
             lastFailTime = time;
             return this;
         }
 
         long lastNotificationTime = 0;
-        PrefetchTokenScheduledItem lastNotificationTime(long time) {
+        PrefetchTokenScheduledItem setLastNotificationTime(long time) {
             lastNotificationTime = time;
             return this;
         }
 
         int tokenMinExpiryTime;
-        PrefetchTokenScheduledItem tokenMinExpiryTime(int t) {
+        PrefetchTokenScheduledItem setTokenMinExpiryTime(int t) {
             tokenMinExpiryTime = t;
             return this;
         }
 
         SSLContext sslContext;
-        PrefetchTokenScheduledItem sslContext(SSLContext ctx) {
+        PrefetchTokenScheduledItem setSslContext(SSLContext ctx) {
             sslContext = ctx;
             return this;
         }
         
         String proxyUrl;
-        PrefetchTokenScheduledItem proxyUrl(String url) {
+        PrefetchTokenScheduledItem setProxyUrl(String url) {
             proxyUrl = url;
             return this;
         }
@@ -3277,17 +3277,17 @@ public class ZTSClient implements Closeable {
         }
 
         PrefetchTokenScheduledItem item = new PrefetchTokenScheduledItem()
-            .tokenType(TokenType.SVC_ROLE)
-            .cacheKey(cacheKey)
-            .domainName(domainName)
-            .roleName(roleName)
-            .proxyForPrincipal(proxyForPrincipal)
-            .minDuration(minExpiryTime)
-            .maxDuration(maxExpiryTime)
-            .expiresAtUTC(expiryTimeUTC)
-            .identityDomain(domain)
-            .identityName(service)
-            .tokenMinExpiryTime(ZTSClient.tokenMinExpiryTime);
+            .setTokenType(TokenType.SVC_ROLE)
+            .setCacheKey(cacheKey)
+            .setDomainName(domainName)
+            .setRoleName(roleName)
+            .setProxyForPrincipal(proxyForPrincipal)
+            .setMinDuration(minExpiryTime)
+            .setMaxDuration(maxExpiryTime)
+            .setExpiresAtUTC(expiryTimeUTC)
+            .setIdentityDomain(domain)
+            .setIdentityName(service)
+            .setTokenMinExpiryTime(ZTSClient.tokenMinExpiryTime);
 
         // we need to make sure we don't have duplicates in
         // our prefetch list so since we got a brand new
