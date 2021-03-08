@@ -15,12 +15,15 @@
  */
 package com.yahoo.athenz.container;
 
+import org.eclipse.jetty.rewrite.handler.RewriteHandler;
+import org.eclipse.jetty.rewrite.handler.Rule;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.Slf4jRequestLog;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
@@ -34,6 +37,8 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.container.log.AthenzRequestLog;
+
+import java.security.Security;
 
 import static org.testng.Assert.*;
 
@@ -735,5 +740,58 @@ public class AthenzJettyContainerTest {
         assertNotNull(contextHandlerCollection);
         assertNotNull(statisticsHandler);
         assertEquals(statisticsHandler.getHandler(), contextHandlerCollection);
+    }
+
+    @Test
+    public void testHttpResponseHeaders() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON, "{\"Header-1\":\"Value-1\",\"Header-2\":\"Value-2\"}");
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+        container.addServletHandlers("localhost");
+
+        boolean header1Handled = false;
+        boolean header2Handled = false;
+        Handler[] handlers = container.getHandlers().getHandlers();
+        for (Handler handler : handlers) {
+            if (handler instanceof RewriteHandler) {
+                RewriteHandler rewriteHandler = (RewriteHandler) handler;
+                for (Rule rule : rewriteHandler.getRules()) {
+                    if (rule.toString().equals("org.eclipse.jetty.rewrite.handler.HeaderPatternRule[ht][/*][Header-1,Value-1]")) {
+                        header1Handled = true;
+                    }
+                    if (rule.toString().equals("org.eclipse.jetty.rewrite.handler.HeaderPatternRule[ht][/*][Header-2,Value-2]")) {
+                        header2Handled = true;
+                    }
+                }
+            }
+        }
+        assertTrue(header1Handled);
+        assertTrue(header2Handled);
+
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON);
+    }
+
+    @Test
+    public void testOCSP() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_ENABLE_OCSP, "true");
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        container.addHTTPConnectors(httpConfig, 0, 8083, 0);
+
+        Server server = container.getServer();
+        Connector[] connectors = server.getConnectors();
+        assertEquals(connectors.length, 1);
+        SslContextFactory sslContextFactory = connectors[0].getConnectionFactory(SslConnectionFactory.class).getSslContextFactory();
+
+        assertEquals(Security.getProperty("ocsp.enable"), "true");
+        assertEquals(System.getProperty("jdk.tls.server.enableStatusRequestExtension"), "true");
+        assertEquals(System.getProperty("com.sun.net.ssl.checkRevocation"), "true");
+        assertTrue(sslContextFactory.isEnableOCSP());
+        assertTrue(sslContextFactory.isValidateCerts());
+
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_ENABLE_OCSP);
     }
 }
