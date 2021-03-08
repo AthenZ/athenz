@@ -28,9 +28,13 @@ import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.util.FilesHelper;
 import com.yahoo.rdl.JSON;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileCertRecordStoreConnection implements CertRecordStoreConnection {
-    
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileCertRecordStoreConnection.class);
+
     File rootDir;
     FilesHelper filesHelper;
 
@@ -123,7 +127,8 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
         try {
             Path path = Paths.get(file.toURI());
             record = JSON.fromBytes(Files.readAllBytes(path), X509CertRecord.class);
-        } catch (IOException ignored) {
+        } catch (IOException ex) {
+            LOGGER.error("Unable to get certificate record", ex);
         }
         return record;
     }
@@ -132,12 +137,11 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
         
         File file = new File(rootDir, getRecordFileName(certRecord.getProvider(), certRecord.getInstanceId(), certRecord.getService()));
         String data = JSON.string(certRecord);
-        try {
-            FileWriter fileWriter = new FileWriter(file);
+        try (FileWriter fileWriter = new FileWriter(file)) {
             fileWriter.write(data);
             fileWriter.flush();
-            fileWriter.close();
-        } catch (IOException ignored) {
+        } catch (IOException ex) {
+            LOGGER.error("Unable to save certificate record", ex);
         }
     }
 
@@ -145,7 +149,8 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
         File file = new File(rootDir, getRecordFileName(provider, instanceId, service));
         try {
             filesHelper.delete(file);
-        } catch (IOException ignored) {
+        } catch (IOException ex) {
+            LOGGER.error("Unable to delete certificate record", ex);
         }
     }
 }
