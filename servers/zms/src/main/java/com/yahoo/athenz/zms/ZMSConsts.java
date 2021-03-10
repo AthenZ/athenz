@@ -63,6 +63,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_STORE_OP_TIMEOUT  = "athenz.zms.store_operation_timeout";
     public static final String ZMS_PROP_NOAUTH_URI_LIST   = "athenz.zms.no_auth_uri_list";
     public static final String ZMS_PROP_CORS_ORIGIN_LIST  = "athenz.zms.cors_origin_list";
+    public static final String ZMS_PROP_CORS_HEADER_LIST  = "athenz.zms.cors_header_list";
 
     public static final String ZMS_PROP_AWS_RDS_USER               = "athenz.zms.aws_rds_user";
     public static final String ZMS_PROP_AWS_RDS_IAM_ROLE           = "athenz.zms.aws_rds_iam_role";
