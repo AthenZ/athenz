@@ -13266,9 +13266,21 @@ public class ZMSImplTest {
         assertEquals("GET", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS));
         assertEquals("2592000", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_MAX_AGE));
         assertEquals("true", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS));
-
         assertEquals(origin, servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_ORIGIN));
+
+        // because X-Forwarded-For is not in the request header list,
+        // our header list will be null
+
+        assertNull(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_HEADERS));
+
+        // now let's add the header to the list and we should get
+        // back our header list
+
+        zms.corsRequestHeaderList.add("x-forwarded-for");
+        zms.optionsUserToken(ctx, "user", "coretech.storage,coretech.index");
+
         assertEquals(requestHeaders, servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_HEADERS));
+        zms.corsRequestHeaderList.remove("x-forwarded-for");
     }
 
     @Test
@@ -13297,11 +13309,13 @@ public class ZMSImplTest {
         servletRequest.addHeader(ZMSConsts.HTTP_ORIGIN, origin);
         servletRequest.addHeader(ZMSConsts.HTTP_ACCESS_CONTROL_REQUEST_HEADERS, requestHeaders);
 
+        zms.corsRequestHeaderList.add("x-forwarded-for");
         zms.setStandardCORSHeaders(ctx);
         assertEquals("true", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS));
 
         assertEquals(origin, servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_ORIGIN));
         assertEquals(requestHeaders, servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_HEADERS));
+        zms.corsRequestHeaderList.remove("x-forwarded-for");
     }
 
     @Test
@@ -17596,10 +17610,22 @@ public class ZMSImplTest {
         zmsImpl.corsOriginList = null;
         assertTrue(zmsImpl.isValidCORSOrigin("http://cors.origin1"));
         assertTrue(zmsImpl.isValidCORSOrigin("http://cors.origin2"));
+        assertTrue(zmsImpl.isValidCORSOrigin("https://cors.origin2"));
+        assertTrue(zmsImpl.isValidCORSOrigin("https://cors.origin2:4443"));
+
+        assertFalse(zmsImpl.isValidCORSOrigin("https://cors.origin2:2000000"));
+        assertFalse(zmsImpl.isValidCORSOrigin("https://cors.origin2:-2"));
+        assertFalse(zmsImpl.isValidCORSOrigin("https://cors.origin2/"));
+        assertFalse(zmsImpl.isValidCORSOrigin("https://cors.origin2/data"));
+        assertFalse(zmsImpl.isValidCORSOrigin("https://cors.origin2:443?test=data"));
+        assertFalse(zmsImpl.isValidCORSOrigin("file://cors.origin2"));
+        assertFalse(zmsImpl.isValidCORSOrigin("https://cors origin2"));
+        assertFalse(zmsImpl.isValidCORSOrigin("https://cors%20origin2"));
 
         zmsImpl.corsOriginList = new HashSet<>();
         assertTrue(zmsImpl.isValidCORSOrigin("http://cors.origin1"));
-        assertTrue(zmsImpl.isValidCORSOrigin("http://cors.origin2"));
+        assertTrue(zmsImpl.isValidCORSOrigin("https://cors.origin2"));
+        assertFalse(zmsImpl.isValidCORSOrigin("file://cors.origin2"));
 
         // origin white list configured tests
 

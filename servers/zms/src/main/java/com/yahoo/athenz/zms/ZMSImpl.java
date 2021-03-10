@@ -66,6 +66,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -185,6 +186,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected Set<String> authFreeUriSet = null;
     protected List<Pattern> authFreeUriList = null;
     protected Set<String> corsOriginList = null;
+    protected Set<String> corsRequestHeaderList = null;
     protected int httpPort;
     protected int httpsPort;
     protected int statusPort;
@@ -744,11 +746,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
-        // get the list of white listed origin values for cors requests
+        // get the list of allowed origin values for cors requests
 
         final String originList = System.getProperty(ZMSConsts.ZMS_PROP_CORS_ORIGIN_LIST);
         if (originList != null) {
             corsOriginList = new HashSet<>(Arrays.asList(originList.split(",")));
+        }
+
+        // get the list of allowed header names for cors requests
+
+        final String headerList = System.getProperty(ZMSConsts.ZMS_PROP_CORS_HEADER_LIST,
+                "*,Accept,Accept-Language,Content-Language,Content-Type");
+        if (headerList != null) {
+            corsRequestHeaderList = Arrays.stream(headerList.split(","))
+                    .map(String::toLowerCase).collect(Collectors.toSet());
         }
 
         // get the list of valid provider endpoints
@@ -5630,13 +5641,63 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return false;
         }
 
-        // check if we have whitelist configured
+        // check if we have allow-list configured in which
+        // case the value must be in our list
 
-        if (corsOriginList == null || corsOriginList.isEmpty()) {
-            return true;
+        if (corsOriginList != null && !corsOriginList.isEmpty()) {
+            return corsOriginList.contains(origin);
         }
 
-        return corsOriginList.contains(origin);
+        // if we have no values configured then we're going
+        // to validate the origin uri value
+
+        return validateCORSOriginValue(origin);
+    }
+
+    boolean validateCORSOriginValue(final String origin) {
+
+        // expected format: Origin: <scheme> "://" <hostname> [ ":" <port> ]
+
+        URI uri;
+        try {
+            uri = new URI(origin);
+        } catch (URISyntaxException ex) {
+            LOG.error("validateCorsOriginValue: Unable to parse {}: {}", origin, ex.getMessage());
+            return false;
+        }
+
+        // we only support either http or https scheme
+
+        final String scheme = uri.getScheme();
+        if (!(ZMSConsts.SCHEME_HTTPS.equals(scheme) || ZMSConsts.SCHEME_HTTP.equals(scheme))) {
+            LOG.error("validateCorsOriginValue: Unsupported schema {}", origin);
+            return false;
+        }
+
+        // host must be valid and present
+
+        if (StringUtil.isEmpty(uri.getHost())) {
+            LOG.error("validateCorsOriginValue: Missing hostname {}", origin);
+            return false;
+        }
+
+        // it cannot have any query or path parameters
+
+        if (!StringUtil.isEmpty(uri.getQuery()) || !StringUtil.isEmpty(uri.getPath())) {
+            LOG.error("validateCorsOriginValue: Must not have query and/or path {}", origin);
+            return false;
+        }
+
+        // verify the port number
+
+        if (uri.getPort() > 65535) {
+            LOG.error("validateCorsOriginValue: Invalid port number {}", origin);
+            return false;
+        }
+
+        // we have a valid origin value
+
+        return true;
     }
 
     void setStandardCORSHeaders(ResourceContext ctx) {
@@ -5644,7 +5705,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if we get an Origin header in our request then we're going to return
         // the same value in the Allow-Origin header
 
-        String origin = ctx.request().getHeader(ZMSConsts.HTTP_ORIGIN);
+        final String origin = ctx.request().getHeader(ZMSConsts.HTTP_ORIGIN);
         if (isValidCORSOrigin(origin)) {
             ctx.response().addHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_ORIGIN, origin);
         }
@@ -5654,12 +5715,32 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         ctx.response().addHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
 
         // if the client is asking us to allow any headers then we're going
-        // to return that set back as allowed
+        // to return that set back as allowed if header names are validated
 
-        String allowHeaders = ctx.request().getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_REQUEST_HEADERS);
-        if (allowHeaders != null && !allowHeaders.isEmpty()) {
+        final String allowHeaders = ctx.request().getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_REQUEST_HEADERS);
+        if (areValidRequestHeaders(allowHeaders)) {
             ctx.response().addHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_HEADERS, allowHeaders);
         }
+    }
+
+    boolean areValidRequestHeaders(final String allowHeaders) {
+
+        // expected format: Access-Control-Request-Headers: <header-name>, <header-name>, ...
+
+        if (StringUtil.isEmpty(allowHeaders) || corsRequestHeaderList == null) {
+            return false;
+        }
+
+        for (String headerName : allowHeaders.split(",")) {
+            if (!corsRequestHeaderList.contains(headerName.trim().toLowerCase())) {
+                LOG.error("areValidRequestHeaders: header {} is not allowed", headerName);
+                return false;
+            }
+        }
+
+        // valid header values
+
+        return true;
     }
 
     String providerServiceDomain(String provider) {
