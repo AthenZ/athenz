@@ -417,9 +417,10 @@ public class AthenzJettyContainer {
 
         if (enableOCSP) {
             // See https://stackoverflow.com/questions/49904935/jetty-9-enable-ocsp-stapling-for-domain-validated-certificate
-            Security.setProperty("ocsp.enable", "true");
-            System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
-            System.setProperty("com.sun.net.ssl.checkRevocation", "true");
+            // Note that for OCSP-Stapling to actually work - these commands must also be performed:
+            //            Security.setProperty("ocsp.enable", "true");
+            //            System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
+            //            System.setProperty("com.sun.net.ssl.checkRevocation", "true");
             sslContextFactory.setEnableOCSP(true);
             sslContextFactory.setValidateCerts(true);   // not sure what this does... OCSP works even without this - but it is recommended.
         }
