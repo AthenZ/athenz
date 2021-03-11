@@ -458,25 +458,6 @@ public class ZTSRDLGeneratedClient {
 
     }
 
-    public DomainMetrics postDomainMetrics(String domainName, DomainMetrics req) {
-        WebTarget target = base.path("/metrics/{domainName}")
-            .resolveTemplate("domainName", domainName);
-        Invocation.Builder invocationBuilder = target.request("application/json");
-        if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
-        }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(req, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(DomainMetrics.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
-        }
-
-    }
-
     public Status getStatus() {
         WebTarget target = base.path("/status");
         Invocation.Builder invocationBuilder = target.request("application/json");

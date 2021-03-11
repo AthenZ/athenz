@@ -10,8 +10,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -64,13 +62,6 @@ func PolicyUpdater(config *ZpuConfiguration) error {
 			failedDomains += domain
 			failedDomains += `" `
 			log.Printf("Failed to get policies for domain: %v, Error:%v", domain, err)
-		}
-	}
-	metricFilesPath := config.MetricsDir
-	if metricFilesPath != "" {
-		err := PostAllDomainMetric(ztsClient, metricFilesPath)
-		if err != nil {
-			log.Printf("Posting of metrics to Zts failed, Error:%v", err)
 		}
 	}
 	if !success {
@@ -256,115 +247,6 @@ func verifyTmpDirSetup(TempPolicyFileDir string) error {
 	}
 	err := os.MkdirAll(TempPolicyFileDir, 0755)
 	return err
-}
-
-func PostAllDomainMetric(ztsClient zts.ZTSClient, metricFilePath string) error {
-	m, err := aggregateAllDomainMetrics(metricFilePath)
-	if err != nil {
-		return err
-	}
-	if m != nil {
-		for key, value := range m {
-
-			data, err := buildDomainMetrics(key, value)
-			if err != nil {
-				return err
-			}
-			log.Printf("Posting Domain metric for domain %v to Zts", key)
-			data, err = ztsClient.PostDomainMetrics(zts.DomainName(key), data)
-			if err != nil {
-				log.Printf("Failed to post metrics for domain %v to Zts", key)
-				return err
-			}
-			deleteDomainMetricFiles(metricFilePath, key)
-		}
-	}
-	return nil
-}
-
-func aggregateAllDomainMetrics(metricFilePath string) (map[string]map[string]int, error) {
-	var m = make(map[string]map[string]int)
-	var fileMap = make(map[string]int)
-
-	files, err := ioutil.ReadDir(metricFilePath)
-	if err != nil {
-		return nil, err
-	}
-	if len(files) == 0 {
-		return nil, nil
-	}
-	for _, f := range files {
-		data, err := ioutil.ReadFile(metricFilePath + "/" + f.Name())
-		if err != nil {
-			return nil, fmt.Errorf("Failed to read metric  file : %v, Error:%v", f.Name(), err)
-		}
-		fileMap = map[string]int{}
-		err = json.Unmarshal(data, &fileMap)
-		if err != nil {
-			return nil, fmt.Errorf("Unmarshalling Error:%v for file : %v", err, f.Name())
-		}
-		domain := strings.Split(f.Name(), "_")
-		if _, exists := m[domain[0]]; exists {
-			domainMap := m[domain[0]]
-			for key, value := range fileMap {
-				if _, exists := domainMap[key]; exists {
-					val := domainMap[key]
-					val += value
-					domainMap[key] = val
-				} else {
-					domainMap[key] = value
-				}
-
-			}
-		} else {
-			m[domain[0]] = fileMap
-		}
-
-	}
-	return m, nil
-}
-
-func buildDomainMetrics(key string, value map[string]int) (*zts.DomainMetrics, error) {
-	var data *zts.DomainMetrics
-	counter := 1
-	metricJSON := `{"domainName":"` + key + `","metricList":[`
-	valuekeys := []string{}
-	for k := range value {
-		valuekeys = append(valuekeys, k)
-	}
-	sort.Strings(valuekeys)
-	for _, innerKey := range valuekeys {
-		size := len(value)
-		if counter == size {
-			metricJSON += `{"metricType":"` + innerKey + `","metricVal":` + strconv.Itoa(value[innerKey]) + `}`
-		} else {
-			metricJSON += `{"metricType":"` + innerKey + `","metricVal":` + strconv.Itoa(value[innerKey]) + `},`
-		}
-		counter++
-	}
-	metricJSON += `]}`
-	err := json.Unmarshal([]byte(metricJSON), &data)
-	if err != nil {
-		return nil, err
-	}
-	return data, err
-}
-
-func deleteDomainMetricFiles(path, domainName string) {
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		log.Printf("Failed to get metric files at path for deletion: %v", path)
-		return
-	}
-	for _, f := range files {
-		domain := strings.Split(f.Name(), "_")
-		if domain[0] == domainName {
-			err := os.Remove(path + "/" + f.Name())
-			if err != nil {
-				log.Printf("Failed to delete file : % v for domain : %v", f.Name(), domainName)
-			}
-		}
-	}
 }
 
 func formatURL(url, suffix string) string {

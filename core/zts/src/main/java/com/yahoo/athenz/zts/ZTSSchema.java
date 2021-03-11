@@ -602,21 +602,6 @@ public class ZTSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("DomainMetrics", "POST", "/metrics/{domainName}")
-            .comment("called to post multiple zpe related metric attributes")
-            .pathParam("domainName", "DomainName", "name of the domain the metrics pertain to")
-            .input("req", "DomainMetrics", "")
-            .auth("", "", true)
-            .expected("OK")
-            .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("FORBIDDEN", "ResourceError", "")
-
-            .exception("NOT_FOUND", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
-;
-
         sb.resource("Status", "GET", "/status")
             .comment("Retrieve the server status")
             .auth("", "", true)

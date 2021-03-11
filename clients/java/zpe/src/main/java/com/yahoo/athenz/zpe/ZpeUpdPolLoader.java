@@ -21,9 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import com.yahoo.athenz.auth.token.AccessToken;
 import org.slf4j.Logger;
@@ -94,9 +92,7 @@ public class ZpeUpdPolLoader implements Closeable {
     // find the java7 api for monitoring files
     // see http://docs.oracle.com/javase/tutorial/essential/io/notification.html
 
-    private ScheduledThreadPoolExecutor scheduledExecutorSvc = new ScheduledThreadPoolExecutor(
-            1, new ZpeThreadFactory("ZpeUpdPolLoader"));
-
+    private final ScheduledExecutorService scheduledExecutorSvc = Executors.newScheduledThreadPool(1);
     private ZpeUpdMonitor updMonWorker;
 
     // key is the domain name, value is a map keyed by role name with list of assertions
@@ -130,7 +126,7 @@ public class ZpeUpdPolLoader implements Closeable {
         }
     }
 
-    private Map<String, ZpeFileStatus> fileStatusRef = new ConcurrentHashMap<>();
+    private final Map<String, ZpeFileStatus> fileStatusRef = new ConcurrentHashMap<>();
     private String polDirName;
 
     ZpeUpdPolLoader(String dirName) {
@@ -193,8 +189,7 @@ public class ZpeUpdPolLoader implements Closeable {
         if (updMonWorker == null) {
             updMonWorker = new ZpeUpdMonitor(this);
         }
-        scheduledExecutorSvc.scheduleAtFixedRate(updMonWorker, 0,
-                sleepTimeMillis, TimeUnit.MILLISECONDS);
+        scheduledExecutorSvc.scheduleAtFixedRate(updMonWorker, 0, sleepTimeMillis, TimeUnit.MILLISECONDS);
     }
 
     @Override

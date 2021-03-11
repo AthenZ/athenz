@@ -613,40 +613,6 @@ public class ZTSResources {
         }
     }
 
-    @POST
-    @Path("/metrics/{domainName}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "called to post multiple zpe related metric attributes")
-    public DomainMetrics postDomainMetrics(
-        @Parameter(description = "name of the domain the metrics pertain to", required = true) @PathParam("domainName") String domainName,
-        @Parameter(description = "", required = true) DomainMetrics req) {
-        int code = ResourceException.OK;
-        ResourceContext context = null;
-        try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postDomainMetrics");
-            context.authenticate();
-            return this.delegate.postDomainMetrics(context, domainName, req);
-        } catch (ResourceException e) {
-            code = e.getCode();
-            switch (code) {
-            case ResourceException.BAD_REQUEST:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.FORBIDDEN:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.NOT_FOUND:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.UNAUTHORIZED:
-                throw typedException(code, e, ResourceError.class);
-            default:
-                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postDomainMetrics");
-                throw typedException(code, e, ResourceError.class);
-            }
-        } finally {
-            this.delegate.recordMetrics(context, code);
-        }
-    }
-
     @GET
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)

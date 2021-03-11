@@ -1340,7 +1340,7 @@ public class ZTSClientTest {
 
         System.out.println("testPrefetchRoleTokenShouldCallServer: sleep Secs="
                 + (2 * intervalSecs) + "+0.1");
-        Thread.sleep((2 * intervalSecs * 1000) + 100);
+        Thread.sleep((2L * intervalSecs * 1000) + 100);
         System.out.println("testPrefetchRoleTokenShouldCallServer: nap over so what happened");
 
         assertEquals(client.getScheduledItemsSize(), 1);
@@ -1360,7 +1360,7 @@ public class ZTSClientTest {
         // wait a few seconds, and see subsequent fetch happened.
         System.out.println("testPrefetchRoleTokenShouldCallServer: again sleep Secs="
                 + (2 * intervalSecs) + "+0.1");
-        Thread.sleep((2 * intervalSecs * 1000) + 100);
+        Thread.sleep((2L * intervalSecs * 1000) + 100);
         System.out.println("testPrefetchRoleTokenShouldCallServer: again nap over so what happened");
 
         long lastTokenFetchedTime2 = ztsClientMock.getLastRoleTokenFetchedTime(domain1, null, null);
@@ -1438,7 +1438,7 @@ public class ZTSClientTest {
 
         System.out.println("testPrefetchAwsCredShouldCallServer: sleep Secs="
                 + (2 * intervalSecs) + "+0.1");
-        Thread.sleep((2 * intervalSecs * 1000) + 100);
+        Thread.sleep((2L * intervalSecs * 1000) + 100);
         System.out.println("testPrefetchAwsCredShouldCallServer: nap over so what happened");
 
         assertEquals(client.getScheduledItemsSize(), 1);
@@ -1457,7 +1457,7 @@ public class ZTSClientTest {
         // wait a few seconds, and see subsequent fetch happened.
         System.out.println("testPrefetchAwsCredShouldCallServer: again sleep Secs="
                 + (2 * intervalSecs) + "+0.1");
-        Thread.sleep((2 * intervalSecs * 1000) + 100);
+        Thread.sleep((2L * intervalSecs * 1000) + 100);
         System.out.println("testPrefetchAwsCredShouldCallServer: again nap over so what happened");
 
         long lastTokenFetchedTime2 = ztsClientMock.getLastRoleTokenFetchedTime(domain1, "role1", null);
@@ -2474,55 +2474,6 @@ public class ZTSClientTest {
             assertEquals(ex.getCode(), 400);
         }
 
-        client.close();
-    }
-
-    @Test
-    public void testPostDomainMetrics() {
-
-        Principal principal = SimplePrincipal.create("user_domain", "user",
-                "auth_creds", PRINCIPAL_AUTHORITY);
-
-        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
-        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        client.setZTSRDLGeneratedClient(ztsClientMock);
-
-        List<DomainMetric> metricList = new ArrayList<>();
-        metricList.add(
-                new DomainMetric().
-                        setMetricType(DomainMetricType.ACCESS_ALLOWED_DENY_NO_MATCH).
-                        setMetricVal(99));
-        DomainMetrics req = new DomainMetrics().
-                setDomainName("coretech").
-                setMetricList(metricList);
-        client.postDomainMetrics("coretech", req);
-        client.close();
-    }
-
-    @Test
-    public void testPostDomainMetricsBadRequest() {
-
-        Principal principal = SimplePrincipal.create("user_domain", "user",
-                "auth_creds", PRINCIPAL_AUTHORITY);
-
-        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
-        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        client.setZTSRDLGeneratedClient(ztsClientMock);
-
-        List<DomainMetric> metricList = new ArrayList<>();
-        metricList.add(
-                new DomainMetric().
-                        setMetricType(DomainMetricType.ACCESS_ALLOWED_DENY_NO_MATCH).
-                        setMetricVal(99));
-        DomainMetrics req = new DomainMetrics().
-                setDomainName("coretech").
-                setMetricList(metricList);
-        try {
-            client.postDomainMetrics("exc", req);
-            fail();
-        } catch (ZTSClientException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
         client.close();
     }
 

@@ -14,7 +14,6 @@ import (
 
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 	"github.com/AthenZ/athenz/utils/zpe-updater/devel"
@@ -189,101 +188,6 @@ func TestVerifierTamperedSignature(t *testing.T) {
 	a.Nil(err)
 	err = verify(input, signature, string(key))
 	a.NotNil(err, "Verifier validated data with tampered signature")
-}
-
-func TestAggregateAllDomainMetrics(t *testing.T) {
-	a := assert.New(t)
-	agg, dec := aggregateAllDomainMetrics(METRIC_DIR)
-	a.Nil(dec)
-	a.Nil(agg)
-	data1 := `{"ONE":1,"TWO":0,"THREE":0}`
-	data2 := `{"ONE":0,"TWO":1,"THREE":0}`
-	data3 := `{"ONE":0,"TWO":0,"THREE":1}`
-	err := ioutil.WriteFile(METRIC_DIR+"/test_000.json", []byte(data1), 0755)
-	a.Nil(err)
-	err = ioutil.WriteFile(METRIC_DIR+"/test_001.json", []byte(data1), 0755)
-	a.Nil(err)
-	err = ioutil.WriteFile(METRIC_DIR+"/test1_000.json", []byte(data2), 0755)
-	a.Nil(err)
-	err = ioutil.WriteFile(METRIC_DIR+"/test1_001.json", []byte(data2), 0755)
-	a.Nil(err)
-	err = ioutil.WriteFile(METRIC_DIR+"/test2_000.json", []byte(data3), 0755)
-	a.Nil(err)
-	err = ioutil.WriteFile(METRIC_DIR+"/test2_001.json", []byte(data3), 0755)
-	a.Nil(err)
-	aggregate, err := aggregateAllDomainMetrics(METRIC_DIR)
-	a.Nil(err, "Valid metric files shold be aggregated")
-	m := map[string]map[string]int{"test": map[string]int{"ONE": 2, "TWO": 0, "THREE": 0}, "test1": map[string]int{"ONE": 0, "TWO": 2, "THREE": 0}, "test2": map[string]int{"ONE": 0, "TWO": 0, "THREE": 2}}
-	a.Equal(len(aggregate), 3)
-	a.Equal(aggregate["test"], m["test"])
-	a.Equal(aggregate["test1"], m["test1"])
-	a.Equal(aggregate["test2"], m["test2"])
-	err = os.Remove(METRIC_DIR + "/test_000.json")
-	a.Nil(err)
-	err = os.Remove(METRIC_DIR + "/test_001.json")
-	a.Nil(err)
-	err = os.Remove(METRIC_DIR + "/test1_000.json")
-	a.Nil(err)
-	err = os.Remove(METRIC_DIR + "/test1_001.json")
-	a.Nil(err)
-	err = os.Remove(METRIC_DIR + "/test2_000.json")
-	a.Nil(err)
-	err = os.Remove(METRIC_DIR + "/test2_001.json")
-	a.Nil(err)
-}
-
-func TestBuildDomainMetric(t *testing.T) {
-	a := assert.New(t)
-	m := map[string]int{"ACCESS_ALLOWED_TOKEN_CACHE_FAILURE": 1, "LOAD_FILE_GOOD": 0, "ACCESS_ALLOWED_DENY_NO_MATCH": 2}
-	data, err := buildDomainMetrics("test", m)
-	a.Nil(err)
-	metricJSON, err := json.Marshal(data)
-	a.Nil(err)
-	a.Equal(string(metricJSON), `{"domainName":"test","metricList":[{"metricType":"ACCESS_ALLOWED_DENY_NO_MATCH","metricVal":2},{"metricType":"ACCESS_ALLOWED_TOKEN_CACHE_FAILURE","metricVal":1},{"metricType":"LOAD_FILE_GOOD","metricVal":0}]}`)
-}
-
-func TestDeleteDomainFiles(t *testing.T) {
-	a := assert.New(t)
-
-	err := ioutil.WriteFile(METRIC_DIR+"/test_000.json", []byte("test"), 0755)
-	a.Nil(err)
-	err = ioutil.WriteFile(METRIC_DIR+"/test_001.json", []byte("test"), 0755)
-	a.Nil(err)
-	err = ioutil.WriteFile(METRIC_DIR+"/test1_000.json", []byte("test"), 0755)
-	a.Nil(err)
-	err = ioutil.WriteFile(METRIC_DIR+"/test2_000.json", []byte("test"), 0755)
-	a.Nil(err)
-	deleteDomainMetricFiles(METRIC_DIR, "test")
-	a.Equal(util.Exists(METRIC_DIR+"/test_000.json"), false)
-	a.Equal(util.Exists(METRIC_DIR+"/test_001.json"), false)
-	a.Equal(util.Exists(METRIC_DIR+"/test1_000.json"), true)
-	a.Equal(util.Exists(METRIC_DIR+"/test2_000.json"), true)
-	deleteDomainMetricFiles(METRIC_DIR, "test1")
-	a.Equal(util.Exists(METRIC_DIR+"/test1_000.json"), false)
-	deleteDomainMetricFiles(METRIC_DIR, "test2")
-	a.Equal(util.Exists(METRIC_DIR+"/test2_000.json"), false)
-}
-
-func TestPostAllDomainMetric(t *testing.T) {
-	a := assert.New(t)
-	err := ioutil.WriteFile(METRIC_DIR+"/test_000.json", []byte(`{"ACCESS_ALLOWED_TOKEN_CACHE_FAILURE":1,"LOAD_FILE_GOOD":0,"ACCESS_ALLOWED_DENY_NO_MATCH":2}`), 0755)
-	a.Nil(err)
-	err = ioutil.WriteFile(METRIC_DIR+"/test_001.json", []byte(`{"ACCESS_ALLOWED_TOKEN_CACHE_FAILURE":0,"LOAD_FILE_GOOD":1,"ACCESS_ALLOWED_DENY_NO_MATCH":0}`), 0755)
-	a.Nil(err)
-	err = ioutil.WriteFile(METRIC_DIR+"/test1_000.json", []byte(`{"ACCESS_ALLOWED_TOKEN_CACHE_FAILURE":0,"LOAD_FILE_GOOD":1,"ACCESS_ALLOWED_DENY_NO_MATCH":1}`), 0755)
-	a.Nil(err)
-	err = ioutil.WriteFile(METRIC_DIR+"/test1_001.json", []byte(`{"ACCESS_ALLOWED_TOKEN_CACHE_FAILURE":0,"LOAD_FILE_GOOD":0,"ACCESS_ALLOWED_DENY_NO_MATCH":2}`), 0755)
-	a.Nil(err)
-	err = PostAllDomainMetric(ztsClient, METRIC_DIR)
-	require.Nil(t, err, "Metrics for all domains should be posted")
-	a.Equal(util.Exists(METRIC_DIR+"/test_000.json"), false)
-	a.Equal(util.Exists(METRIC_DIR+"/test_001.json"), false)
-	a.Equal(util.Exists(METRIC_DIR+"/test1_000.json"), false)
-	a.Equal(util.Exists(METRIC_DIR+"/test1_001.json"), false)
-
-	//No Domain Metric Files
-	err = PostAllDomainMetric(ztsClient, METRIC_DIR)
-	require.Nil(t, err, "No metric files to read")
 }
 
 func TestFormatUrl(t *testing.T) {

@@ -464,14 +464,6 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     }
 
     @Override
-    public DomainMetrics postDomainMetrics(String domainName, DomainMetrics req) {
-        if (domainName.equals("exc")) {
-            throw new ResourceException(400, "Invalid request");
-        }
-        return null;
-    }
-
-    @Override
     public CertificateAuthorityBundle getCertificateAuthorityBundle(String bundleName) {
         if (bundleName.equals("exc")) {
             throw new NullPointerException("Invalid request");
