@@ -594,17 +594,6 @@ func init() {
 	mGetCertificateAuthorityBundle.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetCertificateAuthorityBundle.Build())
 
-	mPostDomainMetrics := rdl.NewResourceBuilder("DomainMetrics", "POST", "/metrics/{domainName}")
-	mPostDomainMetrics.Comment("called to post multiple zpe related metric attributes")
-	mPostDomainMetrics.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain the metrics pertain to")
-	mPostDomainMetrics.Input("req", "DomainMetrics", false, "", "", false, nil, "")
-	mPostDomainMetrics.Auth("", "", true, "")
-	mPostDomainMetrics.Exception("BAD_REQUEST", "ResourceError", "")
-	mPostDomainMetrics.Exception("FORBIDDEN", "ResourceError", "")
-	mPostDomainMetrics.Exception("NOT_FOUND", "ResourceError", "")
-	mPostDomainMetrics.Exception("UNAUTHORIZED", "ResourceError", "")
-	sb.AddResource(mPostDomainMetrics.Build())
-
 	mGetStatus := rdl.NewResourceBuilder("Status", "GET", "/status")
 	mGetStatus.Comment("Retrieve the server status")
 	mGetStatus.Auth("", "", true, "")

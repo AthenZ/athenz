@@ -30,7 +30,6 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zts.Assertion;
 import com.yahoo.athenz.zts.AssertionEffect;
-import com.yahoo.athenz.zts.DomainMetrics;
 import com.yahoo.athenz.zts.DomainSignedPolicyData;
 import com.yahoo.athenz.zts.Policy;
 import com.yahoo.athenz.zts.PolicyData;
@@ -182,10 +181,5 @@ public class ZTSMock extends ZTSRDLGeneratedClient {
         } else {
             return keyEntry;
         }
-    }
-
-    @Override
-    public DomainMetrics postDomainMetrics(String arg0, DomainMetrics arg1) {
-        return null;
     }
 }

@@ -2692,23 +2692,6 @@ public class ZTSClient implements Closeable {
     }
     
     /**
-     * Caller may post set of domain metric attributes for monitoring and logging.
-     * ZTSClientException will be thrown in case of failure
-     * @param domainName name of the domain
-     * @param req list of domain metrics with their values
-     */
-    public void postDomainMetrics(String domainName, DomainMetrics req) {
-        updateServicePrincipal();
-        try {
-            ztsClient.postDomainMetrics(domainName, req);
-        } catch (ResourceException ex) {
-            throw new ZTSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
-        }
-    }
-    
-    /**
      * Request by an instance to register itself based on its provider
      * attestation.
      * @param info InstanceRegisterInformation object for the request

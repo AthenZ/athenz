@@ -879,42 +879,6 @@ func (client ZTSClient) GetCertificateAuthorityBundle(name SimpleName) (*Certifi
 	}
 }
 
-func (client ZTSClient) PostDomainMetrics(domainName DomainName, req *DomainMetrics) (*DomainMetrics, error) {
-	var data *DomainMetrics
-	url := client.URL + "/metrics/" + fmt.Sprint(domainName)
-	contentBytes, err := json.Marshal(req)
-	if err != nil {
-		return data, err
-	}
-	resp, err := client.httpPost(url, nil, contentBytes)
-	if err != nil {
-		return data, err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case 200:
-		err = json.NewDecoder(resp.Body).Decode(&data)
-		if err != nil {
-			return data, err
-		}
-		return data, nil
-	default:
-		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return data, err
-		}
-		json.Unmarshal(contentBytes, &errobj)
-		if errobj.Code == 0 {
-			errobj.Code = resp.StatusCode
-		}
-		if errobj.Message == "" {
-			errobj.Message = string(contentBytes)
-		}
-		return data, errobj
-	}
-}
-
 func (client ZTSClient) GetStatus() (*Status, error) {
 	var data *Status
 	url := client.URL + "/status"

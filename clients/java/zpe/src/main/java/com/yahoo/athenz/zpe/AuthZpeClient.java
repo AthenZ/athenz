@@ -62,8 +62,6 @@ public class AuthZpeClient {
     public static final String UNKNOWN_DOMAIN = "unknown";
     public static final String BEARER_TOKEN = "Bearer ";
 
-    public static ZpeMetric zpeMetric = new ZpeMetric();
-
     private static String zpeClientImplName;
     private static int allowedOffset = 300;
     private static JwtsSigningKeyResolver accessSignKeyResolver = null;
@@ -279,8 +277,8 @@ public class AuthZpeClient {
         try {
             zpeClt = (ZpeClient) Class.forName(zpeClientImplName).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            LOG.error("Unable to instantiate zpe class: " + zpeClientImplName
-                    + ", error: " + ex.getMessage());
+            LOG.error("Unable to instantiate zpe class: {}, error: {}",
+                    zpeClientImplName, ex.getMessage());
             throw new RuntimeException(ex);
         }
         zpeClt.init(null);
@@ -340,7 +338,6 @@ public class AuthZpeClient {
         if (LOG.isDebugEnabled()) {
             LOG.debug("allowAccess: action={} resource={}", action, resource);
         }
-        zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME, DEFAULT_DOMAIN);
 
         // validate the certificate against CAs if the feature
         // is configured. if the caller does not specify any
@@ -461,7 +458,6 @@ public class AuthZpeClient {
         if (LOG.isDebugEnabled()) {
             LOG.debug("allowAccess: action={} resource={}", action, resource);
         }
-        zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME, DEFAULT_DOMAIN);
 
         // check if we're given role or access token
 
@@ -509,7 +505,6 @@ public class AuthZpeClient {
 
         if (rToken == null) {
 
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_NOT_FOUND, DEFAULT_DOMAIN);
             rToken = new RoleToken(roleToken);
 
             // validate the token. validation also verifies that
@@ -521,18 +516,14 @@ public class AuthZpeClient {
                 // status code to the caller
 
                 if (isTokenExpired(rToken)) {
-                    zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_EXPIRED_TOKEN, rToken.getDomain());
                     return AccessCheckStatus.DENY_ROLETOKEN_EXPIRED;
                 }
 
                 LOG.error("allowAccess: Authorization denied. Authentication failed for token={}",
                         rToken.getUnsignedToken());
-                zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, rToken.getDomain());
                 return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
             }
             tokenCache.put(roleToken, rToken);
-        } else {
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_SUCCESS, rToken.getDomain());
         }
 
         return allowAccess(rToken, resource, action, matchRoleName);
@@ -557,13 +548,10 @@ public class AuthZpeClient {
 
         if (acsToken != null && cert != null && !acsToken.confirmMTLSBoundToken(cert, certHash)) {
             LOG.error("allowAccess: mTLS Client certificate confirmation failed");
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, DEFAULT_DOMAIN);
             return AccessCheckStatus.DENY_CERT_HASH_MISMATCH;
         }
 
         if (acsToken == null) {
-
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_NOT_FOUND, DEFAULT_DOMAIN);
 
             try {
                 if (cert == null && certHash == null) {
@@ -575,7 +563,6 @@ public class AuthZpeClient {
 
                 LOG.error("allowAccess: Authorization denied. Authentication failed for token={}",
                         ex.getMessage());
-                zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, DEFAULT_DOMAIN);
                 return (ex.getCode() == CryptoException.CERT_HASH_MISMATCH) ?
                         AccessCheckStatus.DENY_CERT_HASH_MISMATCH : AccessCheckStatus.DENY_ROLETOKEN_INVALID;
 
@@ -583,14 +570,11 @@ public class AuthZpeClient {
 
                 LOG.error("allowAccess: Authorization denied. Authentication failed for token={}",
                         ex.getMessage());
-                zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, DEFAULT_DOMAIN);
                 return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
             }
 
             tokenCache.put(accessToken, acsToken);
 
-        } else {
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_CACHE_SUCCESS, acsToken.getAudience());
         }
 
         return allowAccess(acsToken, resource, action, matchRoleName);
@@ -620,12 +604,10 @@ public class AuthZpeClient {
 
         if (rToken == null) {
             LOG.error("allowAccess: Authorization denied. Token is null");
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, UNKNOWN_DOMAIN);
             return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
         }
 
         if (isTokenExpired(rToken)) {
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_EXPIRED_TOKEN, rToken.getDomain());
             return AccessCheckStatus.DENY_ROLETOKEN_EXPIRED;
         }
 
@@ -660,12 +642,10 @@ public class AuthZpeClient {
 
         if (accessToken == null) {
             LOG.error("allowAccess: Authorization denied. Token is null");
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, UNKNOWN_DOMAIN);
             return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
         }
 
         if (isTokenExpired(accessToken)) {
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_EXPIRED_TOKEN, accessToken.getAudience());
             return AccessCheckStatus.DENY_ROLETOKEN_EXPIRED;
         }
 
@@ -739,7 +719,7 @@ public class AuthZpeClient {
         long now  = System.currentTimeMillis() / 1000;
         long expiry = accessToken.getExpiryTime();
         if (expiry != 0 && expiry < now) {
-            LOG.error("ExpiryCheck: Token expired. now={} expiry={} token={}" +
+            LOG.error("ExpiryCheck: Token expired. now={} expiry={} token={}",
                     now, expiry, accessToken.getClientId());
             return true;
         }
@@ -928,7 +908,6 @@ public class AuthZpeClient {
 
         if (roles == null || roles.size() == 0) {
             LOG.error("{} ERROR: No roles so access denied", msgPrefix);
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, tokenDomain);
             return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
         }
 
@@ -938,20 +917,17 @@ public class AuthZpeClient {
 
         if (tokenDomain == null || tokenDomain.isEmpty()) {
             LOG.error("{} ERROR: No domain so access denied", msgPrefix);
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_INVALID_TOKEN, DEFAULT_DOMAIN);
             return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
         }
 
         if (action == null || action.isEmpty()) {
             LOG.error("{} ERROR: No action so access denied", msgPrefix);
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_ERROR, tokenDomain);
             return AccessCheckStatus.DENY_INVALID_PARAMETERS;
         }
         action = action.toLowerCase();
 
         if (resource == null || resource.isEmpty()) {
             LOG.error("{} ERROR: No resource so access denied", msgPrefix);
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_ERROR, tokenDomain);
             return AccessCheckStatus.DENY_INVALID_PARAMETERS;
         }
         resource = resource.toLowerCase();
@@ -963,7 +939,6 @@ public class AuthZpeClient {
         if (resource == null) {
             LOG.error("{} ERROR: Domain mismatch in token({}) and resource so access denied",
                     msgPrefix, tokenDomain);
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DOMAIN_MISMATCH, tokenDomain);
             return AccessCheckStatus.DENY_DOMAIN_MISMATCH;
         }
 
@@ -974,7 +949,6 @@ public class AuthZpeClient {
         Map<String, List<Struct>> roleMap = zpeClt.getRoleDenyAssertions(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
             if (actionByRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
-                zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DENY, tokenDomain);
                 return AccessCheckStatus.DENY;
             } else {
                 status = AccessCheckStatus.DENY_NO_MATCH;
@@ -989,7 +963,6 @@ public class AuthZpeClient {
         roleMap = zpeClt.getWildcardDenyAssertions(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
             if (actionByWildCardRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
-                zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DENY, tokenDomain);
                 return AccessCheckStatus.DENY;
             } else {
                 status = AccessCheckStatus.DENY_NO_MATCH;
@@ -1004,7 +977,6 @@ public class AuthZpeClient {
         roleMap = zpeClt.getRoleAllowAssertions(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
             if (actionByRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
-                zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_ALLOW, tokenDomain);
                 return AccessCheckStatus.ALLOW;
             } else {
                 status = AccessCheckStatus.DENY_NO_MATCH;
@@ -1019,7 +991,6 @@ public class AuthZpeClient {
         roleMap = zpeClt.getWildcardAllowAssertions(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
             if (actionByWildCardRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
-                zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_ALLOW, tokenDomain);
                 return AccessCheckStatus.ALLOW;
             } else {
                 status = AccessCheckStatus.DENY_NO_MATCH;
@@ -1030,12 +1001,8 @@ public class AuthZpeClient {
         
         if (status == AccessCheckStatus.DENY_DOMAIN_NOT_FOUND) {
             LOG.error("{}: No role map found for domain={} so access denied", msgPrefix, tokenDomain);
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DOMAIN_NOT_FOUND, tokenDomain);
         } else if (status == AccessCheckStatus.DENY_DOMAIN_EMPTY) {
             LOG.error("{}: No policy assertions for domain={} so access denied", msgPrefix, tokenDomain);
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DOMAIN_EMPTY, tokenDomain);
-        } else {
-            zpeMetric.increment(ZpeConsts.ZPE_METRIC_NAME_DENY_NO_MATCH, tokenDomain);
         }
         
         return status;

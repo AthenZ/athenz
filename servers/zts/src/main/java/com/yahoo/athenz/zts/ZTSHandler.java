@@ -30,7 +30,6 @@ public interface ZTSHandler {
     InstanceIdentity postInstanceRefreshInformation(ResourceContext context, String provider, String domain, String service, String instanceId, InstanceRefreshInformation info);
     void deleteInstanceIdentity(ResourceContext context, String provider, String domain, String service, String instanceId);
     CertificateAuthorityBundle getCertificateAuthorityBundle(ResourceContext context, String name);
-    DomainMetrics postDomainMetrics(ResourceContext context, String domainName, DomainMetrics req);
     Status getStatus(ResourceContext context);
     Response postSSHCertRequest(ResourceContext context, SSHCertRequest certRequest);
     JWKList getJWKList(ResourceContext context, Boolean rfc);
