@@ -68,6 +68,9 @@ public class UserDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, StringList> tags;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String businessService;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -199,6 +202,13 @@ public class UserDomain {
     public Map<String, StringList> getTags() {
         return tags;
     }
+    public UserDomain setBusinessService(String businessService) {
+        this.businessService = businessService;
+        return this;
+    }
+    public String getBusinessService() {
+        return businessService;
+    }
     public UserDomain setName(String name) {
         this.name = name;
         return this;
@@ -273,6 +283,9 @@ public class UserDomain {
                 return false;
             }
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
+                return false;
+            }
+            if (businessService == null ? a.businessService != null : !businessService.equals(a.businessService)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

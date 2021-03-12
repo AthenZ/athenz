@@ -68,6 +68,9 @@ public class SubDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, StringList> tags;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String businessService;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -201,6 +204,13 @@ public class SubDomain {
     public Map<String, StringList> getTags() {
         return tags;
     }
+    public SubDomain setBusinessService(String businessService) {
+        this.businessService = businessService;
+        return this;
+    }
+    public String getBusinessService() {
+        return businessService;
+    }
     public SubDomain setName(String name) {
         this.name = name;
         return this;
@@ -289,6 +299,9 @@ public class SubDomain {
                 return false;
             }
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
+                return false;
+            }
+            if (businessService == null ? a.businessService != null : !businessService.equals(a.businessService)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

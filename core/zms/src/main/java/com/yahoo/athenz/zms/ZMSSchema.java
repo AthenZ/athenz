@@ -95,7 +95,7 @@ public class ZMSSchema {
         sb.structType("DomainMeta")
             .comment("Set of metadata attributes that all domains may have and can be changed.")
             .field("description", "String", true, "a description of the domain")
-            .field("org", "ResourceName", true, "a reference to an Organization. (i.e. org:media)")
+            .field("org", "ResourceName", true, "a reference to an audit organization defined in athenz")
             .field("enabled", "Bool", true, "Future use only, currently not used", true)
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
             .field("account", "String", true, "associated aws account id (system attribute - uniqueness check)")
@@ -111,7 +111,8 @@ public class ZMSSchema {
             .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
             .field("azureSubscription", "String", true, "associated azure subscription id (system attribute - uniqueness check)")
-            .mapField("tags", "CompoundName", "StringList", true, "key-value pair tags, tag might contain multiple values");
+            .mapField("tags", "CompoundName", "StringList", true, "key-value pair tags, tag might contain multiple values")
+            .field("businessService", "String", true, "associated business service with domain");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
@@ -402,7 +403,9 @@ public class ZMSSchema {
             .field("reviewEnabled", "Bool", true, "Flag indicates whether or not group updates require another review and approval", false)
             .field("notifyRoles", "String", true, "list of roles whose members should be notified for member review/approval")
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
-            .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute");
+            .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute")
+            .field("memberExpiryDays", "Int32", true, "all user members in the group will have specified max expiry days")
+            .field("serviceExpiryDays", "Int32", true, "all services in the group will have specified max expiry days");
 
         sb.structType("Group", "GroupMeta")
             .comment("The representation for a Group with set of members.")

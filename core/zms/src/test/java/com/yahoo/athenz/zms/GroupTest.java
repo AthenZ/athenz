@@ -57,7 +57,9 @@ public class GroupTest {
                 .setNotifyRoles("role1,domain:role.role2")
                 .setLastReviewedDate(Timestamp.fromMillis(123456789123L))
                 .setUserAuthorityExpiration("attr1")
-                .setUserAuthorityFilter("attr2,attr3");
+                .setUserAuthorityFilter("attr2,attr3")
+                .setMemberExpiryDays(10)
+                .setServiceExpiryDays(20);
 
         Result result = validator.validate(r, "Group");
         assertTrue(result.valid);
@@ -73,6 +75,8 @@ public class GroupTest {
         assertEquals(r.getNotifyRoles(), "role1,domain:role.role2");
         assertEquals(r.getUserAuthorityExpiration(), "attr1");
         assertEquals(r.getUserAuthorityFilter(), "attr2,attr3");
+        assertEquals(r.getMemberExpiryDays().intValue(), 10);
+        assertEquals(r.getServiceExpiryDays().intValue(), 20);
 
         Group r2 = new Group()
                 .setName("sys.auth:group.admin")
@@ -85,7 +89,9 @@ public class GroupTest {
                 .setNotifyRoles("role1,domain:role.role2")
                 .setLastReviewedDate(Timestamp.fromMillis(123456789123L))
                 .setUserAuthorityExpiration("attr1")
-                .setUserAuthorityFilter("attr2,attr3");
+                .setUserAuthorityFilter("attr2,attr3")
+                .setMemberExpiryDays(10)
+                .setServiceExpiryDays(20);
 
         assertTrue(r2.equals(r));
         assertTrue(r.equals(r));
@@ -137,6 +143,20 @@ public class GroupTest {
         r2.setUserAuthorityFilter(null);
         assertFalse(r2.equals(r));
         r2.setUserAuthorityFilter("attr2,attr3");
+        assertTrue(r2.equals(r));
+
+        r2.setMemberExpiryDays(15);
+        assertFalse(r2.equals(r));
+        r2.setMemberExpiryDays(null);
+        assertFalse(r2.equals(r));
+        r2.setMemberExpiryDays(10);
+        assertTrue(r2.equals(r));
+
+        r2.setServiceExpiryDays(15);
+        assertFalse(r2.equals(r));
+        r2.setServiceExpiryDays(null);
+        assertFalse(r2.equals(r));
+        r2.setServiceExpiryDays(20);
         assertTrue(r2.equals(r));
 
         r2.setAuditLog(null);
@@ -440,7 +460,9 @@ public class GroupTest {
                 .setNotifyRoles("role1,domain:role.role2")
                 .setReviewEnabled(false)
                 .setUserAuthorityExpiration("attr1")
-                .setUserAuthorityFilter("attr2,attr3");
+                .setUserAuthorityFilter("attr2,attr3")
+                .setMemberExpiryDays(10)
+                .setServiceExpiryDays(20);
         assertTrue(rm.equals(rm));
 
         assertFalse(rm.getSelfServe());
@@ -448,13 +470,17 @@ public class GroupTest {
         assertFalse(rm.getReviewEnabled());
         assertEquals(rm.getUserAuthorityExpiration(), "attr1");
         assertEquals(rm.getUserAuthorityFilter(), "attr2,attr3");
+        assertEquals(rm.getMemberExpiryDays().intValue(), 10);
+        assertEquals(rm.getServiceExpiryDays().intValue(), 20);
 
         GroupMeta rm2 = new GroupMeta()
                 .setSelfServe(false)
                 .setNotifyRoles("role1,domain:role.role2")
                 .setReviewEnabled(false)
                 .setUserAuthorityExpiration("attr1")
-                .setUserAuthorityFilter("attr2,attr3");
+                .setUserAuthorityFilter("attr2,attr3")
+                .setMemberExpiryDays(10)
+                .setServiceExpiryDays(20);
         assertTrue(rm2.equals(rm));
 
         rm2.setNotifyRoles("role1");
@@ -490,6 +516,20 @@ public class GroupTest {
         rm2.setUserAuthorityFilter(null);
         assertFalse(rm2.equals(rm));
         rm2.setUserAuthorityFilter("attr2,attr3");
+        assertTrue(rm2.equals(rm));
+
+        rm2.setMemberExpiryDays(15);
+        assertFalse(rm2.equals(rm));
+        rm2.setMemberExpiryDays(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setMemberExpiryDays(10);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setServiceExpiryDays(15);
+        assertFalse(rm2.equals(rm));
+        rm2.setServiceExpiryDays(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setServiceExpiryDays(20);
         assertTrue(rm2.equals(rm));
 
         assertFalse(rm2.equals(null));

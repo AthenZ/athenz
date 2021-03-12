@@ -7,7 +7,7 @@ include "Names.tdl";
 //Set of metadata attributes that all domains may have and can be changed.
 type DomainMeta Struct {
     String description (optional); //a description of the domain
-    ResourceName org (optional); //a reference to an Organization. (i.e. org:media)
+    ResourceName org (optional); //a reference to an audit organization defined in athenz
     Bool enabled (optional, default=true); //Future use only, currently not used
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
     String account (optional); //associated aws account id (system attribute - uniqueness check)
@@ -24,6 +24,7 @@ type DomainMeta Struct {
     String userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
     String azureSubscription (optional); //associated azure subscription id (system attribute - uniqueness check)
     Map<CompoundName,StringList> tags (optional); //key-value pair tags, tag might contain multiple values
+    String businessService (optional); //associated business service with domain
 }
 
 //A domain is an independent partition of users, roles, and resources.

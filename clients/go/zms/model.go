@@ -191,7 +191,7 @@ type DomainMeta struct {
 	Description string `json:"description" rdl:"optional"`
 
 	//
-	// a reference to an Organization. (i.e. org:media)
+	// a reference to an audit organization defined in athenz
 	//
 	Org ResourceName `json:"org,omitempty" rdl:"optional"`
 
@@ -277,6 +277,11 @@ type DomainMeta struct {
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+
+	//
+	// associated business service with domain
+	//
+	BusinessService string `json:"businessService" rdl:"optional"`
 }
 
 //
@@ -375,6 +380,12 @@ func (self *DomainMeta) Validate() error {
 			return fmt.Errorf("DomainMeta.azureSubscription does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.BusinessService != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.BusinessService)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.businessService does not contain a valid String (%v)", val.Error)
+		}
+	}
 	return nil
 }
 
@@ -394,7 +405,7 @@ type Domain struct {
 	Description string `json:"description" rdl:"optional"`
 
 	//
-	// a reference to an Organization. (i.e. org:media)
+	// a reference to an audit organization defined in athenz
 	//
 	Org ResourceName `json:"org,omitempty" rdl:"optional"`
 
@@ -480,6 +491,11 @@ type Domain struct {
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+
+	//
+	// associated business service with domain
+	//
+	BusinessService string `json:"businessService" rdl:"optional"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -591,6 +607,12 @@ func (self *Domain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
 		if !val.Valid {
 			return fmt.Errorf("Domain.azureSubscription does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.BusinessService != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.BusinessService)
+		if !val.Valid {
+			return fmt.Errorf("Domain.businessService does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -3249,7 +3271,7 @@ type TopLevelDomain struct {
 	Description string `json:"description" rdl:"optional"`
 
 	//
-	// a reference to an Organization. (i.e. org:media)
+	// a reference to an audit organization defined in athenz
 	//
 	Org ResourceName `json:"org,omitempty" rdl:"optional"`
 
@@ -3335,6 +3357,11 @@ type TopLevelDomain struct {
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+
+	//
+	// associated business service with domain
+	//
+	BusinessService string `json:"businessService" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -3451,6 +3478,12 @@ func (self *TopLevelDomain) Validate() error {
 			return fmt.Errorf("TopLevelDomain.azureSubscription does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.BusinessService != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.BusinessService)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.businessService does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.Name == "" {
 		return fmt.Errorf("TopLevelDomain.name is missing but is a required field")
 	} else {
@@ -3476,7 +3509,7 @@ type SubDomain struct {
 	Description string `json:"description" rdl:"optional"`
 
 	//
-	// a reference to an Organization. (i.e. org:media)
+	// a reference to an audit organization defined in athenz
 	//
 	Org ResourceName `json:"org,omitempty" rdl:"optional"`
 
@@ -3562,6 +3595,11 @@ type SubDomain struct {
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+
+	//
+	// associated business service with domain
+	//
+	BusinessService string `json:"businessService" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -3683,6 +3721,12 @@ func (self *SubDomain) Validate() error {
 			return fmt.Errorf("SubDomain.azureSubscription does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.BusinessService != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.BusinessService)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.businessService does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.Name == "" {
 		return fmt.Errorf("SubDomain.name is missing but is a required field")
 	} else {
@@ -3717,7 +3761,7 @@ type UserDomain struct {
 	Description string `json:"description" rdl:"optional"`
 
 	//
-	// a reference to an Organization. (i.e. org:media)
+	// a reference to an audit organization defined in athenz
 	//
 	Org ResourceName `json:"org,omitempty" rdl:"optional"`
 
@@ -3803,6 +3847,11 @@ type UserDomain struct {
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+
+	//
+	// associated business service with domain
+	//
+	BusinessService string `json:"businessService" rdl:"optional"`
 
 	//
 	// user id which will be the domain name
@@ -3909,6 +3958,12 @@ func (self *UserDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
 		if !val.Valid {
 			return fmt.Errorf("UserDomain.azureSubscription does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.BusinessService != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.BusinessService)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.businessService does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -4626,6 +4681,16 @@ type GroupMeta struct {
 	// expiration enforced by a user authority configured attribute
 	//
 	UserAuthorityExpiration string `json:"userAuthorityExpiration" rdl:"optional"`
+
+	//
+	// all user members in the group will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// all services in the group will have specified max expiry days
+	//
+	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 }
 
 //
@@ -4714,6 +4779,16 @@ type Group struct {
 	// expiration enforced by a user authority configured attribute
 	//
 	UserAuthorityExpiration string `json:"userAuthorityExpiration" rdl:"optional"`
+
+	//
+	// all user members in the group will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// all services in the group will have specified max expiry days
+	//
+	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
 
 	//
 	// name of the group
@@ -5930,7 +6005,7 @@ type DomainData struct {
 	Description string `json:"description" rdl:"optional"`
 
 	//
-	// a reference to an Organization. (i.e. org:media)
+	// a reference to an audit organization defined in athenz
 	//
 	Org ResourceName `json:"org,omitempty" rdl:"optional"`
 
@@ -6016,6 +6091,11 @@ type DomainData struct {
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+
+	//
+	// associated business service with domain
+	//
+	BusinessService string `json:"businessService" rdl:"optional"`
 
 	//
 	// name of the domain
@@ -6162,6 +6242,12 @@ func (self *DomainData) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.azureSubscription does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.BusinessService != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.BusinessService)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.businessService does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {

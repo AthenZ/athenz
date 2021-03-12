@@ -28,6 +28,12 @@ public class GroupMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String userAuthorityExpiration;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer memberExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer serviceExpiryDays;
 
     public GroupMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -64,6 +70,20 @@ public class GroupMeta {
     public String getUserAuthorityExpiration() {
         return userAuthorityExpiration;
     }
+    public GroupMeta setMemberExpiryDays(Integer memberExpiryDays) {
+        this.memberExpiryDays = memberExpiryDays;
+        return this;
+    }
+    public Integer getMemberExpiryDays() {
+        return memberExpiryDays;
+    }
+    public GroupMeta setServiceExpiryDays(Integer serviceExpiryDays) {
+        this.serviceExpiryDays = serviceExpiryDays;
+        return this;
+    }
+    public Integer getServiceExpiryDays() {
+        return serviceExpiryDays;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -85,6 +105,12 @@ public class GroupMeta {
                 return false;
             }
             if (userAuthorityExpiration == null ? a.userAuthorityExpiration != null : !userAuthorityExpiration.equals(a.userAuthorityExpiration)) {
+                return false;
+            }
+            if (memberExpiryDays == null ? a.memberExpiryDays != null : !memberExpiryDays.equals(a.memberExpiryDays)) {
+                return false;
+            }
+            if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
                 return false;
             }
         }

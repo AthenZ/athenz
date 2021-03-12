@@ -114,7 +114,7 @@ func init() {
 	tDomainMeta := rdl.NewStructTypeBuilder("Struct", "DomainMeta")
 	tDomainMeta.Comment("Set of metadata attributes that all domains may have and can be changed.")
 	tDomainMeta.Field("description", "String", true, nil, "a description of the domain")
-	tDomainMeta.Field("org", "ResourceName", true, nil, "a reference to an Organization. (i.e. org:media)")
+	tDomainMeta.Field("org", "ResourceName", true, nil, "a reference to an audit organization defined in athenz")
 	tDomainMeta.Field("enabled", "Bool", true, true, "Future use only, currently not used")
 	tDomainMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
 	tDomainMeta.Field("account", "String", true, nil, "associated aws account id (system attribute - uniqueness check)")
@@ -131,6 +131,7 @@ func init() {
 	tDomainMeta.Field("userAuthorityFilter", "String", true, nil, "membership filtered based on user authority configured attributes")
 	tDomainMeta.Field("azureSubscription", "String", true, nil, "associated azure subscription id (system attribute - uniqueness check)")
 	tDomainMeta.MapField("tags", "CompoundName", "StringList", true, "key-value pair tags, tag might contain multiple values")
+	tDomainMeta.Field("businessService", "String", true, nil, "associated business service with domain")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")
@@ -465,6 +466,8 @@ func init() {
 	tGroupMeta.Field("notifyRoles", "String", true, nil, "list of roles whose members should be notified for member review/approval")
 	tGroupMeta.Field("userAuthorityFilter", "String", true, nil, "membership filtered based on user authority configured attributes")
 	tGroupMeta.Field("userAuthorityExpiration", "String", true, nil, "expiration enforced by a user authority configured attribute")
+	tGroupMeta.Field("memberExpiryDays", "Int32", true, nil, "all user members in the group will have specified max expiry days")
+	tGroupMeta.Field("serviceExpiryDays", "Int32", true, nil, "all services in the group will have specified max expiry days")
 	sb.AddType(tGroupMeta.Build())
 
 	tGroup := rdl.NewStructTypeBuilder("GroupMeta", "Group")
