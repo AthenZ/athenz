@@ -48,17 +48,18 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAINS_WITH_NAME = "SELECT name FROM domain WHERE name LIKE ?;";
     private static final String SQL_GET_DOMAIN_WITH_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
     private static final String SQL_GET_DOMAIN_WITH_SUBSCRIPTION = "SELECT name FROM domain WHERE azure_subscription=?;";
+    private static final String SQL_GET_DOMAIN_WITH_BUSINESS_SERVICE = "SELECT name FROM domain WHERE business_service=?;";
     private static final String SQL_GET_DOMAIN_WITH_PRODUCT_ID = "SELECT name FROM domain WHERE ypm_id=?;";
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
             + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id, cert_dns_domain,"
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
-            + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription)"
-            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription, business_service)"
+            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?,"
             + " cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
             + " role_cert_expiry_mins=?, sign_algorithm=?, service_expiry_days=?, user_authority_filter=?,"
-            + " group_expiry_days=?, azure_subscription=? WHERE name=?;";
+            + " group_expiry_days=?, azure_subscription=?, business_service=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -383,11 +384,11 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
             + "WHERE domain.name=? AND principal_group.name=?;";
     private static final String SQL_INSERT_GROUP = "INSERT INTO principal_group (name, domain_id, audit_enabled, self_serve,"
-            + " review_enabled, notify_roles, user_authority_filter, user_authority_expiration) "
-            + "VALUES (?,?,?,?,?,?,?,?);";
+            + " review_enabled, notify_roles, user_authority_filter, user_authority_expiration, member_expiry_days, service_expiry_days) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_GROUP = "UPDATE principal_group SET audit_enabled=?, self_serve=?, "
-            + "review_enabled=?, notify_roles=?, "
-            + "user_authority_filter=?, user_authority_expiration=? WHERE group_id=?;";
+            + "review_enabled=?, notify_roles=?, user_authority_filter=?, user_authority_expiration=?,"
+            + "member_expiry_days=?, service_expiry_days=? WHERE group_id=?;";
     private static final String SQL_GET_GROUP_ID = "SELECT group_id FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_DELETE_GROUP = "DELETE FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_GROUP_MOD_TIMESTAMP = "UPDATE principal_group "
@@ -677,7 +678,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setSignAlgorithm(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM)))
                 .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0))
                 .setGroupExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_GROUP_EXPIRY_DAYS), 0))
-                .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)));
+                .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)))
+                .setBusinessService(saveValue(rs.getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE)));
         if (fetchTags) {
             domain.setTags(getDomainTags(domainName));
         }
@@ -736,6 +738,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(17, processInsertValue(domain.getUserAuthorityFilter()));
             ps.setInt(18, processInsertValue(domain.getGroupExpiryDays()));
             ps.setString(19, processInsertValue(domain.getAzureSubscription()));
+            ps.setString(20, processInsertValue(domain.getBusinessService()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -840,7 +843,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(16, processInsertValue(domain.getUserAuthorityFilter()));
             ps.setInt(17, processInsertValue(domain.getGroupExpiryDays()));
             ps.setString(18, processInsertValue(domain.getAzureSubscription()));
-            ps.setString(19, domain.getName());
+            ps.setString(19, processInsertValue(domain.getBusinessService()));
+            ps.setString(20, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -4994,7 +4998,10 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setReviewEnabled(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_REVIEW_ENABLED), false))
                 .setNotifyRoles(saveValue(rs.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES)))
                 .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)))
-                .setUserAuthorityExpiration(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION)));
+                .setUserAuthorityExpiration(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION)))
+                .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
+                .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0));
+
         java.sql.Timestamp lastReviewedTime = rs.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME);
         if (lastReviewedTime != null) {
             group.setLastReviewedDate(Timestamp.fromMillis(lastReviewedTime.getTime()));
@@ -5044,6 +5051,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(6, processInsertValue(group.getNotifyRoles()));
             ps.setString(7, processInsertValue(group.getUserAuthorityFilter()));
             ps.setString(8, processInsertValue(group.getUserAuthorityExpiration()));
+            ps.setInt(9, processInsertValue(group.getMemberExpiryDays()));
+            ps.setInt(10, processInsertValue(group.getServiceExpiryDays()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -5078,7 +5087,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(4, processInsertValue(group.getNotifyRoles()));
             ps.setString(5, processInsertValue(group.getUserAuthorityFilter()));
             ps.setString(6, processInsertValue(group.getUserAuthorityExpiration()));
-            ps.setInt(7, groupId);
+            ps.setInt(7, processInsertValue(group.getMemberExpiryDays()));
+            ps.setInt(8, processInsertValue(group.getServiceExpiryDays()));
+            ps.setInt(9, groupId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
