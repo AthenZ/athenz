@@ -644,7 +644,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     int executeUpdate(PreparedStatement ps, String caller) throws SQLException {
         if (LOG.isDebugEnabled()) {
-            LOG.debug(caller + ": " + ps.toString());
+            LOG.debug("{}: {}", caller, ps.toString());
         }
         ps.setQueryTimeout(queryTimeout);
         return ps.executeUpdate();
@@ -652,7 +652,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     ResultSet executeQuery(PreparedStatement ps, String caller) throws SQLException {
         if (LOG.isDebugEnabled()) {
-            LOG.debug(caller + ": " + ps.toString());
+            LOG.debug("{}: {}", caller, ps.toString());
         }
         ps.setQueryTimeout(queryTimeout);
         return ps.executeQuery();
@@ -1296,8 +1296,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         } catch (SQLException ex) {
-            LOG.error("unable to get domain id for name: " + domainName +
-                    " error code: " + ex.getErrorCode() + " msg: " + ex.getMessage());
+            LOG.error("unable to get domain id for name: {} error code: {} msg: {}",
+                    domainName, ex.getErrorCode(), ex.getMessage());
         }
 
         // before returning the value update our cache
@@ -1333,8 +1333,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         } catch (SQLException ex) {
-            LOG.error("unable to get policy id for name: " + policyName +
-                    " error code: " + ex.getErrorCode() + " msg: " + ex.getMessage());
+            LOG.error("unable to get policy id for name: {} error code: {} msg: {}",
+                    policyName, ex.getErrorCode(), ex.getMessage());
         }
 
         // before returning the value update our cache
@@ -1370,8 +1370,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         } catch (SQLException ex) {
-            LOG.error("unable to get role id for name: " + roleName +
-                    " error code: " + ex.getErrorCode() + " msg: " + ex.getMessage());
+            LOG.error("unable to get role id for name: {} error code: {} msg: {}",
+                    roleName, ex.getErrorCode(), ex.getMessage());
         }
 
         // before returning the value update our cache
@@ -1407,8 +1407,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         } catch (SQLException ex) {
-            LOG.error("unable to get role id for name: " + groupName +
-                    " error code: " + ex.getErrorCode() + " msg: " + ex.getMessage());
+            LOG.error("unable to get group id for name: {} error code: {} msg: {}",
+                    groupName, ex.getErrorCode(), ex.getMessage());
         }
 
         // before returning the value update our cache
@@ -1444,8 +1444,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         } catch (SQLException ex) {
-            LOG.error("unable to get service id for name: " + serviceName +
-                    " error code: " + ex.getErrorCode() + " msg: " + ex.getMessage());
+            LOG.error("unable to get service id for name: {} error code: {} msg: {}",
+                    serviceName, ex.getErrorCode(), ex.getMessage());
         }
 
         // before returning the value update our cache
@@ -1479,9 +1479,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         } catch (SQLException ex) {
-            LOG.error("unable to get principal id for name: " + principal +
-                    " error code: " + ex.getErrorCode() +
-                    " msg: " + ex.getMessage());
+            LOG.error("unable to get principal id for name: {} error code: {} msg: {}",
+                    principal, ex.getErrorCode(), ex.getMessage());
         }
 
         // before returning the value update our cache
@@ -1515,8 +1514,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         } catch (SQLException ex) {
-            LOG.error("unable to get host id for name: " + hostName +
-                    " error code: " + ex.getErrorCode() + " msg: " + ex.getMessage());
+            LOG.error("unable to get host id for name: {} error code: {} msg: {}",
+                    hostName, ex.getErrorCode(), ex.getMessage());
         }
 
         // before returning the value update our cache
@@ -1540,8 +1539,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         } catch (SQLException ex) {
-            LOG.error("unable to get last insert id - error code: " + ex.getErrorCode() +
-                    " msg: " + ex.getMessage());
+            LOG.error("unable to get last insert id - error code: {} msg: {}",
+                    ex.getErrorCode(), ex.getMessage());
         }
         return lastInsertId;
     }
@@ -3768,7 +3767,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     List<Assertion> assertions = roleAssertions.computeIfAbsent(index, k -> new ArrayList<>());
 
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug(caller + ": adding assertion " + assertion + " for " + index);
+                        LOG.debug("{}: adding assertion {} for {}", caller, assertion, index);
                     }
 
                     assertions.add(assertion);
@@ -4058,7 +4057,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         for (String roleIndex : rolePrincipals) {
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug(caller + ": processing role: " + roleIndex);
+                LOG.debug("{}: processing role: {}", caller, roleIndex);
             }
 
             List<Assertion> assertions = principalAssertions.computeIfAbsent(principal, k -> new ArrayList<>());
@@ -4075,7 +4074,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 for (String mappedTrustedRole : mappedTrustedRoles) {
 
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug(caller + ": processing trusted role: " + mappedTrustedRole);
+                        LOG.debug("{}: processing trusted role: {}", caller, mappedTrustedRole);
                     }
 
                     addRoleAssertions(assertions, roleAssertions.get(mappedTrustedRole), awsDomains);
