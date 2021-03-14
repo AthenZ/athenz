@@ -95,7 +95,7 @@ public class ZTSUtils {
         
         SslContextFactory sslContextFactory = new SslContextFactory();
         if (keyStorePath != null) {
-            LOGGER.info("createSSLContextObject: using SSL KeyStore path: " + keyStorePath);
+            LOGGER.info("createSSLContextObject: using SSL KeyStore path: {}", keyStorePath);
             sslContextFactory.setKeyStorePath(keyStorePath);
         }
         
@@ -111,7 +111,7 @@ public class ZTSUtils {
         }
         
         if (trustStorePath != null) {
-            LOGGER.info("createSSLContextObject: using SSL TrustStore path: " + trustStorePath);
+            LOGGER.info("createSSLContextObject: using SSL TrustStore path: {}", trustStorePath);
             sslContextFactory.setTrustStorePath(trustStorePath);
         }
         if (trustStorePassword != null) {

@@ -872,7 +872,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             
             if (!zmsDomainList.contains(domainName)) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Removing local domain: " + domainName + ". Domain not in ZMS anymore.");
+                    LOGGER.debug("Removing local domain: {}. Domain not in ZMS anymore.", domainName);
                 }
                 deleteDomain(domainName);
             }
@@ -1489,7 +1489,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
         ///CLOVER:OFF
         if (publicKey == null && LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Public key: " + publicKeyName + " not available");
+            LOGGER.debug("Public key: {} not available", publicKeyName);
         }
         ///CLOVER:ON
         

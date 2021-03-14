@@ -44,12 +44,11 @@ public class MetricNotificationServiceFactory implements NotificationServiceFact
         try {
             metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid MetricFactory class: " + metricFactoryClass
-                    + " error: " + e.getMessage());
+            LOG.error("Invalid MetricFactory class: {} error: {}", metricFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid metric class");
         }
 
-        LOG.info("Loaded MetricFactory for receiving notification metrics: " + metricFactoryClass);
+        LOG.info("Loaded MetricFactory for receiving notification metrics: {}", metricFactoryClass);
         // create our metric
         return metricFactory.create();
     }

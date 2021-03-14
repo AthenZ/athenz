@@ -51,7 +51,7 @@ public class DebugPrincipalAuthority implements Authority, AuthorityKeyStore {
         }
 
         if (LOG.isInfoEnabled()) {
-            LOG.info("Principal Authority: authenticating token: " + nToken);
+            LOG.info("Principal Authority: authenticating token: {}", nToken);
         }
         
         String domainName = null;
@@ -78,7 +78,7 @@ public class DebugPrincipalAuthority implements Authority, AuthorityKeyStore {
         }
         String fullName = domainName + "." + serviceName;
         if (LOG.isInfoEnabled()) {
-            LOG.info("[debug-authenticated: " + fullName + "]");
+            LOG.info("[debug-authenticated: {}]", fullName);
         }
 
         return SimplePrincipal.create(domainName, serviceName, nToken, 0, this);

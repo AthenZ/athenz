@@ -333,8 +333,7 @@ public class InstanceCertManager {
         try {
             certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid CertSignerFactory class: " + certSignerFactoryClass
-                    + " error: " + e.getMessage());
+            LOGGER.error("Invalid CertSignerFactory class: {} error: {}", certSignerFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid certsigner class");
         }
 
@@ -355,8 +354,7 @@ public class InstanceCertManager {
         try {
             sshSignerFactory = (SSHSignerFactory) Class.forName(sshSignerFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid SSHSignerFactory class: " + sshSignerFactoryClass
-                    + " error: " + e.getMessage());
+            LOGGER.error("Invalid SSHSignerFactory class: {} error: {}", sshSignerFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid sshsigner class");
         }
 
@@ -991,7 +989,7 @@ public class InstanceCertManager {
             notificationsEnabled = certStore.enableNotifications(notificationManager, rolesProvider, serverName);
         }
 
-        LOGGER.info("certStore Notifications " + (notificationsEnabled ? "enabled" : "disabled"));
+        LOGGER.info("certStore Notifications {}", (notificationsEnabled ? "enabled" : "disabled"));
         return notificationsEnabled;
     }
 
@@ -1001,7 +999,7 @@ public class InstanceCertManager {
             notificationsEnabled = sshStore.enableNotifications(notificationManager, rolesProvider, serverName);
         }
 
-        LOGGER.info("sshStore Notifications " + (notificationsEnabled ? "enabled" : "disabled"));
+        LOGGER.info("sshStore Notifications {}", (notificationsEnabled ? "enabled" : "disabled"));
         return notificationsEnabled;
     }
 

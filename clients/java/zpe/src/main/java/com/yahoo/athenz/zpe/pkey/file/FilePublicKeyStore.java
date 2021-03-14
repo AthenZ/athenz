@@ -80,7 +80,7 @@ public class FilePublicKeyStore implements PublicKeyStore {
             try {
                 pubKey = Crypto.loadPublicKey(Crypto.ybase64DecodeString(key));
             } catch (Exception e) {
-                LOG.error("Invalid ZTS public key for id: " + id + " - " + e.getMessage());
+                LOG.error("Invalid ZTS public key for id: {} - {}", id, e.getMessage());
                 continue;
             }
             keyMap.put(id, pubKey);

@@ -182,14 +182,14 @@ public class RoleToken extends Token {
         unsignedToken = strBuilder.toString();
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("RoleToken created: " + unsignedToken);
+            LOG.debug("RoleToken created: {}", unsignedToken);
         }
     }
 
     public RoleToken(String signedToken) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Constructing RoleToken with input string: " + signedToken);
+            LOG.debug("Constructing RoleToken with input string: {}", signedToken);
         }
         
         if (signedToken == null || signedToken.isEmpty()) {
@@ -291,20 +291,11 @@ public class RoleToken extends Token {
         this.signedToken = signedToken;
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Values extracted from token " +
-                    " version:" + version +
-                    " domain:" + domain +
-                    " roles:" + roleNames +
-                    " principal:" + principal +
-                    " host:" + host +
-                    " salt:" + salt +
-                    " timestamp:" + timestamp +
-                    " expiryTime:" + expiryTime +
-                    " domainCompleteRoleSet" + domainCompleteRoleSet +
-                    " keyId:" + keyId +
-                    " ip:" + ip +
-                    " proxyUser: " + proxyUser +
-                    " signature:" + signature);
+            LOG.debug("Values extracted from token version:{} domain:{} roles:{} principal:{}" +
+                    " host:{} salt:{} timestamp:{} expiryTime:{} domainCompleteRoleSet:{}" +
+                    " keyId:{} ip:{} proxyUser:{} signature:{}", version, domain, roleNames,
+                    principal, host, salt, timestamp, expiryTime, domainCompleteRoleSet, keyId,
+                    ip, proxyUser, signature);
         }
     }
     

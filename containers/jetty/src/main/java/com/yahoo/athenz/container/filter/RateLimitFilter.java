@@ -68,8 +68,7 @@ public class RateLimitFilter implements javax.servlet.Filter {
                 LOGGER.debug("Registered rate limit filter: {}", ratelimitFactoryClass);
             }
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid RateLimitFactory class: " + ratelimitFactoryClass
-                    + " error: " + e.getMessage());
+            LOGGER.error("Invalid RateLimitFactory class: {} error: {}", ratelimitFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid RateLimitFactory class");
         }
     }

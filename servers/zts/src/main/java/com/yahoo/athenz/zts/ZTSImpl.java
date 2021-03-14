@@ -522,7 +522,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 InetAddress localhost = java.net.InetAddress.getLocalHost();
                 serverHostName = localhost.getCanonicalHostName();
             } catch (java.net.UnknownHostException e) {
-                LOGGER.info("Unable to determine local hostname: " + e.getMessage());
+                LOGGER.info("Unable to determine local hostname: {}" , e.getMessage());
             }
         }
         
@@ -550,8 +550,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             clogFactory = (ChangeLogStoreFactory) Class.forName(clogFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid ChangeLogStoreFactory class: " + clogFactoryClass
-                    + " error: " + e.getMessage());
+            LOGGER.error("Invalid ChangeLogStoreFactory class: {} error: {}", clogFactoryClass, e.getMessage());
             return null;
         }
         
@@ -570,8 +569,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid MetricFactory class: " + metricFactoryClass
-                    + " error: " + e.getMessage());
+            LOGGER.error("Invalid MetricFactory class: {} error: {}", metricFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid metric class");
         }
         
@@ -592,8 +590,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             resolverFactory = (HostnameResolverFactory) Class.forName(resolverFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid HostnameResolverFactory class: " + resolverFactoryClass
-                    + " error: " + e.getMessage());
+            LOGGER.error("Invalid HostnameResolverFactory class: {} error: {}", resolverFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid HostnameResolverFactory class");
         }
 
@@ -610,8 +607,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid PrivateKeyStoreFactory class: " + pkeyFactoryClass
-                    + " error: " + e.getMessage());
+            LOGGER.error("Invalid PrivateKeyStoreFactory class: {} error: {}", pkeyFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid private key store");
         }
         
@@ -670,8 +666,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             auditLogFactory = (AuditLoggerFactory) Class.forName(auditFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid AuditLoggerFactory class: " + auditFactoryClass
-                    + " error: " + e.getMessage());
+            LOGGER.error("Invalid AuditLoggerFactory class: {} error: {}", auditFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid audit logger class");
         }
         
@@ -689,8 +684,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             try {
                 statusCheckerFactory = (StatusCheckerFactory) Class.forName(statusCheckerFactoryClass).newInstance();
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                LOGGER.error("Invalid StatusCheckerFactory class: " + statusCheckerFactoryClass
-                        + " error: " + e.getMessage());
+                LOGGER.error("Invalid StatusCheckerFactory class: {} error: {}", statusCheckerFactoryClass, e.getMessage());
                 throw new IllegalArgumentException("Invalid status checker factory class");
             }
 
@@ -1214,7 +1208,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     String retrieveTenantDomainName(String roleName, String serviceName) {
         
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("retrieveTenantDomainName: Processing role name: " + roleName);
+            LOGGER.debug("retrieveTenantDomainName: Processing role name: {}", roleName);
         }
         
         // roles are named: <service>.tenant.<domain>.[<resource_group>.]<action>
@@ -1881,7 +1875,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         principal = normalizeDomainAliasUser(principal.toLowerCase());
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("getRoleAccess(domain: " + domainName + ", principal: " + principal + ")");
+            LOGGER.debug("getRoleAccess(domain: {}, principal: {})", domainName, principal);
         }
         
         // first retrieve our domain data object from the cache
@@ -2403,8 +2397,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         dataStore.getAccessibleRoles(data, domainName, principal, null, roles, true);
         
         if (roles.isEmpty()) {
-            LOGGER.error("verifyAWSAssumeRole: Principal: {}" +
-                    " has no acccess to any roles in domain: {}", principal, domainName);
+            LOGGER.error("verifyAWSAssumeRole: Principal: {} has no access to any roles in domain: {}",
+                    principal, domainName);
             return false;
         }
 
@@ -3634,8 +3628,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         principal = normalizeDomainAliasUser(principal.toLowerCase());
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("getAccess(domain: " + domainName + ", principal: " + principal +
-                    ", role: " + roleName + ")");
+            LOGGER.debug("getAccess(domain: {}, principal: {}, role: {})", domainName, principal, roleName);
         }
         
         // first retrieve our domain data object from the cache
@@ -3902,7 +3895,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             authority = (Authority) Class.forName(className).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid Authority class: " + className + " error: " + e.getMessage());
+            LOGGER.error("Invalid Authority class: {} error: {}", className, e.getMessage());
             return null;
         }
         return authority;

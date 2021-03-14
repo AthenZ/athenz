@@ -179,7 +179,7 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
             OAuthJwtAccessTokenParserFactory jwtParserFactory = (OAuthJwtAccessTokenParserFactory) Class.forName(jwtParserFactoryClass).newInstance();
             this.parser = jwtParserFactory.create(this);
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid OAuthJwtAccessTokenParserFactory class: " + jwtParserFactoryClass + " error: " + e.getMessage());
+            LOG.error("Invalid OAuthJwtAccessTokenParserFactory class: {} error: {}", jwtParserFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid JWT parser class", e);
         }
 
@@ -273,10 +273,10 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
         principal.setAuthorizedService(this.authorizedServices.getOrDefault(clientCertPrincipal, clientCertPrincipal));
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: client certificate name=" + clientCertPrincipal);
-            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: valid user=" + principal.toString());
-            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: unsignedCredentials=" + principal.getUnsignedCredentials());
-            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: credentials=" + principal.getCredentials());
+            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: client certificate name={}", clientCertPrincipal);
+            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: valid user={}", principal.toString());
+            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: unsignedCredentials={}", principal.getUnsignedCredentials());
+            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: credentials={}", principal.getCredentials());
         }
         return principal;
     }

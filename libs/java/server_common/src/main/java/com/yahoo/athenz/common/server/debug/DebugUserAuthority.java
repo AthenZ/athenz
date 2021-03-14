@@ -87,7 +87,7 @@ public class DebugUserAuthority implements Authority {
         String username = userArray[0];
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("UserAuthority.authenticate: valid user=" + username);
+            LOG.debug("UserAuthority.authenticate: valid user={}", username);
         }
 
         // all the role members in Athenz are normalized to lower case so we need to make

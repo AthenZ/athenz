@@ -69,7 +69,7 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
 
     @Override
     public String getDomain() {
-        return "sys.auth";
+        return SYS_AUTH_DOMAIN;
     }
 
     @Override
@@ -87,7 +87,7 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
 
         errMsg = errMsg == null ? new StringBuilder(512) : errMsg;
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Authenticating RoleToken: " + signedToken);
+            LOG.debug("Authenticating RoleToken: {}", signedToken);
         }
 
         RoleToken roleToken;

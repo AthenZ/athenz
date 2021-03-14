@@ -100,7 +100,7 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
 
         errMsg = errMsg == null ? new StringBuilder(512) : errMsg;
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Authenticating PrincipalToken: " + signedToken);
+            LOG.debug("Authenticating PrincipalToken: {}", signedToken);
         }
 
         PrincipalToken serviceToken;

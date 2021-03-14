@@ -130,8 +130,7 @@ public class HttpCertSigner implements CertSigner {
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid PrivateKeyStoreFactory class: " + pkeyFactoryClass
-                    + " error: " + e.getMessage());
+            LOGGER.error("Invalid PrivateKeyStoreFactory class: {} error: {}", pkeyFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid private key store");
         }
         return pkeyFactory.create();
@@ -195,15 +194,13 @@ public class HttpCertSigner implements CertSigner {
         }
         
         if (response.getStatus() != HttpStatus.CREATED_201) {
-            LOGGER.error("unable to fetch requested uri '" + x509CertUri +
-                    "' status: " + response.getStatus());
+            LOGGER.error("unable to fetch requested uri '{}' status: {}", x509CertUri, response.getStatus());
             return null;
         }
 
         String data = response.getContentAsString();
         if (data == null || data.isEmpty()) {
-            LOGGER.error("received empty response from uri '" + x509CertUri +
-                    "' status: " + response.getStatus());
+            LOGGER.error("received empty response from uri '{}' status: {}", x509CertUri, response.getStatus());
             return null;
         }
 
@@ -218,25 +215,22 @@ public class HttpCertSigner implements CertSigner {
         try {
             response = httpClient.GET(x509CertUri);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            LOGGER.error("getCACertificate: unable to fetch requested uri '" + x509CertUri + "': "
-                    + e.getMessage());
+            LOGGER.error("getCACertificate: unable to fetch requested uri '{}': {}", x509CertUri, e.getMessage());
             return null;
         }
         if (response.getStatus() != HttpStatus.OK_200) {
-            LOGGER.error("getCACertificate: unable to fetch requested uri '" + x509CertUri +
-                    "' status: " + response.getStatus());
+            LOGGER.error("getCACertificate: unable to fetch requested uri '{}' status: {}", x509CertUri, response.getStatus());
             return null;
         }
 
         String data = response.getContentAsString();
         if (data == null || data.isEmpty()) {
-            LOGGER.error("getCACertificate: received empty response from uri '" + x509CertUri +
-                    "' status: " + response.getStatus());
+            LOGGER.error("getCACertificate: received empty response from uri '{}' status: {}", x509CertUri, response.getStatus());
             return null;
         }
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("getCACertificate: CA Certificate" + data);
+            LOGGER.debug("getCACertificate: CA Certificate {}", data);
         }
 
         X509CertSignObject pemCert = JSON.fromString(data, X509CertSignObject.class);

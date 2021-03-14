@@ -16,7 +16,6 @@
 package com.yahoo.athenz.zpe_policy_updater;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -117,9 +116,9 @@ public class PolicyUpdaterConfiguration {
             startupDelay = MAX_STARTUP_DELAY;
         }
         
-        LOG.info("debug mode: " + debugMode);
-        LOG.info("policyFileDir: " + policyFileDir);
-        LOG.info("startup delay: " + startupDelay + " seconds");
+        LOG.info("debug mode: {}", debugMode);
+        LOG.info("policyFileDir: {}", policyFileDir);
+        LOG.info("startup delay: {} seconds", startupDelay);
     }
 
     public void init(String pathToAthenzConfigFile, String pathToZPUConfigFile) throws Exception {
@@ -132,7 +131,7 @@ public class PolicyUpdaterConfiguration {
         }
 
         LOG.info("Policy Updater configuration is set to:");
-        LOG.info("policyFileDir: " + policyFileDir);
+        LOG.info("policyFileDir: {}", policyFileDir);
         
         List<PublicKeyEntry> publicKeys = athenzConfFile.getZtsPublicKeys();
         if (publicKeys != null) {
@@ -143,7 +142,7 @@ public class PolicyUpdaterConfiguration {
                     continue;
                 }
                 addZtsPublicKey(keyId, Crypto.loadPublicKey(Crypto.ybase64DecodeString(key)));
-                LOG.info("Loaded ztsPublicKey keyId: " + keyId + " key: " + key);
+                LOG.info("Loaded ztsPublicKey keyId: {} key: {}", keyId, key);
             }
         }
         
@@ -156,7 +155,7 @@ public class PolicyUpdaterConfiguration {
                     continue;
                 }
                 addZmsPublicKey(keyId, Crypto.loadPublicKey(Crypto.ybase64DecodeString(key)));
-                LOG.info("Loaded zmsPublicKey keyId: " + keyId + " key: " + key);
+                LOG.info("Loaded zmsPublicKey keyId: {} key: {}", keyId, key);
             }
         }
         
@@ -175,12 +174,12 @@ public class PolicyUpdaterConfiguration {
             zpuDirOwner = ZPU_USER_DEFAULT;
         }
         if (isDebugMode()) {
-            LOG.debug("config-init: user: " + zpuDirOwner + " file=" + pathToZPUConfigFile);
+            LOG.debug("config-init: user: {} file={}", zpuDirOwner, pathToZPUConfigFile);
         }
     }
 
-    private AthenzConfig readAthenzConfiguration(String pathToFile) throws IOException {
-        LOG.info("Reading configuration file: " + pathToFile);
+    private AthenzConfig readAthenzConfiguration(String pathToFile) {
+        LOG.info("Reading configuration file: {}", pathToFile);
         AthenzConfig conf = null;
         try {
             Path path = Paths.get(pathToFile);
@@ -191,8 +190,8 @@ public class PolicyUpdaterConfiguration {
         return conf;
     }
 
-    private Struct readZpuConfiguration(String pathToFile) throws IOException {
-        LOG.info("Reading configuration file: " + pathToFile);
+    private Struct readZpuConfiguration(String pathToFile) {
+        LOG.info("Reading configuration file: {}", pathToFile);
         Struct conf = null;
         try {
             Path path = Paths.get(pathToFile);
@@ -204,14 +203,11 @@ public class PolicyUpdaterConfiguration {
     }
 
     public PublicKey getZtsPublicKey(ZTSClient zts, String keyId) {
-        PublicKey pKey = ztsPublicKeyMap.get(keyId);
-
-        return pKey;
+        return ztsPublicKeyMap.get(keyId);
     }
 
     public PublicKey getZmsPublicKey(ZTSClient zts, String keyId) {
-        PublicKey pKey = zmsPublicKeyMap.get(keyId);
-        return pKey;
+        return zmsPublicKeyMap.get(keyId);
     }
     
     public void addZtsPublicKey(String keyId, PublicKey ztsPublicKey) {

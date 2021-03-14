@@ -37,10 +37,11 @@ import static com.yahoo.athenz.common.server.log.jetty.ExceptionCauseFetcher.get
 
 public class JettyConnectionLogger extends AbstractLifeCycle implements SslHandshakeListener {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(JettyConnectionLogger.class);
+
     public static final String GENERAL_SSL_ERROR = "General SSLEngine problem";
     public static final String CONNECTION_LOGGER_METRIC_DEFAULT_NAME = "ssl_error";
     public static final String ATHENZ_PROP_SSL_LOGGER_METRIC_NAME = "athenz.jetty.container.ssl_logger_metric";
-    private static final Logger LOGGER = LoggerFactory.getLogger(JettyConnectionLogger.class.getName());
 
     private final ConnectionLog connectionLog;
     private final Metric metric;

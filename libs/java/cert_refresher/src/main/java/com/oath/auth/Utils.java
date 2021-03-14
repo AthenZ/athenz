@@ -460,8 +460,8 @@ public class Utils {
         } catch (CertificateException | NoSuchAlgorithmException e) {
             String keyStoreFailMsg = "Unable to load the inputstream as a KeyStore.  Please check the content.";
             throw new KeyRefresherException(keyStoreFailMsg, e);
-        } catch (KeyStoreException ignored) {
-            LOG.error("No Provider supports a KeyStoreSpi implementation for the specified type " + DEFAULT_KEYSTORE_TYPE, ignored);
+        } catch (KeyStoreException ex) {
+            LOG.error("No Provider supports a KeyStoreSpi implementation for the specified type {}", DEFAULT_KEYSTORE_TYPE, ex);
         }
         return keyStore;
     }
