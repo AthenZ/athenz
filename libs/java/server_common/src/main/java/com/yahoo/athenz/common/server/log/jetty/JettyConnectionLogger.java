@@ -38,15 +38,18 @@ import static com.yahoo.athenz.common.server.log.jetty.ExceptionCauseFetcher.get
 public class JettyConnectionLogger extends AbstractLifeCycle implements SslHandshakeListener {
 
     public static final String GENERAL_SSL_ERROR = "General SSLEngine problem";
-    public static final String METRIC_NAME = "ssl_error";
+    public static final String CONNECTION_LOGGER_METRIC_DEFAULT_NAME = "ssl_error";
+    public static final String ATHENZ_PROP_SSL_LOGGER_METRIC_NAME = "athenz.jetty.container.ssl_logger_metric";
     private static final Logger LOGGER = LoggerFactory.getLogger(JettyConnectionLogger.class.getName());
 
     private final ConnectionLog connectionLog;
     private final Metric metric;
+    private final String metricName;
 
     public JettyConnectionLogger(ConnectionLog connectionLog, Metric metric) {
         this.connectionLog = connectionLog;
         this.metric = metric;
+        metricName = System.getProperty(ATHENZ_PROP_SSL_LOGGER_METRIC_NAME, CONNECTION_LOGGER_METRIC_DEFAULT_NAME);
         LOGGER.info("Jetty connection logger is running");
     }
 
@@ -77,7 +80,7 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements SslHands
             ConnectionInfo info = ConnectionInfo.from(sslEngine);
             info.setSslHandshakeFailure(failure);
             connectionLog.log(info.toLogEntry());
-            metric.increment(METRIC_NAME, info.toMetric());
+            metric.increment(metricName, info.toMetric());
         });
     }
 

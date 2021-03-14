@@ -37,7 +37,7 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 import static com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger.GENERAL_SSL_ERROR;
-import static com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger.METRIC_NAME;
+import static com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger.CONNECTION_LOGGER_METRIC_DEFAULT_NAME;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -66,10 +66,9 @@ public class JettyConnectionLoggerTest {
         when(mockConnection2.getEndPoint().isOpen()).thenReturn(false);
 
         jettyConnectionLogger.handshakeFailed(event, sslHandshakeException);
-
-
+        
         Mockito.verify(connectionLog, Mockito.times(1)).log(connectionLogEntryArgumentCaptor.capture());
-        Mockito.verify(metric, Mockito.times(1)).increment(Mockito.eq(METRIC_NAME), metricArgumentCaptor.capture());
+        Mockito.verify(metric, Mockito.times(1)).increment(Mockito.eq(CONNECTION_LOGGER_METRIC_DEFAULT_NAME), metricArgumentCaptor.capture());
         assertEquals("no cipher suites in common", connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureMessage().get());
         assertFalse(connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureCause().isPresent());
         List<String[]> allMetricValues = metricArgumentCaptor.getAllValues();
