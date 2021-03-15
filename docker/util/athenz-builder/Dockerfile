@@ -17,8 +17,6 @@ COPY . .
 
 RUN mvn install -pl core/zms -pl core/zts -pl libs/java/auth_core -pl libs/java/client_common -pl libs/java/server_common -pl libs/java/instance_provider -pl libs/java/cert_refresher -pl clients/java/zms -pl servers/zms -pl clients/java/zts/core -pl servers/zts -pl containers/jetty -pl assembly/zms -pl assembly/zts -Dmaven.test.skip=true -Djacoco.skip=true
 
-RUN mvn install -f ./contributions/metric/prometheus/pom.xml
-
 RUN mkdir -p /tmp/zms \
     && mkdir -p /tmp/zts \
     && mkdir -p /opt/athenz/zms \
@@ -37,9 +35,6 @@ RUN tar xvzf ./assembly/zts/target/athenz-zts*-bin.tar.gz -C /tmp/zts \
     && mv /tmp/zts/conf /opt/athenz/zts/conf \
     && mv /tmp/zts/lib /opt/athenz/zts/lib \
     && mv /tmp/zts/webapps /opt/athenz/zts/webapps
-
-RUN cp -u ./contributions/metric/prometheus/target/*.jar ./contributions/metric/prometheus/target/dependency/*.jar /opt/athenz/zms/lib/jars \
-    && cp -u ./contributions/metric/prometheus/target/*.jar ./contributions/metric/prometheus/target/dependency/*.jar /opt/athenz/zts/lib/jars
 
 WORKDIR /opt/athenz
 

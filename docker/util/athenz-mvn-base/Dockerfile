@@ -72,7 +72,6 @@ COPY ./clients/nodejs/zpe/pom.xml ./clients/nodejs/zpe/pom.xml
 COPY ./ui/pom.xml ./ui/pom.xml
 COPY ./assembly/zms/pom.xml ./assembly/zms/pom.xml
 COPY ./assembly/zts/pom.xml ./assembly/zts/pom.xml
-COPY ./assembly/zpu/pom.xml ./assembly/zpu/pom.xml
 COPY ./assembly/ui/pom.xml ./assembly/ui/pom.xml
 COPY ./assembly/utils/pom.xml ./assembly/utils/pom.xml
 
