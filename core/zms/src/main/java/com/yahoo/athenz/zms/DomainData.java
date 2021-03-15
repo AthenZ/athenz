@@ -68,6 +68,9 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, StringList> tags;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String businessService;
     public String name;
     public List<Role> roles;
     public SignedPolicies policies;
@@ -202,6 +205,13 @@ public class DomainData {
     public Map<String, StringList> getTags() {
         return tags;
     }
+    public DomainData setBusinessService(String businessService) {
+        this.businessService = businessService;
+        return this;
+    }
+    public String getBusinessService() {
+        return businessService;
+    }
     public DomainData setName(String name) {
         this.name = name;
         return this;
@@ -311,6 +321,9 @@ public class DomainData {
                 return false;
             }
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
+                return false;
+            }
+            if (businessService == null ? a.businessService != null : !businessService.equals(a.businessService)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {
