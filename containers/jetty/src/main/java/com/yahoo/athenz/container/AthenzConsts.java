@@ -40,7 +40,6 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_INCLUDED_CIPHER_SUITES = "athenz.ssl_included_cipher_suites";
     public static final String ATHENZ_PROP_EXCLUDED_PROTOCOLS     = "athenz.ssl_excluded_protocols";
     public static final String ATHENZ_PROP_CLIENT_AUTH            = "athenz.ssl_need_client_auth";
-    public static final String ATHENZ_PROP_ENABLE_OCSP            = "athenz.ssl_enable_ocsp";
     public static final String ATHENZ_PROP_RENEGOTIATION_ALLOWED  = "athenz.ssl_renegotiation_allowed";
     public static final String ATHENZ_PROP_SSL_LOG_FAILURES       = "athenz.ssl_log_failures";
     public static final String ATHENZ_PROP_IDLE_TIMEOUT           = "athenz.http_idle_timeout";
@@ -52,6 +51,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_RESPONSE_HEADER_SIZE   = "athenz.http_response_header_size";
     public static final String ATHENZ_PROP_LISTEN_HOST            = "athenz.listen_host";
     public static final String ATHENZ_PROP_KEEP_ALIVE             = "athenz.keep_alive";
+    public static final String ATHENZ_PROP_RESPONSE_HEADERS_JSON  = "athenz.response_headers_json";
     public static final String ATHENZ_PROP_GZIP_SUPPORT           = "athenz.gzip_support";
     public static final String ATHENZ_PROP_GZIP_MIN_SIZE          = "athenz.gzip_min_size";
     public static final String ATHENZ_PROP_MAX_THREADS            = "athenz.http_max_threads";
