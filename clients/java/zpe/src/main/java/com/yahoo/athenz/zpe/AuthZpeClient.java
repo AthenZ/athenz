@@ -235,8 +235,7 @@ public class AuthZpeClient {
         try {
             publicKeyStoreFactory = (PublicKeyStoreFactory) Class.forName(className).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            LOG.error("Invalid PublicKeyStore class: " + className
-                    + ", error: " + ex.getMessage());
+            LOG.error("Invalid PublicKeyStore class: {}, error: {}", className, ex.getMessage());
             throw new RuntimeException(ex);
         }
         publicKeyStore = publicKeyStoreFactory.create();

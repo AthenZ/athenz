@@ -161,8 +161,8 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
         try {
             final String rdsToken = getAuthToken(hostname, rdsPort, rdsUser, rdsIamRole);
             mysqlProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, rdsToken);
-        } catch (Throwable t) {
-            LOG.error("CredentialsUpdater: unable to update auth token: " + t.getMessage());
+        } catch (Exception ex) {
+            LOG.error("CredentialsUpdater: unable to update auth token: {}", ex.getMessage());
         }
     }
     

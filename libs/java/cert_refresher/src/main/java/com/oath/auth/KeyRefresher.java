@@ -225,7 +225,7 @@ public class KeyRefresher {
             }
         } catch (IOException ex) {
             //this is best effort, if we couldn't read the file, assume its the same
-            LOGGER.warn("Error reading file " + filePath, ex);
+            LOGGER.warn("Error reading file {}", filePath, ex);
             return false;
         }
         byte[] digest = md.digest();

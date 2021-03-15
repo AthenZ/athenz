@@ -21,6 +21,7 @@ import com.yahoo.athenz.common.server.notification.EmailProvider;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationEmail;
 import com.yahoo.athenz.common.server.notification.NotificationService;
+import jakarta.mail.Part;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,7 +148,7 @@ public class EmailNotificationService implements NotificationService {
             MimeBodyPart logo = new MimeBodyPart();
             logo.setContent(logoImage, "image/png");
             logo.setContentID(HTML_LOGO_CID_PLACEHOLDER);
-            logo.setDisposition(MimeBodyPart.INLINE);
+            logo.setDisposition(Part.INLINE);
             // Add the attachment to the message.
             msgParent.addBodyPart(logo);
         }

@@ -724,11 +724,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 ZMSConsts.ZMS_PROP_DOMAIN_NAME_MAX_SIZE, ZMSConsts.ZMS_DOMAIN_NAME_MAX_SIZE_DEFAULT));
         if (domainNameMaxLen < 10) { // 10 is arbitrary
             int domNameMaxDefault = Integer.parseInt(ZMSConsts.ZMS_DOMAIN_NAME_MAX_SIZE_DEFAULT);
-            LOG.warn("init: Warning: maximum domain name length specified is too small: " +
-                domainNameMaxLen + " : reverting to default: " + domNameMaxDefault);
+            LOG.warn("init: Warning: maximum domain name length specified is too small: {} reverting to default: {}",
+                    domainNameMaxLen, domNameMaxDefault);
             domainNameMaxLen = domNameMaxDefault;
         }
-        LOG.info("init: using maximum domain name length: " + domainNameMaxLen);
+        LOG.info("init: using maximum domain name length: {}", domainNameMaxLen);
 
         // get the list of uris that we want to allow an-authenticated access
 
@@ -777,7 +777,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         reservedSystemDomains = new HashSet<>();
         reservedSystemDomains.add("sys");
-        reservedSystemDomains.add("sys.auth");
+        reservedSystemDomains.add(SYS_AUTH);
         reservedSystemDomains.add("sys.auth.audit");
         reservedSystemDomains.add("sys.auth.audit.org");
         reservedSystemDomains.add("sys.auth.audit.domain");
@@ -803,8 +803,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             objFactory = (ObjectStoreFactory) Class.forName(objFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid ObjectStoreFactory class: " + objFactoryClass
-                    + " error: " + e.getMessage());
+            LOG.error("Invalid ObjectStoreFactory class: {} error: {}", objFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid object store");
         }
 
@@ -832,8 +831,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid MetricFactory class: " + metricFactoryClass
-                    + " error: " + e.getMessage());
+            LOG.error("Invalid MetricFactory class: {} error: {}", metricFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid metric class");
         }
 
@@ -851,8 +849,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid PrivateKeyStoreFactory class: " + pkeyFactoryClass
-                    + " error: " + e.getMessage());
+            LOG.error("Invalid PrivateKeyStoreFactory class: {} error: {}", pkeyFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid private key store");
         }
 
@@ -919,8 +916,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             auditLogFactory = (AuditLoggerFactory) Class.forName(auditFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid AuditLoggerFactory class: " + auditFactoryClass
-                    + " error: " + e.getMessage());
+            LOG.error("Invalid AuditLoggerFactory class: {} error: {}", auditFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid audit logger class");
         }
 
@@ -938,8 +934,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             try {
                 auditReferenceValidatorFactory = (AuditReferenceValidatorFactory) Class.forName(auditRefValidatorClass).newInstance();
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                LOG.error("Invalid AuditReferenceValidatorFactory class: " + auditRefValidatorClass
-                        + " error: " + e.getMessage());
+                LOG.error("Invalid AuditReferenceValidatorFactory class: {} error: {}", auditRefValidatorClass, e.getMessage());
                 throw new IllegalArgumentException("Invalid audit reference factory class");
             }
 
@@ -1050,8 +1045,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             try {
                 statusCheckerFactory = (StatusCheckerFactory) Class.forName(statusCheckerFactoryClass).newInstance();
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                LOG.error("Invalid StatusCheckerFactory class: " + statusCheckerFactoryClass
-                        + " error: " + e.getMessage());
+                LOG.error("Invalid StatusCheckerFactory class: {} error: {}", statusCheckerFactoryClass, e.getMessage());
                 throw new IllegalArgumentException("Invalid status checker factory class");
             }
 
@@ -1107,7 +1101,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // now create required subdomains in sys top level domain
 
-        domain = new Domain().setName("sys.auth").setDescription("The Athenz domain")
+        domain = new Domain().setName(SYS_AUTH).setDescription("The Athenz domain")
                 .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
         createSubDomain(null, domain, adminUsers, null, "System Setup", caller);
 
@@ -1434,8 +1428,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("hasExceededVirtualSubDomainLimit: subdomains with prefix " + userDomainCheck
-                    + ": " + dlist.getNames().size() + " while limit is: " + virtualDomainLimit);
+            LOG.debug("hasExceededVirtualSubDomainLimit: subdomains with prefix {}: {} while limit is: {}",
+                    userDomainCheck, dlist.getNames().size(), virtualDomainLimit);
         }
 
         return true;
@@ -2117,7 +2111,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         templateName = templateName.toLowerCase();
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("deleteDomainTemplate: domain=" + domainName + ", template=" + templateName);
+            LOG.debug("deleteDomainTemplate: domain={}, template={}", domainName, templateName);
         }
 
         // verify that request is properly authenticated for this request
@@ -2194,7 +2188,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         } catch (ResourceException ex) {
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("getAthenzDomain failure: " + ex.getMessage());
+                LOG.debug("getAthenzDomain failure: {}", ex.getMessage());
             }
 
             if (!ignoreExceptions) {
@@ -2376,7 +2370,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         resource = userHomeDomainResource(resource);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("access:(" + action + ", " + resource + ", " + principal + ", " + trustDomain + ")");
+            LOG.debug("access:({}, {}, {}, {})", action, resource, principal, trustDomain);
         }
 
         // check to see if the authority is allowed to be processed in
@@ -2474,8 +2468,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = "getaccess";
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getAccessCheck:(" + action + ", " + resource + ", " + principal +
-                    ", " + trustDomain + ", " + checkPrincipal + ")");
+            LOG.debug("getAccessCheck:({}, {}, {}, {}, {})", action, resource, principal, trustDomain, checkPrincipal);
         }
 
         // for consistent handling of all requests, we're going to convert
@@ -4461,7 +4454,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // delegate to another domain.
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("matchPrincipal: [delegated trust. Checking with: " + trust + "]");
+            LOG.debug("matchPrincipal: [delegated trust. Checking with: {}]", trust);
         }
 
         return delegatedTrust(trust, roleName, fullUser);
@@ -4562,7 +4555,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("verifyProviderEndpoint: verifying endpoint: " + providerEndpoint);
+            LOG.debug("verifyProviderEndpoint: verifying endpoint: {}", providerEndpoint);
         }
 
         java.net.URI uri;
@@ -4573,7 +4566,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("verifyProviderEndpoint: host: " + uri.getHost() + " scheme: " + uri.getScheme());
+            LOG.debug("verifyProviderEndpoint: host:{} scheme: {}", uri.getHost(), uri.getScheme());
         }
 
         String scheme = uri.getScheme();
@@ -4628,10 +4621,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             PublicKey pub = Crypto.loadPublicKey(Crypto.ybase64DecodeString(key));
             if (LOG.isDebugEnabled()) {
-                LOG.debug("verifyServicePublicKey: public key looks valid: " + pub);
+                LOG.debug("verifyServicePublicKey: public key looks valid: {}", pub);
             }
         } catch (Exception ex) {
-            LOG.error("verifyServicePublicKey: Invalid Public Key: " + ex.getMessage());
+            LOG.error("verifyServicePublicKey: Invalid Public Key: {}", ex.getMessage());
             return false;
         }
         return true;
@@ -5127,7 +5120,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // DomainData
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("retrieveSignedDomain: retrieving domain " + domainName);
+            LOG.debug("retrieveSignedDomain: retrieving domain {}", domainName);
         }
 
         AthenzDomain athenzDomain = getAthenzDomain(domainName, true, masterCopy);
@@ -6086,9 +6079,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
         if (LOG.isInfoEnabled()) {
-            LOG.info("putTenantResourceGroupRoles: ==== putTenantRoles(domain=" + provSvcDomain + ", service=" +
-                provSvcName + ", tenant-domain=" + tenantDomain + ", resource-group=" + resourceGroup +
-                ", detail=" + detail + ")");
+            LOG.info("putTenantResourceGroupRoles: ==== putTenantRoles(domain={}, service={}, tenant-domain={}, resource-group={}, detail={})",
+                    provSvcDomain, provSvcName, tenantDomain, resourceGroup, detail);
         }
 
         // first setup the domain as a tenant in the provider domain
@@ -6115,7 +6107,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setRequestDomain(ctx, domainName);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getDomainDataCheck: domain=" + domainName);
+            LOG.debug("getDomainDataCheck: domain={}", domainName);
         }
 
         AthenzDomain domain = getAthenzDomain(domainName, false);
@@ -6134,14 +6126,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Map<String, Set<String>> trustRoleMap = new HashMap<>();
         for (Role role : domain.getRoles()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("getDomainDataCheck: processing role - " + role.getName());
+                LOG.debug("getDomainDataCheck: processing role - {}", role.getName());
             }
             roleSet.add(role.getName());
             String roleName = ZMSUtils.removeDomainPrefix(role.getName(), domainName, ROLE_PREFIX);
             String trustDomain = role.getTrust();
             if (trustDomain != null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("trust role for domain: " + trustDomain);
+                    LOG.debug("trust role for domain: {}", trustDomain);
                 }
                 trustRoleSet.add(trustDomain);
                 Set<String> tset = trustRoleMap.computeIfAbsent(trustDomain, k -> new HashSet<>());
@@ -6164,7 +6156,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         for (Policy policy : policies) {
             String pname = ZMSUtils.removeDomainPrefix(policy.getName(), domainName, POLICY_PREFIX);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("getDomainDataCheck: processing policy=" + pname + " in domain=" + domainName);
+                LOG.debug("getDomainDataCheck: processing policy={} in domain={}", pname, domainName);
             }
 
             List<Assertion> assertions = policy.getAssertions();
@@ -6257,11 +6249,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getDomainDataCheck: domain=" + domainName +
-                " policy-count=" + policies.size() + " assertion-count=" +
-                assertionCount + " wildcard-count==" + roleWildcardCount +
-                " dangling-policies=" + danglingPolicies.size() +
-                " dangling-roles=" + roleSet.size());
+            LOG.debug("getDomainDataCheck: domain={} policy-count={} assertion-count={} wildcard-count={} dangling-policies={} dangling-roles={}",
+                    domainName, policies.size(), assertionCount, roleWildcardCount, danglingPolicies.size(), roleSet.size());
         }
 
         // Tenant Domain Check: does each provider fully support this tenant?
@@ -6270,8 +6259,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         List<String> provsWithoutTrust = new ArrayList<>();
         for (String provSvc : providerSet) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("getDomainDataCheck: domain=" + domainName +
-                    " provider-service=" + provSvc);
+                LOG.debug("getDomainDataCheck: domain={} provider-service={}", domainName, provSvc);
             }
 
             // 2 cases to resolve, one with resource group, one without
@@ -6328,7 +6316,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         for (String trustRole: trustRoleSet) {
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("getDomainDataCheck: processing trust role: " + trustRole);
+                LOG.debug("getDomainDataCheck: processing trust role: {}", trustRole);
             }
 
             AthenzDomain tenantDomain = tenantDomMap.get(trustRole);
@@ -6575,9 +6563,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
         if (LOG.isInfoEnabled()) {
-            LOG.info("putProviderResourceGroupRoles: domain=" + provSvcDomain + ", service=" +
-                provSvcName + ", tenant-domain=" + tenantDomain + ", resource-group=" + resourceGroup +
-                ", detail=" + detail);
+            LOG.info("putProviderResourceGroupRoles: domain={}, service={}, tenant-domain={}, resource-group={}, detail={}",
+                    provSvcDomain, provSvcName, tenantDomain, resourceGroup, detail);
         }
 
         if (!Boolean.FALSE.equals(detail.getCreateAdminRole())) {
@@ -6907,7 +6894,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     public String getPublicKey(String domain, String service, String keyId) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getPublicKey: service=" + domain + "." + service + " key-id=" + keyId);
+            LOG.debug("getPublicKey: service={}.{} key-id={}", domain, service, keyId);
         }
 
         if (service == null || keyId == null) {
@@ -6941,7 +6928,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
             } catch (ResourceException ex) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("getPublicKey: unable to get public key: " + ex.getMessage());
+                    LOG.debug("getPublicKey: unable to get public key: {}", ex.getMessage());
                 }
                 return null;
             }
@@ -6949,13 +6936,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (pubKey == null) {
             if (LOG.isWarnEnabled()) {
-                LOG.warn("getPublicKey: service=" + domain + "." + service + " has no public key registered");
+                LOG.warn("getPublicKey: service={}.{} has no public key registered", domain, service);
             }
             return null;
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getPublicKey: service public key: " + pubKey);
+            LOG.debug("getPublicKey: service public key: {}", pubKey);
         }
 
         return Crypto.ybase64DecodeString(pubKey);
@@ -6969,7 +6956,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("putDefaultAdmins: domain = " + domainName);
+            LOG.debug("putDefaultAdmins: domain={}", domainName);
         }
 
         if (readOnlyMode) {
@@ -7014,7 +7001,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // the logic in place
 
             if (LOG.isInfoEnabled()) {
-                LOG.info("putDefaultAdmins: Adding domain admin role because no domain admin role was found for domain: " + domainName);
+                LOG.info("putDefaultAdmins: Adding domain admin role because no domain admin role was found for domain: {}", domainName);
             }
             adminRole = ZMSUtils.makeAdminRole(domainName, new ArrayList<>());
             dbService.executePutRole(ctx, domainName, ADMIN_ROLE_NAME, adminRole, auditRef, caller);
@@ -7034,7 +7021,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // the logic in place
 
             if (LOG.isInfoEnabled()) {
-                LOG.info("putDefaultAdmins: Adding domain admin policy  because no domain admin policy  was found for domain: " + domainName);
+                LOG.info("putDefaultAdmins: Adding domain admin policy  because no domain admin policy  was found for domain: {}", domainName);
             }
             //Create and add the admin policy
             adminPolicy = ZMSUtils.makeAdminPolicy(domainName, adminRole);
@@ -7099,7 +7086,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         if (LOG.isInfoEnabled()) {
-            LOG.info("Adding default admin assertion to admin policy because no default admin assertion was found for admin policy for domain: " + domainName);
+            LOG.info("Adding default admin assertion to admin policy because no default admin assertion was found for admin policy for domain: {}", domainName);
         }
 
         // if we had invalid assertions then we're going to
@@ -7124,7 +7111,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         for (Policy policy : policies) {
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("access: processing policy: " + policy.getName());
+                LOG.debug("access: processing policy: {}", policy.getName());
             }
 
             // Process all the assertions defined in this policy
@@ -7153,7 +7140,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
 
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Found DENY assertion for role " + assertionRole);
+                    LOG.debug("Found DENY assertion for role {}", assertionRole);
                 }
 
                 // role matches admin role then remove it
@@ -7169,7 +7156,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
 
             if (LOG.isInfoEnabled()) {
-                LOG.info("Removing assertion from policy: " + policy.getName() + " because it was for the domain admin role.");
+                LOG.info("Removing assertion from policy:{} because it was for the domain admin role.", policy.getName());
             }
 
             for (Assertion assertion : assertionsToDelete) {
@@ -7179,9 +7166,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             String policyName = ZMSUtils.removeDomainPrefix(policy.getName(), domainName, POLICY_PREFIX);
             if (assertions.size() == 0) {
                 if (LOG.isInfoEnabled()) {
-                    LOG.info("Removing  policy: " + policyName +
-                            " because it did not have any assertions after removing a DENY" +
-                            " assertion for the domain admin role.");
+                    LOG.info("Removing  policy: {} because it did not have any assertions after removing a DENY" +
+                            " assertion for the domain admin role.", policyName);
                 }
 
                 dbService.executeDeletePolicy(ctx, domainName, policyName, auditRef, caller);
@@ -7194,11 +7180,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void removeAdminMembers(ResourceContext ctx, String domainName, List<Role> roles,
             String assertionRole, DefaultAdmins defaultAdmins, String auditRef, String caller) {
 
-
         for (Role role : roles) {
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("removeAdminMembers: Removing admin members from role: " + role.getName());
+                LOG.debug("removeAdminMembers: Removing admin members from role: {}", role.getName());
             }
 
             if (!assertionRole.equals(role.getName())) {
@@ -7209,8 +7194,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             for (String adminName : defaultAdmins.getAdmins()) {
                 if (isMemberOfRole(role, adminName)) {
                     if (LOG.isInfoEnabled()) {
-                        LOG.info("removeAdminMembers: removing member: " + adminName + " from role: " +
-                                roleName + " because there is a DENY assertion for this role in this domain.");
+                        LOG.info("removeAdminMembers: removing member: {} from role: {} because there is a DENY assertion for this role in this domain.",
+                                adminName, roleName);
                     }
 
                     dbService.executeDeleteMembership(ctx, domainName, roleName, adminName, auditRef, caller);
@@ -7229,7 +7214,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         for (String adminName : defaultAdmins.getAdmins()) {
             if (!isMemberOfRole(adminRole, adminName)) {
                 if (LOG.isInfoEnabled()) {
-                    LOG.info("Adding member: " + adminName + " to admin role for domain: " + domainName);
+                    LOG.info("Adding member: {} to admin role for domain: {}", adminName, domainName);
                 }
                 RoleMember roleMember = new RoleMember().setMemberName(adminName);
                 dbService.executePutMembership(ctx, domainName, ADMIN_ROLE_NAME,
@@ -7537,7 +7522,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 InetAddress localhost = java.net.InetAddress.getLocalHost();
                 serverHostName = localhost.getCanonicalHostName();
             } catch (java.net.UnknownHostException e) {
-                LOG.info("Unable to determine local hostname: " + e.getMessage());
+                LOG.info("Unable to determine local hostname: {}", e.getMessage());
                 serverHostName = "localhost";
             }
         }
@@ -7553,7 +7538,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             authority = (Authority) Class.forName(className).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid Authority class: " + className + " error: " + e.getMessage());
+            LOG.error("Invalid Authority class: {} error: {}", className, e.getMessage());
             return null;
         }
         return authority;

@@ -43,7 +43,6 @@ public class MetricNotificationService implements NotificationService {
     public static final String METRIC_NOTIFICATION_REASON_KEY           = "reason";
     public static final String METRIC_NOTIFICATION_REQUESTER_KEY        = "requester";
 
-
     private final Metric metric;
 
     public MetricNotificationService(Metric metric) {
@@ -62,7 +61,7 @@ public class MetricNotificationService implements NotificationService {
             metric.increment("athenz_notification", attributesFlatArray);
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Notification Metric sent: " + String.join(",", attributesFlatArray));
+                LOGGER.debug("Notification Metric sent: {}", String.join(",", attributesFlatArray));
             }
         }
 

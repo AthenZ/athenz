@@ -72,7 +72,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
         }
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("AWSS3ChangeLog: S3 Bucket name: " + s3BucketName);
+            LOGGER.debug("AWSS3ChangeLog: S3 Bucket name: {}", s3BucketName);
         }
 
         // initialize our jackson object mapper

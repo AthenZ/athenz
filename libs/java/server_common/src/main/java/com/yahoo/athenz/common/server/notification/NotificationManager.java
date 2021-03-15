@@ -49,10 +49,10 @@ public class NotificationManager {
                         notificationServices.add(notificationService);
                     }
                 } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                    LOGGER.error("Invalid NotificationServiceFactory class: " + notificationServiceFactoryClass + " error: " + e.getMessage());
+                    LOGGER.error("Invalid NotificationServiceFactory class: {} error: {}", notificationServiceFactoryClass, e.getMessage());
                 }
             }
-            LOGGER.info("Loaded Notification Services: " + String.join(",", getLoadedNotificationServices()));
+            LOGGER.info("Loaded Notification Services: {}", String.join(",", getLoadedNotificationServices()));
             init();
         }
     }

@@ -67,7 +67,7 @@ public class PolicyUpdater {
         try {
             configuration = new PolicyUpdaterConfiguration();
         } catch (Exception ex) {
-            LOG.error("Unable to create configuration object: " + ex.getMessage());
+            LOG.error("Unable to create configuration object: {}", ex.getMessage());
             System.exit(ZPUExitCode.CONFIG_CREATE_FAILURE.getCode());
         }
 
@@ -96,12 +96,12 @@ public class PolicyUpdater {
             try {
                 PolicyUpdater.policyUpdater(configuration, new ZTSClientFactoryImpl());
             } catch (Exception ex) {
-                LOG.error("PolicyUpdater: Unable to update policy data: " + ex.getMessage());
+                LOG.error("PolicyUpdater: Unable to update policy data: {}", ex.getMessage());
                 exitCode = ZPUExitCode.POLICY_UPDATE_FAILURE;
                 throw ex;
             }
         } catch (Exception exc) {
-            LOG.error("PolicyUpdater: Exiting upon error: " + exc.getMessage());
+            LOG.error("PolicyUpdater: Exiting upon error: {}", exc.getMessage());
         } finally {
             System.exit(exitCode.getCode());
         }
@@ -113,8 +113,7 @@ public class PolicyUpdater {
         try (ZTSClient zts = ztsFactory.create()) {
 
             List<String> domainList = configuration.getDomainList();
-            LOG.info("policyUpdater: Number of domains to process:"
-                    + (domainList == null ? 0 : domainList.size()));
+            LOG.info("policyUpdater: Number of domains to process: {}", domainList == null ? 0 : domainList.size());
             if (domainList == null) {
                 LOG.error("policyUpdater: no domain list to process from configuration");
                 throw new Exception("no configured domains to process");
@@ -122,7 +121,7 @@ public class PolicyUpdater {
             
             for (String domain : domainList) {
 
-                LOG.info("Fetching signed policies for domain:" + domain);
+                LOG.info("Fetching signed policies for domain: {}", domain);
                 
                 String matchingTag = getEtagForExistingPolicy(zts, configuration, domain);
                 
@@ -133,8 +132,7 @@ public class PolicyUpdater {
                             responseHeaders);
                 } catch (Exception exc) {
                     domainSignedPolicyData = null;
-                    LOG.error("PolicyUpdater: Unable to retrieve policies from zts for domain="
-                            + domain, exc);
+                    LOG.error("PolicyUpdater: Unable to retrieve policies from zts for domain={}", domain, exc);
                 }
                 if (domainSignedPolicyData == null) {
                     if (matchingTag != null && !matchingTag.isEmpty()) {
@@ -154,58 +152,58 @@ public class PolicyUpdater {
             throw new IllegalArgumentException("null parameters are not valid arguments");
         }
         
-        LOG.info("Checking expiration time for:" + domain);
+        LOG.info("Checking expiration time for: {}", domain);
 
         Timestamp expires = domainSignedPolicyData.getSignedPolicyData().getExpires();
         if (System.currentTimeMillis() > expires.millis()) {
-            LOG.error("Signed policy for domain:" + domain + " was expired.");
+            LOG.error("Signed policy for domain:{} was expired.", domain);
             return false;
         }
 
         // first we're going to verify the ZTS signature for the data
         
-        LOG.info("Verifying ZTS signature for: " + domain);
+        LOG.info("Verifying ZTS signature for: {}", domain);
         SignedPolicyData signedPolicyData = domainSignedPolicyData.getSignedPolicyData();
         
-        LOG.debug("Policies retrieved from the ZTS server: " + signedPolicyData);
+        LOG.debug("Policies retrieved from the ZTS server: {}", signedPolicyData);
 
         String signature = domainSignedPolicyData.getSignature();
         String keyId     = domainSignedPolicyData.getKeyId();
-        LOG.debug("validateSignedPolicies: domain=" + domain + " zts key id=" + keyId + " Digital ZTS signature=" + signature);
+        LOG.debug("validateSignedPolicies: domain={} zts key id={} Digital ZTS signature={}", domain, keyId, signature);
 
         PublicKey ztsPublicKey = configuration.getZtsPublicKey(zts, keyId);
         if (ztsPublicKey == null) {
-            LOG.error("validateSignedPolicies: Missing ZTS Public key for id: " + keyId);
+            LOG.error("validateSignedPolicies: Missing ZTS Public key for id: {}", keyId);
             return false;
         }
         
         boolean verified = Crypto.verify(SignUtils.asCanonicalString(signedPolicyData), ztsPublicKey, signature);
         if (!verified) {
-            LOG.error("Signed policy for domain:" + domain + " failed ZTS signature verification.");
-            LOG.error("ZTS Signature: " + signature + ". Policies data returned from ZTS: " + signedPolicyData);
+            LOG.error("Signed policy for domain:{}} failed ZTS signature verification.", domain);
+            LOG.error("ZTS Signature: {}. Policies data returned from ZTS: {}", signature, signedPolicyData);
             return false;
         }
         
         // then we're going to verify the ZMS signature for the policy data
         
-        LOG.info("Verifying ZMS signature for: " + domain);
+        LOG.info("Verifying ZMS signature for: {}", domain);
         PolicyData policyData = signedPolicyData.getPolicyData();
        
         signature = signedPolicyData.getZmsSignature();
-        LOG.debug("Digital ZMS signature: " + signature);
+        LOG.debug("Digital ZMS signature: {}", signature);
         keyId = signedPolicyData.getZmsKeyId();
-        LOG.debug("Digital ZMS signature key Id: " + keyId);
+        LOG.debug("Digital ZMS signature key Id: {}", keyId);
         
         PublicKey zmsPublicKey = configuration.getZmsPublicKey(zts, keyId);
         if (zmsPublicKey == null) {
-            LOG.error("Missing ZMS Public key with id: " + keyId);
+            LOG.error("Missing ZMS Public key with id: {}", keyId);
             return false;
         }
         
         verified = Crypto.verify(SignUtils.asCanonicalString(policyData), zmsPublicKey, signature);
         if (!verified) {
-            LOG.error("Signed policy for domain:" + domain + " failed ZMS signature verification.");
-            LOG.error("ZMS Signature: " + signature + ". Policies data returned from ZTS: " + policyData);
+            LOG.error("Signed policy for domain:{}} failed ZMS signature verification.", domain);
+            LOG.error("ZMS Signature: {}. Policies data returned from ZTS: {}", signature, policyData);
         }
         
         return verified;
@@ -219,14 +217,14 @@ public class PolicyUpdater {
             return;
         }
 
-        LOG.warn("The temp dir doesnt exist so will create it: " + tmpDir);
+        LOG.warn("The temp dir doesnt exist so will create it: {}", tmpDir);
         java.nio.file.Files.createDirectory(tmpDir);
 
         // get the user from config file to perform chown aginst the tmp dir
         // chown -R $zpu_user $ROOT/tmp/zpe
         String user = configuration.getZpuDirOwner();
         if (user == null) {
-            LOG.warn("Cannot chown of the temp dir: " + tmpDir + " : no configured user");
+            LOG.warn("Cannot chown of the temp dir: {} : no configured user", tmpDir);
             return;
         }
 
@@ -236,8 +234,7 @@ public class PolicyUpdater {
             java.nio.file.attribute.UserPrincipal uprinc = lookupSvc.lookupPrincipalByName(user);
             Files.setOwner(tmpDir, uprinc);
         } catch (Exception exc) {
-            LOG.warn("Failed to chown of the temp dir: " + tmpDir
-                    + ", user: " + user + ", exc: " + exc.getMessage());
+            LOG.warn("Failed to chown of the temp dir: {}, user: {}, exc: {}", tmpDir, user, exc.getMessage());
         }
     }
 
@@ -259,7 +256,7 @@ public class PolicyUpdater {
         // ensure tmp dir exists
         verifyTmpDirSetup(configuration);
 
-        LOG.info("Writing temp policy file: " + pathToTempFile);
+        LOG.info("Writing temp policy file: {}", pathToTempFile);
         // Make a file object from the path name
         File file = new File(pathToTempFile);
         file.createNewFile();
@@ -268,12 +265,12 @@ public class PolicyUpdater {
         Path sourceFile = Paths.get(pathToTempFile);
         Path destinationFile = Paths.get(pathToPolicyFile);
         try {
-            LOG.info("Moving temp file : " + sourceFile + " to destination: " + destinationFile);
+            LOG.info("Moving temp file : {} to destination: {}", sourceFile, destinationFile);
             Files.copy(sourceFile, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             Files.deleteIfExists(sourceFile);
         } catch (IOException exc) {
-            LOG.error("PolicyUpdater: Moving temp file failure. source: " + sourceFile
-                    + " : destination: " + destinationFile + " : exc: " + exc);
+            LOG.error("PolicyUpdater: Moving temp file failure. source: {} : destination: {} : exc: {}",
+                    sourceFile, destinationFile, exc);
         }
     }
 

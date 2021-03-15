@@ -38,7 +38,7 @@ public class InstanceUtils {
 
         final String value = attributes.get(propertyName);
         if (value == null) {
-            LOGGER.error("getInstanceProperty: " + propertyName + " attribute not available");
+            LOGGER.error("getInstanceProperty: {} attribute not available", propertyName);
             return null;
         }
 
@@ -144,10 +144,16 @@ public class InstanceUtils {
             if (!uri.startsWith(ZTS_CERT_INSTANCE_ID_URI)) {
                 continue;
             }
-            // skip the provider value
-            int idx = uri.substring(ZTS_CERT_INSTANCE_ID_URI.length()).indexOf('/');
+            // skip the provider value but take into account the case
+            // where there is no value specified after provider /
+            int idx = uri.indexOf('/', ZTS_CERT_INSTANCE_ID_URI.length());
             if (idx != -1) {
-                instanceId.append(uri.substring(ZTS_CERT_INSTANCE_ID_URI.length() + idx + 1));
+                final String id = uri.substring(idx + 1);
+                if (id.isEmpty()) {
+                    LOGGER.error("Empty instance uri provided in uri: {}", uri);
+                    return false;
+                }
+                instanceId.append(id);
                 return true;
             }
         }

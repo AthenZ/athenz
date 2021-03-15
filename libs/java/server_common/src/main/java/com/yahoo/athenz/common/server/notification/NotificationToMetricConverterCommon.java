@@ -29,12 +29,12 @@ public class NotificationToMetricConverterCommon {
     public String getNumberOfDaysBetweenTimestamps(String timeStampStr1, String timeStampStr2) {
         Timestamp timestamp1 = Timestamp.fromString(timeStampStr1);
         if (timestamp1 == null) {
-            LOGGER.error("Failed to parse days from timestamp: " + timeStampStr1);
+            LOGGER.error("Failed to parse days from timestamp: {}", timeStampStr1);
             return "";
         }
         Timestamp timestamp2 = Timestamp.fromString(timeStampStr2);
         if (timestamp2 == null) {
-            LOGGER.error("Failed to parse days from timestamp: " + timeStampStr2);
+            LOGGER.error("Failed to parse days from timestamp: {}", timeStampStr2);
             return "";
         }
 
@@ -42,6 +42,4 @@ public class NotificationToMetricConverterCommon {
         long days = TimeUnit.DAYS.convert(diffInMS, TimeUnit.MILLISECONDS);
         return Long.toString(days);
     }
-
-
 }

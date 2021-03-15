@@ -74,12 +74,12 @@ public class DebugRoleAuthority implements Authority, AuthorityKeyStore {
         //Expiration is not checked in this debugging class.
 
         List<String> roles = Arrays.asList(roleNames.split(","));
-        Principal p = SimplePrincipal.create(domainName, zToken, roles, this);
+        Principal principal = SimplePrincipal.create(domainName, zToken, roles, this);
         if (LOG.isInfoEnabled()) {
-            LOG.info("[debug-authenticated: '" + p + "']");
+            LOG.info("[debug-authenticated: '{}']", principal);
         }
 
-        return p;
+        return principal;
     }
 
     @Override

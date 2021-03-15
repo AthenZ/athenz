@@ -171,7 +171,7 @@ public class KerberosAuthority implements Authority {
             initState = exc;
             String params = "svc-princ=" + servicePrincipal + " login-callback=" + loginCallbackHandler +
                 " keytab=" + keyTabConfFile + " jaas-section=" + jaasConfigSection;
-            LOG.error("KerberosAuthority:initialize: Login context failure: config params=(" + params + ") exc: " + exc.getMessage());
+            LOG.error("KerberosAuthority:initialize: Login context failure: config params=({}) exc: {}", params, exc.getMessage());
         }
     }
 
@@ -182,7 +182,8 @@ public class KerberosAuthority implements Authority {
 
         KerberosPrincipal principal = ticket.getServer();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("KerberosAuthority:isTargetPrincipal: our princ=" + servicePrincipal + " ticket princ=" + principal.getName());
+            LOG.debug("KerberosAuthority:isTargetPrincipal: our princ={} ticket princ={}",
+                    servicePrincipal, principal.getName());
         }
 
         return principal.getName().equals(remoteSvcPrincipal);
@@ -210,7 +211,8 @@ public class KerberosAuthority implements Authority {
 
         if (tgt == null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("KerberosAuthority:refreshLogin: Process tickets found no principal match: subject contains number of tickets=" + tickets.size());
+                LOG.debug("KerberosAuthority:refreshLogin: Process tickets found no principal match: subject contains number of tickets={}",
+                        tickets.size());
             }
             return true;
         }
@@ -263,7 +265,7 @@ public class KerberosAuthority implements Authority {
             errMsg.append("KerberosAuthority:authenticate: Invalid token: exc=").
                    append(ex.getMessage()).append(" : credential=").
                    append(creds);
-            LOG.error("KerberosAuthority:authenticate: " + errMsg.toString());
+            LOG.error("KerberosAuthority:authenticate: {}", errMsg.toString());
             return null;
         }
 
@@ -314,7 +316,7 @@ public class KerberosAuthority implements Authority {
                 options.put("useKeyTab", "true");
                 options.put("keyTab", keyTabConfFile);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("KerberosAuthority:authenticate: use keytab=" + keyTabConfFile);
+                    LOG.debug("KerberosAuthority:authenticate: use keytab={}", keyTabConfFile);
                 }
             }
             options.put("principal", servicePrincipalName);

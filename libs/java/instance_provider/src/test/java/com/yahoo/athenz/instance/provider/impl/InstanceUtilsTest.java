@@ -124,6 +124,15 @@ public class InstanceUtilsTest {
     }
 
     @Test
+    public void testValidateCertRequestHostnamesWithEmptyInstanceIdURI() {
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("sanDNS", "api.athenz.athenz.cloud");
+        attributes.put("sanURI", "spiffe://athenz/sa/cloud,athenz://instanceid/zts/");
+        StringBuilder id = new StringBuilder(256);
+        assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api", "athenz.cloud", id));
+    }
+
+    @Test
     public void testValidateCertRequestHostnamesNullHostnames() {
         HashMap<String, String> attributes = new HashMap<>();
         StringBuilder id = new StringBuilder(256);

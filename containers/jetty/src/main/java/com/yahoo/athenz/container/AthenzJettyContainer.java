@@ -95,7 +95,7 @@ public class AthenzJettyContainer {
                 serverHostName = localhost.getCanonicalHostName();
             } catch (java.net.UnknownHostException e) {
                 ///CLOVER:OFF
-                LOG.info("Unable to determine local hostname: " + e.getMessage());
+                LOG.info("Unable to determine local hostname: {}", e.getMessage());
                 serverHostName = "localhost";
                 ///CLOVER:ON
             }
@@ -320,8 +320,7 @@ public class AthenzJettyContainer {
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid PrivateKeyStoreFactory class: " + pkeyFactoryClass
-                    + " error: " + e.getMessage());
+            LOG.error("Invalid PrivateKeyStoreFactory class: {} error: {}", pkeyFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid private key store");
         }
         this.privateKeyStore = pkeyFactory.create();

@@ -141,7 +141,7 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
         } catch (ZMSClientException e) {
             
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("ZMSAuthorizer.access: " + e);
+                LOGGER.debug("ZMSAuthorizer.access", e);
             }
             
             switch (e.getCode()) {

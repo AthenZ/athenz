@@ -33,7 +33,6 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultOAuthJwtAccessToken.class);
 
-    // protected JwsHeader<?> header;
     protected Claims body;
     protected String signature;
 
@@ -42,7 +41,6 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
      * @param  jws JWS claims
      */
     public DefaultOAuthJwtAccessToken(Jws<Claims> jws) {
-        // this.header = jws.getHeader();
         this.body = jws.getBody();
         this.signature = jws.getSignature();
     }
@@ -73,7 +71,7 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
             audiences = this.body.get(Claims.AUDIENCE, ArrayList.class);
         } catch (RequiredTypeException e) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("DefaultOAuthJwtAccessToken:getAudiences treat audience as string, err: " + e.getMessage());
+                LOG.debug("DefaultOAuthJwtAccessToken:getAudiences treat audience as string, err: {}", e.getMessage());
             }
             // found but class mismatch
             audiences = Arrays.asList(new String[]{ this.body.getAudience() });
@@ -97,7 +95,7 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
             }
         } catch (RequiredTypeException e) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("DefaultOAuthJwtAccessToken:getCertificateThumbprint expected data type to be JSON object, err: " + e.getMessage());
+                LOG.debug("DefaultOAuthJwtAccessToken:getCertificateThumbprint expected data type to be JSON object, err: {}", e.getMessage());
             }
             return null;
         }

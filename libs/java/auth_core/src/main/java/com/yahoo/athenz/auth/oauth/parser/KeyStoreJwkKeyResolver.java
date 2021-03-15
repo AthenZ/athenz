@@ -48,7 +48,7 @@ public class KeyStoreJwkKeyResolver implements SigningKeyResolver {
      */
     public KeyStoreJwkKeyResolver(KeyStore keyStore, String url, SSLContext sslContext) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("KeyStoreJwkKeyResolver:JWK URL: " + url);
+            LOG.debug("KeyStoreJwkKeyResolver:JWK URL: {}", url);
         }
 
         this.keyStore = keyStore;
@@ -61,7 +61,7 @@ public class KeyStoreJwkKeyResolver implements SigningKeyResolver {
         String keyId = header.getKeyId();
         if (keyId == null || keyId.isEmpty()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: invalid key ID " + keyId);
+                LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: invalid key ID: {}", keyId);
             }
             return null;
         }
@@ -72,14 +72,14 @@ public class KeyStoreJwkKeyResolver implements SigningKeyResolver {
             String[] ds = AthenzUtils.splitPrincipalName(issuer);
             if (ds == null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: skip using KeyStore, invalid issuer " + issuer);
+                    LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: skip using KeyStore, invalid issuer: {}", issuer);
                 }
             } else {
                 String domain = ds[0];
                 String service = ds[1];
 
                 if (!SYS_AUTH_DOMAIN.equals(domain)) {
-                    LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: skip using KeyStore, invalid domain " + domain);
+                    LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: skip using KeyStore, invalid domain: {}", domain);
                 } else {
                     String publicKey = this.keyStore.getPublicKey(domain, service, keyId);
                     if (publicKey != null && !publicKey.isEmpty()) {
@@ -88,8 +88,8 @@ public class KeyStoreJwkKeyResolver implements SigningKeyResolver {
                                 LOG.debug("KeyStoreJwkKeyResolver:resolveSigningKey: will use public key from key store: ({}, {}, {})", domain, service, keyId);
                             }
                             return Crypto.loadPublicKey(publicKey);
-                        } catch (Throwable t) {
-                            LOG.warn("KeyStoreJwkKeyResolver:resolveSigningKey: invalid public key format", t);
+                        } catch (Exception ex) {
+                            LOG.warn("KeyStoreJwkKeyResolver:resolveSigningKey: invalid public key format", ex);
                         }
                     }
                 }

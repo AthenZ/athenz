@@ -143,7 +143,7 @@ public class DataSourceFactory {
         // there are no available connections) for a connection to be returned
         // before throwing an exception, or -1 to wait indefinitely. Default -1
         config.setMaxWaitMillis(retrieveConfigSetting(ATHENZ_PROP_DBPOOL_MAX_WAIT,
-                GenericObjectPoolConfig.DEFAULT_MAX_WAIT_MILLIS));
+                BaseObjectPoolConfig.DEFAULT_MAX_WAIT_MILLIS));
         
         // setup the configuration to cleanup idle connections
         //
@@ -161,11 +161,9 @@ public class DataSourceFactory {
                 BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_TIME_MILLIS));
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Config settings for idle object eviction: " +
-                    "time interval between eviction thread runs (" +
-                    config.getTimeBetweenEvictionRunsMillis() +
-                    " millis): minimum timeout for idle objects (" +
-                    config.getMinEvictableIdleTimeMillis() + " millis)");
+            LOG.debug("Config settings for idle object eviction: time interval between eviction thread runs ({} millis), " +
+                    "minimum timeout for idle objects ({} millis)",
+                    config.getTimeBetweenEvictionRunsMillis(), config.getMinEvictableIdleTimeMillis());
         }
         
         // Validate objects by the idle object evictor. If invalid, gets dropped

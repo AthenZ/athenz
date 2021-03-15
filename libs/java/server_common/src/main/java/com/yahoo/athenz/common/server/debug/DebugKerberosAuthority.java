@@ -62,7 +62,7 @@ public class DebugKerberosAuthority implements Authority {
             LOG.debug("DebugKerberosAuthority:authenticate: Missing ticket");
             return null;
         } else if (!creds.startsWith(TOKEN_PREFIX)) {
-            LOG.debug("DebugKerberosAuthority:authenticate: bad format: Missing prefix=" + TOKEN_PREFIX + " in ticket=" + creds); 
+            LOG.debug("DebugKerberosAuthority:authenticate: bad format: Missing prefix={} in ticket={}", TOKEN_PREFIX, creds);
             return null;
         } else {
             creds = creds.substring(TOKEN_PREFIX.length()).trim();

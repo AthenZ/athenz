@@ -62,8 +62,7 @@ public class SelfCertSignerFactory implements CertSignerFactory {
         try {
             csr = Crypto.generateX509CSR(caPrivateKey, csrDn, null);
         } catch (IllegalArgumentException | OperatorCreationException | IOException ex) {
-            LOGGER.error("Unable to generate X509 CSR for dn: " + csrDn
-                    + ", error: " + ex.getMessage());
+            LOGGER.error("Unable to generate X509 CSR for dn: {}, error: {}", csrDn, ex.getMessage());
             return null;
         }
         

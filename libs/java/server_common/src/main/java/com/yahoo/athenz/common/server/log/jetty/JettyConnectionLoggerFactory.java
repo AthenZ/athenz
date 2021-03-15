@@ -45,8 +45,7 @@ public class JettyConnectionLoggerFactory {
         try {
             metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid MetricFactory class: " + metricFactoryClass
-                    + " error: " + e.getMessage());
+            LOG.error("Invalid MetricFactory class: {} error: {}", metricFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid metric class");
         }
 
@@ -60,8 +59,7 @@ public class JettyConnectionLoggerFactory {
         try {
             sslConnectionLogFactory = (SSLConnectionLogFactory) Class.forName(sslConnectionLogFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid SSLConnectionLogFactory class: " + sslConnectionLogFactoryClass
-                    + " error: " + e.getMessage());
+            LOG.error("Invalid SSLConnectionLogFactory class: {} error: {}", sslConnectionLogFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid SSLConnectionLogFactory");
         }
         return sslConnectionLogFactory.create();

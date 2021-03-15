@@ -101,7 +101,7 @@ public class CertificateAuthority implements Authority {
         if (LOG.isDebugEnabled()) {
             if (certs != null) {
                 for (X509Certificate cert : certs) {
-                    LOG.debug("CertificateAuthority: TLS Certificate: " + cert);
+                    LOG.debug("CertificateAuthority: TLS Certificate: {}", cert);
                 }
             }
         }
