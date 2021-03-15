@@ -771,43 +771,4 @@ public class AthenzJettyContainerTest {
 
         System.clearProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON);
     }
-
-    @Test
-    public void testNoOCSP() {
-        System.setProperty(AthenzConsts.ATHENZ_PROP_ENABLE_OCSP, "false");
-
-        AthenzJettyContainer container = new AthenzJettyContainer();
-        container.createServer(100);
-        HttpConfiguration httpConfig = container.newHttpConfiguration();
-        container.addHTTPConnectors(httpConfig, 0, 8083, 0);
-
-        Server server = container.getServer();
-        Connector[] connectors = server.getConnectors();
-        assertEquals(connectors.length, 1);
-        SslContextFactory sslContextFactory = connectors[0].getConnectionFactory(SslConnectionFactory.class).getSslContextFactory();
-
-        assertFalse(sslContextFactory.isEnableOCSP());
-        assertFalse(sslContextFactory.isValidateCerts());
-
-        System.clearProperty(AthenzConsts.ATHENZ_PROP_ENABLE_OCSP);
-    }
-
-    @Test
-    public void testOCSP() {
-        AthenzJettyContainer container = new AthenzJettyContainer();
-        container.createServer(100);
-        HttpConfiguration httpConfig = container.newHttpConfiguration();
-        container.addHTTPConnectors(httpConfig, 0, 8083, 0);
-
-        Server server = container.getServer();
-        Connector[] connectors = server.getConnectors();
-        assertEquals(connectors.length, 1);
-        SslContextFactory sslContextFactory = connectors[0].getConnectionFactory(SslConnectionFactory.class).getSslContextFactory();
-
-        assertEquals(Security.getProperty("ocsp.enable"), "true");
-        assertEquals(System.getProperty("jdk.tls.server.enableStatusRequestExtension"), "true");
-        assertEquals(System.getProperty("com.sun.net.ssl.checkRevocation"), "true");
-        assertTrue(sslContextFactory.isEnableOCSP());
-        assertTrue(sslContextFactory.isValidateCerts());
-    }
 }

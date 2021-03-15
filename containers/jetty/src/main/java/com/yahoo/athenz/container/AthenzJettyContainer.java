@@ -18,7 +18,6 @@ package com.yahoo.athenz.container;
 
 import java.io.File;
 import java.net.InetAddress;
-import java.security.Security;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -346,15 +345,14 @@ public class AthenzJettyContainer {
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid PrivateKeyStoreFactory class: " + pkeyFactoryClass
-                    + " error: " + e.getMessage());
+            LOG.error("Invalid PrivateKeyStoreFactory class: " + pkeyFactoryClass + " error: ", e);
             throw new IllegalArgumentException("Invalid private key store");
         }
         this.privateKeyStore = pkeyFactory.create();
     }
-    
+
     SslContextFactory.Server createSSLContextObject(boolean needClientAuth) {
-        
+
         final String keyStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH);
         final String keyStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME);
         final String keyStorePassword = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD);
@@ -367,10 +365,8 @@ public class AthenzJettyContainer {
         final String trustStoreType = System.getProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
         final String includedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_INCLUDED_CIPHER_SUITES);
         final String excludedCipherSuites = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES);
-        final String excludedProtocols = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS,
-                ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
-        boolean enableOCSP = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_ENABLE_OCSP, "true"));
-        boolean renegotiationAllowed = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_RENEGOTIATION_ALLOWED, "false"));
+        final String excludedProtocols = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS, ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
+        final boolean renegotiationAllowed = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_RENEGOTIATION_ALLOWED, "false"));
 
         SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setEndpointIdentificationAlgorithm(null);
@@ -413,16 +409,6 @@ public class AthenzJettyContainer {
             sslContextFactory.setNeedClientAuth(true);
         } else {
             sslContextFactory.setWantClientAuth(true);
-        }
-
-        if (enableOCSP) {
-            // See https://stackoverflow.com/questions/49904935/jetty-9-enable-ocsp-stapling-for-domain-validated-certificate
-            // Note that for OCSP-Stapling to actually work - these commands must also be performed:
-            //            Security.setProperty("ocsp.enable", "true");
-            //            System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
-            //            System.setProperty("com.sun.net.ssl.checkRevocation", "true");
-            sslContextFactory.setEnableOCSP(true);
-            sslContextFactory.setValidateCerts(true);   // not sure what this does... OCSP works even without this - but it is recommended.
         }
 
         sslContextFactory.setRenegotiationAllowed(renegotiationAllowed);
@@ -593,7 +579,7 @@ public class AthenzJettyContainer {
             System.out.println("Jetty server running at " + banner);
             server.join();
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
