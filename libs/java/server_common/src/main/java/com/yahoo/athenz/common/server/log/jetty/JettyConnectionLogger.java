@@ -131,8 +131,12 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements SslHands
             this.sslHandshakeFailureException = sslHandshakeException.getClass().getName();
             this.sslHandshakeFailureMessage = sslHandshakeException.getMessage();
             // If the error isn't clear, try to get it from the exception inner cause
-            if (exception.getCause() != null && GENERAL_SSL_ERROR.equals(this.sslHandshakeFailureMessage)) {
+            if (exception.getCause() != null) {
                 this.sslHandshakeFailureCause = getInnerCause(exception, sslHandshakeException.getMessage());
+                // If the cause is identical to the message, no need to print it so we'll set it to null
+                if (this.sslHandshakeFailureCause != null && this.sslHandshakeFailureCause.equals(this.sslHandshakeFailureMessage)) {
+                    this.sslHandshakeFailureCause = null;
+                }
             }
             this.sslHandshakeFailureType = SslHandshakeFailure.fromSslHandshakeException(sslHandshakeException)
                     .map(SslHandshakeFailure::failureType)
