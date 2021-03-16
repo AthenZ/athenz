@@ -42,6 +42,8 @@ public final class ServerCommonConsts {
     public static final String REQUEST_AUTHORITY_ID = "com.yahoo.athenz.auth.authority_id";
     
     public static final String METRIC_DEFAULT_FACTORY_CLASS = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
+    public static final String SSL_CONNECTION_LOG_NAME = "SSLConnectionLog";
+
 
     // for tests
     public static final String ZTS_PROP_AWS_PUBLIC_CERT = "athenz.zts.aws_public_cert";

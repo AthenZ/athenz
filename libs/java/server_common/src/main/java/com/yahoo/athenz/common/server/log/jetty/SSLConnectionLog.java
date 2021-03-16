@@ -23,10 +23,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.SSL_CONNECTION_LOG_NAME;
+
 public class SSLConnectionLog implements ConnectionLog {
 
     private JsonConnectionLogWriter jsonConnectionLogWriter = new JsonConnectionLogWriter();
-    private static final Logger LOG = LoggerFactory.getLogger("SSLConnectionLog");
+    private static final Logger LOG = LoggerFactory.getLogger(SSL_CONNECTION_LOG_NAME);
 
     @Override
     public void log(ConnectionLogEntry connectionLogEntry) {
