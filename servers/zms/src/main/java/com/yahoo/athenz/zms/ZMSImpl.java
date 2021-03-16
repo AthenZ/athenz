@@ -212,6 +212,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     enum AthenzObject {
         ASSERTION {
+            @Override
             void convertToLowerCase(Object obj) {
                 Assertion assertion = (Assertion) obj;
                 boolean isCaseSensitive = (assertion.getCaseSensitive() != null) ? assertion.getCaseSensitive() : false;
@@ -227,12 +228,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         DEFAULT_ADMINS {
+            @Override
             void convertToLowerCase(Object obj) {
                 DefaultAdmins defaultAdmins = (DefaultAdmins) obj;
                 LIST.convertToLowerCase(defaultAdmins.getAdmins());
             }
         },
         DOMAIN_TEMPLATE {
+            @Override
             void convertToLowerCase(Object obj) {
                 DomainTemplate template = (DomainTemplate) obj;
                 if (template != null) {
@@ -248,6 +251,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         DOMAIN_TEMPLATE_LIST {
+            @Override
             void convertToLowerCase(Object obj) {
                 DomainTemplateList templates = (DomainTemplateList) obj;
                 if (templates != null) {
@@ -256,12 +260,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         ENTITY {
+            @Override
             void convertToLowerCase(Object obj) {
                 Entity entity = (Entity) obj;
                 entity.setName(entity.getName().toLowerCase());
             }
         },
         GROUP {
+            @Override
             void convertToLowerCase(Object obj) {
                 Group group = (Group) obj;
                 group.setName(group.getName().toLowerCase());
@@ -269,6 +275,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         GROUP_MEMBER {
+            @Override
             void convertToLowerCase(Object obj) {
                 @SuppressWarnings("unchecked")
                 List<GroupMember> list = (List<GroupMember>) obj;
@@ -290,6 +297,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         GROUP_MEMBERSHIP {
+            @Override
             void convertToLowerCase(Object obj) {
                 GroupMembership membership = (GroupMembership) obj;
                 membership.setMemberName(membership.getMemberName().toLowerCase());
@@ -299,6 +307,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         GROUP_META {
+            @Override
             void convertToLowerCase(Object obj) {
                 GroupMeta groupMeta = (GroupMeta) obj;
                 if (groupMeta.getNotifyRoles() != null) {
@@ -307,6 +316,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         LIST {
+            @Override
             void convertToLowerCase(Object obj) {
                 @SuppressWarnings("unchecked")
                 List<String> list = (List<String>) obj;
@@ -319,6 +329,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         MEMBERSHIP {
+            @Override
             void convertToLowerCase(Object obj) {
                 Membership membership = (Membership) obj;
                 membership.setMemberName(membership.getMemberName().toLowerCase());
@@ -328,6 +339,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         POLICY {
+            @Override
             void convertToLowerCase(Object obj) {
                 Policy policy = (Policy) obj;
                 policy.setName(policy.getName().toLowerCase());
@@ -345,6 +357,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         PROVIDER_RESOURCE_GROUP_ROLES {
+            @Override
             void convertToLowerCase(Object obj) {
                 ProviderResourceGroupRoles tenantRoles = (ProviderResourceGroupRoles) obj;
                 tenantRoles.setDomain(tenantRoles.getDomain().toLowerCase());
@@ -359,12 +372,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         PUBLIC_KEY_ENTRY {
+            @Override
             void convertToLowerCase(Object obj) {
                 PublicKeyEntry keyEntry = (PublicKeyEntry) obj;
                 keyEntry.setId(keyEntry.getId().toLowerCase());
             }
         },
         ROLE {
+            @Override
             void convertToLowerCase(Object obj) {
                 Role role = (Role) obj;
                 role.setName(role.getName().toLowerCase());
@@ -376,6 +391,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         ROLE_META {
+            @Override
             void convertToLowerCase(Object obj) {
                 RoleMeta roleMeta = (RoleMeta) obj;
                 if (roleMeta.getNotifyRoles() != null) {
@@ -387,6 +403,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         ROLE_MEMBER {
+            @Override
             void convertToLowerCase(Object obj) {
                 @SuppressWarnings("unchecked")
                 List<RoleMember> list = (List<RoleMember>) obj;
@@ -400,6 +417,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         SERVICE_IDENTITY {
+            @Override
             void convertToLowerCase(Object obj) {
                 ServiceIdentity service = (ServiceIdentity) obj;
                 service.setName(service.getName().toLowerCase());
@@ -412,6 +430,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         SUB_DOMAIN {
+            @Override
             void convertToLowerCase(Object obj) {
                 SubDomain subdomain = (SubDomain) obj;
                 subdomain.setName(subdomain.getName().toLowerCase());
@@ -424,6 +443,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         TENANCY {
+            @Override
             void convertToLowerCase(Object obj) {
                 Tenancy tenancy = (Tenancy) obj;
                 tenancy.setDomain(tenancy.getDomain().toLowerCase());
@@ -432,6 +452,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         TENANT_RESOURCE_GROUP_ROLES {
+            @Override
             void convertToLowerCase(Object obj) {
                 TenantResourceGroupRoles tenantRoles = (TenantResourceGroupRoles) obj;
                 tenantRoles.setDomain(tenantRoles.getDomain().toLowerCase());
@@ -446,6 +467,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         TENANT_ROLE_ACTION {
+            @Override
             void convertToLowerCase(Object obj) {
                 TenantRoleAction roleAction = (TenantRoleAction) obj;
                 roleAction.setAction(roleAction.getAction().toLowerCase());
@@ -453,6 +475,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         TOP_LEVEL_DOMAIN {
+            @Override
             void convertToLowerCase(Object obj) {
                 TopLevelDomain domain = (TopLevelDomain) obj;
                 domain.setName(domain.getName().toLowerCase());
@@ -467,12 +490,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         QUOTA {
+            @Override
             void convertToLowerCase(Object obj) {
                 Quota quota = (Quota) obj;
                 quota.setName(quota.getName().toLowerCase());
             }
         },
         USER_DOMAIN {
+            @Override
             void convertToLowerCase(Object obj) {
                 UserDomain userDomain = (UserDomain) obj;
                 userDomain.setName(userDomain.getName().toLowerCase());
@@ -483,6 +508,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         },
         DOMAIN_META {
+            @Override
             void convertToLowerCase(Object obj) {
                 DomainMeta domainMeta = (DomainMeta) obj;
                 if (domainMeta.getCertDnsDomain() != null) {
@@ -1140,7 +1166,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     @Override
     public DomainList getDomainList(ResourceContext ctx, Integer limit, String skip, String prefix,
             Integer depth, String account, Integer productId, String roleMember, String roleName,
-            String subscription, String tagKey, String tagValue, String modifiedSince) {
+            String subscription, String tagKey, String tagValue, String businessService, String modifiedSince) {
 
         final String caller = ctx.getApiName();
 
@@ -1149,9 +1175,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getDomainList: limit: {}, skip: {}, prefix: {}, depth: {}, account: {}, " +
-                            "productId: {}, roleMember: {}, roleName: {}, modifiedSince: {}, subscription: {}",
-                    limit, skip, prefix, depth, account, productId, roleMember, roleName, modifiedSince, subscription);
+            LOG.debug("getDomainList: limit: {}, skip: {}, prefix: {}, depth: {}, account: {}, productId: {}, " +
+                    "roleMember: {}, roleName: {}, modifiedSince: {}, subscription: {}, businessService: {}",
+                    limit, skip, prefix, depth, account, productId, roleMember, roleName,
+                    modifiedSince, subscription, businessService);
         }
 
         // for consistent handling of all requests, we're going to convert
@@ -1209,6 +1236,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             dlist = dbService.lookupDomainByRole(normalizeDomainAliasUser(roleMember), roleName);
         } else if (!StringUtil.isEmpty(tagKey)) {
             dlist = dbService.lookupDomainByTag(tagKey, tagValue);
+        } else if (!StringUtil.isEmpty(businessService)) {
+            dlist = dbService.lookupDomainByBusinessService(businessService);
         } else {
             dlist = listDomains(limit, skip, prefix, depth, modTime, false);
         }
@@ -1328,7 +1357,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
                 .setSignAlgorithm(detail.getSignAlgorithm())
                 .setUserAuthorityFilter(detail.getUserAuthorityFilter())
-                .setTags(detail.getTags());
+                .setTags(detail.getTags())
+                .setBusinessService(detail.getBusinessService());
 
         // before processing validate the fields
 
@@ -1499,7 +1529,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
                 .setSignAlgorithm(detail.getSignAlgorithm())
-                .setTags(detail.getTags());
+                .setTags(detail.getTags())
+                .setBusinessService(detail.getBusinessService());
+
         // before processing validate the fields
 
         validateDomainValues(subDomain);
@@ -1590,7 +1622,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setServiceCertExpiryMins(detail.getServiceCertExpiryMins())
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
                 .setSignAlgorithm(detail.getSignAlgorithm())
-                .setTags(detail.getTags());
+                .setTags(detail.getTags())
+                .setBusinessService(detail.getBusinessService());
 
         // before processing validate the fields
 
@@ -5088,6 +5121,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainData.setOrg(domain.getOrg());
                     domainData.setAuditEnabled(domain.getAuditEnabled());
                     domainData.setTags(domain.getTags());
+                    domainData.setBusinessService(domain.getBusinessService());
                     break;
             }
         }
@@ -5149,6 +5183,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setYpmId(athenzDomain.getDomain().getYpmId());
         domainData.setApplicationId(athenzDomain.getDomain().getApplicationId());
         domainData.setSignAlgorithm(athenzDomain.getDomain().getSignAlgorithm());
+        domainData.setBusinessService(athenzDomain.getDomain().getBusinessService());
         if (athenzDomain.getDomain().getServiceCertExpiryMins() != null) {
             domainData.setServiceCertExpiryMins(athenzDomain.getDomain().getServiceCertExpiryMins());
         }

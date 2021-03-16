@@ -27,9 +27,11 @@ type DomainList Struct {
     String next (optional); //if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter.
 }
 
-//Enumerate domains. Can be filtered by prefix and depth, and paginated.
-//This operation can be expensive, as it may span multiple domains.
-resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth={depth}&account={account}&ypmid={productId}&member={roleMember}&role={roleName}&azure={subscription}&tagKey={tagKey}&tagValue={tagValue}" {
+//Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the
+//query options that are looking for specific domain attributes (e.g. aws account,
+//azure subscriptions, business service, tags, etc) are mutually exclusive. The server
+//will only process the first query argument and ignore the others.
+resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth={depth}&account={account}&ypmid={productId}&member={roleMember}&role={roleName}&azure={subscription}&tagKey={tagKey}&tagValue={tagValue}&businessService={businessService}" {
     Int32 limit (optional); //restrict the number of results in this call
     String skip (optional); //restrict the set to those after the specified "next" token returned from a previous call
     String prefix (optional); //restrict to names that start with the prefix
@@ -39,9 +41,10 @@ resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth
     Int32 productId (optional); //restrict the domain names that have specified product id
     ResourceName roleMember (optional); //restrict the domain names where the specified user is in a role - see roleName
     ResourceName roleName (optional); //restrict the domain names where the specified user is in this role - see roleMember
-    String modifiedSince (header="If-Modified-Since"); //This header specifies to the server to return any domains modified since this HTTP date
     CompoundName tagKey (optional); //flag to query all domains that have a given tagName
     CompoundName tagValue (optional); //flag to query all domains that have a given tag name and value
+    String businessService (optional); //restrict to domain names that have specified business service name
+    String modifiedSince (header="If-Modified-Since"); //This header specifies to the server to return any domains modified since this HTTP date
     authenticate;
     exceptions {
         ResourceError UNAUTHORIZED;

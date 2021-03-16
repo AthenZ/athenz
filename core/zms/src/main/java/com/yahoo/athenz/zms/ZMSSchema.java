@@ -578,7 +578,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("DomainList", "GET", "/domain")
-            .comment("Enumerate domains. Can be filtered by prefix and depth, and paginated. This operation can be expensive, as it may span multiple domains.")
+            .comment("Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the query options that are looking for specific domain attributes (e.g. aws account, azure subscriptions, business service, tags, etc) are mutually exclusive. The server will only process the first query argument and ignore the others.")
             .queryParam("limit", "limit", "Int32", null, "restrict the number of results in this call")
             .queryParam("skip", "skip", "String", null, "restrict the set to those after the specified \"next\" token returned from a previous call")
             .queryParam("prefix", "prefix", "String", null, "restrict to names that start with the prefix")
@@ -590,6 +590,7 @@ public class ZMSSchema {
             .queryParam("azure", "subscription", "String", null, "restrict to domain names that have specified azure subscription name")
             .queryParam("tagKey", "tagKey", "CompoundName", null, "flag to query all domains that have a given tagName")
             .queryParam("tagValue", "tagValue", "CompoundName", null, "flag to query all domains that have a given tag name and value")
+            .queryParam("businessService", "businessService", "String", null, "restrict to domain names that have specified business service name")
             .headerParam("If-Modified-Since", "modifiedSince", "String", null, "This header specifies to the server to return any domains modified since this HTTP date")
             .auth("", "", true)
             .expected("OK")

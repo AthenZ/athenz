@@ -54,12 +54,12 @@ public class ZMSClientMockTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         Mockito.doReturn(new DomainList()).when(mockZMS).getDomainList(ArgumentMatchers.isA(Integer.class),
                 ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(Integer.class),
                 ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(Integer.class), ArgumentMatchers.isA(String.class),
                 ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class),
-                ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class));
+                ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class));
         userList = new ArrayList<>();
         userList.add("user.johnny");
         zclt = new ZMSClient(zmsUrl);
@@ -72,8 +72,7 @@ public class ZMSClientMockTest {
         String domName = "testdom";
         Mockito.doReturn(new Domain()).when(mockZMS).getDomain(domName);
         Mockito.doReturn(new DomainList()).when(mockZMS).getDomainList(null, null, null,
-            null, null, null, null, null, null,
-            null, null, null);
+            null, null, null, null, null, null, null, null, null, null);
 
         DomainList domList = zclt.getDomainList();
         assertNotNull(domList);
@@ -107,8 +106,7 @@ public class ZMSClientMockTest {
         DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss zzz");
         String modifiedSince = df.format(now);
         Mockito.doReturn(domList).when(mockZMS).getDomainList(null, null, null,
-                null, null, null, null, null,
-            null,null, null, modifiedSince);
+                null, null, null, null, null, null,null, null, null, modifiedSince);
 
         DomainList domainList = zclt.getDomainList(null, null, null,
                 null, null, null, now);
@@ -649,9 +647,9 @@ public class ZMSClientMockTest {
         DomainList domEmptyList = new DomainList();
 
         Mockito.doReturn(domList).when(mockZMS).getDomainList(null, null, null, null,
-                "1234", null, null, null, null, null, null, null);
+                "1234", null, null, null, null, null, null, null, null);
         Mockito.doReturn(domEmptyList).when(mockZMS).getDomainList(null, null, null, null,
-                "1235", null, null, null, null, null, null, null);
+                "1235", null, null, null, null, null, null, null, null);
 
         DomainList domainList = zclt.getDomainList(null, null, null, null, "1234", null, null);
         assertNotNull(domainList);
@@ -673,9 +671,9 @@ public class ZMSClientMockTest {
         DomainList domEmptyList = new DomainList();
 
         Mockito.doReturn(domList).when(mockZMS).getDomainList(null, null, null, null, null,
-                101, null, null, null, null, null, null);
+                101, null, null, null, null, null, null, null);
         Mockito.doReturn(domEmptyList).when(mockZMS).getDomainList(null, null, null, null, null,
-                102, null, null, null, null, null, null);
+                102, null, null, null, null, null, null, null);
 
         DomainList domainList = zclt.getDomainList(null, null, null, null, null, 101, null);
         assertNotNull(domainList);
@@ -697,9 +695,9 @@ public class ZMSClientMockTest {
         DomainList domEmptyList = new DomainList();
 
         Mockito.doReturn(domList).when(mockZMS).getDomainList(null, null, null, null, null,
-                null, "user.user1", "admin", null, null, null, null);
+                null, "user.user1", "admin", null, null, null, null, null);
         Mockito.doReturn(domEmptyList).when(mockZMS).getDomainList(null, null, null, null, null,
-                null, "user.user2", "admin", null, null, null, null);
+                null, "user.user2", "admin", null, null, null, null, null);
 
         DomainList domainList = zclt.getDomainList("user.user1", "admin");
         assertNotNull(domainList);
@@ -804,15 +802,13 @@ public class ZMSClientMockTest {
 
         boolean policyCheck = false;
         for (Policy policy : policies.getList()) {
-            switch (policy.getName()) {
-                case "get-policies:policy.assert-policy":
-                    assertNotNull(policy.getModified());
-                    List<Assertion> testAssertions = policy.getAssertions();
-                    assertNotNull(testAssertions);
-                    assertEquals(testAssertions.size(), 1);
-                    assertEquals(testAssertions.get(0).getAction(), "update");
-                    policyCheck = true;
-                    break;
+            if ("get-policies:policy.assert-policy".equals(policy.getName())) {
+                assertNotNull(policy.getModified());
+                List<Assertion> testAssertions = policy.getAssertions();
+                assertNotNull(testAssertions);
+                assertEquals(testAssertions.size(), 1);
+                assertEquals(testAssertions.get(0).getAction(), "update");
+                policyCheck = true;
             }
         }
         assertTrue(policyCheck);
@@ -825,12 +821,10 @@ public class ZMSClientMockTest {
 
         policyCheck = false;
         for (Policy policy : policies.getList()) {
-            switch (policy.getName()) {
-                case "get-policies:policy.no-assert-policy":
-                    assertNotNull(policy.getModified());
-                    assertNull(policy.getAssertions());
-                    policyCheck = true;
-                    break;
+            if ("get-policies:policy.no-assert-policy".equals(policy.getName())) {
+                assertNotNull(policy.getModified());
+                assertNull(policy.getAssertions());
+                policyCheck = true;
             }
         }
         assertTrue(policyCheck);
@@ -896,20 +890,18 @@ public class ZMSClientMockTest {
 
         boolean serviceCheck = false;
         for (ServiceIdentity service : services.getList()) {
-            switch (service.getName()) {
-                case "get-services.service-key-host":
-                    assertNotNull(service.getModified());
-                    List<PublicKeyEntry> testPublicKeys = service.getPublicKeys();
-                    assertNotNull(testPublicKeys);
-                    assertEquals(testPublicKeys.size(), 1);
-                    assertEquals(testPublicKeys.get(0).getId(), "0");
-                    assertEquals(testPublicKeys.get(0).getKey(), "key");
-                    List<String> testHosts = service.getHosts();
-                    assertNotNull(testHosts);
-                    assertEquals(testHosts.size(), 1);
-                    assertEquals(testHosts.get(0), "host1");
-                    serviceCheck = true;
-                    break;
+            if ("get-services.service-key-host".equals(service.getName())) {
+                assertNotNull(service.getModified());
+                List<PublicKeyEntry> testPublicKeys = service.getPublicKeys();
+                assertNotNull(testPublicKeys);
+                assertEquals(testPublicKeys.size(), 1);
+                assertEquals(testPublicKeys.get(0).getId(), "0");
+                assertEquals(testPublicKeys.get(0).getKey(), "key");
+                List<String> testHosts = service.getHosts();
+                assertNotNull(testHosts);
+                assertEquals(testHosts.size(), 1);
+                assertEquals(testHosts.get(0), "host1");
+                serviceCheck = true;
             }
         }
         assertTrue(serviceCheck);
@@ -922,17 +914,15 @@ public class ZMSClientMockTest {
 
         serviceCheck = false;
         for (ServiceIdentity service : services.getList()) {
-            switch (service.getName()) {
-                case "get-services.service-key-only":
-                    assertNotNull(service.getModified());
-                    List<PublicKeyEntry> testPublicKeys = service.getPublicKeys();
-                    assertNotNull(testPublicKeys);
-                    assertEquals(testPublicKeys.size(), 1);
-                    assertEquals(testPublicKeys.get(0).getId(), "0");
-                    assertEquals(testPublicKeys.get(0).getKey(), "key");
-                    assertNull(service.getHosts());
-                    serviceCheck = true;
-                    break;
+            if ("get-services.service-key-only".equals(service.getName())) {
+                assertNotNull(service.getModified());
+                List<PublicKeyEntry> testPublicKeys = service.getPublicKeys();
+                assertNotNull(testPublicKeys);
+                assertEquals(testPublicKeys.size(), 1);
+                assertEquals(testPublicKeys.get(0).getId(), "0");
+                assertEquals(testPublicKeys.get(0).getKey(), "key");
+                assertNull(service.getHosts());
+                serviceCheck = true;
             }
         }
         assertTrue(serviceCheck);
@@ -945,16 +935,14 @@ public class ZMSClientMockTest {
 
         serviceCheck = false;
         for (ServiceIdentity service : services.getList()) {
-            switch (service.getName()) {
-                case "get-services.service-host-only":
-                    assertNotNull(service.getModified());
-                    assertNull(service.getPublicKeys());
-                    List<String> testHosts = service.getHosts();
-                    assertNotNull(testHosts);
-                    assertEquals(testHosts.size(), 1);
-                    assertEquals(testHosts.get(0), "host1");
-                    serviceCheck = true;
-                    break;
+            if ("get-services.service-host-only".equals(service.getName())) {
+                assertNotNull(service.getModified());
+                assertNull(service.getPublicKeys());
+                List<String> testHosts = service.getHosts();
+                assertNotNull(testHosts);
+                assertEquals(testHosts.size(), 1);
+                assertEquals(testHosts.get(0), "host1");
+                serviceCheck = true;
             }
         }
         assertTrue(serviceCheck);
@@ -1004,7 +992,7 @@ public class ZMSClientMockTest {
         testAssertion = zclt.getAssertion(domName, "policy1", 101L);
         assertNotNull(testAssertion);
         assertEquals(assertion.getAction(), "update");
-        assertEquals((long) assertion.getId(), (long) 101);
+        assertEquals((long) assertion.getId(), 101);
     }
 
     @Test

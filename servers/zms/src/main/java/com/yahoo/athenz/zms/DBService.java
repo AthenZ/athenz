@@ -964,7 +964,7 @@ public class DBService implements RolesProvider {
         if (retry) {
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug(": possible deadlock, retries available: " + retryCount);
+                LOG.debug(": possible deadlock, retries available: {}", retryCount);
             }
 
             ZMSUtils.threadSleep(retrySleepTime);
@@ -2021,7 +2021,7 @@ public class DBService implements RolesProvider {
                 // in actual users
 
                 if (prefixLength > 0) {
-                    if (principal.substring(prefixLength).indexOf('.') == -1) {
+                    if (principal.indexOf('.', prefixLength) == -1) {
                         users.add(principal);
                     }
                 } else {
@@ -2371,16 +2371,24 @@ public class DBService implements RolesProvider {
         return domList;
     }
 
-    DomainList lookupDomainByAWSAccount(String account) {
+    DomainList lookupDomainByAWSAccount(final String account) {
         return lookupDomainById(account, null, 0);
     }
 
-    DomainList lookupDomainByAzureSubscription(String subscription) {
+    DomainList lookupDomainByAzureSubscription(final String subscription) {
         return lookupDomainById(null, subscription, 0);
     }
 
     DomainList lookupDomainByProductId(Integer productId) {
         return lookupDomainById(null, null, productId);
+    }
+
+    DomainList lookupDomainByBusinessService(final String businessService) {
+        DomainList domList = new DomainList();
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            domList.setNames(con.lookupDomainByBusinessService(businessService));
+        }
+        return domList;
     }
 
     DomainList lookupDomainByRole(String roleMember, String roleName) {
@@ -2840,7 +2848,9 @@ public class DBService implements RolesProvider {
                         .setServiceCertExpiryMins(domain.getServiceCertExpiryMins())
                         .setSignAlgorithm(domain.getSignAlgorithm())
                         .setUserAuthorityFilter(domain.getUserAuthorityFilter())
-                        .setTags(domain.getTags());
+                        .setBusinessService(domain.getBusinessService())
+                        .setTags(domain.getTags())
+                        .setBusinessService(domain.getBusinessService());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -3102,6 +3112,9 @@ public class DBService implements RolesProvider {
         }
         if (meta.getSignAlgorithm() != null) {
             domain.setSignAlgorithm(meta.getSignAlgorithm());
+        }
+        if (meta.getBusinessService() != null) {
+            domain.setBusinessService(meta.getBusinessService());
         }
         if (meta.getTags() != null) {
             domain.setTags(meta.getTags());
@@ -3787,8 +3800,8 @@ public class DBService implements RolesProvider {
                     Role role = new Role().setName(trustedRole).setTrust(tenantDomain);
 
                     if (LOG.isInfoEnabled()) {
-                        LOG.info(caller + ": add trusted Role to domain " + provSvcDomain +
-                                ": " + trustedRole + " -> " + role);
+                        LOG.info("{}: add trusted Role to domain {}: {} -> {}",
+                                caller, provSvcDomain, trustedRole, role);
                     }
 
                     // retrieve our original role in case one exists
@@ -3817,8 +3830,8 @@ public class DBService implements RolesProvider {
                     Policy policy = new Policy().setName(policyResourceName).setAssertions(assertions);
 
                     if (LOG.isInfoEnabled()) {
-                        LOG.info(caller + ": add trust policy to domain " + provSvcDomain +
-                                ": " + trustedRole + " -> " + policy);
+                        LOG.info("{}: add trust policy to domain {}: {} -> {}",
+                                caller, provSvcDomain, trustedRole, policy);
                     }
 
                     // retrieve our original policy
@@ -3897,7 +3910,7 @@ public class DBService implements RolesProvider {
                 .setEffect(AssertionEffect.ALLOW);
 
         if (LOG.isInfoEnabled()) {
-            LOG.info("executePutProviderRoles: ---- ASSUME_ROLE policyName is " + policyName);
+            LOG.info("executePutProviderRoles: ---- ASSUME_ROLE policyName is {}", policyName);
         }
 
         // retrieve our original policy
@@ -4042,13 +4055,13 @@ public class DBService implements RolesProvider {
 
                     if (!validResourceGroupObjectToDelete(pname, pnamePrefix)) {
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug(caller + ": --ignore policy " + pname);
+                            LOG.debug("{}: --ignore policy {}", caller, pname);
                         }
                         continue;
                     }
 
                     if (LOG.isInfoEnabled()) {
-                        LOG.info(caller + ": --delete policy " + pname);
+                        LOG.info("{}: --delete policy {}", caller, pname);
                     }
 
                     con.deletePolicy(tenantDomain, pname);
@@ -4063,20 +4076,20 @@ public class DBService implements RolesProvider {
 
                     if (!validResourceGroupObjectToDelete(rname, rnamePrefix)) {
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug(caller + ": --ignore role " + rname);
+                            LOG.debug("{}: --ignore role {}", caller, rname);
                         }
                         continue;
                     }
 
                     if (!con.listPolicies(tenantDomain, rname).isEmpty()) {
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug(caller + ": --ignore role " + rname + " due to active references");
+                            LOG.debug("{}: --ignore role {} due to active references", caller, rname);
                         }
                         continue;
                     }
 
                     if (LOG.isInfoEnabled()) {
-                        LOG.info(caller + ": --delete role " + rname);
+                        LOG.info("{}: --delete role {}", caller, rname);
                     }
 
                     con.deleteRole(tenantDomain, rname);
@@ -4215,8 +4228,8 @@ public class DBService implements RolesProvider {
             String resourceGroup, String tenantDomain) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("isTenantRolePrefixMatch: role-name=" + roleName + ", role-prefix=" +
-                    rolePrefix + ", resource-group=" + resourceGroup + ", tenant-domain=" + tenantDomain);
+            LOG.debug("isTenantRolePrefixMatch: role-name={}, role-prefix={}, resource-group={}, tenant-domain={}",
+                    roleName, rolePrefix, resourceGroup, tenantDomain);
         }
 
         // first make sure the role name starts with the given prefix
@@ -4252,7 +4265,7 @@ public class DBService implements RolesProvider {
             String subDomain = tenantDomain + "." + comps[0];
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("isTenantRolePrefixMatch: verifying tenant subdomain: " + subDomain);
+                LOG.debug("isTenantRolePrefixMatch: verifying tenant subdomain: {}", subDomain);
             }
 
             return con.getDomain(subDomain) == null;
@@ -4466,6 +4479,7 @@ public class DBService implements RolesProvider {
                 .append("\", \"roleCertExpiryMins\": \"").append(domain.getRoleCertExpiryMins())
                 .append("\", \"signAlgorithm\": \"").append(domain.getSignAlgorithm())
                 .append("\", \"userAuthorityFilter\": \"").append(domain.getUserAuthorityFilter())
+                .append("\", \"businessService\": \"").append(domain.getBusinessService())
                 .append("\"}");
     }
 
