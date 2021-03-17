@@ -84,6 +84,7 @@ nav:
     - Java Client/Servlet Centralized Example: example_java_centralized_access.md
     - Go Client/Server Example: example_go_centralized_access.md
     - Java Client/Servlet Decentralized Example: example_java_decentralized_access.md
+    - Local UI development: local_ui_development.md
 - Customizing Athenz:
     - Principal Authentication: principal_authentication.md
     - Private Key Store: private_key_store.md
@@ -97,6 +98,7 @@ nav:
     - Registering ZMS Service Identity: reg_service_guide.md
     - Using Athenz on local docker: local_athenz_on_docker.md
     - Quick Guide to obtain identity cert using local docker: how_to_sample_identity_from_local_athenz.md
+    - Quick Guide to obtain identity cert using local docker on EC2: how_to_sample_identity_from_local_athenz_ec2.md
 - References:
       - ZMS REST API: zms_api.md
       - ZTS REST API: zts_api.md
