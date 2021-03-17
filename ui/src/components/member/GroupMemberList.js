@@ -34,66 +34,13 @@ const StyleTable = styled.table`
     border-image: none;
     -webkit-border-image: initial;
     border-image: initial;
-    height: 50px;
+    max-height: 600px;
 `;
 
-const StyleDiv = styled.table`
-    width: 100%;
-    border-spacing: 0;
-    display: table;
-    border-collapse: separate;
-    border-color: grey;
-    box-sizing: border-box;
-    margin-top: 5px;
-    box-shadow: 0 1px 4px #d9d9d9;
-    border: 1px solid #fff;
-    -webkit-border-image: none;
-    border-image: none;
-    -webkit-border-image: initial;
-    border-image: initial;
-    height: 50px;
-`;
-
-const TableHeadStyled = styled.th`
-    text-align: ${(props) => props.align};
-    border-bottom: 2px solid #d5d5d5;
-    color: #9a9a9a;
-    font-weight: 600;
-    font-size: 0.8rem;
-    padding-bottom: 5px;
-    vertical-align: top;
-    text-transform: uppercase;
-    padding: 5px 0 5px 15px;
-    word-break: break-all;
-`;
-
-const TableHeadStyledRoleName = styled.th`
-    text-align: ${(props) => props.align};
-    border-bottom: 2px solid #d5d5d5;
-    color: #9a9a9a;
-    font-weight: 600;
-    font-size: 0.8rem;
-    padding-bottom: 5px;
-    vertical-align: top;
-    text-transform: uppercase;
-    padding: 5px 0 5px 35px;
-    word-break: break-all;
-`;
-
-const TableCaptionStyled = styled.caption`
-    height: 25px;
-    margin-left: 10px;
-    margin-top: 10px;
-    text-align: left;
-    padding: 5px 0 5px 15px;
-    vertical-align: middle;
-    word-break: break-all;
-    display: block;
-`;
-
-const LeftMarginSpan = styled.span`
-    margin-right: 10px;
-    verticalAlign：bottom；
+const StyledDiv = styled.div`
+    display: inline-block;
+    overflow-y: scroll;
+    max-height: 600px;
 `;
 
 const StyledTr = styled.tr`
@@ -160,25 +107,29 @@ class GroupMemberList extends React.Component {
         }
 
         return (
-            <StyleTable>
-                {member.groupMembers ? (
-                    <StyledTr>
-                        <StyledTh> Member </StyledTh>
-                        <StyledTh> Expiry </StyledTh>
-                    </StyledTr>
-                ) : (
-                    ''
-                )}
+            <StyledDiv>
+                <StyleTable>
+                    {member.groupMembers ? (
+                        <StyledTr>
+                            <StyledTh> Member </StyledTh>
+                            <StyledTh> Expiry </StyledTh>
+                        </StyledTr>
+                    ) : (
+                        ''
+                    )}
 
-                {rows}
-                <StyledTr>
-                    <StyledTd colSpan={2}>
-                        <Button secondary onClick={this.viewGroup}>
-                            View Members
-                        </Button>
-                    </StyledTd>
-                </StyledTr>
-            </StyleTable>
+                    {rows}
+                    <tfoot colspan={'0'}>
+                        <tr>
+                            <StyledTd colSpan={2}>
+                                <Button secondary onClick={this.viewGroup}>
+                                    View Members
+                                </Button>
+                            </StyledTd>
+                        </tr>
+                    </tfoot>
+                </StyleTable>
+            </StyledDiv>
         );
     }
 }
