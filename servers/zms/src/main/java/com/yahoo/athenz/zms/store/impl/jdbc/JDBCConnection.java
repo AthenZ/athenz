@@ -48,8 +48,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAINS_WITH_NAME = "SELECT name FROM domain WHERE name LIKE ?;";
     private static final String SQL_GET_DOMAIN_WITH_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
     private static final String SQL_GET_DOMAIN_WITH_SUBSCRIPTION = "SELECT name FROM domain WHERE azure_subscription=?;";
-    private static final String SQL_GET_DOMAIN_WITH_BUSINESS_SERVICE = "SELECT name FROM domain WHERE business_service=?;";
     private static final String SQL_GET_DOMAIN_WITH_PRODUCT_ID = "SELECT name FROM domain WHERE ypm_id=?;";
+    private static final String SQL_LIST_DOMAIN_WITH_BUSINESS_SERVICE = "SELECT name FROM domain WHERE business_service=?;";
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
             + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id, cert_dns_domain,"
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
@@ -978,6 +978,25 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         List<String> domains = new ArrayList<>(uniqueDomains);
         Collections.sort(domains);
+        return domains;
+    }
+
+    @Override
+    public List<String> lookupDomainByBusinessService(String businessService) {
+
+        final String caller = "lookupDomainByBusinessService";
+
+        List<String> domains = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_DOMAIN_WITH_BUSINESS_SERVICE)) {
+            ps.setString(1, businessService.trim());
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    domains.add(rs.getString(ZMSConsts.DB_COLUMN_NAME));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
         return domains;
     }
 

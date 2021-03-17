@@ -122,6 +122,11 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.LookupDomainById("", "", &productID)
 			}
 			return cli.helpCommand(params)
+		case "lookup-domain-by-business-service":
+			if argc == 1 {
+				return cli.LookupDomainByBusinessService(args[0])
+			}
+			return cli.helpCommand(params)
 		case "overdue-review":
 			if argc == 1 {
 				//override the default domain, this command can show any of them
@@ -683,6 +688,10 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.SetDomainApplicationId(dn, args[0])
 			}
+		case "set-business-service":
+			if argc == 1 {
+				return cli.SetDomainBusinessService(dn, args[0])
+			}
 		case "set-cert-dns-domain":
 			if argc == 1 {
 				return cli.SetDomainCertDnsDomain(dn, args[0])
@@ -992,6 +1001,13 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   role-name    : name of the role where the principal is a member of\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   lookup-domain-by-role " + cli.UserDomain + ".joe admin\n")
+	case "lookup-domain-by-business-service":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   lookup-domain-by-business-service business-service\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   business-service  : lookup domains with specified business-service\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   lookup-domain-by-business-service business-service-name\n")
 	case "check-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   check-domain domain\n")
@@ -1094,6 +1110,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   application-id        : set the Application ID for the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-application-id 0oabg8pelxhjh0tcs0h7\n")
+	case "set-business-service":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-business-service business-service\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   set-business-service      : set the Business Service for the domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-business-service security-tools\n")
 	case "set-cert-dns-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-cert-dns-domain cert-domain-name\n")
@@ -2165,6 +2191,8 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("                      :     subdomain (applies to top level domains ony)\n")
 		buf.WriteString("                      :     role\n")
 		buf.WriteString("                      :     role-member\n")
+		buf.WriteString("                      :     group\n")
+		buf.WriteString("                      :     group-member\n")
 		buf.WriteString("                      :     policy\n")
 		buf.WriteString("                      :     assertion (total number across all policies)\n")
 		buf.WriteString("                      :     entity\n")
@@ -2457,6 +2485,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   lookup-domain-by-product-id product-id\n")
 	buf.WriteString("   lookup-domain-by-role role-member role-name\n")
 	buf.WriteString("   lookup-domain-by-tag [tag_key] [tag_value]\n")
+	buf.WriteString("   lookup-domain-by-business-service business-service\n")
 	buf.WriteString("   add-domain domain product-id [admin ...] - to add top level domains\n")
 	buf.WriteString("   add-domain domain [admin ...] - to add sub domains\n")
 	buf.WriteString("   set-domain-meta description\n")
@@ -2465,6 +2494,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-azure-subscription subscription-id\n")
 	buf.WriteString("   set-product-id product-id\n")
 	buf.WriteString("   set-application-id application-id\n")
+	buf.WriteString("   set-business-service business-service\n")
 	buf.WriteString("   set-org-name org-name\n")
 	buf.WriteString("   set-cert-dns-domain cert-dns-domain\n")
 	buf.WriteString("   set-domain-member-expiry-days user-member-expiry-days\n")

@@ -67,7 +67,7 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth, String account, Integer productId, String roleMember, String roleName, String subscription, String tagKey, String tagValue, String modifiedSince) {
+    public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth, String account, Integer productId, String roleMember, String roleName, String subscription, String tagKey, String tagValue, String businessService, String modifiedSince) {
         WebTarget target = base.path("/domain");
         if (limit != null) {
             target = target.queryParam("limit", limit);
@@ -101,6 +101,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (tagValue != null) {
             target = target.queryParam("tagValue", tagValue);
+        }
+        if (businessService != null) {
+            target = target.queryParam("businessService", businessService);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {

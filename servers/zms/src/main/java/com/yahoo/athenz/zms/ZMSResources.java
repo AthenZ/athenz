@@ -52,7 +52,7 @@ public class ZMSResources {
     @GET
     @Path("/domain")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Enumerate domains. Can be filtered by prefix and depth, and paginated. This operation can be expensive, as it may span multiple domains.")
+    @Operation(description = "Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the query options that are looking for specific domain attributes (e.g. aws account, azure subscriptions, business service, tags, etc) are mutually exclusive. The server will only process the first query argument and ignore the others.")
     public DomainList getDomainList(
         @Parameter(description = "restrict the number of results in this call", required = false) @QueryParam("limit") Integer limit,
         @Parameter(description = "restrict the set to those after the specified \"next\" token returned from a previous call", required = false) @QueryParam("skip") String skip,
@@ -65,13 +65,14 @@ public class ZMSResources {
         @Parameter(description = "restrict to domain names that have specified azure subscription name", required = false) @QueryParam("azure") String subscription,
         @Parameter(description = "flag to query all domains that have a given tagName", required = false) @QueryParam("tagKey") String tagKey,
         @Parameter(description = "flag to query all domains that have a given tag name and value", required = false) @QueryParam("tagValue") String tagValue,
+        @Parameter(description = "restrict to domain names that have specified business service name", required = false) @QueryParam("businessService") String businessService,
         @Parameter(description = "This header specifies to the server to return any domains modified since this HTTP date", required = true) @HeaderParam("If-Modified-Since") String modifiedSince) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getDomainList");
             context.authenticate();
-            return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, subscription, tagKey, tagValue, modifiedSince);
+            return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, subscription, tagKey, tagValue, businessService, modifiedSince);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

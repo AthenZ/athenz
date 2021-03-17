@@ -662,7 +662,7 @@ func init() {
 	sb.AddResource(mGetDomain.Build())
 
 	mGetDomainList := rdl.NewResourceBuilder("DomainList", "GET", "/domain")
-	mGetDomainList.Comment("Enumerate domains. Can be filtered by prefix and depth, and paginated. This operation can be expensive, as it may span multiple domains.")
+	mGetDomainList.Comment("Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the query options that are looking for specific domain attributes (e.g. aws account, azure subscriptions, business service, tags, etc) are mutually exclusive. The server will only process the first query argument and ignore the others.")
 	mGetDomainList.Input("limit", "Int32", false, "limit", "", true, nil, "restrict the number of results in this call")
 	mGetDomainList.Input("skip", "String", false, "skip", "", true, nil, "restrict the set to those after the specified \"next\" token returned from a previous call")
 	mGetDomainList.Input("prefix", "String", false, "prefix", "", true, nil, "restrict to names that start with the prefix")
@@ -674,6 +674,7 @@ func init() {
 	mGetDomainList.Input("subscription", "String", false, "azure", "", true, nil, "restrict to domain names that have specified azure subscription name")
 	mGetDomainList.Input("tagKey", "CompoundName", false, "tagKey", "", true, nil, "flag to query all domains that have a given tagName")
 	mGetDomainList.Input("tagValue", "CompoundName", false, "tagValue", "", true, nil, "flag to query all domains that have a given tag name and value")
+	mGetDomainList.Input("businessService", "String", false, "businessService", "", true, nil, "restrict to domain names that have specified business service name")
 	mGetDomainList.Input("modifiedSince", "String", false, "", "If-Modified-Since", false, nil, "This header specifies to the server to return any domains modified since this HTTP date")
 	mGetDomainList.Auth("", "", true, "")
 	mGetDomainList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")

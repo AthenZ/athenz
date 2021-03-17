@@ -43,6 +43,7 @@ public interface ObjectStoreConnection extends Closeable {
     List<String> listDomains(String prefix, long modifiedSince);
     String lookupDomainById(String account, String subscription, int productId);
     List<String> lookupDomainByRole(String roleMember, String roleName);
+    List<String> lookupDomainByBusinessService(String businessService);
 
     AthenzDomain getAthenzDomain(String domainName);
     DomainMetaList listModifiedDomains(long modifiedSince);

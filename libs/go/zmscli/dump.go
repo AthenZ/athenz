@@ -28,6 +28,8 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	dumpStringValue(buf, indentLevel1, "description", domain.Description)
 	dumpStringValue(buf, indentLevel1, "aws_account", domain.Account)
 	dumpStringValue(buf, indentLevel1, "azure_subscription", domain.AzureSubscription)
+	dumpStringValue(buf, indentLevel1, "application_id", domain.ApplicationId)
+	dumpStringValue(buf, indentLevel1, "business_service", domain.BusinessService)
 	dumpInt32Value(buf, indentLevel1, "product_id", domain.YpmId)
 	dumpStringValue(buf, indentLevel1, "org", string(domain.Org))
 	dumpBoolValue(buf, indentLevel1, "audit_enabled", domain.AuditEnabled)
@@ -533,14 +535,20 @@ func (cli Zms) dumpSignedDomain(buf *bytes.Buffer, signedDomain *zms.SignedDomai
 		buf.WriteString("\n")
 		if domainData.Account != "" {
 			buf.WriteString(indentLevel1)
-			buf.WriteString("account: ")
+			buf.WriteString("aws_account: ")
 			buf.WriteString(domainData.Account)
 			buf.WriteString("\n")
 		}
 		if domainData.AzureSubscription != "" {
 			buf.WriteString(indentLevel1)
-			buf.WriteString("azureSubscription: ")
+			buf.WriteString("azure_subscription: ")
 			buf.WriteString(domainData.AzureSubscription)
+			buf.WriteString("\n")
+		}
+		if domainData.BusinessService != "" {
+			buf.WriteString(indentLevel1)
+			buf.WriteString("business_service: ")
+			buf.WriteString(domainData.BusinessService)
 			buf.WriteString("\n")
 		}
 		buf.WriteString(indentLevel1)
@@ -611,6 +619,14 @@ func (cli Zms) dumpQuota(buf *bytes.Buffer, quota *zms.Quota) {
 	buf.WriteString(indentLevel1)
 	buf.WriteString("role-member: ")
 	buf.WriteString(strconv.Itoa(int(quota.RoleMember)))
+	buf.WriteString("\n")
+	buf.WriteString(indentLevel1)
+	buf.WriteString("group: ")
+	buf.WriteString(strconv.Itoa(int(quota.Group)))
+	buf.WriteString("\n")
+	buf.WriteString(indentLevel1)
+	buf.WriteString("group-member: ")
+	buf.WriteString(strconv.Itoa(int(quota.GroupMember)))
 	buf.WriteString("\n")
 	buf.WriteString(indentLevel1)
 	buf.WriteString("policy: ")
