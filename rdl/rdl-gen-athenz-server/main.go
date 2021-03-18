@@ -347,7 +347,7 @@ func makeJavaTypeRef(reg rdl.TypeRegistry, t *rdl.Type) string {
 
 func (gen *javaServerGenerator) processTemplate(templateSource string) error {
 	commentFun := func(s string) string {
-		return formatComment(s, 0, 80)
+		return formatComment(s, 0)
 	}
 	basenameFunc := func(s string) string {
 		i := strings.LastIndex(s, ".")
@@ -390,11 +390,11 @@ func (gen *javaServerGenerator) processTemplate(templateSource string) error {
 		"server":      func() string { return gen.name + "Server" },
 		"name":        func() string { return gen.name },
 		"cName":       func() string { return capitalize(gen.name) },
-		"methodName":  func(r *rdl.Resource) string { return strings.ToLower(string(r.Method)) + string(r.Type) + "Handler" }, //?
+		"methodName":  func(r *rdl.Resource) string { return strings.ToLower(r.Method) + string(r.Type) + "Handler" }, //?
 		"methodPath":  func(r *rdl.Resource) string { return gen.resourcePath(r) },
 		"rootPath":    func() string { return javaGenerationRootPath(gen.schema, gen.base) },
 		"rName": func(r *rdl.Resource) string {
-			return capitalize(strings.ToLower(string(r.Method))) + string(r.Type) + "Result"
+			return capitalize(strings.ToLower(r.Method)) + string(r.Type) + "Result"
 		},
 	}
 	t := template.Must(template.New(gen.name).Funcs(funcMap).Parse(templateSource))
@@ -538,7 +538,7 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 		}
 		k := v.Name
 		required := "true"
-		if (v.Optional) {
+		if v.Optional {
 			required = "false"
 		}
 		escapedComment := strings.Replace(v.Comment ,`"`, `\"`, -1)
@@ -602,7 +602,7 @@ func defaultValueAnnotation(val interface{}) string {
 	return ""
 }
 
-func (gen *javaServerGenerator) handlerReturnType(r *rdl.Resource, methName string, returnType string) string {
+func (gen *javaServerGenerator) handlerReturnType(r *rdl.Resource, returnType string) string {
 	if len(r.Outputs) > 0 {
 		return "void"
 	}
@@ -642,12 +642,11 @@ func javaMethodName(reg rdl.TypeRegistry, r *rdl.Resource) (string, []string) {
 			bodyType = string(safeTypeVarName(v.Type))
 		}
 		//rest_core always uses the boxed type
-		optional := true
-		params = append(params, javaType(reg, v.Type, optional, "", "")+" "+javaName(k))
+		params = append(params, javaType(reg, v.Type, true, "", "")+" "+javaName(k))
 	}
 	meth := string(r.Name)
 	if meth == "" {
-		meth = strings.ToLower(string(r.Method)) + string(bodyType)
+		meth = strings.ToLower(r.Method) + bodyType
 	} else {
 		meth = uncapitalize(meth)
 	}
@@ -665,7 +664,7 @@ func javaName(name rdl.Identifier) string {
 
 func sortedExceptionKeys(excs map[string]*rdl.ExceptionDef) []string {
 	var keys []string
-	for ecode, _ := range excs {
+	for ecode := range excs {
 		keys = append(keys, ecode)
 	}
 	sort.Strings(keys)

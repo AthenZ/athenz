@@ -17,12 +17,6 @@ import (
 	"github.com/ardielle/ardielle-go/rdl"
 )
 
-//
-// FullValidation - the generated validation method includes things like string pattern checks
-//
-var FullValidation bool = true
-var DefaultLibRdl = "github.com/ardielle/ardielle-go/rdl"
-
 type GeneratorParams struct {
 	Outdir         string
 	Banner         string
@@ -64,15 +58,15 @@ func GenerateAthenzGoModel(schema *rdl.Schema, params *GeneratorParams) error {
 	if err != nil {
 		return err
 	}
-	filepath := outdir + "/" + name
-	out, file, _, err := genutil.OutputWriter(filepath, "", ".go")
+	filePath := outdir + "/" + name
+	out, file, _, err := genutil.OutputWriter(filePath, "", ".go")
 	if err != nil {
 		return err
 	}
 	if file != nil {
 		defer func() {
 			file.Close()
-			err := goFmt(filepath)
+			err := goFmt(filePath)
 			if err != nil {
 				fmt.Println("Warning: could not format go code:", err)
 			}
@@ -294,19 +288,11 @@ func (gen *modelGenerator) emitTypeComment(t *rdl.Type) {
 	if tComment != "" {
 		s += " " + tComment
 	}
-	gen.emit(FormatComment(s, 0, 80))
-}
-
-func GoType(reg rdl.TypeRegistry, rdlType rdl.TypeRef, optional bool, items rdl.TypeRef, keys rdl.TypeRef, precise bool, reference bool) string {
-	return goType(reg, rdlType, optional, items, keys, precise, reference)
+	gen.emit(formatComment(s, 0, 80))
 }
 
 func goType(reg rdl.TypeRegistry, rdlType rdl.TypeRef, optional bool, items rdl.TypeRef, keys rdl.TypeRef, precise bool, reference bool) string {
 	return goType2(reg, rdlType, optional, items, keys, precise, reference, "")
-}
-
-func GoType2(reg rdl.TypeRegistry, rdlType rdl.TypeRef, optional bool, items rdl.TypeRef, keys rdl.TypeRef, precise bool, reference bool, packageName string) string {
-	return goType2(reg, rdlType, optional, items, keys, precise, reference, packageName)
 }
 
 func goType2(reg rdl.TypeRegistry, rdlType rdl.TypeRef, optional bool, items rdl.TypeRef, keys rdl.TypeRef, precise bool, reference bool, packageName string) string {
@@ -453,7 +439,7 @@ func (gen *modelGenerator) emitType(t *rdl.Type) {
 		if strings.HasPrefix(string(tName), "rdl.") {
 			return
 		}
-		tName = rdl.TypeName(goTypeName(tName))
+		tName = goTypeName(tName)
 		bt := gen.registry.BaseType(t)
 		switch bt {
 		case rdl.BaseTypeAny:
@@ -617,7 +603,7 @@ func (gen *modelGenerator) emitUntaggedUnionSerializer(ut *rdl.UnionTypeDef, uNa
 				gen.emit("}\n\n")
 			}
 		default:
-			gen.err = fmt.Errorf("Untagged union serializer only supported for struct type unions")
+			gen.err = fmt.Errorf("untagged union serializer only supported for struct type unions")
 			return
 		}
 	}
@@ -715,7 +701,7 @@ func (gen *modelGenerator) emitStruct(t *rdl.Type) {
 			st := t.StructTypeDef
 			flattened := genutil.FlattenedFields(gen.registry, t)
 			gen.emitTypeComment(t)
-			gen.emitStructFields(flattened, st.Name, st.Comment)
+			gen.emitStructFields(flattened, st.Name)
 			init := gen.structHasFieldDefault(st)
 			gen.emit(fmt.Sprintf("\n//\n// New%s - creates an initialized %s instance, returns a pointer to it\n//\n", st.Name, st.Name))
 			gen.emit(fmt.Sprintf("func New%s(init ...*%s) *%s {\n", st.Name, st.Name, st.Name))
@@ -762,15 +748,13 @@ func (gen *modelGenerator) emitStructValidator(st *rdl.StructTypeDef, flattened 
 				gen.emit(fmt.Sprintf("\tif self.%s == \"\" {\n", fname))
 				gen.emit(fmt.Sprintf("\t\treturn fmt.Errorf(\"%s.%s is missing but is a required field\")\n", st.Name, f.Name))
 			}
-			if FullValidation {
-				if bt == rdl.BaseTypeString && fname != "String" {
-					if !f.Optional {
-						gen.emit("\t} else {\n")
-					} else {
-						gen.emit(fmt.Sprintf("\tif self.%s != \"\" {\n", fname))
-					}
-					gen.emit(fmt.Sprintf("\t\tval := %sValidate(%sSchema(), %q, self.%s)\n\t\tif !val.Valid {\n\t\t\treturn fmt.Errorf(\"%s.%s does not contain a valid %s (%%v)\", val.Error)\n\t\t}\n", rdlPrefix, capitalize(string(gen.schema.Name)), ftype, fname, st.Name, string(f.Name), ftype))
+			if bt == rdl.BaseTypeString && fname != "String" {
+				if !f.Optional {
+					gen.emit("\t} else {\n")
+				} else {
+					gen.emit(fmt.Sprintf("\tif self.%s != \"\" {\n", fname))
 				}
+				gen.emit(fmt.Sprintf("\t\tval := %sValidate(%sSchema(), %q, self.%s)\n\t\tif !val.Valid {\n\t\t\treturn fmt.Errorf(\"%s.%s does not contain a valid %s (%%v)\", val.Error)\n\t\t}\n", rdlPrefix, capitalize(string(gen.schema.Name)), ftype, fname, st.Name, string(f.Name), ftype))
 			}
 			gen.emit("\t}\n")
 		case rdl.BaseTypeTimestamp:
@@ -977,7 +961,7 @@ func (gen *modelGenerator) emitEnum(t *rdl.Type) {
 	gen.emit("}\n")
 }
 
-func (gen *modelGenerator) emitStructFields(fields []*rdl.StructFieldDef, name rdl.TypeName, comment string) {
+func (gen *modelGenerator) emitStructFields(fields []*rdl.StructFieldDef, name rdl.TypeName) {
 	gen.emit(fmt.Sprintf("type %s struct {\n", name))
 	if fields != nil {
 		fnames := make([]string, 0, len(fields))
@@ -1037,7 +1021,7 @@ func (gen *modelGenerator) emitStructFields(fields []*rdl.StructFieldDef, name r
 			}
 			jsonName := string(f.Name)
 			if ext, ok := f.Annotations["x_json_name"]; ok {
-				jsonName = string(ext)
+				jsonName = ext
 			}
 			fanno := "`json:\"" + jsonName + option + "\"" + optional + "`"
 			if f.Comment != "" {
@@ -1070,7 +1054,7 @@ func GenerationPackage(schema *rdl.Schema, ns string) string {
 	return pkg
 }
 
-func FormatComment(s string, leftCol int, rightCol int) string {
+func formatComment(s string, leftCol int, rightCol int) string {
 	return genutil.FormatBlock(s, leftCol, rightCol, "// ")
 }
 

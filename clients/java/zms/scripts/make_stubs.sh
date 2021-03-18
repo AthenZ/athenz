@@ -32,7 +32,7 @@ command -v rdl >/dev/null 2>&1 || {
 RDL_FILE=../../../core/zms/src/main/rdl/ZMS.rdl
 
 echo "Generate the client library..."
-rdl -s generate -o src/main/java -x clientclass=ZMSRDLGenerated java-client $RDL_FILE
+rdl -s generate -o src/main/java -x c=ZMSRDLGenerated athenz-java-client $RDL_FILE
 
 # Copyright 2016 Yahoo Inc.
 # Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
