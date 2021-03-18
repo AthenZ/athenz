@@ -31,6 +31,7 @@ else
 endif
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t rdl-athenz-server -f ./util/rdl-athenz-server/Dockerfile ../rdl/rdl-gen-athenz-server
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t rdl-athenz-java-model -f ./util/rdl-athenz-java-model/Dockerfile ../rdl/rdl-gen-athenz-java-model
+	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t rdl-athenz-java-client -f ./util/rdl-athenz-java-client/Dockerfile ../rdl/rdl-gen-athenz-java-client
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t rdl-athenz-go-model -f ./util/rdl-athenz-go-model/Dockerfile ../rdl/rdl-gen-athenz-go-model
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-mvn-base -f ./util/athenz-mvn-base/Dockerfile ../
 	DOCKER_BUILDKIT=1 docker build $(BUILD_ARG) -t athenz-builder -f ./util/athenz-builder/Dockerfile ../
