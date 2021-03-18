@@ -2,7 +2,7 @@ site_name: Athenz
 repo_url: https://github.com/AthenZ/athenz
 repo_name: GitHub
 site_description: Athenz User Guide
-strict: true
+strict: false
 theme:
     name: material
     favicon: 'images/favicon.ico'
@@ -85,6 +85,9 @@ nav:
     - Go Client/Server Example: example_go_centralized_access.md
     - Java Client/Servlet Decentralized Example: example_java_decentralized_access.md
     - Local UI development: local_ui_development.md
+    - API:
+          - ZMS: api/index.html?server=zms
+          - ZTS: api/index.html?server=zts
 - Customizing Athenz:
     - Principal Authentication: principal_authentication.md
     - Private Key Store: private_key_store.md
