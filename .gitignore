@@ -113,6 +113,7 @@ rdl/rdl-gen-athenz-server/rdl-gen-athenz-server
 rdl/rdl-gen-athenz-go-client/rdl-gen-athenz-go-client
 rdl/rdl-gen-athenz-go-model/rdl-gen-athenz-go-model
 rdl/rdl-gen-athenz-java-model/rdl-gen-athenz-java-model
+rdl/rdl-gen-athenz-java-client/rdl-gen-athenz-java-client
 libs/go/athenzutils/pkg/
 **test-output**
 clients/nodejs/zpe/package-lock.json
