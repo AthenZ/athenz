@@ -4,30 +4,30 @@
 package com.yahoo.athenz.zts;
 
 public class ResourceException extends RuntimeException {
-    public final static int OK = 200;
-    public final static int CREATED = 201;
-    public final static int ACCEPTED = 202;
-    public final static int NO_CONTENT = 204;
-    public final static int MOVED_PERMANENTLY = 301;
-    public final static int FOUND = 302;
-    public final static int SEE_OTHER = 303;
-    public final static int NOT_MODIFIED = 304;
-    public final static int TEMPORARY_REDIRECT = 307;
-    public final static int BAD_REQUEST = 400;
-    public final static int UNAUTHORIZED = 401;
-    public final static int FORBIDDEN = 403;
-    public final static int NOT_FOUND = 404;
-    public final static int CONFLICT = 409;
-    public final static int GONE = 410;
-    public final static int PRECONDITION_FAILED = 412;
-    public final static int UNSUPPORTED_MEDIA_TYPE = 415;
-    public final static int PRECONDITION_REQUIRED = 428;
-    public final static int TOO_MANY_REQUESTS = 429;
-    public final static int REQUEST_HEADER_FIELDS_TOO_LARGE = 431;
-    public final static int INTERNAL_SERVER_ERROR = 500;
-    public final static int NOT_IMPLEMENTED = 501;
-    public final static int SERVICE_UNAVAILABLE = 503;
-    public final static int NETWORK_AUTHENTICATION_REQUIRED = 511;
+    public static final int OK = 200;
+    public static final int CREATED = 201;
+    public static final int ACCEPTED = 202;
+    public static final int NO_CONTENT = 204;
+    public static final int MOVED_PERMANENTLY = 301;
+    public static final int FOUND = 302;
+    public static final int SEE_OTHER = 303;
+    public static final int NOT_MODIFIED = 304;
+    public static final int TEMPORARY_REDIRECT = 307;
+    public static final int BAD_REQUEST = 400;
+    public static final int UNAUTHORIZED = 401;
+    public static final int FORBIDDEN = 403;
+    public static final int NOT_FOUND = 404;
+    public static final int CONFLICT = 409;
+    public static final int GONE = 410;
+    public static final int PRECONDITION_FAILED = 412;
+    public static final int UNSUPPORTED_MEDIA_TYPE = 415;
+    public static final int PRECONDITION_REQUIRED = 428;
+    public static final int TOO_MANY_REQUESTS = 429;
+    public static final int REQUEST_HEADER_FIELDS_TOO_LARGE = 431;
+    public static final int INTERNAL_SERVER_ERROR = 500;
+    public static final int NOT_IMPLEMENTED = 501;
+    public static final int SERVICE_UNAVAILABLE = 503;
+    public static final int NETWORK_AUTHENTICATION_REQUIRED = 511;
 
     public static String codeToString(int code) {
         switch (code) {

@@ -32,4 +32,4 @@ command -v rdl >/dev/null 2>&1 || {
 RDL_FILE=../../../../core/zts/src/main/rdl/ZTS.rdl
 
 echo "Generate the client library..."
-rdl -s generate -o src/main/java -x clientclass=ZTSRDLGenerated java-client $RDL_FILE
+rdl -s generate -o src/main/java -x c=ZTSRDLGenerated athenz-java-client $RDL_FILE

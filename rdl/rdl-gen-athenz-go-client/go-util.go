@@ -8,79 +8,17 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/ardielle/ardielle-go/rdl"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"unicode"
+
+	"github.com/ardielle/ardielle-go/rdl"
 )
 
-//default imports for go code generation. Gets rewritten when vendoring.
-const HttpTreeMuxGoImport = "github.com/dimfeld/httptreemux"
 const RdlGoImport = "github.com/ardielle/ardielle-go/rdl"
 
-func SnakeToCamel(name string) string {
-	// "THIS_IS_IT" -> "ThisIsIt"
-	result := make([]rune, 0)
-	newWord := true
-	for _, c := range name {
-		if c == '_' {
-			newWord = true
-		} else if newWord {
-			result = append(result, unicode.ToUpper(c))
-			newWord = false
-		} else {
-			result = append(result, unicode.ToLower(c))
-		}
-	}
-	s := string(result)
-	return strings.Replace(strings.Replace(s, "Uuid", "UUID", -1), "Uri", "URI", -1)
-}
-
-func optionalAnyToString(any interface{}) string {
-	if any == nil {
-		return "null"
-	}
-	switch v := any.(type) {
-	case *bool:
-		return fmt.Sprintf("%v", *v)
-	case *int8:
-		return fmt.Sprintf("%d", *v)
-	case *int16:
-		return fmt.Sprintf("%d", *v)
-	case *int32:
-		return fmt.Sprintf("%d", *v)
-	case *int64:
-		return fmt.Sprintf("%d", *v)
-	case *float32:
-		return fmt.Sprintf("%g", *v)
-	case *float64:
-		return fmt.Sprintf("%g", *v)
-	case *string:
-		return *v
-	case bool:
-		return fmt.Sprintf("%v", v)
-	case int8:
-		return fmt.Sprintf("%d", v)
-	case int16:
-		return fmt.Sprintf("%d", v)
-	case int32:
-		return fmt.Sprintf("%d", v)
-	case int64:
-		return fmt.Sprintf("%d", v)
-	case float32:
-		return fmt.Sprintf("%g", v)
-	case float64:
-		return fmt.Sprintf("%g", v)
-	case string:
-		return fmt.Sprintf("%v", v)
-	default:
-		panic("optionalAnyToString")
-	}
-}
-
-func formatBlock(s string, leftCol int, rightCol int, prefix string) string {
+func formatBlock(s string, leftCol int, prefix string) string {
 	if s == "" {
 		return ""
 	}
@@ -116,8 +54,8 @@ func formatBlock(s string, leftCol int, rightCol int, prefix string) string {
 	return pad + buf.String() + pad
 }
 
-func formatComment(s string, leftCol int, rightCol int) string {
-	return formatBlock(s, leftCol, rightCol, "// ")
+func formatComment(s string, leftCol int) string {
+	return formatBlock(s, leftCol, "// ")
 }
 
 func spaces(count int) string {
@@ -156,17 +94,6 @@ func capitalize(text string) string {
 
 func uncapitalize(text string) string {
 	return strings.ToLower(text[0:1]) + text[1:]
-}
-
-func leftJustified(text string, width int) string {
-	return text + spaces(width-len(text))
-}
-
-func fileExists(filepath string) bool {
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		return false
-	}
-	return true
 }
 
 func outputWriter(outdir string, name string, ext string) (*bufio.Writer, *os.File, string, error) {
@@ -209,32 +136,149 @@ func generationPackage(schema *rdl.Schema, ns string) string {
 	return pkg
 }
 
-/*
-// generate common runtime code for client and server
-func generateUtil(schema *rdl.Schema, writer io.Writer) error {
-	basenameFunc := func(s string) string {
-		i := strings.LastIndex(s, ".")
-		if i >= 0 {
-			s = s[i+1:]
-		}
-		return s
-	}
-	funcMap := template.FuncMap{
-		"basename": basenameFunc,
-	}
-	t := template.Must(template.New("util").Funcs(funcMap).Parse(utilTemplate))
-	return t.Execute(writer, schema)
-}
-
-const utilTemplate = `
-`
-*/
-
 func goFmt(filename string) error {
 	return exec.Command("go", "fmt", filename).Run()
 }
 
-func safeTypeVarName(rtype rdl.TypeRef) rdl.TypeName {
+func GoType(reg rdl.TypeRegistry, rdlType rdl.TypeRef, optional bool, items rdl.TypeRef, keys rdl.TypeRef, precise bool, reference bool, packageName string) string {
+	rdlPrefix := "rdl."
+	if reg.Name() == "rdl" {
+		rdlPrefix = ""
+	}
+	cleanType := string(rdlType)
+	if !strings.HasPrefix(cleanType, "rdl.") {
+		cleanType = capitalize(strings.Replace(string(rdlType), ".", "_", -1))
+	}
+	prefix := ""
+	if optional {
+		prefix = "*"
+	}
+	t := reg.FindType(rdlType)
+	if t.Variant == 0 {
+		panic("Cannot find type '" + rdlType + "'")
+	}
+	lrdlType := strings.ToLower(string(rdlType))
+	if precise {
+		switch lrdlType {
+		case "string":
+			return "string"
+		case "symbol":
+			return rdlPrefix + "Symbol"
+		case "bool", "int32", "int64", "int16", "int8", "float64", "float32":
+			return prefix + strings.ToLower(cleanType)
+		default:
+			bt := reg.BaseType(t)
+			switch bt {
+			case rdl.BaseTypeString, rdl.BaseTypeSymbol:
+				return cleanType
+			case rdl.BaseTypeInt8, rdl.BaseTypeInt16, rdl.BaseTypeInt32, rdl.BaseTypeInt64, rdl.BaseTypeFloat32, rdl.BaseTypeFloat64, rdl.BaseTypeBool:
+				return prefix + cleanType
+			case rdl.BaseTypeTimestamp, rdl.BaseTypeUUID:
+				fullTypeName := rdlPrefix + cleanType
+				return prefix + fullTypeName
+			default:
+				if lrdlType == "struct" {
+					fullTypeName := rdlPrefix + cleanType
+					return prefix + fullTypeName
+				}
+			}
+		}
+	} else {
+		switch lrdlType {
+		case "timestamp":
+			return prefix + rdlPrefix + "Timestamp"
+		case "uuid":
+			return prefix + rdlPrefix + "UUID"
+		case "struct":
+			return prefix + rdlPrefix + "Struct"
+		}
+	}
+	bt := reg.BaseType(t)
+	switch bt {
+	case rdl.BaseTypeAny:
+		return "interface{}"
+	case rdl.BaseTypeString:
+		return "string"
+	case rdl.BaseTypeSymbol:
+		return rdlPrefix + "Symbol"
+	case rdl.BaseTypeBool:
+		return prefix + "bool"
+	case rdl.BaseTypeInt8, rdl.BaseTypeInt16, rdl.BaseTypeInt32, rdl.BaseTypeInt64, rdl.BaseTypeFloat32, rdl.BaseTypeFloat64:
+		return prefix + strings.ToLower(bt.String())
+	case rdl.BaseTypeArray:
+		if reference {
+			name := "Array"
+			if t.ArrayTypeDef != nil {
+				name = string(t.ArrayTypeDef.Name)
+			}
+			if name != "Array" {
+				return name
+			}
+		}
+		i := rdl.TypeRef("Any")
+		switch t.Variant {
+		case rdl.TypeVariantArrayTypeDef:
+			i = t.ArrayTypeDef.Items
+		default:
+			if items != "" {
+				i = items
+			}
+		}
+		gitems := GoType(reg, i, false, "", "", precise, reference, packageName)
+		return "[]" + gitems
+	case rdl.BaseTypeMap:
+		if reference {
+			//we check if we have defined a type, i.e. the type name is not "Map"
+			name := rdl.TypeName("Map")
+			if t.MapTypeDef != nil {
+				name = t.MapTypeDef.Name
+			} else if t.AliasTypeDef != nil {
+				name = t.AliasTypeDef.Name
+			}
+			if name != "Map" {
+				return string(name)
+			}
+		}
+		k := rdl.TypeRef("Any")
+		i := rdl.TypeRef("Any")
+		switch t.Variant {
+		case rdl.TypeVariantMapTypeDef:
+			k = t.MapTypeDef.Keys
+			i = t.MapTypeDef.Items
+		default:
+			if keys != "" {
+				k = keys
+			}
+			if items != "" {
+				i = items
+			}
+		}
+		gkeys := GoType(reg, k, false, "", "", precise, reference, packageName)
+		gitems := GoType(reg, i, false, "", "", precise, reference, packageName)
+		return "map[" + gkeys + "]" + gitems
+	case rdl.BaseTypeStruct:
+		switch t.Variant {
+		case rdl.TypeVariantAliasTypeDef:
+			if t.AliasTypeDef.Name == "Struct" {
+				return prefix + "map[string]interface{}"
+			}
+		}
+		if packageName != "" {
+			return "*" + packageName + "." + cleanType
+		}
+		return "*" + cleanType
+	case rdl.BaseTypeUnion:
+		return "*" + cleanType
+	case rdl.BaseTypeEnum:
+		return prefix + cleanType
+	case rdl.BaseTypeBytes:
+		return "[]byte"
+	default:
+		return prefix + cleanType
+	}
+}
+
+func SafeTypeVarName(rtype rdl.TypeRef) rdl.TypeName {
 	tokens := strings.Split(string(rtype), ".")
 	return rdl.TypeName(capitalize(strings.Join(tokens, "")))
 }
