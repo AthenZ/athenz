@@ -465,7 +465,7 @@ func (cli Zms) showDomain(dn string) (*string, error) {
 	cli.dumpEntities(&buf, dn, names)
 
 	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(domain, s)
 }
 
 func (cli Zms) showDomainTags(dn string) (string, error) {
