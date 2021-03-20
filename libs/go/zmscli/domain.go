@@ -5,6 +5,7 @@ package zmscli
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -13,8 +14,18 @@ import (
 	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
+
+func (cli Zms) buildJSONOutput(res interface{}) (*string, error) {
+	jsonOutput, err := json.MarshalIndent(res, "", indentLevel1)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to produce JSON output")
+	}
+	output := string(jsonOutput)
+	return &output, nil
+}
 
 // DeleteDomain deletes the given ZMS domain.
 func (cli Zms) DeleteDomain(dn string) (*string, error) {
@@ -343,12 +354,19 @@ func (cli Zms) ListDomains(limit *int32, skip string, prefix string, depth *int3
 	var buf bytes.Buffer
 	res, err := cli.Zms.GetDomainList(limit, skip, prefix, depth, "", nil, "", "", "", "", "", "", "")
 	if err == nil {
-		buf.WriteString("domains:\n")
-		for _, name := range res.Names {
-			buf.WriteString(indentLevel1Dash + string(name) + "\n")
+		switch cli.OutputFormat {
+		case JSONOutputFormat:
+			return cli.buildJSONOutput(res)
+		case DefaultOutputFormat:
+			buf.WriteString("domains:\n")
+			for _, name := range res.Names {
+				buf.WriteString(indentLevel1Dash + string(name) + "\n")
+			}
+			s := buf.String()
+			return &s, nil
+		default:
+			return nil, fmt.Errorf(ErrInvalidOutputFormat, cli.OutputFormat)
 		}
-		s := buf.String()
-		return &s, nil
 	}
 	return nil, err
 }
@@ -395,7 +413,6 @@ func (cli Zms) ShowDomain(dn string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	var buf bytes.Buffer
 	cli.dumpDomain(&buf, domain)
 
@@ -406,12 +423,22 @@ func (cli Zms) ShowDomain(dn string) (*string, error) {
 		return nil, err
 	}
 
-	// make sure we have a domain and it must be only one
-	if res != nil && len(res.Domains) == 1 {
-		cli.dumpSignedDomain(&buf, res.Domains[0], true)
+	switch cli.OutputFormat {
+	case JSONOutputFormat:
+		// make sure we have a domain and it must be only one
+		if res != nil && len(res.Domains) == 1 {
+			return cli.buildJSONOutput(res.Domains[0].Domain)
+		}
+		return cli.buildJSONOutput(domain)
+	case DefaultOutputFormat:
+		if res != nil && len(res.Domains) == 1 {
+			cli.dumpSignedDomain(&buf, res.Domains[0], true)
+		}
+		s := buf.String()
+		return &s, nil
+	default:
+		return nil, fmt.Errorf(ErrInvalidOutputFormat, cli.OutputFormat)
 	}
-	s := buf.String()
-	return &s, nil
 }
 
 func (cli Zms) CheckDomain(dn string) (*string, error) {

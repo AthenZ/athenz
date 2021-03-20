@@ -14,9 +14,18 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/ardielle/ardielle-go/rdl"
 	"golang.org/x/net/proxy"
+)
+
+const (
+	// JSONOutputFormat is the JSON output format for commands.
+	JSONOutputFormat = "json"
+	// DefaultOutputFormat is the default YAML output format for commands.
+	DefaultOutputFormat = "yaml"
+	// ErrInvalidOutputFormat is the error message for unsupported output formats.
+	ErrInvalidOutputFormat = "unsupported output format \"%s\""
 )
 
 type Zms struct {
@@ -30,6 +39,7 @@ type Zms struct {
 	AuditRef         string
 	UserDomain       string
 	HomeDomain       string
+	OutputFormat     string
 	ProductIdSupport bool
 	Debug            bool
 	AddSelf          bool
@@ -590,7 +600,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "add-provider-resource-group-roles":
 			if argc > 4 {
-				createAdminRole, err :=strconv.ParseBool(args[3])
+				createAdminRole, err := strconv.ParseBool(args[3])
 				if err == nil {
 					return cli.AddProviderResourceGroupRoles(dn, args[0], args[1], args[2], createAdminRole, args[4:])
 				}
