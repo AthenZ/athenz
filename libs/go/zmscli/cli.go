@@ -45,6 +45,11 @@ type Zms struct {
 	AddSelf          bool
 }
 
+// StandardJSONMessage is the standard template for single-line string messages.
+type StandardJSONMessage struct {
+	Message string `json:"message,required"`
+}
+
 func (cli *Zms) SetClient(tr *http.Transport, authHeader, ntoken *string) {
 	cli.Zms = zms.NewClient(cli.ZmsUrl, tr)
 	cli.Zms.AddCredentials(*authHeader, *ntoken)
@@ -155,7 +160,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				cli.Domain = ""
 				s = "[not using any domain]"
 			}
-			return &s, nil
+			return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
 		case "show-domain":
 			if argc == 1 {
 				//override the default domain, this command can show any of them
