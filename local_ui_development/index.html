@@ -980,6 +980,33 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    Troubleshooting
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#clean-old-artifacts" class="md-nav__link">
+    Clean old artifacts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate-not-trusted-error-when-opening-httpslocalhost" class="md-nav__link">
+    Certificate not trusted error when opening https://localhost
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1330,6 +1357,33 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    Troubleshooting
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#clean-old-artifacts" class="md-nav__link">
+    Clean old artifacts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate-not-trusted-error-when-opening-httpslocalhost" class="md-nav__link">
+    Certificate not trusted error when opening https://localhost
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1352,7 +1406,7 @@
                 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>In this guide, you will be able to start a local ZMS server and do local ui development from your favorite IDE.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
-<p>Docker, Make toolchain, Node 12+</p>
+<p>Docker, Make toolchain, Node v12.14.0, nodemon v2.0.3</p>
 <h2 id="steps">Steps<a class="headerlink" href="#steps" title="Permanent link">&para;</a></h2>
 <p>Checkout Athenz from GitHub</p>
 <div class="highlight"><pre><span></span><code>git clone https://github.com/AthenZ/athenz
@@ -1386,6 +1440,13 @@ npm install
 <p>Access the UI at <a href="https://localhost">https://localhost</a>. For your convenience, local set up uses a TestUserAuthority which accepts any username and password as far as it's a same string.
 To look at a pre-created "athenz" domain during start up, login with "athenz-admin" as username and password.</p>
 <p>Now you can keep the UI instance running in the terminal, make changes to the code using your IDE and UI dev server will reload with your changes.</p>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="clean-old-artifacts">Clean old artifacts<a class="headerlink" href="#clean-old-artifacts" title="Permanent link">&para;</a></h3>
+<p>It is possible for build to fail if Athenz was previously built. To clean old artifacts run:
+<code>./stop-local-athenz.sh</code></p>
+<h3 id="certificate-not-trusted-error-when-opening-httpslocalhost">Certificate not trusted error when opening <a href="https://localhost">https://localhost</a><a class="headerlink" href="#certificate-not-trusted-error-when-opening-httpslocalhost" title="Permanent link">&para;</a></h3>
+<p>When you open <a href="https://localhost">https://localhost</a> you might get a certificate error as the self-signed certificate isn't trusted.
+To fix it, please follow the steps in <a href="https://github.com/AthenZ/athenz/blob/master/docs/setup_ui.md#ui-access">Accessing UI</a></p>
                 
               
               
