@@ -3,7 +3,7 @@ In this guide, you will be able to start a local ZMS server and do local ui deve
 
 ## Prerequisites
 
-Docker, Make toolchain, Node 12+
+Docker, Make toolchain, Node v12.14.0, nodemon v2.0.3
 
 ## Steps
 
@@ -56,3 +56,15 @@ Access the UI at https://localhost. For your convenience, local set up uses a Te
 To look at a pre-created "athenz" domain during start up, login with "athenz-admin" as username and password.
 
 Now you can keep the UI instance running in the terminal, make changes to the code using your IDE and UI dev server will reload with your changes.
+
+## Troubleshooting
+
+### Clean old artifacts
+
+It is possible for build to fail if Athenz was previously built. To clean old artifacts run:
+`./stop-local-athenz.sh`
+
+### Certificate not trusted error when opening https://localhost
+
+When you open https://localhost you might get a certificate error as the self-signed certificate isn't trusted.
+To fix it, please follow the steps in [Accessing UI](https://github.com/AthenZ/athenz/blob/master/docs/setup_ui.md#ui-access)

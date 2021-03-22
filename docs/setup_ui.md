@@ -21,7 +21,7 @@ UI Server is a Node.js application.
 
 [Node.js JavaScript Runtime](https://nodejs.org/en/)
 
-Verify that you have the required minimum version of `node` and
+Verify that you have the following versions of `node` and
 `nodemon` binaries installed on your system and are included
 in your runtime path:
 
@@ -32,7 +32,7 @@ $ npm install -g nodemon
 $ nodemon --version
 2.0.3
 ```
-
+ 
 ## Getting Software
 -------------------
 
