@@ -216,6 +216,8 @@ func (cli Zms) dumpRoles(buf *bytes.Buffer, dn string, tagKey string, tagValue s
 
 func (cli Zms) dumpGroup(buf *bytes.Buffer, group zms.Group, auditLog bool, indent1 string, indent2 string) {
 	cli.displayObjectName(buf, string(group.Name), ":group.", indent1)
+	dumpInt32Value(buf, indent2, "member_expiry_days", group.MemberExpiryDays)
+    dumpInt32Value(buf, indent2, "service_expiry_days", group.ServiceExpiryDays)
 	dumpBoolValue(buf, indent2, "audit_enabled", group.AuditEnabled)
 	dumpBoolValue(buf, indent2, "review_enabled", group.ReviewEnabled)
 	dumpBoolValue(buf, indent2, "self_serve", group.SelfServe)

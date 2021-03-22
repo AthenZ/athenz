@@ -121,6 +121,15 @@ public class AthenzUtils {
         return principal.contains(AuthorityConsts.ROLE_SEP);
     }
 
+    private static String extractNameFromArn(final String name, String separator) {
+        int idx = name.indexOf(separator);
+        if (idx == -1 || idx == 0 || idx == name.length() - separator.length()) {
+            return null;
+        } else {
+            return name.substring(idx + separator.length());
+        }
+    }
+
     /**
      * Extract the role name from the full Athenz Role Name (arn)
      * which includes the domain name. The format of the role name
@@ -129,14 +138,19 @@ public class AthenzUtils {
      * @return role name, null if it's not expected full arn format
      */
     public static String extractRoleName(final String roleName) {
-        int idx = roleName.indexOf(AuthorityConsts.ROLE_SEP);
-        if (idx == -1 || idx == 0 || idx == roleName.length() - AuthorityConsts.ROLE_SEP.length()) {
-            return null;
-        } else {
-            return roleName.substring(idx + AuthorityConsts.ROLE_SEP.length());
-        }
+        return extractNameFromArn(roleName, AuthorityConsts.ROLE_SEP);
     }
 
+    /**
+     * Extract the group name from the full Athenz Group Name (arn)
+     * which includes the domain name. The format of the group name
+     * is {domain}:group.{group-name}
+     * @param groupName the full arn of the group
+     * @return group name, null if it's not expected full arn format
+     */
+    public static String extractGroupName(final String groupName) {
+        return extractNameFromArn(groupName, AuthorityConsts.GROUP_SEP);
+    }
     /**
      * Extract the domain name from the full Athenz Role Name (arn)
      * which includes the role name. The format of the role name

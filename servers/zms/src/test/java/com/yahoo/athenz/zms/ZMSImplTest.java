@@ -7174,6 +7174,7 @@ public class ZMSImplTest {
         attrs.add("elevated-clearance");
         Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
+        zms.dbService.zmsConfig.setUserAuthority(authority);
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName1, "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
@@ -7269,6 +7270,7 @@ public class ZMSImplTest {
         access = zms.getAccess(rsrcCtx1, "update", domainName1 + ":resource4", null, null);
         assertFalse(access.getGranted());
 
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.userAuthority = savedAuthority;
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
@@ -18769,6 +18771,7 @@ public class ZMSImplTest {
         Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
         Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
+        zms.dbService.zmsConfig.setUserAuthority(authority);
 
         // let's add a role and set the user authority filter
 
@@ -18821,6 +18824,7 @@ public class ZMSImplTest {
 
         zms.putRoleMeta(mockDomRsrcCtx, domainName, roleName, auditRef, rm);
 
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.userAuthority = savedAuthority;
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -21573,7 +21577,80 @@ public class ZMSImplTest {
 
         zms.userAuthority = savedAuthority;
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
 
+    @Test
+    public void testSetGroupMemberExpiration() {
+
+        Authority savedAuthority = zms.userAuthority;
+        zms.userAuthority = null;
+
+        // with authority null we always get no changes
+
+        Authority authority = Mockito.mock(Authority.class);
+        Date testDate = new Date();
+        Mockito.when(authority.getDateAttribute("user.john2", "elevated-clearance"))
+                .thenReturn(testDate);
+        Mockito.when(authority.getDateAttribute("user.jane2", "elevated-clearance"))
+                .thenReturn(testDate);
+        Mockito.when(authority.getDateAttribute("user.joe2", "elevated-clearance"))
+                .thenReturn(null);
+        Mockito.when(authority.isValidUser(anyString()))
+                .thenReturn(true);
+        Set<String> dateAttrSet = new HashSet<>();
+        dateAttrSet.add("elevated-clearance");
+        Mockito.when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
+
+        zms.userAuthority = authority;
+
+        // add a group with an elevated clearance option
+
+        final String domainName = "userexpirydomain";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain2", "testOrg2", "user.user2");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        final String groupName = "audit-group2";
+        Group group = createGroupObject(domainName, groupName, null);
+        group.setUserAuthorityExpiration("elevated-clearance");
+        group.setSelfServe(true);
+        zms.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, group);
+
+        // add a valid member who should get the expiry date
+
+        GroupMembership mbr = new GroupMembership().setMemberName("user.john2");
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.john2", auditRef, mbr);
+
+        GroupMembership mbrResult = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.john2", null);
+        assertNotNull(mbrResult);
+        assertEquals(mbrResult.getMemberName(), "user.john2");
+        assertNotNull(mbrResult.getExpiration());
+        assertEquals(mbrResult.getExpiration().millis(), testDate.getTime());
+
+        // user with no expiry
+
+        mbr = new GroupMembership().setMemberName("user.joe2");
+        try {
+            zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.joe2", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("User does not have required user authority expiry configured"));
+        }
+
+        // First add service
+        ServiceIdentity serviceIdentity = new ServiceIdentity().setName("userexpirydomain.api");
+        zms.putServiceIdentity(mockDomRsrcCtx, domainName, "api", auditRef, serviceIdentity);
+
+        // service user should be added ok since service user is not processed
+        // by user authority
+
+        mbr = new GroupMembership().setMemberName("userexpirydomain.api");
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, groupName, "userexpirydomain.api", auditRef, mbr);
+        mbrResult = zms.getGroupMembership(mockDomRsrcCtx, domainName, groupName, "userexpirydomain.api", null);
+        assertNotNull(mbrResult);
+
+        zms.userAuthority = savedAuthority;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @DataProvider(name = "delegatedRoles")
@@ -21730,6 +21807,8 @@ public class ZMSImplTest {
 
         Group group1 = createGroupObject(domainName, "group1", "user.joe", "user.jane");
         group1.setSelfServe(true);
+        group1.setMemberExpiryDays(30);
+        group1.setServiceExpiryDays(35);
         zms.putGroup(mockDomRsrcCtx, domainName, "group1", auditRef, group1);
 
         Group group1a = zms.getGroup(mockDomRsrcCtx, domainName, "group1", false, false);
@@ -21745,7 +21824,8 @@ public class ZMSImplTest {
         checkList.add("user.jane");
         checkGroupMember(checkList, members);
         assertTrue(group1a.getSelfServe());
-
+        assertEquals(group1a.getMemberExpiryDays(), Integer.valueOf(30));
+        assertEquals(group1a.getServiceExpiryDays(), Integer.valueOf(35));
         // get unknown group
 
         try {
@@ -23780,12 +23860,8 @@ public class ZMSImplTest {
         inputMembers.add(new GroupMember().setMemberName("user.joe").setActive(true));
         zms.putGroupReview(mockDomRsrcCtx, domainName, groupName, auditRef, inputGroup);
 
-        try {
-            zms.putGroupReview(mockDomRsrcCtx, domainName, groupName, auditRef, inputGroup);
-            fail();
-        } catch (ResourceException re) {
-            assertEquals(re.getCode(), ResourceException.NOT_FOUND);
-        }
+        // This operation will be no-op as the changes were already implemented.
+        zms.putGroupReview(mockDomRsrcCtx, domainName, groupName, auditRef, inputGroup);
 
         inputGroup.setName("group2");
         try {
@@ -24088,6 +24164,7 @@ public class ZMSImplTest {
         Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
         Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
+        zms.dbService.zmsConfig.setUserAuthority(authority);
 
         GroupMeta groupMeta = new GroupMeta();
         zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, groupMeta);
@@ -24105,7 +24182,9 @@ public class ZMSImplTest {
                 .setNotifyRoles("role1")
                 .setReviewEnabled(false)
                 .setUserAuthorityExpiration("elevated-clearance")
-                .setUserAuthorityFilter("OnShore-US");
+                .setUserAuthorityFilter("OnShore-US")
+                .setMemberExpiryDays(45)
+                .setServiceExpiryDays(45);
         zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, groupMeta);
 
         resGroup1 = zms.getGroup(mockDomRsrcCtx, domainName, groupName, true, false);
@@ -24115,6 +24194,8 @@ public class ZMSImplTest {
         assertEquals(resGroup1.getNotifyRoles(), "role1");
         assertEquals(resGroup1.getUserAuthorityExpiration(), "elevated-clearance");
         assertEquals(resGroup1.getUserAuthorityFilter(), "OnShore-US");
+        assertEquals(resGroup1.getMemberExpiryDays(), Integer.valueOf(45));
+        assertEquals(resGroup1.getServiceExpiryDays(), Integer.valueOf(45));
 
         groupMeta = new GroupMeta().setNotifyRoles("role2,role3");
         zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, groupMeta);
@@ -24127,6 +24208,7 @@ public class ZMSImplTest {
         assertEquals(resGroup1.getUserAuthorityExpiration(), "elevated-clearance");
         assertEquals(resGroup1.getUserAuthorityFilter(), "OnShore-US");
 
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.userAuthority = savedAuthority;
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -24522,6 +24604,7 @@ public class ZMSImplTest {
         Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
         Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
+        zms.dbService.zmsConfig.setUserAuthority(authority);
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
         dom1.setAuditEnabled(true);
@@ -24610,6 +24693,7 @@ public class ZMSImplTest {
 
         zms.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), null, null, true, "unittest");
 
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.userAuthority = savedAuthority;
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -24754,6 +24838,7 @@ public class ZMSImplTest {
         Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
         Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
+        zms.dbService.zmsConfig.setUserAuthority(authority);
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
         dom1.setAuditEnabled(true);
@@ -24790,6 +24875,7 @@ public class ZMSImplTest {
 
         zms.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, gm);
 
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.userAuthority = savedAuthority;
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }

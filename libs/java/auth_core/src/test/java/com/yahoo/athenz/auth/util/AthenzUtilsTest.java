@@ -148,6 +148,19 @@ public class AthenzUtilsTest {
     }
 
     @Test
+    public void testExtractGroupName() {
+        assertEquals(AthenzUtils.extractGroupName("athenz:group.readers"), "readers");
+        assertEquals(AthenzUtils.extractGroupName("athenz.api:group.readers"), "readers");
+        assertEquals(AthenzUtils.extractGroupName("athenz.api.test:group.readers"), "readers");
+
+        assertNull(AthenzUtils.extractGroupName("athenz:groups.readers"));
+        assertNull(AthenzUtils.extractGroupName("athenz.group.readers"));
+        assertNull(AthenzUtils.extractGroupName("athenz:group."));
+        assertNull(AthenzUtils.extractGroupName(":group.readers"));
+        assertNull(AthenzUtils.extractGroupName("athenz.readers"));
+    }
+
+    @Test
     public void testExtractRoleDomainName() {
         assertEquals(AthenzUtils.extractRoleDomainName("athenz:role.readers"), "athenz");
         assertEquals(AthenzUtils.extractRoleDomainName("athenz.api:role.readers"), "athenz.api");

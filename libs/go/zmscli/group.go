@@ -61,6 +61,39 @@ func (cli Zms) ShowGroup(dn string, gn string, auditLog, pending bool) (*string,
 	return cli.switchOverFormats(group, buf.String())
 }
 
+func (cli Zms) SetGroupMemberExpiryDays(dn string, rn string, days int32) (*string, error) {
+	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getGroupMetaObject(group)
+	meta.MemberExpiryDays = &days
+
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " group " + rn + " member-expiry-days attribute successfully updated]\n"
+	return &s, nil
+}
+
+func (cli Zms) SetGroupServiceExpiryDays(dn string, rn string, days int32) (*string, error) {
+	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getGroupMetaObject(group)
+	meta.ServiceExpiryDays = &days
+
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " group " + rn + " service-expiry-days attribute successfully updated]\n"
+	return &s, nil
+}
+
+
 func (cli Zms) AddGroup(dn string, gn string, groupMembers []*zms.GroupMember) (*string, error) {
 	fullResourceName := dn + ":group." + gn
 	var group zms.Group
@@ -199,6 +232,8 @@ func getGroupMetaObject(group *zms.Group) zms.GroupMeta {
 		NotifyRoles:             group.NotifyRoles,
 		UserAuthorityExpiration: group.UserAuthorityExpiration,
 		UserAuthorityFilter:     group.UserAuthorityFilter,
+		MemberExpiryDays:        group.MemberExpiryDays,
+		ServiceExpiryDays:       group.ServiceExpiryDays,
 	}
 }
 
