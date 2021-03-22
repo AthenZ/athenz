@@ -41,15 +41,15 @@ func GenerateGoSchema(banner string, schema *rdl.Schema, outdir string, ns strin
 	if err != nil {
 		return err
 	}
-	filepath := outdir + "/" + name
-	out, file, _, err := genutil.OutputWriter(filepath, "", ".go")
+	filePath := outdir + "/" + name
+	out, file, _, err := genutil.OutputWriter(filePath, "", ".go")
 	if err != nil {
 		return err
 	}
 	if file != nil {
 		defer func() {
 			file.Close()
-			err := goFmt(filepath)
+			err := goFmt(filePath)
 			if err != nil {
 				fmt.Println("Warning: could not format go code:", err)
 			}
@@ -159,7 +159,7 @@ func (gen *schemaGenerator) emitResource(rez *rdl.Resource) {
 	}
 	//build a sorted order for the exceptions, to make them predictable. Go randomizes the order otherwise.
 	var syms []string
-	for sym, _ := range rez.Exceptions {
+	for sym := range rez.Exceptions {
 		syms = append(syms, sym)
 	}
 	sort.Strings(syms)

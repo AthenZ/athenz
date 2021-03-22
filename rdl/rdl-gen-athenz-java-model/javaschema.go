@@ -262,7 +262,7 @@ func javaGenerateResourceConstructor(reg rdl.TypeRegistry, rez *rdl.Resource) st
 	s += fmt.Sprintf("\n            .expected(%q)", rez.Expected)
 	//build a sorted order for the exceptions, to make them predictable. Go randomizes the order otherwise.
 	var syms []string
-	for sym, _ := range rez.Exceptions {
+	for sym := range rez.Exceptions {
 		syms = append(syms, sym)
 	}
 	sort.Strings(syms)

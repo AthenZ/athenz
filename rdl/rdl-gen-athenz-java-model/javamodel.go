@@ -189,7 +189,7 @@ func (gen *javaModelGenerator) addIndirectImports(t *rdl.Type, bt rdl.BaseType) 
 		types["com.fasterxml.jackson.annotation.JsonIgnoreProperties"] = 1
 	}
 	var imports []string
-	for imp, _ := range types {
+	for imp := range types {
 		imports = append(imports, imp)
 	}
 	sort.Strings(imports)
@@ -228,10 +228,6 @@ func (gen *javaModelGenerator) emitTypeComment(t *rdl.Type) {
 		s += " " + tComment
 	}
 	gen.emit(FormatComment(s, 0, 80))
-}
-
-func JavaType(reg rdl.TypeRegistry, rdlType rdl.TypeRef, optional bool, items rdl.TypeRef, keys rdl.TypeRef) string {
-	return javaType(reg, rdlType, optional, items, keys)
 }
 
 func javaType(reg rdl.TypeRegistry, rdlType rdl.TypeRef, optional bool, items rdl.TypeRef, keys rdl.TypeRef) string {
@@ -292,7 +288,7 @@ func javaType(reg rdl.TypeRegistry, rdlType rdl.TypeRef, optional bool, items rd
 				i = items
 			}
 		}
-		gitems := javaType(reg, rdl.TypeRef(i), true, "", "")
+		gitems := javaType(reg, i, true, "", "")
 		//return gitems + "[]" //if arrays, not lists
 		return "List<" + gitems + ">"
 	case rdl.BaseTypeMap:
@@ -398,7 +394,7 @@ func (gen *javaModelGenerator) emitUnion(t *rdl.Type) {
 			for _, vtype := range ut.Variants {
 				t := gen.registry.FindType(vtype)
 				if t == nil || t.Variant == 0 {
-					gen.err = fmt.Errorf("Cannot find type '%v'", vtype)
+					gen.err = fmt.Errorf("cannot find type '%v'", vtype)
 					return
 				}
 				bt := gen.registry.BaseType(t)
@@ -522,7 +518,7 @@ func (gen *javaModelGenerator) emitUnion(t *rdl.Type) {
 			}
 			gen.emit("}\n")
 		default:
-			gen.err = fmt.Errorf("Bad union definition: %v", t)
+			gen.err = fmt.Errorf("bad union definition: %v", t)
 		}
 	}
 }
@@ -572,7 +568,7 @@ func (gen *javaModelGenerator) emitStruct(t *rdl.Type, cName string) {
 			st := t.StructTypeDef
 			f := genutil.FlattenedFields(gen.registry, t)
 			gen.emitTypeComment(t)
-			gen.emitStructFields(f, st.Name, st.Comment, cName, st.Closed)
+			gen.emitStructFields(f, st.Name, cName, st.Closed)
 			if gen.structHasFieldDefault(st) {
 				gen.emit("\n    //\n    // sets up the instance according to its default field values, if any\n    //\n")
 				gen.emit(fmt.Sprintf("    public %s init() {\n", st.Name))
@@ -591,7 +587,7 @@ func (gen *javaModelGenerator) emitStruct(t *rdl.Type, cName string) {
 			gen.emitTypeComment(t)
 			at := t.AliasTypeDef
 			var fields []*rdl.StructFieldDef
-			gen.emitStructFields(fields, at.Name, at.Comment, cName, false)
+			gen.emitStructFields(fields, at.Name, cName, false)
 			gen.emit("}\n")
 		default:
 			panic(fmt.Sprintf("Unreasonable struct typedef: %v", t.Variant))
@@ -636,7 +632,7 @@ func javaFieldName(n rdl.Identifier) string {
 	return string(n)
 }
 
-func (gen *javaModelGenerator) emitStructFields(fields []*rdl.StructFieldDef, name rdl.TypeName, comment string, cName string, bfinal bool) {
+func (gen *javaModelGenerator) emitStructFields(fields []*rdl.StructFieldDef, name rdl.TypeName, cName string, bfinal bool) {
 	sfinal := ""
 	if bfinal {
 		sfinal = "final "
@@ -704,11 +700,6 @@ func FormatComment(s string, leftCol int, rightCol int) string {
 
 func uncapitalize(text string) string {
 	return strings.ToLower(text[0:1]) + text[1:]
-}
-
-func SafeTypeVarName(rtype rdl.TypeRef) rdl.TypeName {
-	tokens := strings.Split(string(rtype), ".")
-	return rdl.TypeName(capitalize(strings.Join(tokens, "")))
 }
 
 func capitalize(text string) string {

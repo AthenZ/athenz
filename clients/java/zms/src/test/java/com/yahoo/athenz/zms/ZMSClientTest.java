@@ -2423,23 +2423,6 @@ public class ZMSClientTest {
         client.close();
     }
 
-    private void setEnv(String key, String value) {
-        try {
-            Map<String, String> env = System.getenv();
-            Class<?> cl = env.getClass();
-            Field field = cl.getDeclaredField("m");
-            field.setAccessible(true);
-            Map<String, String> writableEnv = (Map<String, String>) field.get(env);
-            if (value == null) {
-                writableEnv.remove(key);
-            } else {
-                writableEnv.put(key, value);
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to set environment variable", e);
-        }
-    }
-
     @Test
     public void testLookupZMSUrl() {
 
@@ -2449,14 +2432,11 @@ public class ZMSClientTest {
         System.clearProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF);
         client.close();
 
-        final String envValue = System.getenv("ROOT");
-        setEnv("ROOT", "/home/athenz");
         System.setProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         client = new ZMSClient();
         assertEquals(client.lookupZMSUrl(), "https://server-zms.athenzcompany.com:4443/");
         System.clearProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF);
         client.close();
-        setEnv("ROOT", envValue);
     }
 
     @Test
