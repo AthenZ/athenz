@@ -27,12 +27,22 @@ func (cli Zms) buildJSONOutput(res interface{}) (*string, error) {
 	return &output, nil
 }
 
-func (cli Zms) switchOverFormats(res interface{}, defaultOutput string) (*string, error) {
+func (cli Zms) switchOverFormats(res interface{}, msg ...string) (*string, error) {
+	var op string
+	if msg == nil {
+		op = res.(string)
+	}
 	switch cli.OutputFormat {
 	case JSONOutputFormat:
+		if msg == nil {
+			return cli.buildJSONOutput(&StandardJSONMessage{Message: op})
+		}
 		return cli.buildJSONOutput(res)
 	case DefaultOutputFormat:
-		return &defaultOutput, nil
+		if msg == nil {
+			return &op, nil
+		}
+		return &msg[0], nil
 	default:
 		return nil, fmt.Errorf(ErrInvalidOutputFormat, cli.OutputFormat)
 	}
@@ -60,7 +70,7 @@ func (cli Zms) DeleteDomain(dn string) (*string, error) {
 		}
 		if err == nil {
 			s := "[Deleted domain " + dn + "]"
-			return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+			return cli.switchOverFormats(s)
 		}
 	}
 	return nil, err
@@ -139,7 +149,7 @@ func (cli Zms) ImportDomain(dn string, filename string, admins []string) (*strin
 		}
 	}
 	s := "[imported domain '" + dn + "' successfully]"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) UpdateDomain(dn string, filename string) (*string, error) {
@@ -260,7 +270,7 @@ func (cli Zms) AddDomain(dn string, productID *int32, addSelf bool, admins []str
 	if err != nil {
 		return nil, err
 	}
-	return cli.switchOverFormats(&StandardJSONMessage{Message: *s}, *s)
+	return cli.switchOverFormats(*s)
 }
 
 func (cli Zms) createDomain(dn string, productID *int32, admins []string) (*string, error) {
@@ -521,7 +531,7 @@ func (cli Zms) SetDomainMeta(dn string, descr string) (*string, error) {
 		return nil, err
 	}
 	s := "[domain " + dn + " metadata successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainAuditEnabled(dn string, auditEnabled bool) (*string, error) {
@@ -533,7 +543,7 @@ func (cli Zms) SetDomainAuditEnabled(dn string, auditEnabled bool) (*string, err
 		return nil, err
 	}
 	s := "[domain " + dn + " metadata successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainUserAuthorityFilter(dn, filter string) (*string, error) {
@@ -545,7 +555,7 @@ func (cli Zms) SetDomainUserAuthorityFilter(dn, filter string) (*string, error) 
 		return nil, err
 	}
 	s := "[domain " + dn + " metadata successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainMemberExpiryDays(dn string, days int32) (*string, error) {
@@ -561,7 +571,7 @@ func (cli Zms) SetDomainMemberExpiryDays(dn string, days int32) (*string, error)
 		return nil, err
 	}
 	s := "[domain " + dn + " metadata successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainServiceExpiryDays(dn string, days int32) (*string, error) {
@@ -577,7 +587,7 @@ func (cli Zms) SetDomainServiceExpiryDays(dn string, days int32) (*string, error
 		return nil, err
 	}
 	s := "[domain " + dn + " metadata successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainGroupExpiryDays(dn string, days int32) (*string, error) {
@@ -593,7 +603,7 @@ func (cli Zms) SetDomainGroupExpiryDays(dn string, days int32) (*string, error) 
 		return nil, err
 	}
 	s := "[domain " + dn + " metadata successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainTokenExpiryMins(dn string, mins int32) (*string, error) {
@@ -609,7 +619,7 @@ func (cli Zms) SetDomainTokenExpiryMins(dn string, mins int32) (*string, error) 
 		return nil, err
 	}
 	s := "[domain " + dn + " metadata successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainTokenSignAlgorithm(dn string, alg string) (*string, error) {
@@ -625,7 +635,7 @@ func (cli Zms) SetDomainTokenSignAlgorithm(dn string, alg string) (*string, erro
 		return nil, err
 	}
 	s := "[domain " + dn + " metadata successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainServiceCertExpiryMins(dn string, mins int32) (*string, error) {
@@ -641,7 +651,7 @@ func (cli Zms) SetDomainServiceCertExpiryMins(dn string, mins int32) (*string, e
 		return nil, err
 	}
 	s := "[domain " + dn + " metadata successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainRoleCertExpiryMins(dn string, mins int32) (*string, error) {
@@ -657,7 +667,7 @@ func (cli Zms) SetDomainRoleCertExpiryMins(dn string, mins int32) (*string, erro
 		return nil, err
 	}
 	s := "[domain " + dn + " metadata successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) AddDomainTags(dn string, tagKey string, tagValues []string) (*string, error) {
@@ -757,7 +767,7 @@ func (cli Zms) SetDomainAccount(dn string, account string) (*string, error) {
 		return nil, err
 	}
 	s := "[domain " + dn + " account successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainSubscription(dn string, subscription string) (*string, error) {
@@ -769,7 +779,7 @@ func (cli Zms) SetDomainSubscription(dn string, subscription string) (*string, e
 		return nil, err
 	}
 	s := "[domain " + dn + " subscription successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainOrgName(dn string, org string) (*string, error) {
@@ -781,7 +791,7 @@ func (cli Zms) SetDomainOrgName(dn string, org string) (*string, error) {
 		return nil, err
 	}
 	s := "[domain " + dn + " org name successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainProductId(dn string, productID int32) (*string, error) {
@@ -793,7 +803,7 @@ func (cli Zms) SetDomainProductId(dn string, productID int32) (*string, error) {
 		return nil, err
 	}
 	s := "[domain " + dn + " product-id successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainApplicationId(dn string, applicationID string) (*string, error) {
@@ -806,7 +816,7 @@ func (cli Zms) SetDomainApplicationId(dn string, applicationID string) (*string,
 		return nil, err
 	}
 	s := "[domain " + dn + " application-id successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainBusinessService(dn string, businessService string) (*string, error) {
@@ -831,7 +841,7 @@ func (cli Zms) SetDomainCertDnsDomain(dn string, dnsDomain string) (*string, err
 		return nil, err
 	}
 	s := "[domain " + dn + " cert-dns-domain successfully updated]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDefaultAdmins(dn string, admins []string) (*string, error) {
