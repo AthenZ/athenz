@@ -705,7 +705,7 @@ public class Crypto {
                 // Decrypt the private key with the specified password
 
                 InputDecryptorProvider pkcs8Prov = new JceOpenSSLPKCS8DecryptorProviderBuilder()
-                        .setProvider(BC_PROVIDER).build(pwd.toCharArray());
+                        .build(pwd.toCharArray());
 
                 PrivateKeyInfo privateKeyInfo = pKeyInfo.decryptPrivateKeyInfo(pkcs8Prov);
                 JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
@@ -1253,9 +1253,9 @@ public class Crypto {
 
             String signatureAlgorithm = getSignatureAlgorithm(caPrivateKey.getAlgorithm(), SHA256);
             ContentSigner caSigner = new JcaContentSignerBuilder(signatureAlgorithm)
-                    .setProvider(BC_PROVIDER).build(caPrivateKey);
+                    .build(caPrivateKey);
 
-            JcaX509CertificateConverter converter = new JcaX509CertificateConverter().setProvider(BC_PROVIDER);
+            JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
             cert = converter.getCertificate(caBuilder.build(caSigner));
             ///CLOVER:OFF
         } catch (CertificateException ex) {
@@ -1296,7 +1296,7 @@ public class Crypto {
             Iterator<SignerInformation> it = signers.iterator();
 
             SignerInformationVerifier infoVerifier = new JcaSimpleSignerInfoVerifierBuilder()
-                    .setProvider(BC_PROVIDER).build(publicKey);
+                    .build(publicKey);
             while (it.hasNext()) {
                 SignerInformation signerInfo = it.next();
                 if (signerInfo.verify(infoVerifier)) {
