@@ -1089,8 +1089,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         boolean res = true;
         for (Map.Entry<String, StringList> e : tags.entrySet()) {
-            for (int i = 0; i < e.getValue().getList().size(); i++) {
-                String tagValue = e.getValue().getList().get(i);
+            for (String tagValue : e.getValue().getList()) {
                 try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_DOMAIN_TAG)) {
                     ps.setInt(1, domainId);
                     ps.setString(2, processInsertValue(e.getKey()));
@@ -6034,8 +6033,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         
         boolean res = true;
         for (Map.Entry<String, StringList> e : roleTags.entrySet()) {
-            for (int i = 0; i < e.getValue().getList().size(); i++) {
-                String tagValue = e.getValue().getList().get(i);
+            for (String tagValue : e.getValue().getList()) {
                 try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_ROLE_TAG)) {
                     ps.setInt(1, roleId);
                     ps.setString(2, processInsertValue(e.getKey()));

@@ -25203,7 +25203,7 @@ public class ZMSImplTest {
 
         try {
             // role should not be created if fails to process tags..
-            Role dbRole = zmsTest.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
+            zmsTest.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
             fail();
         } catch(ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -25397,7 +25397,7 @@ public class ZMSImplTest {
         }
         try {
             // domain should not be created if fails to process tags..
-            Domain domain = zmsTest.getDomain(mockDomRsrcCtx, domainName);
+            zmsTest.getDomain(mockDomRsrcCtx, domainName);
             fail();
         } catch(ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
