@@ -230,9 +230,6 @@ public class Crypto {
             byte[] sig = signer.sign();
             return ybase64(sig);
             /// CLOVER:OFF
-        } catch (NoSuchProviderException e) {
-            LOG.error("sign: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
-            throw new CryptoException(e);
         } catch (NoSuchAlgorithmException e) {
             LOG.error("sign: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
             throw new CryptoException(e);
@@ -261,9 +258,6 @@ public class Crypto {
             signer.initSign(key);
             signer.update(message);
             return signer.sign();
-        } catch (NoSuchProviderException e) {
-            LOG.error("sign: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
-            throw new CryptoException(e);
         } catch (NoSuchAlgorithmException e) {
             LOG.error("sign: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
             throw new CryptoException(e);
@@ -306,9 +300,6 @@ public class Crypto {
             signer.update(utf8Bytes(message));
             return signer.verify(sig);
             ///CLOVER:OFF
-        } catch (NoSuchProviderException e) {
-            LOG.error("verify: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
-            throw new CryptoException(e);
         } catch (InvalidKeyException e) {
             LOG.error("verify: Caught InvalidKeyException, invalid key type is being used.");
             throw new CryptoException(e);
@@ -351,9 +342,6 @@ public class Crypto {
             signer.initVerify(key);
             signer.update(message);
             return signer.verify(signature);
-        } catch (NoSuchProviderException e) {
-            LOG.error("verify: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
-            throw new CryptoException(e);
         } catch (InvalidKeyException e) {
             LOG.error("verify: Caught InvalidKeyException, invalid key type is being used.");
             throw new CryptoException(e);
