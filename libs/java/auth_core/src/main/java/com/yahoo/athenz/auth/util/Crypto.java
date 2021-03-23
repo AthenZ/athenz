@@ -116,8 +116,7 @@ public class Crypto {
     public static final String SHA1 = "SHA1";
     public static final String SHA256 = "SHA256";
 
-    static final String ATHENZ_CRYPTO_BC_PROVIDER = "athenz.crypto.bc_provider";
-    private static final String BC_PROVIDER = "BC";
+    static final String ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER = "athenz.crypto.key_factory_provider";
 
     static final SecureRandom RANDOM;
     static {
@@ -136,7 +135,7 @@ public class Crypto {
     }
 
     private static String getProvider() {
-        return System.getProperty(ATHENZ_CRYPTO_BC_PROVIDER, "BC");
+        return System.getProperty(ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER, "BC");
     }
 
     private static String getECDSAAlgo() {
@@ -225,7 +224,7 @@ public class Crypto {
     public static String sign(String message, PrivateKey key, String digestAlgorithm) throws CryptoException {
         try {
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
-            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
+            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm);
             signer.initSign(key);
             signer.update(utf8Bytes(message));
             byte[] sig = signer.sign();
@@ -258,7 +257,7 @@ public class Crypto {
     public static byte[] sign(byte[] message, PrivateKey key, String digestAlgorithm) throws CryptoException {
         try {
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
-            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
+            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm);
             signer.initSign(key);
             signer.update(message);
             return signer.sign();
@@ -302,7 +301,7 @@ public class Crypto {
         try {
             byte [] sig = ybase64Decode(signature);
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
-            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
+            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm);
             signer.initVerify(key);
             signer.update(utf8Bytes(message));
             return signer.verify(sig);
@@ -348,7 +347,7 @@ public class Crypto {
                                  String digestAlgorithm) throws CryptoException {
         try {
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
-            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
+            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm);
             signer.initVerify(key);
             signer.update(message);
             return signer.verify(signature);
@@ -486,7 +485,6 @@ public class Crypto {
                 ///CLOVER:ON
                 try {
                     return new JcaX509CertificateConverter()
-                            .setProvider(BC_PROVIDER)
                             .getCertificate((X509CertificateHolder) pemObj);
                     ///CLOVER:OFF
                 } catch (CertificateException ex) {
