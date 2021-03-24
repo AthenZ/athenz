@@ -8,17 +8,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
-	"strconv"
 
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 	"github.com/AthenZ/athenz/utils/zpe-updater/util"
 )
 
-// Default and maximal startup delay values.
 const (
-	DEFAULT_STARTUP_DELAY = 0
-	MAX_STARTUP_DELAY     = 1440
 	DEFAULT_EXPIRY_CHECK  = 2880
 )
 
@@ -32,7 +27,6 @@ type ZpuConfiguration struct {
 	MetricsDir        string
 	ZmsKeysmap        map[string]string
 	ZtsKeysmap        map[string]string
-	StartUpDelay      int
 	ExpiryCheck       int
 	LogSize           int
 	LogAge            int
@@ -108,22 +102,6 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 		zmsKeysmap[publicKey.Id] = string(key)
 	}
 
-	startupDelay := DEFAULT_STARTUP_DELAY
-	startupDelayString := os.Getenv("STARTUP_DELAY")
-	if startupDelayString != "" {
-		startupDelay, err = strconv.Atoi(startupDelayString)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to set start up delay, Error: %v", err)
-		}
-	}
-	if startupDelay < 0 {
-		startupDelay = DEFAULT_STARTUP_DELAY
-	}
-	if startupDelay > MAX_STARTUP_DELAY {
-		startupDelay = MAX_STARTUP_DELAY
-	}
-	startupDelay *= 60 // convert from min to secs
-
 	expiryCheck := zpuConf.ExpiryCheck
 	if expiryCheck == 0 {
 		expiryCheck = DEFAULT_EXPIRY_CHECK
@@ -162,7 +140,6 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 		MetricsDir:        metricDir,
 		ZtsKeysmap:        ztsKeysmap,
 		ZmsKeysmap:        zmsKeysmap,
-		StartUpDelay:      startupDelay,
 		ExpiryCheck:       expiryCheck,
 		LogAge:            zpuConf.LogMaxAge,
 		LogSize:           zpuConf.LogMaxSize,

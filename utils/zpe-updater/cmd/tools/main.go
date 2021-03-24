@@ -8,9 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
-	"time"
 
 	"github.com/AthenZ/athenz/utils/zpe-updater"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -97,14 +95,7 @@ func main() {
 		zpuConfig.Zts = ztsURL
 	}
 
-	if zpuConfig.StartUpDelay > 0 {
-		rand.Seed(time.Now().Unix())
-		randmonSleepInterval := rand.Intn(zpuConfig.StartUpDelay)
-		log.Printf("Launching zpe_policy_updater in %v seconds", randmonSleepInterval)
-		time.Sleep(time.Duration(randmonSleepInterval) * time.Second)
-	} else {
-		log.Println("Launching zpe_policy_updater without delay")
-	}
+	log.Println("Launching zpe_policy_updater")
 	err = zpu.PolicyUpdater(zpuConfig)
 	if err != nil {
 		log.Fatalf("Policy updator failed, %v", err)

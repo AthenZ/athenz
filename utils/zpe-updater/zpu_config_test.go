@@ -4,7 +4,6 @@
 package zpu
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -107,7 +106,6 @@ func TestReadZpuConf(t *testing.T) {
 
 func TestNewZpuConfiguration(t *testing.T) {
 	a := assert.New(t)
-	os.Setenv("STARTUP_DELAY", "60")
 	err := devel.CreateFile(ZPU_CONF, `{"domains":"domain","user":"user","tempPolicyDir": "/tmp/zpu_temp","policyDir":"/policy","metricsDir":"/metric","logMaxsize":10,"logMaxage":7,"logMaxbackups":2,"logCompress":true,"proxy":true,"certFile":"./certfile.pem","caCertFile":"./cacert.pem","privateKeyFile":"./privatekey","expiryCheck":50}`)
 	a.Nil(err)
 	a.Nil(err)
@@ -115,7 +113,6 @@ func TestNewZpuConfiguration(t *testing.T) {
 	a.Nil(err)
 	config, err := NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF)
 	a.Nil(err)
-	a.Equal(config.StartUpDelay, 3600)
 	a.Equal(config.Zts, "zts_url")
 	a.Equal(config.Zms, "zms_url")
 	a.Equal(config.PolicyFileDir, "/policy")
@@ -136,12 +133,10 @@ func TestNewZpuConfiguration(t *testing.T) {
 	a.Equal(config.ExpiryCheck, 50*60)
 
 	//testing defaults
-	os.Unsetenv("STARTUP_DELAY")
 	err = devel.CreateFile(ZPU_CONF, `{"domains":"domain"}`)
 	a.Nil(err)
 	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF)
 	a.Nil(err)
-	a.Equal(config.StartUpDelay, 0)
 	a.Equal(config.Zts, "zts_url")
 	a.Equal(config.Zms, "zms_url")
 	a.Equal(config.PolicyFileDir, "/var/zpe")
@@ -160,24 +155,6 @@ func TestNewZpuConfiguration(t *testing.T) {
 	a.Equal(config.CertFile, "")
 	a.Equal(config.Proxy, false)
 	a.Equal(config.ExpiryCheck, 2880*60)
-
-	//Start up delay more than than max startup delay
-	os.Setenv("STARTUP_DELAY", "2000")
-	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF)
-	a.Nil(err)
-	a.Equal(config.StartUpDelay, 86400)
-
-	//Start up delay less than than min startup delay
-	os.Setenv("STARTUP_DELAY", "-10")
-	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF)
-	a.Nil(err)
-	a.Equal(config.StartUpDelay, 0)
-
-	//invalid environment variable
-	os.Setenv("STARTUP_DELAY", "invalid")
-	config, err = NewZpuConfiguration("", ATHENZ_CONF, ZPU_CONF)
-	a.NotNil(err)
-	a.Nil(config)
 
 	//invalid keys
 	err = devel.CreateFile(ATHENZ_CONF, `{"ztsPublicKeys":[{"id":"0","key":"key_0"}],"zmsPublicKeys":[{"id":"1","key":"key_1"}]}`)
