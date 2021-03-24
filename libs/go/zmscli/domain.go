@@ -5,7 +5,6 @@ package zmscli
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -16,36 +15,6 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"gopkg.in/yaml.v2"
 )
-
-func (cli Zms) buildJSONOutput(res interface{}) (*string, error) {
-	jsonOutput, err := json.MarshalIndent(res, "", indentLevel1)
-	if err != nil {
-		return nil, fmt.Errorf("failed to produce JSON output: %v", err)
-	}
-	output := string(jsonOutput)
-	return &output, nil
-}
-
-func (cli Zms) switchOverFormats(res interface{}, msg ...string) (*string, error) {
-	var op string
-	if msg == nil {
-		op = res.(string)
-	}
-	switch cli.OutputFormat {
-	case JSONOutputFormat:
-		if msg == nil {
-			return cli.buildJSONOutput(&StandardJSONMessage{Message: op})
-		}
-		return cli.buildJSONOutput(res)
-	case DefaultOutputFormat:
-		if msg == nil {
-			return &op, nil
-		}
-		return &msg[0], nil
-	default:
-		return nil, fmt.Errorf(ErrInvalidOutputFormat, cli.OutputFormat)
-	}
-}
 
 // DeleteDomain deletes the given ZMS domain.
 func (cli Zms) DeleteDomain(dn string) (*string, error) {

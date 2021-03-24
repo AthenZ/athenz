@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -48,6 +49,36 @@ type Zms struct {
 // StandardJSONMessage is the standard template for single-line string messages.
 type StandardJSONMessage struct {
 	Message string `json:"message,required"`
+}
+
+func (cli Zms) buildJSONOutput(res interface{}) (*string, error) {
+	jsonOutput, err := json.MarshalIndent(res, "", indentLevel1)
+	if err != nil {
+		return nil, fmt.Errorf("failed to produce JSON output: %v", err)
+	}
+	output := string(jsonOutput)
+	return &output, nil
+}
+
+func (cli Zms) switchOverFormats(res interface{}, msg ...string) (*string, error) {
+	var op string
+	if msg == nil {
+		op = res.(string)
+	}
+	switch cli.OutputFormat {
+	case JSONOutputFormat:
+		if msg == nil {
+			return cli.buildJSONOutput(&StandardJSONMessage{Message: op})
+		}
+		return cli.buildJSONOutput(res)
+	case DefaultOutputFormat:
+		if msg == nil {
+			return &op, nil
+		}
+		return &msg[0], nil
+	default:
+		return nil, fmt.Errorf(ErrInvalidOutputFormat, cli.OutputFormat)
+	}
 }
 
 func (cli *Zms) SetClient(tr *http.Transport, authHeader, ntoken *string) {
