@@ -160,7 +160,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				cli.Domain = ""
 				s = "[not using any domain]"
 			}
-			return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+			return cli.switchOverFormats(s)
 		case "show-domain":
 			if argc == 1 {
 				//override the default domain, this command can show any of them
@@ -182,11 +182,11 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 		case "export-domain":
 			if argc == 1 || argc == 2 {
 				dn = args[0]
-				yamlfile := "-"
+				filename := "-"
 				if argc == 2 {
-					yamlfile = args[1]
+					filename = args[1]
 				}
-				return cli.ExportDomain(dn, yamlfile)
+				return cli.ExportDomain(dn, filename)
 			}
 			return cli.helpCommand(params)
 		case "import-domain":
@@ -1236,7 +1236,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   import-domain coretech coretech.yaml " + cli.UserDomain + ".john\n")
 	case "export-domain":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] export-domain domain [file.yaml] - no file means stdout\n")
+		buf.WriteString("   [-o json] export-domain domain [file.yaml or file.json] - no file means stdout\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   domain    : name of the domain to be exported\n")
 		buf.WriteString("   file.yaml : filename where the domain data is stored\n")

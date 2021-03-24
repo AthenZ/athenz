@@ -57,7 +57,7 @@ func (cli Zms) ShowAccess(dn string, action string, resource string, altIdent *s
 	if !access.Granted {
 		s = "access: denied"
 	}
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 // ShowAccessExt returns access indicator as string:
@@ -75,7 +75,7 @@ func (cli Zms) ShowAccessExt(dn string, action string, resource string, altIdent
 	if !access.Granted {
 		s = "access: denied"
 	}
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) ShowResourceAccess(principal string, action string) (*string, error) {
@@ -93,6 +93,5 @@ func (cli Zms) ShowResourceAccess(principal string, action string) (*string, err
 			cli.dumpAssertion(&buf, assertion, "", indent2)
 		}
 	}
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(rsrcAccessList, buf.String())
 }
