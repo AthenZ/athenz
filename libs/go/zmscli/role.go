@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/ardielle/ardielle-go/rdl"
 )
 
 func providerRoleName(provider, group, action string) string {
@@ -39,8 +39,7 @@ func (cli Zms) ListRoles(dn string) (*string, error) {
 	}
 	buf.WriteString("roles:\n")
 	cli.dumpObjectList(&buf, roles, dn, "role")
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(roles, buf.String())
 }
 
 func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool, pending bool) (*string, error) {
@@ -70,8 +69,7 @@ func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool, pending boo
 	var buf bytes.Buffer
 	buf.WriteString("role:\n")
 	cli.dumpRole(&buf, *role, auditLog, indentLevel1Dash, indentLevel1DashLvl)
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(role, buf.String())
 }
 
 func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, error) {
@@ -108,7 +106,7 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.ShowRole(dn, rn, false, false, false)
 	}
-	return output, err
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember) (*string, error) {
@@ -146,7 +144,7 @@ func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember)
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.ShowRole(dn, rn, false, false, false)
 	}
-	return output, err
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) DeleteRole(dn string, rn string) (*string, error) {
@@ -158,22 +156,34 @@ func (cli Zms) DeleteRole(dn string, rn string) (*string, error) {
 		return nil, err
 	}
 	s := "[Deleted role: " + rn + "]"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) AddProviderRoleMembers(dn string, provider string, group string, action string, members []string) (*string, error) {
 	rn := providerRoleName(provider, group, action)
-	return cli.AddMembers(dn, rn, members)
+	output, err := cli.AddMembers(dn, rn, members)
+	if err != nil {
+		return nil, err
+	}
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) ShowProviderRoleMembers(dn string, provider string, group string, action string) (*string, error) {
 	rn := providerRoleName(provider, group, action)
-	return cli.ShowRole(dn, rn, false, false, false)
+	output, err := cli.ShowRole(dn, rn, false, false, false)
+	if err != nil {
+		return nil, err
+	}
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) DeleteProviderRoleMembers(dn string, provider string, group string, action string, members []string) (*string, error) {
 	rn := providerRoleName(provider, group, action)
-	return cli.DeleteMembers(dn, rn, members)
+	output, err := cli.DeleteMembers(dn, rn, members)
+	if err != nil {
+		return nil, err
+	}
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) AddRoleMembers(dn string, rn string, members []*zms.RoleMember) (*string, error) {
@@ -221,7 +231,7 @@ func (cli Zms) AddMembers(dn string, rn string, members []string) (*string, erro
 	} else {
 		s = "[Added to " + rn + ": " + strings.Join(ms, ",") + "]"
 	}
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) AddDueDateMember(dn string, rn string, member string, expiration *rdl.Timestamp, reviewDate *rdl.Timestamp) (*string, error) {
@@ -247,7 +257,7 @@ func (cli Zms) AddDueDateMember(dn string, rn string, member string, expiration 
 	} else {
 		s = "[Added to " + rn + ": " + validatedUser + "]"
 	}
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) DeleteMembers(dn string, rn string, members []string) (*string, error) {
@@ -265,7 +275,7 @@ func (cli Zms) DeleteMembers(dn string, rn string, members []string) (*string, e
 	} else {
 		s = "[Deleted from " + rn + ": " + strings.Join(ms, ",") + "]"
 	}
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) CheckMembers(dn string, rn string, members []string) (*string, error) {
@@ -278,8 +288,7 @@ func (cli Zms) CheckMembers(dn string, rn string, members []string) (*string, er
 		}
 		cli.dumpRoleMembership(&buf, *member)
 	}
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(ms, buf.String())
 }
 
 func (cli Zms) CheckActiveMember(dn string, rn string, mbr string) (*string, error) {
@@ -292,8 +301,7 @@ func (cli Zms) CheckActiveMember(dn string, rn string, mbr string) (*string, err
 		return nil, errors.New("Member " + mbr + " is not active")
 	}
 	cli.dumpRoleMembership(&buf, *member)
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(member, buf.String())
 }
 
 func (cli Zms) DeleteDomainRoleMember(dn, member string) (*string, error) {
@@ -302,7 +310,7 @@ func (cli Zms) DeleteDomainRoleMember(dn, member string) (*string, error) {
 		return nil, err
 	}
 	s := "[Deleted member: " + member + "]"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) ListDomainRoleMembers(dn string) (*string, error) {
@@ -313,8 +321,7 @@ func (cli Zms) ListDomainRoleMembers(dn string) (*string, error) {
 	}
 	buf.WriteString("role members:\n")
 	cli.dumpDomainRoleMembers(&buf, roleMembers, false)
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(roleMembers, buf.String())
 }
 
 func (cli Zms) ShowRolesPrincipal(principal string, dn string) (*string, error) {
@@ -324,8 +331,7 @@ func (cli Zms) ShowRolesPrincipal(principal string, dn string) (*string, error) 
 		return nil, err
 	}
 	cli.dumpRolesPrincipal(&buf, domainRoleMember)
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(domainRoleMember, buf.String())
 }
 
 func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*string, error) {
@@ -337,7 +343,7 @@ func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*st
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " audit-enabled successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetRoleReviewEnabled(dn string, rn string, reviewEnabled bool) (*string, error) {
@@ -353,7 +359,7 @@ func (cli Zms) SetRoleReviewEnabled(dn string, rn string, reviewEnabled bool) (*
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " review-enabled attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
@@ -388,7 +394,7 @@ func (cli Zms) SetRoleSelfServe(dn string, rn string, selfServe bool) (*string, 
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " self-serve attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetRoleUserAuthorityFilter(dn string, rn, filter string) (*string, error) {
@@ -404,7 +410,7 @@ func (cli Zms) SetRoleUserAuthorityFilter(dn string, rn, filter string) (*string
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " user-authority-filter attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetRoleUserAuthorityExpiration(dn string, rn, filter string) (*string, error) {
@@ -420,7 +426,7 @@ func (cli Zms) SetRoleUserAuthorityExpiration(dn string, rn, filter string) (*st
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " user-authority-expiration attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) AddRoleTags(dn string, rn, tagKey string, tagValues []string) (*string, error) {
@@ -460,7 +466,7 @@ func (cli Zms) AddRoleTags(dn string, rn, tagKey string, tagValues []string) (*s
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.ShowRole(dn, rn, false, false, false)
 	}
-	return output, err
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) DeleteRoleTags(dn string, rn, tagKey string, tagValue string) (*string, error) {
@@ -502,14 +508,13 @@ func (cli Zms) DeleteRoleTags(dn string, rn, tagKey string, tagValue string) (*s
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.ShowRole(dn, rn, false, false, false)
 	}
-	return output, err
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) ShowRoles(dn string, tagKey string, tagValue string) (*string, error) {
 	var buf bytes.Buffer
 	cli.dumpRoles(&buf, dn, tagKey, tagValue)
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(buf.String())
 }
 
 func (cli Zms) SetRoleMemberExpiryDays(dn string, rn string, days int32) (*string, error) {
@@ -525,7 +530,7 @@ func (cli Zms) SetRoleMemberExpiryDays(dn string, rn string, days int32) (*strin
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " member-expiry-days attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetRoleServiceExpiryDays(dn string, rn string, days int32) (*string, error) {
@@ -541,7 +546,7 @@ func (cli Zms) SetRoleServiceExpiryDays(dn string, rn string, days int32) (*stri
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " service-expiry-days attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetRoleGroupExpiryDays(dn string, rn string, days int32) (*string, error) {
@@ -557,7 +562,7 @@ func (cli Zms) SetRoleGroupExpiryDays(dn string, rn string, days int32) (*string
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " group-expiry-days attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetRoleMemberReviewDays(dn string, rn string, days int32) (*string, error) {
@@ -573,7 +578,7 @@ func (cli Zms) SetRoleMemberReviewDays(dn string, rn string, days int32) (*strin
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " member-review-days attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetRoleServiceReviewDays(dn string, rn string, days int32) (*string, error) {
@@ -589,7 +594,7 @@ func (cli Zms) SetRoleServiceReviewDays(dn string, rn string, days int32) (*stri
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " service-review-days attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetRoleTokenExpiryMins(dn string, rn string, mins int32) (*string, error) {
@@ -605,7 +610,7 @@ func (cli Zms) SetRoleTokenExpiryMins(dn string, rn string, mins int32) (*string
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " token-expiry-mins attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetRoleCertExpiryMins(dn string, rn string, mins int32) (*string, error) {
@@ -621,7 +626,7 @@ func (cli Zms) SetRoleCertExpiryMins(dn string, rn string, mins int32) (*string,
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " role-cert-expiry-mins attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetRoleTokenSignAlgorithm(dn string, rn string, alg string) (*string, error) {
@@ -637,7 +642,7 @@ func (cli Zms) SetRoleTokenSignAlgorithm(dn string, rn string, alg string) (*str
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " role-token-sign-algorithm attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetRoleNotifyRoles(dn string, rn string, notifyRoles string) (*string, error) {
@@ -653,7 +658,7 @@ func (cli Zms) SetRoleNotifyRoles(dn string, rn string, notifyRoles string) (*st
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " notify-roles attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) PutTempMembershipDecision(dn string, rn string, mbr string, expiration rdl.Timestamp, approval bool) (*string, error) {
@@ -674,7 +679,7 @@ func (cli Zms) PutTempMembershipDecision(dn string, rn string, mbr string, expir
 		s = s + " rejected."
 	}
 	s = s + "]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) PutMembershipDecision(dn string, rn string, mbr string, approval bool) (*string, error) {
@@ -694,5 +699,5 @@ func (cli Zms) PutMembershipDecision(dn string, rn string, mbr string, approval 
 		s = s + " rejected."
 	}
 	s = s + "]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }

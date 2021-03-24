@@ -19,8 +19,7 @@ func (cli Zms) ListUsers() (*string, error) {
 	for _, item := range users.Names {
 		buf.WriteString("    - " + string(item) + "\n")
 	}
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(users, buf.String())
 }
 
 func (cli Zms) DeleteUser(user string) (*string, error) {
@@ -29,5 +28,5 @@ func (cli Zms) DeleteUser(user string) (*string, error) {
 		return nil, err
 	}
 	s := "[Deleted user: " + user + "]"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/ardielle/ardielle-go/rdl"
 )
 
 func (cli Zms) policyNames(dn string) ([]string, error) {
@@ -34,8 +34,7 @@ func (cli Zms) ListPolicies(dn string) (*string, error) {
 	}
 	buf.WriteString("policies:\n")
 	cli.dumpObjectList(&buf, policies, dn, "policy")
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(policies, buf.String())
 }
 
 func (cli Zms) ShowPolicy(dn string, name string) (*string, error) {
@@ -46,8 +45,7 @@ func (cli Zms) ShowPolicy(dn string, name string) (*string, error) {
 	var buf bytes.Buffer
 	buf.WriteString("policy:\n")
 	cli.dumpPolicy(&buf, *policy, indentLevel1Dash, indentLevel1DashLvl)
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(policy, buf.String())
 }
 
 func parseAssertion(dn string, lst []string) (*zms.Assertion, error) {
@@ -163,7 +161,7 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.ShowPolicy(dn, pn)
 	}
-	return output, err
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) AddAssertion(dn string, pn string, assertion []string) (*string, error) {
@@ -179,7 +177,11 @@ func (cli Zms) AddAssertion(dn string, pn string, assertion []string) (*string, 
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowPolicy(dn, pn)
+	output, err := cli.ShowPolicy(dn, pn)
+	if err != nil {
+		return nil, err
+	}
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) assertionMatch(assertion1 *zms.Assertion, assertion2 *zms.Assertion) bool {
@@ -242,7 +244,11 @@ func (cli Zms) DeleteAssertion(dn string, pn string, assertion []string) (*strin
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowPolicy(dn, pn)
+	output, err := cli.ShowPolicy(dn, pn)
+	if err != nil {
+		return nil, err
+	}
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) DeletePolicy(dn string, pn string) (*string, error) {
@@ -251,5 +257,5 @@ func (cli Zms) DeletePolicy(dn string, pn string) (*string, error) {
 		return nil, err
 	}
 	s := "[Deleted policy: " + pn + "]"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/ardielle/ardielle-go/rdl"
 )
 
 func (cli Zms) groupNames(dn string) ([]string, error) {
@@ -35,8 +35,7 @@ func (cli Zms) ListGroups(dn string) (*string, error) {
 	}
 	buf.WriteString("groups:\n")
 	cli.dumpObjectList(&buf, groups, dn, "group")
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(groups, buf.String())
 }
 
 func (cli Zms) ShowGroup(dn string, gn string, auditLog, pending bool) (*string, error) {
@@ -59,8 +58,7 @@ func (cli Zms) ShowGroup(dn string, gn string, auditLog, pending bool) (*string,
 	var buf bytes.Buffer
 	buf.WriteString("group:\n")
 	cli.dumpGroup(&buf, *group, auditLog, indentLevel1Dash, indentLevel1DashLvl)
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(group, buf.String())
 }
 
 func (cli Zms) AddGroup(dn string, gn string, groupMembers []*zms.GroupMember) (*string, error) {
@@ -95,7 +93,7 @@ func (cli Zms) AddGroup(dn string, gn string, groupMembers []*zms.GroupMember) (
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.ShowGroup(dn, gn, false, false)
 	}
-	return output, err
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) DeleteGroup(dn string, gn string) (*string, error) {
@@ -104,7 +102,7 @@ func (cli Zms) DeleteGroup(dn string, gn string) (*string, error) {
 		return nil, err
 	}
 	s := "[Deleted group: " + gn + "]"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) AddGroupMembers(dn string, group string, members []string) (*string, error) {
@@ -125,7 +123,7 @@ func (cli Zms) AddGroupMembers(dn string, group string, members []string) (*stri
 	} else {
 		s = "[Added to " + group + ": " + strings.Join(ms, ",") + "]"
 	}
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) DeleteGroupMembers(dn string, group string, members []string) (*string, error) {
@@ -143,7 +141,7 @@ func (cli Zms) DeleteGroupMembers(dn string, group string, members []string) (*s
 	} else {
 		s = "[Deleted from " + group + ": " + strings.Join(ms, ",") + "]"
 	}
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) CheckGroupMembers(dn string, group string, members []string) (*string, error) {
@@ -156,8 +154,7 @@ func (cli Zms) CheckGroupMembers(dn string, group string, members []string) (*st
 		}
 		cli.dumpGroupMembership(&buf, *member)
 	}
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(ms, buf.String())
 }
 
 func (cli Zms) CheckActiveGroupMember(dn string, group string, mbr string) (*string, error) {
@@ -170,8 +167,7 @@ func (cli Zms) CheckActiveGroupMember(dn string, group string, mbr string) (*str
 		return nil, errors.New("Member " + mbr + " is not active")
 	}
 	cli.dumpGroupMembership(&buf, *member)
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(member, buf.String())
 }
 
 func (cli Zms) ShowGroupsPrincipal(principal string, dn string) (*string, error) {
@@ -181,8 +177,7 @@ func (cli Zms) ShowGroupsPrincipal(principal string, dn string) (*string, error)
 		return nil, err
 	}
 	cli.dumpGroupsPrincipal(&buf, domainGroupMember)
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(domainGroupMember, buf.String())
 }
 
 func (cli Zms) SetGroupAuditEnabled(dn string, group string, auditEnabled bool) (*string, error) {
@@ -194,7 +189,7 @@ func (cli Zms) SetGroupAuditEnabled(dn string, group string, auditEnabled bool) 
 		return nil, err
 	}
 	s := "[domain " + dn + " group " + group + " audit-enabled successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func getGroupMetaObject(group *zms.Group) zms.GroupMeta {
@@ -220,7 +215,7 @@ func (cli Zms) SetGroupReviewEnabled(dn string, gn string, reviewEnabled bool) (
 		return nil, err
 	}
 	s := "[domain " + dn + " group " + gn + " review-enabled attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetGroupSelfServe(dn string, gn string, selfServe bool) (*string, error) {
@@ -236,7 +231,7 @@ func (cli Zms) SetGroupSelfServe(dn string, gn string, selfServe bool) (*string,
 		return nil, err
 	}
 	s := "[domain " + dn + " group " + gn + " self-serve attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetGroupUserAuthorityFilter(dn string, gn, filter string) (*string, error) {
@@ -252,7 +247,7 @@ func (cli Zms) SetGroupUserAuthorityFilter(dn string, gn, filter string) (*strin
 		return nil, err
 	}
 	s := "[domain " + dn + " group " + gn + " user-authority-filter attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetGroupUserAuthorityExpiration(dn string, gn, filter string) (*string, error) {
@@ -268,7 +263,7 @@ func (cli Zms) SetGroupUserAuthorityExpiration(dn string, gn, filter string) (*s
 		return nil, err
 	}
 	s := "[domain " + dn + " group " + gn + " user-authority-expiration attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetGroupNotifyRoles(dn string, gn string, notifyRoles string) (*string, error) {
@@ -284,7 +279,7 @@ func (cli Zms) SetGroupNotifyRoles(dn string, gn string, notifyRoles string) (*s
 		return nil, err
 	}
 	s := "[domain " + dn + " group " + gn + " notify-roles attribute successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) PutGroupMembershipDecision(dn string, group string, mbr string, approval bool) (*string, error) {
@@ -304,7 +299,7 @@ func (cli Zms) PutGroupMembershipDecision(dn string, group string, mbr string, a
 		s = s + " rejected."
 	}
 	s = s + "]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) ListPendingDomainGroupMembers(principal string) (*string, error) {
@@ -317,7 +312,5 @@ func (cli Zms) ListPendingDomainGroupMembers(principal string) (*string, error) 
 	for _, domainGroupMembers := range domainMembership.DomainGroupMembersList {
 		cli.dumpDomainGroupMembers(&buf, domainGroupMembers, true)
 	}
-	s := buf.String()
-
-	return &s, nil
+	return cli.switchOverFormats(domainMembership, buf.String())
 }

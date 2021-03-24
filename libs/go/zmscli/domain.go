@@ -5,7 +5,6 @@ package zmscli
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -16,36 +15,6 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"gopkg.in/yaml.v2"
 )
-
-func (cli Zms) buildJSONOutput(res interface{}) (*string, error) {
-	jsonOutput, err := json.MarshalIndent(res, "", indentLevel1)
-	if err != nil {
-		return nil, fmt.Errorf("failed to produce JSON output: %v", err)
-	}
-	output := string(jsonOutput)
-	return &output, nil
-}
-
-func (cli Zms) switchOverFormats(res interface{}, msg ...string) (*string, error) {
-	var op string
-	if msg == nil {
-		op = res.(string)
-	}
-	switch cli.OutputFormat {
-	case JSONOutputFormat:
-		if msg == nil {
-			return cli.buildJSONOutput(&StandardJSONMessage{Message: op})
-		}
-		return cli.buildJSONOutput(res)
-	case DefaultOutputFormat:
-		if msg == nil {
-			return &op, nil
-		}
-		return &msg[0], nil
-	default:
-		return nil, fmt.Errorf(ErrInvalidOutputFormat, cli.OutputFormat)
-	}
-}
 
 // DeleteDomain deletes the given ZMS domain.
 func (cli Zms) DeleteDomain(dn string) (*string, error) {
@@ -214,7 +183,7 @@ func (cli Zms) UpdateDomain(dn string, filename string) (*string, error) {
 		}
 	}
 	s := "[updated domain '" + dn + "' successfully]"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) ExportDomain(dn string, filename string) (*string, error) {
@@ -224,6 +193,10 @@ func (cli Zms) ExportDomain(dn string, filename string) (*string, error) {
 	cli.Verbose = verbose
 	if err == nil && data != nil {
 		s := *data
+		msg, err := cli.switchOverFormats(*data)
+		if err == nil {
+			s = *msg
+		}
 		if filename == "-" {
 			fmt.Println(s)
 		} else {
@@ -251,7 +224,7 @@ func (cli Zms) SystemBackup(dir string) (*string, error) {
 	}
 	cli.Verbose = verbose
 	s := "[exported " + strconv.Itoa(len(res.Names)) + " domains to " + dir + " directory]"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) AddDomain(dn string, productID *int32, addSelf bool, admins []string) (*string, error) {
@@ -335,8 +308,7 @@ func (cli Zms) LookupDomainByBusinessService(businessService string) (*string, e
 		for _, name := range res.Names {
 			buf.WriteString(indentLevel1Dash + string(name) + "\n")
 		}
-		s := buf.String()
-		return &s, nil
+		return cli.switchOverFormats(res, buf.String())
 	}
 	return nil, err
 }
@@ -362,8 +334,7 @@ func (cli Zms) LookupDomainByTag(tagKey string, tagValue string) (*string, error
 		for _, name := range res.Names {
 			buf.WriteString(indentLevel1Dash + string(name) + "\n")
 		}
-		s := buf.String()
-		return &s, nil
+		return cli.switchOverFormats(res, buf.String())
 	}
 	return nil, err
 }
@@ -394,8 +365,7 @@ func (cli Zms) GetSignedDomains(dn string, matchingTag string) (*string, error) 
 			cli.dumpSignedDomain(&buf, domain, false)
 		}
 	}
-	s := buf.String()
-	return cli.switchOverFormats(res, s)
+	return cli.switchOverFormats(res, buf.String())
 }
 
 func (cli Zms) ShowOverdueReview(dn string) (*string, error) {
@@ -412,9 +382,7 @@ func (cli Zms) ShowOverdueReview(dn string) (*string, error) {
 	}
 
 	cli.dumpDomainRoleMembers(&buf, domainRoleMembers, true)
-	s := buf.String()
-
-	return cli.switchOverFormats(domainRoleMembers, s)
+	return cli.switchOverFormats(domainRoleMembers, buf.String())
 }
 
 func (cli Zms) ShowDomain(dn string) (*string, error) {
@@ -709,7 +677,7 @@ func (cli Zms) AddDomainTags(dn string, tagKey string, tagValues []string) (*str
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.showDomainTags(dn)
 	}
-	return &output, err
+	return cli.switchOverFormats(output)
 
 }
 
@@ -754,7 +722,7 @@ func (cli Zms) DeleteDomainTags(dn string, tagKey string, tagValue string) (*str
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.showDomainTags(dn)
 	}
-	return &output, err
+	return cli.switchOverFormats(output)
 }
 
 func (cli Zms) SetDomainAccount(dn string, account string) (*string, error) {
@@ -828,7 +796,7 @@ func (cli Zms) SetDomainBusinessService(dn string, businessService string) (*str
 		return nil, err
 	}
 	s := "[domain " + dn + " business-service successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetDomainCertDnsDomain(dn string, dnsDomain string) (*string, error) {
@@ -851,7 +819,7 @@ func (cli Zms) SetDefaultAdmins(dn string, admins []string) (*string, error) {
 		return nil, err
 	}
 	s := "[domain " + dn + " administrators successfully set]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) ListPendingDomainRoleMembers(principal string) (*string, error) {
@@ -864,7 +832,5 @@ func (cli Zms) ListPendingDomainRoleMembers(principal string) (*string, error) {
 	for _, domainRoleMembers := range domainMembership.DomainRoleMembersList {
 		cli.dumpDomainRoleMembers(&buf, domainRoleMembers, true)
 	}
-	s := buf.String()
-
-	return &s, nil
+	return cli.switchOverFormats(domainMembership, buf.String())
 }

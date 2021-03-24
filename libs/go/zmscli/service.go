@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/ardielle/ardielle-go/rdl"
 )
 
 func shortname(dn string, sn string) string {
@@ -45,8 +45,8 @@ func (cli Zms) ListServices(dn string) (*string, error) {
 		buf.WriteString("services:\n")
 		cli.dumpObjectList(&buf, services, dn, "service")
 	}
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(services, buf.String())
+
 }
 
 func (cli Zms) ShowService(dn string, sn string) (*string, error) {
@@ -57,8 +57,7 @@ func (cli Zms) ShowService(dn string, sn string) (*string, error) {
 	var buf bytes.Buffer
 	buf.WriteString("service:\n")
 	cli.dumpService(&buf, *service, indentLevel1Dash, indentLevel1DashLvl)
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(service, buf.String())
 }
 
 func (cli Zms) AddService(dn string, sn string, keyID string, pubKey *string) (*string, error) {
@@ -103,7 +102,7 @@ func (cli Zms) AddService(dn string, sn string, keyID string, pubKey *string) (*
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.ShowService(dn, shortName)
 	}
-	return output, err
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *string) (*string, error) {
@@ -201,7 +200,7 @@ func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *st
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.ShowService(dn, shortName)
 	}
-	return output, err
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) AddServiceWithKeys(dn string, sn string, publicKeys []*zms.PublicKeyEntry) (*string, error) {
@@ -250,7 +249,7 @@ func (cli Zms) SetServiceEndpoint(dn string, sn string, endpoint string) (*strin
 		return nil, err
 	}
 	s := "[domain " + dn + " service " + sn + " service-endpoint successfully updated]\n"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) SetServiceExe(dn string, sn string, exe string, user string, group string) (*string, error) {
@@ -270,7 +269,11 @@ func (cli Zms) SetServiceExe(dn string, sn string, exe string, user string, grou
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowService(dn, shortName)
+	output, err := cli.ShowService(dn, shortName)
+	if err != nil {
+		return nil, err
+	}
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) AddServiceHost(dn string, sn string, hosts []string) (*string, error) {
@@ -296,7 +299,11 @@ func (cli Zms) AddServiceHost(dn string, sn string, hosts []string) (*string, er
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowService(dn, shortName)
+	output, err := cli.ShowService(dn, shortName)
+	if err != nil {
+		return nil, err
+	}
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) DeleteServiceHost(dn string, sn string, hosts []string) (*string, error) {
@@ -316,7 +323,11 @@ func (cli Zms) DeleteServiceHost(dn string, sn string, hosts []string) (*string,
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowService(dn, shortName)
+	output, err := cli.ShowService(dn, shortName)
+	if err != nil {
+		return nil, err
+	}
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) AddServicePublicKey(dn string, sn string, keyID string, pubKey *string) (*string, error) {
@@ -333,7 +344,11 @@ func (cli Zms) AddServicePublicKey(dn string, sn string, keyID string, pubKey *s
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowService(dn, shortName)
+	output, err := cli.ShowService(dn, shortName)
+	if err != nil {
+		return nil, err
+	}
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) ShowServicePublicKey(dn string, sn string, keyID string) (*string, error) {
@@ -346,8 +361,7 @@ func (cli Zms) ShowServicePublicKey(dn string, sn string, keyID string) (*string
 	buf.WriteString("public-key:\n")
 	buf.WriteString(indentLevel1 + "keyID: " + pkey.Id + "\n")
 	buf.WriteString(indentLevel1 + "value: " + pkey.Key + "\n")
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(pkey, buf.String())
 }
 
 func (cli Zms) DeleteServicePublicKey(dn string, sn string, keyID string) (*string, error) {
@@ -360,7 +374,11 @@ func (cli Zms) DeleteServicePublicKey(dn string, sn string, keyID string) (*stri
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowService(dn, shortName)
+	output, err := cli.ShowService(dn, shortName)
+	if err != nil {
+		return nil, err
+	}
+	return cli.switchOverFormats(*output)
 }
 
 func (cli Zms) DeleteService(dn string, sn string) (*string, error) {
@@ -369,5 +387,5 @@ func (cli Zms) DeleteService(dn string, sn string) (*string, error) {
 		return nil, err
 	}
 	s := "[Deleted service identity: " + dn + "." + sn + "]"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
