@@ -14,18 +14,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/AthenZ/athenz/clients/go/zms"
 	"golang.org/x/net/proxy"
-)
-
-const (
-	// JSONOutputFormat is the JSON output format for commands.
-	JSONOutputFormat = "json"
-	// DefaultOutputFormat is the default YAML output format for commands.
-	DefaultOutputFormat = "yaml"
-	// ErrInvalidOutputFormat is the error message for unsupported output formats.
-	ErrInvalidOutputFormat = "unsupported output format \"%s\""
 )
 
 type Zms struct {
@@ -39,15 +30,9 @@ type Zms struct {
 	AuditRef         string
 	UserDomain       string
 	HomeDomain       string
-	OutputFormat     string
 	ProductIdSupport bool
 	Debug            bool
 	AddSelf          bool
-}
-
-// StandardJSONMessage is the standard template for single-line string messages.
-type StandardJSONMessage struct {
-	Message string `json:"message,required"`
 }
 
 func (cli *Zms) SetClient(tr *http.Transport, authHeader, ntoken *string) {
@@ -160,7 +145,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				cli.Domain = ""
 				s = "[not using any domain]"
 			}
-			return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+			return &s, nil
 		case "show-domain":
 			if argc == 1 {
 				//override the default domain, this command can show any of them
@@ -605,7 +590,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "add-provider-resource-group-roles":
 			if argc > 4 {
-				createAdminRole, err := strconv.ParseBool(args[3])
+				createAdminRole, err :=strconv.ParseBool(args[3])
 				if err == nil {
 					return cli.AddProviderResourceGroupRoles(dn, args[0], args[1], args[2], createAdminRole, args[4:])
 				}
@@ -957,8 +942,8 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 	switch cmd {
 	case "list-domain":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] list-domain [prefix]\n")
-		buf.WriteString("   [-o json] list-domain [limit skip prefix depth]\n")
+		buf.WriteString("   list-domain [prefix]\n")
+		buf.WriteString("   list-domain [limit skip prefix depth]\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   prefix : return domains starting with this value \n")
 		buf.WriteString("   limit  : return specified number of domains only\n")
@@ -969,8 +954,8 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("     return all domains who names start with cd\n")
 	case "overdue-review":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] overdue-review domain\n")
-		buf.WriteString("   [-o json] " + domainParam + " overdue-review\n")
+		buf.WriteString("   overdue-review domain\n")
+		buf.WriteString("   " + domainParam + " overdue-review\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   domain : retrieve domain members with overdue review dates\n")
 		buf.WriteString("          : this argument is required unless -d <domain> is specified\n")
@@ -979,8 +964,8 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " overdue-review\n")
 	case "show-domain":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] show-domain domain\n")
-		buf.WriteString("   [-o json] " + domainParam + " show-domain\n")
+		buf.WriteString("   show-domain domain\n")
+		buf.WriteString("   " + domainParam + " show-domain\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   domain : retrieve roles, policies and services for this domain\n")
 		buf.WriteString("          : this argument is required unless -d <domain> is specified\n")
@@ -989,28 +974,28 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " show-domain\n")
 	case "lookup-domain-by-account", "lookup-domain-by-aws-account":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] lookup-domain-by-aws-account account-id\n")
+		buf.WriteString("   lookup-domain-by-aws-account account-id\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   account-id  : lookup domain with specified account id\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   lookup-domain-by-aws-account 1234567890\n")
 	case "lookup-domain-by-subscription", "lookup-domain-by-azure-subscription":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] lookup-domain-by-azure-subscription subscription-id\n")
+		buf.WriteString("   lookup-domain-by-azure-subscription subscription-id\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   subscription-id  : lookup domain with specified subscription id\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   lookup-domain-by-azure-subscription 12345678-1234-1234-1234-1234567890\n")
 	case "lookup-domain-by-product-id":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] lookup-domain-by-product-id product-id\n")
+		buf.WriteString("   lookup-domain-by-product-id product-id\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   product-id  : lookup domain with specified product id\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   lookup-domain-by-product-id 10001\n")
 	case "lookup-domain-by-role":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] lookup-domain-by-role role-member role-name\n")
+		buf.WriteString("   lookup-domain-by-role role-member role-name\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   role-member  : name of the principal\n")
 		buf.WriteString("   role-name    : name of the role where the principal is a member of\n")
@@ -1018,15 +1003,15 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   lookup-domain-by-role " + cli.UserDomain + ".joe admin\n")
 	case "lookup-domain-by-business-service":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] lookup-domain-by-business-service business-service\n")
+		buf.WriteString("   lookup-domain-by-business-service business-service\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   business-service  : lookup domains with specified business-service\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   lookup-domain-by-business-service business-service-name\n")
 	case "check-domain":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] check-domain domain\n")
-		buf.WriteString("   [-o json] " + domainParam + " check-domain\n")
+		buf.WriteString("   check-domain domain\n")
+		buf.WriteString("   " + domainParam + " check-domain\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   domain : verify domain resources and report any issues\n")
 		buf.WriteString("          : this argument is required unless -d <domain> is specified\n")
@@ -1035,7 +1020,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " check-domain\n")
 	case "use-domain":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] use-domain [domain]\n")
+		buf.WriteString("   use-domain [domain]\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   domain : sets the domain value for all operations\n")
 		buf.WriteString("          : passing \"\" domain will reset the client's saved domain value\n")
@@ -1043,7 +1028,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   use-domain coretech\n")
 	case "add-domain":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] add-domain domain [product-id] [admin ...]\n")
+		buf.WriteString("   add-domain domain [product-id] [admin ...]\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   domain     : name of the domain to be added\n")
 		buf.WriteString("              : The name can be either a top level domain or a subdomain\n")
@@ -1057,7 +1042,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("     add a subdomain hosted in domain coretech with " + cli.UserDomain + ".john, " + cli.UserDomain + ".jane and the caller as administrators\n")
 	case "set-domain-meta":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-domain-meta description\n")
+		buf.WriteString("   " + domainParam + " set-domain-meta description\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1067,7 +1052,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-domain-meta \"Coretech Hosted\"\n")
 	case "set-aws-account", "set-domain-account":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-aws-account account-id\n")
+		buf.WriteString("   " + domainParam + " set-aws-account account-id\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1077,7 +1062,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-aws-account \"134901934383\"\n")
 	case "set-azure-subscription", "set-domain-subscription":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-azure-subscription subscription-id\n")
+		buf.WriteString("   " + domainParam + " set-azure-subscription subscription-id\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1087,7 +1072,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-azure-subscription \"12345678-1234-1234-1234-1234567890\"\n")
 	case "set-audit-enabled":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-audit-enabled audit-enabled\n")
+		buf.WriteString("   " + domainParam + " set-audit-enabled audit-enabled\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1097,7 +1082,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-audit-enabled true\n")
 	case "set-domain-user-authority-filter":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-domain-user-authority-filter filter\n")
+		buf.WriteString("   " + domainParam + " set-domain-user-authority-filter filter\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1107,7 +1092,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-domain-user-authority-filter OnShore-US\n")
 	case "set-product-id", "set-domain-product-id":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-product-id product-id\n")
+		buf.WriteString("   " + domainParam + " set-product-id product-id\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1117,7 +1102,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-product-id 10001\n")
 	case "set-application-id":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-application-id application-id\n")
+		buf.WriteString("   " + domainParam + " set-application-id application-id\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1137,7 +1122,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-business-service security-tools\n")
 	case "set-cert-dns-domain":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-cert-dns-domain cert-domain-name\n")
+		buf.WriteString("   " + domainParam + " set-cert-dns-domain cert-domain-name\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1147,7 +1132,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-cert-dns-domain athenz.cloud\n")
 	case "set-domain-member-expiry-days":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-domain-member-expiry-days days\n")
+		buf.WriteString("   " + domainParam + " set-domain-member-expiry-days days\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1157,7 +1142,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-domain-member-expiry-days 60\n")
 	case "set-domain-service-expiry-days":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-domain-service-expiry-days days\n")
+		buf.WriteString("   " + domainParam + " set-domain-service-expiry-days days\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1167,7 +1152,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-domain-service-expiry-days 60\n")
 	case "set-domain-group-expiry-days":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-domain-group-expiry-days days\n")
+		buf.WriteString("   " + domainParam + " set-domain-group-expiry-days days\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1177,7 +1162,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-domain-group-expiry-days 60\n")
 	case "set-domain-service-cert-expiry-mins":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-domain-service-cert-expiry-mins mins\n")
+		buf.WriteString("   " + domainParam + " set-domain-service-cert-expiry-mins mins\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1187,7 +1172,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-domain-service-cert-expiry-mins 1440\n")
 	case "set-domain-role-cert-expiry-mins":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-domain-role-cert-expiry-mins mins\n")
+		buf.WriteString("   " + domainParam + " set-domain-role-cert-expiry-mins mins\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1197,7 +1182,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-domain-role-cert-expiry-mins 1440\n")
 	case "set-domain-token-sign-algorithm":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-domain-token-sign-algorithm alg\n")
+		buf.WriteString("   " + domainParam + " set-domain-token-sign-algorithm alg\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1207,7 +1192,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-domain-token-sign-algorithm rsa\n")
 	case "set-domain-token-expiry-mins":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-domain-token-expiry-mins mins\n")
+		buf.WriteString("   " + domainParam + " set-domain-token-expiry-mins mins\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1217,7 +1202,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-domain-token-expiry-mins 1800\n")
 	case "set-org-name":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-org-name org-name\n")
+		buf.WriteString("   " + domainParam + " set-org-name org-name\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1227,7 +1212,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-org-name ads\n")
 	case "import-domain":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
+		buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   domain    : name of the domain being imported\n")
 		buf.WriteString("   file.yaml : file that contains domain contents in yaml format\n")
@@ -1236,7 +1221,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   import-domain coretech coretech.yaml " + cli.UserDomain + ".john\n")
 	case "export-domain":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] export-domain domain [file.yaml] - no file means stdout\n")
+		buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   domain    : name of the domain to be exported\n")
 		buf.WriteString("   file.yaml : filename where the domain data is stored\n")
@@ -1244,7 +1229,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   export-domain coretech /tmp/coretech.yaml\n")
 	case "add-domain-tag":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " add-domain-tag tag_key tag_value [tag_value ...]\n")
+		buf.WriteString("   " + domainParam + " add-domain-tag tag_key tag_value [tag_value ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
@@ -1266,7 +1251,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " delete-domain-tag coretech coretech-tag-key coretech-tag-value-1\n")
 	case "lookup-domain-by-tag":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] lookup-domain-by-tag [tag_key] [tag_value]\n")
+		buf.WriteString("   lookup-domain-by-tag [tag_key] [tag_value]\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   tag_key         : tag name\n")
 		buf.WriteString("   tag_value       : tag value\n")
@@ -1274,7 +1259,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   lookup-domain-by-tag tag_key tag_value\n")
 	case "delete-domain":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] delete-domain domain\n")
+		buf.WriteString("   delete-domain domain\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   domain : name of the domain to be deleted\n")
 		buf.WriteString(" examples:\n")
@@ -1289,7 +1274,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   set-default-admins coretech.hosted " + cli.UserDomain + ".john " + cli.UserDomain + ".jane\n")
 	case "get-signed-domains":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] get-signed-domains [matching_tag]\n")
+		buf.WriteString("   get-signed-domains [matching_tag]\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   matching-tag : value of ETag header retrieved from previous get-signed-domain call\n")
 		buf.WriteString("                : server will return changes since this timestamp only\n")
@@ -2179,7 +2164,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   delete-user jdoe\n")
 	case "get-quota":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " get-quota\n")
+		buf.WriteString("   " + domainParam + " get-quota\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain\n")
@@ -2188,7 +2173,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " get-quota\n")
 	case "delete-quota":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " delete-quota\n")
+		buf.WriteString("   " + domainParam + " delete-quota\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain\n")
@@ -2197,7 +2182,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " delete-quota\n")
 	case "set-quota":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-quota [quota-attributes ...]\n")
+		buf.WriteString("   " + domainParam + " set-quota [quota-attributes ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain\n")

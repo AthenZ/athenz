@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	rdl "github.com/ardielle/ardielle-go/rdl"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,8 +16,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	rdl "github.com/ardielle/ardielle-go/rdl"
 )
 
 var _ = json.Marshal

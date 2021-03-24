@@ -16,7 +16,7 @@ func (cli Zms) DeleteQuota(dn string) (*string, error) {
 	err := cli.Zms.DeleteQuota(zms.DomainName(dn), cli.AuditRef)
 	if err == nil {
 		s := "[Removed quota for domain " + dn + "]"
-		return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+		return &s, nil
 	}
 	return nil, err
 }
@@ -31,7 +31,7 @@ func (cli Zms) GetQuota(dn string) (*string, error) {
 	var buf bytes.Buffer
 	cli.dumpQuota(&buf, quota)
 	s := buf.String()
-	return cli.switchOverFormats(quota, s)
+	return &s, nil
 }
 
 func (cli Zms) SetQuota(dn string, attrs []string) (*string, error) {
@@ -83,5 +83,5 @@ func (cli Zms) SetQuota(dn string, attrs []string) (*string, error) {
 		return nil, err
 	}
 	s := "[domain " + dn + " quota successfully set]\n"
-	return cli.switchOverFormats(&StandardJSONMessage{Message: s}, s)
+	return &s, nil
 }

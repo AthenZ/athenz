@@ -11,7 +11,6 @@ require (
 	github.com/gorilla/mux v1.7.4
 	github.com/jawher/mow.cli v1.2.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
-	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/net v0.0.0-20200602114024-627f9648deb9
@@ -20,7 +19,6 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/square/go-jose.v2 v2.4.1
 	gopkg.in/yaml.v2 v2.3.0
-	k8s.io/apimachinery v0.18.6
 )
 
 go 1.13
