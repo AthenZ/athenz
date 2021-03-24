@@ -14,14 +14,13 @@ import (
 	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
 func (cli Zms) buildJSONOutput(res interface{}) (*string, error) {
 	jsonOutput, err := json.MarshalIndent(res, "", indentLevel1)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to produce JSON output")
+		return nil, fmt.Errorf("failed to produce JSON output: %v", err)
 	}
 	output := string(jsonOutput)
 	return &output, nil
