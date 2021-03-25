@@ -1,0 +1,33 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Workload types
+include "Workload.tdl";
+include "Names.tdl";
+
+resource Workloads GET "/domain/{domainName}/service/{serviceName}/workloads" (name=getWorkloadsByService) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+resource Workloads GET "/workloads/{ip}" (name=getWorkloadsByIP) {
+    String ip; // ip address to query
+
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

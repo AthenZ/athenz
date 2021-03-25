@@ -3196,3 +3196,334 @@ func (self *RoleCertificate) Validate() error {
 	}
 	return nil
 }
+
+//
+// Workload -
+//
+type Workload struct {
+
+	//
+	// name of the domain, optional for getWorkloadsByService API call
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// name of the service, , optional for getWorkloadsByService API call
+	//
+	ServiceName EntityName `json:"serviceName"`
+
+	//
+	// unique identifier for the workload, usually defined by provider
+	//
+	Uuid string `json:"uuid"`
+
+	//
+	// list of IP addresses associated with the workload, optional for
+	// getWorkloadsByIP API call
+	//
+	IpAddresses []string `json:"ipAddresses"`
+
+	//
+	// infrastructure provider e.g. k8s, AWS, Azure, openstack etc.
+	//
+	Provider string `json:"provider"`
+
+	//
+	// most recent update timestamp in the backend
+	//
+	UpdateTime rdl.Timestamp `json:"updateTime"`
+}
+
+//
+// NewWorkload - creates an initialized Workload instance, returns a pointer to it
+//
+func NewWorkload(init ...*Workload) *Workload {
+	var o *Workload
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(Workload)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *Workload) Init() *Workload {
+	if self.IpAddresses == nil {
+		self.IpAddresses = make([]string, 0)
+	}
+	return self
+}
+
+type rawWorkload Workload
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a Workload
+//
+func (self *Workload) UnmarshalJSON(b []byte) error {
+	var m rawWorkload
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := Workload(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *Workload) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("Workload.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("Workload.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.ServiceName == "" {
+		return fmt.Errorf("Workload.serviceName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "EntityName", self.ServiceName)
+		if !val.Valid {
+			return fmt.Errorf("Workload.serviceName does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.Uuid == "" {
+		return fmt.Errorf("Workload.uuid is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Uuid)
+		if !val.Valid {
+			return fmt.Errorf("Workload.uuid does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.IpAddresses == nil {
+		return fmt.Errorf("Workload: Missing required field: ipAddresses")
+	}
+	if self.Provider == "" {
+		return fmt.Errorf("Workload.provider is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Provider)
+		if !val.Valid {
+			return fmt.Errorf("Workload.provider does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.UpdateTime.IsZero() {
+		return fmt.Errorf("Workload: Missing required field: updateTime")
+	}
+	return nil
+}
+
+//
+// Workloads -
+//
+type Workloads struct {
+
+	//
+	// list of workloads
+	//
+	WorkloadList []*Workload `json:"workloadList"`
+}
+
+//
+// NewWorkloads - creates an initialized Workloads instance, returns a pointer to it
+//
+func NewWorkloads(init ...*Workloads) *Workloads {
+	var o *Workloads
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(Workloads)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *Workloads) Init() *Workloads {
+	if self.WorkloadList == nil {
+		self.WorkloadList = make([]*Workload, 0)
+	}
+	return self
+}
+
+type rawWorkloads Workloads
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a Workloads
+//
+func (self *Workloads) UnmarshalJSON(b []byte) error {
+	var m rawWorkloads
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := Workloads(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *Workloads) Validate() error {
+	if self.WorkloadList == nil {
+		return fmt.Errorf("Workloads: Missing required field: workloadList")
+	}
+	return nil
+}
+
+//
+// TransportRule - Copyright The Athenz Authors Licensed under the terms of the
+// Apache version 2.0 license. See LICENSE file for terms.
+//
+type TransportRule struct {
+
+	//
+	// source or destination endpoints defined in terms of CIDR notation
+	//
+	EndPoint string `json:"endPoint"`
+
+	//
+	// range of port numbers for incoming connections
+	//
+	SourcePortRange string `json:"sourcePortRange"`
+
+	//
+	// destination / listener port of the service
+	//
+	Port int32 `json:"port"`
+
+	//
+	// protocol of the connection
+	//
+	Protocol string `json:"protocol"`
+}
+
+//
+// NewTransportRule - creates an initialized TransportRule instance, returns a pointer to it
+//
+func NewTransportRule(init ...*TransportRule) *TransportRule {
+	var o *TransportRule
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportRule)
+	}
+	return o
+}
+
+type rawTransportRule TransportRule
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a TransportRule
+//
+func (self *TransportRule) UnmarshalJSON(b []byte) error {
+	var m rawTransportRule
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportRule(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *TransportRule) Validate() error {
+	if self.EndPoint == "" {
+		return fmt.Errorf("TransportRule.endPoint is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.EndPoint)
+		if !val.Valid {
+			return fmt.Errorf("TransportRule.endPoint does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SourcePortRange == "" {
+		return fmt.Errorf("TransportRule.sourcePortRange is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.SourcePortRange)
+		if !val.Valid {
+			return fmt.Errorf("TransportRule.sourcePortRange does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Protocol == "" {
+		return fmt.Errorf("TransportRule.protocol is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Protocol)
+		if !val.Valid {
+			return fmt.Errorf("TransportRule.protocol does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// TransportRules -
+//
+type TransportRules struct {
+	IngressRules []*TransportRule `json:"ingressRules"`
+	EgressRules  []*TransportRule `json:"egressRules"`
+}
+
+//
+// NewTransportRules - creates an initialized TransportRules instance, returns a pointer to it
+//
+func NewTransportRules(init ...*TransportRules) *TransportRules {
+	var o *TransportRules
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportRules)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *TransportRules) Init() *TransportRules {
+	if self.IngressRules == nil {
+		self.IngressRules = make([]*TransportRule, 0)
+	}
+	if self.EgressRules == nil {
+		self.EgressRules = make([]*TransportRule, 0)
+	}
+	return self
+}
+
+type rawTransportRules TransportRules
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a TransportRules
+//
+func (self *TransportRules) UnmarshalJSON(b []byte) error {
+	var m rawTransportRules
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportRules(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *TransportRules) Validate() error {
+	if self.IngressRules == nil {
+		return fmt.Errorf("TransportRules: Missing required field: ingressRules")
+	}
+	if self.EgressRules == nil {
+		return fmt.Errorf("TransportRules: Missing required field: egressRules")
+	}
+	return nil
+}
