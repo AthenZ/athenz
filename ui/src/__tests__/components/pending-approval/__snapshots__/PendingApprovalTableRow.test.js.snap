@@ -264,20 +264,20 @@ exports[`PendingApprovalTable should render 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-29 {
+.emotion-34 {
   vertical-align: middle;
   word-break: break-all;
   padding: 5px 0px 5px 15px;
   text-align: center;
 }
 
-.emotion-31 {
+.emotion-36 {
   fill: #1dad51;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-32 {
+.emotion-37 {
   vertical-align: middle;
   word-break: break-all;
   padding: 5px 0px 5px 15px;
@@ -285,7 +285,7 @@ exports[`PendingApprovalTable should render 1`] = `
   border-right: none;
 }
 
-.emotion-34 {
+.emotion-39 {
   fill: #ea0000;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -379,7 +379,7 @@ exports[`PendingApprovalTable should render 1`] = `
       class="emotion-26 emotion-27"
     >
       <div
-        class="fp-abc"
+        class="fp-abcexpiry"
       >
         <input
           class="flatpickr-input"
@@ -418,10 +418,55 @@ exports[`PendingApprovalTable should render 1`] = `
     </div>
   </td>
   <td
-    class="emotion-29 emotion-30"
+    class="emotion-2 emotion-3"
+  >
+    <div
+      class="emotion-26 emotion-27"
+    >
+      <div
+        class="fp-abcreviewReminder"
+      >
+        <input
+          class="flatpickr-input"
+          data-input=""
+          data-testid="flatPicker"
+          placeholder="Reminder (Optional)"
+          type="hidden"
+          value=""
+        />
+        <input
+          class=" form-control input"
+          placeholder="Reminder (Optional)"
+          readonly="readonly"
+          tabindex="0"
+          type="text"
+        />
+        <a
+          data-clear=""
+        >
+          <svg
+            class="emotion-28"
+            data-testid="icon"
+            height="1.25em"
+            viewBox="0 0 1024 1024"
+            width="1.25em"
+          >
+            <title>
+              close
+            </title>
+            <path
+              d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </td>
+  <td
+    class="emotion-34 emotion-35"
   >
     <svg
-      class="emotion-31"
+      class="emotion-36"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"
@@ -439,10 +484,10 @@ exports[`PendingApprovalTable should render 1`] = `
     </svg>
   </td>
   <td
-    class="emotion-32 emotion-33"
+    class="emotion-37 emotion-38"
   >
     <svg
-      class="emotion-34"
+      class="emotion-39"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"

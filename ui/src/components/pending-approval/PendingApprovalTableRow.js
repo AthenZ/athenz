@@ -113,7 +113,10 @@ export default class PendingApprovalTableRow extends React.Component {
     render() {
         const key =
             this.props.domainName + this.props.memberName + this.props.roleName;
-        const fpkey = NameUtils.getFlatPickrKey(key);
+        const fpExpiryKey = NameUtils.getFlatPickrKey(key + 'expiry');
+        const fpReviewReminderKey = NameUtils.getFlatPickrKey(
+            key + 'reviewReminder'
+        );
         let approveColor = this.props.checked
             ? colors.grey500
             : colors.green600;
@@ -192,13 +195,34 @@ export default class PendingApprovalTableRow extends React.Component {
                     {this.props.category !== 'group' && (
                         <FlatPickrInputDiv disabled={this.props.checked}>
                             <FlatPicker
-                                id={fpkey}
+                                id={fpExpiryKey}
                                 onChange={(date) => {
-                                    this.props.dateChange(key, date);
+                                    this.props.dateChange(key, date, 'expiry');
                                 }}
                                 disabled={this.props.checked}
-                                clear={this.props.clear}
+                                clearExpiry={this.props.clearExpiry}
                                 value={this.props.requestedExpiry}
+                                nomargin={true}
+                            />
+                        </FlatPickrInputDiv>
+                    )}
+                </TableTd>
+                <TableTd>
+                    {this.props.category !== 'group' && (
+                        <FlatPickrInputDiv disabled={this.props.checked}>
+                            <FlatPicker
+                                id={fpReviewReminderKey}
+                                onChange={(date) => {
+                                    this.props.dateChange(
+                                        key,
+                                        date,
+                                        'reviewReminder'
+                                    );
+                                }}
+                                placeholder={'Reminder (Optional)'}
+                                disabled={this.props.checked}
+                                clearReviewReminder={this.props.reviewReminder}
+                                value={this.props.requestedReviewReminder}
                                 nomargin={true}
                             />
                         </FlatPickrInputDiv>
