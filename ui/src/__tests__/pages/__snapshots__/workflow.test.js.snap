@@ -802,7 +802,7 @@ exports[`PendingApprovalPage should render 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-59 {
+.emotion-64 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -813,13 +813,13 @@ exports[`PendingApprovalPage should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-61 {
+.emotion-66 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-62 {
+.emotion-67 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -831,7 +831,7 @@ exports[`PendingApprovalPage should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-67 {
+.emotion-72 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -843,7 +843,7 @@ exports[`PendingApprovalPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-85 {
+.emotion-92 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -855,7 +855,7 @@ exports[`PendingApprovalPage should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-87 {
+.emotion-94 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -868,7 +868,7 @@ exports[`PendingApprovalPage should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-89 {
+.emotion-96 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -894,7 +894,7 @@ exports[`PendingApprovalPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-91 {
+.emotion-98 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
@@ -1114,7 +1114,7 @@ exports[`PendingApprovalPage should render 1`] = `
                         disabled=""
                       >
                         <div
-                          class="fp-workflowHeader"
+                          class="fp-workflowHeaderExpiry"
                         >
                           <input
                             class="flatpickr-input"
@@ -1153,10 +1153,56 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </th>
                     <th
-                      class="emotion-59 emotion-60"
+                      class="emotion-49 emotion-50"
+                    >
+                      <div
+                        class="emotion-56 emotion-57"
+                        disabled=""
+                      >
+                        <div
+                          class="fp-workflowHeaderReviewReminder"
+                        >
+                          <input
+                            class="flatpickr-input"
+                            data-input=""
+                            data-testid="flatPicker"
+                            placeholder="Reminder (Optional)"
+                            type="hidden"
+                            value=""
+                          />
+                          <input
+                            class=" form-control input"
+                            placeholder="Reminder (Optional)"
+                            readonly="readonly"
+                            tabindex="0"
+                            type="text"
+                          />
+                          <a
+                            data-clear=""
+                          >
+                            <svg
+                              class="emotion-58"
+                              data-testid="icon"
+                              height="1.25em"
+                              viewBox="0 0 1024 1024"
+                              width="1.25em"
+                            >
+                              <title>
+                                close
+                              </title>
+                              <path
+                                d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+                              />
+                            </svg>
+                          </a>
+                        </div>
+                      </div>
+                    </th>
+                    <th
+                      class="emotion-64 emotion-65"
                     >
                       <svg
-                        class="emotion-61"
+                        class="emotion-66"
                         data-testid="icon"
                         height="1.25em"
                         viewBox="0 0 1024 1024"
@@ -1174,10 +1220,10 @@ exports[`PendingApprovalPage should render 1`] = `
                       </svg>
                     </th>
                     <th
-                      class="emotion-62 emotion-63"
+                      class="emotion-67 emotion-68"
                     >
                       <svg
-                        class="emotion-61"
+                        class="emotion-66"
                         data-testid="icon"
                         height="1.25em"
                         viewBox="0 0 1024 1024"
@@ -1194,61 +1240,66 @@ exports[`PendingApprovalPage should render 1`] = `
                   </tr>
                   <tr>
                     <th
-                      class="emotion-39 emotion-66"
+                      class="emotion-39 emotion-71"
                     />
                     <th
-                      class="emotion-67 emotion-68"
+                      class="emotion-72 emotion-73"
                     >
                       Domain
                     </th>
                     <th
-                      class="emotion-39 emotion-66"
+                      class="emotion-39 emotion-71"
                     >
                       Type
                     </th>
                     <th
-                      class="emotion-39 emotion-66"
+                      class="emotion-39 emotion-71"
                     >
                       Name
                     </th>
                     <th
-                      class="emotion-39 emotion-66"
+                      class="emotion-39 emotion-71"
                     >
                       Member
                     </th>
                     <th
-                      class="emotion-39 emotion-66"
+                      class="emotion-39 emotion-71"
                       colspan="2"
                     >
                       User Comment
                     </th>
                     <th
-                      class="emotion-39 emotion-66"
+                      class="emotion-39 emotion-71"
                     >
                       Requester
                     </th>
                     <th
-                      class="emotion-39 emotion-66"
+                      class="emotion-39 emotion-71"
                     >
                       Request Time
                     </th>
                     <th
-                      class="emotion-39 emotion-66"
+                      class="emotion-39 emotion-71"
                     >
                       Audit Reference
                     </th>
                     <th
-                      class="emotion-39 emotion-66"
+                      class="emotion-39 emotion-71"
                     >
                       Expiration Date
                     </th>
                     <th
-                      class="emotion-85 emotion-86"
+                      class="emotion-39 emotion-71"
+                    >
+                      Review Date
+                    </th>
+                    <th
+                      class="emotion-92 emotion-93"
                     >
                       Approve
                     </th>
                     <th
-                      class="emotion-87 emotion-88"
+                      class="emotion-94 emotion-95"
                     >
                       Reject
                     </th>
@@ -1264,11 +1315,11 @@ exports[`PendingApprovalPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-89 emotion-90"
+          class="emotion-96 emotion-97"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-91"
+            class="emotion-98"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"

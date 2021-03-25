@@ -194,10 +194,31 @@ export default class PendingApprovalTableHeader extends React.Component {
                     <FlatPickrInputDiv disabled={disabled}>
                         <FlatPicker
                             onChange={(date) => {
-                                this.props.dateChange('SelectAll', date);
+                                this.props.dateChange(
+                                    'SelectAll',
+                                    date,
+                                    'expiry'
+                                );
                             }}
-                            clear={this.props.clear}
-                            id='workflowHeader'
+                            clearExpiry={this.props.clearExpiry}
+                            id='workflowHeaderExpiry'
+                            nomargin={true}
+                        />
+                    </FlatPickrInputDiv>
+                </SelectAllBoxTableHeader>
+                <SelectAllBoxTableHeader>
+                    <FlatPickrInputDiv disabled={disabled}>
+                        <FlatPicker
+                            onChange={(date) => {
+                                this.props.dateChange(
+                                    'SelectAll',
+                                    date,
+                                    'reviewReminder'
+                                );
+                            }}
+                            placeholder={'Reminder (Optional)'}
+                            clearReviewReminder={this.props.clearReviewReminder}
+                            id='workflowHeaderReviewReminder'
                             nomargin={true}
                         />
                     </FlatPickrInputDiv>
