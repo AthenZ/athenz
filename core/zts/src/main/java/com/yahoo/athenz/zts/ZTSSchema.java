@@ -332,6 +332,28 @@ public class ZTSSchema {
             .comment("Copyright 2019 Oath Holdings Inc Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
             .field("x509Certificate", "String", false, "");
 
+        sb.structType("Workload")
+            .field("domainName", "DomainName", false, "name of the domain, optional for getWorkloadsByService API call")
+            .field("serviceName", "EntityName", false, "name of the service, , optional for getWorkloadsByService API call")
+            .field("uuid", "String", false, "unique identifier for the workload, usually defined by provider")
+            .arrayField("ipAddresses", "String", false, "list of IP addresses associated with the workload, optional for getWorkloadsByIP API call")
+            .field("provider", "String", false, "infrastructure provider e.g. k8s, AWS, Azure, openstack etc.")
+            .field("updateTime", "Timestamp", false, "most recent update timestamp in the backend");
+
+        sb.structType("Workloads")
+            .arrayField("workloadList", "Workload", false, "list of workloads");
+
+        sb.structType("TransportRule")
+            .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.")
+            .field("endPoint", "String", false, "source or destination endpoints defined in terms of CIDR notation")
+            .field("sourcePortRange", "String", false, "range of port numbers for incoming connections")
+            .field("port", "Int32", false, "destination / listener port of the service")
+            .field("protocol", "String", false, "protocol of the connection");
+
+        sb.structType("TransportRules")
+            .arrayField("ingressRules", "TransportRule", false, "")
+            .arrayField("egressRules", "TransportRule", false, "");
+
 
         sb.resource("ResourceAccess", "GET", "/access/{action}/{resource}")
             .comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.")
@@ -661,6 +683,55 @@ public class ZTSSchema {
             .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Workloads", "GET", "/domain/{domainName}/service/{serviceName}/workloads")
+            .name("getWorkloadsByService")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Workloads", "GET", "/workloads/{ip}")
+            .name("getWorkloadsByIP")
+            .pathParam("ip", "String", "ip address to query")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportRules", "GET", "/domain/{domainName}/service/{serviceName}/transportRules")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

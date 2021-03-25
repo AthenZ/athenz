@@ -2282,6 +2282,24 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return roleCertificate;
     }
 
+    @Override
+    public Workloads getWorkloadsByService(ResourceContext context, String domainName, String serviceName) {
+        // to be implemented in next PR
+        return null;
+    }
+
+    @Override
+    public Workloads getWorkloadsByIP(ResourceContext context, String ip) {
+        // to be implemented in next PR
+        return null;
+    }
+
+    @Override
+    public TransportRules getTransportRules(ResourceContext context, String domainName, String serviceName) {
+        // to be implemented in next PR
+        return null;
+    }
+
     boolean isAuthorizedServicePrincipal(final Principal principal) {
         final String authorizedService = principal.getAuthorizedService();
         return (authorizedService != null && !authorizedService.isEmpty());

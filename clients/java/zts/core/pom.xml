@@ -38,7 +38,7 @@
   </dependencyManagement>
 
   <properties>
-    <code.coverage.min>0.63</code.coverage.min>
+    <code.coverage.min>0.62</code.coverage.min>
   </properties>
 
   <dependencies>
@@ -276,6 +276,19 @@
                 </configuration>
               </execution>
             </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.openclover</groupId>
+            <artifactId>clover-maven-plugin</artifactId>
+            <version>4.3.1</version>
+            <configuration>
+              <jdk>11</jdk>
+              <!-- exclude auto-generated RDL client code -->
+              <excludes>
+                <exclude>**/ZTSRDLGeneratedClient.java</exclude>
+                <exclude>**/*Mock.java</exclude>
+              </excludes>
+            </configuration>
           </plugin>
         </plugins>
       </build>
