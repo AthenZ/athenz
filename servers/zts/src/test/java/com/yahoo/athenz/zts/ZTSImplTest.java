@@ -10808,7 +10808,31 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetRoleAccessWithDelegatedRolesWithGroups() {
+    public void testGetRoleAccessWithDelegatedRolesWithGroupsRegularAssumeRole() {
+
+        // we're going to try several cases with assume roles
+        // first the assume role includes the full name without any wildcards
+
+        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "role1", false);
+
+        // next we're going to test when the domain name is a wildcard
+        // for example, resource: *:role.role1
+
+        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "role1", true);
+
+        // next we're going to test when the role name is a wildcard
+        // for example, resource: sports:role.*
+
+        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "*", false);
+
+        // finally we're going to test when the role and domain names are a wildcard
+        // for example, resource: *:role.*
+
+        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "*", true);
+    }
+
+    void testGetRoleAccessWithDelegatedRolesWithGroups(final String roleName, final String assumeRoleName,
+            boolean wildCardAssumeDomain) {
 
         final String newsDomainName = "news";
         final String sportsDomainName = "sports";
@@ -10828,7 +10852,7 @@ public class ZTSImplTest {
 
         // create the trusted role
 
-        roles.add(new Role().setName(generateRoleName(weatherDomainName, "role1")).setTrust(sportsDomainName));
+        roles.add(new Role().setName(generateRoleName(weatherDomainName, roleName)).setTrust(sportsDomainName));
 
         // no services
 
@@ -10889,7 +10913,7 @@ public class ZTSImplTest {
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(sportsDomainName, "role1"));
+        role.setName(generateRoleName(sportsDomainName, roleName));
         members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.user2"));
         members.add(new RoleMember().setMemberName(ResourceUtils.groupResourceName(newsDomainName, "group1")));
@@ -10913,15 +10937,16 @@ public class ZTSImplTest {
 
         policy = new com.yahoo.athenz.zms.Policy();
         assertion = new com.yahoo.athenz.zms.Assertion();
-        assertion.setResource(generateRoleName(weatherDomainName, "role1"));
+        final String assumeRoleDomain = wildCardAssumeDomain ? "*" : weatherDomainName;
+        assertion.setResource(generateRoleName(assumeRoleDomain, assumeRoleName));
         assertion.setAction("assume_role");
-        assertion.setRole(generateRoleName(sportsDomainName, "role1"));
+        assertion.setRole(generateRoleName(sportsDomainName, roleName));
 
         assertions = new ArrayList<>();
         assertions.add(assertion);
 
         policy.setAssertions(assertions);
-        policy.setName(generatePolicyName(sportsDomainName, "role1"));
+        policy.setName(generatePolicyName(sportsDomainName, roleName));
         policies.add(policy);
 
         domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
@@ -11022,21 +11047,21 @@ public class ZTSImplTest {
 
         RoleAccess roleAccess = zts.getRoleAccess(context, weatherDomainName, "user_domain.user1");
         assertEquals(roleAccess.getRoles().size(), 1);
-        assertTrue(roleAccess.getRoles().contains("role1"));
+        assertTrue(roleAccess.getRoles().contains(roleName));
 
         roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user1");
         assertEquals(roleAccess.getRoles().size(), 1);
-        assertTrue(roleAccess.getRoles().contains("role1"));
+        assertTrue(roleAccess.getRoles().contains(roleName));
 
         // user2 should have same access as user1
 
         roleAccess = zts.getRoleAccess(context, weatherDomainName, "user_domain.user2");
         assertEquals(roleAccess.getRoles().size(), 1);
-        assertTrue(roleAccess.getRoles().contains("role1"));
+        assertTrue(roleAccess.getRoles().contains(roleName));
 
         roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user2");
         assertEquals(roleAccess.getRoles().size(), 1);
-        assertTrue(roleAccess.getRoles().contains("role1"));
+        assertTrue(roleAccess.getRoles().contains(roleName));
     }
 
     @Test

@@ -35,7 +35,6 @@ import java.security.PublicKey;
 import java.util.*;
 
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.ResourceException;
@@ -3280,7 +3279,7 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         
-        store.processStandardMembership(null, prefix, null, null, accessibleRoles, false);
+        store.processStandardMembership(null, prefix, null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3297,7 +3296,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, null, null, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("readers"));
@@ -3318,7 +3317,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, null, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
     }
     
@@ -3337,7 +3336,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", System.currentTimeMillis() - 1000));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, null, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
         assertTrue(accessibleRoles.isEmpty());
     }
     
@@ -3356,7 +3355,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, null, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
     }
     
@@ -3374,7 +3373,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, null, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3393,7 +3392,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, null, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -4426,26 +4425,5 @@ public class DataStoreTest {
         // away so sno exceptions even if we pass null for the group name
 
         store.processGroupDeletedMembers(null, null);
-    }
-
-    @Test
-    public void testRoleMatchInTrustSet() {
-
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
-        DataStore store = new DataStore(clogStore, null);
-
-        Set<String> memberRoles = new HashSet<>();
-        memberRoles.add("athenz:role.readers");
-        memberRoles.add("sports:role.writers");
-        memberRoles.add("*:role.testers");
-
-        assertTrue(store.roleMatchInTrustSet("athenz:role.readers", memberRoles));
-        assertTrue(store.roleMatchInTrustSet("sports:role.writers", memberRoles));
-
-        assertFalse(store.roleMatchInTrustSet("athenz:role.poets", memberRoles));
-        assertFalse(store.roleMatchInTrustSet("sports:role.readers", memberRoles));
-
-        assertTrue(store.roleMatchInTrustSet("athenz:role.testers", memberRoles));
-        assertTrue(store.roleMatchInTrustSet("sports:role.testers", memberRoles));
     }
 }
