@@ -476,4 +476,48 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         bundle.setCerts("certs");
         return bundle;
     }
+
+    @Override
+    public Workloads getWorkloadsByService(String domainName, String serviceName) {
+        if ("bad-domain".equals(domainName)) {
+            throw new ResourceException(404, "unknown domain");
+        }
+        Workload wl = new Workload().setProvider("openstack").setIpAddresses(Collections.singletonList("10.0.0.1"))
+                .setUuid("avve-resw").setUpdateTime(Timestamp.fromMillis(System.currentTimeMillis()));
+        return new Workloads().setWorkloadList(Collections.singletonList(wl));
+    }
+
+    @Override
+    public Workloads getWorkloadsByIP(String ip) {
+        if ("127.0.0.1".equals(ip)) {
+            throw new ResourceException(404, "unknown ip");
+        }
+        Workload wl = new Workload().setProvider("openstack").setDomainName("athenz").setServiceName("api")
+                .setUuid("avve-resw").setUpdateTime(Timestamp.fromMillis(System.currentTimeMillis()));
+        return new Workloads().setWorkloadList(Collections.singletonList(wl));
+    }
+
+    @Override
+    public TransportRules getTransportRules(String domainName, String serviceName) {
+        TransportRule tr;
+        TransportRules transportRules = null;
+        switch (domainName) {
+            case "bad-domain":
+                throw new ResourceException(404, "unknown domain");
+            case "ingress-domain":
+                tr = new TransportRule().setEndPoint("10.0.0.1/26").setPort(4443).setProtocol("TCP")
+                        .setSourcePortRange("1024-65535");
+                transportRules = new TransportRules();
+                transportRules.setIngressRules(Collections.singletonList(tr));
+                break;
+            case "egress-domain":
+                tr = new TransportRule().setEndPoint("10.0.0.1/23").setPort(8443).setProtocol("TCP")
+                        .setSourcePortRange("1024-65535");
+                transportRules = new TransportRules();
+                transportRules.setEgressRules(Collections.singletonList(tr));
+                break;
+        }
+
+        return transportRules;
+    }
 }

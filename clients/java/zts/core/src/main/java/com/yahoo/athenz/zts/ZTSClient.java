@@ -2769,6 +2769,56 @@ public class ZTSClient implements Closeable {
         }
     }
 
+    /**
+     * Retrieve list of workloads running on the given ip address
+     * @param ipAddress ip address of the workload
+     * @return list of workloads on success. ZTSClientException will be thrown in case of failure
+     */
+    public Workloads getWorkloadsByIP(String ipAddress) {
+        updateServicePrincipal();
+        try {
+            return ztsClient.getWorkloadsByIP(ipAddress);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Retrieve list of workloads running with given domain and service
+     * @param domain name of the domain
+     * @param service name of the service
+     * @return list of workloads on success. ZTSClientException will be thrown in case of failure
+     */
+    public Workloads getWorkloadsByService(String domain, String service) {
+        updateServicePrincipal();
+        try {
+            return ztsClient.getWorkloadsByService(domain, service);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Retrieve list of transport rules defined for given domain and service
+     * @param domain name of the domain
+     * @param service name of the service
+     * @return list of transport rules on success. ZTSClientException will be thrown in case of failure
+     */
+    public TransportRules getTransportRules(String domain, String service) {
+        updateServicePrincipal();
+        try {
+            return ztsClient.getTransportRules(domain, service);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
     static class ClientKeyRefresherListener implements KeyRefresherListener {
 
         long lastCertRefreshTime = 0;
