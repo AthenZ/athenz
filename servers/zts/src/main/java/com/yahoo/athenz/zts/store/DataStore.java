@@ -1146,8 +1146,8 @@ public class DataStore implements DataCacheProvider, RolesProvider {
     }
     
     // Internal
-    void processStandardMembership(Set<MemberRole> memberRoles, String rolePrefix, Set<String> trustedResources,
-                                   String[] requestedRoleList, Set<String> accessibleRoles, boolean keepFullName) {
+    void processStandardMembership(Set<MemberRole> memberRoles, String rolePrefix, String[] requestedRoleList,
+            Set<String> accessibleRoles, boolean keepFullName) {
         
         /* if we have no member roles, then we haven't added anything
          * to our return result list */
@@ -1164,16 +1164,6 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
             long expiration = memberRole.getExpiration();
             if (expiration != 0 && expiration < currentTime) {
-                continue;
-            }
-
-            // if we're given trust resource set then make sure
-            // the role we're processing is in the set and since
-            // since the role set can include wildcard domains we
-            // need to match the role as oppose to a direct check if the
-            // set contains the name
-
-            if (trustedResources != null && !roleMatchInTrustSet(memberRole.getRole(), trustedResources)) {
                 continue;
             }
 
@@ -1205,10 +1195,27 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                 continue;
             }
 
+            // skip any that have no member roles
+
+            final Set<MemberRole> groupMemberRoleSet = data.getMemberRoleSet(member.getGroupName());
+            if (groupMemberRoleSet == null) {
+                continue;
+            }
+
             // process the role as a standard identity check
 
-            processStandardMembership(data.getMemberRoleSet(member.getGroupName()),
-                    rolePrefix, trustedResources, requestedRoleList, accessibleRoles, keepFullName);
+            if (trustedResources == null) {
+                processStandardMembership(groupMemberRoleSet, rolePrefix, requestedRoleList,
+                        accessibleRoles, keepFullName);
+            } else {
+                for (String resource : trustedResources) {
+
+                    // in this case our resource is the role name
+
+                    processSingleTrustedDomainRole(resource, rolePrefix, requestedRoleList,
+                            groupMemberRoleSet, accessibleRoles, keepFullName);
+                }
+            }
         }
     }
 
@@ -1254,13 +1261,13 @@ public class DataStore implements DataCacheProvider, RolesProvider {
          * included in the list explicitly */
 
         processStandardMembership(data.getMemberRoleSet(identity),
-                rolePrefix, null, requestedRoleList, accessibleRoles, keepFullName);
+                rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
         
         /* next look at all * wildcard roles that are configured
          * for all members to access */
 
         processStandardMembership(data.getAllMemberRoleSet(),
-                rolePrefix, null, requestedRoleList, accessibleRoles, keepFullName);
+                rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
         
         /* then look at the prefix wildcard roles. in this map
          * we only process those where the key in the map is
@@ -1270,7 +1277,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         for (String identityPrefix : roleSetMap.keySet()) {
             if (identity.startsWith(identityPrefix)) {
                 processStandardMembership(roleSetMap.get(identityPrefix),
-                        rolePrefix, null, requestedRoleList, accessibleRoles, keepFullName);
+                        rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
             }
         }
 
@@ -1359,36 +1366,6 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             }
         }
         
-        return false;
-    }
-
-    boolean roleMatchInTrustSet(final String role, Set<String> memberRoles) {
-
-        // first we'll do a quick check if the role is included
-        // in the set and return if we have a match
-
-        if (memberRoles.contains(role)) {
-            return true;
-        }
-
-        // we'll look for wildcard characters and try to match
-
-        for (String memberRole : memberRoles) {
-
-            // if the role does not contain any of our pattern
-            // then no need to process since we have already
-            // verified the contains check above
-
-            if (!StringUtils.containsMatchCharacter(memberRole)) {
-                continue;
-            }
-
-            final String rolePattern = StringUtils.patternFromGlob(memberRole);
-            if (role.matches(rolePattern)) {
-                return true;
-            }
-        }
-
         return false;
     }
 
