@@ -15,22 +15,23 @@
  */
 package com.yahoo.athenz.zts.cache;
 
-import java.util.*;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
+import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
+import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.auth.util.CryptoException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.ATHENZ_SYS_DOMAIN;
 
@@ -51,6 +52,7 @@ public class DataCache {
     private final Map<String, List<String>> providerHostnameAllowedSuffixCache;
     private final Map<String, List<String>> providerHostnameDeniedSuffixCache;
     private final Map<String, List<AuthzDetailsEntity>> authzDetailsCache;
+    private final Map<String, Map<String, List<String>>> transportRulesCache;
 
     public static final String ACTION_ASSUME_ROLE = "assume_role";
     public static final String ACTION_ASSUME_AWS_ROLE = "assume_aws_role";
@@ -74,6 +76,7 @@ public class DataCache {
         providerHostnameAllowedSuffixCache = new HashMap<>();
         providerHostnameDeniedSuffixCache = new HashMap<>();
         authzDetailsCache = new HashMap<>();
+        transportRulesCache = new HashMap<>();
     }
     
     public void setDomainData(DomainData domainData) {
@@ -334,7 +337,27 @@ public class DataCache {
                 case ACTION_LAUNCH:
                     processLaunchAssertion(domainName, assertion, roles);
                     break;
+                default:
+                    if (TransportRulesProcessor.isTransportRuleAction(assertion.getAction())) {
+                        processTransportRulesAssertion(domainName, assertion, roles);
+                    }
             }
+        }
+    }
+
+    private void processTransportRulesAssertion(String domainName, Assertion assertion, Map<String, Role> roles) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Processing Transport rules for action={} resource={} and role={}",
+                    assertion.getAction(), assertion.getResource(), assertion.getRole());
+        }
+        String mapKey = assertion.getResource().substring(domainName.length() + 1);
+        transportRulesCache.computeIfAbsent(mapKey, k -> new HashMap<>());
+
+        if (roles.containsKey(assertion.getRole()) && roles.get(assertion.getRole()) != null
+                && roles.get(assertion.getRole()).getRoleMembers() != null) {
+            List<String> serviceMembers = roles.get(assertion.getRole()).getRoleMembers()
+                    .stream().map(RoleMember::getMemberName).collect(Collectors.toList());
+            transportRulesCache.get(mapKey).put(assertion.getAction(), serviceMembers);
         }
     }
 
@@ -538,5 +561,9 @@ public class DataCache {
 
     public List<AuthzDetailsEntity> getAuthzDetailsEntities(final String role) {
         return authzDetailsCache.get(role);
+    }
+
+    public Map<String, List<String>> getTransportRulesInfoForService(final String service) {
+        return transportRulesCache.get(service);
     }
 }

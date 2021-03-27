@@ -23,7 +23,7 @@ public class TransportRuleTest {
     @Test
     public void testTransportRuleFields() {
         TransportRule tr1 = new TransportRule();
-        tr1.setEndPoint("10.20.30.40/26").setPort(4443).setProtocol("TCP").setSourcePortRange("1024-65535");
+        tr1.setEndPoint("10.20.30.40/26").setPort(4443).setProtocol("TCP").setSourcePortRange("1024-65535").setDirection(TransportDirection.IN);
         assertNotNull(tr1);
         assertEquals(tr1.getEndPoint(), "10.20.30.40/26");
         assertEquals(tr1.getPort(), 4443);
@@ -32,7 +32,7 @@ public class TransportRuleTest {
         assertEquals(tr1, tr1);
 
         TransportRule tr2 = new TransportRule();
-        tr2.setEndPoint("10.20.30.40/26").setPort(4443).setProtocol("TCP").setSourcePortRange("1024-65535");
+        tr2.setEndPoint("10.20.30.40/26").setPort(4443).setProtocol("TCP").setSourcePortRange("1024-65535").setDirection(TransportDirection.IN);
 
         assertEquals(tr1, tr2);
 
@@ -52,6 +52,10 @@ public class TransportRuleTest {
         assertNotEquals(tr1, tr2);
 
         tr2.setSourcePortRange("1024-65535");
+        tr2.setDirection(TransportDirection.OUT);
+        assertNotEquals(tr1, tr2);
+
+        tr2.setDirection(TransportDirection.IN);
         assertEquals(tr1, tr2);
 
         assertNotEquals(tr1, null);

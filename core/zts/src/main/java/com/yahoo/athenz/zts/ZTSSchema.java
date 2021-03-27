@@ -343,12 +343,17 @@ public class ZTSSchema {
         sb.structType("Workloads")
             .arrayField("workloadList", "Workload", false, "list of workloads");
 
-        sb.structType("TransportRule")
+        sb.enumType("TransportDirection")
             .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.")
+            .element("IN")
+            .element("OUT");
+
+        sb.structType("TransportRule")
             .field("endPoint", "String", false, "source or destination endpoints defined in terms of CIDR notation")
             .field("sourcePortRange", "String", false, "range of port numbers for incoming connections")
             .field("port", "Int32", false, "destination / listener port of the service")
-            .field("protocol", "String", false, "protocol of the connection");
+            .field("protocol", "String", false, "protocol of the connection")
+            .field("direction", "TransportDirection", false, "transport direction");
 
         sb.structType("TransportRules")
             .arrayField("ingressRules", "TransportRule", false, "")

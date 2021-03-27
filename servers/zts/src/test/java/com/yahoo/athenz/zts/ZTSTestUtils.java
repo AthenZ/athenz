@@ -18,12 +18,13 @@ package com.yahoo.athenz.zts;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.ServiceIdentity;
+import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.util.StringUtil;
@@ -438,5 +439,44 @@ public class ZTSTestUtils {
         }
 
         return item;
+    }
+
+    public static Map<String, AttributeValue> generateWorkloadAttributeValues(String service,
+                                                                              String instanceId,
+                                                                              String provider,
+                                                                              String ip,
+                                                                              String creationTime,
+                                                                              String updateTime) {
+        String primaryKey = service + "#" + instanceId + "#" + ip;
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("primaryKey", new AttributeValue(primaryKey));
+        item.put("service", new AttributeValue(service));
+        item.put("provider", new AttributeValue(provider));
+        item.put("instanceId", new AttributeValue(instanceId));
+        item.put("ip", new AttributeValue(ip));
+        AttributeValue creationTimeVal = new AttributeValue();
+        creationTimeVal.setN(creationTime);
+        AttributeValue updateTimeVal = new AttributeValue();
+        updateTimeVal.setN(updateTime);
+        item.put("creationTime", creationTimeVal);
+        item.put("updateTime", updateTimeVal);
+
+        return item;
+    }
+
+    public static WorkloadRecord createWorkloadRecord(Date creationTime,
+                                                      Date updateTime,
+                                                      String provider,
+                                                      String instanceId,
+                                                      String ip,
+                                                      String service) {
+        WorkloadRecord workloadRecord = new WorkloadRecord();
+        workloadRecord.setCreationTime(creationTime);
+        workloadRecord.setUpdateTime(updateTime);
+        workloadRecord.setService(service);
+        workloadRecord.setIp(ip);
+        workloadRecord.setInstanceId(instanceId);
+        workloadRecord.setProvider(provider);
+        return workloadRecord;
     }
 }
