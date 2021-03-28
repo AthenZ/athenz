@@ -1,0 +1,123 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InstanceTable should render 1`] = `
+.emotion-0 {
+  width: 100%;
+  border-spacing: 0 15px;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-2 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 35px;
+  word-break: break-all;
+}
+
+.emotion-4 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-8 {
+  box-sizing: border-box;
+  margin-top: 10px;
+  box-shadow: 0 1px 4px #d9d9d9;
+  border: 1px solid #fff;
+  -webkit-border-image: none;
+  border-image: none;
+  -webkit-border-image: initial;
+  border-image: initial;
+  padding: 5px 0 5px 15px;
+}
+
+.emotion-10 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-12 {
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<table
+  class="emotion-0 emotion-1"
+  data-testid="instancetable"
+>
+  <colgroup>
+    <col
+      style="width: 50%;"
+    />
+    <col
+      style="width: 25%;"
+    />
+    <col
+      style="width: 25%;"
+    />
+  </colgroup>
+  <thead>
+    <tr>
+      <th
+        class="emotion-2 emotion-3"
+      >
+        Instance
+      </th>
+      <th
+        class="emotion-4 emotion-5"
+      >
+        Last Certificate Refresh
+      </th>
+      <th
+        class="emotion-4 emotion-5"
+      >
+        Provider
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr
+      class="emotion-8 emotion-9"
+      data-testid="instance-row"
+    >
+      <td
+        class="emotion-10 emotion-11"
+        color=""
+      >
+        host1
+      </td>
+      <td
+        class="emotion-12 emotion-11"
+        color=""
+      >
+        2021-03-28 21:38 UTC
+      </td>
+      <td
+        class="emotion-12 emotion-11"
+        color=""
+      >
+        aws
+      </td>
+    </tr>
+  </tbody>
+</table>
+`;

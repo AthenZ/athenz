@@ -1732,6 +1732,13 @@ Fetchr.registerService({
     },
 });
 
+Fetchr.registerService({
+    name: 'feature-flag',
+    read(req, resource, params, config, callback) {
+        callback(null, appConfig.featureFlag);
+    },
+});
+
 module.exports.load = function (config, secrets) {
     appConfig = {
         zms: config.zms,
@@ -1744,6 +1751,7 @@ module.exports.load = function (config, secrets) {
         productMasterLink: config.productMasterLink,
         allPrefixes: config.allPrefixes,
         zmsLoginUrl: config.zmsLoginUrl,
+        featureFlag: config.featureFlag,
     };
     return CLIENTS.load(config, secrets);
 };

@@ -78,11 +78,12 @@ export default class HistoryPage extends React.Component {
             api.getForm(),
             api.getPendingDomainMembersList(),
             api.isAWSTemplateApplied(props.query.domain),
+            api.getFeatureFlag(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}, {}];
         });
         let domainDetails = historyData[2];
         domainDetails.isAWSTemplateApplied = !!historyData[7];
@@ -100,6 +101,7 @@ export default class HistoryPage extends React.Component {
             _csrf: historyData[5],
             pending: historyData[6],
             nonce: props.req.headers.rid,
+            featureFlag: historyData[8],
         };
     }
 
@@ -159,6 +161,7 @@ export default class HistoryPage extends React.Component {
                                             api={this.api}
                                             domain={domain}
                                             selectedName={'history'}
+                                            featureFlag={this.props.featureFlag}
                                         />
                                     </PageHeaderDiv>
                                     <HistoryList

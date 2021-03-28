@@ -1349,6 +1349,36 @@ const Api = (req) => {
                     });
             });
         },
+
+        getFeatureFlag() {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('feature-flag')
+                    .params()
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        getInstances(domainName, serviceName, category) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('instances')
+                    .params({ domainName, serviceName, category })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
     };
 };
 

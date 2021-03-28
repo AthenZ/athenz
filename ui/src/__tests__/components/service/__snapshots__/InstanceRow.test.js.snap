@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GroupRow should render 1`] = `
+.emotion-0 {
+  box-sizing: border-box;
+  margin-top: 10px;
+  box-shadow: 0 1px 4px #d9d9d9;
+  border: 1px solid #fff;
+  -webkit-border-image: none;
+  border-image: none;
+  -webkit-border-image: initial;
+  border-image: initial;
+  padding: 5px 0 5px 15px;
+}
+
+.emotion-2 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+<tr
+  class="emotion-0 emotion-1"
+  data-testid="instance-row"
+>
+  <td
+    class="emotion-2 emotion-3"
+    color="#3570f40D"
+  >
+    10.3.1.1
+  </td>
+</tr>
+`;

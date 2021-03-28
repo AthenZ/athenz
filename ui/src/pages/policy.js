@@ -77,11 +77,12 @@ export default class PolicyPage extends React.Component {
             api.getForm(),
             api.getPendingDomainMembersList(),
             api.isAWSTemplateApplied(props.query.domain),
+            api.getFeatureFlag(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}];
         });
         let domainDetails = domains[2];
         domainDetails.isAWSTemplateApplied = !!domains[6];
@@ -98,6 +99,7 @@ export default class PolicyPage extends React.Component {
             _csrf: domains[4],
             pending: domains[5],
             nonce: props.req.headers.rid,
+            featureFlag: domains[7],
         };
     }
 
@@ -149,6 +151,7 @@ export default class PolicyPage extends React.Component {
                                             api={this.api}
                                             domain={domain}
                                             selectedName={'policies'}
+                                            featureFlag={this.props.featureFlag}
                                         />
                                     </PageHeaderDiv>
                                     <PolicyList
