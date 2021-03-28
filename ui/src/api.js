@@ -197,6 +197,25 @@ const Api = (req) => {
             });
         },
 
+        getServiceHost(domain, service) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('get-service-host')
+                    .params({ domain, service })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            if (data) {
+                                resolve(data);
+                            } else {
+                                resolve([]);
+                            }
+                        }
+                    });
+            });
+        },
+
         reloadGroups(domainName, groupName) {
             return new Promise((resolve, reject) => {
                 fetchr
@@ -444,6 +463,37 @@ const Api = (req) => {
                             reject(err);
                         } else {
                             resolve(data);
+                        }
+                    });
+            });
+        },
+
+        addServiceHost(domain, service, detail, auditRef, _csrf) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                var params = {
+                    domain,
+                    service,
+                    detail,
+                    auditRef,
+                };
+
+                fetchr
+                    .update('add-service-host')
+                    .params(params)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            if (data) {
+                                resolve(data);
+                            } else {
+                                resolve([]);
+                            }
                         }
                     });
             });

@@ -364,6 +364,16 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'get-service-host',
+    read(req, resource, params, config, callback) {
+        req.clients.zms.getServiceIdentity(
+            params,
+            responseHandler.bind({ caller: 'get-service-host', callback, req })
+        );
+    },
+});
+
+Fetchr.registerService({
     name: 'member',
     create(req, resource, params, body, config, callback) {
         if (params.category === 'group') {
@@ -1042,6 +1052,17 @@ Fetchr.registerService({
             }
             callback(null, newData);
         });
+    },
+});
+
+Fetchr.registerService({
+    name: 'add-service-host',
+    update(req, resource, params, body, config, callback) {
+        console.log('servier params...', params);
+        req.clients.zms.putServiceIdentity(
+            params,
+            responseHandler.bind({ caller: 'add-service-host', callback, req })
+        );
     },
 });
 
