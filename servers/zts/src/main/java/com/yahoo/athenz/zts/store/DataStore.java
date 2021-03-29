@@ -32,6 +32,7 @@ import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.rdl.*;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.config.AthenzConfig;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zts.cache.DataCache;
@@ -44,6 +45,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PublicKey;
+import java.security.SignatureException;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.ECPoint;
@@ -516,7 +518,16 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             return false;
         }
 
-        boolean result = Crypto.verify(SignUtils.asCanonicalString(domainData), zmsKey, signature);
+        boolean result = false;
+        try {
+            result = Crypto.verify(SignUtils.asCanonicalString(domainData), zmsKey, signature);
+        } catch (CryptoException ex) {
+            if (ex.getCause() instanceof SignatureException) {
+                result = false;
+            } else {
+                throw ex;
+            }
+        }
         
         if (!result) {
             LOGGER.error("validateSignedDomain: Domain={} signature validation failed", domainData.getName());
