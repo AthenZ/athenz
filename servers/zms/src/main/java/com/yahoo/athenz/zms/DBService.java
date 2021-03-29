@@ -1874,6 +1874,9 @@ public class DBService implements RolesProvider {
 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
 
+                Policy policy = getPolicy(domainName, policyName);
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.HTTP_DELETE);
+                auditLogPolicy(auditDetails, policy, "delete-assertion");
                 // process our delete policy request
 
                 if (!con.deletePolicy(domainName, policyName)) {
@@ -1888,7 +1891,7 @@ public class DBService implements RolesProvider {
                 // audit log the request
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                        policyName, null);
+                        policyName, auditDetails.toString());
 
                 return;
 
@@ -2733,6 +2736,11 @@ public class DBService implements RolesProvider {
 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
 
+                Assertion assertion = getAssertion(domainName, policyName, assertionId);
+                StringBuilder auditAssertionDetails = new StringBuilder(ZMSConsts.HTTP_DELETE);
+                auditLogAssertion(auditAssertionDetails, assertion, true);
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                        policyName, auditAssertionDetails.toString());
                 // process our delete assertion. since this is a "single"
                 // operation, we are not using any transactions.
 
@@ -4481,6 +4489,14 @@ public class DBService implements RolesProvider {
                 .append("\", \"userAuthorityFilter\": \"").append(domain.getUserAuthorityFilter())
                 .append("\", \"businessService\": \"").append(domain.getBusinessService())
                 .append("\"}");
+    }
+
+    void auditLogPolicy(StringBuilder auditDetails, Policy policy, String label)  {
+        auditDetails.append("{\"name\": \"").append(policy.getName())
+                .append("\", \"modified\": \"").append(policy.getModified())
+                .append("\", \"caseSensitive\": \"").append(policy.getCaseSensitive());
+                auditLogAssertions(auditDetails, label, policy.getAssertions());
+                auditDetails.append("}");
     }
 
     void auditLogRoleSystemMeta(StringBuilder auditDetails, Role role, String roleName) {
