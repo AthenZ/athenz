@@ -1195,7 +1195,12 @@ public class CryptoTest {
         publicKey = Crypto.loadPublicKey(rsaPublicKey);
         assertNotNull(publicKey);
 
-        assertFalse(Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), publicKey, signature, Crypto.SHA256));
+        try {
+            Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), publicKey, signature, Crypto.SHA256);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("SignatureException"));
+        }
     }
 
     @Test
