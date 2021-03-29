@@ -1379,6 +1379,21 @@ const Api = (req) => {
                     });
             });
         },
+
+        getInboundOutbound(domainName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('microsegmentation')
+                    .params({ domainName: domainName })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
     };
 };
 

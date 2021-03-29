@@ -105,10 +105,25 @@ class Tabs extends React.Component {
                     { getInitialProps: true }
                 );
                 break;
+            case 'microsegmentation':
+                this.props.router.push(
+                    `/domain/${domain}/microsegmentation`,
+                    `/domain/${domain}/microsegmentation`,
+                    { getInitialProps: true }
+                );
+                break;
         }
     }
 
     render() {
+        let microSeg = {
+            label: 'Micro Segmentation',
+            name: 'microsegmentation',
+        };
+
+        if (this.props.featureFlag) {
+            this.TABS.push(microSeg);
+        }
         return (
             <TabGroup
                 tabs={this.TABS}
