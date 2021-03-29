@@ -1884,12 +1884,18 @@ Fetchr.registerService({
                     });
                     return callback(null, result);
                 } else {
-                    return callback(null, data.workloadList)
+                    data.workloadList.forEach((workload) => {
+                        if(workload.provider !== 'Static') {
+                            result.push(workload);
+                        }
+                    });
+                    return callback(null, result)
                 }
             } else {
                 return callback(errorHandler.fetcherError(err));
             }
         });
+
     },
 });
 
