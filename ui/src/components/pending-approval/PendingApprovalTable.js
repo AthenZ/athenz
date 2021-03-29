@@ -31,6 +31,7 @@ const TableHeader = styled.th`
     text-transform: uppercase;
     padding: 5px 0 5px 15px;
     text-align: left;
+    white-space: nowrap;
 `;
 
 const TableHeaderDomain = styled.th`
@@ -50,11 +51,17 @@ const ApproveTableHeader = styled.th`
     color: ${colors.grey600};
     font-weight: 600;
     font-size: 0.7rem;
-    padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
     text-align: center;
+    position: absolute;
+    width: 15em;
+    right: 13em;
+    z-index: 1;
+    height: 15px;
+    padding-bottom: 5px;
     padding: 5px 0 5px 15px;
+    white-space: nowrap;
 `;
 
 const RejectTableHeader = styled.th`
@@ -62,12 +69,18 @@ const RejectTableHeader = styled.th`
     color: ${colors.grey600};
     font-weight: 600;
     font-size: 0.7rem;
-    padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
     text-align: center;
     border-right: none;
+    position: absolute;
+    width: 14em;
+    right: 0em;
+    z-index: 1;
+    height: 15px;
+    padding-bottom: 5px;
     padding: 5px 0 5px 15px;
+    white-space: nowrap;
 `;
 
 const DomainListTable = styled.table`

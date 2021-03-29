@@ -29,6 +29,7 @@ const TableTd = styled.td`
     vertical-align: middle;
     word-break: break-all;
     padding: 5px 0px 5px 15px;
+    white-space: nowrap;
 `;
 
 const StyledText = styled.p`
@@ -75,7 +76,7 @@ const FlatPickrInputDiv = styled.div`
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
             color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
-        width: 72%;
+        width: 10em;
     }
 `;
 
@@ -88,16 +89,30 @@ const StyledTextArea = styled(TextArea)`
 const ApproveTd = styled.td`
     vertical-align: middle;
     word-break: break-all;
-    padding: 5px 0px 5px 15px;
     text-align: center;
+    position: absolute;
+    width: 11em;
+    right: 11em;
+    height: 96px;
+    background-color: ${(props) => props.color};
+    padding: 5px 0px 5px 14px;
 `;
 
 const RejectTd = styled.td`
     vertical-align: middle;
     word-break: break-all;
-    padding: 5px 0px 5px 15px;
     text-align: center;
     border-right: none;
+    position: absolute;
+    width: 11em;
+    right: 0em;
+    height: 96px;
+    background-color: ${(props) => props.color};
+    padding: 5px 0px 5px 0px;
+`;
+
+const IconDiv = styled.div`
+    margin-top: 45px;
 `;
 
 const TableRow = styled.tr`
@@ -117,6 +132,10 @@ export default class PendingApprovalTableRow extends React.Component {
         const fpReviewReminderKey = NameUtils.getFlatPickrKey(
             key + 'reviewReminder'
         );
+        let opaqueBackground = 'rgba(255, 255, 255, 1)';
+        if (colors.row === this.props.color) {
+            opaqueBackground = 'rgba(244, 248, 254, 1)';
+        }
         let approveColor = this.props.checked
             ? colors.grey500
             : colors.green600;
@@ -228,27 +247,31 @@ export default class PendingApprovalTableRow extends React.Component {
                         </FlatPickrInputDiv>
                     )}
                 </TableTd>
-                <ApproveTd>
-                    <Icon
-                        disabled={this.props.checked}
-                        icon={'check-circle'}
-                        onClick={approveOnClick}
-                        color={approveColor}
-                        isLink
-                        size={'1.25em'}
-                        verticalAlign={'text-bottom'}
-                    />
+                <ApproveTd color={opaqueBackground}>
+                    <IconDiv>
+                        <Icon
+                            disabled={this.props.checked}
+                            icon={'check-circle'}
+                            onClick={approveOnClick}
+                            color={approveColor}
+                            isLink
+                            size={'1.25em'}
+                            verticalAlign={'text-bottom'}
+                        />
+                    </IconDiv>
                 </ApproveTd>
-                <RejectTd>
-                    <Icon
-                        disabled={this.props.checked}
-                        icon={'decline'}
-                        onClick={rejectOnClick}
-                        color={rejectColor}
-                        isLink
-                        size={'1.25em'}
-                        verticalAlign={'text-bottom'}
-                    />
+                <RejectTd color={opaqueBackground}>
+                    <IconDiv>
+                        <Icon
+                            disabled={this.props.checked}
+                            icon={'decline'}
+                            onClick={rejectOnClick}
+                            color={rejectColor}
+                            isLink
+                            size={'1.25em'}
+                            verticalAlign={'text-bottom'}
+                        />
+                    </IconDiv>
                 </RejectTd>
             </TableRow>
         );

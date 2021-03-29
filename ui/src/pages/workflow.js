@@ -31,7 +31,9 @@ const HomeContainerDiv = styled.div`
 `;
 
 const WorkFlowSectionDiv = styled.div`
-    padding: 0 30px 20px;
+    width: calc(100vw - 23em);
+    overflow-x: scroll;
+    overflow-y: visible;
 `;
 
 const TitleDiv = styled.div`
@@ -61,6 +63,7 @@ const WorkFlowDiv = styled.div`
     flex: 1 1;
     height: calc(100vh - 60px);
     overflow: auto;
+    position: relative;
 `;
 
 export default class Workflow extends React.Component {
