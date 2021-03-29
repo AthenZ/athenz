@@ -157,11 +157,11 @@ public class CryptoTest {
         });
         System.clearProperty(Crypto.ATHENZ_CRYPTO_ALGO_ECDSA);
 
-        System.setProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER, "C");
+        System.setProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER, "C");
         assertThrows(CryptoException.class, () -> {
             Crypto.extractPublicKey(privateKey);
         });
-        System.clearProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER);
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER);
     }
 
     @Test
@@ -176,11 +176,11 @@ public class CryptoTest {
         });
         System.clearProperty(Crypto.ATHENZ_CRYPTO_ALGO_RSA);
 
-        System.setProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER, "C");
+        System.setProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER, "C");
         assertThrows(CryptoException.class, () -> {
             Crypto.extractPublicKey(privateKey);
         });
-        System.clearProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER);
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER);
     }
 
     @Test
@@ -332,11 +332,11 @@ public class CryptoTest {
 
         String signature = Crypto.sign(serviceToken, privateKey);
 
-        System.setProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER, "C");
+        System.setProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER, "C");
         assertThrows(CryptoException.class, () -> {
             Crypto.loadPublicKey(ecPublicParamsKey);
         });
-        System.clearProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER);
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER);
 
         System.setProperty(Crypto.ATHENZ_CRYPTO_ALGO_ECDSA, "TESTAlgo");
         assertThrows(CryptoException.class, () -> {
