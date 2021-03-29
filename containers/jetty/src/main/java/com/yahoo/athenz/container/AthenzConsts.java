@@ -34,6 +34,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD    = "athenz.ssl_trust_store_password";
     public static final String ATHENZ_PROP_KEYSTORE_PATH          = "athenz.ssl_key_store";
     public static final String ATHENZ_PROP_KEYSTORE_TYPE          = "athenz.ssl_key_store_type";
+    public static final String ATHENZ_PROP_KEYSTORE_RELOAD_SEC    = "athenz.ssl_key_store_reload_seconds";
     public static final String ATHENZ_PROP_TRUSTSTORE_PATH        = "athenz.ssl_trust_store";
     public static final String ATHENZ_PROP_TRUSTSTORE_TYPE        = "athenz.ssl_trust_store_type";
     public static final String ATHENZ_PROP_EXCLUDED_CIPHER_SUITES = "athenz.ssl_excluded_cipher_suites";

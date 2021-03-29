@@ -236,6 +236,7 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
         System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "/tmp/truststore");
         System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_RELOAD_SEC, "3600");
         System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD, "pass123");
         System.setProperty(AthenzConsts.ATHENZ_PROP_IDLE_TIMEOUT, "10001");
