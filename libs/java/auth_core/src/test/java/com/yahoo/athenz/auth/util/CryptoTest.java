@@ -330,8 +330,6 @@ public class CryptoTest {
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateParamsKey);
         assertNotNull(privateKey);
 
-        String signature = Crypto.sign(serviceToken, privateKey);
-
         System.setProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER, "C");
         assertThrows(CryptoException.class, () -> {
             Crypto.loadPublicKey(ecPublicParamsKey);
