@@ -472,12 +472,21 @@ public class AthenzJettyContainer {
         server.addConnector(sslConnector);
 
         // Reload the key-store if the file is changed
+System.err.println("=====GBENDOR:   Reload the key-store if the file is changed");
+try {
         final int reloadSslContextSeconds = Integer.parseInt(System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_RELOAD_SEC, "0"));
+System.err.println("=====GBENDOR:   reloadSslContextSeconds=" + reloadSslContextSeconds);
         if ((reloadSslContextSeconds > 0) && (sslContextFactory.getKeyStorePath() != null)) {
+System.err.println("=====GBENDOR:   using KeyStoreScanner");
             KeyStoreScanner keystoreScanner = new KeyStoreScanner(sslContextFactory);
             keystoreScanner.setScanInterval(reloadSslContextSeconds);
             server.addBean(keystoreScanner);
         }
+} catch (Throwable t) {
+    System.err.println("=====GBENDOR:   Exception:");
+    t.printStackTrace();
+}
+System.err.println("=====GBENDOR:   Done");
     }
     
     public void addHTTPConnectors(HttpConfiguration httpConfig, int httpPort, int httpsPort,
