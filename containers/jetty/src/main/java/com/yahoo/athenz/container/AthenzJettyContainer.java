@@ -473,7 +473,7 @@ public class AthenzJettyContainer {
 
         // Reload the key-store if the file is changed
         final int reloadSslContextSeconds = Integer.parseInt(System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_RELOAD_SEC, "0"));
-        if (reloadSslContextSeconds > 0) {
+        if ((reloadSslContextSeconds > 0) && (sslContextFactory.getKeyStorePath() != null)) {
             KeyStoreScanner keystoreScanner = new KeyStoreScanner(sslContextFactory);
             keystoreScanner.setScanInterval(reloadSslContextSeconds);
             server.addBean(keystoreScanner);
