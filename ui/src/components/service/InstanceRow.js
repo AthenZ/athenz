@@ -38,8 +38,8 @@ const TrStyled = styled.tr`
     border-image: initial;
     padding: 5px 0 5px 15px;
     ${(props) =>
-    props.isSuccess &&
-    css`
+        props.isSuccess &&
+        css`
             animation: ${colorTransition} 3s ease;
         `}
 `;
@@ -62,7 +62,6 @@ class InstanceRow extends React.Component {
         };
         this.localDate = new DateUtils();
     }
-
 
     render() {
         let rows = [];

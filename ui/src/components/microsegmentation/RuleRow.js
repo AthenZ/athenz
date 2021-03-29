@@ -52,8 +52,8 @@ const colorTransition = keyframes`
 
 const TrStyled = styled.tr`
     ${(props) =>
-    props.isSuccess &&
-    css`
+        props.isSuccess &&
+        css`
             animation: ${colorTransition} 3s ease;
         `}
 `;
@@ -64,7 +64,6 @@ const MenuDiv = styled.div`
     color: white;
     font-size: 12px;
 `;
-
 
 export default class RuleRow extends React.Component {
     constructor(props) {
@@ -287,7 +286,9 @@ export default class RuleRow extends React.Component {
                     submit={submitDelete}
                     key={this.props.details['source_service'] + '-delete'}
                     message={
-                        'Are you sure you want to permanently delete the ' + this.props.category + ' rule '
+                        'Are you sure you want to permanently delete the ' +
+                        this.props.category +
+                        ' rule '
                     }
                     errorMessage={this.state.errorMessage}
                 />

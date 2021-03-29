@@ -75,7 +75,11 @@ export default class InstanceList extends React.Component {
 
     reloadInstances() {
         this.api
-            .getInstances(this.props.domain, this.props.service, this.props.category)
+            .getInstances(
+                this.props.domain,
+                this.props.service,
+                this.props.category
+            )
             .then((instances) => {
                 this.setState({
                     instances: instances,
@@ -105,12 +109,10 @@ export default class InstanceList extends React.Component {
             });
         }
 
-        let addStaticInstance = this.state.showAddInstance ? (
-            // TODO addStaticInstance component
-            ''
-        ) : (
-            ''
-        );
+        let addStaticInstance = this.state.showAddInstance
+            ? // TODO addStaticInstance component
+              ''
+            : '';
 
         let searchInput =
             this.state.instances.length > 0 ? (

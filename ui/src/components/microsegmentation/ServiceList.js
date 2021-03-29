@@ -100,7 +100,10 @@ class ServiceList extends React.Component {
         });
 
         return (
-            <StyledDiv key={'service-list'} data-testid={'segmentation-service-list'}>
+            <StyledDiv
+                key={'service-list'}
+                data-testid={'segmentation-service-list'}
+            >
                 <StyleTable>
                     <StyledTr>
                         <StyledTh> Services </StyledTh>

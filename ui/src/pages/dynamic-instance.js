@@ -68,7 +68,11 @@ export default class DynamicInstancePage extends React.Component {
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
-            api.getInstances(props.query.domain, props.query.service, 'dynamic'),
+            api.getInstances(
+                props.query.domain,
+                props.query.service,
+                'dynamic'
+            ),
             api.getPendingDomainMembersList(),
             api.getForm(),
         ]).catch((err) => {
