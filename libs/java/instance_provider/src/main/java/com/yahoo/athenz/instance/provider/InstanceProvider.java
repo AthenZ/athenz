@@ -54,6 +54,7 @@ public interface InstanceProvider {
     String ZTS_INSTANCE_ID                 = "instanceId";
     String ZTS_INSTANCE_CSR_PUBLIC_KEY     = "csrPublicKey";
     String ZTS_INSTANCE_HOSTNAME           = "hostname";
+    String ZTS_INSTANCE_CERT_HOSTNAME      = "certHostname";
     String ZTS_REQUEST_PRINCIPAL           = "principal";
     String ZTS_INSTANCE_PRIVATE_IP         = "instancePrivateIp";
     String ZTS_INSTANCE_AWS_ACCOUNT        = "awsAccount";

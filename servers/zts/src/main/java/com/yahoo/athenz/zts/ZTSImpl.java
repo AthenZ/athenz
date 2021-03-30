@@ -2571,7 +2571,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 getInstanceRegisterQueryLog(provider, certReqInstanceId, info.getHostname()));
 
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider, domain,
-                service, info.getAttestationData(), certReqInstanceId, info.getHostname(),
+                service, info.getAttestationData(), certReqInstanceId, info.getHostname(), null,
                 certReq, instanceProvider.getProviderScheme());
 
         // make sure to close our provider when its no longer needed
@@ -2739,9 +2739,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     InstanceConfirmation generateInstanceConfirmObject(ResourceContext ctx, final String provider,
             final String domain, final String service, final String attestationData,
-            final String instanceId, final String instanceHostname, X509CertRequest certReq,
+            final String instanceId, final String instanceHostname, final String certHostname, X509CertRequest certReq,
             InstanceProvider.Scheme providerScheme) {
-        
+
         InstanceConfirmation instance = new InstanceConfirmation()
                 .setAttestationData(attestationData)
                 .setDomain(domain).setService(service).setProvider(provider);
@@ -2756,6 +2756,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final List<String> certReqIps = certReq.getIpAddresses();
         if (certReqIps != null && !certReqIps.isEmpty()) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, String.join(",", certReqIps));
+        }
+        if (certHostname != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME, certHostname);
         }
 
         // we have verified our athenz and spiffe uris but we're going
@@ -2938,7 +2941,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("CSR validation failed - instance id mismatch",
                     caller, domain, principalDomain);
         }
-        
+
+        // Extract Hostname in the certificate to be passed onto the provider
+        String certHostname = X509CertUtils.extractItemFromURI(Crypto.extractX509CertURIs(cert), ZTSConsts.ZTS_CERT_HOSTNAME_URI);
+
         // validate attestation data is included in the request
         
         InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver);
@@ -2948,7 +2954,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
-                domain, service, info.getAttestationData(), instanceId, info.getHostname(),
+                domain, service, info.getAttestationData(), instanceId, info.getHostname(), certHostname,
                 certReq, instanceProvider.getProviderScheme());
         
         // make sure to close our provider when its no longer needed
