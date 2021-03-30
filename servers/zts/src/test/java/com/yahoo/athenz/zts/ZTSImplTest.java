@@ -61,6 +61,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -105,7 +107,7 @@ public class ZTSImplTest {
     private PrivateKey privateKey = null;
     private CloudStore cloudStore = null;
     @Mock private CloudStore mockCloudStore;
-    
+
     private static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
     private static final String ZTS_Y64_CERT0 = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RR"
             + "RUJBUVVBQTRHTkFEQ0JpUUtCZ1FDMXRHU1ZDQTh3bDVldzVZNzZXajJySkFVRApZYW5FSmZLbUFseDVjUS84a"
@@ -5612,12 +5614,12 @@ public class ZTSImplTest {
         certRecord.setInstanceId("1001");
         certRecord.setProvider("athenz.provider");
         certRecord.setService("athenz.production");
-        certRecord.setCurrentSerial("16503746516960996918");
-        certRecord.setPrevSerial("16503746516960996918");
+        certRecord.setCurrentSerial("169894876839995310717517774217024528903");
+        certRecord.setPrevSerial("169894876839995310717517774217024528903");
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
 
-        path = Paths.get("src/test/resources/athenz.instanceid.pem");
+        path = Paths.get("src/test/resources/athenz.instanceid.hostname.pem");
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
@@ -5836,7 +5838,7 @@ public class ZTSImplTest {
 
     @Test
     public void testPostInstanceRefreshInformationInstanceWithHostname() throws IOException {
-        testPostInstanceRefreshInformation("src/test/resources/athenz.instance.prod.uri.csr", "test.hostname.athenz.cloud");
+        testPostInstanceRefreshInformation("src/test/resources/athenz.instance.prod.uri.csr", "abc.athenz.cloud");
     }
 
     @Test
