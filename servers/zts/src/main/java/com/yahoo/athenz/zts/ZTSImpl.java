@@ -15,6 +15,66 @@
  */
 package com.yahoo.athenz.zts;
 
+import com.yahoo.athenz.auth.*;
+import com.yahoo.athenz.auth.impl.CertificateAuthority;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.token.AccessToken;
+import com.yahoo.athenz.auth.token.IdToken;
+import com.yahoo.athenz.auth.token.PrincipalToken;
+import com.yahoo.athenz.auth.util.AthenzUtils;
+import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.config.AuthzDetailsEntity;
+import com.yahoo.athenz.common.metrics.Metric;
+import com.yahoo.athenz.common.metrics.MetricFactory;
+import com.yahoo.athenz.common.server.cert.X509CertRecord;
+import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
+import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
+import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
+import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.common.server.rest.Http;
+import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
+import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
+import com.yahoo.athenz.common.server.status.StatusCheckException;
+import com.yahoo.athenz.common.server.status.StatusChecker;
+import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
+import com.yahoo.athenz.common.server.store.ChangeLogStore;
+import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
+import com.yahoo.athenz.common.server.util.ConfigProperties;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.common.server.util.ServletRequestUtil;
+import com.yahoo.athenz.common.server.workload.WorkloadRecord;
+import com.yahoo.athenz.common.utils.SignUtils;
+import com.yahoo.athenz.instance.provider.InstanceConfirmation;
+import com.yahoo.athenz.instance.provider.InstanceProvider;
+import com.yahoo.athenz.instance.provider.impl.InstanceUtils;
+import com.yahoo.athenz.zms.DomainData;
+import com.yahoo.athenz.zms.RoleMeta;
+import com.yahoo.athenz.zts.cache.DataCache;
+import com.yahoo.athenz.zts.cert.*;
+import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
+import com.yahoo.athenz.zts.store.CloudStore;
+import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
+import com.yahoo.athenz.zts.utils.ZTSUtils;
+import com.yahoo.rdl.JSON;
+import com.yahoo.rdl.Schema;
+import com.yahoo.rdl.Timestamp;
+import com.yahoo.rdl.Validator;
+import com.yahoo.rdl.Validator.Result;
+import org.apache.http.conn.util.InetAddressUtils;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.eclipse.jetty.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URLDecoder;
@@ -22,70 +82,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.*;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.Response;
-
-import com.yahoo.athenz.auth.token.AccessToken;
-import com.yahoo.athenz.auth.token.IdToken;
-import com.yahoo.athenz.auth.util.StringUtils;
-import com.yahoo.athenz.common.config.AuthzDetailsEntity;
-import com.yahoo.athenz.common.server.cert.X509CertRecord;
-import com.yahoo.athenz.common.server.dns.HostnameResolver;
-import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
-import com.yahoo.athenz.common.server.notification.NotificationManager;
-import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
-import com.yahoo.athenz.common.server.status.StatusCheckException;
-import com.yahoo.athenz.common.server.status.StatusChecker;
-import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
-import com.yahoo.athenz.common.server.store.ChangeLogStore;
-import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
-import com.yahoo.athenz.common.server.util.ResourceUtils;
-import com.yahoo.athenz.zms.RoleMeta;
-import com.yahoo.athenz.zts.cert.*;
-import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
-import com.yahoo.athenz.zts.store.CloudStore;
-import com.yahoo.rdl.*;
-import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.eclipse.jetty.util.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.yahoo.athenz.auth.Authority;
-import com.yahoo.athenz.auth.AuthorityConsts;
-import com.yahoo.athenz.auth.AuthorityKeyStore;
-import com.yahoo.athenz.auth.KeyStore;
-import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.PrivateKeyStore;
-import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
-import com.yahoo.athenz.auth.ServerPrivateKey;
-import com.yahoo.athenz.auth.impl.CertificateAuthority;
-import com.yahoo.athenz.auth.impl.SimplePrincipal;
-import com.yahoo.athenz.auth.token.PrincipalToken;
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.auth.util.CryptoException;
-import com.yahoo.athenz.common.metrics.Metric;
-import com.yahoo.athenz.common.metrics.MetricFactory;
-import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
-import com.yahoo.athenz.common.server.log.AuditLogger;
-import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
-import com.yahoo.athenz.common.server.rest.Http;
-import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
-import com.yahoo.athenz.common.server.util.ConfigProperties;
-import com.yahoo.athenz.common.server.util.ServletRequestUtil;
-import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.instance.provider.InstanceConfirmation;
-import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.zms.DomainData;
-import com.yahoo.athenz.zts.cache.DataCache;
-import com.yahoo.athenz.zts.store.DataStore;
-import com.yahoo.athenz.zts.utils.ZTSUtils;
-import com.yahoo.rdl.Validator.Result;
+import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
 
@@ -141,6 +140,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected String ztsOAuthIssuer;
     protected File healthCheckFile = null;
     protected int maxAuthzDetailsLength;
+    protected boolean enableWorkloadStore = false;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -511,6 +511,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         maxAuthzDetailsLength = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_MAX_AUTHZ_DETAILS_LENGTH, "1024"));
+
+        // if workloads store should be populated based on IPs from CSR
+        enableWorkloadStore = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_WORKLOAD_ENABLE_STORE_FEATURE, "false"));
     }
     
     static String getServerHostName() {
@@ -2283,21 +2287,132 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
-    public Workloads getWorkloadsByService(ResourceContext context, String domainName, String serviceName) {
-        // to be implemented in next PR
-        return null;
+    public Workloads getWorkloadsByService(ResourceContext ctx, String domainName, String serviceName) {
+
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        validateRequest(ctx.request(), principalDomain, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+        validate(serviceName, TYPE_ENTITY_NAME, principalDomain, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case since ZMS Server
+        // saves all of its object names in lower case
+
+        domainName = domainName.toLowerCase();
+        serviceName = serviceName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        return getWorkloadsByServiceFromStore(domainName, serviceName, caller, principalDomain);
+    }
+
+    Workloads getWorkloadsByServiceFromStore(String domainName, String serviceName, String caller, String principalDomain) {
+        DomainData domainData = dataStore.getDomainData(domainName);
+        if (domainData == null) {
+            throw requestError("Domain data not found. Invalid domain.",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        Workloads workloads = new Workloads();
+        workloads.setWorkloadList(new ArrayList<>());
+        final String fullServicePrincipal = AthenzUtils.getPrincipalName(domainName, serviceName);
+        final Timestamp currTimestamp = Timestamp.fromCurrentTime();
+
+        // get static list defined in ZMS from data store
+        List<String> ipAddresses = domainData.getServices().stream()
+                .filter(si -> fullServicePrincipal.equals(si.getName()) && si.getHosts() != null)
+                .flatMap(si -> si.getHosts().stream())
+                .collect(Collectors.toList());
+        List<Workload> workloadList = ipAddresses.stream()
+                .map(s -> new Workload().setProvider("Static").setUpdateTime(currTimestamp)
+                        .setUuid(s)
+                        .setIpAddresses(Collections.singletonList(s)))
+                .collect(Collectors.toList());
+       if (!workloadList.isEmpty()) {
+           workloads.getWorkloadList().addAll(workloadList);
+       }
+
+        //get dynamic list from workloads store
+        List<Workload> dynamicWorkloadList = instanceCertManager.getWorkloadsByService(domainName, serviceName);
+       if (!dynamicWorkloadList.isEmpty()) {
+           workloads.getWorkloadList().addAll(dynamicWorkloadList);
+       }
+        return workloads;
     }
 
     @Override
-    public Workloads getWorkloadsByIP(ResourceContext context, String ip) {
-        // to be implemented in next PR
-        return null;
+    public Workloads getWorkloadsByIP(ResourceContext ctx, String ip) {
+
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+        validateRequest(ctx.request(), principalDomain, caller);
+        validateIpAddress(ip, "getWorkloadsByIP", null, principalDomain);
+
+        //get dynamic list from workloads store
+        return new Workloads().setWorkloadList(instanceCertManager.getWorkloadsByIp(ip));
     }
 
     @Override
-    public TransportRules getTransportRules(ResourceContext context, String domainName, String serviceName) {
-        // to be implemented in next PR
-        return null;
+    public TransportRules getTransportRules(ResourceContext ctx, String domainName, String serviceName) {
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+
+        if (readOnlyMode) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        validateRequest(ctx.request(), principalDomain, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+        validate(serviceName, TYPE_ENTITY_NAME, principalDomain, caller);
+
+        TransportRules transportRules = new TransportRules();
+        transportRules.setIngressRules(new ArrayList<>());
+        transportRules.setEgressRules(new ArrayList<>());
+
+        Map<String, List<String>> transportRulesBaseData = dataStore.getDataCache(domainName).getTransportRulesInfoForService(serviceName);
+        Workloads workloads;
+        if (transportRulesBaseData != null) {
+            for (Map.Entry<String, List<String>> entry : transportRulesBaseData.entrySet()) {
+                final TransportRule transportBaseRule = TransportRulesProcessor.parseTransportRuleAction(entry.getKey());
+                for (String member : entry.getValue()) {
+                    if (transportBaseRule != null) {
+                        workloads = getWorkloadsByServiceFromStore(AthenzUtils.extractPrincipalDomainName(member),
+                                AthenzUtils.extractPrincipalServiceName(member), caller, principalDomain);
+                        for (Workload wl : workloads.getWorkloadList()) {
+                            if (transportBaseRule.getDirection() == TransportDirection.IN) {
+                                transportRules.getIngressRules().addAll(wl.getIpAddresses().stream().map(
+                                        ip ->  getTransportRule(transportBaseRule, ip)).collect(Collectors.toList()));
+                            } else if (transportBaseRule.getDirection() == TransportDirection.OUT) {
+                                transportRules.getEgressRules().addAll(wl.getIpAddresses().stream().map(
+                                        ip -> getTransportRule(transportBaseRule, ip)).collect(Collectors.toList()));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return transportRules;
+    }
+
+    TransportRule getTransportRule(final TransportRule transportBaseRule, String ip) {
+        TransportRule transportRule = new TransportRule();
+        transportRule.setEndPoint(ip);
+        transportRule.setPort(transportBaseRule.getPort());
+        transportRule.setSourcePortRange(transportBaseRule.getSourcePortRange());
+        transportRule.setProtocol(transportBaseRule.getProtocol());
+        transportRule.setDirection(transportBaseRule.getDirection());
+        return transportRule;
     }
 
     boolean isAuthorizedServicePrincipal(final Principal principal) {
@@ -2700,6 +2815,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 throw serverError("unable to update cert db", caller, domain, principalDomain);
             }
         }
+
+        if (enableWorkloadStore) {
+            String sanIpStr = InstanceUtils.getInstanceProperty(instanceAttrs, InstanceProvider.ZTS_INSTANCE_SAN_IP);
+            // insert into workloads store is on best-effort basis. No errors are thrown if the op is not successful.
+            insertWorkloadRecord(cn, provider, certReqInstanceId, sanIpStr);
+        }
         
         // if we're asked to return an NToken in addition to ZTS Certificate
         // then we'll generate one and include in the identity object
@@ -2720,6 +2841,46 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 + "/" + service + "/" + certReqInstanceId;
         return Response.status(ResourceException.CREATED).entity(identity)
                 .header("Location", location).build();
+    }
+
+    void insertWorkloadRecord(String cn, String provider, String certReqInstanceId, String sanIpStr) {
+        if (StringUtil.isEmpty(sanIpStr)) {
+            return;
+        }
+        WorkloadRecord workloadRecord;
+        String[] sanIps = sanIpStr.split(",");
+        for (String sanIp : sanIps) {
+            workloadRecord = new WorkloadRecord();
+            workloadRecord.setProvider(provider);
+            workloadRecord.setIp(sanIp);
+            workloadRecord.setInstanceId(certReqInstanceId);
+            workloadRecord.setService(cn);
+            workloadRecord.setCreationTime(new Date());
+            workloadRecord.setUpdateTime(new Date());
+            if (!instanceCertManager.insertWorkloadRecord(workloadRecord)) {
+                LOGGER.error("unable to insert workload record={}", workloadRecord);
+            }
+        }
+    }
+
+    void updateWorkloadRecord(String cn, String provider, String certReqInstanceId, String sanIpStr) {
+        if (StringUtil.isEmpty(sanIpStr)) {
+            return;
+        }
+        WorkloadRecord workloadRecord;
+        String[] sanIps = sanIpStr.split(",");
+
+        for (String sanIp : sanIps) {
+            workloadRecord = new WorkloadRecord();
+            workloadRecord.setProvider(provider);
+            workloadRecord.setIp(sanIp);
+            workloadRecord.setInstanceId(certReqInstanceId);
+            workloadRecord.setService(cn);
+            workloadRecord.setUpdateTime(new Date());
+            if (!instanceCertManager.updateWorkloadRecord(workloadRecord)) {
+                LOGGER.error("unable to update workload record={}", workloadRecord);
+            }
+        }
     }
 
     String getInstanceRegisterQueryLog(final String provider, final String certReqInstanceId, final String hostname) {
@@ -3112,6 +3273,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             if (!instanceCertManager.updateX509CertRecord(x509CertRecord)) {
                 throw serverError("unable to update cert db", caller, domain, principalDomain);
             }
+        }
+
+        if (enableWorkloadStore) {
+            String sanIpStr = InstanceUtils.getInstanceProperty(instanceAttrs, InstanceProvider.ZTS_INSTANCE_SAN_IP);
+            // workloads store update is on best-effort basis. No errors are thrown if the op is not successful.
+            updateWorkloadRecord(AthenzUtils.getPrincipalName(domain, service), provider, instanceId, sanIpStr);
         }
 
         // log our certificate
@@ -3815,6 +3982,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (principal != null && principal.getRoles() != null) {
             throw forbiddenError("Role Identity not authorized for request", caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principal.getDomain());
+        }
+    }
+
+    void validateIpAddress(final String ip, final String caller, final String requestDomain, final String principalDomain) {
+        if (ip != null && !InetAddressUtils.isIPv4Address(ip) && !InetAddressUtils.isIPv6Address(ip)) {
+            throw requestError("Invalid IP address", caller, requestDomain, principalDomain);
         }
     }
 

@@ -130,33 +130,17 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         certRecord.setService(item.getString(KEY_SERVICE));
         certRecord.setCurrentSerial(item.getString(KEY_CURRENT_SERIAL));
         certRecord.setCurrentIP(item.getString(KEY_CURRENT_IP));
-        certRecord.setCurrentTime(getDateFromItem(item, KEY_CURRENT_TIME));
+        certRecord.setCurrentTime(DynamoDBUtils.getDateFromItem(item, KEY_CURRENT_TIME));
         certRecord.setPrevSerial(item.getString(KEY_PREV_SERIAL));
         certRecord.setPrevIP(item.getString(KEY_PREV_IP));
-        certRecord.setPrevTime(getDateFromItem(item, KEY_PREV_TIME));
+        certRecord.setPrevTime(DynamoDBUtils.getDateFromItem(item, KEY_PREV_TIME));
         certRecord.setClientCert(clientCert);
-        certRecord.setLastNotifiedTime(getDateFromItem(item, KEY_LAST_NOTIFIED_TIME));
+        certRecord.setLastNotifiedTime(DynamoDBUtils.getDateFromItem(item, KEY_LAST_NOTIFIED_TIME));
         certRecord.setLastNotifiedServer(item.getString(KEY_LAST_NOTIFIED_SERVER));
-        certRecord.setExpiryTime(getDateFromItem(item, KEY_EXPIRY_TIME));
+        certRecord.setExpiryTime(DynamoDBUtils.getDateFromItem(item, KEY_EXPIRY_TIME));
         certRecord.setHostName(item.getString(KEY_HOSTNAME));
-        certRecord.setSvcDataUpdateTime(getDateFromItem(item, KEY_SVC_DATA_UPDATE_TIME));
+        certRecord.setSvcDataUpdateTime(DynamoDBUtils.getDateFromItem(item, KEY_SVC_DATA_UPDATE_TIME));
         return certRecord;
-    }
-
-    private Date getDateFromItem(Item item, String key) {
-        if (item.isNull(key) || item.get(key) == null) {
-            return null;
-        }
-
-        return new Date(item.getLong(key));
-    }
-
-    private Object getLongFromDate(Date date) {
-        if (date == null) {
-            return null;
-        }
-
-        return date.getTime();
     }
 
     @Override
@@ -187,15 +171,15 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                             new AttributeUpdate(KEY_SERVICE).put(certRecord.getService()),
                             new AttributeUpdate(KEY_CURRENT_SERIAL).put(certRecord.getCurrentSerial()),
                             new AttributeUpdate(KEY_CURRENT_IP).put(certRecord.getCurrentIP()),
-                            new AttributeUpdate(KEY_CURRENT_TIME).put(getLongFromDate(certRecord.getCurrentTime())),
+                            new AttributeUpdate(KEY_CURRENT_TIME).put(DynamoDBUtils.getLongFromDate(certRecord.getCurrentTime())),
                             new AttributeUpdate(KEY_CURRENT_DATE).put(DynamoDBUtils.getIso8601FromDate(certRecord.getCurrentTime())),
                             new AttributeUpdate(KEY_PREV_SERIAL).put(certRecord.getPrevSerial()),
                             new AttributeUpdate(KEY_PREV_IP).put(certRecord.getPrevIP()),
-                            new AttributeUpdate(KEY_PREV_TIME).put(getLongFromDate(certRecord.getPrevTime())),
+                            new AttributeUpdate(KEY_PREV_TIME).put(DynamoDBUtils.getLongFromDate(certRecord.getPrevTime())),
                             new AttributeUpdate(KEY_CLIENT_CERT).put(certRecord.getClientCert()),
                             new AttributeUpdate(KEY_TTL).put(certRecord.getCurrentTime().getTime() / 1000L + expiryTime),
-                            new AttributeUpdate(KEY_SVC_DATA_UPDATE_TIME).put(getLongFromDate(certRecord.getSvcDataUpdateTime())),
-                            new AttributeUpdate(KEY_EXPIRY_TIME).put(getLongFromDate(certRecord.getExpiryTime())),
+                            new AttributeUpdate(KEY_SVC_DATA_UPDATE_TIME).put(DynamoDBUtils.getLongFromDate(certRecord.getSvcDataUpdateTime())),
+                            new AttributeUpdate(KEY_EXPIRY_TIME).put(DynamoDBUtils.getLongFromDate(certRecord.getExpiryTime())),
                             new AttributeUpdate(KEY_HOSTNAME).put(hostName)
                             );
             updateItemRetryDynamoDBCommand.run(() -> table.updateItem(updateItemSpec));
@@ -224,15 +208,15 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
                     .withString(KEY_SERVICE, certRecord.getService())
                     .withString(KEY_CURRENT_SERIAL, certRecord.getCurrentSerial())
                     .withString(KEY_CURRENT_IP, certRecord.getCurrentIP())
-                    .with(KEY_CURRENT_TIME, getLongFromDate(certRecord.getCurrentTime()))
+                    .with(KEY_CURRENT_TIME, DynamoDBUtils.getLongFromDate(certRecord.getCurrentTime()))
                     .withString(KEY_CURRENT_DATE, DynamoDBUtils.getIso8601FromDate(certRecord.getCurrentTime()))
                     .withString(KEY_PREV_SERIAL, certRecord.getPrevSerial())
                     .withString(KEY_PREV_IP, certRecord.getPrevIP())
-                    .with(KEY_PREV_TIME, getLongFromDate(certRecord.getPrevTime()))
+                    .with(KEY_PREV_TIME, DynamoDBUtils.getLongFromDate(certRecord.getPrevTime()))
                     .withBoolean(KEY_CLIENT_CERT, certRecord.getClientCert())
                     .withLong(KEY_TTL, certRecord.getCurrentTime().getTime() / 1000L + expiryTime)
-                    .with(KEY_EXPIRY_TIME, getLongFromDate(certRecord.getExpiryTime()))
-                    .with(KEY_SVC_DATA_UPDATE_TIME, getLongFromDate(certRecord.getSvcDataUpdateTime()))
+                    .with(KEY_EXPIRY_TIME, DynamoDBUtils.getLongFromDate(certRecord.getExpiryTime()))
+                    .with(KEY_SVC_DATA_UPDATE_TIME, DynamoDBUtils.getLongFromDate(certRecord.getSvcDataUpdateTime()))
                     .withLong(KEY_REGISTER_TIME, System.currentTimeMillis())
                     .with(KEY_HOSTNAME, hostName);
             putItemRetryDynamoDBCommand.run(() -> table.putItem(item));

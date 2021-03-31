@@ -7,8 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
-// TransportRule - Copyright The Athenz Authors Licensed under the terms of the
-// Apache version 2.0 license. See LICENSE file for terms.
+// TransportRule -
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TransportRule {
@@ -16,6 +15,7 @@ public class TransportRule {
     public String sourcePortRange;
     public int port;
     public String protocol;
+    public TransportDirection direction;
 
     public TransportRule setEndPoint(String endPoint) {
         this.endPoint = endPoint;
@@ -45,6 +45,13 @@ public class TransportRule {
     public String getProtocol() {
         return protocol;
     }
+    public TransportRule setDirection(TransportDirection direction) {
+        this.direction = direction;
+        return this;
+    }
+    public TransportDirection getDirection() {
+        return direction;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -63,6 +70,9 @@ public class TransportRule {
                 return false;
             }
             if (protocol == null ? a.protocol != null : !protocol.equals(a.protocol)) {
+                return false;
+            }
+            if (direction == null ? a.direction != null : !direction.equals(a.direction)) {
                 return false;
             }
         }

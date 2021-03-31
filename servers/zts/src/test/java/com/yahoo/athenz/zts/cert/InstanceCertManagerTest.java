@@ -6,6 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,8 +22,14 @@ import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
 import com.yahoo.athenz.common.server.ssh.SSHSigner;
+import com.yahoo.athenz.common.server.workload.WorkloadRecord;
+import com.yahoo.athenz.common.server.workload.WorkloadRecordStore;
+import com.yahoo.athenz.common.server.workload.WorkloadRecordStoreConnection;
 import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.cert.impl.FileSSHRecordStoreFactory;
+import com.yahoo.rdl.Timestamp;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
@@ -1581,5 +1590,121 @@ public class InstanceCertManagerTest {
         instance.setSSHStore(null);
         boolean isEnabled = instance.enableSSHStoreNotifications(null, null, null);
         assertFalse(isEnabled);
+    }
+    @Test
+    public void testGetWorkloadRecordNullStore() {
+
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, true);
+        instance.setWorkloadStore(null);
+
+        // when store is null, we get null all the time
+        assertTrue(instance.getWorkloadsByService(null, null).isEmpty());
+        assertTrue(instance.getWorkloadsByService("id", "athenz.api").isEmpty());
+        assertTrue(instance.getWorkloadsByIp(null).isEmpty());
+        assertTrue(instance.getWorkloadsByIp("10.0.0.1").isEmpty());
+        instance.shutdown();
+    }
+
+    @Test
+    public void testInsertWorkloadRecord() {
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, true);
+        WorkloadRecordStore store = Mockito.mock(WorkloadRecordStore.class);
+        instance.setWorkloadStore(store);
+        WorkloadRecordStoreConnection storeConn = Mockito.mock(WorkloadRecordStoreConnection.class);
+        Mockito.when(store.getConnection()).thenReturn(storeConn);
+        Mockito.when(storeConn.insertWorkloadRecord(any())).thenReturn(true);
+
+        Date d = new Date();
+        assertTrue(instance.insertWorkloadRecord(ZTSTestUtils.createWorkloadRecord(d, d,
+                "aws", "i-123", "10.0.0.1", "athenz.api")));
+
+        instance.shutdown();
+    }
+
+    @Test
+    public void testUpdateWorkloadRecord() {
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, true);
+        WorkloadRecordStore store = Mockito.mock(WorkloadRecordStore.class);
+        instance.setWorkloadStore(store);
+        WorkloadRecordStoreConnection storeConn = Mockito.mock(WorkloadRecordStoreConnection.class);
+        Mockito.when(store.getConnection()).thenReturn(storeConn);
+        Mockito.when(storeConn.updateWorkloadRecord(any())).thenReturn(true);
+
+        Date d = new Date();
+        assertTrue(instance.updateWorkloadRecord(ZTSTestUtils.createWorkloadRecord(d, d,
+                "aws", "i-123", "10.0.0.1", "athenz.api")));
+
+        instance.shutdown();
+    }
+
+    @Test
+    public void testGetWorkloadsByService() {
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, true);
+        WorkloadRecordStore store = Mockito.mock(WorkloadRecordStore.class);
+        instance.setWorkloadStore(store);
+        WorkloadRecordStoreConnection storeConn = Mockito.mock(WorkloadRecordStoreConnection.class);
+        Mockito.when(store.getConnection()).thenReturn(storeConn);
+
+        long currTime = System.currentTimeMillis();
+        Date d = new Date(currTime);
+
+        WorkloadRecord w1 = ZTSTestUtils.createWorkloadRecord(d, d,
+                "aws", "i-123", "10.0.0.1", "athenz.api");
+
+        WorkloadRecord w2 = ZTSTestUtils.createWorkloadRecord(d, d,
+                "aws", "i-234", "10.0.0.2", "athenz.api");
+
+        WorkloadRecord w3 = ZTSTestUtils.createWorkloadRecord(d, d,
+                "aws", "i-234", "2001:0db8:85a3:0000:0000:8a2e:0370:7334", "athenz.api");
+
+        List<WorkloadRecord> workloadRecordList = new ArrayList<>();
+        workloadRecordList.add(w1);
+        workloadRecordList.add(w2);
+        workloadRecordList.add(w3);
+        Mockito.when(storeConn.getWorkloadRecordsByService(any(), any())).thenReturn(workloadRecordList);
+
+        List<Workload> workloadList = instance.getWorkloadsByService("athenz", "api");
+        assertNotNull(workloadList);
+        assertEquals(workloadList.size(), 2);
+
+        instance.shutdown();
+    }
+
+    @Test
+    public void testGetWorkloadsByIp() {
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, true);
+        WorkloadRecordStore store = Mockito.mock(WorkloadRecordStore.class);
+        instance.setWorkloadStore(store);
+        WorkloadRecordStoreConnection storeConn = Mockito.mock(WorkloadRecordStoreConnection.class);
+        Mockito.when(store.getConnection()).thenReturn(storeConn);
+
+        long currTime = System.currentTimeMillis();
+        Date d = new Date(currTime);
+
+        WorkloadRecord w1 = ZTSTestUtils.createWorkloadRecord(d, d,
+                "aws", "i-123", "10.0.0.1", "athenz.api");
+
+        WorkloadRecord w2 = ZTSTestUtils.createWorkloadRecord(d, d,
+                "aws", "i-234", "10.0.0.2", "athenz.api");
+
+        WorkloadRecord w3 = ZTSTestUtils.createWorkloadRecord(d, d,
+                "aws", "i-234", "2001:0db8:85a3:0000:0000:8a2e:0370:7334", "athenz.api");
+
+        List<WorkloadRecord> workloadRecordList = new ArrayList<>();
+        workloadRecordList.add(w1);
+        workloadRecordList.add(w2);
+        workloadRecordList.add(w3);
+        Mockito.when(storeConn.getWorkloadRecordsByIp(any())).thenReturn(workloadRecordList);
+
+        List<Workload> workloadList = instance.getWorkloadsByIp("10.0.0.1");
+        assertNotNull(workloadList);
+        assertEquals(workloadList.size(), 2);
+
+        for (Workload workload : workloadList) {
+            assertEquals(workload.getDomainName(), "athenz");
+            assertEquals(workload.getServiceName(), "api");
+        }
+
+        instance.shutdown();
     }
 }

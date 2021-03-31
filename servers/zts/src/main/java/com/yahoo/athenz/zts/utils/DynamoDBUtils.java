@@ -16,6 +16,8 @@
 
 package com.yahoo.athenz.zts.utils;
 
+import com.amazonaws.services.dynamodbv2.document.Item;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,5 +41,20 @@ public class DynamoDBUtils {
         }
 
         return datesArray;
+    }
+
+    public static Date getDateFromItem(Item item, String key) {
+        if (item.isNull(key) || item.get(key) == null) {
+            return null;
+        }
+        return new Date(item.getLong(key));
+    }
+
+    public static Object getLongFromDate(Date date) {
+        if (date == null) {
+            return null;
+        }
+
+        return date.getTime();
     }
 }
