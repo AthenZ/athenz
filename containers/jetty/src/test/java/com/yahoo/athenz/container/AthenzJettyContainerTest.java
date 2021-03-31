@@ -379,7 +379,7 @@ public class AthenzJettyContainerTest {
         
         SslContextFactory.Server sslContextFactory = container.createSSLContextObject(true);
         assertNotNull(sslContextFactory);
-        assertEquals(sslContextFactory.getKeyStorePath(), "file:///tmp/keystore");
+        assertTrue(sslContextFactory.getKeyStorePath().endsWith("src/test/resources/keystore.pkcs12"));
         assertEquals(sslContextFactory.getKeyStoreType(), "PKCS12");
         assertEquals(sslContextFactory.getTrustStoreResource().toString(), "file:///tmp/truststore");
         assertEquals(sslContextFactory.getTrustStoreType(), "PKCS12");
@@ -445,7 +445,7 @@ public class AthenzJettyContainerTest {
         
         SslContextFactory.Server sslContextFactory = container.createSSLContextObject(false);
         assertNotNull(sslContextFactory);
-        assertEquals(sslContextFactory.getKeyStorePath(), "file:///tmp/keystore");
+        assertTrue(sslContextFactory.getKeyStorePath().endsWith("src/test/resources/keystore.pkcs12"));
         assertEquals(sslContextFactory.getKeyStoreType(), "PKCS12");
         assertNull(sslContextFactory.getTrustStore());
         // store type always defaults to PKCS12
