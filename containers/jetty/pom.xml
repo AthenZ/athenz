@@ -39,7 +39,7 @@
   </dependencyManagement>
 
   <properties>
-    <code.coverage.min>0.88</code.coverage.min>
+    <code.coverage.min>0.87</code.coverage.min>
   </properties>
 
   <dependencies>
