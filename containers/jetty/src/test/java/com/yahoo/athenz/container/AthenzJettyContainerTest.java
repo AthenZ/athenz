@@ -227,11 +227,11 @@ public class AthenzJettyContainerTest {
         // it defaults to https even if we have no value specified
         assertEquals(httpConfig.getSecureScheme(), "https");
     }
-    
+
     @Test
     public void testHttpConnectorsBoth() {
-        
-        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "/tmp/keystore");
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
         System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "/tmp/truststore");
@@ -240,24 +240,50 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD, "pass123");
         System.setProperty(AthenzConsts.ATHENZ_PROP_IDLE_TIMEOUT, "10001");
-        
+
         AthenzJettyContainer container = new AthenzJettyContainer();
         container.createServer(100);
-        
+
         HttpConfiguration httpConfig = container.newHttpConfiguration();
         container.addHTTPConnectors(httpConfig, 8081, 8082, 0);
-        
+
         Server server = container.getServer();
         Connector[] connectors = server.getConnectors();
         assertEquals(connectors.length, 2);
-        
+
         assertEquals(connectors[0].getIdleTimeout(), 10001);
         assertTrue(connectors[0].getProtocols().contains("http/1.1"));
-        
+
         assertTrue(connectors[1].getProtocols().contains("http/1.1"));
         assertTrue(connectors[1].getProtocols().contains("ssl"));
     }
-    
+
+    @Test
+    public void testNonExistantKeyStore() {
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "non-existant-keystore.pkcs12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "/tmp/truststore");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_RELOAD_SEC, "3600");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYMANAGER_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_IDLE_TIMEOUT, "10001");
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        try {
+            // This should throw
+            container.addHTTPConnectors(httpConfig, 8081, 8082, 0);
+            fail();
+        } catch (IllegalArgumentException exception) {
+            // as expected
+        }
+    }
+
     @Test
     public void testHttpConnectorsHttpsOnly() {
         

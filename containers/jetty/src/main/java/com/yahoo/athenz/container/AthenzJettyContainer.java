@@ -479,7 +479,8 @@ public class AthenzJettyContainer {
                 keystoreScanner.setScanInterval(reloadSslContextSeconds);
                 server.addBean(keystoreScanner);
             } catch (IllegalArgumentException exception) {
-                LOG.error("Keystore will not be automatically reloaded when \"{}\" is changed: {}", sslContextFactory.getKeyStorePath(), exception.getMessage());
+                LOG.error("Keystore cant be automatically reloaded when \"{}\" is changed: {}", sslContextFactory.getKeyStorePath(), exception.getMessage());
+                throw exception;
             }
         }
     }
