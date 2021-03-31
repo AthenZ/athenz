@@ -286,8 +286,8 @@ public class AthenzJettyContainerTest {
 
     @Test
     public void testHttpConnectorsHttpsOnly() {
-        
-        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "file:///tmp/keystore");
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
         System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "file:///tmp/truststore");
@@ -312,8 +312,8 @@ public class AthenzJettyContainerTest {
     
     @Test
     public void testHttpConnectorsHttpOnly() {
-        
-        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "file:///tmp/keystore");
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
         System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "file:///tmp/truststore");
@@ -365,8 +365,8 @@ public class AthenzJettyContainerTest {
     public void testCreateSSLContextObject() {
         
         AthenzJettyContainer container = new AthenzJettyContainer();
-        
-        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "file:///tmp/keystore");
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
         System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "file:///tmp/truststore");
@@ -435,8 +435,8 @@ public class AthenzJettyContainerTest {
     public void testCreateSSLContextObjectNoTrustStore() {
         
         AthenzJettyContainer container = new AthenzJettyContainer();
-        
-        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "file:///tmp/keystore");
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
         System.setProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_CIPHER_SUITES, DEFAULT_EXCLUDED_CIPHERS);
