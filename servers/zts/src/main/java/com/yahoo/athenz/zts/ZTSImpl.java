@@ -2707,6 +2707,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 service, info.getAttestationData(), certReqInstanceId, info.getHostname(), null,
                 certReq, instanceProvider.getProviderScheme());
 
+        // Store sanIP from CSR in a variable since instance attributes go through bunch of manipulations.
+        // This is used to derive workload information from identity
+        String sanIpStrForWorkloadStore = InstanceUtils.getInstanceProperty(instance.getAttributes(), InstanceProvider.ZTS_INSTANCE_SAN_IP);
+
         // make sure to close our provider when its no longer needed
 
         Object timerProviderMetric = metric.startTiming("providerregister_timing", provider, principalDomain);
@@ -2817,9 +2821,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         if (enableWorkloadStore) {
-            String sanIpStr = InstanceUtils.getInstanceProperty(instanceAttrs, InstanceProvider.ZTS_INSTANCE_SAN_IP);
             // insert into workloads store is on best-effort basis. No errors are thrown if the op is not successful.
-            insertWorkloadRecord(cn, provider, certReqInstanceId, sanIpStr);
+            insertWorkloadRecord(cn, provider, certReqInstanceId, sanIpStrForWorkloadStore);
         }
         
         // if we're asked to return an NToken in addition to ZTS Certificate
@@ -3135,7 +3138,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
                 domain, service, info.getAttestationData(), instanceId, info.getHostname(), certHostname,
                 certReq, instanceProvider.getProviderScheme());
-        
+
+        // Store sanIP from CSR in a variable since instance attributes go through bunch of manipulations.
+        // This is used to derive workload information from identity
+        String sanIpStrForWorkloadStore = InstanceUtils.getInstanceProperty(instance.getAttributes(), InstanceProvider.ZTS_INSTANCE_SAN_IP);
+
         // make sure to close our provider when its no longer needed
 
         Object timerProviderMetric = metric.startTiming("providerrefresh_timing", provider, principalDomain);
@@ -3276,9 +3283,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         if (enableWorkloadStore) {
-            String sanIpStr = InstanceUtils.getInstanceProperty(instanceAttrs, InstanceProvider.ZTS_INSTANCE_SAN_IP);
             // workloads store update is on best-effort basis. No errors are thrown if the op is not successful.
-            updateWorkloadRecord(AthenzUtils.getPrincipalName(domain, service), provider, instanceId, sanIpStr);
+            updateWorkloadRecord(AthenzUtils.getPrincipalName(domain, service), provider, instanceId, sanIpStrForWorkloadStore);
         }
 
         // log our certificate
