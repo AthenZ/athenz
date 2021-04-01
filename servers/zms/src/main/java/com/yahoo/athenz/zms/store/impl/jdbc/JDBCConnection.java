@@ -1081,11 +1081,15 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
         int curTagCount = getDomainTagsCount(domainId);
-        int remainingTagsToInsert = domainTagsLimit - curTagCount;
+        int newTagCount = calculateTagCount(tags);
+        if (curTagCount + newTagCount > domainTagsLimit) {
+            throw requestError(caller, "domain tag quota exceeded - limit: "
+                + domainTagsLimit + ", current tags count: " + curTagCount + ", new tags count: " + newTagCount);
+        }
+
         boolean res = true;
         for (Map.Entry<String, StringList> e : tags.entrySet()) {
-            for (int i = 0; i < e.getValue().getList().size() && remainingTagsToInsert-- > 0; i++) {
-                String tagValue = e.getValue().getList().get(i);
+            for (String tagValue : e.getValue().getList()) {
                 try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_DOMAIN_TAG)) {
                     ps.setInt(1, domainId);
                     ps.setString(2, processInsertValue(e.getKey()));
@@ -1096,10 +1100,16 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         }
-        if (remainingTagsToInsert < 0) {
-            LOG.info("Domain tags limit for domain: [{}] has reached", domainName);
-        }
+
         return res;
+    }
+
+    private int calculateTagCount(Map<String, StringList> tags) {
+        int count = 0;
+        for (Map.Entry<String, StringList> e : tags.entrySet()) {
+            count += e.getValue().getList().size();
+        }
+        return count;
     }
 
     private int getDomainTagsCount(int domainId) {
@@ -6015,12 +6025,15 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ResourceUtils.roleResourceName(domainName, roleName));
         }
         int curTagCount = getRoleTagsCount(roleId);
-
-        int remainingTagsToInsert = roleTagsLimit - curTagCount;
+        int newTagCount = calculateTagCount(roleTags);
+        if (curTagCount + newTagCount > roleTagsLimit) {
+            throw requestError(caller, "role tag quota exceeded - limit: "
+                + roleTagsLimit + ", current tags count: " + curTagCount + ", new tags count: " + newTagCount);
+        }
+        
         boolean res = true;
         for (Map.Entry<String, StringList> e : roleTags.entrySet()) {
-            for (int i = 0; i < e.getValue().getList().size() && remainingTagsToInsert-- > 0; i++) {
-                String tagValue = e.getValue().getList().get(i);
+            for (String tagValue : e.getValue().getList()) {
                 try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_ROLE_TAG)) {
                     ps.setInt(1, roleId);
                     ps.setString(2, processInsertValue(e.getKey()));
@@ -6030,9 +6043,6 @@ public class JDBCConnection implements ObjectStoreConnection {
                     throw sqlError(ex, caller);
                 }
             }
-        }
-        if (remainingTagsToInsert < 0) {
-            LOG.info("Role tags limit for role: [{}], domain: [{}] has reached", roleName, domainName);
         }
         return res;
     }

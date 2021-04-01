@@ -17,6 +17,7 @@ servers/zms/schema/zms_server.mwb.bak
 servers/zts/zts_logs/
 servers/zts/zts_store/
 servers/zts/bin/
+servers/zts/schema/zts_server.mwb.bak
 containers/jetty/zms_logs/
 core/zms/bin/
 core/zts/bin/
@@ -113,6 +114,7 @@ rdl/rdl-gen-athenz-server/rdl-gen-athenz-server
 rdl/rdl-gen-athenz-go-client/rdl-gen-athenz-go-client
 rdl/rdl-gen-athenz-go-model/rdl-gen-athenz-go-model
 rdl/rdl-gen-athenz-java-model/rdl-gen-athenz-java-model
+rdl/rdl-gen-athenz-java-client/rdl-gen-athenz-java-client
 libs/go/athenzutils/pkg/
 **test-output**
 clients/nodejs/zpe/package-lock.json

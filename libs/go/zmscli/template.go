@@ -21,8 +21,7 @@ func (cli Zms) ListServerTemplates() (*string, error) {
 	for _, name := range templates.TemplateNames {
 		buf.WriteString(indentLevel1Dash + string(name) + "\n")
 	}
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(templates, buf.String())
 }
 
 func (cli Zms) ListDomainTemplates(dn string) (*string, error) {
@@ -35,8 +34,7 @@ func (cli Zms) ListDomainTemplates(dn string) (*string, error) {
 	for _, name := range templates.TemplateNames {
 		buf.WriteString(indentLevel1Dash + string(name) + "\n")
 	}
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(templates, buf.String())
 }
 
 func (cli Zms) ShowServerTemplate(templateName string) (*string, error) {
@@ -61,8 +59,7 @@ func (cli Zms) ShowServerTemplate(templateName string) (*string, error) {
 			cli.dumpService(&buf, *service, indentLevel2Dash, indentLevel2DashLvl)
 		}
 	}
-	s := buf.String()
-	return &s, nil
+	return cli.switchOverFormats(template, buf.String())
 }
 
 func (cli Zms) SetDomainTemplate(dn string, templateArgs []string) (*string, error) {
@@ -94,7 +91,7 @@ func (cli Zms) SetDomainTemplate(dn string, templateArgs []string) (*string, err
 		return nil, err
 	}
 	s := "[Template(s) successfully applied to domain]"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }
 
 func (cli Zms) DeleteDomainTemplate(dn string, template string) (*string, error) {
@@ -103,5 +100,5 @@ func (cli Zms) DeleteDomainTemplate(dn string, template string) (*string, error)
 		return nil, err
 	}
 	s := "[Deleted template: " + template + "]"
-	return &s, nil
+	return cli.switchOverFormats(s)
 }

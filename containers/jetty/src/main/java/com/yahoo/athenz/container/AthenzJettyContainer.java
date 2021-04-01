@@ -53,6 +53,7 @@ import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.ssl.KeyStoreScanner;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
@@ -469,6 +470,19 @@ public class AthenzJettyContainer {
             sslConnector.addBean(connectionLogger);
         }
         server.addConnector(sslConnector);
+
+        // Reload the key-store if the file is changed
+        final int reloadSslContextSeconds = Integer.parseInt(System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_RELOAD_SEC, "0"));
+        if ((reloadSslContextSeconds > 0) && (sslContextFactory.getKeyStorePath() != null)) {
+            try {
+                KeyStoreScanner keystoreScanner = new KeyStoreScanner(sslContextFactory);
+                keystoreScanner.setScanInterval(reloadSslContextSeconds);
+                server.addBean(keystoreScanner);
+            } catch (IllegalArgumentException exception) {
+                LOG.error("Keystore cant be automatically reloaded when \"{}\" is changed: {}", sslContextFactory.getKeyStorePath(), exception.getMessage());
+                throw exception;
+            }
+        }
     }
     
     public void addHTTPConnectors(HttpConfiguration httpConfig, int httpPort, int httpsPort,

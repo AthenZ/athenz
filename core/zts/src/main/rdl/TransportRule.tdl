@@ -1,0 +1,20 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+type TransportDirection Enum {
+    IN,
+    OUT
+}
+
+type TransportRule Struct {
+    String endPoint; // source or destination endpoints defined in terms of CIDR notation
+    String sourcePortRange; // range of port numbers for incoming connections
+    Int32 port; // destination / listener port of the service
+    String protocol; // protocol of the connection
+    TransportDirection direction; // transport direction
+}
+
+type TransportRules Struct {
+    Array<TransportRule> ingressRules;
+    Array<TransportRule> egressRules;
+}

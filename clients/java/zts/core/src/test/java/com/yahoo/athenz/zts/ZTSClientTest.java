@@ -2257,6 +2257,89 @@ public class ZTSClientTest {
         client.close();
     }
 
+    @Test
+    public void testGetWorkloadsByIP() {
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+        Workloads workloads = client.getWorkloadsByIP("10.0.0.1");
+        assertNotNull(workloads);
+        assertEquals(workloads.getWorkloadList().get(0).getProvider(), "openstack");
+        assertEquals(workloads.getWorkloadList().get(0).getUuid(), "avve-resw");
+        assertEquals(workloads.getWorkloadList().get(0).getDomainName(), "athenz");
+        assertEquals(workloads.getWorkloadList().get(0).getServiceName(), "api");
+        assertNotNull(workloads.getWorkloadList().get(0).getUpdateTime());
+        assertNull(workloads.getWorkloadList().get(0).getIpAddresses());
+        try {
+            client.getWorkloadsByIP("127.0.0.1");
+            fail();
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), 404);
+        }
+        client.close();
+    }
+
+    @Test
+    public void testGetWorkloadsByService() {
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+        Workloads workloads = client.getWorkloadsByService("athenz", "api");
+        assertNotNull(workloads);
+        assertEquals(workloads.getWorkloadList().get(0).getProvider(), "openstack");
+        assertEquals(workloads.getWorkloadList().get(0).getUuid(), "avve-resw");
+        assertNull(workloads.getWorkloadList().get(0).getDomainName());
+        assertNull(workloads.getWorkloadList().get(0).getServiceName());
+        assertNotNull(workloads.getWorkloadList().get(0).getUpdateTime());
+        assertTrue(workloads.getWorkloadList().get(0).getIpAddresses().contains("10.0.0.1"));
+        try {
+            client.getWorkloadsByService("bad-domain", "api");
+            fail();
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), 404);
+        }
+        client.close();
+    }
+
+    @Test
+    public void testGetTransportRules() {
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        TransportRules transportRules = client.getTransportRules("ingress-domain", "api");
+        assertNotNull(transportRules);
+        assertEquals(transportRules.getIngressRules().get(0).getProtocol(), "TCP");
+        assertEquals(transportRules.getIngressRules().get(0).getPort(), 4443);
+        assertEquals(transportRules.getIngressRules().get(0).getSourcePortRange(), "1024-65535");
+        assertEquals(transportRules.getIngressRules().get(0).getEndPoint(), "10.0.0.1/26");
+
+        assertNull(transportRules.getEgressRules());
+
+        transportRules = client.getTransportRules("egress-domain", "api");
+        assertNotNull(transportRules);
+        assertEquals(transportRules.getEgressRules().get(0).getProtocol(), "TCP");
+        assertEquals(transportRules.getEgressRules().get(0).getPort(), 8443);
+        assertEquals(transportRules.getEgressRules().get(0).getSourcePortRange(), "1024-65535");
+        assertEquals(transportRules.getEgressRules().get(0).getEndPoint(), "10.0.0.1/23");
+
+        assertNull(transportRules.getIngressRules());
+        try {
+            client.getTransportRules("bad-domain", "api");
+            fail();
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), 404);
+        }
+
+        client.close();
+    }
+
     private static class TestHostVerifier implements HostnameVerifier {
 
         public boolean verify(String hostname, SSLSession session) {
