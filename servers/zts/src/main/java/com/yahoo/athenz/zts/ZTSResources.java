@@ -476,7 +476,7 @@ public class ZTSResources {
     @Path("/instance")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "we have an authenticate enabled for this endpoint but in most cases the service owner might need to make it optional by setting the zts servers no_auth_uri list to include this endpoint. We need the authenticate in case the request comes with a client certificate and the provider needs to know who that principal was in the client certificate")
+    @Operation(description = "Register a new service instance and issue an x.509 service identity certificate once the provider validates the attestation data along with the request attributes. We have an authenticate enabled for this endpoint but in most cases the service owner might need to make it optional by setting the zts servers no_auth_uri list to include this endpoint. We need the authenticate in case the request comes with a client certificate and the provider needs to know who that principal was in the client certificate")
     public Response postInstanceRegisterInformation(
         @Parameter(description = "", required = true) InstanceRegisterInformation info) {
         int code = ResourceException.OK;
@@ -511,7 +511,7 @@ public class ZTSResources {
     @Path("/instance/{provider}/{domain}/{service}/{instanceId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "only TLS Certificate authentication is allowed")
+    @Operation(description = "Refresh the given service instance and issue a new x.509 service identity certificate once the provider validates the attestation data along with the request attributes. only TLS Certificate authentication is allowed")
     public InstanceIdentity postInstanceRefreshInformation(
         @Parameter(description = "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")", required = true) @PathParam("provider") String provider,
         @Parameter(description = "the domain of the instance", required = true) @PathParam("domain") String domain,
@@ -546,10 +546,47 @@ public class ZTSResources {
         }
     }
 
+    @GET
+    @Path("/instance/{provider}/{domain}/{service}/{instanceId}/token")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Request a token for the given service to be bootstrapped for the given provider. The caller must have authorization to manage the service in the given domain. The token will be valid for 30 mins for one time use only for the initial registration. The token must be sent back in the register request as the value of the attestationData field in the InstanceRegisterInformation object")
+    public InstanceRegisterToken getInstanceRegisterToken(
+        @Parameter(description = "the provider service name (i.e. \"aws.us-west-2\")", required = true) @PathParam("provider") String provider,
+        @Parameter(description = "the domain of the instance", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "the service this instance is supposed to run", required = true) @PathParam("service") String service,
+        @Parameter(description = "unique instance id within provider's namespace", required = true) @PathParam("instanceId") String instanceId) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getInstanceRegisterToken");
+            context.authorize("update", "" + domain + ":service." + service + "", null);
+            return this.delegate.getInstanceRegisterToken(context, provider, domain, service, instanceId);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.INTERNAL_SERVER_ERROR:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getInstanceRegisterToken");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
     @DELETE
     @Path("/instance/{provider}/{domain}/{service}/{instanceId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "")
+    @Operation(description = "Delete the given service instance certificate record thus blocking any future refresh requests from the given instance for this service")
     public void deleteInstanceIdentity(
         @Parameter(description = "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")", required = true) @PathParam("provider") String provider,
         @Parameter(description = "the domain of the instance", required = true) @PathParam("domain") String domain,
@@ -586,7 +623,7 @@ public class ZTSResources {
     @GET
     @Path("/cacerts/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "")
+    @Operation(description = "Return the request CA X.509 Certificate bundle")
     public CertificateAuthorityBundle getCertificateAuthorityBundle(
         @Parameter(description = "name of the CA cert bundle", required = true) @PathParam("name") String name) {
         int code = ResourceException.OK;

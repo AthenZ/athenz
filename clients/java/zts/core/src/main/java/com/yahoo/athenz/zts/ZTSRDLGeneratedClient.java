@@ -417,6 +417,28 @@ public class ZTSRDLGeneratedClient {
 
     }
 
+    public InstanceRegisterToken getInstanceRegisterToken(String provider, String domain, String service, String instanceId) {
+        WebTarget target = base.path("/instance/{provider}/{domain}/{service}/{instanceId}/token")
+            .resolveTemplate("provider", provider)
+            .resolveTemplate("domain", domain)
+            .resolveTemplate("service", service)
+            .resolveTemplate("instanceId", instanceId);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(InstanceRegisterToken.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public InstanceIdentity deleteInstanceIdentity(String provider, String domain, String service, String instanceId) {
         WebTarget target = base.path("/instance/{provider}/{domain}/{service}/{instanceId}")
             .resolveTemplate("provider", provider)

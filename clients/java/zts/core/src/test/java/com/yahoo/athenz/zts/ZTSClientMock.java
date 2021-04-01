@@ -28,7 +28,6 @@ import javax.ws.rs.client.ClientBuilder;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import javax.net.ssl.HostnameVerifier;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.ServiceIdentityProvider;
 import com.yahoo.athenz.auth.util.Crypto;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -39,15 +38,8 @@ public class ZTSClientMock extends ZTSClient {
     private String csrUriVerifyValue;
     private List<String> csrDnsVerifyValues;
 
-    public ZTSClientMock() {
-    }
-
     public ZTSClientMock(String ztsUrl) {
         super(ztsUrl);
-    }
-
-    public ZTSClientMock(Principal identity) {
-        super(identity);
     }
 
     public ZTSClientMock(String ztsUrl, Principal identity) {
@@ -61,14 +53,6 @@ public class ZTSClientMock extends ZTSClient {
     @Override
     PoolingHttpClientConnectionManager createConnectionManager(SSLContext sslContext, HostnameVerifier hostnameVerifier) {
         return null;
-    }
-
-    public ZTSClientMock(String domainName, String serviceName, ServiceIdentityProvider siaProvider) {
-        super(domainName, serviceName, siaProvider);
-    }
-
-    public ZTSClientMock(String ztsUrl, String domainName, String serviceName, ServiceIdentityProvider siaProvider) {
-        super(ztsUrl, domainName, serviceName, siaProvider);
     }
 
     public static void setClientBuilder(ClientBuilder builder) {

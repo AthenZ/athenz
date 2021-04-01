@@ -18,32 +18,61 @@ package com.yahoo.athenz.instance.provider.impl;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.token.Token;
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.zts.InstanceRegisterToken;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
+import java.security.PrivateKey;
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class InstanceZTSProvider implements InstanceProvider {
 
-
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceZTSProvider.class);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
     private static final String URI_HOSTNAME_PREFIX = "athenz://hostname/";
 
-    static final String ZTS_PROVIDER_DNS_SUFFIX  = "athenz.zts.provider_dns_suffix";
-    static final String ZTS_PRINCIPAL_LIST       = "athenz.zts.provider_service_list";
+    static final String ZTS_PROP_PROVIDER_DNS_SUFFIX  = "athenz.zts.provider_dns_suffix";
+    static final String ZTS_PROP_PRINCIPAL_LIST       = "athenz.zts.provider_service_list";
+    static final String ZTS_PROP_EXPIRY_TIME          = "athenz.zts.provider_token_expiry_time";
+
+    static final String ZTS_PROVIDER_SERVICE  = "sys.auth.zts";
+
+    public static final String HDR_KEY_ID     = "kid";
+    public static final String HDR_TOKEN_TYPE = "typ";
+    public static final String HDR_TOKEN_JWT  = "jwt";
+
+    public static final String CLAIM_PROVIDER    = "provider";
+    public static final String CLAIM_DOMAIN      = "domain";
+    public static final String CLAIM_SERVICE     = "service";
+    public static final String CLAIM_CLIENT_ID   = "client_id";
+    public static final String CLAIM_INSTANCE_ID = "instance_id";
 
     KeyStore keyStore = null;
     String dnsSuffix = null;
+    String provider = null;
+    String keyId = null;
+    PrivateKey key = null;
+    SignatureAlgorithm keyAlg = null;
     Set<String> principals = null;
     HostnameResolver hostnameResolver = null;
+    JwtsSigningKeyResolver signingKeyResolver = null;
+    int expiryTime;
 
     @Override
     public Scheme getProviderScheme() {
@@ -54,10 +83,14 @@ public class InstanceZTSProvider implements InstanceProvider {
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
             KeyStore keyStore) {
 
+        // save our provider name
+
+        this.provider = provider;
+
         // obtain list of valid principals for this principal if
         // one is configured
 
-        final String principalList = System.getProperty(ZTS_PRINCIPAL_LIST);
+        final String principalList = System.getProperty(ZTS_PROP_PRINCIPAL_LIST);
         if (principalList != null && !principalList.isEmpty()) {
             principals = new HashSet<>(Arrays.asList(principalList.split(",")));
         }
@@ -65,11 +98,27 @@ public class InstanceZTSProvider implements InstanceProvider {
         // determine the dns suffix. if this is not specified we'll be
         // rejecting all entries
         
-        dnsSuffix = System.getProperty(ZTS_PROVIDER_DNS_SUFFIX, "zts.athenz.cloud");
+        dnsSuffix = System.getProperty(ZTS_PROP_PROVIDER_DNS_SUFFIX, "zts.athenz.cloud");
         if (dnsSuffix.isEmpty()) {
             dnsSuffix = "zts.athenz.cloud";
         }
         this.keyStore = keyStore;
+
+        // get expiry time for any generated tokens - default 30 mins
+
+        final String expiryTimeStr = System.getProperty(ZTS_PROP_EXPIRY_TIME, "30");
+        expiryTime = Integer.parseInt(expiryTimeStr);
+
+        // initialize our jwt key resolver
+
+        signingKeyResolver = new JwtsSigningKeyResolver(null, null);
+    }
+
+    @Override
+    public void setPrivateKey(PrivateKey key, String keyId, SignatureAlgorithm keyAlg) {
+        this.key = key;
+        this.keyId = keyId;
+        this.keyAlg = keyAlg;
     }
 
     @Override
@@ -81,9 +130,18 @@ public class InstanceZTSProvider implements InstanceProvider {
         LOGGER.error(message);
         return new ResourceException(ResourceException.FORBIDDEN, message);
     }
-    
+
     @Override
     public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
+        return validateInstanceRequest(confirmation, true);
+    }
+
+    @Override
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+        return validateInstanceRequest(confirmation, false);
+    }
+
+    InstanceConfirmation validateInstanceRequest(InstanceConfirmation confirmation, boolean registerInstance) {
 
         // we need to validate the token which is our attestation
         // data for the service requesting a certificate
@@ -102,17 +160,55 @@ public class InstanceZTSProvider implements InstanceProvider {
             throw forbiddenError("Service not supported to be launched by ZTS Provider");
         }
 
+        // we're supporting two attestation data models with our provider
+        // 1) public / private key pair with service tokens - these
+        //    are always starting with v=S1;... string
+        // 2) provider registration tokens - using jwts
+
+        final String attestationData = confirmation.getAttestationData();
+        if (StringUtil.isEmpty(attestationData)) {
+            throw forbiddenError("Service credentials not provided");
+        }
+
+        boolean tokenValidated;
+        Map<String, String> attributes;
         StringBuilder errMsg = new StringBuilder(256);
-        if (!validateToken(confirmation.getAttestationData(), instanceDomain,
-                instanceService, csrPublicKey, errMsg)) {
+        if (attestationData.startsWith("v=S1;")) {
+
+            // set our cert attributes in the return object
+            // for ZTS we do not allow refresh of those certificates
+
+            attributes = new HashMap<>();
+            attributes.put(InstanceProvider.ZTS_CERT_REFRESH, "false");
+
+            tokenValidated = validateServiceToken(attestationData, instanceDomain,
+                    instanceService, csrPublicKey, errMsg);
+
+        } else {
+
+            // for token based request we do support refresh operation
+
+            attributes = Collections.emptyMap();
+
+            final String instanceId = InstanceUtils.getInstanceProperty(instanceAttributes,
+                    InstanceProvider.ZTS_INSTANCE_ID);
+            tokenValidated = validateRegisterToken(attestationData, instanceDomain,
+                    instanceService, instanceId, registerInstance, errMsg);
+        }
+
+        if (!tokenValidated) {
             LOGGER.error(errMsg.toString());
             throw forbiddenError("Unable to validate Certificate Request Auth Token");
         }
 
-        String clientIp = InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_CLIENT_IP);
-        String sanIpStr = InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_SAN_IP);
-        String hostname = InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_HOSTNAME);
-        String sanUri   = InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_SAN_URI);
+        final String clientIp = InstanceUtils.getInstanceProperty(instanceAttributes,
+                InstanceProvider.ZTS_INSTANCE_CLIENT_IP);
+        final String sanIpStr = InstanceUtils.getInstanceProperty(instanceAttributes,
+                InstanceProvider.ZTS_INSTANCE_SAN_IP);
+        final String hostname = InstanceUtils.getInstanceProperty(instanceAttributes,
+                InstanceProvider.ZTS_INSTANCE_HOSTNAME);
+        final String sanUri   = InstanceUtils.getInstanceProperty(instanceAttributes,
+                InstanceProvider.ZTS_INSTANCE_SAN_URI);
 
         // validate the IP address if one is provided
 
@@ -126,7 +222,8 @@ public class InstanceZTSProvider implements InstanceProvider {
         }
 
         // validate the hostname in payload
-        // IP in clientIP can be NATed. For validating hostname, rely on sanIPs, which come from the client, and are already matched with clientIp
+        // IP in clientIP can be NATed. For validating hostname, rely on sanIPs, which come
+        // from the client, and are already matched with clientIp
 
         if (!validateHostname(hostname, sanIps)) {
             throw forbiddenError("Unable to validate certificate request hostname");
@@ -145,29 +242,54 @@ public class InstanceZTSProvider implements InstanceProvider {
             throw forbiddenError("Unable to validate certificate request DNS");
         }
 
-        // set our cert attributes in the return object
-        // for ZTS we do not allow refresh of those certificates
-
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(InstanceProvider.ZTS_CERT_REFRESH, "false");
-
         confirmation.setAttributes(attributes);
         return confirmation;
     }
 
     @Override
-    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+    public InstanceRegisterToken getInstanceRegisterToken(InstanceConfirmation details) {
 
-        // we do not allow refresh of zts provider certificates
-        // the caller should just request a new certificate
+        // ZTS Server has already verified that the caller has update
+        // rights over the given service so we'll just generate
+        // an instance register token and return to the client
 
-        throw forbiddenError("ZTS Provider X.509 Certificates cannot be refreshed");
+        final String principal = InstanceUtils.getInstanceProperty(details.getAttributes(),
+                InstanceProvider.ZTS_REQUEST_PRINCIPAL);
+        final String instanceId = InstanceUtils.getInstanceProperty(details.getAttributes(),
+                InstanceProvider.ZTS_INSTANCE_ID);
+        final String tokenId = UUID.randomUUID().toString();
+
+        // first we'll generate and sign our token
+
+        final String registerToken = Jwts.builder()
+                .setId(tokenId)
+                .setSubject(ResourceUtils.serviceResourceName(details.getDomain(), details.getService()))
+                .setIssuedAt(Date.from(Instant.now()))
+                .setIssuer(provider)
+                .setAudience(provider)
+                .claim(CLAIM_PROVIDER, details.getProvider())
+                .claim(CLAIM_DOMAIN, details.getDomain())
+                .claim(CLAIM_SERVICE, details.getService())
+                .claim(CLAIM_INSTANCE_ID, instanceId)
+                .claim(CLAIM_CLIENT_ID, principal)
+                .setHeaderParam(HDR_KEY_ID, keyId)
+                .setHeaderParam(HDR_TOKEN_TYPE, HDR_TOKEN_JWT)
+                .signWith(key, keyAlg)
+                .compact();
+
+        // finally return our token to the caller
+
+        return new InstanceRegisterToken()
+                .setProvider(details.getProvider())
+                .setDomain(details.getDomain())
+                .setService(details.getService())
+                .setAttestationData(registerToken);
     }
 
     /**
      * verifies that at least one of the sanIps matches clientIp
-     * @param sanIps
-     * @param clientIp
+     * @param sanIps an array of SAN IPs
+     * @param clientIp the client IP address
      * @return true if sanIps is null or one of the sanIps matches. false otherwise
      */
     boolean validateSanIp(final String[] sanIps, final String clientIp) {
@@ -196,10 +318,11 @@ public class InstanceZTSProvider implements InstanceProvider {
 
     /**
      * returns true if an empty hostname attribute is passed
-     * returns true if a non-empty hostname attribute is passed and all IPs passed in sanIp match the IPs that hostname resolves to.
+     * returns true if a non-empty hostname attribute is passed and all IPs
+     * passed in sanIp match the IPs that hostname resolves to.
      * returns false in all other cases
-     * @param hostname
-     * @param sanIps
+     * @param hostname host name to check against specified IPs
+     * @param sanIps list of IPs to check against the specified hostname
      * @return true or false
      */
     boolean validateHostname(final String hostname, final String[] sanIps) {
@@ -210,20 +333,23 @@ public class InstanceZTSProvider implements InstanceProvider {
             LOGGER.info("Request contains no hostname entry for validation");
             // if more than one sanIp is passed, all sanIPs must map to hostname, and hostname is a must
             if (sanIps != null && sanIps.length > 1) {
-                LOGGER.error("SanIps:{} > 1, and hostname is empty", sanIps);
+                LOGGER.error("SanIps:{} > 1, and hostname is empty", sanIps.length);
                 return false;
             }
             return true;
         }
 
-        // IP in clientIp can be NATed. Rely on sanIp, which comes from the client, and is already matched with clientIp
+        // IP in clientIp can be NATed. Rely on sanIp, which comes from the
+        // client, and is already matched with clientIp
         // sanIp should be non-empty
+
         if (sanIps == null || sanIps.length == 0) {
             LOGGER.error("Request contains no sanIp entry for hostname:{} validation", hostname);
             return false;
         }
 
         // All entries in sanIP must be one of the IPs that hostname resolves
+
         Set<String>  hostIps = hostnameResolver.getAllByName(hostname);
         for (String sanIp: sanIps) {
             if (!hostIps.contains(sanIp)) {
@@ -237,9 +363,9 @@ public class InstanceZTSProvider implements InstanceProvider {
 
     /**
      * verifies if sanUri contains athenz://hostname/, the value matches the hostname
-     * @param sanUri
-     * @param hostname
-     * @return
+     * @param sanUri the SAN URI that includes athenz hostname
+     * @param hostname name of the host to check against
+     * @return true if there is no SAN URI or the hostname is included in it, otherwise false
      */
     boolean validateSanUri(final String sanUri, final String hostname) {
 
@@ -263,8 +389,7 @@ public class InstanceZTSProvider implements InstanceProvider {
         return true;
     }
 
-
-    boolean validateToken(final String signedToken, final String domainName,
+    boolean validateServiceToken(final String signedToken, final String domainName,
             final String serviceName, final String csrPublicKey, StringBuilder errMsg) {
         
         final PrincipalToken serviceToken = authenticate(signedToken, keyStore, csrPublicKey, errMsg);
@@ -283,6 +408,57 @@ public class InstanceZTSProvider implements InstanceProvider {
         if (!serviceToken.getName().equalsIgnoreCase(serviceName)) {
             errMsg.append("validate failed: service mismatch: ").
                 append(serviceToken.getName()).append(" vs. ").append(serviceName);
+            return false;
+        }
+
+        return true;
+    }
+
+    boolean validateRegisterToken(final String jwToken, final String domainName, final String serviceName,
+                                  final String instanceId, boolean registerInstance, StringBuilder errMsg) {
+
+        Jws<Claims> claims = Jwts.parserBuilder()
+                .setSigningKeyResolver(signingKeyResolver)
+                .setAllowedClockSkewSeconds(60)
+                .build()
+                .parseClaimsJws(jwToken);
+
+        // verify that token audience is set for our service
+
+        Claims claimsBody = claims.getBody();
+        if (!ZTS_PROVIDER_SERVICE.equals(claimsBody.getAudience())) {
+            errMsg.append("token audience is not ZTS provider: ").append(claimsBody.getAudience());
+            return false;
+        }
+
+        // need to verify that the issue time is not before our expiry
+        // only for register requests.
+
+        if (registerInstance) {
+            Date issueDate = claimsBody.getIssuedAt();
+            if (issueDate == null || issueDate.getTime() < System.currentTimeMillis() -
+                    TimeUnit.MINUTES.toMillis(expiryTime)) {
+                errMsg.append("token is already expired, issued at: ").append(issueDate);
+                return false;
+            }
+        }
+
+        // verify provider, domain, service, and instance id values
+
+        if (!domainName.equals(claimsBody.get(CLAIM_DOMAIN, String.class))) {
+            errMsg.append("invalid domain name in token: ").append(claimsBody.get(CLAIM_DOMAIN, String.class));
+            return false;
+        }
+        if (!serviceName.equals(claimsBody.get(CLAIM_SERVICE, String.class))) {
+            errMsg.append("invalid service name in token: ").append(claimsBody.get(CLAIM_SERVICE, String.class));
+            return false;
+        }
+        if (!instanceId.equals(claimsBody.get(CLAIM_INSTANCE_ID, String.class))) {
+            errMsg.append("invalid instance id in token: ").append(claimsBody.get(CLAIM_INSTANCE_ID, String.class));
+            return false;
+        }
+        if (!ZTS_PROVIDER_SERVICE.equals(claimsBody.get(CLAIM_PROVIDER, String.class))) {
+            errMsg.append("invalid provider name in token: ").append(claimsBody.get(CLAIM_PROVIDER, String.class));
             return false;
         }
 
@@ -350,6 +526,4 @@ public class InstanceZTSProvider implements InstanceProvider {
 
         return normAthenzPublicKey.equals(normCsrPublicKey);
     }
-
-
 }

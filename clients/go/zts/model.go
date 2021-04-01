@@ -1880,6 +1880,107 @@ func (self *InstanceRefreshInformation) Validate() error {
 }
 
 //
+// InstanceRegisterToken -
+//
+type InstanceRegisterToken struct {
+
+	//
+	// provider service name
+	//
+	Provider ServiceName `json:"provider"`
+
+	//
+	// the domain of the instance
+	//
+	Domain DomainName `json:"domain"`
+
+	//
+	// the service this instance is supposed to run
+	//
+	Service SimpleName `json:"service"`
+
+	//
+	// identity attestation data including document with its signature containing
+	// attributes like IP address, instance-id, account#, etc.
+	//
+	AttestationData string `json:"attestationData"`
+
+	//
+	// additional non-signed attributes that assist in attestation. I.e. "keyId",
+	// "accessKey", etc
+	//
+	Attributes map[string]string `json:"attributes,omitempty" rdl:"optional"`
+}
+
+//
+// NewInstanceRegisterToken - creates an initialized InstanceRegisterToken instance, returns a pointer to it
+//
+func NewInstanceRegisterToken(init ...*InstanceRegisterToken) *InstanceRegisterToken {
+	var o *InstanceRegisterToken
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(InstanceRegisterToken)
+	}
+	return o
+}
+
+type rawInstanceRegisterToken InstanceRegisterToken
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a InstanceRegisterToken
+//
+func (self *InstanceRegisterToken) UnmarshalJSON(b []byte) error {
+	var m rawInstanceRegisterToken
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := InstanceRegisterToken(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *InstanceRegisterToken) Validate() error {
+	if self.Provider == "" {
+		return fmt.Errorf("InstanceRegisterToken.provider is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Provider)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterToken.provider does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	if self.Domain == "" {
+		return fmt.Errorf("InstanceRegisterToken.domain is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "DomainName", self.Domain)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterToken.domain does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Service == "" {
+		return fmt.Errorf("InstanceRegisterToken.service is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Service)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterToken.service does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.AttestationData == "" {
+		return fmt.Errorf("InstanceRegisterToken.attestationData is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterToken.attestationData does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // InstanceIdentity -
 //
 type InstanceIdentity struct {

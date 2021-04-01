@@ -150,7 +150,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_INSTANCE_REGISTER_INFO = "InstanceRegisterInformation";
     private static final String TYPE_INSTANCE_REFRESH_INFO = "InstanceRefreshInformation";
     private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
-    private static final String TYPE_DOMAIN_METRICS = "DomainMetrics";
     private static final String TYPE_ROLE_CERTIFICATE_REQUEST = "RoleCertificateRequest";
     private static final String TYPE_SSH_CERT_REQUEST = "SSHCertRequest";
     private static final String TYPE_COMPOUND_NAME = "CompoundName";
@@ -164,11 +163,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final long ZTS_NTOKEN_DEFAULT_EXPIRY = TimeUnit.SECONDS.convert(2, TimeUnit.HOURS);
     private static final long ZTS_NTOKEN_MAX_EXPIRY = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS);
 
-    // HTTP operation types used in metrics
-    private static final String HTTP_GET = "GET";
-    private static final String HTTP_POST = "POST";
-    private static final String HTTP_REQUEST = "REQUEST";
-
     private static final String KEY_SCOPE = "scope";
     private static final String KEY_GRANT_TYPE = "grant_type";
     private static final String KEY_EXPIRES_IN = "expires_in";
@@ -181,9 +175,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     private static final String USER_AGENT_HDR = "User-Agent";
 
-    // domain metrics prefix
-    private static final String DOM_METRIX_PREFIX = "dom_metric_";
-
     private static final String ACCESS_LOG_ADDL_QUERY = "com.yahoo.athenz.uri.addl_query";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZTSImpl.class);
@@ -195,12 +186,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected StatusChecker statusChecker = null;
 
     enum AthenzObject {
-        DOMAIN_METRICS {
-            void convertToLowerCase(Object obj) {
-                DomainMetrics metrics = (DomainMetrics) obj;
-                metrics.setDomainName(metrics.getDomainName().toLowerCase());
-            }
-        },
         INSTANCE_REGISTER_INFO {
             void convertToLowerCase(Object obj) {
                 InstanceRegisterInformation info = (InstanceRegisterInformation) obj;
@@ -316,7 +301,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer, hostnameResolver, readOnlyMode);
 
         instanceProviderManager = new InstanceProviderManager(dataStore,
-                ZTSUtils.createServerClientSSLContext(privateKeyStore), this);
+                ZTSUtils.createServerClientSSLContext(privateKeyStore), privateKey, this);
         
         // make sure to set the keystore for any instance that requires it
         
@@ -2609,6 +2594,89 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         LOGGER.error("validateInstanceServiceIdentity: {} not registered for caller {}", serviceName, caller);
         throw requestError("Service not registered in domain", caller, domainName, domainName);
+    }
+
+    @Override
+    public InstanceRegisterToken getInstanceRegisterToken(ResourceContext ctx, String provider,
+            String domain, String service, String instanceId) {
+
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+
+        validateRequest(ctx.request(), principalDomain, caller);
+        validate(provider, TYPE_SERVICE_NAME, principalDomain, caller);
+        validate(domain, TYPE_DOMAIN_NAME, principalDomain, caller);
+        validate(service, TYPE_SIMPLE_NAME, principalDomain, caller);
+        validate(instanceId, TYPE_PATH_ELEMENT, principalDomain, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        provider = provider.toLowerCase();
+        domain = domain.toLowerCase();
+        setRequestDomain(ctx, domain);
+        service = service.toLowerCase();
+        setRequestDomain(ctx, domain);
+
+        // get our domain object and validate the service is correctly registered
+
+        DomainData domainData = dataStore.getDomainData(domain);
+        if (domainData == null) {
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("Domain not found: " + domain, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        final String cn = ResourceUtils.serviceResourceName(domain, service);
+        validateInstanceServiceIdentity(domainData, cn, caller);
+
+        // run the authorization checks to make sure the provider has been
+        // authorized to launch instances in Athenz and the service has
+        // authorized this provider to launch its instances
+
+        Principal providerService = createPrincipalForName(provider);
+        StringBuilder errorMsg = new StringBuilder(256);
+
+        if (!instanceCertManager.authorizeLaunch(providerService, domain, service, errorMsg)) {
+            throw forbiddenError(errorMsg.toString(), caller, domain, principalDomain);
+        }
+
+        // validate the provider is correct
+
+        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver);
+        if (instanceProvider == null) {
+            throw requestError("unable to get instance for provider: " + provider,
+                    caller, domain, principalDomain);
+        }
+
+        // generate our instance confirmation object
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, ServletRequestUtil.getRemoteAddress(ctx.request()));
+
+        // include the principal from the request object
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        attributes.put(InstanceProvider.ZTS_REQUEST_PRINCIPAL, principal.getFullName());
+        attributes.put(InstanceProvider.ZTS_INSTANCE_ID, instanceId);
+
+        InstanceConfirmation instance = new InstanceConfirmation()
+                .setDomain(domain).setService(service).setProvider(provider)
+                .setAttributes(attributes);
+
+        // make sure to close our provider when its no longer needed
+
+        InstanceRegisterToken instanceRegisterToken;
+        try {
+            instanceRegisterToken = instanceProvider.getInstanceRegisterToken(instance);
+        } catch (Exception ex) {
+            throw requestError("unable to get instance register token: " + ex.getMessage(),
+                    caller, domain, principalDomain);
+        } finally {
+            instanceProvider.close();
+        }
+
+        return instanceRegisterToken;
     }
 
     @Override

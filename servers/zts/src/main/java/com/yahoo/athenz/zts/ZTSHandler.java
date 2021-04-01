@@ -28,6 +28,7 @@ public interface ZTSHandler {
     AWSTemporaryCredentials getAWSTemporaryCredentials(ResourceContext context, String domainName, String role, Integer durationSeconds, String externalId);
     Response postInstanceRegisterInformation(ResourceContext context, InstanceRegisterInformation info);
     InstanceIdentity postInstanceRefreshInformation(ResourceContext context, String provider, String domain, String service, String instanceId, InstanceRefreshInformation info);
+    InstanceRegisterToken getInstanceRegisterToken(ResourceContext context, String provider, String domain, String service, String instanceId);
     void deleteInstanceIdentity(ResourceContext context, String provider, String domain, String service, String instanceId);
     CertificateAuthorityBundle getCertificateAuthorityBundle(ResourceContext context, String name);
     Status getStatus(ResourceContext context);

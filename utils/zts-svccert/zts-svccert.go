@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -11,11 +12,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/athenzutils"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -44,17 +47,54 @@ func printVersion() {
 	}
 }
 
+func usage() {
+	fmt.Println("")
+	fmt.Println("Request Instance Register Token Only:")
+	fmt.Println("")
+	fmt.Println("    zts-svccert -get-instance-register-token -zts <zts-server-url> <principal-credentials> -provider <provider-name> <service-details> -instance <instance-id> [attestation-data <token-output-file>]")
+	fmt.Println("")
+	fmt.Println("Request Service Identity Certificate using Instance Register Token:")
+	fmt.Println("")
+	fmt.Println("    zts-svccert -use-instance-register-token -zts <zts-server-url> <principal-credentials> -private-key <private-key-path> -provider <provider-name> <service-details> -instance <instance-id> <certificate-details>")
+	fmt.Println("")
+	fmt.Println("Request Service Identity Certificate using Registered Public/Private Key Pair:")
+	fmt.Println("")
+	fmt.Println("    zts-svccert -zts <zts-server-url> -private-key <private-key-path> -key-version <private-key-version> -hdr <credential-header-name> [-provider <provider-name>[ <service-details> [-instance <instance-id>] <certificate-details>")
+	fmt.Println("")
+	fmt.Println("Request Service Identity Certificate Signing Request (CSR) Only:")
+	fmt.Println("")
+	fmt.Println("    zts-svccert -csr -private-key <private-key-path> [-provider <provider-name>] <service-details> [-instance <instance-id>] <certificate-details>")
+	fmt.Println("")
+	fmt.Println("Request Service Identity Certificate using Provided Attestation Data:")
+	fmt.Println("")
+	fmt.Println("    zts-svccert -private-key <private-key-path> -attestation-data <attestation-data-file> [-hdr <credential-header-name>] [-provider <provider-name>] <service-details> [-instance <instance-id>] <certificate-details>")
+	fmt.Println("")
+	fmt.Println("Common parameters:")
+	fmt.Println("")
+	fmt.Println("      <service-details> := -domain <domain-name> -service <service-name>")
+	fmt.Println("")
+	fmt.Println("      <certificate-details> := -dns-domain <san-dns-domain-component> [-signer-cert-file <cert-output-file>] [-spiffe] [-expiry-time <mins>] [-sub-c <subject country>] [-sub-o <subject org] [-sub-ou <subject orgunit] [-ip <san-ip-address>] [-signer-cert-file <root-ca-output-file>]")
+	fmt.Println("")
+	fmt.Println("      <principal-credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-cacert <ca-cert-file>] |")
+	fmt.Println("                                 -ntoken-file <ntoken-file> [-hdr <auth-header-name>] [-cacert <ca-cert-file>]")
+	fmt.Println("")
+	os.Exit(1)
+}
+
 func main() {
 	var ztsURL, serviceKey, serviceCert, domain, service, keyID string
 	var caCertFile, certFile, signerCertFile, dnsDomain, hdr, ip string
 	var subjC, subjO, subjOU, uri, provider, instance, instanceId string
-	var attestationDataFile string
-	var csr, spiffe, showVersion bool
+	var svcKeyFile, svcCertFile, ntokenFile, attestationDataFile string
+	var csr, spiffe, showVersion, getInstanceRegisterToken, useInstanceRegisterToken bool
 	var expiryTime int
 	flag.BoolVar(&csr, "csr", false, "request csr only")
+	flag.BoolVar(&getInstanceRegisterToken, "get-instance-register-token", false, "request instance register token only")
+	flag.BoolVar(&useInstanceRegisterToken, "use-instance-register-token", false, "request certificate using instance register token")
 	flag.BoolVar(&spiffe, "spiffe", true, "include spiffe uri in csr")
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes")
 	flag.StringVar(&certFile, "cert-file", "", "output certificate file")
+	flag.StringVar(&ntokenFile, "ntoken-file", "", "service identity token file")
 	flag.StringVar(&signerCertFile, "signer-cert-file", "", "output signer certificate file")
 	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
 	flag.StringVar(&serviceKey, "private-key", "", "private key file (required)")
@@ -72,6 +112,8 @@ func main() {
 	flag.StringVar(&provider, "provider", "", "Athenz Provider")
 	flag.StringVar(&instance, "instance", "", "Instance Id")
 	flag.StringVar(&attestationDataFile, "attestation-data", "", "Attestation Data File")
+	flag.StringVar(&svcKeyFile, "svc-key-file", "", "service identity private key file")
+	flag.StringVar(&svcCertFile, "svc-cert-file", "", "service identity certificate file")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.Parse()
 
@@ -80,14 +122,48 @@ func main() {
 		return
 	}
 
+	// if we're asked to obtain instance register token then we can handle
+	// that separately and return right away
+
+	attestationData := ""
+	var err error
+
+	if getInstanceRegisterToken || useInstanceRegisterToken {
+		if ztsURL == "" || domain == "" || service == "" || provider == "" || instance == "" || svcKeyFile == "" || svcCertFile == "" {
+			log.Println("Error: missing required attributes. Run with -help for command line arguments")
+			usage()
+		}
+		attestationData, err = fetchInstanceRegisterToken(ztsURL, svcKeyFile, svcCertFile, caCertFile, ntokenFile, hdr, provider, domain, service, instance)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if getInstanceRegisterToken {
+			if attestationDataFile != "" {
+				err := ioutil.WriteFile(attestationDataFile, []byte(attestationData), 0444)
+				if err != nil {
+					log.Fatalln(err)
+				}
+			} else {
+				fmt.Println(attestationData)
+			}
+			return
+		}
+	}
+
 	if serviceKey == "" || domain == "" || service == "" || dnsDomain == "" {
-		log.Fatalln("Error: missing required attributes. Run with -help for command line arguments")
+		log.Println("Error: missing required attributes. Run with -help for command line arguments")
+		usage()
 	}
 
 	// load private key
 	keyBytes, err := ioutil.ReadFile(serviceKey)
 	if err != nil {
-		log.Fatalln(err)
+		if useInstanceRegisterToken {
+			keyBytes, err = generatePrivateKey(serviceKey)
+		}
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}
 	// get our private key signer for csr
 	pkSigner, err := newSigner(keyBytes)
@@ -135,7 +211,8 @@ func main() {
 
 	// for all other operations we need to have ZTS Server url
 	if ztsURL == "" {
-		log.Fatalln("Error: missing ZTS Server url. Run with -help for command line arguments")
+		log.Println("Error: missing ZTS Server url. Run with -help for command line arguments")
+		usage()
 	}
 
 	// if we're given a certificate then we'll use that otherwise
@@ -147,7 +224,11 @@ func main() {
 	if provider != "" {
 		client, err = certClient(ztsURL, nil, "", caCertFile)
 	} else if serviceCert == "" {
-		client, err = ntokenClient(ztsURL, domain, service, keyID, caCertFile, hdr, keyBytes)
+		ntoken, err := getNToken(domain, service, keyID, keyBytes)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		client, err = ntokenClient(ztsURL, ntoken, caCertFile, hdr)
 	} else {
 		client, err = certClient(ztsURL, keyBytes, serviceCert, caCertFile)
 	}
@@ -159,22 +240,25 @@ func main() {
 
 	// if we're given provider then we're going to use our
 	// copper argos model to request the certificate
+
 	if provider != "" {
 
 		if instanceId == "" {
-			log.Fatalln("Error: Please specify instance value. Run with -help for command line arguments")
+			log.Println("Error: Please specify instance value. Run with -help for command line arguments")
+			usage()
 		}
-		attestationData := ""
-		if attestationDataFile != "" {
-			attestationDataBytes, err := ioutil.ReadFile(attestationDataFile)
-			if err != nil {
-				log.Fatalln(err)
-			}
-			attestationData = string(attestationDataBytes)
-		} else {
-			attestationData, err = getNToken(domain, service, keyID, keyBytes)
-			if err != nil {
-				log.Fatalln(err)
+		if attestationData == "" {
+			if attestationDataFile != "" {
+				attestationDataBytes, err := ioutil.ReadFile(attestationDataFile)
+				if err != nil {
+					log.Fatalln(err)
+				}
+				attestationData = string(attestationDataBytes)
+			} else {
+				attestationData, err = getNToken(domain, service, keyID, keyBytes)
+				if err != nil {
+					log.Fatalln(err)
+				}
 			}
 		}
 		req := &zts.InstanceRegisterInformation{
@@ -230,10 +314,56 @@ func main() {
 	}
 }
 
+func generatePrivateKey(serviceKey string) ([]byte, error) {
+	rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, err
+	}
+	keyBytes := getPEMBlock(rsaKey)
+	err = ioutil.WriteFile(serviceKey, keyBytes, 0400)
+	if err != nil {
+		return nil, err
+	}
+	return keyBytes, nil
+}
+
+func getPEMBlock(privateKey *rsa.PrivateKey) []byte {
+	block := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+	}
+	return pem.EncodeToMemory(block)
+}
+
+func fetchInstanceRegisterToken(ztsURL, svcKeyFile, svcCertFile, caCertFile, ntokenFile, hdr, provider, domain, service, instance string) (string, error) {
+
+	var client *zts.ZTSClient
+	var err error
+	if svcKeyFile != "" {
+		client, err = athenzutils.ZtsClient(ztsURL, svcKeyFile, svcCertFile, caCertFile, true)
+	} else {
+		// we need to load our ntoken from the given file
+		ntokenBytes, err := ioutil.ReadFile(ntokenFile)
+		if err != nil {
+			return "", err
+		}
+		ntoken := strings.TrimSpace(string(ntokenBytes))
+		client, err = ntokenClient(ztsURL, ntoken, hdr, caCertFile)
+	}
+	if err != nil {
+		return "", err
+	}
+	instanceRegisterToken, err := client.GetInstanceRegisterToken(zts.ServiceName(provider), zts.DomainName(domain), zts.SimpleName(service), zts.PathElement(instance))
+	if err != nil {
+		return "", err
+	}
+	return instanceRegisterToken.AttestationData, nil
+}
+
 func newSigner(privateKeyPEM []byte) (*signer, error) {
 	block, _ := pem.Decode(privateKeyPEM)
 	if block == nil {
-		return nil, fmt.Errorf("Unable to load private key")
+		return nil, fmt.Errorf("unable to load private key")
 	}
 
 	switch block.Type {
@@ -250,7 +380,7 @@ func newSigner(privateKeyPEM []byte) (*signer, error) {
 		}
 		return &signer{key: key, algorithm: x509.SHA256WithRSA}, nil
 	default:
-		return nil, fmt.Errorf("Unsupported private key type: %s", block.Type)
+		return nil, fmt.Errorf("unsupported private key type: %s", block.Type)
 	}
 }
 
@@ -284,7 +414,7 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, ip, uri st
 	}
 	csr, err := x509.CreateCertificateRequest(rand.Reader, &template, keySigner.key)
 	if err != nil {
-		return "", fmt.Errorf("Cannot create CSR: %v", err)
+		return "", fmt.Errorf("cannot create CSR: %v", err)
 	}
 	block := &pem.Block{
 		Type:  "CERTIFICATE REQUEST",
@@ -293,7 +423,7 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, ip, uri st
 	var buf bytes.Buffer
 	err = pem.Encode(&buf, block)
 	if err != nil {
-		return "", fmt.Errorf("Cannot encode CSR to PEM: %v", err)
+		return "", fmt.Errorf("cannot encode CSR to PEM: %v", err)
 	}
 	return buf.String(), nil
 }
@@ -301,7 +431,7 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, ip, uri st
 func getNToken(domain, service, keyID string, keyBytes []byte) (string, error) {
 
 	if keyID == "" {
-		return "", errors.New("Missing key-version for the specified private key")
+		return "", errors.New("missing key-version for the specified private key")
 	}
 
 	// get token builder instance
@@ -321,12 +451,8 @@ func getNToken(domain, service, keyID string, keyBytes []byte) (string, error) {
 	return tok.Value()
 }
 
-func ntokenClient(ztsURL, domain, service, keyID, caCertFile, hdr string, keyBytes []byte) (*zts.ZTSClient, error) {
+func ntokenClient(ztsURL, ntoken, caCertFile, hdr string) (*zts.ZTSClient, error) {
 
-	ntoken, err := getNToken(domain, service, keyID, keyBytes)
-	if err != nil {
-		return nil, err
-	}
 	transport := &http.Transport{
 		Proxy:                 http.ProxyFromEnvironment,
 		ResponseHeaderTimeout: 30 * time.Second,

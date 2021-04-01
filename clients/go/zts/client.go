@@ -820,6 +820,38 @@ func (client ZTSClient) PostInstanceRefreshInformation(provider ServiceName, dom
 	}
 }
 
+func (client ZTSClient) GetInstanceRegisterToken(provider ServiceName, domain DomainName, service SimpleName, instanceId PathElement) (*InstanceRegisterToken, error) {
+	var data *InstanceRegisterToken
+	url := client.URL + "/instance/" + fmt.Sprint(provider) + "/" + fmt.Sprint(domain) + "/" + fmt.Sprint(service) + "/" + fmt.Sprint(instanceId) + "/token"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client ZTSClient) DeleteInstanceIdentity(provider ServiceName, domain DomainName, service SimpleName, instanceId PathElement) error {
 	url := client.URL + "/instance/" + fmt.Sprint(provider) + "/" + fmt.Sprint(domain) + "/" + fmt.Sprint(service) + "/" + fmt.Sprint(instanceId)
 	resp, err := client.httpDelete(url, nil)
