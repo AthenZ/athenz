@@ -4392,6 +4392,330 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecutePutGroupMeta() {
+
+        final String domainName = "metadomTest1";
+        final String groupName = "metagroupTest1";
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc",
+                "testOrg", false, "", 1234, "", 0), admins, null, auditRef);
+
+        Group group = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, groupName, group, "test");
+
+        GroupMeta gm = new GroupMeta();
+        gm.setSelfServe(true);
+
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
+                gm, auditRef);
+
+        Group resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
+        assertTrue(resGroup1.getSelfServe());
+
+        gm = new GroupMeta();
+        gm.setSelfServe(true);
+        gm.setMemberExpiryDays(10);
+        gm.setServiceExpiryDays(15);
+        gm.setReviewEnabled(true);
+        gm.setNotifyRoles("role1,role2");
+        gm.setUserAuthorityFilter("employee");
+        gm.setUserAuthorityExpiration("elevated-clearance");
+
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
+                gm, auditRef);
+        resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
+        assertTrue(resGroup1.getSelfServe());
+        assertEquals(resGroup1.getMemberExpiryDays(), Integer.valueOf(10));
+        assertEquals(resGroup1.getServiceExpiryDays(), Integer.valueOf(15));
+        assertTrue(resGroup1.getReviewEnabled());
+        assertEquals(resGroup1.getNotifyRoles(), "role1,role2");
+        assertEquals(resGroup1.getUserAuthorityFilter(), "employee");
+        assertEquals(resGroup1.getUserAuthorityExpiration(), "elevated-clearance");
+
+        gm = new GroupMeta();
+        gm.setSelfServe(false);
+        gm.setServiceExpiryDays(15);
+        gm.setReviewEnabled(false);
+        gm.setUserAuthorityFilter("contractor");
+
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
+                gm, auditRef);
+        resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
+        assertNull(resGroup1.getSelfServe());
+        assertEquals(resGroup1.getMemberExpiryDays(), Integer.valueOf(10));
+        assertEquals(resGroup1.getServiceExpiryDays(), Integer.valueOf(15));
+        assertNull(resGroup1.getReviewEnabled());
+        assertEquals(resGroup1.getNotifyRoles(), "role1,role2");
+        assertEquals(resGroup1.getUserAuthorityFilter(), "contractor");
+        assertEquals(resGroup1.getUserAuthorityExpiration(), "elevated-clearance");
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
+    }
+
+    @Test
+    public void testExecutePutGroupMetaRetry() {
+
+        final String domainName = "metadomTest1";
+        final String groupName = "metagroupTest1";
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc",
+                "testOrg", false, "", 1234, "", 0), admins, null, auditRef);
+
+        Group group = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, groupName, group, "test");
+
+        GroupMeta gm = new GroupMeta();
+        gm.setSelfServe(true);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        zms.dbService.defaultRetryCount = 2;
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockJdbcConn);
+        ResourceException rex = new ResourceException(409);
+        Mockito.when(mockJdbcConn.getGroup(eq(domainName), eq(groupName))).thenReturn(group);
+        Mockito.when(mockJdbcConn.updateGroup(eq(domainName), any(Group.class))).thenThrow(rex);
+
+        try {
+            zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
+                    gm, auditRef);
+            fail();
+        }catch (ResourceException r) {
+            assertEquals(r.getCode(), 409);
+            assertTrue(r.getMessage().contains("Conflict"));
+        }
+        zms.dbService.store = saveStore;
+        zms.dbService.defaultRetryCount = 120;
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
+    }
+
+
+
+    @Test
+    public void testExecutePutGroupMetaExpirationUpdate() {
+
+        final String domainName = "group-meta-expiry";
+        final String groupName = "group1";
+
+        List<String> admins = new ArrayList<>();
+        admins.add(adminUser);
+
+        zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc", "org", false,
+                "", 1234, "", 0), admins, null, auditRef);
+
+        Group group = createGroupObject(domainName, groupName, "user.john", "user.jane");
+        Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
+        group.getGroupMembers().add(new GroupMember().setMemberName("user.tim").setExpiration(timExpiry).setApproved(true));
+        group.getGroupMembers().add(new GroupMember().setMemberName("sys.tim").setExpiration(timExpiry).setApproved(true));
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, groupName, group, "test");
+
+        GroupMeta gm = new GroupMeta();
+        gm.setMemberExpiryDays(40);
+        gm.setServiceExpiryDays(40);
+
+        Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
+                gm, auditRef);
+
+        Group resGroup1 = zms.dbService.getGroup(domainName, groupName, true, false);
+
+        // verify all users have an expiry of close to 40 days except tim who will maintain
+        // his 10 day expiry value
+
+        long ext40Millis = TimeUnit.MILLISECONDS.convert(40, TimeUnit.DAYS);
+
+        int membersChecked = 0;
+        for (GroupMember groupMember : resGroup1.getGroupMembers()) {
+            switch (groupMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertTrue(groupMember.getExpiration().millis() > System.currentTimeMillis() + ext40Millis - 5000 &&
+                            groupMember.getExpiration().millis() < System.currentTimeMillis() + ext40Millis + 5000);
+                    membersChecked += 1;
+                    break;
+                case "user.tim":
+                case "sys.tim":
+                    assertEquals(groupMember.getExpiration(), timExpiry);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 4);
+
+        // now reduce limit to 20 days
+
+        gm.setMemberExpiryDays(20);
+        gm.setServiceExpiryDays(20);
+        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
+                gm, auditRef);
+
+        resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
+
+        // verify all users have an expiry of close to 20 days except tim who will maintain
+        // his 10 day expiry value
+
+        long ext20Millis = TimeUnit.MILLISECONDS.convert(20, TimeUnit.DAYS);
+
+        membersChecked = 0;
+        for (GroupMember groupMember : resGroup1.getGroupMembers()) {
+            switch (groupMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertTrue(groupMember.getExpiration().millis() > System.currentTimeMillis() + ext20Millis - 5000 &&
+                            groupMember.getExpiration().millis() < System.currentTimeMillis() + ext20Millis + 5000);
+                    membersChecked += 1;
+                    break;
+                case "user.tim":
+                case "sys.tim":
+                    assertEquals(groupMember.getExpiration(), timExpiry);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 4);
+
+        // now set it back to 40 but nothing will change
+
+        gm.setMemberExpiryDays(40);
+        gm.setServiceExpiryDays(40);
+        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
+                gm, auditRef);
+
+        resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
+
+        // verify all users have an expiry of close to 20 days except tim who will maintain
+        // his 10 day expiry value
+
+        membersChecked = 0;
+        for (GroupMember groupMember : resGroup1.getGroupMembers()) {
+            switch (groupMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertTrue(groupMember.getExpiration().millis() > System.currentTimeMillis() + ext20Millis - 5000 &&
+                            groupMember.getExpiration().millis() < System.currentTimeMillis() + ext20Millis + 5000);
+                    membersChecked += 1;
+                    break;
+                case "user.tim":
+                case "sys.tim":
+                    assertEquals(groupMember.getExpiration(), timExpiry);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 4);
+
+        // now set the service down to 5 days.
+
+        gm.setServiceExpiryDays(5);
+        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
+                gm, auditRef);
+
+        resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
+
+        long ext5Millis = TimeUnit.MILLISECONDS.convert(5, TimeUnit.DAYS);
+
+        // verify all users have their previous values except service tim who will now have
+        // a new 5 day expiry value
+
+        membersChecked = 0;
+        for (GroupMember groupMember : resGroup1.getGroupMembers()) {
+            switch (groupMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertTrue(groupMember.getExpiration().millis() > System.currentTimeMillis() + ext20Millis - 5000 &&
+                            groupMember.getExpiration().millis() < System.currentTimeMillis() + ext20Millis + 5000);
+                    membersChecked += 1;
+                    break;
+                case "user.tim":
+                    assertEquals(groupMember.getExpiration(), timExpiry);
+                    membersChecked += 1;
+                    break;
+                case "sys.tim":
+                    assertTrue(groupMember.getExpiration().millis() > System.currentTimeMillis() + ext5Millis - 5000 &&
+                            groupMember.getExpiration().millis() < System.currentTimeMillis() + ext5Millis + 5000);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 4);
+
+        zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
+    }
+
+    @Test
+    public void testUpdateGroupMembersDueDateFailures() {
+
+        final String domainName = "group-meta-duedate";
+
+        Group originalGroup = createGroupObject(domainName, "group1", "user.john", "user.jane");
+        originalGroup.setMemberExpiryDays(10);
+
+        Group updateGroup = createGroupObject(domainName, "group1", "user.john", "user.jane");
+        updateGroup.setMemberExpiryDays(5);
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertGroupMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString()))
+                .thenReturn(false)
+                .thenThrow(new IllegalArgumentException());
+
+        // we're going to make sure to throw an exception here
+        // since this should never be called
+
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenThrow(new IllegalArgumentException());
+
+        zms.dbService.updateGroupMembersDueDates(
+                mockDomRsrcCtx,
+                mockConn,
+                domainName,
+                "group1",
+                originalGroup,
+                updateGroup,
+                auditRef);
+    }
+
+    @Test
+    public void testUpdateGroupMembersDueDateNoRoleMembers() {
+
+        final String domainName = "group-meta-duedate";
+
+        // in this test case we're going to set the expiry days to 0 so we
+        // get an exception when accessed
+
+        Group group = createGroupObject(domainName, "group1", null, null);
+
+        ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(mockConn.insertGroupMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString()))
+                .thenReturn(true);
+
+        // we're going to make sure to throw an exception here
+        // since this should never be called
+
+        Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenThrow(new IllegalArgumentException());
+
+        zms.dbService.updateGroupMembersDueDates(
+                mockDomRsrcCtx,
+                mockConn,
+                domainName,
+                "group1",
+                group,
+                group,
+                auditRef);
+    }
+
+
+
+
+    @Test
     public void testAuditLogRoleSystemMeta() {
         StringBuilder auditDetails = new StringBuilder();
         Role role = new Role().setName("dom1:role.role1").setAuditEnabled(true);
@@ -8148,7 +8472,7 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testGetGroupMembersWithUpdatedDueDates() {
+    public void testGetGroupMembersWithUpdatedDueDatesUserAuthority() {
 
         Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
 
@@ -8162,36 +8486,82 @@ public class DBServiceTest {
 
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
-        // service users are not processed
+        // service users are not processed with regards to elevated-clearance
 
         List<GroupMember> groupMembers = new ArrayList<>();
         groupMembers.add(new GroupMember().setMemberName("sports.api"));
 
-        List<GroupMember> members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, "elevated-clearance");
+        List<GroupMember> members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, null, 0, null, 0, "elevated-clearance");
         assertTrue(members.isEmpty());
 
         // no expiry and no user filter - no changes
 
         groupMembers.clear();
         groupMembers.add(new GroupMember().setMemberName("user.john"));
-        members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, null);
+        members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, null, 0, null, 0, null);
         assertTrue(members.isEmpty());
 
-        // if group member expiry was set and now we have no userAuthorityExpiry - we'll reset
+        // if group member expiry was set and we have no userAuthorityExpiry - we'll keep the original expiration
 
         groupMembers.clear();
-        groupMembers.add(new GroupMember().setMemberName("user.john").setExpiration(Timestamp.fromCurrentTime()));
-        members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, null);
-        assertFalse(members.isEmpty());
-        assertNull(members.get(0).getExpiration());
+        Timestamp currentTimeExpiration = Timestamp.fromCurrentTime();
+        groupMembers.add(new GroupMember().setMemberName("user.john").setExpiration(currentTimeExpiration));
+        members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, null, 0, null, 0, null);
+        assertTrue(members.isEmpty());
 
         // if no expiry and user authority expiry is set - we'll update
 
         groupMembers.clear();
         groupMembers.add(new GroupMember().setMemberName("user.john"));
-        members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, "elevated-clearance");
+        members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, null, 0, null, 0, "elevated-clearance");
         assertFalse(members.isEmpty());
         assertEquals(members.get(0).getExpiration(), authorityDate);
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+    }
+
+    @Test
+    public void testGetGroupMembersWithUpdatedDueDates() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        long authorityMillis = System.currentTimeMillis();
+        Date currentDate = new Date(authorityMillis);
+        Timestamp authorityDate = Timestamp.fromMillis(authorityMillis);
+
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+                .thenReturn(currentDate);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        long serviceExpiryMillis = System.currentTimeMillis();
+        Timestamp serviceExpiration = Timestamp.fromMillis(serviceExpiryMillis);
+        long userExpiryMillis = System.currentTimeMillis();
+        Timestamp userExpiration = Timestamp.fromMillis(userExpiryMillis);
+
+        // Process services (ignore authority expiry)
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("sports.api"));
+
+        List<GroupMember> members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, userExpiration, userExpiryMillis, serviceExpiration, userExpiryMillis, "elevated-clearance");
+        assertFalse(members.isEmpty());
+        assertEquals(members.get(0).getExpiration(), serviceExpiration);
+
+        // Process users. Authority will take precedence.
+        groupMembers.clear();
+        groupMembers.add(new GroupMember().setMemberName("user.john"));
+        members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, userExpiration, userExpiryMillis, serviceExpiration, userExpiryMillis, "elevated-clearance");
+        assertFalse(members.isEmpty());
+        assertEquals(members.get(0).getExpiration().millis(), authorityDate.millis());
+
+        // Process users. Without authority user expiration will take precedence.
+        groupMembers.clear();
+        groupMembers.add(new GroupMember().setMemberName("user.john"));
+        members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, userExpiration, userExpiryMillis, serviceExpiration, userExpiryMillis, null);
+        assertFalse(members.isEmpty());
+        assertEquals(members.get(0).getExpiration(), userExpiration);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
     }
@@ -8762,7 +9132,7 @@ public class DBServiceTest {
                     meta, "unittest");
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("role has invalid group member"));
+            assertTrue(ex.getMessage().contains("role has invalid group member"), ex.getMessage());
         }
     }
 

@@ -3379,8 +3379,92 @@ func (self *Workloads) Validate() error {
 }
 
 //
-// TransportRule - Copyright The Athenz Authors Licensed under the terms of the
-// Apache version 2.0 license. See LICENSE file for terms.
+// TransportDirection - Copyright The Athenz Authors Licensed under the terms
+// of the Apache version 2.0 license. See LICENSE file for terms.
+//
+type TransportDirection int
+
+//
+// TransportDirection constants
+//
+const (
+	_ TransportDirection = iota
+	IN
+	OUT
+)
+
+var namesTransportDirection = []string{
+	IN:  "IN",
+	OUT: "OUT",
+}
+
+//
+// NewTransportDirection - return a string representation of the enum
+//
+func NewTransportDirection(init ...interface{}) TransportDirection {
+	if len(init) == 1 {
+		switch v := init[0].(type) {
+		case TransportDirection:
+			return v
+		case int:
+			return TransportDirection(v)
+		case int32:
+			return TransportDirection(v)
+		case string:
+			for i, s := range namesTransportDirection {
+				if s == v {
+					return TransportDirection(i)
+				}
+			}
+		default:
+			panic("Bad init value for TransportDirection enum")
+		}
+	}
+	return TransportDirection(0) //default to the first enum value
+}
+
+//
+// String - return a string representation of the enum
+//
+func (e TransportDirection) String() string {
+	return namesTransportDirection[e]
+}
+
+//
+// SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
+func (e TransportDirection) SymbolSet() []string {
+	return namesTransportDirection
+}
+
+//
+// MarshalJSON is defined for proper JSON encoding of a TransportDirection
+//
+func (e TransportDirection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a TransportDirection
+//
+func (e *TransportDirection) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err == nil {
+		s := string(j)
+		for v, s2 := range namesTransportDirection {
+			if s == s2 {
+				*e = TransportDirection(v)
+				return nil
+			}
+		}
+		err = fmt.Errorf("Bad enum symbol for type TransportDirection: %s", s)
+	}
+	return err
+}
+
+//
+// TransportRule -
 //
 type TransportRule struct {
 
@@ -3403,6 +3487,11 @@ type TransportRule struct {
 	// protocol of the connection
 	//
 	Protocol string `json:"protocol"`
+
+	//
+	// transport direction
+	//
+	Direction TransportDirection `json:"direction"`
 }
 
 //

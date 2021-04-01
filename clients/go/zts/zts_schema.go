@@ -400,12 +400,18 @@ func init() {
 	tWorkloads.ArrayField("workloadList", "Workload", false, "list of workloads")
 	sb.AddType(tWorkloads.Build())
 
+	tTransportDirection := rdl.NewEnumTypeBuilder("Enum", "TransportDirection")
+	tTransportDirection.Comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.")
+	tTransportDirection.Element("IN", "")
+	tTransportDirection.Element("OUT", "")
+	sb.AddType(tTransportDirection.Build())
+
 	tTransportRule := rdl.NewStructTypeBuilder("Struct", "TransportRule")
-	tTransportRule.Comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.")
 	tTransportRule.Field("endPoint", "String", false, nil, "source or destination endpoints defined in terms of CIDR notation")
 	tTransportRule.Field("sourcePortRange", "String", false, nil, "range of port numbers for incoming connections")
 	tTransportRule.Field("port", "Int32", false, nil, "destination / listener port of the service")
 	tTransportRule.Field("protocol", "String", false, nil, "protocol of the connection")
+	tTransportRule.Field("direction", "TransportDirection", false, nil, "transport direction")
 	sb.AddType(tTransportRule.Build())
 
 	tTransportRules := rdl.NewStructTypeBuilder("Struct", "TransportRules")

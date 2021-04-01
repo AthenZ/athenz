@@ -182,6 +182,7 @@ public class SignUtils {
         // on their attribute name
         Struct struct = new Struct();
         appendObject(struct, ATTR_AUDIT_ENABLED, group.getAuditEnabled());
+        appendObject(struct, ATTR_MEMBER_EXPIRY_DAYS, group.getMemberExpiryDays());
         List<GroupMember> groupMembers = group.getGroupMembers();
         if (groupMembers != null) {
             Array groupMembersArray = new Array();
@@ -199,6 +200,7 @@ public class SignUtils {
         appendObject(struct, ATTR_NAME, group.getName());
         appendObject(struct, ATTR_REVIEW_ENABLED, group.getReviewEnabled());
         appendObject(struct, ATTR_SELF_SERVE, group.getSelfServe());
+        appendObject(struct, ATTR_SERVICE_EXPIRY_DAYS, group.getServiceExpiryDays());
         return struct;
     }
 

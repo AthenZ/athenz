@@ -904,6 +904,22 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetGroupSelfServe(dn, args[0], selfServe)
 			}
+        case "set-group-member-expiry-days":
+			if argc == 2 {
+				days, err := cli.getInt32(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetGroupMemberExpiryDays(dn, args[0], days)
+			}
+		case "set-group-service-expiry-days":
+			if argc == 2 {
+				days, err := cli.getInt32(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetGroupServiceExpiryDays(dn, args[0], days)
+			}
 		case "set-group-notify-roles":
 			if argc == 2 {
 				return cli.SetGroupNotifyRoles(dn, args[0], args[1])
@@ -2445,6 +2461,28 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   review-enabled : enable/disable review flag for the group\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-group-review-enabled readers true\n")
+	case "set-group-member-expiry-days":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-group-member-expiry-days group days\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   group    : name of the group to be modified\n")
+		buf.WriteString("   days    : all members in this group will have this max expiry days\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-group-member-expiry-days writers 60\n")
+	case "set-group-service-expiry-days":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-group-service-expiry-days group days\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   group    : name of the group to be modified\n")
+		buf.WriteString("   days    : all service members in this group will have this max expiry days\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-group-service-expiry-days writers 60\n")
 	case "set-group-notify-roles":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-group-notify-roles group rolename[,rolename...]]\n")
@@ -2626,6 +2664,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-group-audit-enabled group audit-enabled\n")
 	buf.WriteString("   set-group-review-enabled group review-enabled\n")
 	buf.WriteString("   set-group-self-serve group self-serve\n")
+	buf.WriteString("   set-group-member-expiry-days group user-member-expiry-days\n")
+    buf.WriteString("   set-group-service-expiry-days group service-member-expiry-days\n")
 	buf.WriteString("   set-group-notify-roles group rolename[,rolename...]\n")
 	buf.WriteString("   set-group-user-authority-filter group attribute[,attribute...]\n")
 	buf.WriteString("   set-group-user-authority-expiration group attribute\n")
