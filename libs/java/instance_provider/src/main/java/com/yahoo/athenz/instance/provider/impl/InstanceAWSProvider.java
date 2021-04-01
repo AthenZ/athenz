@@ -78,8 +78,8 @@ public class InstanceAWSProvider implements InstanceProvider {
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
             KeyStore keyStore) {
         
-        String awsCertFileName = System.getProperty(AWS_PROP_PUBLIC_CERT);
-        if (awsCertFileName != null && !awsCertFileName.isEmpty()) {
+        String awsCertFileName = System.getProperty(AWS_PROP_PUBLIC_CERT, "");
+        if (!awsCertFileName.isEmpty()) {
             File awsCertFile = new File(awsCertFileName);
             X509Certificate awsCert = Crypto.loadX509Certificate(awsCertFile);
             awsPublicKey = awsCert.getPublicKey();

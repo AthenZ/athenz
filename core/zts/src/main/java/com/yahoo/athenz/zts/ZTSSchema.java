@@ -224,6 +224,13 @@ public class ZTSSchema {
             .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute")
             .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute");
 
+        sb.structType("InstanceRegisterToken")
+            .field("provider", "ServiceName", false, "provider service name")
+            .field("domain", "DomainName", false, "the domain of the instance")
+            .field("service", "SimpleName", false, "the service this instance is supposed to run")
+            .field("attestationData", "String", false, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
+            .mapField("attributes", "String", "String", true, "additional non-signed attributes that assist in attestation. I.e. \"keyId\", \"accessKey\", etc");
+
         sb.structType("InstanceIdentity")
             .field("provider", "ServiceName", false, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
             .field("name", "ServiceName", false, "name of the identity, fully qualified, i.e. my.domain.service1")
@@ -564,7 +571,7 @@ public class ZTSSchema {
 ;
 
         sb.resource("InstanceRegisterInformation", "POST", "/instance")
-            .comment("we have an authenticate enabled for this endpoint but in most cases the service owner might need to make it optional by setting the zts servers no_auth_uri list to include this endpoint. We need the authenticate in case the request comes with a client certificate and the provider needs to know who that principal was in the client certificate")
+            .comment("Register a new service instance and issue an x.509 service identity certificate once the provider validates the attestation data along with the request attributes. We have an authenticate enabled for this endpoint but in most cases the service owner might need to make it optional by setting the zts servers no_auth_uri list to include this endpoint. We need the authenticate in case the request comes with a client certificate and the provider needs to know who that principal was in the client certificate")
             .input("info", "InstanceRegisterInformation", "")
             .output("Location", "location", "String", "return location for subsequent patch requests")
             .auth("", "", true)
@@ -581,7 +588,7 @@ public class ZTSSchema {
 ;
 
         sb.resource("InstanceRefreshInformation", "POST", "/instance/{provider}/{domain}/{service}/{instanceId}")
-            .comment("only TLS Certificate authentication is allowed")
+            .comment("Refresh the given service instance and issue a new x.509 service identity certificate once the provider validates the attestation data along with the request attributes. only TLS Certificate authentication is allowed")
             .pathParam("provider", "ServiceName", "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")")
             .pathParam("domain", "DomainName", "the domain of the instance")
             .pathParam("service", "SimpleName", "the service this instance is supposed to run")
@@ -600,7 +607,27 @@ public class ZTSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("InstanceRegisterToken", "GET", "/instance/{provider}/{domain}/{service}/{instanceId}/token")
+            .comment("Request a token for the given service to be bootstrapped for the given provider. The caller must have authorization to manage the service in the given domain. The token will be valid for 30 mins for one time use only for the initial registration. The token must be sent back in the register request as the value of the attestationData field in the InstanceRegisterInformation object")
+            .pathParam("provider", "ServiceName", "the provider service name (i.e. \"aws.us-west-2\")")
+            .pathParam("domain", "DomainName", "the domain of the instance")
+            .pathParam("service", "SimpleName", "the service this instance is supposed to run")
+            .pathParam("instanceId", "PathElement", "unique instance id within provider's namespace")
+            .auth("update", "{domain}:service.{service}")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("InstanceIdentity", "DELETE", "/instance/{provider}/{domain}/{service}/{instanceId}")
+            .comment("Delete the given service instance certificate record thus blocking any future refresh requests from the given instance for this service")
             .pathParam("provider", "ServiceName", "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")")
             .pathParam("domain", "DomainName", "the domain of the instance")
             .pathParam("service", "SimpleName", "the service this instance is supposed to run")
@@ -619,6 +646,7 @@ public class ZTSSchema {
 ;
 
         sb.resource("CertificateAuthorityBundle", "GET", "/cacerts/{name}")
+            .comment("Return the request CA X.509 Certificate bundle")
             .pathParam("name", "SimpleName", "name of the CA cert bundle")
             .auth("", "", true)
             .expected("OK")

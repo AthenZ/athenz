@@ -26,6 +26,14 @@ type InstanceRefreshInformation Struct {
     Array<DomainName> hostCnames (optional); // optional host CNAMEs included in the csr SAN dnsName attribute
 }
 
+type InstanceRegisterToken Struct {
+    ServiceName provider; //provider service name
+    DomainName domain; //the domain of the instance
+    SimpleName service; //the service this instance is supposed to run
+    String attestationData; //identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.
+    Map<String,String> attributes (optional); //additional non-signed attributes that assist in attestation. I.e. "keyId", "accessKey", etc
+}
+
 type InstanceIdentity Struct {
     ServiceName provider; //the provider service name (i.e. "aws.us-west-2", "sys.openstack.cluster1")
     ServiceName name; //name of the identity, fully qualified, i.e. my.domain.service1
@@ -38,7 +46,10 @@ type InstanceIdentity Struct {
     Map<String,String> attributes (optional); //other config-like attributes determined at boot time
 }
 
-// we have an authenticate enabled for this endpoint but in most
+// Register a new service instance and issue an x.509 service identity
+// certificate once the provider validates the attestation data along
+// with the request attributes.
+// We have an authenticate enabled for this endpoint but in most
 // cases the service owner might need to make it optional by setting
 // the zts servers no_auth_uri list to include this endpoint. We
 // need the authenticate in case the request comes with a client
@@ -58,6 +69,9 @@ resource InstanceIdentity POST "/instance" {
     }
 }
 
+// Refresh the given service instance and issue a new x.509 service
+// identity certificate once the provider validates the attestation
+// data along with the request attributes.
 resource InstanceIdentity POST "/instance/{provider}/{domain}/{service}/{instanceId}" {
     ServiceName provider; //the provider service name (i.e. "aws.us-west-2", "paas.manhattan.corp-gq1")
     DomainName domain; //the domain of the instance
@@ -75,6 +89,30 @@ resource InstanceIdentity POST "/instance/{provider}/{domain}/{service}/{instanc
     }
 }
 
+// Request a token for the given service to be bootstrapped for the given
+// provider. The caller must have authorization to manage the service in
+// the given domain. The token will be valid for 30 mins for one time use
+// only for the initial registration. The token must be sent back in the
+// register request as the value of the attestationData field in the
+// InstanceRegisterInformation object
+resource InstanceRegisterToken GET "/instance/{provider}/{domain}/{service}/{instanceId}/token" {
+    ServiceName provider; //the provider service name (i.e. "aws.us-west-2")
+    DomainName domain; //the domain of the instance
+    SimpleName service; //the service this instance is supposed to run
+    PathElement instanceId; //unique instance id within provider's namespace
+    authorize ("update", "{domain}:service.{service}");
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError INTERNAL_SERVER_ERROR;
+    }
+}
+
+// Delete the given service instance certificate record thus blocking
+// any future refresh requests from the given instance for this service
 resource InstanceIdentity DELETE "/instance/{provider}/{domain}/{service}/{instanceId}" {
     ServiceName provider; //the provider service name (i.e. "aws.us-west-2", "paas.manhattan.corp-gq1")
     DomainName domain; //the domain of the instance
@@ -96,6 +134,7 @@ type CertificateAuthorityBundle Struct {
     String certs; //set of certificates included in the bundle
 }
 
+// Return the request CA X.509 Certificate bundle
 resource CertificateAuthorityBundle GET "/cacerts/{name}" {
     SimpleName name; //name of the CA cert bundle
     authenticate;

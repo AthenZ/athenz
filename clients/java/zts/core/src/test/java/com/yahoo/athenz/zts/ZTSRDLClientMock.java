@@ -520,4 +520,17 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
         return transportRules;
     }
+
+    @Override
+    public InstanceRegisterToken getInstanceRegisterToken(String provider, String domain, String service, String instanceId) {
+
+        if ("coretech".equals(domain)) {
+            return new InstanceRegisterToken().setProvider(provider).setDomain(domain)
+                    .setService(service).setAttestationData("token");
+        } else if ("bad-domain".equals(domain)) {
+            throw new ResourceException(ResourceException.NOT_FOUND, "unknown domain");
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
 }

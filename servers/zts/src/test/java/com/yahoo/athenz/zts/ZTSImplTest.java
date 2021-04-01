@@ -27,6 +27,7 @@ import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
@@ -4258,6 +4259,7 @@ public class ZTSImplTest {
         role.setName(generateRoleName("sys.auth", "providers"));
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("athenz.provider"));
+        members.add(new RoleMember().setMemberName("sys.auth.zts"));
         role.setRoleMembers(members);
         roles.add(role);
 
@@ -11489,5 +11491,187 @@ public class ZTSImplTest {
         zts.updateWorkloadRecord("athenz.api", "openstack", "123", "10.0.0.1, 10.0.0.2");
         Mockito.verify(mockICM, Mockito.times(2)).updateWorkloadRecord(any(WorkloadRecord.class));
         zts.instanceCertManager = origICM;
+    }
+
+    @Test
+    public void testGetInstanceRegisterToken() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processDomain(providerDomain, false);
+
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("sys.auth.zts", "athenz", "production");
+        store.processDomain(tenantDomain, false);
+
+        InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
+        InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+
+        // include the principal from the request object
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+
+        ResourceContext context = createResourceContext(principal);
+
+        InstanceRegisterToken token = new InstanceRegisterToken()
+                .setProvider("sys.auth.zts").setDomain("athenz")
+                .setService("production").setAttestationData("jwt");
+
+        InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
+        Mockito.when(instanceProviderManager.getProvider(eq("sys.auth.zts"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(providerClient.getInstanceRegisterToken(Mockito.any())).thenReturn(token);
+
+        ztsImpl.instanceProviderManager = instanceProviderManager;
+        ztsImpl.instanceCertManager = instanceManager;
+
+        // valid request should return our token
+
+        InstanceRegisterToken registerToken = ztsImpl.getInstanceRegisterToken(context, "sys.auth.zts",
+                "athenz", "production", "id001");
+        assertNotNull(registerToken);
+
+        // other service entry will return unauthorized launch
+
+        try {
+            ztsImpl.getInstanceRegisterToken(context, "sys.auth.zts",
+                    "athenz", "api", "id001");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+    }
+
+    @Test
+    public void testGetInstanceRegisterTokenInvalidDoamin() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
+        InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+
+        // include the principal from the request object
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+
+        ResourceContext context = createResourceContext(principal);
+
+        InstanceRegisterToken token = new InstanceRegisterToken()
+                .setProvider("athenz.provider").setDomain("athenz")
+                .setService("production").setAttestationData("jwt");
+
+        InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(providerClient.getInstanceRegisterToken(Mockito.any())).thenReturn(token);
+
+        ztsImpl.instanceProviderManager = instanceProviderManager;
+        ztsImpl.instanceCertManager = instanceManager;
+
+        try {
+            ztsImpl.getInstanceRegisterToken(context, "athenz.provider",
+                    "athenz", "production", "id001");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+    }
+
+    @Test
+    public void testGetInstanceRegisterTokenUnknownProvider() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processDomain(providerDomain, false);
+
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processDomain(tenantDomain, false);
+
+        InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
+
+        // include the principal from the request object
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+
+        ResourceContext context = createResourceContext(principal);
+
+        InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(null);
+
+        ztsImpl.instanceProviderManager = instanceProviderManager;
+        ztsImpl.instanceCertManager = instanceManager;
+
+        try {
+            ztsImpl.getInstanceRegisterToken(context, "athenz.provider",
+                    "athenz", "production", "id001");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("unable to get instance for provider"));
+        }
+    }
+
+    @Test
+    public void testGetInstanceRegisterTokenProviderFailure() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processDomain(providerDomain, false);
+
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processDomain(tenantDomain, false);
+
+        InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
+        InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+
+        // include the principal from the request object
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+
+        ResourceContext context = createResourceContext(principal);
+
+        InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(providerClient.getInstanceRegisterToken(Mockito.any()))
+                .thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(400, "Bad Request"));
+
+        ztsImpl.instanceProviderManager = instanceProviderManager;
+        ztsImpl.instanceCertManager = instanceManager;
+
+        try {
+            ztsImpl.getInstanceRegisterToken(context, "athenz.provider",
+                    "athenz", "production", "id001");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("unable to get instance register token"));
+        }
     }
 }

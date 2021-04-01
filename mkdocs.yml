@@ -60,6 +60,7 @@ nav:
     - Athenz Templates: athenz_templates.md
     - Principal Groups: principal_groups.md
 - Authentication:
+    - Athenz Service Identity X.509 Certificate: service_authentication.md
     - Athenz Service Identity X.509 Certificate for AWS EC2 instances: service_x509_credentials_aws.md
     - Athenz Service Identity X.509 Certificate for AWS ECS containers: service_x509_credentials_aws_ecs.md
     - Athenz Service Identity X.509 Certificate for AWS Fargate tasks: service_x509_credentials_aws_fargate.md

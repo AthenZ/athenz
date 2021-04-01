@@ -263,6 +263,14 @@ func init() {
 	tInstanceRefreshInformation.ArrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
 	sb.AddType(tInstanceRefreshInformation.Build())
 
+	tInstanceRegisterToken := rdl.NewStructTypeBuilder("Struct", "InstanceRegisterToken")
+	tInstanceRegisterToken.Field("provider", "ServiceName", false, nil, "provider service name")
+	tInstanceRegisterToken.Field("domain", "DomainName", false, nil, "the domain of the instance")
+	tInstanceRegisterToken.Field("service", "SimpleName", false, nil, "the service this instance is supposed to run")
+	tInstanceRegisterToken.Field("attestationData", "String", false, nil, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
+	tInstanceRegisterToken.MapField("attributes", "String", "String", true, "additional non-signed attributes that assist in attestation. I.e. \"keyId\", \"accessKey\", etc")
+	sb.AddType(tInstanceRegisterToken.Build())
+
 	tInstanceIdentity := rdl.NewStructTypeBuilder("Struct", "InstanceIdentity")
 	tInstanceIdentity.Field("provider", "ServiceName", false, nil, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
 	tInstanceIdentity.Field("name", "ServiceName", false, nil, "name of the identity, fully qualified, i.e. my.domain.service1")
@@ -400,12 +408,18 @@ func init() {
 	tWorkloads.ArrayField("workloadList", "Workload", false, "list of workloads")
 	sb.AddType(tWorkloads.Build())
 
+	tTransportDirection := rdl.NewEnumTypeBuilder("Enum", "TransportDirection")
+	tTransportDirection.Comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.")
+	tTransportDirection.Element("IN", "")
+	tTransportDirection.Element("OUT", "")
+	sb.AddType(tTransportDirection.Build())
+
 	tTransportRule := rdl.NewStructTypeBuilder("Struct", "TransportRule")
-	tTransportRule.Comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.")
 	tTransportRule.Field("endPoint", "String", false, nil, "source or destination endpoints defined in terms of CIDR notation")
 	tTransportRule.Field("sourcePortRange", "String", false, nil, "range of port numbers for incoming connections")
 	tTransportRule.Field("port", "Int32", false, nil, "destination / listener port of the service")
 	tTransportRule.Field("protocol", "String", false, nil, "protocol of the connection")
+	tTransportRule.Field("direction", "TransportDirection", false, nil, "transport direction")
 	sb.AddType(tTransportRule.Build())
 
 	tTransportRules := rdl.NewStructTypeBuilder("Struct", "TransportRules")
@@ -571,7 +585,7 @@ func init() {
 	sb.AddResource(mGetAWSTemporaryCredentials.Build())
 
 	mPostInstanceRegisterInformation := rdl.NewResourceBuilder("InstanceIdentity", "POST", "/instance")
-	mPostInstanceRegisterInformation.Comment("we have an authenticate enabled for this endpoint but in most cases the service owner might need to make it optional by setting the zts servers no_auth_uri list to include this endpoint. We need the authenticate in case the request comes with a client certificate and the provider needs to know who that principal was in the client certificate")
+	mPostInstanceRegisterInformation.Comment("Register a new service instance and issue an x.509 service identity certificate once the provider validates the attestation data along with the request attributes. We have an authenticate enabled for this endpoint but in most cases the service owner might need to make it optional by setting the zts servers no_auth_uri list to include this endpoint. We need the authenticate in case the request comes with a client certificate and the provider needs to know who that principal was in the client certificate")
 	mPostInstanceRegisterInformation.Input("info", "InstanceRegisterInformation", false, "", "", false, nil, "")
 	mPostInstanceRegisterInformation.Output("location", "String", "Location", false, "return location for subsequent patch requests")
 	mPostInstanceRegisterInformation.Auth("", "", true, "")
@@ -584,7 +598,7 @@ func init() {
 	sb.AddResource(mPostInstanceRegisterInformation.Build())
 
 	mPostInstanceRefreshInformation := rdl.NewResourceBuilder("InstanceIdentity", "POST", "/instance/{provider}/{domain}/{service}/{instanceId}")
-	mPostInstanceRefreshInformation.Comment("only TLS Certificate authentication is allowed")
+	mPostInstanceRefreshInformation.Comment("Refresh the given service instance and issue a new x.509 service identity certificate once the provider validates the attestation data along with the request attributes. only TLS Certificate authentication is allowed")
 	mPostInstanceRefreshInformation.Input("provider", "ServiceName", true, "", "", false, nil, "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")")
 	mPostInstanceRefreshInformation.Input("domain", "DomainName", true, "", "", false, nil, "the domain of the instance")
 	mPostInstanceRefreshInformation.Input("service", "SimpleName", true, "", "", false, nil, "the service this instance is supposed to run")
@@ -598,7 +612,22 @@ func init() {
 	mPostInstanceRefreshInformation.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostInstanceRefreshInformation.Build())
 
+	mGetInstanceRegisterToken := rdl.NewResourceBuilder("InstanceRegisterToken", "GET", "/instance/{provider}/{domain}/{service}/{instanceId}/token")
+	mGetInstanceRegisterToken.Comment("Request a token for the given service to be bootstrapped for the given provider. The caller must have authorization to manage the service in the given domain. The token will be valid for 30 mins for one time use only for the initial registration. The token must be sent back in the register request as the value of the attestationData field in the InstanceRegisterInformation object")
+	mGetInstanceRegisterToken.Input("provider", "ServiceName", true, "", "", false, nil, "the provider service name (i.e. \"aws.us-west-2\")")
+	mGetInstanceRegisterToken.Input("domain", "DomainName", true, "", "", false, nil, "the domain of the instance")
+	mGetInstanceRegisterToken.Input("service", "SimpleName", true, "", "", false, nil, "the service this instance is supposed to run")
+	mGetInstanceRegisterToken.Input("instanceId", "PathElement", true, "", "", false, nil, "unique instance id within provider's namespace")
+	mGetInstanceRegisterToken.Auth("update", "{domain}:service.{service}", false, "")
+	mGetInstanceRegisterToken.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetInstanceRegisterToken.Exception("FORBIDDEN", "ResourceError", "")
+	mGetInstanceRegisterToken.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
+	mGetInstanceRegisterToken.Exception("NOT_FOUND", "ResourceError", "")
+	mGetInstanceRegisterToken.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetInstanceRegisterToken.Build())
+
 	mDeleteInstanceIdentity := rdl.NewResourceBuilder("InstanceIdentity", "DELETE", "/instance/{provider}/{domain}/{service}/{instanceId}")
+	mDeleteInstanceIdentity.Comment("Delete the given service instance certificate record thus blocking any future refresh requests from the given instance for this service")
 	mDeleteInstanceIdentity.Input("provider", "ServiceName", true, "", "", false, nil, "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")")
 	mDeleteInstanceIdentity.Input("domain", "DomainName", true, "", "", false, nil, "the domain of the instance")
 	mDeleteInstanceIdentity.Input("service", "SimpleName", true, "", "", false, nil, "the service this instance is supposed to run")
@@ -613,6 +642,7 @@ func init() {
 	sb.AddResource(mDeleteInstanceIdentity.Build())
 
 	mGetCertificateAuthorityBundle := rdl.NewResourceBuilder("CertificateAuthorityBundle", "GET", "/cacerts/{name}")
+	mGetCertificateAuthorityBundle.Comment("Return the request CA X.509 Certificate bundle")
 	mGetCertificateAuthorityBundle.Input("name", "SimpleName", true, "", "", false, nil, "name of the CA cert bundle")
 	mGetCertificateAuthorityBundle.Auth("", "", true, "")
 	mGetCertificateAuthorityBundle.Exception("BAD_REQUEST", "ResourceError", "")

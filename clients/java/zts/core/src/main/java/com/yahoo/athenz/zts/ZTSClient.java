@@ -2819,6 +2819,25 @@ public class ZTSClient implements Closeable {
         }
     }
 
+    /**
+     * Request an instance register token for the given service instance from the
+     * given provider. Not all providers may support such functionality.
+     * @param provider name of the provider
+     * @param domain name of the domain
+     * @param service name of the serice
+     * @param instanceId unique id assigned to the instance by the provider
+     * @return instance register token. ZTSClientException will be thrown in case of failure
+     */
+    public InstanceRegisterToken getIntanceRegisterToken(String provider, String domain, String service, String instanceId) {
+        try {
+            return ztsClient.getInstanceRegisterToken(provider, domain, service, instanceId);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
     static class ClientKeyRefresherListener implements KeyRefresherListener {
 
         long lastCertRefreshTime = 0;

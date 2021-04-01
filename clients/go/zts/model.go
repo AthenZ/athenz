@@ -1880,6 +1880,107 @@ func (self *InstanceRefreshInformation) Validate() error {
 }
 
 //
+// InstanceRegisterToken -
+//
+type InstanceRegisterToken struct {
+
+	//
+	// provider service name
+	//
+	Provider ServiceName `json:"provider"`
+
+	//
+	// the domain of the instance
+	//
+	Domain DomainName `json:"domain"`
+
+	//
+	// the service this instance is supposed to run
+	//
+	Service SimpleName `json:"service"`
+
+	//
+	// identity attestation data including document with its signature containing
+	// attributes like IP address, instance-id, account#, etc.
+	//
+	AttestationData string `json:"attestationData"`
+
+	//
+	// additional non-signed attributes that assist in attestation. I.e. "keyId",
+	// "accessKey", etc
+	//
+	Attributes map[string]string `json:"attributes,omitempty" rdl:"optional"`
+}
+
+//
+// NewInstanceRegisterToken - creates an initialized InstanceRegisterToken instance, returns a pointer to it
+//
+func NewInstanceRegisterToken(init ...*InstanceRegisterToken) *InstanceRegisterToken {
+	var o *InstanceRegisterToken
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(InstanceRegisterToken)
+	}
+	return o
+}
+
+type rawInstanceRegisterToken InstanceRegisterToken
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a InstanceRegisterToken
+//
+func (self *InstanceRegisterToken) UnmarshalJSON(b []byte) error {
+	var m rawInstanceRegisterToken
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := InstanceRegisterToken(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *InstanceRegisterToken) Validate() error {
+	if self.Provider == "" {
+		return fmt.Errorf("InstanceRegisterToken.provider is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Provider)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterToken.provider does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	if self.Domain == "" {
+		return fmt.Errorf("InstanceRegisterToken.domain is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "DomainName", self.Domain)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterToken.domain does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Service == "" {
+		return fmt.Errorf("InstanceRegisterToken.service is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Service)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterToken.service does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.AttestationData == "" {
+		return fmt.Errorf("InstanceRegisterToken.attestationData is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterToken.attestationData does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // InstanceIdentity -
 //
 type InstanceIdentity struct {
@@ -3379,8 +3480,92 @@ func (self *Workloads) Validate() error {
 }
 
 //
-// TransportRule - Copyright The Athenz Authors Licensed under the terms of the
-// Apache version 2.0 license. See LICENSE file for terms.
+// TransportDirection - Copyright The Athenz Authors Licensed under the terms
+// of the Apache version 2.0 license. See LICENSE file for terms.
+//
+type TransportDirection int
+
+//
+// TransportDirection constants
+//
+const (
+	_ TransportDirection = iota
+	IN
+	OUT
+)
+
+var namesTransportDirection = []string{
+	IN:  "IN",
+	OUT: "OUT",
+}
+
+//
+// NewTransportDirection - return a string representation of the enum
+//
+func NewTransportDirection(init ...interface{}) TransportDirection {
+	if len(init) == 1 {
+		switch v := init[0].(type) {
+		case TransportDirection:
+			return v
+		case int:
+			return TransportDirection(v)
+		case int32:
+			return TransportDirection(v)
+		case string:
+			for i, s := range namesTransportDirection {
+				if s == v {
+					return TransportDirection(i)
+				}
+			}
+		default:
+			panic("Bad init value for TransportDirection enum")
+		}
+	}
+	return TransportDirection(0) //default to the first enum value
+}
+
+//
+// String - return a string representation of the enum
+//
+func (e TransportDirection) String() string {
+	return namesTransportDirection[e]
+}
+
+//
+// SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
+func (e TransportDirection) SymbolSet() []string {
+	return namesTransportDirection
+}
+
+//
+// MarshalJSON is defined for proper JSON encoding of a TransportDirection
+//
+func (e TransportDirection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a TransportDirection
+//
+func (e *TransportDirection) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err == nil {
+		s := string(j)
+		for v, s2 := range namesTransportDirection {
+			if s == s2 {
+				*e = TransportDirection(v)
+				return nil
+			}
+		}
+		err = fmt.Errorf("Bad enum symbol for type TransportDirection: %s", s)
+	}
+	return err
+}
+
+//
+// TransportRule -
 //
 type TransportRule struct {
 
@@ -3403,6 +3588,11 @@ type TransportRule struct {
 	// protocol of the connection
 	//
 	Protocol string `json:"protocol"`
+
+	//
+	// transport direction
+	//
+	Direction TransportDirection `json:"direction"`
 }
 
 //
