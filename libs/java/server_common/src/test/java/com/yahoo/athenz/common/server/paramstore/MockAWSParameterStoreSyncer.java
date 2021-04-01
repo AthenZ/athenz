@@ -18,9 +18,9 @@
 
 package com.yahoo.athenz.common.server.paramstore;
 
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
-import com.amazonaws.services.simplesystemsmanagement.model.*;
 import com.yahoo.athenz.common.server.rest.ResourceException;
+import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.model.*;
 
 import java.util.Date;
 
@@ -32,48 +32,49 @@ import static org.mockito.Mockito.when;
 public class MockAWSParameterStoreSyncer extends AWSParameterStoreSyncer {
 
 	@Override
-	AWSSimpleSystemsManagement initClient() {
+	SsmClient initClient() {
 		Date now = new Date();
-		AWSSimpleSystemsManagement mock = mock(AWSSimpleSystemsManagement.class);
-		when(mock.describeParameters(any()))
-				.thenReturn(new DescribeParametersResult()
-						.withParameters(
-								new ParameterMetadata().withName("param1").withLastModifiedDate(now),
-								new ParameterMetadata().withName("param2").withLastModifiedDate(now),
-								new ParameterMetadata().withName("param4").withLastModifiedDate(now)
-						)
-				);
-		
+		SsmClient mock = mock(SsmClient.class);
+		when(mock.describeParameters(any(DescribeParametersRequest.class)))
+			.thenReturn(DescribeParametersResponse.builder()
+				.parameters(
+					ParameterMetadata.builder().name("param1").lastModifiedDate(now.toInstant()).build(),
+					ParameterMetadata.builder().name("param2").lastModifiedDate(now.toInstant()).build(),
+					ParameterMetadata.builder().name("param4").lastModifiedDate(now.toInstant()).build()
+				).build()
+			);
+
 		when(mock.getParameter(parameterRequest("param1")))
-				.thenReturn(new GetParameterResult()
-						.withParameter(
-								new Parameter().withName("param1").withValue("param1-val").withLastModifiedDate(now)
-						)
-				);
+			.thenReturn(GetParameterResponse.builder()
+				.parameter(
+					Parameter.builder().name("param1").value("param1-val").lastModifiedDate(now.toInstant()).build()
+				).build()
+			);
 		when(mock.getParameter(parameterRequest("param2")))
-				.thenReturn(new GetParameterResult()
-						.withParameter(
-								new Parameter().withName("param2").withValue("param2-val").withLastModifiedDate(now)
-						)
-				);
+			.thenReturn(GetParameterResponse.builder()
+				.parameter(
+					Parameter.builder().name("param2").value("param2-val").lastModifiedDate(now.toInstant()).build()
+				).build()
+			);
 		when(mock.getParameter(parameterRequest("param4")))
-				.thenThrow(new ResourceException(INTERNAL_SERVER_ERROR));
+			.thenThrow(new ResourceException(INTERNAL_SERVER_ERROR));
 		return mock;
 	}
 
 	private GetParameterRequest parameterRequest(String paramName) {
-		return new GetParameterRequest()
-				.withName(paramName)
-				.withWithDecryption(true);
+		return GetParameterRequest.builder()
+			.name(paramName)
+			.withDecryption(true)
+			.build();
 	}
 
 	public void setClientResult(String param, String value) {
-		when(ssmClient.getParameter(any()))
-				.thenReturn(new GetParameterResult()
-						.withParameter(
-								new Parameter().withName(param).withValue(value).withLastModifiedDate(new Date())
-						)
-				);
+		when(ssmClient.getParameter(any(GetParameterRequest.class)))
+			.thenReturn(GetParameterResponse.builder()
+				.parameter(
+					Parameter.builder().name(param).value(value).lastModifiedDate(new Date().toInstant()).build()
+				).build()
+			);
 	}
-	
+
 }

@@ -18,12 +18,12 @@
 
 package com.yahoo.athenz.common.server.paramstore;
 
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
-import com.amazonaws.services.simplesystemsmanagement.model.ParameterMetadata;
 import org.joda.time.DateTime;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.model.ParameterMetadata;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -66,7 +66,10 @@ public class AWSParameterStoreSyncerTest {
 		MockAWSParameterStoreSyncer mockAwsParameterStoreSyncer = (MockAWSParameterStoreSyncer) DynamicParameterStoreFactory.getInstance();
 		mockAwsParameterStoreSyncer.setClientResult("param2", "new-param2-val");
 		mockAwsParameterStoreSyncer.storeParameters(
-				Collections.singletonList(new ParameterMetadata().withName("param2").withLastModifiedDate(new Date()))
+			Collections.singletonList(ParameterMetadata.builder()
+				.name("param2")
+				.lastModifiedDate(new Date().toInstant())
+				.build())
 		);
 		assertEquals(mockAwsParameterStoreSyncer.get("param2"), "new-param2-val");
 	}
@@ -79,10 +82,11 @@ public class AWSParameterStoreSyncerTest {
 		// put param with older timestamp
 		DateTime now = DateTime.now();
 		mockAwsParameterStoreSyncer.storeParameters(
-				Collections.singletonList(new ParameterMetadata().withName("param1")
-						.withLastModifiedDate(now.minusDays( 1 ).withTimeAtStartOfDay().toDate()))
+			Collections.singletonList(ParameterMetadata.builder().name("param1")
+				.lastModifiedDate(now.minusDays( 1 ).withTimeAtStartOfDay().toDate().toInstant())
+				.build())
 		);
-		
+
 		assertEquals(mockAwsParameterStoreSyncer.get("param1"), "param1-val");
 	}
 
@@ -126,7 +130,7 @@ public class AWSParameterStoreSyncerTest {
 	 * Wite parameter to map
 	 */
 	private Runnable writerTask(MockAWSParameterStoreSyncer awsParameterStoreSyncer, int counter) {
-		return () -> awsParameterStoreSyncer.writeParameter("counter_" + counter, Integer.toString(counter), new Date());
+		return () -> awsParameterStoreSyncer.writeParameter("counter_" + counter, Integer.toString(counter), new Date().toInstant());
 	}
 
 	/**
@@ -146,12 +150,12 @@ public class AWSParameterStoreSyncerTest {
 		};
 	}
 
-	private AWSSimpleSystemsManagement getSsmClient(AWSParameterStoreSyncer awsParameterStoreSyncer) {
+	private SsmClient getSsmClient(AWSParameterStoreSyncer awsParameterStoreSyncer) {
 		final Field ssmClientField;
 		try {
 			ssmClientField = awsParameterStoreSyncer.getClass().getDeclaredField("ssmClient");
 			ssmClientField.setAccessible(true);
-			return (AWSSimpleSystemsManagement) ssmClientField.get(awsParameterStoreSyncer);
+			return (SsmClient) ssmClientField.get(awsParameterStoreSyncer);
 		} catch (final NoSuchFieldException | IllegalAccessException ignored) {
 			throw new AssertionError("Failed to get AWSParameterStoreSyncer::ssmClient");
 		}

@@ -163,9 +163,9 @@
       <version>${aws.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-ssm</artifactId>
-      <version>${aws.version}</version>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>ssm</artifactId>
+      <version>${aws2.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sun.mail</groupId>

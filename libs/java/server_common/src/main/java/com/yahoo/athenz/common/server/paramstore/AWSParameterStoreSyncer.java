@@ -18,16 +18,15 @@
 
 package com.yahoo.athenz.common.server.paramstore;
 
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
-import com.amazonaws.services.simplesystemsmanagement.model.*;
 import com.amazonaws.util.EC2MetadataUtils;
-import com.yahoo.rdl.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.model.*;
 
 import java.lang.invoke.MethodHandles;
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +51,8 @@ public class AWSParameterStoreSyncer implements DynamicParameterStore {
     // comma separated list of prefixes to be loaded from parameter store
     static final String PROP_PARAMETER_STORE_PARAM_PREFIX_LIST = "athenz.common.server.paramstore.prefix_list";
     private final String[] parameterPrefixArray;
-    
-    final AWSSimpleSystemsManagement ssmClient;
+
+    final SsmClient ssmClient;
 
     // Since this is a single-writer and multiple-reader, 
     // use StampedLock because it is lock-free for readers in most cases.
@@ -75,12 +74,12 @@ public class AWSParameterStoreSyncer implements DynamicParameterStore {
         return prefixProp.split(",");
     }
 
-    AWSSimpleSystemsManagement initClient() {
+    SsmClient initClient() {
         try {
             String region = EC2MetadataUtils.getInstanceInfo().getRegion();
-            return AWSSimpleSystemsManagementClientBuilder.standard()
-                    .withRegion(region)
-                    .build();
+            return SsmClient.builder()
+                .region(Region.of(region))
+                .build();
         } catch (Exception e) {
             LOG.error("Failed to init aws ssm client. error: {}, {}", e.getMessage(), e);
         }
@@ -116,45 +115,43 @@ public class AWSParameterStoreSyncer implements DynamicParameterStore {
     void storeParameters(List<ParameterMetadata> params) {
         for (ParameterMetadata param : params) {
             if (shouldFetchParam(param)) {
-                String paramName = param.getName();
-                GetParameterRequest req = new GetParameterRequest()
-                        .withName(paramName)
-                        .withWithDecryption(true);
-                GetParameterResult res = ssmClient.getParameter(req);
+                String paramName = param.name();
+                GetParameterRequest req = GetParameterRequest.builder()
+                    .name(paramName)
+                    .withDecryption(true)
+                    .build();
+                GetParameterResponse res = ssmClient.getParameter(req);
 
-                String paramValue = res.getParameter().getValue();
-                Date paramLastModified = res.getParameter().getLastModifiedDate();
+                String paramValue = res.parameter().value();
+                Instant paramLastModified = res.parameter().lastModifiedDate();
                 writeParameter(paramName, paramValue, paramLastModified);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("AWSParameterStoreSyncer update map, name: [{}], value: [{}], modification time: [{}]", paramName, paramValue, paramLastModified);
-                }
+                LOG.info("AWSParameterStoreSyncer update map, name: [{}], value: [{}], modification time: [{}]", paramName, paramValue, paramLastModified);
             }
         }
     }
 
     private boolean shouldFetchParam(ParameterMetadata param) {
-        if (readParameter(param.getName()) == null) {
+        if (readParameter(param.name()) == null) {
             return true;
         }
-        return readParameter(param.getName()).lastModifiedDate.before(param.getLastModifiedDate());
+        return readParameter(param.name()).lastModifiedDate.isBefore(param.lastModifiedDate());
     }
 
     private List<ParameterMetadata> getParameterList() {
 
-        DescribeParametersRequest request = new DescribeParametersRequest();
+        DescribeParametersRequest request;
         if (parameterPrefixArray != null) {
-            request.withFilters(
-                    new ParametersFilter()
-                            .withKey("Name")
-                            .withValues(parameterPrefixArray)
-            );
+            request = DescribeParametersRequest.builder()
+                .filters(ParametersFilter.builder()
+                    .key("Name")
+                    .values(parameterPrefixArray)
+                    .build())
+                .build();
+        } else {
+            request = DescribeParametersRequest.builder().build();
         }
-        DescribeParametersResult result = ssmClient.describeParameters(request);
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("ADescribeParametersResult: {}", JSON.string(result));
-        }
-        return result.getParameters();
+        DescribeParametersResponse result = ssmClient.describeParameters(request);
+        return result.parameters();
     }
 
 
@@ -169,7 +166,7 @@ public class AWSParameterStoreSyncer implements DynamicParameterStore {
         return paramHolder == null ? defaultValue : paramHolder.value;
     }
 
-    void writeParameter(String paramName, String paramValue, Date paramLastModified) {
+    void writeParameter(String paramName, String paramValue, Instant paramLastModified) {
         long stamp = lock.writeLock();
         try {
             parameterMap.put(paramName, new ParameterHolder(paramValue, paramLastModified));
@@ -194,12 +191,12 @@ public class AWSParameterStoreSyncer implements DynamicParameterStore {
     }
 
     static class ParameterHolder {
-        public ParameterHolder(String value, Date lastModifiedDate) {
+        public ParameterHolder(String value, Instant lastModifiedDate) {
             this.value = value;
             this.lastModifiedDate = lastModifiedDate;
         }
 
         String value;
-        Date lastModifiedDate;
+        Instant lastModifiedDate;
     }
 }
