@@ -1,0 +1,5 @@
+Package: sia-eks
+Version: SIA_PACKAGE_VERSION
+Maintainer: cncf-athenz-maintainers@lists.cncf.io
+Architecture: amd64
+Description: AWS EKS Athenz Service Identity Agent
