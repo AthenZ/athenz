@@ -33,10 +33,6 @@ import (
 	"time"
 )
 
-var (
-	MetaEndPoint = "http://127.0.0.1:5083"
-)
-
 func setup() {
 	go metamock.StartMetaServer("127.0.0.1:5083")
 }
@@ -264,7 +260,7 @@ func TestUpdateFileNew(test *testing.T) {
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	os.Remove(fileName)
 	testContents := "sia-unit-test"
-	err = UpdateFile(fileName, testContents, 0, 0, 0644, sysLogger)
+	err = UpdateFile(fileName, []byte(testContents), 0, 0, 0644, sysLogger)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -302,7 +298,7 @@ func TestUpdateFileExisting(test *testing.T) {
 		return
 	}
 	testNewContents := "sia-unit"
-	err = UpdateFile(fileName, testNewContents, 0, 0, 0644, sysLogger)
+	err = UpdateFile(fileName, []byte(testNewContents), 0, 0, 0644, sysLogger)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -339,7 +335,7 @@ func TestPrivateKeySupport(test *testing.T) {
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	uid := localIdCommand("-u")
 	gid := localIdCommand("-g")
-	err = UpdateFile(fileName, PrivatePem(key), uid, gid, 0644, sysLogger)
+	err = UpdateFile(fileName, []byte(PrivatePem(key)), uid, gid, 0644, sysLogger)
 	if err != nil {
 		test.Errorf("Unable to save private key file - %v", err)
 		return

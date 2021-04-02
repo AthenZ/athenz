@@ -22,10 +22,16 @@ import (
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/data/attestation"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/devel/metamock"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/devel/ztsmock"
+	"github.com/AthenZ/athenz/provider/aws/sia-ec2/internal/driver"
+	"github.com/AthenZ/athenz/provider/aws/sia-ec2/internal/testserver"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
+	"github.com/dimfeld/httptreemux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -50,6 +56,10 @@ var (
     }`
 )
 
+const ztsBaseUrl = "zts/v1"
+
+var caKeyStr, caCertStr string
+
 const (
 	metaEndPoint = "http://127.0.0.1:5080"
 )
@@ -57,6 +67,7 @@ const (
 func setup() {
 	go metamock.StartMetaServer("127.0.0.1:5080")
 	go ztsmock.StartZtsServer("127.0.0.1:5081")
+	caKeyStr, caCertStr = driver.SetupCA()
 }
 
 func teardown() {}
@@ -69,7 +80,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestGetProviderName(test *testing.T) {
-	name, ec2Provider := getProviderName("aws.provider", "us-west-2", "")
+	name, ec2Provider := getProviderName("aws.provider", "us-west-2", "", "")
 	if name != "aws.provider" {
 		test.Errorf("Unable to verify provider with aws.provider name: %s", name)
 		return
@@ -77,7 +88,7 @@ func TestGetProviderName(test *testing.T) {
 	if ec2Provider {
 		test.Errorf("Given provider incorrectly identified as ec2 provider")
 	}
-	name, ec2Provider = getProviderName("", "us-west-2", "")
+	name, ec2Provider = getProviderName("", "us-west-2", "", "athenz")
 	if name != "athenz.aws.us-west-2" {
 		test.Errorf("Unable to verify provider with us-west-2 region name: %s", name)
 		return
@@ -85,7 +96,7 @@ func TestGetProviderName(test *testing.T) {
 	if !ec2Provider {
 		test.Errorf("EC2 provider incorrectly not identified as ec2 provider")
 	}
-	name, ec2Provider = getProviderName("aws.provider", "us-west-2", "12345")
+	name, ec2Provider = getProviderName("aws.provider", "us-west-2", "12345", "")
 	if name != "aws.provider" {
 		test.Errorf("Unable to verify ecs provider with aws.provider name: %s", name)
 		return
@@ -93,7 +104,7 @@ func TestGetProviderName(test *testing.T) {
 	if ec2Provider {
 		test.Errorf("Given provider with task id incorrectly identified as ec2 provider")
 	}
-	name, ec2Provider = getProviderName("", "us-west-2", "12345")
+	name, ec2Provider = getProviderName("", "us-west-2", "12345", "athenz")
 	if name != "athenz.aws-ecs.us-west-2" {
 		test.Errorf("Unable to verify ecs provider with us-west-2 region name: %s", name)
 		return
@@ -121,9 +132,10 @@ func TestRegisterInstance(test *testing.T) {
 				Name: "hockey",
 			},
 		},
-		KeyDir:           siaDir,
-		CertDir:          siaDir,
-		AthenzCACertFile: caCertFile,
+		KeyDir:               siaDir,
+		CertDir:              siaDir,
+		AthenzCACertFile:     caCertFile,
+		ProviderParentDomain: "athenz",
 	}
 
 	var docMap map[string]string
@@ -136,7 +148,19 @@ func TestRegisterInstance(test *testing.T) {
 		Role:     "athenz.hockey",
 	}
 
-	err = RegisterInstance([]*attestation.AttestationData{a}, attestDataDoc, "http://127.0.0.1:5081/zts/v1", opts, true, os.Stdout)
+	// Mock ZTS PostInstanceRegistrationInformation for creation of certs
+	ztsRouter := httptreemux.New()
+	ztsRouter.POST("/zts/v1/instance", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/instance")
+		w.WriteHeader(http.StatusCreated)
+		io.WriteString(w, driver.GenerateRegisterIdentity(r, caKeyStr, caCertStr))
+	})
+
+	ztsServer := &testserver.S{}
+	ztsServer.Start(ztsRouter)
+	defer ztsServer.Stop()
+
+	err = RegisterInstance([]*attestation.AttestationData{a}, attestDataDoc, ztsServer.BaseUrl(ztsBaseUrl), opts, true, os.Stdout)
 	assert.Nil(test, err, "unable to regster instance")
 
 	_, err = os.Stat(keyFile)
@@ -164,9 +188,10 @@ func TestRegisterInstanceMultiple(test *testing.T) {
 			options.Service{Name: "hockey"},
 			options.Service{Name: "soccer"},
 		},
-		KeyDir:           siaDir,
-		CertDir:          siaDir,
-		AthenzCACertFile: caCertFile,
+		KeyDir:               siaDir,
+		CertDir:              siaDir,
+		AthenzCACertFile:     caCertFile,
+		ProviderParentDomain: "athenz",
 	}
 
 	var docMap map[string]string
@@ -179,7 +204,19 @@ func TestRegisterInstanceMultiple(test *testing.T) {
 		&attestation.AttestationData{Document: string(attestDataDoc), Role: "athenz.soccer"},
 	}
 
-	err = RegisterInstance(data, attestDataDoc, "http://127.0.0.1:5081/zts/v1", opts, true, os.Stdout)
+	// Mock ZTS PostInstanceRegistrationInformation for creation of certs
+	ztsRouter := httptreemux.New()
+	ztsRouter.POST("/zts/v1/instance", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/instance")
+		w.WriteHeader(http.StatusCreated)
+		io.WriteString(w, driver.GenerateRegisterIdentity(r, caKeyStr, caCertStr))
+	})
+
+	ztsServer := &testserver.S{}
+	ztsServer.Start(ztsRouter)
+	defer ztsServer.Stop()
+
+	err = RegisterInstance(data, attestDataDoc, ztsServer.BaseUrl(ztsBaseUrl), opts, true, os.Stdout)
 	assert.Nil(test, err, "unable to regster instance")
 
 	// Verify the first service
@@ -222,6 +259,8 @@ func TestRefreshInstance(test *testing.T) {
 	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
 	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
 	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
+	domain := "athenz"
+	service := "hockey"
 
 	err = copyFile("devel/data/unit_test_key.pem", keyFile)
 	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", keyFile, err))
@@ -233,15 +272,16 @@ func TestRefreshInstance(test *testing.T) {
 	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", caCertFile, err))
 
 	opts := &options.Options{
-		Domain: "athenz",
+		Domain: domain,
 		Services: []options.Service{
 			options.Service{
-				Name: "hockey",
+				Name: service,
 			},
 		},
-		KeyDir:           siaDir,
-		CertDir:          siaDir,
-		AthenzCACertFile: caCertFile,
+		KeyDir:               siaDir,
+		CertDir:              siaDir,
+		AthenzCACertFile:     caCertFile,
+		ProviderParentDomain: "athenz",
 	}
 
 	var docMap map[string]string
@@ -251,10 +291,22 @@ func TestRefreshInstance(test *testing.T) {
 
 	a := &attestation.AttestationData{
 		Document: string(attestDataDoc),
-		Role:     "athenz.hockey",
+		Role:     fmt.Sprintf("%s.%s", domain, service),
 	}
 
-	err = RefreshInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, os.Stdout)
+	// Mock ZTS PostInstanceRegistrationInformation for creation of certs
+	ztsRouter := httptreemux.New()
+	ztsRouter.POST(fmt.Sprintf("/zts/v1/instance/athenz.aws.us-west-2/%s/%s/i-03d1ae7035f931a90", domain, service), func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/instance")
+		w.WriteHeader(http.StatusOK)
+		io.WriteString(w, driver.GenerateRefreshIdentity(r, domain, service, caKeyStr, caCertStr))
+	})
+
+	ztsServer := &testserver.S{}
+	ztsServer.Start(ztsRouter)
+	defer ztsServer.Stop()
+
+	err = RefreshInstance([]*attestation.AttestationData{a}, ztsServer.BaseUrl(ztsBaseUrl), opts, os.Stdout)
 	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
 
 	oldCert, _ := ioutil.ReadFile("devel/data/cert.pem")
@@ -296,12 +348,24 @@ func TestRoleCertificateRequest(test *testing.T) {
 				Filename: roleCertFile,
 			},
 		},
-		KeyDir:           siaDir,
-		CertDir:          siaDir,
-		AthenzCACertFile: caCertFile,
+		KeyDir:               siaDir,
+		CertDir:              siaDir,
+		AthenzCACertFile:     caCertFile,
+		ProviderParentDomain: "athenz",
 	}
 
-	result := GetRoleCertificate("http://127.0.0.1:5081/zts/v1", keyFile, certFile, opts, os.Stdout)
+	ztsRouter := httptreemux.New()
+	ztsRouter.POST("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/instance")
+		w.WriteHeader(http.StatusOK)
+		io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
+	})
+
+	ztsServer := &testserver.S{}
+	ztsServer.Start(ztsRouter)
+	defer ztsServer.Stop()
+
+	result := GetRoleCertificate(ztsServer.BaseUrl(ztsBaseUrl), keyFile, certFile, opts, os.Stdout)
 	if !result {
 		test.Errorf("Unable to get role certificate: %v", err)
 		return
@@ -368,5 +432,367 @@ func TestExtractProviderFromCertWithoutOU(test *testing.T) {
 func TestExtractProviderFromCert(test *testing.T) {
 	if extractProviderFromCert("devel/data/cert.pem") != "Athenz" {
 		test.Error("Unable to extract Athenz ou provider from cert.pem")
+	}
+}
+
+func TestGenerateRolePrivKey(test *testing.T) {
+	privKey, err := RoleKey(true, "")
+	assert.Nil(test, err, "should not be an error creating private key")
+	assert.NotNil(test, privKey, "should successfully create private key")
+}
+
+func TestLoadRoleKeyFromFile(test *testing.T) {
+	keyDir, err := ioutil.TempDir("", "keyDir.")
+	require.Nil(test, err)
+	defer os.RemoveAll(keyDir)
+
+	keyFile := fmt.Sprintf("%s/athenz.role.key.pem", keyDir)
+
+	err = copyFile("devel/data/unit_test_key.pem", keyFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key", keyFile, err))
+
+	privKey, err := RoleKey(false, keyFile)
+	assert.Nil(test, err, "should not be an error loading private key from file")
+	assert.NotNil(test, privKey, "should successfully load private key from file")
+}
+
+func TestFailLoadRoleKeyFromFile(test *testing.T) {
+	keyDir, err := ioutil.TempDir("", "keyDir.")
+	require.Nil(test, err)
+	defer os.RemoveAll(keyDir)
+
+	keyFile := fmt.Sprintf("%s/athenz.role.key.pem", keyDir)
+	_, err = RoleKey(false, keyFile)
+	assert.NotNil(test, err, "should throw an error loading private key from file")
+}
+
+func TestGenerateRoleKey(test *testing.T) {
+	siaDir, err := ioutil.TempDir("", "sia.")
+	require.Nil(test, err)
+	defer os.RemoveAll(siaDir)
+
+	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
+	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
+	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
+	roleFileName := "athenz:role.writers"
+	roleCertFile := fmt.Sprintf("%s/%s.cert.pem", siaDir, roleFileName)
+	roleKeyFile := fmt.Sprintf("%s/%s.key.pem", siaDir, roleFileName)
+
+	err = copyFile("devel/data/unit_test_key.pem", keyFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", keyFile, err))
+
+	err = copyFile("devel/data/cert.pem", certFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", certFile, err))
+
+	err = copyFile("devel/data/unit_test_key.pem", roleKeyFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", roleKeyFile, err))
+
+	err = copyFile("devel/data/cert.pem", roleCertFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", roleCertFile, err))
+
+	err = copyFile("devel/data/ca.cert.pem", caCertFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", caCertFile, err))
+
+	opts := &options.Options{
+		Domain: "athenz",
+		Services: []options.Service{
+			options.Service{
+				Name: "hockey",
+			},
+		},
+		Roles: map[string]options.ConfigRole{
+			"athenz:role.writers": {},
+		},
+		KeyDir:               siaDir,
+		CertDir:              siaDir,
+		AthenzCACertFile:     caCertFile,
+		GenerateRoleKey:      true,
+		ProviderParentDomain: "athenz",
+	}
+
+	ztsRouter := httptreemux.New()
+	ztsRouter.POST("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/instance")
+		w.WriteHeader(http.StatusOK)
+		io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
+	})
+
+	ztsServer := &testserver.S{}
+	ztsServer.Start(ztsRouter)
+	defer ztsServer.Stop()
+
+	result := GetRoleCertificate(ztsServer.BaseUrl(ztsBaseUrl), keyFile, certFile, opts, os.Stdout)
+	if !result {
+		test.Errorf("Unable to get role certificate: %v", err)
+		return
+	}
+
+	_, err = os.Stat(roleCertFile)
+	if err != nil {
+		test.Errorf("Unable to validate role certificate file: %v", err)
+	}
+
+	_, err = os.Stat(roleKeyFile)
+	if err != nil {
+		test.Errorf("Unable to validate role key file: %v", err)
+	}
+}
+
+func TestGenerateRoleKeyWithFileName(test *testing.T) {
+	siaDir, err := ioutil.TempDir("", "sia.")
+	require.Nil(test, err)
+	defer os.RemoveAll(siaDir)
+
+	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
+	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
+	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
+	roleFileName := "testrole"
+	roleCertFile := fmt.Sprintf("%s/%s.cert.pem", siaDir, roleFileName)
+	roleKeyFile := fmt.Sprintf("%s/%s.key.pem", siaDir, roleFileName)
+
+	err = copyFile("devel/data/unit_test_key.pem", keyFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", keyFile, err))
+
+	err = copyFile("devel/data/cert.pem", certFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", certFile, err))
+
+	err = copyFile("devel/data/unit_test_key.pem", roleKeyFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", roleKeyFile, err))
+
+	err = copyFile("devel/data/cert.pem", roleCertFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", roleCertFile, err))
+
+	err = copyFile("devel/data/ca.cert.pem", caCertFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", caCertFile, err))
+
+	opts := &options.Options{
+		Domain: "athenz",
+		Services: []options.Service{
+			options.Service{
+				Name: "hockey",
+			},
+		},
+		Roles: map[string]options.ConfigRole{
+			"athenz:role.writers": {
+				Filename: fmt.Sprintf("%s.cert.pem", roleFileName),
+			},
+		},
+		KeyDir:               siaDir,
+		CertDir:              siaDir,
+		AthenzCACertFile:     caCertFile,
+		GenerateRoleKey:      true,
+		ProviderParentDomain: "athenz",
+	}
+
+	ztsRouter := httptreemux.New()
+	ztsRouter.POST("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/instance")
+		w.WriteHeader(http.StatusOK)
+		io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
+	})
+
+	ztsServer := &testserver.S{}
+	ztsServer.Start(ztsRouter)
+	defer ztsServer.Stop()
+
+	result := GetRoleCertificate(ztsServer.BaseUrl(ztsBaseUrl), keyFile, certFile, opts, os.Stdout)
+	if !result {
+		test.Errorf("Unable to get role certificate: %v", err)
+		return
+	}
+
+	_, err = os.Stat(roleCertFile)
+	if err != nil {
+		test.Errorf("Unable to validate role certificate file: %v", err)
+	}
+
+	_, err = os.Stat(roleKeyFile)
+	if err != nil {
+		test.Errorf("Unable to validate role key file: %v", err)
+	}
+}
+
+func TestRotateRoleKey(test *testing.T) {
+	siaDir, err := ioutil.TempDir("", "sia.")
+	require.Nil(test, err)
+	defer os.RemoveAll(siaDir)
+
+	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
+	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
+	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
+	roleFileName := "testrole"
+	roleCertFile := fmt.Sprintf("%s/%s.cert.pem", siaDir, roleFileName)
+	roleKeyFile := fmt.Sprintf("%s/%s.key.pem", siaDir, roleFileName)
+
+	err = copyFile("devel/data/unit_test_key.pem", keyFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", keyFile, err))
+
+	err = copyFile("devel/data/cert.pem", certFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", certFile, err))
+
+	err = copyFile("devel/data/unit_test_key.pem", roleKeyFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", roleKeyFile, err))
+
+	err = copyFile("devel/data/cert.pem", roleCertFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", roleCertFile, err))
+
+	err = copyFile("devel/data/ca.cert.pem", caCertFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", caCertFile, err))
+
+	opts := &options.Options{
+		Domain: "athenz",
+		Services: []options.Service{
+			{
+				Name: "hockey",
+			},
+		},
+		Roles: map[string]options.ConfigRole{
+			"athenz:role.writers": {
+				Filename: fmt.Sprintf("%s.cert.pem", roleFileName),
+			},
+		},
+		KeyDir:               siaDir,
+		CertDir:              siaDir,
+		BackUpDir:            siaDir,
+		AthenzCACertFile:     caCertFile,
+		GenerateRoleKey:      true,
+		RotateKey:            true,
+		ProviderParentDomain: "athenz",
+	}
+
+	// Mock ZTS PostInstanceRegistrationInformation for creation of certs
+	ztsRouter := httptreemux.New()
+	ztsRouter.POST("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/instance")
+		w.WriteHeader(http.StatusOK)
+		io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
+	})
+
+	ztsServer := &testserver.S{}
+	ztsServer.Start(ztsRouter)
+	defer ztsServer.Stop()
+
+	result := GetRoleCertificate(ztsServer.BaseUrl(ztsBaseUrl), keyFile, certFile, opts, os.Stdout)
+	if !result {
+		test.Errorf("Unable to get role certificate: %v", err)
+		return
+	}
+
+	_, err = os.Stat(roleCertFile)
+	if err != nil {
+		test.Errorf("Unable to validate role certificate file: %v", err)
+	}
+
+	_, err = os.Stat(roleKeyFile)
+	if err != nil {
+		test.Errorf("Unable to validate role key file: %v", err)
+	}
+
+	oldCert, _ := ioutil.ReadFile(roleCertFile)
+	oldKey, _ := ioutil.ReadFile(roleKeyFile)
+
+	result = GetRoleCertificate(ztsServer.BaseUrl(ztsBaseUrl), keyFile, certFile, opts, os.Stdout)
+	if !result {
+		test.Errorf("Unable to get role certificate: %v", err)
+		return
+	}
+
+	_, err = os.Stat(roleCertFile)
+	if err != nil {
+		test.Errorf("Unable to validate role certificate file: %v", err)
+	}
+
+	_, err = os.Stat(roleKeyFile)
+	if err != nil {
+		test.Errorf("Unable to validate role key file: %v", err)
+	}
+
+	newCert, _ := ioutil.ReadFile(roleCertFile)
+	newKey, _ := ioutil.ReadFile(roleKeyFile)
+
+	if string(oldCert) == string(newCert) {
+		test.Errorf("Certificate was not refreshed")
+		return
+	}
+
+	if string(oldKey) == string(newKey) {
+		test.Errorf("Key was not rotated")
+		return
+	}
+}
+
+func TestRefreshInstanceWithRotateKey(test *testing.T) {
+	siaDir, err := ioutil.TempDir("", "sia.")
+	require.Nil(test, err)
+	defer os.RemoveAll(siaDir)
+
+	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
+	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
+	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
+	domain := "athenz"
+	service := "hockey"
+
+	err = copyFile("devel/data/unit_test_key.pem", keyFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", keyFile, err))
+
+	err = copyFile("devel/data/cert.pem", certFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", certFile, err))
+
+	err = copyFile("devel/data/ca.cert.pem", caCertFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", caCertFile, err))
+
+	opts := &options.Options{
+		Domain: domain,
+		Services: []options.Service{
+			options.Service{
+				Name:     service,
+				FileMode: 0440,
+			},
+		},
+		KeyDir:               siaDir,
+		CertDir:              siaDir,
+		BackUpDir:            siaDir,
+		AthenzCACertFile:     caCertFile,
+		RotateKey:            true,
+		ProviderParentDomain: "athenz",
+	}
+
+	var docMap map[string]string
+	json.Unmarshal([]byte(instanceIdentityJson), &docMap)
+	docMap["pendingTime"] = time.Now().Format(time.RFC3339)
+	attestDataDoc, err := json.Marshal(docMap)
+
+	a := &attestation.AttestationData{
+		Document: string(attestDataDoc),
+		Role:     "athenz.hockey",
+	}
+
+	// Mock ZTS PostInstanceRegistrationInformation for creation of certs
+	ztsRouter := httptreemux.New()
+	ztsRouter.POST(fmt.Sprintf("/zts/v1/instance/athenz.aws.us-west-2/%s/%s/i-03d1ae7035f931a90", domain, service), func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/instance")
+		w.WriteHeader(http.StatusOK)
+		io.WriteString(w, driver.GenerateRefreshIdentity(r, domain, service, caKeyStr, caCertStr))
+	})
+
+	ztsServer := &testserver.S{}
+	ztsServer.Start(ztsRouter)
+	defer ztsServer.Stop()
+
+	err = RefreshInstance([]*attestation.AttestationData{a}, ztsServer.BaseUrl(ztsBaseUrl), opts, os.Stdout)
+	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
+
+	oldCert, _ := ioutil.ReadFile("devel/data/cert.pem")
+	newCert, _ := ioutil.ReadFile(certFile)
+	if string(oldCert) == string(newCert) {
+		test.Errorf("Certificate was not refreshed")
+		return
+	}
+
+	oldKey, _ := ioutil.ReadFile("devel/data/key.pem")
+	newKey, _ := ioutil.ReadFile(keyFile)
+	if string(oldKey) == string(newKey) {
+		test.Errorf("Key was not rotated")
+		return
 	}
 }

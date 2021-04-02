@@ -32,6 +32,7 @@ import (
 const (
 	CentOS7 = iota
 	CentOS6
+	Ubuntu14
 	Ubuntu16
 	Ubuntu18
 	Unknown
@@ -67,12 +68,14 @@ type ConfigAccount struct {
 
 // Config represents entire sia_config file
 type Config struct {
-	Version        string                   `json:"version,omitempty"`     //name of the provider
-	Service        string                   `json:"service,omitempty"`     //name of the service for the identity
-	Services       map[string]ConfigService `json:"services,omitempty"`    //names of the multiple services for the identity
-	Ssh            *bool                    `json:"ssh,omitempty"`         //ssh certificate support
-	UseRegionalSTS bool                     `json:"regionalsts,omitempty"` //whether to use a regional STS endpoint (default is false)
-	Accounts       []ConfigAccount          `json:"accounts,omitempty"`    //array of configured accounts
+	Version         string                   `json:"version,omitempty"`           //name of the provider
+	Service         string                   `json:"service,omitempty"`           //name of the service for the identity
+	Services        map[string]ConfigService `json:"services,omitempty"`          //names of the multiple services for the identity
+	Ssh             *bool                    `json:"ssh,omitempty"`               //ssh certificate support
+	UseRegionalSTS  bool                     `json:"regionalsts,omitempty"`       //whether to use a regional STS endpoint (default is false)
+	Accounts        []ConfigAccount          `json:"accounts,omitempty"`          //array of configured accounts
+	GenerateRoleKey bool                     `json:"generate_role_key,omitempty"` //private key to be generated for role certificate
+	RotateKey       bool                     `json:"rotate_key,omitempty"`        //rotate private key support
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -83,6 +86,7 @@ type Role struct {
 	User     string
 	Uid      int
 	Gid      int
+	FileMode int
 }
 
 // Service represents service details. Attributes are filled in based on the config values
@@ -93,30 +97,35 @@ type Service struct {
 	Group    string
 	Uid      int
 	Gid      int
+	FileMode int
 }
 
 // Options represents settings that are derived from config file and application defaults
 type Options struct {
-	Provider         string
-	Name             string
-	User             string
-	Group            string
-	Domain           string
-	Account          string
-	Services         []Service
-	Ssh              bool
-	UseRegionalSTS   bool
-	Zts              string
-	Filename         string
-	Roles            map[string]ConfigRole
-	OsType           int
-	Version          string
-	KeyDir           string
-	CertDir          string
-	AthenzCACertFile string
-	ZTSCACertFile    string
-	ZTSServerName    string
-	ZTSAWSDomain     string
+	Provider             string
+	Name                 string
+	User                 string
+	Group                string
+	Domain               string
+	Account              string
+	Services             []Service
+	Ssh                  bool
+	UseRegionalSTS       bool
+	Zts                  string
+	Filename             string
+	Roles                map[string]ConfigRole
+	OsType               int
+	Version              string
+	KeyDir               string
+	CertDir              string
+	AthenzCACertFile     string
+	ZTSCACertFile        string
+	ZTSServerName        string
+	ZTSAWSDomain         string
+	GenerateRoleKey      bool
+	RotateKey            bool
+	BackUpDir            string
+	ProviderParentDomain string
 }
 
 func initProfileConfig(metaEndPoint string) (*ConfigAccount, error) {
@@ -170,7 +179,7 @@ func initFileConfig(bytes []byte, accountId string) (*Config, *ConfigAccount, er
 
 // NewOptions takes in sia_config bytes and returns a pointer to Options after parsing and initializing the defaults
 // It uses profile arn for defaults when sia_config is empty or non-parsable. It populates "services" array
-func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCert, ztsServerName, ztsAwsDomain string, sysLogger io.Writer) (*Options, error) {
+func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCert, ztsServerName, ztsAwsDomain, providerParentDomain string, sysLogger io.Writer) (*Options, error) {
 	// Parse config bytes first, and if that fails, load values from Instance Profile and IAM info
 	config, account, err := initFileConfig(bytes, accountId)
 	if err != nil {
@@ -195,7 +204,22 @@ func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCer
 		useRegionalSTS = config.UseRegionalSTS
 	}
 
-	services := []Service{}
+	var services []Service
+
+	generateRoleKey := false
+	rotateKey := false
+
+	if config != nil {
+		generateRoleKey = config.GenerateRoleKey
+		rotateKey = config.RotateKey
+		if len(account.Roles) != 0 && generateRoleKey == false && rotateKey == true {
+			logutil.LogInfo(sysLogger, "Cannot set rotate_key to true, with generate_role_key as false,"+
+				" when there are one or more roles defined in config\n")
+			generateRoleKey = false
+			rotateKey = false
+		}
+	}
+
 	if config == nil || len(config.Services) == 0 {
 		// There is no sia_config, or multiple services are not configured. Populate services with the account information we gathered
 		s := Service{
@@ -203,7 +227,7 @@ func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCer
 			Filename: account.Filename,
 			User:     account.User,
 		}
-		s.Uid, s.Gid = util.UidGidForUserGroup(account.User, account.Group, sysLogger)
+		s.Uid, s.Gid, s.FileMode = util.SvcAttrs(account.User, account.Group, sysLogger)
 		services = append(services, s)
 	} else {
 		// sia_config and services are found
@@ -230,7 +254,7 @@ func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCer
 				if first.Group == "" {
 					first.Group = account.Group
 				}
-				first.Uid, first.Gid = util.UidGidForUserGroup(first.User, first.Group, sysLogger)
+				first.Uid, first.Gid, first.FileMode = util.SvcAttrs(first.User, first.Group, sysLogger)
 			} else {
 				ts := Service{
 					Name:     name,
@@ -238,35 +262,53 @@ func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCer
 					User:     s.User,
 					Group:    s.Group,
 				}
-				ts.Uid, ts.Gid = util.UidGidForUserGroup(s.User, s.Group, sysLogger)
+				ts.Uid, ts.Gid, ts.FileMode = util.SvcAttrs(s.User, s.Group, sysLogger)
 				tail = append(tail, ts)
+			}
+			if s.Filename != "" && s.Filename[0] == '/' {
+				logutil.LogInfo(sysLogger, "when custom filepaths are specified, rotate_key and generate_role_key are not supported")
+				generateRoleKey = false
+				rotateKey = false
 			}
 		}
 		services = append(services, first)
 		services = append(services, tail...)
 	}
 
+	for _, r := range account.Roles {
+		if r.Filename != "" && r.Filename[0] == '/' {
+			logutil.LogInfo(sysLogger, "when custom filepaths are specified, rotate_key and generate_role_key are not supported")
+			generateRoleKey = false
+			rotateKey = false
+			break
+		}
+	}
+
 	return &Options{
-		Provider:         account.Provider,
-		Name:             account.Name,
-		User:             account.User,
-		Group:            account.Group,
-		Domain:           account.Domain,
-		Account:          account.Account,
-		Zts:              account.Zts,
-		Filename:         account.Filename,
-		OsType:           GetOSType(),
-		Version:          fmt.Sprintf("SIA-AWS %s", version),
-		Ssh:              ssh,
-		UseRegionalSTS:   useRegionalSTS,
-		Services:         services,
-		Roles:            account.Roles,
-		CertDir:          fmt.Sprintf("%s/certs", siaDir),
-		KeyDir:           fmt.Sprintf("%s/keys", siaDir),
-		AthenzCACertFile: fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
-		ZTSCACertFile:    ztsCaCert,
-		ZTSServerName:    ztsServerName,
-		ZTSAWSDomain:     ztsAwsDomain,
+		Provider:             account.Provider,
+		Name:                 account.Name,
+		User:                 account.User,
+		Group:                account.Group,
+		Domain:               account.Domain,
+		Account:              account.Account,
+		Zts:                  account.Zts,
+		Filename:             account.Filename,
+		OsType:               GetOSType(),
+		Version:              fmt.Sprintf("SIA-AWS %s", version),
+		Ssh:                  ssh,
+		UseRegionalSTS:       useRegionalSTS,
+		Services:             services,
+		Roles:                account.Roles,
+		CertDir:              fmt.Sprintf("%s/certs", siaDir),
+		KeyDir:               fmt.Sprintf("%s/keys", siaDir),
+		AthenzCACertFile:     fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
+		ZTSCACertFile:        ztsCaCert,
+		ZTSServerName:        ztsServerName,
+		ZTSAWSDomain:         ztsAwsDomain,
+		GenerateRoleKey:      generateRoleKey,
+		RotateKey:            rotateKey,
+		BackUpDir:            fmt.Sprintf("%s/backup", siaDir),
+		ProviderParentDomain: providerParentDomain,
 	}, nil
 }
 
