@@ -31,6 +31,7 @@ const TableHeader = styled.th`
     text-transform: uppercase;
     padding: 5px 0 5px 15px;
     text-align: left;
+    white-space: nowrap;
 `;
 
 const TableHeaderDomain = styled.th`
@@ -50,11 +51,17 @@ const ApproveTableHeader = styled.th`
     color: ${colors.grey600};
     font-weight: 600;
     font-size: 0.7rem;
-    padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
     text-align: center;
+    position: absolute;
+    width: 15em;
+    right: 13em;
+    z-index: 1;
+    height: 15px;
+    padding-bottom: 5px;
     padding: 5px 0 5px 15px;
+    white-space: nowrap;
 `;
 
 const RejectTableHeader = styled.th`
@@ -62,12 +69,18 @@ const RejectTableHeader = styled.th`
     color: ${colors.grey600};
     font-weight: 600;
     font-size: 0.7rem;
-    padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
     text-align: center;
     border-right: none;
+    position: absolute;
+    width: 14em;
+    right: 0em;
+    z-index: 1;
+    height: 15px;
+    padding-bottom: 5px;
     padding: 5px 0 5px 15px;
+    white-space: nowrap;
 `;
 
 const DomainListTable = styled.table`
@@ -85,7 +98,8 @@ export default class PendingApprovalTable extends React.Component {
             pendingMap: this.props.pendingData,
             checkedList: [],
             selectAllAudit: '',
-            selectAllDate: '',
+            selectAllDateExpiry: '',
+            selectAllDateReviewReminder: '',
         };
         this.checkAllBoxOnchange = this.checkAllBoxOnchange.bind(this);
         this.dateUtils = new DateUtils();
@@ -105,16 +119,26 @@ export default class PendingApprovalTable extends React.Component {
         }
     }
 
-    dateChange(key, date) {
+    dateChange(key, date, type) {
         if (date && date.length > 0) {
             date = this.dateUtils.uxDatetimeToRDLTimestamp(date);
             if (key === 'SelectAll') {
-                this.setState({
-                    selectAllDate: date,
-                });
+                if (type === 'expiry') {
+                    this.setState({
+                        selectAllDateExpiry: date,
+                    });
+                } else {
+                    this.setState({
+                        selectAllDateReviewReminder: date,
+                    });
+                }
             } else {
                 const pendingMap = this.state.pendingMap;
-                pendingMap[key].expiryDate = date;
+                if (type === 'expiry') {
+                    pendingMap[key].expiryDate = date;
+                } else {
+                    pendingMap[key].reviewReminder = date;
+                }
                 this.setState({
                     pendingMap: pendingMap,
                 });
@@ -168,7 +192,8 @@ export default class PendingApprovalTable extends React.Component {
                     pendingMap: data,
                     checkedList: [],
                     selectAllAuditMissing: false,
-                    selectAllDate: '',
+                    selectAllDateExpiry: '',
+                    selectAllReviewReminder: '',
                 });
             })
             .catch((err) => {
@@ -207,7 +232,8 @@ export default class PendingApprovalTable extends React.Component {
                     let membership = {
                         memberName: this.state.pendingMap[key].memberName,
                         approved,
-                        expiration: this.state.selectAllDate,
+                        expiration: this.state.selectAllDateExpiry,
+                        reviewReminder: this.state.selectAllDateReviewReminder,
                     };
                     promises.push(
                         this.api.processPending(
@@ -244,6 +270,7 @@ export default class PendingApprovalTable extends React.Component {
                     memberName: this.state.pendingMap[key].memberName,
                     approved,
                     expiration: this.state.pendingMap[key].expiryDate,
+                    reviewReminder: this.state.pendingMap[key].reviewReminder,
                 };
                 this.api
                     .processPending(
@@ -281,6 +308,7 @@ export default class PendingApprovalTable extends React.Component {
                 const domainName = pending.domainName;
                 const memberName = pending.memberName;
                 const defaultExpiration = pending.expiryDate;
+                const defaultReviewReminder = pending.reviewReminder;
                 let color = '';
                 if (i % 2 === 0) {
                     color = colors.row;
@@ -309,7 +337,11 @@ export default class PendingApprovalTable extends React.Component {
                         }
                         key={domainName + roleName + memberName}
                         defaultExpiration={defaultExpiration}
-                        clear={this.state.pendingMap[key].expiryDate}
+                        defaultReviewReminder={defaultReviewReminder}
+                        clearExpiry={this.state.pendingMap[key].expiryDate}
+                        clearReviewReminder={
+                            this.state.pendingMap[key].reviewReminder
+                        }
                         requestPrincipal={
                             this.state.pendingMap[key].requestPrincipal
                         }
@@ -321,6 +353,9 @@ export default class PendingApprovalTable extends React.Component {
                             this.state.pendingMap[key].memberNameFull
                         }
                         requestedExpiry={this.state.pendingMap[key].expiryDate}
+                        requestedReviewReminder={
+                            this.state.pendingMap[key].reviewReminder
+                        }
                     />
                 );
             });
@@ -341,7 +376,10 @@ export default class PendingApprovalTable extends React.Component {
                             dateChange={dateChange}
                             auditRefMissing={this.state.selectAllAuditMissing}
                             api={this.api}
-                            clear={this.state.selectAllDate}
+                            clearExpiry={this.state.selectAllDateExpiry}
+                            clearReviewReminder={
+                                this.state.selectAllDateReviewReminder
+                            }
                         />
                         <tr>
                             <TableHeader />
@@ -354,6 +392,7 @@ export default class PendingApprovalTable extends React.Component {
                             <TableHeader>Request Time</TableHeader>
                             <TableHeader>Audit Reference</TableHeader>
                             <TableHeader>Expiration Date</TableHeader>
+                            <TableHeader>Review Date</TableHeader>
                             <ApproveTableHeader>Approve</ApproveTableHeader>
                             <RejectTableHeader>Reject</RejectTableHeader>
                         </tr>

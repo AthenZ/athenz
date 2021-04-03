@@ -148,6 +148,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   text-transform: uppercase;
   padding: 5px 0 5px 15px;
   text-align: left;
+  white-space: nowrap;
 }
 
 .emotion-15 {
@@ -278,7 +279,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   padding: 0.6em 12px;
   -webkit-transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
   transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
-  width: 75%;
+  width: 10em;
 }
 
 .emotion-24 {
@@ -287,32 +288,48 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-25 {
+.emotion-30 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  padding-bottom: 5px;
   vertical-align: middle;
   text-transform: uppercase;
   text-align: center;
+  position: absolute;
+  width: 11em;
+  right: 11em;
+  z-index: 1;
+  height: 42px;
+  background-color: rgba(255, 255, 255, 1);
+  padding-bottom: 5px;
   padding: 5px 0 5px 15px;
 }
 
-.emotion-27 {
+.emotion-32 {
+  margin-top: 10px;
+}
+
+.emotion-34 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-28 {
+.emotion-35 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  padding-bottom: 5px;
   vertical-align: middle;
   text-transform: uppercase;
   text-align: center;
   border-right: none;
+  position: absolute;
+  width: 11em;
+  right: 0em;
+  z-index: 1;
+  height: 42px;
+  background-color: rgba(255, 255, 255, 1);
+  padding-bottom: 5px;
   padding: 5px 0 5px 15px;
 }
 
@@ -383,7 +400,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
       disabled=""
     >
       <div
-        class="fp-workflowHeader"
+        class="fp-workflowHeaderExpiry"
       >
         <input
           class="flatpickr-input"
@@ -422,43 +439,97 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-25 emotion-26"
+    class="emotion-15 emotion-16"
   >
-    <svg
-      class="emotion-27"
-      data-testid="icon"
-      height="1.25em"
-      viewBox="0 0 1024 1024"
-      width="1.25em"
+    <div
+      class="emotion-22 emotion-23"
+      disabled=""
     >
-      <title>
-        check-circle
-      </title>
-      <path
-        d="M512 128c212.077 0 384 171.923 384 384s-171.923 384-384 384c-212.077 0-384-171.923-384-384v0c0-212.077 171.923-384 384-384v0zM512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0z"
-      />
-      <path
-        d="M396.16 691.413l-126.293-126.293c-8.506-8.066-13.798-19.448-13.798-32.066 0-9.118 2.763-17.59 7.498-24.625l-0.1 0.158c7.83-10.919 20.483-17.949 34.778-17.949 11.841 0 22.556 4.824 30.286 12.613l0.003 0.003 98.133 97.707 268.373-268.373c7.549-6.884 17.635-11.1 28.706-11.1 23.564 0 42.667 19.103 42.667 42.667 0 11.017-4.176 21.060-11.031 28.63l0.032-0.036-298.667 298.667c-7.733 7.795-18.45 12.621-30.293 12.621s-22.56-4.826-30.291-12.618l-0.003-0.003z"
-      />
-    </svg>
+      <div
+        class="fp-workflowHeaderReviewReminder"
+      >
+        <input
+          class="flatpickr-input"
+          data-input=""
+          data-testid="flatPicker"
+          placeholder="Reminder (Optional)"
+          type="hidden"
+          value=""
+        />
+        <input
+          class=" form-control input"
+          placeholder="Reminder (Optional)"
+          readonly="readonly"
+          tabindex="0"
+          type="text"
+        />
+        <a
+          data-clear=""
+        >
+          <svg
+            class="emotion-24"
+            data-testid="icon"
+            height="1.25em"
+            viewBox="0 0 1024 1024"
+            width="1.25em"
+          >
+            <title>
+              close
+            </title>
+            <path
+              d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
   </th>
   <th
-    class="emotion-28 emotion-29"
+    class="emotion-30 emotion-31"
   >
-    <svg
-      class="emotion-27"
-      data-testid="icon"
-      height="1.25em"
-      viewBox="0 0 1024 1024"
-      width="1.25em"
+    <div
+      class="emotion-32 emotion-33"
     >
-      <title>
-        decline
-      </title>
-      <path
-        d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM130.133 467.2c22.95-192.169 184.962-339.729 381.44-339.729 90.864 0 174.356 31.559 240.114 84.314l-0.754-0.585-539.733 539.733c-52.076-65.227-83.563-148.885-83.563-239.896 0-15.446 0.907-30.681 2.671-45.653l-0.174 1.816zM554.667 893.867c-12.252 1.372-26.457 2.154-40.844 2.154-92.264 0-177.012-32.182-243.63-85.933l0.741 0.579 539.733-537.6c53.445 64.395 85.876 147.901 85.876 238.983 0 15.772-0.972 31.316-2.861 46.577l0.184-1.826c-22.136 177.253-161.672 316.060-337.376 336.891l-1.824 0.176z"
-      />
-    </svg>
+      <svg
+        class="emotion-34"
+        data-testid="icon"
+        height="1.25em"
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          check-circle
+        </title>
+        <path
+          d="M512 128c212.077 0 384 171.923 384 384s-171.923 384-384 384c-212.077 0-384-171.923-384-384v0c0-212.077 171.923-384 384-384v0zM512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0z"
+        />
+        <path
+          d="M396.16 691.413l-126.293-126.293c-8.506-8.066-13.798-19.448-13.798-32.066 0-9.118 2.763-17.59 7.498-24.625l-0.1 0.158c7.83-10.919 20.483-17.949 34.778-17.949 11.841 0 22.556 4.824 30.286 12.613l0.003 0.003 98.133 97.707 268.373-268.373c7.549-6.884 17.635-11.1 28.706-11.1 23.564 0 42.667 19.103 42.667 42.667 0 11.017-4.176 21.060-11.031 28.63l0.032-0.036-298.667 298.667c-7.733 7.795-18.45 12.621-30.293 12.621s-22.56-4.826-30.291-12.618l-0.003-0.003z"
+        />
+      </svg>
+    </div>
+  </th>
+  <th
+    class="emotion-35 emotion-36"
+  >
+    <div
+      class="emotion-32 emotion-33"
+    >
+      <svg
+        class="emotion-34"
+        data-testid="icon"
+        height="1.25em"
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          decline
+        </title>
+        <path
+          d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM130.133 467.2c22.95-192.169 184.962-339.729 381.44-339.729 90.864 0 174.356 31.559 240.114 84.314l-0.754-0.585-539.733 539.733c-52.076-65.227-83.563-148.885-83.563-239.896 0-15.446 0.907-30.681 2.671-45.653l-0.174 1.816zM554.667 893.867c-12.252 1.372-26.457 2.154-40.844 2.154-92.264 0-177.012-32.182-243.63-85.933l0.741 0.579 539.733-537.6c53.445 64.395 85.876 147.901 85.876 238.983 0 15.772-0.972 31.316-2.861 46.577l0.184-1.826c-22.136 177.253-161.672 316.060-337.376 336.891l-1.824 0.176z"
+        />
+      </svg>
+    </div>
   </th>
 </tr>
 `;

@@ -25,11 +25,17 @@ const SelectAllRejectTableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
     font-weight: 600;
-    padding-bottom: 5px;
     vertical-align: middle;
     text-transform: uppercase;
     text-align: center;
     border-right: none;
+    position: absolute;
+    width: 11em;
+    right: 0em;
+    z-index: 1;
+    height: 42px;
+    background-color: rgba(255, 255, 255, 1);
+    padding-bottom: 5px;
     padding: 5px 0 5px 15px;
 `;
 
@@ -61,10 +67,16 @@ const SelectAllApproveTableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
     font-weight: 600;
-    padding-bottom: 5px;
     vertical-align: middle;
     text-transform: uppercase;
     text-align: center;
+    position: absolute;
+    width: 11em;
+    right: 11em;
+    z-index: 1;
+    height: 42px;
+    background-color: rgba(255, 255, 255, 1);
+    padding-bottom: 5px;
     padding: 5px 0 5px 15px;
 `;
 
@@ -91,7 +103,7 @@ const FlatPickrInputDiv = styled.div`
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
             color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
-        width: 75%;
+        width: 10em;
     }
 `;
 
@@ -105,6 +117,7 @@ const TableHeader = styled.th`
     text-transform: uppercase;
     padding: 5px 0 5px 15px;
     text-align: left;
+    white-space: nowrap;
 `;
 
 const TableHeaderSelectAll = styled.th`
@@ -127,6 +140,10 @@ const SelectAllBoxTableHeader = styled.th`
     vertical-align: bottom;
     padding: 5px 0 5px 15px;
     text-align: left;
+`;
+
+const AllRejectApproveIcon = styled.div`
+    margin-top: 10px;
 `;
 
 export default class PendingApprovalTableHeader extends React.Component {
@@ -194,33 +211,58 @@ export default class PendingApprovalTableHeader extends React.Component {
                     <FlatPickrInputDiv disabled={disabled}>
                         <FlatPicker
                             onChange={(date) => {
-                                this.props.dateChange('SelectAll', date);
+                                this.props.dateChange(
+                                    'SelectAll',
+                                    date,
+                                    'expiry'
+                                );
                             }}
-                            clear={this.props.clear}
-                            id='workflowHeader'
+                            clearExpiry={this.props.clearExpiry}
+                            id='workflowHeaderExpiry'
+                            nomargin={true}
+                        />
+                    </FlatPickrInputDiv>
+                </SelectAllBoxTableHeader>
+                <SelectAllBoxTableHeader>
+                    <FlatPickrInputDiv disabled={disabled}>
+                        <FlatPicker
+                            onChange={(date) => {
+                                this.props.dateChange(
+                                    'SelectAll',
+                                    date,
+                                    'reviewReminder'
+                                );
+                            }}
+                            placeholder={'Reminder (Optional)'}
+                            clearReviewReminder={this.props.clearReviewReminder}
+                            id='workflowHeaderReviewReminder'
                             nomargin={true}
                         />
                     </FlatPickrInputDiv>
                 </SelectAllBoxTableHeader>
                 <SelectAllApproveTableHeader>
-                    <Icon
-                        icon={'check-circle'}
-                        onClick={approveOnClick}
-                        color={approveColor}
-                        isLink
-                        size={'1.25em'}
-                        verticalAlign={'text-bottom'}
-                    />
+                    <AllRejectApproveIcon>
+                        <Icon
+                            icon={'check-circle'}
+                            onClick={approveOnClick}
+                            color={approveColor}
+                            isLink
+                            size={'1.25em'}
+                            verticalAlign={'text-bottom'}
+                        />
+                    </AllRejectApproveIcon>
                 </SelectAllApproveTableHeader>
                 <SelectAllRejectTableHeader>
-                    <Icon
-                        icon={'decline'}
-                        onClick={rejectOnClick}
-                        color={rejectColor}
-                        isLink
-                        size={'1.25em'}
-                        verticalAlign={'text-bottom'}
-                    />
+                    <AllRejectApproveIcon>
+                        <Icon
+                            icon={'decline'}
+                            onClick={rejectOnClick}
+                            color={rejectColor}
+                            isLink
+                            size={'1.25em'}
+                            verticalAlign={'text-bottom'}
+                        />
+                    </AllRejectApproveIcon>
                 </SelectAllRejectTableHeader>
             </tr>
         );
