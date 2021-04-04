@@ -452,15 +452,23 @@ public class X509CertRequest {
             Set<String> validValues) {
 
         try {
-            final String value = Crypto.extractX509CSRSubjectOUField(certReq);
+            String value = Crypto.extractX509CSRSubjectOUField(certReq);
             if (value == null) {
                 return true;
             }
+
             // we have three values that we want to possible match against
             // a) provider callback specified value
             // b) provider name
             // c) configured set of valid ou names
+            // in all cases the caller might ask for a restricted certificate
+            // which cannot be used to talk to ZMS/ZTS - those have the
+            // suffix of ":restricted" so if our value contains one of those
+            // we'll strip it out before comparing
 
+            if (value.endsWith(Crypto.CERT_RESTRICTED_SUFFIX)) {
+                value = value.substring(0, value.length() - Crypto.CERT_RESTRICTED_SUFFIX.length());
+            }
             if (value.equalsIgnoreCase(certSubjectOU)) {
                 return true;
             } else if (value.equalsIgnoreCase(provider)) {

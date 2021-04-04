@@ -119,6 +119,8 @@ public class Crypto {
     static final String ATHENZ_CRYPTO_BC_PROVIDER = "athenz.crypto.bc_provider";
     private static final String BC_PROVIDER = "BC";
 
+    public static final String CERT_RESTRICTED_SUFFIX = ":restricted";
+
     static final SecureRandom RANDOM;
     static {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
@@ -1115,20 +1117,33 @@ public class Crypto {
     }
 
     public static boolean isRestrictedCertificate(X509Certificate x509Cert, GlobStringsMatcher globStringsMatcher) {
-        if (globStringsMatcher == null) {
-            LOG.error("isRestrictedCertificate: Required argument globStringsMatcher is null. Returning true.");
+
+        if (x509Cert == null) {
+            LOG.debug("isRestrictedCertificate: Required argument x509Cert is null. Returning true.");
             return true;
         }
-        if (x509Cert == null) {
-            LOG.error("isRestrictedCertificate: Required argument x509Cert is null. Returning true.");
+
+        final String x509Ou = extractX509CertSubjectOUField(x509Cert);
+        if (x509Ou == null || x509Ou.isEmpty()) {
+            // certificate has no ou field
+            return false;
+        }
+
+        // if it ends with our configured restricted suffix
+        // then there is no need to check for the regex match
+
+        if (x509Ou.endsWith(CERT_RESTRICTED_SUFFIX)) {
+            return true;
+        }
+
+        if (globStringsMatcher == null) {
+            LOG.debug("isRestrictedCertificate: Required argument globStringsMatcher is null. Returning true.");
             return true;
         }
         if (globStringsMatcher.isEmptyPatternsList()) {
             // No patterns provided, no need to check for mTLS restriction
             return false;
         }
-
-        String x509Ou = extractX509CertSubjectOUField(x509Cert);
         return globStringsMatcher.isMatch(x509Ou);
     }
 
