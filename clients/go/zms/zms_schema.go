@@ -468,6 +468,8 @@ func init() {
 	tGroupMeta.Field("userAuthorityExpiration", "String", true, nil, "expiration enforced by a user authority configured attribute")
 	tGroupMeta.Field("memberExpiryDays", "Int32", true, nil, "all user members in the group will have specified max expiry days")
 	tGroupMeta.Field("serviceExpiryDays", "Int32", true, nil, "all services in the group will have specified max expiry days")
+	tGroupMeta.Field("memberReviewDays", "Int32", true, nil, "all user members in the group will have specified max review days")
+	tGroupMeta.Field("serviceReviewDays", "Int32", true, nil, "all services in the group will have specified max review days")
 	sb.AddType(tGroupMeta.Build())
 
 	tGroup := rdl.NewStructTypeBuilder("GroupMeta", "Group")

@@ -384,11 +384,12 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
             + "WHERE domain.name=? AND principal_group.name=?;";
     private static final String SQL_INSERT_GROUP = "INSERT INTO principal_group (name, domain_id, audit_enabled, self_serve,"
-            + " review_enabled, notify_roles, user_authority_filter, user_authority_expiration, member_expiry_days, service_expiry_days) "
-            + "VALUES (?,?,?,?,?,?,?,?,?,?);";
+            + " review_enabled, notify_roles, user_authority_filter, user_authority_expiration, member_expiry_days, service_expiry_days,"
+            + " member_review_days, service_review_days) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_GROUP = "UPDATE principal_group SET audit_enabled=?, self_serve=?, "
             + "review_enabled=?, notify_roles=?, user_authority_filter=?, user_authority_expiration=?,"
-            + "member_expiry_days=?, service_expiry_days=? WHERE group_id=?;";
+            + "member_expiry_days=?, service_expiry_days=?, member_review_days=?, service_review_days=? WHERE group_id=?;";
     private static final String SQL_GET_GROUP_ID = "SELECT group_id FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_DELETE_GROUP = "DELETE FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_GROUP_MOD_TIMESTAMP = "UPDATE principal_group "
@@ -5028,7 +5029,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)))
                 .setUserAuthorityExpiration(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION)))
                 .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
-                .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0));
+                .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0))
+                .setMemberReviewDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_REVIEW_DAYS), 0))
+                .setServiceReviewDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_REVIEW_DAYS), 0));
 
         java.sql.Timestamp lastReviewedTime = rs.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME);
         if (lastReviewedTime != null) {
@@ -5081,6 +5084,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(8, processInsertValue(group.getUserAuthorityExpiration()));
             ps.setInt(9, processInsertValue(group.getMemberExpiryDays()));
             ps.setInt(10, processInsertValue(group.getServiceExpiryDays()));
+            ps.setInt(11, processInsertValue(group.getMemberReviewDays()));
+            ps.setInt(12, processInsertValue(group.getServiceReviewDays()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -5117,7 +5122,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(6, processInsertValue(group.getUserAuthorityExpiration()));
             ps.setInt(7, processInsertValue(group.getMemberExpiryDays()));
             ps.setInt(8, processInsertValue(group.getServiceExpiryDays()));
-            ps.setInt(9, groupId);
+            ps.setInt(9, processInsertValue(group.getMemberReviewDays()));
+            ps.setInt(10, processInsertValue(group.getServiceReviewDays()));
+            ps.setInt(11, groupId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

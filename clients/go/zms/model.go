@@ -4691,6 +4691,16 @@ type GroupMeta struct {
 	// all services in the group will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// all user members in the group will have specified max review days
+	//
+	MemberReviewDays *int32 `json:"memberReviewDays,omitempty" rdl:"optional"`
+
+	//
+	// all services in the group will have specified max review days
+	//
+	ServiceReviewDays *int32 `json:"serviceReviewDays,omitempty" rdl:"optional"`
 }
 
 //
@@ -4789,6 +4799,16 @@ type Group struct {
 	// all services in the group will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// all user members in the group will have specified max review days
+	//
+	MemberReviewDays *int32 `json:"memberReviewDays,omitempty" rdl:"optional"`
+
+	//
+	// all services in the group will have specified max review days
+	//
+	ServiceReviewDays *int32 `json:"serviceReviewDays,omitempty" rdl:"optional"`
 
 	//
 	// name of the group

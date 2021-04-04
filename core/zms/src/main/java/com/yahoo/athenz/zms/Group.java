@@ -34,6 +34,12 @@ public class Group {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer serviceExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer memberReviewDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer serviceReviewDays;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -99,6 +105,20 @@ public class Group {
     }
     public Integer getServiceExpiryDays() {
         return serviceExpiryDays;
+    }
+    public Group setMemberReviewDays(Integer memberReviewDays) {
+        this.memberReviewDays = memberReviewDays;
+        return this;
+    }
+    public Integer getMemberReviewDays() {
+        return memberReviewDays;
+    }
+    public Group setServiceReviewDays(Integer serviceReviewDays) {
+        this.serviceReviewDays = serviceReviewDays;
+        return this;
+    }
+    public Integer getServiceReviewDays() {
+        return serviceReviewDays;
     }
     public Group setName(String name) {
         this.name = name;
@@ -169,6 +189,12 @@ public class Group {
                 return false;
             }
             if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
+                return false;
+            }
+            if (memberReviewDays == null ? a.memberReviewDays != null : !memberReviewDays.equals(a.memberReviewDays)) {
+                return false;
+            }
+            if (serviceReviewDays == null ? a.serviceReviewDays != null : !serviceReviewDays.equals(a.serviceReviewDays)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

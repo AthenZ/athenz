@@ -405,7 +405,9 @@ public class ZMSSchema {
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
             .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute")
             .field("memberExpiryDays", "Int32", true, "all user members in the group will have specified max expiry days")
-            .field("serviceExpiryDays", "Int32", true, "all services in the group will have specified max expiry days");
+            .field("serviceExpiryDays", "Int32", true, "all services in the group will have specified max expiry days")
+            .field("memberReviewDays", "Int32", true, "all user members in the group will have specified max review days")
+            .field("serviceReviewDays", "Int32", true, "all services in the group will have specified max review days");
 
         sb.structType("Group", "GroupMeta")
             .comment("The representation for a Group with set of members.")

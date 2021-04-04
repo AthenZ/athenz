@@ -50,6 +50,8 @@ type GroupMeta Struct {
     String userAuthorityExpiration (optional); //expiration enforced by a user authority configured attribute
     Int32 memberExpiryDays (optional); //all user members in the group will have specified max expiry days
     Int32 serviceExpiryDays (optional); //all services in the group will have specified max expiry days
+    Int32 memberReviewDays (optional); //all user members in the group will have specified max review days
+    Int32 serviceReviewDays (optional); //all services in the group will have specified max review days
 }
 
 //The representation for a Group with set of members.

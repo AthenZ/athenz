@@ -59,7 +59,9 @@ public class GroupTest {
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
-                .setServiceExpiryDays(20);
+                .setServiceExpiryDays(20)
+                .setMemberReviewDays(30)
+                .setServiceReviewDays(40);
 
         Result result = validator.validate(r, "Group");
         assertTrue(result.valid);
@@ -77,6 +79,8 @@ public class GroupTest {
         assertEquals(r.getUserAuthorityFilter(), "attr2,attr3");
         assertEquals(r.getMemberExpiryDays().intValue(), 10);
         assertEquals(r.getServiceExpiryDays().intValue(), 20);
+        assertEquals(r.getMemberReviewDays().intValue(), 30);
+        assertEquals(r.getServiceReviewDays().intValue(), 40);
 
         Group r2 = new Group()
                 .setName("sys.auth:group.admin")
@@ -91,7 +95,9 @@ public class GroupTest {
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
-                .setServiceExpiryDays(20);
+                .setServiceExpiryDays(20)
+                .setMemberReviewDays(30)
+                .setServiceReviewDays(40);
 
         assertTrue(r2.equals(r));
         assertTrue(r.equals(r));
@@ -157,6 +163,20 @@ public class GroupTest {
         r2.setServiceExpiryDays(null);
         assertFalse(r2.equals(r));
         r2.setServiceExpiryDays(20);
+        assertTrue(r2.equals(r));
+
+        r2.setMemberReviewDays(25);
+        assertFalse(r2.equals(r));
+        r2.setMemberReviewDays(null);
+        assertFalse(r2.equals(r));
+        r2.setMemberReviewDays(30);
+        assertTrue(r2.equals(r));
+
+        r2.setServiceReviewDays(25);
+        assertFalse(r2.equals(r));
+        r2.setServiceReviewDays(null);
+        assertFalse(r2.equals(r));
+        r2.setServiceReviewDays(40);
         assertTrue(r2.equals(r));
 
         r2.setAuditLog(null);
@@ -462,7 +482,9 @@ public class GroupTest {
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
-                .setServiceExpiryDays(20);
+                .setServiceExpiryDays(20)
+                .setMemberReviewDays(30)
+                .setServiceReviewDays(40);
         assertTrue(rm.equals(rm));
 
         assertFalse(rm.getSelfServe());
@@ -472,6 +494,8 @@ public class GroupTest {
         assertEquals(rm.getUserAuthorityFilter(), "attr2,attr3");
         assertEquals(rm.getMemberExpiryDays().intValue(), 10);
         assertEquals(rm.getServiceExpiryDays().intValue(), 20);
+        assertEquals(rm.getMemberReviewDays().intValue(), 30);
+        assertEquals(rm.getServiceReviewDays().intValue(), 40);
 
         GroupMeta rm2 = new GroupMeta()
                 .setSelfServe(false)
@@ -480,7 +504,9 @@ public class GroupTest {
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
-                .setServiceExpiryDays(20);
+                .setServiceExpiryDays(20)
+                .setMemberReviewDays(30)
+                .setServiceReviewDays(40);
         assertTrue(rm2.equals(rm));
 
         rm2.setNotifyRoles("role1");
@@ -530,6 +556,20 @@ public class GroupTest {
         rm2.setServiceExpiryDays(null);
         assertFalse(rm2.equals(rm));
         rm2.setServiceExpiryDays(20);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setMemberReviewDays(25);
+        assertFalse(rm2.equals(rm));
+        rm2.setMemberReviewDays(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setMemberReviewDays(30);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setServiceReviewDays(25);
+        assertFalse(rm2.equals(rm));
+        rm2.setServiceReviewDays(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setServiceReviewDays(40);
         assertTrue(rm2.equals(rm));
 
         assertFalse(rm2.equals(null));
