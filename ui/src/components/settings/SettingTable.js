@@ -84,6 +84,10 @@ export default class SettingTable extends React.Component {
                 collection.memberExpiryDays === undefined
                     ? ''
                     : collection.memberExpiryDays.toString(),
+            memberReviewDays:
+                collection.memberReviewDays === undefined
+                    ? ''
+                    : collection.memberReviewDays.toString(),
             groupExpiryDays:
                 collection.groupExpiryDays === undefined
                     ? ''
@@ -92,6 +96,10 @@ export default class SettingTable extends React.Component {
                 collection.serviceExpiryDays === undefined
                     ? ''
                     : collection.serviceExpiryDays.toString(),
+            serviceReviewDays:
+                collection.serviceReviewDays === undefined
+                    ? ''
+                    : collection.serviceReviewDays.toString(),
             tokenExpiryMins:
                 collection.tokenExpiryMins === undefined
                     ? ''
@@ -236,7 +244,7 @@ export default class SettingTable extends React.Component {
                 isOpen={this.state.showSubmit}
                 cancel={this.onClickUpdateCancel}
                 submit={this.onSubmitUpdate}
-                key={this.state.updateName + '-update'}
+                key={'setting-update-modal'}
                 message={
                     'Are you sure you want to permanently change the setting for ' +
                     this.props.category +
@@ -333,6 +341,25 @@ export default class SettingTable extends React.Component {
         this.props.category === 'role' &&
             rows.push(
                 <StyledSettingRow
+                    key={'setting-row-memberReviewDays'}
+                    domain={domain}
+                    name='memberReviewDays'
+                    label='User Review'
+                    type='input'
+                    desc='All user members in the role will have specified review days'
+                    unit='Days'
+                    value={this.state.copyCollectionDetails.memberReviewDays}
+                    api={this.api}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                    justificationRequired={this.props.justificationRequired}
+                    userProfileLink={this.props.userProfileLink}
+                />
+            );
+
+        this.props.category === 'role' &&
+            rows.push(
+                <StyledSettingRow
                     key={'setting-row-groupExpiryDays'}
                     domain={domain}
                     name='groupExpiryDays'
@@ -360,6 +387,25 @@ export default class SettingTable extends React.Component {
                     unit='Days'
                     desc='All services in the role will have specified max expiry days'
                     value={this.state.copyCollectionDetails.serviceExpiryDays}
+                    api={this.api}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                    justificationRequired={this.props.justificationRequired}
+                    userProfileLink={this.props.userProfileLink}
+                />
+            );
+
+        this.props.category === 'role' &&
+            rows.push(
+                <StyledSettingRow
+                    key={'setting-row-serviceReviewDays'}
+                    domain={domain}
+                    name='serviceReviewDays'
+                    label='Service Review'
+                    type='input'
+                    desc='All service members in the role will have specified review days'
+                    unit='Days'
+                    value={this.state.copyCollectionDetails.serviceReviewDays}
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
