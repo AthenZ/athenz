@@ -859,6 +859,22 @@ public class X509CertRequestTest {
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
 
+        testValidateOUFieldCheck(certReq);
+
+        // the ou is "Testing Domain:restricted" which should
+        // behave the same as before
+
+        path = Paths.get("src/test/resources/athenz.instanceid.restricted.csr");
+        csr = new String(Files.readAllBytes(path));
+
+        certReq = new X509CertRequest(csr);
+        assertNotNull(certReq);
+
+        testValidateOUFieldCheck(certReq);
+    }
+
+    public void testValidateOUFieldCheck(X509CertRequest certReq) {
+
         HashSet<String> validOrgUnits = new HashSet<>();
 
         assertFalse(certReq.validateSubjectOUField(null, null, null));
