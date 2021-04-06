@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ export default class MicrosegmentationPage extends React.Component {
             _csrf: data[5],
             nonce: props.req.headers.rid,
             segmentationData: data[3],
-            featureFlag: data[8],
+            featureFlag: true,
         };
     }
 

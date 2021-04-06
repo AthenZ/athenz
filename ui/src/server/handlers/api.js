@@ -1760,6 +1760,7 @@ Fetchr.registerService({
                             )
                         ) {
                             let temp = item.name.split('.');
+                            //sample policy name - ACL.<service-name>.[inbound/outbound]
                             let serviceName = temp[temp.length - 2];
                             let category = '';
 
@@ -1803,6 +1804,9 @@ Fetchr.registerService({
                                             jsonData['outbound'].push(tempData);
                                             index = jsonData['outbound'].length;
                                         }
+                                        //assertion convention for micro-segmentation:
+                                        //GRANT [Action: <transport layer>-IN / <transport layer>-OUT]:[Source Port]:[Destination Port] [Resource:<service-name>] ON <role-name>
+                                        // role name will be of the form : <domain>:role.<roleName>
                                         let roleName = assertionItem.role.substring(
                                             params.domainName.length + 6
                                         );

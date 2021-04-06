@@ -99,16 +99,16 @@ exports[`Service Tabs should render 1`] = `
   data-testid="tabgroup"
 >
   <div
-    class="emotion-1 denali-tab active"
-    data-active="true"
-  >
-    Dynamic
-  </div>
-  <div
     class="emotion-1 denali-tab"
     data-active="false"
   >
     Static
+  </div>
+  <div
+    class="emotion-1 denali-tab active"
+    data-active="true"
+  >
+    Dynamic
   </div>
 </div>
 `;

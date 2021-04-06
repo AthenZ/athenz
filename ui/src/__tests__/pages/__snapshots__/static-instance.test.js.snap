@@ -934,16 +934,16 @@ exports[`StaticInstancePage should render 1`] = `
               data-testid="tabgroup"
             >
               <div
-                class="emotion-33 denali-tab"
-                data-active="false"
-              >
-                Dynamic
-              </div>
-              <div
                 class="emotion-33 denali-tab active"
                 data-active="true"
               >
                 Static
+              </div>
+              <div
+                class="emotion-33 denali-tab"
+                data-active="false"
+              >
+                Dynamic
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 import styled from '@emotion/styled';
 import React from 'react';
 import Link from 'next/link';
-import { withRouter } from 'next/router';
 import PageUtils from '../utils/PageUtils';
 
 const StyledAnchor = styled.a`
@@ -30,26 +29,18 @@ const TitleDiv = styled.div`
     margin-bottom: 10px;
 `;
 
-class ServiceNameHeader extends React.Component {
-    constructor(props) {
-        super(props);
-    }
+export default function ServiceNameHeader(props) {
+    const { domain, service } = props;
 
-    render() {
-        const { domain, service } = this.props;
-
-        let link = (
-            <Link href={PageUtils.servicePage(domain)}>
+    let link = (
+        <Link href={PageUtils.servicePage(domain)}>
                 <StyledAnchor>{domain}</StyledAnchor>
-            </Link>
-        );
+        </Link>
+    );
 
-        return (
-            <TitleDiv data-testid='service-name-header'>
+    return (
+        <TitleDiv data-testid='service-name-header'>
                 {link}:service.{service}
-            </TitleDiv>
-        );
-    }
+        </TitleDiv>
+    );
 }
-
-export default withRouter(ServiceNameHeader);

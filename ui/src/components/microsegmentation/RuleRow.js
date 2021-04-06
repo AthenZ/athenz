@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,47 +95,41 @@ export default class RuleRow extends React.Component {
     onSubmitDelete(domain) {
         let deletePolicyName =
             'acl.' + this.state.deleteName + '.' + this.props.category;
-        let roleName = deletePolicyName + '-' + this.state.port;
-        this.api
-            .deleteAssertion(
-                domain,
-                deletePolicyName,
-                this.state.assertionId,
-                this.props._csrf
-            )
+
+        Promise.all([
+            this.api.deleteAssertion(
+                    domain,
+                    deletePolicyName,
+                    this.state.assertionId,
+                    this.props._csrf
+                ),
+            this.api
+                .deleteRole(
+                    domain,
+                    deletePolicyName,
+                    'deleted using Athenz UI',
+                    this.props._csrf
+                )
+        ])
             .then(() => {
-                this.api
-                    .deleteRole(
-                        domain,
-                        deletePolicyName,
-                        'deleted using Athenz UI',
-                        this.props._csrf
-                    )
-                    .then(() => {
-                        this.setState({
-                            showDelete: false,
-                        });
-                        this.props.onUpdateSuccess();
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 404) {
-                            this.setState({
-                                showDelete: false,
-                            });
-                            this.props.onUpdateSuccess();
-                        } else {
-                            this.setState({
-                                errorMessage: RequestUtils.xhrErrorCheckHelper(
-                                    err
-                                ),
-                            });
-                        }
-                    });
+                this.setState({
+                    showDelete: false,
+                });
+                this.props.onUpdateSuccess();
             })
             .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+                if (err.statusCode === 404) {
+                    this.setState({
+                        showDelete: false,
+                    });
+                    this.props.onUpdateSuccess();
+                } else {
+                    this.setState({
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(
+                            err
+                        ),
+                    });
+                }
             });
     }
 
@@ -156,8 +150,9 @@ export default class RuleRow extends React.Component {
         let key = '';
         let submitDelete = this.onSubmitDelete.bind(this, this.props.domain);
         let clickDeleteCancel = this.onClickDeleteCancel.bind(this);
+        let inbound = this.props.category === 'inbound';
         let clickDelete;
-        if (this.props.category === 'inbound') {
+        if (inbound) {
             key =
                 this.props.category +
                 data.destination_service +
@@ -185,23 +180,23 @@ export default class RuleRow extends React.Component {
 
         rows.push(
             <TrStyled key={key} data-testid='segmentation-row'>
-                {this.props.category === 'inbound' && (
+                {inbound && (
                     <TDStyled color={color} align={left}>
                         {data['destination_service']}
                     </TDStyled>
                 )}
-                {this.props.category === 'outbound' && (
+                {!inbound && (
                     <TDStyled color={color} align={left}>
                         {data['source_service']}
                     </TDStyled>
                 )}
 
-                {this.props.category === 'inbound' && (
+                {inbound && (
                     <TDStyled color={color} align={left}>
                         {data['destination_port']}
                     </TDStyled>
                 )}
-                {this.props.category === 'outbound' && (
+                {!inbound && (
                     <TDStyled color={color} align={left}>
                         {data['source_port']}
                     </TDStyled>
@@ -223,14 +218,14 @@ export default class RuleRow extends React.Component {
                             </span>
                         }
                     >
-                        {this.props.category === 'inbound' && (
+                        {inbound && (
                             <ServiceList
                                 list={data['source_services']}
                                 api={this.api}
                                 domain={this.props.domain}
                             />
                         )}
-                        {this.props.category === 'outbound' && (
+                        {!inbound && (
                             <ServiceList
                                 list={data['destination_services']}
                                 api={this.api}
@@ -240,12 +235,12 @@ export default class RuleRow extends React.Component {
                     </Menu>
                 </GroupTDStyled>
 
-                {this.props.category === 'inbound' && (
+                {inbound && (
                     <TDStyled color={color} align={left}>
                         {data['source_port']}
                     </TDStyled>
                 )}
-                {this.props.category === 'outbound' && (
+                {!inbound && (
                     <TDStyled color={color} align={left}>
                         {data['destination_port']}
                     </TDStyled>

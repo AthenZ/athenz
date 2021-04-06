@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,13 @@
 import React from 'react';
 import TabGroup from '../denali/TabGroup';
 import { withRouter } from 'next/router';
+import {SERVICE_TABS} from "../constants/constants";
 
 class ServiceTabs extends React.Component {
     constructor(props) {
         super(props);
         this.tabClicked = this.tabClicked.bind(this);
     }
-    TABS = [
-        {
-            label: 'Dynamic',
-            name: 'dynamic',
-        },
-        {
-            label: 'Static',
-            name: 'static',
-        },
-    ];
 
     tabClicked(tab) {
         const { domain, service } = this.props;
@@ -56,7 +47,7 @@ class ServiceTabs extends React.Component {
     render() {
         return (
             <TabGroup
-                tabs={this.TABS}
+                tabs={SERVICE_TABS}
                 selectedName={this.props.selectedName}
                 onClick={this.tabClicked}
                 noanim

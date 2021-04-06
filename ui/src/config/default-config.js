@@ -111,7 +111,7 @@ const config = {
         cspReportUri: '',
         cspImgSrc: '',
         statusPath: process.env.UI_SESSION_SECRET_PATH || 'keys/cookie-session',
-        featureFlag: false,
+        featureFlag: true,
     },
     unittest: {
         athenzDomainService: 'athenz.unit-test',
@@ -125,7 +125,7 @@ const config = {
         authHeader: 'Athenz-Principal-Auth',
         cspReportUri: 'https://athenz.io/csp',
         cspImgSrc: 'https://athenz.com',
-        featureFlag: false,
+        featureFlag: true,
     },
 };
 

@@ -21,3 +21,19 @@ export const GROUP_MEMBER_NAME_REGEX = data.types[14].StringTypeDef.pattern;
 export const GROUP_ROLES_CATEGORY = 'group-roles';
 export const GROUP_MEMBER_PLACEHOLDER = 'user.<userid> or <domain>.<service>';
 export const DISPLAY_SPACE = '\u23b5';
+
+export const SERVICE_TYPE_DYNAMIC = 'dynamic';
+export const SERVICE_TYPE_STATIC = 'static';
+export const SERVICE_TYPE_DYNAMIC_LABEL = 'Dynamic';
+export const SERVICE_TYPE_STATIC_LABEL = 'Static';
+
+export const SERVICE_TABS = [
+    {
+        label: SERVICE_TYPE_STATIC_LABEL,
+        name: SERVICE_TYPE_STATIC,
+    },
+    {
+        label: SERVICE_TYPE_DYNAMIC_LABEL,
+        name: SERVICE_TYPE_DYNAMIC,
+    },
+];

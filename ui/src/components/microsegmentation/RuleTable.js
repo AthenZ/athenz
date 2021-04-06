@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,6 +103,7 @@ export default class RuleTable extends React.Component {
         let expandRules = this.expandRules.bind(this);
         let rows = [];
         let length = this.props.data.length;
+        let inbound = this.props.category === "inbound";
 
         rows = this.props.data.map((item, i) => {
             let color = '';
@@ -176,23 +177,23 @@ export default class RuleTable extends React.Component {
                     </TableCaptionStyled>
                     <tr>
                         <TableHeadStyledRoleName align={left}>
-                            {this.props.category === 'inbound'
+                            {inbound
                                 ? 'Destination Service'
                                 : 'Source Service'}
                         </TableHeadStyledRoleName>
                         <TableHeadStyled align={left}>
-                            {this.props.category === 'inbound'
+                            {inbound
                                 ? 'Destination Port'
                                 : 'Source Port'}
                         </TableHeadStyled>
 
                         <TableHeadStyled align={left}>
-                            {this.props.category === 'inbound'
+                            {inbound
                                 ? 'Source Service'
                                 : 'Destination Service'}
                         </TableHeadStyled>
                         <TableHeadStyled align={left}>
-                            {this.props.category === 'inbound'
+                            {inbound
                                 ? 'Source Port'
                                 : 'Destination Port'}
                         </TableHeadStyled>
