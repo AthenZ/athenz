@@ -193,6 +193,8 @@ export default class SettingTable extends React.Component {
         } else if (this.props.category === 'group') {
             collectionMeta.reviewEnabled = this.state.copyCollectionDetails.reviewEnabled;
             collectionMeta.selfServe = this.state.copyCollectionDetails.selfServe;
+            collectionMeta.memberExpiryDays = this.state.copyCollectionDetails.memberExpiryDays;
+            collectionMeta.serviceExpiryDays = this.state.copyCollectionDetails.serviceExpiryDays;
         }
 
         this.api
@@ -311,24 +313,27 @@ export default class SettingTable extends React.Component {
             />
         );
 
-        this.props.category === 'role' &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-memberExpiryDays'}
-                    domain={domain}
-                    name='memberExpiryDays'
-                    label='User Expiry'
-                    type='input'
-                    desc='All user members in the role will have specified max expiry days'
-                    unit='Days'
-                    value={this.state.copyCollectionDetails.memberExpiryDays}
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-memberExpiryDays'}
+                domain={domain}
+                name='memberExpiryDays'
+                label='User Expiry'
+                type='input'
+                desc={
+                    'All user members in the ' +
+                    this.props.category +
+                    ' will have specified max expiry days'
+                }
+                unit='Days'
+                value={this.state.copyCollectionDetails.memberExpiryDays}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                justificationRequired={this.props.justificationRequired}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         this.props.category === 'role' &&
             rows.push(
@@ -349,24 +354,27 @@ export default class SettingTable extends React.Component {
                 />
             );
 
-        this.props.category === 'role' &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-serviceExpiryDays'}
-                    domain={domain}
-                    name='serviceExpiryDays'
-                    label='Service Expiry'
-                    type='input'
-                    unit='Days'
-                    desc='All services in the role will have specified max expiry days'
-                    value={this.state.copyCollectionDetails.serviceExpiryDays}
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-serviceExpiryDays'}
+                domain={domain}
+                name='serviceExpiryDays'
+                label='Service Expiry'
+                type='input'
+                unit='Days'
+                desc={
+                    'All services in the ' +
+                    this.props.category +
+                    ' will have specified max expiry days'
+                }
+                value={this.state.copyCollectionDetails.serviceExpiryDays}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                justificationRequired={this.props.justificationRequired}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         this.props.category === 'role' &&
             rows.push(
