@@ -36,6 +36,7 @@ const config = {
     userData: () => {
 
     },
+    serviceHeaderLinks: [],
 };
 const secrets = {};
 const expressApp = require('express')();

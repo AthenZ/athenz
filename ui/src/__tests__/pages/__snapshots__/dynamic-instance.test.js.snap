@@ -517,6 +517,21 @@ exports[`DynamicInstancePage should render 1`] = `
 }
 
 .emotion-32 {
+  margin: 20px 0;
+}
+
+.emotion-34 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-36 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -531,7 +546,7 @@ exports[`DynamicInstancePage should render 1`] = `
   position: relative;
 }
 
-.emotion-32.vertical {
+.emotion-36.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -547,7 +562,7 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 300px;
 }
 
-.emotion-33 {
+.emotion-37 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -571,11 +586,11 @@ exports[`DynamicInstancePage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-33:hover {
+.emotion-37:hover {
   color: #3570f4;
 }
 
-.emotion-33.active {
+.emotion-37.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -583,11 +598,11 @@ exports[`DynamicInstancePage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-33.active:hover {
+.emotion-37.active:hover {
   color: #303030;
 }
 
-.emotion-33.vertical {
+.emotion-37.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -599,21 +614,21 @@ exports[`DynamicInstancePage should render 1`] = `
   text-align: left;
 }
 
-.emotion-33.vertical.active {
+.emotion-37.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-33.vertical.active:hover {
+.emotion-37.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-35 {
+.emotion-39 {
   margin: 20px;
 }
 
-.emotion-37 {
+.emotion-41 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -632,11 +647,11 @@ exports[`DynamicInstancePage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-39 {
+.emotion-43 {
   width: 50%;
 }
 
-.emotion-41 {
+.emotion-45 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -662,13 +677,13 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 20px;
 }
 
-.emotion-43 {
+.emotion-47 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-44 {
+.emotion-48 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -683,7 +698,7 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 350px;
 }
 
-.emotion-46 {
+.emotion-50 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -702,28 +717,28 @@ exports[`DynamicInstancePage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-48 {
+.emotion-52 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-50 {
+.emotion-54 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-52 {
+.emotion-56 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-56 {
+.emotion-60 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-58 {
+.emotion-62 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -731,12 +746,12 @@ exports[`DynamicInstancePage should render 1`] = `
   display: flex;
 }
 
-.emotion-60 {
+.emotion-64 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-62 {
+.emotion-66 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -886,17 +901,26 @@ exports[`DynamicInstancePage should render 1`] = `
               :service.
             </div>
             <div
-              class="emotion-32 denali-tab-group"
+              class="emotion-32 emotion-33"
+            >
+              <div
+                class="emotion-34 emotion-35"
+              >
+                Here you can add / see instances which can not obtain Athenz identity because of limitations, but would be associated with your service.
+              </div>
+            </div>
+            <div
+              class="emotion-36 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-33 denali-tab"
+                class="emotion-37 denali-tab"
                 data-active="false"
               >
                 Static
               </div>
               <div
-                class="emotion-33 denali-tab active"
+                class="emotion-37 denali-tab active"
                 data-active="true"
               >
                 Dynamic
@@ -904,14 +928,14 @@ exports[`DynamicInstancePage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-35 emotion-36"
+            class="emotion-39 emotion-40"
             data-testid="instancelist"
           >
             <div
-              class="emotion-37 emotion-38"
+              class="emotion-41 emotion-42"
             >
               <div
-                class="emotion-39 emotion-40"
+                class="emotion-43 emotion-44"
               >
                 No instances found
               </div>
@@ -923,11 +947,11 @@ exports[`DynamicInstancePage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-41 emotion-42"
+          class="emotion-45 emotion-46"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-43"
+            class="emotion-47"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -942,45 +966,45 @@ exports[`DynamicInstancePage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-44 emotion-45"
+          class="emotion-48 emotion-49"
         >
           <div
-            class="emotion-46 emotion-47"
+            class="emotion-50 emotion-51"
           >
             <div
-              class="emotion-48 emotion-49"
+              class="emotion-52 emotion-53"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-50 emotion-51"
+                class="emotion-54 emotion-55"
               >
                 Create
               </a>
               <span
-                class="emotion-52 emotion-53"
+                class="emotion-56 emotion-57"
               >
                  | 
               </span>
               <a
-                class="emotion-50 emotion-51"
+                class="emotion-54 emotion-55"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-56 emotion-57"
+            class="emotion-60 emotion-61"
           >
             <div
-              class="emotion-58 emotion-59"
+              class="emotion-62 emotion-63"
             >
               <div
-                class="emotion-60 emotion-61"
+                class="emotion-64 emotion-65"
               >
                 <svg
-                  class="emotion-62"
+                  class="emotion-66"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1001,19 +1025,19 @@ exports[`DynamicInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-50 emotion-51"
+                class="emotion-54 emotion-55"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-58 emotion-59"
+              class="emotion-62 emotion-63"
             >
               <div
-                class="emotion-60 emotion-61"
+                class="emotion-64 emotion-65"
               >
                 <svg
-                  class="emotion-62"
+                  class="emotion-66"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1034,7 +1058,7 @@ exports[`DynamicInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-50 emotion-51"
+                class="emotion-54 emotion-55"
               >
                 athens.ci
               </a>

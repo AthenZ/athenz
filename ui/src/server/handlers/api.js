@@ -1724,6 +1724,16 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'service-header-details',
+    read(req, resource, params, config, callback) {
+        callback(null, {
+            static: appConfig.serviceHeaderLinks[0],
+            dynamic: appConfig.serviceHeaderLinks[1],
+        });
+    },
+});
+
+Fetchr.registerService({
     name: 'service-page-config',
     read(req, resource, params, config, callback) {
         callback(null, {
@@ -1905,6 +1915,8 @@ Fetchr.registerService({
 });
 
 module.exports.load = function (config, secrets) {
+    console.log("$$$$$$$$$$$$$$\n");
+    console.log(config.serviceHeaderLinks);
     appConfig = {
         zms: config.zms,
         athenzDomainService: config.athenzDomainService,
@@ -1917,6 +1929,7 @@ module.exports.load = function (config, secrets) {
         allPrefixes: config.allPrefixes,
         zmsLoginUrl: config.zmsLoginUrl,
         featureFlag: config.featureFlag,
+        serviceHeaderLinks: config.serviceHeaderLinks,
     };
     return CLIENTS.load(config, secrets);
 };

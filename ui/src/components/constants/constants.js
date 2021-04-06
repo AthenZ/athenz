@@ -26,6 +26,10 @@ export const SERVICE_TYPE_DYNAMIC = 'dynamic';
 export const SERVICE_TYPE_STATIC = 'static';
 export const SERVICE_TYPE_DYNAMIC_LABEL = 'Dynamic';
 export const SERVICE_TYPE_STATIC_LABEL = 'Static';
+export const SEGMENTATION_TYPE_OUTBOUND = 'outbound';
+export const SEGMENTATION_TYPE_INBOUND = 'inbound';
+export const SEGMENTATION_TYPE_OUTBOUND_LABEL = 'Outbound';
+export const SEGMENTATION_TYPE_INBOUND_LABEL = 'Inbound';
 
 export const SERVICE_TABS = [
     {
@@ -35,5 +39,69 @@ export const SERVICE_TABS = [
     {
         label: SERVICE_TYPE_DYNAMIC_LABEL,
         name: SERVICE_TYPE_DYNAMIC,
+    },
+];
+
+export const SEGMENTATION_CATEGORIES = [
+    {
+        label: SEGMENTATION_TYPE_INBOUND_LABEL,
+        name: SEGMENTATION_TYPE_INBOUND,
+    },
+    {
+        label: SEGMENTATION_TYPE_OUTBOUND_LABEL,
+        name: SEGMENTATION_TYPE_OUTBOUND,
+    },
+];
+
+export const SEGMENTATION_PROTOCOL_TYPE_TCP = 'TCP';
+export const SEGMENTATION_PROTOCOL_TYPE_UDP = 'UDP';
+export const SEGMENTATION_PROTOCOL_TYPE_ICMP = 'ICMP';
+export const SEGMENTATION_PROTOCOL_TYPE_ICMPV6 = 'ICMPV6';
+export const SEGMENTATION_PROTOCOL_TYPE_AH = 'AH';
+export const SEGMENTATION_PROTOCOL_TYPE_ESP = 'ESP';
+export const SEGMENTATION_PROTOCOL_TYPE_GRE = 'GRE';
+export const SEGMENTATION_PROTOCOL_TYPE_IPV6_FRAGMENT = 'IPv6 Fragment';
+
+export const SEGMENTATION_PROTOCOL = [
+    {
+        name: SEGMENTATION_PROTOCOL_TYPE_TCP,
+        value: SEGMENTATION_PROTOCOL_TYPE_TCP,
+    },
+    {
+        name: SEGMENTATION_PROTOCOL_TYPE_UDP,
+        value: SEGMENTATION_PROTOCOL_TYPE_UDP,
+    },
+    {
+        name: SEGMENTATION_PROTOCOL_TYPE_ICMP,
+        value: SEGMENTATION_PROTOCOL_TYPE_ICMP,
+    },
+    {
+        name: SEGMENTATION_PROTOCOL_TYPE_ICMPV6,
+        value: SEGMENTATION_PROTOCOL_TYPE_ICMPV6,
+    },
+    {
+        name: SEGMENTATION_PROTOCOL_TYPE_AH,
+        value: SEGMENTATION_PROTOCOL_TYPE_AH,
+    },
+    {
+        name: SEGMENTATION_PROTOCOL_TYPE_ESP,
+        value: SEGMENTATION_PROTOCOL_TYPE_ESP,
+    },
+    {
+        name: SEGMENTATION_PROTOCOL_TYPE_GRE,
+        value: SEGMENTATION_PROTOCOL_TYPE_GRE,
+    },
+    {
+        name: SEGMENTATION_PROTOCOL_TYPE_IPV6_FRAGMENT,
+        value: SEGMENTATION_PROTOCOL_TYPE_IPV6_FRAGMENT,
+    },
+];
+
+export const INSTANCE_RESOURCE_TYPE_IP_ADDRESS = 'IP Address';
+
+export const STATIC_INSTANCES_RESOURCE_TYPES = [
+    {
+        name: INSTANCE_RESOURCE_TYPE_IP_ADDRESS,
+        value: INSTANCE_RESOURCE_TYPE_IP_ADDRESS,
     },
 ];

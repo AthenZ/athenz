@@ -20,6 +20,7 @@ import SearchInput from '../denali/SearchInput';
 import Alert from '../denali/Alert';
 import RequestUtils from '../utils/RequestUtils';
 import InstanceTable from './InstanceTable';
+import AddStaticInstances from '../microsegmentation/AddStaticInstances';
 
 const InstanceSectionDiv = styled.div`
     margin: 20px;
@@ -109,10 +110,19 @@ export default class InstanceList extends React.Component {
             });
         }
 
-        let addStaticInstance = this.state.showAddInstance
-            ? // TODO addStaticInstance component
-              ''
-            : '';
+        let addStaticInstance = this.state.showAddInstance ? (
+            <AddStaticInstances
+                api={this.api}
+                domain={this.props.domain}
+                onSubmit={this.reloadInstances}
+                onCancel={this.toggleAddInstance}
+                _csrf={this.props._csrf}
+                showAddInstance={this.state.showAddInstance}
+                service={this.props.service}
+            />
+        ) : (
+            ''
+        );
 
         let searchInput =
             this.state.instances.length > 0 ? (

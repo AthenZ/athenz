@@ -184,7 +184,7 @@ exports[`RulesList should render 1`] = `
       <button
         class="emotion-4 denali-button"
       >
-        Add Segmentation
+        Add ACL Policy
       </button>
       
     </div>

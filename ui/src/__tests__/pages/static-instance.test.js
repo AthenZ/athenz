@@ -45,6 +45,14 @@ describe('StaticInstancePage', () => {
                 },
             },
         };
+
+        let serviceHeaderDetails = {
+            description:
+                'Here you can add / see instances which can not obtain Athenz identity because of limitations, but would be associated with your service.',
+            url: '',
+            target: '_blank',
+        };
+
         const { getByTestId } = render(
             <StaticInstancePage
                 domains={domains}
@@ -56,6 +64,7 @@ describe('StaticInstancePage', () => {
                 domain='dom'
                 domainResult={[]}
                 headerDetails={headerDetails}
+                serviceHeaderDetails={serviceHeaderDetails}
             />
         );
         const staticInstancePage = getByTestId('static-instance');

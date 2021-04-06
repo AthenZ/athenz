@@ -16,7 +16,7 @@
 import React from 'react';
 import TabGroup from '../denali/TabGroup';
 import { withRouter } from 'next/router';
-import {SERVICE_TABS} from "../constants/constants";
+import { SERVICE_TABS } from '../constants/constants';
 
 class ServiceTabs extends React.Component {
     constructor(props) {

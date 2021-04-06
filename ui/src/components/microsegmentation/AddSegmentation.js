@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,53 +25,12 @@ import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import InputDropdown from '../denali/InputDropdown';
 import Icon from '../denali/icons/Icon';
-import { MODAL_TIME_OUT } from '../constants/constants';
-
-const CATEGORIES = [
-    {
-        label: 'Inbound',
-        name: 'inbound',
-    },
-    {
-        label: 'Outbound',
-        name: 'outbound',
-    },
-];
-
-const Protocol = [
-    {
-        name: 'TCP',
-        value: 'TCP',
-    },
-    {
-        name: 'UDP',
-        value: 'UDP',
-    },
-    {
-        name: 'ICMP',
-        value: 'ICMP',
-    },
-    {
-        name: 'ICMPV6',
-        value: 'ICMPV6',
-    },
-    {
-        name: 'AH',
-        value: 'AH',
-    },
-    {
-        name: 'ESP',
-        value: 'ESP',
-    },
-    {
-        name: 'GRE',
-        value: 'GRE',
-    },
-    {
-        name: 'IPv6 Fragment',
-        value: 'IPv6 Fragment',
-    },
-];
+import {
+    MODAL_TIME_OUT,
+    SEGMENTATION_CATEGORIES,
+    SEGMENTATION_PROTOCOL,
+} from '../constants/constants';
+import NameUtils from '../utils/NameUtils';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -129,7 +88,7 @@ export default class AddSegmentation extends React.Component {
         this.addMember = this.addMember.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.loadServices = this.loadServices.bind(this);
-        this.ServiceChange = this.ServiceChange.bind(this);
+        this.changeService = this.changeService.bind(this);
         this.protocolChanged = this.protocolChanged.bind(this);
         this.handlePolicy = this.handlePolicy.bind(this);
         this.handleMembers = this.handleMembers.bind(this);
@@ -226,11 +185,7 @@ export default class AddSegmentation extends React.Component {
         if (!sourceServiceName) {
             return;
         }
-        let names = (sourceServiceName || '')
-            .replace(/[\r\n\s]+/g, ',')
-            .split(',')
-            .map((n) => n.trim())
-            .filter((n) => n);
+        let names = NameUtils.splitNames(sourceServiceName);
 
         for (let i = 0; i < names.length; i++) {
             members.push({
@@ -471,7 +426,7 @@ export default class AddSegmentation extends React.Component {
                 'acl.' +
                 this.state.inboundDestinationService +
                 '.' +
-                CATEGORIES[0].name +
+                SEGMENTATION_CATEGORIES[0].name +
                 '-' +
                 this.state.destinationPort;
             action =
@@ -486,14 +441,14 @@ export default class AddSegmentation extends React.Component {
                 'acl.' +
                 this.state.inboundDestinationService +
                 '.' +
-                CATEGORIES[0].name;
+                SEGMENTATION_CATEGORIES[0].name;
             resource = this.state.inboundDestinationService;
         } else {
             roleName =
                 'acl.' +
                 this.state.outboundSourceService +
                 '.' +
-                CATEGORIES[1].name +
+                SEGMENTATION_CATEGORIES[1].name +
                 '-' +
                 this.state.destinationPort;
             action =
@@ -508,7 +463,7 @@ export default class AddSegmentation extends React.Component {
                 'acl.' +
                 this.state.outboundSourceService +
                 '.' +
-                CATEGORIES[1].name;
+                SEGMENTATION_CATEGORIES[1].name;
             resource = this.state.outboundSourceService;
         }
 
@@ -585,7 +540,7 @@ export default class AddSegmentation extends React.Component {
             });
     }
 
-    ServiceChange(chosen, key) {
+    changeService(chosen, key) {
         if (chosen && chosen.name != null) {
             var name = chosen.name;
             var cleanServiceName = name.substring(name.lastIndexOf('.') + 1);
@@ -616,7 +571,7 @@ export default class AddSegmentation extends React.Component {
                 <SectionDiv>
                     <StyledInputLabel>ACL Category</StyledInputLabel>
                     <StyledButtonGroup
-                        buttons={CATEGORIES}
+                        buttons={SEGMENTATION_CATEGORIES}
                         selectedName={this.state.category}
                         onClick={this.categoryChanged}
                         noanim
@@ -637,7 +592,7 @@ export default class AddSegmentation extends React.Component {
                         }
                         options={this.state.destinationServiceList}
                         onChange={(item) =>
-                            this.ServiceChange(
+                            this.changeService(
                                 item,
                                 this.state.isCategory
                                     ? 'inboundDestinationService'
@@ -757,7 +712,7 @@ export default class AddSegmentation extends React.Component {
                     <InputDropdown
                         name='protocol'
                         defaultSelectedValue={this.state.protocol}
-                        options={Protocol}
+                        options={SEGMENTATION_PROTOCOL}
                         onChange={this.protocolChanged}
                         placeholder='Select Protocol'
                         noclear

@@ -1265,6 +1265,21 @@ const Api = (req) => {
             });
         },
 
+        getServiceHeaderDetails() {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('service-header-details')
+                    .params()
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         getServicePageConfig() {
             return new Promise((resolve, reject) => {
                 fetchr

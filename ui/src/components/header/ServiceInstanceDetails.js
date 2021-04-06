@@ -1,5 +1,5 @@
 /*
- * Copyright The Athenz Authors
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 import styled from '@emotion/styled';
+import DateUtils from '../utils/DateUtils';
 import React from 'react';
 import Link from 'next/link';
 import PageUtils from '../utils/PageUtils';
+
+const DomainSectionDiv = styled.div`
+    margin: 20px 0;
+`;
+
+const DetailsDiv = styled.div`
+    display: flex;
+    flex-flow: row nowrap;
+`;
 
 const StyledAnchor = styled.a`
     color: #3570f4;
@@ -24,23 +34,25 @@ const StyledAnchor = styled.a`
     cursor: pointer;
 `;
 
-const TitleDiv = styled.div`
-    font: 600 20px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
-    margin-bottom: 10px;
-`;
+export default function ServiceInstanceDetails(props) {
+    const { details } = props;
 
-export default function ServiceNameHeader(props) {
-    const { domain, service } = props;
-
-    let link = (
-        <Link href={PageUtils.servicePage(domain)}>
-            <StyledAnchor>{domain}</StyledAnchor>
-        </Link>
-    );
+    let text =
+        details.url === ''
+            ? details.description
+            : details.description +
+              ' For more information click ' +
+              (
+                  <StyledAnchor
+                      onClick={() => window.open(details.url, details.target)}
+                  >
+                      'here'
+                  </StyledAnchor>
+              );
 
     return (
-        <TitleDiv data-testid='service-name-header'>
-            {link}:service.{service}
-        </TitleDiv>
+        <DomainSectionDiv>
+            <DetailsDiv>{text}</DetailsDiv>
+        </DomainSectionDiv>
     );
 }

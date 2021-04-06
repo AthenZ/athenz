@@ -19,6 +19,7 @@ import Button from '../denali/Button';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
 import RuleTable from './RuleTable';
+import AddSegmentation from './AddSegmentation';
 // import AddSegmentation from './AddSegmentation';
 
 const MembersSectionDiv = styled.div`
@@ -88,19 +89,19 @@ export default class RulesList extends React.Component {
         const { domain } = this.props;
         let addSegmentationButton = '';
 
-        let addSegmentation = this.state.showAddSegmentation
-            ? // TODO
-              // <AddSegmentation
-              //     api={this.api}
-              //     domain={this.props.domain}
-              //     onSubmit={this.reloadData}
-              //     onCancel={this.toggleAddSegmentation}
-              //     _csrf={this.props._csrf}
-              //     showAddSegment={this.state.showAddSegmentation}
-              //     justificationRequired={false}
-              // />
-              ''
-            : '';
+        let addSegmentation = this.state.showAddSegmentation ? (
+            <AddSegmentation
+                api={this.api}
+                domain={this.props.domain}
+                onSubmit={this.reloadData}
+                onCancel={this.toggleAddSegmentation}
+                _csrf={this.props._csrf}
+                showAddSegment={this.state.showAddSegmentation}
+                justificationRequired={false}
+            />
+        ) : (
+            ''
+        );
 
         addSegmentationButton = (
             <AddContainerDiv>

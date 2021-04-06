@@ -98,18 +98,17 @@ export default class RuleRow extends React.Component {
 
         Promise.all([
             this.api.deleteAssertion(
-                    domain,
-                    deletePolicyName,
-                    this.state.assertionId,
-                    this.props._csrf
-                ),
-            this.api
-                .deleteRole(
-                    domain,
-                    deletePolicyName,
-                    'deleted using Athenz UI',
-                    this.props._csrf
-                )
+                domain,
+                deletePolicyName,
+                this.state.assertionId,
+                this.props._csrf
+            ),
+            this.api.deleteRole(
+                domain,
+                deletePolicyName,
+                'deleted using Athenz UI',
+                this.props._csrf
+            ),
         ])
             .then(() => {
                 this.setState({
@@ -125,9 +124,7 @@ export default class RuleRow extends React.Component {
                     this.props.onUpdateSuccess();
                 } else {
                     this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(
-                            err
-                        ),
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                     });
                 }
             });

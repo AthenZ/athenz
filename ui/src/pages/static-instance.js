@@ -27,6 +27,7 @@ import { CacheProvider } from '@emotion/react';
 import ServiceTabs from '../components/header/ServiceTabs';
 import ServiceNameHeader from '../components/header/ServiceNameHeader';
 import InstanceList from '../components/service/InstanceList';
+import ServiceInstanceDetails from '../components/header/ServiceInstanceDetails';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -71,11 +72,12 @@ export default class StaticInstancePage extends React.Component {
             api.getInstances(props.query.domain, props.query.service, 'static'),
             api.getPendingDomainMembersList(),
             api.getForm(),
+            api.getServiceHeaderDetails(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}];
         });
         return {
             api,
@@ -92,6 +94,7 @@ export default class StaticInstancePage extends React.Component {
             pending: data[4],
             _csrf: data[5],
             nonce: props.req.headers.rid,
+            serviceHeaderDetails: data[7].static,
         };
     }
 
@@ -139,6 +142,11 @@ export default class StaticInstancePage extends React.Component {
                                         <ServiceNameHeader
                                             domain={domain}
                                             service={service}
+                                        />
+                                        <ServiceInstanceDetails
+                                            details={
+                                                this.props.serviceHeaderDetails
+                                            }
                                         />
                                         <ServiceTabs
                                             api={this.api}

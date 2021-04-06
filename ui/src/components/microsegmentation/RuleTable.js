@@ -103,7 +103,7 @@ export default class RuleTable extends React.Component {
         let expandRules = this.expandRules.bind(this);
         let rows = [];
         let length = this.props.data.length;
-        let inbound = this.props.category === "inbound";
+        let inbound = this.props.category === 'inbound';
 
         rows = this.props.data.map((item, i) => {
             let color = '';
@@ -177,25 +177,17 @@ export default class RuleTable extends React.Component {
                     </TableCaptionStyled>
                     <tr>
                         <TableHeadStyledRoleName align={left}>
-                            {inbound
-                                ? 'Destination Service'
-                                : 'Source Service'}
+                            {inbound ? 'Destination Service' : 'Source Service'}
                         </TableHeadStyledRoleName>
                         <TableHeadStyled align={left}>
-                            {inbound
-                                ? 'Destination Port'
-                                : 'Source Port'}
+                            {inbound ? 'Destination Port' : 'Source Port'}
                         </TableHeadStyled>
 
                         <TableHeadStyled align={left}>
-                            {inbound
-                                ? 'Source Service'
-                                : 'Destination Service'}
+                            {inbound ? 'Source Service' : 'Destination Service'}
                         </TableHeadStyled>
                         <TableHeadStyled align={left}>
-                            {inbound
-                                ? 'Source Port'
-                                : 'Destination Port'}
+                            {inbound ? 'Source Port' : 'Destination Port'}
                         </TableHeadStyled>
                         <TableHeadStyled align={left}>Layer</TableHeadStyled>
 

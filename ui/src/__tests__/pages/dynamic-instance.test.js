@@ -45,6 +45,13 @@ describe('DynamicInstancePage', () => {
                 },
             },
         };
+        let serviceHeaderDetails = {
+            description:
+                'Here you can add / see instances which can not obtain Athenz identity because of limitations, but would be associated with your service.',
+            url: '',
+            target: '_blank',
+        };
+
         const { getByTestId } = render(
             <DynamicInstancePage
                 domains={domains}
@@ -56,6 +63,7 @@ describe('DynamicInstancePage', () => {
                 domain='dom'
                 domainResult={[]}
                 headerDetails={headerDetails}
+                serviceHeaderDetails={serviceHeaderDetails}
             />
         );
         const dynamicInstancePage = getByTestId('dynamic-instance');

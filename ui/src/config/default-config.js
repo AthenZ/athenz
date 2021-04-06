@@ -112,6 +112,20 @@ const config = {
         cspImgSrc: '',
         statusPath: process.env.UI_SESSION_SECRET_PATH || 'keys/cookie-session',
         featureFlag: true,
+        serviceHeaderLinks: [
+            {
+                description:
+                    'Here you can add / see instances which can not obtain Athenz identity because of limitations, but would be associated with your service.',
+                url: '',
+                target: '_blank',
+            },
+            {
+                description:
+                    'Here you can see instances which are running with this service identity',
+                url: '',
+                target: '_blank',
+            },
+        ],
     },
     unittest: {
         athenzDomainService: 'athenz.unit-test',
@@ -126,6 +140,20 @@ const config = {
         cspReportUri: 'https://athenz.io/csp',
         cspImgSrc: 'https://athenz.com',
         featureFlag: true,
+        serviceHeaderLinks: [
+            {
+                description:
+                    'Here you can add / see instances which can not obtain Athenz identity because of limitations, but would be associated with your service.',
+                url: '',
+                target: '_blank',
+            },
+            {
+                description:
+                    'Here you can see instances which are running with this service identity',
+                url: '',
+                target: '_blank',
+            },
+        ],
     },
 };
 

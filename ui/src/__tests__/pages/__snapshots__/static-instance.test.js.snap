@@ -517,6 +517,21 @@ exports[`StaticInstancePage should render 1`] = `
 }
 
 .emotion-32 {
+  margin: 20px 0;
+}
+
+.emotion-34 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-36 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -531,7 +546,7 @@ exports[`StaticInstancePage should render 1`] = `
   position: relative;
 }
 
-.emotion-32.vertical {
+.emotion-36.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -547,7 +562,7 @@ exports[`StaticInstancePage should render 1`] = `
   width: 300px;
 }
 
-.emotion-33 {
+.emotion-37 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -571,11 +586,11 @@ exports[`StaticInstancePage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-33:hover {
+.emotion-37:hover {
   color: #3570f4;
 }
 
-.emotion-33.active {
+.emotion-37.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -583,11 +598,11 @@ exports[`StaticInstancePage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-33.active:hover {
+.emotion-37.active:hover {
   color: #303030;
 }
 
-.emotion-33.vertical {
+.emotion-37.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -599,21 +614,21 @@ exports[`StaticInstancePage should render 1`] = `
   text-align: left;
 }
 
-.emotion-33.vertical.active {
+.emotion-37.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-33.vertical.active:hover {
+.emotion-37.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-35 {
+.emotion-39 {
   margin: 20px;
 }
 
-.emotion-37 {
+.emotion-41 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -632,11 +647,11 @@ exports[`StaticInstancePage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-39 {
+.emotion-43 {
   width: 50%;
 }
 
-.emotion-41 {
+.emotion-45 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -662,25 +677,25 @@ exports[`StaticInstancePage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-41:first-of-type {
+.emotion-45:first-of-type {
   margin-left: 0;
 }
 
-.emotion-41:disabled {
+.emotion-45:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-41:disabled {
+.emotion-45:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-41:hover:not(:disabled) {
+.emotion-45:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-42 {
+.emotion-46 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -706,13 +721,13 @@ exports[`StaticInstancePage should render 1`] = `
   width: 20px;
 }
 
-.emotion-44 {
+.emotion-48 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-45 {
+.emotion-49 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -727,7 +742,7 @@ exports[`StaticInstancePage should render 1`] = `
   width: 350px;
 }
 
-.emotion-47 {
+.emotion-51 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -746,28 +761,28 @@ exports[`StaticInstancePage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-49 {
+.emotion-53 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-51 {
+.emotion-55 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-53 {
+.emotion-57 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-57 {
+.emotion-61 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-59 {
+.emotion-63 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -775,12 +790,12 @@ exports[`StaticInstancePage should render 1`] = `
   display: flex;
 }
 
-.emotion-61 {
+.emotion-65 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-63 {
+.emotion-67 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -930,17 +945,26 @@ exports[`StaticInstancePage should render 1`] = `
               :service.
             </div>
             <div
-              class="emotion-32 denali-tab-group"
+              class="emotion-32 emotion-33"
+            >
+              <div
+                class="emotion-34 emotion-35"
+              >
+                Here you can add / see instances which can not obtain Athenz identity because of limitations, but would be associated with your service.
+              </div>
+            </div>
+            <div
+              class="emotion-36 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-33 denali-tab active"
+                class="emotion-37 denali-tab active"
                 data-active="true"
               >
                 Static
               </div>
               <div
-                class="emotion-33 denali-tab"
+                class="emotion-37 denali-tab"
                 data-active="false"
               >
                 Dynamic
@@ -948,20 +972,20 @@ exports[`StaticInstancePage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-35 emotion-36"
+            class="emotion-39 emotion-40"
             data-testid="instancelist"
           >
             <div
-              class="emotion-37 emotion-38"
+              class="emotion-41 emotion-42"
             >
               <div
-                class="emotion-39 emotion-40"
+                class="emotion-43 emotion-44"
               >
                 No instances found
               </div>
               <div>
                 <button
-                  class="emotion-41 denali-button"
+                  class="emotion-45 denali-button"
                 >
                   Add Static Instance
                 </button>
@@ -975,11 +999,11 @@ exports[`StaticInstancePage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-42 emotion-43"
+          class="emotion-46 emotion-47"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-44"
+            class="emotion-48"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -994,45 +1018,45 @@ exports[`StaticInstancePage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-45 emotion-46"
+          class="emotion-49 emotion-50"
         >
           <div
-            class="emotion-47 emotion-48"
+            class="emotion-51 emotion-52"
           >
             <div
-              class="emotion-49 emotion-50"
+              class="emotion-53 emotion-54"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-51 emotion-52"
+                class="emotion-55 emotion-56"
               >
                 Create
               </a>
               <span
-                class="emotion-53 emotion-54"
+                class="emotion-57 emotion-58"
               >
                  | 
               </span>
               <a
-                class="emotion-51 emotion-52"
+                class="emotion-55 emotion-56"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-57 emotion-58"
+            class="emotion-61 emotion-62"
           >
             <div
-              class="emotion-59 emotion-60"
+              class="emotion-63 emotion-64"
             >
               <div
-                class="emotion-61 emotion-62"
+                class="emotion-65 emotion-66"
               >
                 <svg
-                  class="emotion-63"
+                  class="emotion-67"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1053,19 +1077,19 @@ exports[`StaticInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-51 emotion-52"
+                class="emotion-55 emotion-56"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-59 emotion-60"
+              class="emotion-63 emotion-64"
             >
               <div
-                class="emotion-61 emotion-62"
+                class="emotion-65 emotion-66"
               >
                 <svg
-                  class="emotion-63"
+                  class="emotion-67"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1086,7 +1110,7 @@ exports[`StaticInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-51 emotion-52"
+                class="emotion-55 emotion-56"
               >
                 athens.ci
               </a>

@@ -103,7 +103,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
   word-break: break-all;
 }
 
-.emotion-19 {
+.emotion-21 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -111,7 +111,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
   word-break: break-all;
 }
 
-.emotion-23 {
+.emotion-25 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -119,7 +119,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-27 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -158,6 +158,11 @@ exports[`ServiceList should render add service modal after click 1`] = `
         <th
           class="emotion-11 emotion-8"
         >
+          Instances
+        </th>
+        <th
+          class="emotion-11 emotion-8"
+        >
           Public Keys
         </th>
         <th
@@ -174,27 +179,46 @@ exports[`ServiceList should render add service modal after click 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         data-testid="service-row"
       >
         <td
-          class="emotion-19 emotion-20"
+          class="emotion-21 emotion-22"
           color="#3570f40D"
         >
           openhouse
         </td>
         <td
-          class="emotion-19 emotion-20"
+          class="emotion-21 emotion-22"
           color="#3570f40D"
         >
           2020-02-08 00:02 UTC
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
+            data-testid="icon"
+            height="1.25em"
+            viewBox="0 0 1024 1024"
+            width="1.25em"
+          >
+            <title>
+              data-source
+            </title>
+            <path
+              d="M981.333 192c0-145.067-420.267-149.333-469.333-149.333s-469.333 4.267-469.333 149.333v640c0 145.067 420.267 149.333 469.333 149.333s469.333-4.267 469.333-149.333v-633.6zM896 401.067c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM896 614.4c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM512 128c209.067 0 347.733 38.4 379.733 64-32 25.6-170.667 64-379.733 64s-347.733-38.4-379.733-64c32-25.6 170.667-64 379.733-64zM512 896c-221.867 0-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467v115.2c-21.333 25.6-162.133 68.267-384 68.267z"
+            />
+          </svg>
+        </td>
+        <td
+          class="emotion-25 emotion-22"
+          color="#3570f40D"
+        >
+          <svg
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -209,11 +233,11 @@ exports[`ServiceList should render add service modal after click 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -228,11 +252,11 @@ exports[`ServiceList should render add service modal after click 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -368,7 +392,7 @@ exports[`ServiceList should render delete service modal error(other) after click
   word-break: break-all;
 }
 
-.emotion-19 {
+.emotion-21 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -376,7 +400,7 @@ exports[`ServiceList should render delete service modal error(other) after click
   word-break: break-all;
 }
 
-.emotion-23 {
+.emotion-25 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -384,7 +408,7 @@ exports[`ServiceList should render delete service modal error(other) after click
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-27 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -424,6 +448,11 @@ exports[`ServiceList should render delete service modal error(other) after click
         <th
           class="emotion-11 emotion-8"
         >
+          Instances
+        </th>
+        <th
+          class="emotion-11 emotion-8"
+        >
           Public Keys
         </th>
         <th
@@ -440,27 +469,46 @@ exports[`ServiceList should render delete service modal error(other) after click
     </thead>
     <tbody>
       <tr
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         data-testid="service-row"
       >
         <td
-          class="emotion-19 emotion-20"
+          class="emotion-21 emotion-22"
           color="#3570f40D"
         >
           openhouse
         </td>
         <td
-          class="emotion-19 emotion-20"
+          class="emotion-21 emotion-22"
           color="#3570f40D"
         >
           2020-02-08 00:02 UTC
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
+            data-testid="icon"
+            height="1.25em"
+            viewBox="0 0 1024 1024"
+            width="1.25em"
+          >
+            <title>
+              data-source
+            </title>
+            <path
+              d="M981.333 192c0-145.067-420.267-149.333-469.333-149.333s-469.333 4.267-469.333 149.333v640c0 145.067 420.267 149.333 469.333 149.333s469.333-4.267 469.333-149.333v-633.6zM896 401.067c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM896 614.4c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM512 128c209.067 0 347.733 38.4 379.733 64-32 25.6-170.667 64-379.733 64s-347.733-38.4-379.733-64c32-25.6 170.667-64 379.733-64zM512 896c-221.867 0-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467v115.2c-21.333 25.6-162.133 68.267-384 68.267z"
+            />
+          </svg>
+        </td>
+        <td
+          class="emotion-25 emotion-22"
+          color="#3570f40D"
+        >
+          <svg
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -475,11 +523,11 @@ exports[`ServiceList should render delete service modal error(other) after click
           </svg>
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -494,11 +542,11 @@ exports[`ServiceList should render delete service modal error(other) after click
           </svg>
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -624,7 +672,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   word-break: break-all;
 }
 
-.emotion-19 {
+.emotion-21 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -632,7 +680,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   word-break: break-all;
 }
 
-.emotion-23 {
+.emotion-25 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -640,7 +688,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-27 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -680,6 +728,11 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
         <th
           class="emotion-11 emotion-8"
         >
+          Instances
+        </th>
+        <th
+          class="emotion-11 emotion-8"
+        >
           Public Keys
         </th>
         <th
@@ -696,27 +749,46 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
     </thead>
     <tbody>
       <tr
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         data-testid="service-row"
       >
         <td
-          class="emotion-19 emotion-20"
+          class="emotion-21 emotion-22"
           color="#3570f40D"
         >
           openhouse
         </td>
         <td
-          class="emotion-19 emotion-20"
+          class="emotion-21 emotion-22"
           color="#3570f40D"
         >
           2020-02-08 00:02 UTC
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
+            data-testid="icon"
+            height="1.25em"
+            viewBox="0 0 1024 1024"
+            width="1.25em"
+          >
+            <title>
+              data-source
+            </title>
+            <path
+              d="M981.333 192c0-145.067-420.267-149.333-469.333-149.333s-469.333 4.267-469.333 149.333v640c0 145.067 420.267 149.333 469.333 149.333s469.333-4.267 469.333-149.333v-633.6zM896 401.067c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM896 614.4c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM512 128c209.067 0 347.733 38.4 379.733 64-32 25.6-170.667 64-379.733 64s-347.733-38.4-379.733-64c32-25.6 170.667-64 379.733-64zM512 896c-221.867 0-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467v115.2c-21.333 25.6-162.133 68.267-384 68.267z"
+            />
+          </svg>
+        </td>
+        <td
+          class="emotion-25 emotion-22"
+          color="#3570f40D"
+        >
+          <svg
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -731,11 +803,11 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
           </svg>
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -750,11 +822,11 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
           </svg>
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -880,7 +952,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   word-break: break-all;
 }
 
-.emotion-19 {
+.emotion-21 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -888,7 +960,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   word-break: break-all;
 }
 
-.emotion-23 {
+.emotion-25 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -896,7 +968,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-27 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -936,6 +1008,11 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
         <th
           class="emotion-11 emotion-8"
         >
+          Instances
+        </th>
+        <th
+          class="emotion-11 emotion-8"
+        >
           Public Keys
         </th>
         <th
@@ -952,27 +1029,46 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         data-testid="service-row"
       >
         <td
-          class="emotion-19 emotion-20"
+          class="emotion-21 emotion-22"
           color="#3570f40D"
         >
           openhouse
         </td>
         <td
-          class="emotion-19 emotion-20"
+          class="emotion-21 emotion-22"
           color="#3570f40D"
         >
           2020-02-08 00:02 UTC
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
+            data-testid="icon"
+            height="1.25em"
+            viewBox="0 0 1024 1024"
+            width="1.25em"
+          >
+            <title>
+              data-source
+            </title>
+            <path
+              d="M981.333 192c0-145.067-420.267-149.333-469.333-149.333s-469.333 4.267-469.333 149.333v640c0 145.067 420.267 149.333 469.333 149.333s469.333-4.267 469.333-149.333v-633.6zM896 401.067c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM896 614.4c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM512 128c209.067 0 347.733 38.4 379.733 64-32 25.6-170.667 64-379.733 64s-347.733-38.4-379.733-64c32-25.6 170.667-64 379.733-64zM512 896c-221.867 0-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467v115.2c-21.333 25.6-162.133 68.267-384 68.267z"
+            />
+          </svg>
+        </td>
+        <td
+          class="emotion-25 emotion-22"
+          color="#3570f40D"
+        >
+          <svg
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -987,11 +1083,11 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1006,11 +1102,11 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1170,6 +1266,11 @@ exports[`ServiceList should render serviceList again after confirm delete 1`] = 
         <th
           class="emotion-11 emotion-8"
         >
+          Instances
+        </th>
+        <th
+          class="emotion-11 emotion-8"
+        >
           Public Keys
         </th>
         <th
@@ -1292,7 +1393,7 @@ exports[`ServiceList should render with services 1`] = `
   word-break: break-all;
 }
 
-.emotion-19 {
+.emotion-21 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -1300,7 +1401,7 @@ exports[`ServiceList should render with services 1`] = `
   word-break: break-all;
 }
 
-.emotion-23 {
+.emotion-25 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -1308,7 +1409,7 @@ exports[`ServiceList should render with services 1`] = `
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-27 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -1348,6 +1449,11 @@ exports[`ServiceList should render with services 1`] = `
         <th
           class="emotion-11 emotion-8"
         >
+          Instances
+        </th>
+        <th
+          class="emotion-11 emotion-8"
+        >
           Public Keys
         </th>
         <th
@@ -1364,27 +1470,46 @@ exports[`ServiceList should render with services 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-17 emotion-18"
+        class="emotion-19 emotion-20"
         data-testid="service-row"
       >
         <td
-          class="emotion-19 emotion-20"
+          class="emotion-21 emotion-22"
           color="#3570f40D"
         >
           openhouse
         </td>
         <td
-          class="emotion-19 emotion-20"
+          class="emotion-21 emotion-22"
           color="#3570f40D"
         >
           2020-02-08 00:02 UTC
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
+            data-testid="icon"
+            height="1.25em"
+            viewBox="0 0 1024 1024"
+            width="1.25em"
+          >
+            <title>
+              data-source
+            </title>
+            <path
+              d="M981.333 192c0-145.067-420.267-149.333-469.333-149.333s-469.333 4.267-469.333 149.333v640c0 145.067 420.267 149.333 469.333 149.333s469.333-4.267 469.333-149.333v-633.6zM896 401.067c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM896 614.4c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM512 128c209.067 0 347.733 38.4 379.733 64-32 25.6-170.667 64-379.733 64s-347.733-38.4-379.733-64c32-25.6 170.667-64 379.733-64zM512 896c-221.867 0-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467v115.2c-21.333 25.6-162.133 68.267-384 68.267z"
+            />
+          </svg>
+        </td>
+        <td
+          class="emotion-25 emotion-22"
+          color="#3570f40D"
+        >
+          <svg
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1399,11 +1524,11 @@ exports[`ServiceList should render with services 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1418,11 +1543,11 @@ exports[`ServiceList should render with services 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-23 emotion-20"
+          class="emotion-25 emotion-22"
           color="#3570f40D"
         >
           <svg
-            class="emotion-25"
+            class="emotion-27"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1578,6 +1703,11 @@ exports[`ServiceList should render without services 1`] = `
           class="emotion-7 emotion-8"
         >
           Modified Date
+        </th>
+        <th
+          class="emotion-11 emotion-8"
+        >
+          Instances
         </th>
         <th
           class="emotion-11 emotion-8"
