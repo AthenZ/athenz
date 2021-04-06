@@ -1915,8 +1915,6 @@ Fetchr.registerService({
 });
 
 module.exports.load = function (config, secrets) {
-    console.log("$$$$$$$$$$$$$$\n");
-    console.log(config.serviceHeaderLinks);
     appConfig = {
         zms: config.zms,
         athenzDomainService: config.athenzDomainService,
