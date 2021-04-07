@@ -129,6 +129,8 @@ func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1
 	dumpInt32Value(buf, indent2, "cert_expiry_mins", role.CertExpiryMins)
 	dumpInt32Value(buf, indent2, "member_review_days", role.MemberReviewDays)
 	dumpInt32Value(buf, indent2, "service_review_days", role.ServiceReviewDays)
+	dumpInt32Value(buf, indent2, "group_expiry_days", role.GroupExpiryDays)
+	dumpInt32Value(buf, indent2, "group_review_days", role.GroupReviewDays)
 	dumpBoolValue(buf, indent2, "audit_enabled", role.AuditEnabled)
 	dumpBoolValue(buf, indent2, "review_enabled", role.ReviewEnabled)
 	dumpBoolValue(buf, indent2, "self_serve", role.SelfServe)

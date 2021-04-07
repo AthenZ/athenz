@@ -1076,6 +1076,11 @@ type RoleMeta struct {
 	GroupExpiryDays *int32 `json:"groupExpiryDays,omitempty" rdl:"optional"`
 
 	//
+	// all groups in the domain roles will have specified max review days
+	//
+	GroupReviewDays *int32 `json:"groupReviewDays,omitempty" rdl:"optional"`
+
+	//
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
@@ -1213,6 +1218,11 @@ type Role struct {
 	// all groups in the domain roles will have specified max expiry days
 	//
 	GroupExpiryDays *int32 `json:"groupExpiryDays,omitempty" rdl:"optional"`
+
+	//
+	// all groups in the domain roles will have specified max review days
+	//
+	GroupReviewDays *int32 `json:"groupReviewDays,omitempty" rdl:"optional"`
 
 	//
 	// key-value pair tags, tag might contain multiple values

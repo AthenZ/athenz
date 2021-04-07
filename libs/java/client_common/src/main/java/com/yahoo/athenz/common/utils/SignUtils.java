@@ -86,6 +86,8 @@ public class SignUtils {
     private static final String ATTR_SERVICE_CERT_EXPIRY_MINS = "serviceCertExpiryMins";
     private static final String ATTR_MEMBER_REVIEW_DAYS = "memberReviewDays";
     private static final String ATTR_SERVICE_REVIEW_DAYS = "serviceReviewDays";
+    private static final String ATTR_GROUP_REVIEW_DAYS = "groupReviewDays";
+    private static final String ATTR_GROUP_EXPIRY_DAYS = "groupExpiryDays";
     private static final String ATTR_SIGN_ALGORITHM = "signAlgorithm";
 
     private static Struct asStruct(DomainPolicies domainPolicies) {
@@ -151,6 +153,8 @@ public class SignUtils {
         Struct struct = new Struct();
         appendObject(struct, ATTR_AUDIT_ENABLED, role.getAuditEnabled());
         appendObject(struct, ATTR_CERT_EXPIRY_MINS, role.getCertExpiryMins());
+        appendObject(struct, ATTR_GROUP_EXPIRY_DAYS, role.getGroupExpiryDays());
+        appendObject(struct, ATTR_GROUP_REVIEW_DAYS, role.getGroupReviewDays());
         appendObject(struct, ATTR_MEMBER_EXPIRY_DAYS, role.getMemberExpiryDays());
         appendObject(struct, ATTR_MEMBER_REVIEW_DAYS, role.getMemberReviewDays());
         appendList(struct, ATTR_MEMBERS, role.getMembers());

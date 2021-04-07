@@ -55,6 +55,9 @@ public class Role {
     public Integer groupExpiryDays;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer groupReviewDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, StringList> tags;
     public String name;
     @RdlOptional
@@ -170,6 +173,13 @@ public class Role {
     public Integer getGroupExpiryDays() {
         return groupExpiryDays;
     }
+    public Role setGroupReviewDays(Integer groupReviewDays) {
+        this.groupReviewDays = groupReviewDays;
+        return this;
+    }
+    public Integer getGroupReviewDays() {
+        return groupReviewDays;
+    }
     public Role setTags(Map<String, StringList> tags) {
         this.tags = tags;
         return this;
@@ -278,6 +288,9 @@ public class Role {
                 return false;
             }
             if (groupExpiryDays == null ? a.groupExpiryDays != null : !groupExpiryDays.equals(a.groupExpiryDays)) {
+                return false;
+            }
+            if (groupReviewDays == null ? a.groupReviewDays != null : !groupReviewDays.equals(a.groupReviewDays)) {
                 return false;
             }
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
