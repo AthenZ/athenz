@@ -330,4 +330,20 @@ public class ZMSUtilsTest {
         assertFalse(ZMSUtils.emitMonmetricError(400, "unittest"));
         ZMSImpl.metric = savedMetric;
     }
+
+    @Test
+    public void testMetaValueChanged() {
+        assertTrue(ZMSUtils.metaValueChanged("account-1", "account-2"));
+        assertFalse(ZMSUtils.metaValueChanged("account-1", "account-1"));
+
+        assertTrue(ZMSUtils.metaValueChanged(null, "account-1"));
+        assertFalse(ZMSUtils.metaValueChanged(null, null));
+        assertFalse(ZMSUtils.metaValueChanged("account-1", null));
+
+        assertTrue(ZMSUtils.metaValueChanged(10, 15));
+        assertFalse(ZMSUtils.metaValueChanged(10, 10));
+
+        assertTrue(ZMSUtils.metaValueChanged(null, 10));
+        assertFalse(ZMSUtils.metaValueChanged(10, null));
+    }
 }

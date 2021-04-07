@@ -39,6 +39,7 @@ import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
 import com.yahoo.athenz.common.metrics.Metric;
+import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
@@ -56,7 +57,6 @@ import org.testng.annotations.*;
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
@@ -20809,6 +20809,15 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Invalid status checker"));
         }
         System.clearProperty(ZMSConsts.ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS);
+
+        System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_META_STORE_FACTORY_CLASS, "invalid.class");
+        try {
+            zmsImpl.loadDomainMetaStore();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid metastore factory"));
+        }
+        System.clearProperty(ZMSConsts.ZMS_PROP_DOMAIN_META_STORE_FACTORY_CLASS);
         zmsImpl.objectStore.clearConnections();
     }
 
@@ -25793,5 +25802,223 @@ public class ZMSImplTest {
         assertEquals(domain.getDescription(), "new description");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPostDomainInvalidDomainMetaStoreValues() {
+
+        final String domainName = "athenz-domain-with-invalid-details";
+        DomainMetaStore savedMetaStore = zms.domainMetaStore;
+        zms.domainMetaStore = new TestDomainMetaStore();
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+
+        try {
+            dom1.setBusinessService("invalid-business-service");
+            zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid business service name"));
+        }
+
+        try {
+            dom1.setBusinessService("valid-business-service");
+            dom1.setAccount("invalid-aws-account");
+            zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid aws account"));
+        }
+
+        try {
+            dom1.setAccount("valid-aws-account");
+            dom1.setAzureSubscription("invalid-azure-subscription");
+            zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid azure subscription"));
+        }
+
+        zms.productIdSupport = true;
+        try {
+            dom1.setAzureSubscription("valid-azure-subscription");
+            dom1.setYpmId(100);
+            zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid product id"));
+        }
+
+        dom1.setYpmId(101);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Domain domain = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getBusinessService(), "valid-business-service");
+        assertEquals(domain.getAccount(), "valid-aws-account");
+        assertEquals(domain.getAzureSubscription(), "valid-azure-subscription");
+        assertEquals(domain.getYpmId().intValue(), 101);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.domainMetaStore = savedMetaStore;
+        zms.productIdSupport = false;
+    }
+
+    @Test
+    public void testPutDomainMetaInvalidDomainMetaStoreValues() {
+
+        final String domainName = "athenz-domain-meta-with-invalid-details";
+        DomainMetaStore savedMetaStore = zms.domainMetaStore;
+        zms.domainMetaStore = new TestDomainMetaStore();
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta = new DomainMeta().setBusinessService("invalid-business-service");
+        try {
+            zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid business service name"));
+        }
+
+        meta.setBusinessService("valid-business-service");
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+
+        // second time no-op since value not changed
+
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+
+        Domain domain = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getBusinessService(), "valid-business-service");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.domainMetaStore = savedMetaStore;
+    }
+
+    @Test
+    public void testPutDomainSystemMetaInvalidDomainMetaStoreValues() {
+
+        final String domainName = "athenz-domain-system-meta-with-invalid-details";
+        DomainMetaStore savedMetaStore = zms.domainMetaStore;
+        zms.domainMetaStore = new TestDomainMetaStore();
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // first aws account
+
+        DomainMeta meta = new DomainMeta().setAccount("invalid-aws-account");
+        try {
+            zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_ACCOUNT, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid aws account"));
+        }
+
+        meta.setAccount("valid-aws-account");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_ACCOUNT, auditRef, meta);
+
+        Domain domain = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getAccount(), "valid-aws-account");
+
+        // second time no-op since nothing has changed
+
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_ACCOUNT, auditRef, meta);
+
+        // next azure subscription
+
+        try {
+            meta.setAzureSubscription("invalid-azure-subscription");
+            zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid azure subscription"));
+        }
+
+        meta.setAzureSubscription("valid-azure-subscription");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION, auditRef, meta);
+
+        domain = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getAzureSubscription(), "valid-azure-subscription");
+
+        // second time no-op since nothing has changed
+
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION, auditRef, meta);
+
+        // next product id
+
+        zms.productIdSupport = true;
+        try {
+            meta.setYpmId(100);
+            zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_PRODUCT_ID, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid product id"));
+        }
+
+        meta.setYpmId(101);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_PRODUCT_ID, auditRef, meta);
+
+        domain = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getYpmId().intValue(), 101);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.domainMetaStore = savedMetaStore;
+        zms.productIdSupport = false;
+    }
+
+    @Test
+    public void testPutDomainMetaIDomainMetaStoreException() {
+
+        final String domainName = "athenz-domain-meta-with-exception";
+        DomainMetaStore savedMetaStore = zms.domainMetaStore;
+        zms.domainMetaStore = new TestDomainMetaStore();
+
+        // value with exc- will throw an exception but we should
+        // not reject the request
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        dom1.setBusinessService("exc-business-service");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Domain domain = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getBusinessService(), "exc-business-service");
+
+        // try with system attribute now as well
+
+        DomainMeta meta = new DomainMeta().setAccount("exc-aws-account");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_ACCOUNT, auditRef, meta);
+
+        domain = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getAccount(), "exc-aws-account");
+        assertEquals(domain.getBusinessService(), "exc-business-service");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.domainMetaStore = savedMetaStore;
+    }
+
+    @Test
+    public void testPutDomainSystemMetaInvalidDomain() {
+
+        final String domainName = "athenz-domain-system-meta-not-found";
+
+        DomainMeta meta = new DomainMeta().setAccount("aws-account");
+        try {
+            zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_ACCOUNT, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
     }
 }
