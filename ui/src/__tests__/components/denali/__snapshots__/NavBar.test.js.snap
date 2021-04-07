@@ -127,7 +127,7 @@ exports[`NavBar should render with position prop 1`] = `
   justify-content: flex-start;
   left: 0;
   padding: 0 24px;
-  -webkit-position: sticky;
+  position: -webkit-sticky;
   position: sticky;
   right: 0;
   top: 0;
