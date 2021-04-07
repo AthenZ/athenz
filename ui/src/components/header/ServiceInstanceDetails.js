@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 import styled from '@emotion/styled';
-import DateUtils from '../utils/DateUtils';
 import React from 'react';
-import Link from 'next/link';
-import PageUtils from '../utils/PageUtils';
 
 const DomainSectionDiv = styled.div`
     margin: 20px 0;
