@@ -98,7 +98,7 @@ export default class DynamicInstancePage extends React.Component {
             pending: data[4],
             _csrf: data[5],
             nonce: props.req.headers.rid,
-            serviceHeaderDetails: data[7].dynamic,
+            serviceHeaderDetails: data[6].dynamic,
         };
     }
 

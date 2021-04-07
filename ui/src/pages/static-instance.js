@@ -94,7 +94,7 @@ export default class StaticInstancePage extends React.Component {
             pending: data[4],
             _csrf: data[5],
             nonce: props.req.headers.rid,
-            serviceHeaderDetails: data[7].static,
+            serviceHeaderDetails: data[6].static,
         };
     }
 
