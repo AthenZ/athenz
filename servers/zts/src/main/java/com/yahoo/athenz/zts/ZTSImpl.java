@@ -2378,7 +2378,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                             if (transportBaseRule.getDirection() == TransportDirection.IN) {
                                 transportRules.getIngressRules().addAll(wl.getIpAddresses().stream().map(
                                         ip ->  getTransportRule(transportBaseRule, ip)).collect(Collectors.toList()));
-                            } else if (transportBaseRule.getDirection() == TransportDirection.OUT) {
+                            } else {
                                 transportRules.getEgressRules().addAll(wl.getIpAddresses().stream().map(
                                         ip -> getTransportRule(transportBaseRule, ip)).collect(Collectors.toList()));
                             }
@@ -2940,14 +2940,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         WorkloadRecord workloadRecord;
         String[] sanIps = sanIpStr.split(",");
-
+        Date currDate = new Date();
         for (String sanIp : sanIps) {
             workloadRecord = new WorkloadRecord();
             workloadRecord.setProvider(provider);
             workloadRecord.setIp(sanIp);
             workloadRecord.setInstanceId(certReqInstanceId);
             workloadRecord.setService(cn);
-            workloadRecord.setUpdateTime(new Date());
+            workloadRecord.setCreationTime(currDate);
+            workloadRecord.setUpdateTime(currDate);
             if (!instanceCertManager.updateWorkloadRecord(workloadRecord)) {
                 LOGGER.error("unable to update workload record={}", workloadRecord);
             }

@@ -1287,6 +1287,9 @@ public class DataCacheTest {
                 false, "TCP-IN:1024-65535:4443", domainName + ":api", AssertionEffect.ALLOW);
         policy.getAssertions().add(new Assertion().setResource(domainName + ":api").setRole(domainName + ":role.ACL.api.inbound-8443")
                 .setAction("TCP-IN:49152-65535:8443").setEffect(AssertionEffect.ALLOW));
+        // non-existing role added in assertion
+        policy.getAssertions().add(new Assertion().setResource(domainName + ":api").setRole(domainName + ":role.ACL.api.inbound-7443")
+                .setAction("TCP-IN:49152-65535:7443").setEffect(AssertionEffect.ALLOW));
         domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
         domainData.getPolicies().getContents().setPolicies(new ArrayList<>());

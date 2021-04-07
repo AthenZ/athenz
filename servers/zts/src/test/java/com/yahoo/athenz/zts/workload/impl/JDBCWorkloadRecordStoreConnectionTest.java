@@ -215,6 +215,15 @@ public class JDBCWorkloadRecordStoreConnectionTest {
         }
     }
 
+    @Test
+    public void processInsertValueTest() throws Exception {
+        JDBCWorkloadRecordStoreConnection jdbcConn = new JDBCWorkloadRecordStoreConnection(mockConn);
+        assertEquals(jdbcConn.processInsertValue("  "), "");
+        assertEquals(jdbcConn.processInsertValue(" abc"), "abc");
+        assertEquals(jdbcConn.processInsertValue("xyz "), "xyz");
+        assertEquals(jdbcConn.processInsertValue(null), "");
+    }
+
     private void mockNonNullableColumns(Date now) throws SQLException {
         Timestamp tstamp = new Timestamp(now.getTime());
         Mockito.doReturn("openstack").when(mockResultSet).getString(JDBCWorkloadRecordStoreConnection.DB_COLUMN_PROVIDER);

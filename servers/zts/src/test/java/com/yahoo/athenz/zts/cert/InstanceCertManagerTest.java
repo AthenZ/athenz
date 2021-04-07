@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.server.cert.CertRecordStore;
@@ -55,11 +56,14 @@ public class InstanceCertManagerTest {
     public void setup() {
         ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_cert_store"));
         ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_ssh_store"));
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_workloads_store"));
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
         System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "src/test/resources/valid_cn_x509.cert");
         System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI, "https://localhost:443/certsign/v2");
         System.setProperty(ZTSConsts.ZTS_PROP_SSH_FILE_STORE_PATH, "/tmp/zts_server_ssh_store");
+        System.setProperty(ZTSConsts.ZTS_PROP_WORKLOAD_FILE_STORE_PATH, "/tmp/zts_server_workloads_store");
         System.setProperty(ZTSConsts.ZTS_PROP_SSH_RECORD_STORE_FACTORY_CLASS, "com.yahoo.athenz.zts.cert.impl.FileSSHRecordStoreFactory");
+        System.setProperty(ZTSConsts.ZTS_PROP_WORKLOAD_RECORD_STORE_FACTORY_CLASS, "com.yahoo.athenz.zts.workload.impl.FileWorkloadRecordStoreFactory");
     }
     
     @Test
@@ -1634,6 +1638,12 @@ public class InstanceCertManagerTest {
         assertTrue(instance.updateWorkloadRecord(ZTSTestUtils.createWorkloadRecord(d, d,
                 "aws", "i-123", "10.0.0.1", "athenz.api")));
 
+        Mockito.when(storeConn.updateWorkloadRecord(any())).thenReturn(false);
+        Mockito.when(storeConn.insertWorkloadRecord(any())).thenReturn(true);
+
+        assertTrue(instance.updateWorkloadRecord(ZTSTestUtils.createWorkloadRecord(d, d,
+                "aws", "i-123", "10.0.0.1", "athenz.api")));
+
         instance.shutdown();
     }
 
@@ -1684,27 +1694,42 @@ public class InstanceCertManagerTest {
         WorkloadRecord w1 = ZTSTestUtils.createWorkloadRecord(d, d,
                 "aws", "i-123", "10.0.0.1", "athenz.api");
 
-        WorkloadRecord w2 = ZTSTestUtils.createWorkloadRecord(d, d,
-                "aws", "i-234", "10.0.0.2", "athenz.api");
-
-        WorkloadRecord w3 = ZTSTestUtils.createWorkloadRecord(d, d,
-                "aws", "i-234", "2001:0db8:85a3:0000:0000:8a2e:0370:7334", "athenz.api");
+        WorkloadRecord w5 = ZTSTestUtils.createWorkloadRecord(d, d,
+                "aws", "i-123", "10.0.0.1", "athenz.secondapi");
 
         List<WorkloadRecord> workloadRecordList = new ArrayList<>();
         workloadRecordList.add(w1);
-        workloadRecordList.add(w2);
-        workloadRecordList.add(w3);
+        workloadRecordList.add(w5);
         Mockito.when(storeConn.getWorkloadRecordsByIp(any())).thenReturn(workloadRecordList);
 
         List<Workload> workloadList = instance.getWorkloadsByIp("10.0.0.1");
         assertNotNull(workloadList);
         assertEquals(workloadList.size(), 2);
 
-        for (Workload workload : workloadList) {
-            assertEquals(workload.getDomainName(), "athenz");
-            assertEquals(workload.getServiceName(), "api");
-        }
-
+        List<String> expectedServices = workloadList.stream().map(Workload::getServiceName).collect(Collectors.toList());
+        assertTrue(expectedServices.contains("api"));
+        assertTrue(expectedServices.contains("secondapi"));
         instance.shutdown();
+    }
+
+    @Test
+    public void nullWorkloadsStoreTest() {
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, true);
+        instance.setWorkloadStore(null);
+        WorkloadRecord wlr = new WorkloadRecord();
+        assertFalse(instance.insertWorkloadRecord(wlr));
+        assertFalse(instance.updateWorkloadRecord(wlr));
+        instance.shutdown();
+    }
+
+    @Test
+    public void workloadsStoreInitializationTest() {
+        System.setProperty(ZTSConsts.ZTS_PROP_WORKLOAD_RECORD_STORE_FACTORY_CLASS, "invalid.class");
+        try {
+            new InstanceCertManager(null, null, null, true);
+            fail();
+        } catch(Exception ignored) {
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_WORKLOAD_RECORD_STORE_FACTORY_CLASS);
     }
 }

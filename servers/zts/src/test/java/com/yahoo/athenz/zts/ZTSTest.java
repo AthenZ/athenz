@@ -47,6 +47,7 @@ public class ZTSTest {
                 "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
                 "src/test/resources/unit_test_zts_private.pem");
+        System.setProperty(ZTSConsts.ZTS_PROP_WORKLOAD_FILE_STORE_PATH, "/tmp/zts_server_workloads_store");
 
         ZTSBinder binder = new ZTSBinder();
         binder.configure();
@@ -56,6 +57,8 @@ public class ZTSTest {
         System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI);
 
         ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_cert_store"));
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_workloads_store"));
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH);
+        System.clearProperty(ZTSConsts.ZTS_PROP_WORKLOAD_FILE_STORE_PATH);
     }
 }

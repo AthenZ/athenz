@@ -1057,7 +1057,6 @@ public class InstanceCertManager {
             result = storeConnection.updateWorkloadRecord(workloadRecord);
             if (!result) {
                 // failed update could be because of a new IP address for the same instance id, so we are going to try insert operation.
-                workloadRecord.setCreationTime(workloadRecord.getUpdateTime());
                 result = storeConnection.insertWorkloadRecord(workloadRecord);
             }
         }
@@ -1110,7 +1109,7 @@ public class InstanceCertManager {
                         wl.setProvider(wr.getProvider()).setUuid(wr.getInstanceId()).setUpdateTime(Timestamp.fromDate(wr.getUpdateTime()));
                         return wl;
                     })
-                    .filter(distinctByKey(w -> w.getUuid()))
+                    .filter(distinctByKey(w -> w.getUuid() + "#" + AthenzUtils.getPrincipalName(w.getDomainName(), w.getServiceName())))
                     .collect(Collectors.toList());
         }
     }

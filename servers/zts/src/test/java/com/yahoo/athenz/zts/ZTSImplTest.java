@@ -93,8 +93,7 @@ import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItems;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.*;
@@ -11342,6 +11341,71 @@ public class ZTSImplTest {
         store.getCacheStore().invalidate("dom2");
         store.getCacheStore().invalidate("dom3");
 
+    }
+
+    @Test
+    public void emptyDynamicWorkloadsFromStoreTest() {
+
+        InstanceCertManager mockICM = Mockito.mock(InstanceCertManager.class);
+        InstanceCertManager origICM = zts.instanceCertManager;
+        zts.instanceCertManager = mockICM;
+        mockICM.setWorkloadStore(null);
+        addDomainToDataStore("athenz", "api");
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        Workloads workloads = zts.getWorkloadsByService(context, "athenz", "api");
+        assertTrue(workloads.getWorkloadList().isEmpty());
+        zts.instanceCertManager = origICM;
+        store.getCacheStore().invalidate("athenz");
+    }
+
+    @Test
+    public void getTransportRulesEdgeCasesTest() {
+        InstanceCertManager mockICM = Mockito.mock(InstanceCertManager.class);
+        InstanceCertManager origICM = zts.instanceCertManager;
+        zts.instanceCertManager = mockICM;
+        mockICM.setWorkloadStore(null);
+        final String domainName = "transportrulesedge";
+        addDomainToDataStore(domainName, "api");
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TransportRules transportRules = zts.getTransportRules(context, domainName, "api");
+        assertTrue(transportRules.getEgressRules().isEmpty());
+        assertTrue(transportRules.getIngressRules().isEmpty());
+
+        DataCache domain = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setName(domainName);
+        domain.setDomainData(domainData);
+        domainData.setRoles(new ArrayList<>());
+        Role role1 = ZTSTestUtils.createRoleObject(domainName, "ACL.api.inbound-4443", "dom1.svc1");
+        domainData.getRoles().add(role1);
+
+        Policy policy1 = ZTSTestUtils.createPolicyObject(domainName, "ACL.api.inbound", domainName + ":role.ACL.api.inbound-4443",
+                false, "TCP-IN:1024-65535:4443", domainName + ":api", AssertionEffect.ALLOW);
+        domainData.setPolicies(new com.yahoo.athenz.zms.SignedPolicies());
+        domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
+        domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
+        domainData.getPolicies().getContents().getPolicies().add(policy1);
+
+        store.getCacheStore().put(domainName, domain);
+
+        addDomainToDataStore("dom1", "svc1");
+
+        Map<String, Role> rolesMap = new HashMap<>();
+        rolesMap.put(domainName + ":role.ACL.api.inbound-4443", role1);
+        domain.processPolicy(domainName, policy1, rolesMap);
+
+        zts.dataStore.getDataCache(domainName).getTransportRulesInfoForService("api").put("TCP-XYZ:1024-65535:4443", Collections.singletonList("dom1.svc1"));
+
+        transportRules = zts.getTransportRules(context, domainName, "api");
+        assertTrue(transportRules.getEgressRules().isEmpty());
+        assertTrue(transportRules.getIngressRules().isEmpty());
+
+        zts.instanceCertManager = origICM;
+        store.getCacheStore().invalidate("athenz");
     }
 
     private void addDomainToDataStore(String domainName, String serviceName) {

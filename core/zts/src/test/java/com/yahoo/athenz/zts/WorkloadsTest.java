@@ -38,6 +38,8 @@ public class WorkloadsTest {
 
         assertNotNull(workloads1.getWorkloadList());
 
+        assertEquals(workloads1, workloads1);
+
         Workloads workloads2 = new Workloads();
         Workload wl2 = new Workload();
         wl2.setDomainName("athenz").setServiceName("api").setIpAddresses(ipAddresses).setProvider("kubernetes").setUuid("1234-rsaq-422dcz")
@@ -51,10 +53,17 @@ public class WorkloadsTest {
         workloads2.setWorkloadList(workloadList1);
         assertEquals(workloads1, workloads2);
 
-        workloads1.setWorkloadList(null);
+        workloads2.setWorkloadList(null);
         assertNotEquals(workloads1, workloads2);
 
-        workloads1.setWorkloadList(workloadList1);
+        Workload wl3 = new Workload();
+        wl3.setDomainName("athenz").setServiceName("api").setIpAddresses(ipAddresses).setProvider("openstack").setUuid("1234-acbf")
+                .setUpdateTime(Timestamp.fromMillis(123456789123L));
+
+        List<Workload> workloadList3 = Collections.singletonList(wl3);
+        workloads2.setWorkloadList(workloadList3);
+
+        assertNotEquals(workloads1, workloads2);
 
         // for code coverage
         assertFalse(workloads1.equals("anotherstring"));

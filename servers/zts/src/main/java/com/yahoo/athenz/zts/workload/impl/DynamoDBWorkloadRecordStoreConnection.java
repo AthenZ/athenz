@@ -87,7 +87,7 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
 
             return getWorkloadRecords(spec, serviceIndex);
         } catch (Exception ex) {
-            LOGGER.error("DynamoDB getWorkloadRecordsByService failed for service: {}, error: {}", AthenzUtils.getPrincipalName(domain, service), ex.getMessage());
+            LOGGER.error("DynamoDB getWorkloadRecordsByService failed for service={}, error={}", AthenzUtils.getPrincipalName(domain, service), ex.getMessage());
         }
 
         return new ArrayList<>();
@@ -103,7 +103,7 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
 
             return getWorkloadRecords(spec, ipIndex);
         } catch (Exception ex) {
-            LOGGER.error("DynamoDB getWorkloadRecordsByIp failed for ip: {}, error: {}", ip, ex.getMessage());
+            LOGGER.error("DynamoDB getWorkloadRecordsByIp failed for ip={}, error={}", ip, ex.getMessage());
         }
 
         return new ArrayList<>();
@@ -135,18 +135,23 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
 
     @Override
     public boolean updateWorkloadRecord(WorkloadRecord workloadRecord) {
+        //updateItem does not fail on absence of primaryKey, and behaves as insert. So we should set all attributes with update too.
         try {
             UpdateItemSpec updateItemSpec = new UpdateItemSpec()
                     .withPrimaryKey(KEY_PRIMARY, getPrimaryKey(workloadRecord.getService(), workloadRecord.getInstanceId(), workloadRecord.getIp()))
                     .withAttributeUpdate(
+                            new AttributeUpdate(KEY_SERVICE).put(workloadRecord.getService()),
                             new AttributeUpdate(KEY_PROVIDER).put(workloadRecord.getProvider()),
+                            new AttributeUpdate(KEY_IP).put(workloadRecord.getIp()),
+                            new AttributeUpdate(KEY_INSTANCE_ID).put(workloadRecord.getInstanceId()),
+                            new AttributeUpdate(KEY_CREATION_TIME).put(DynamoDBUtils.getLongFromDate(workloadRecord.getCreationTime())),
                             new AttributeUpdate(KEY_UPDATE_TIME).put(DynamoDBUtils.getLongFromDate(workloadRecord.getUpdateTime())),
                             new AttributeUpdate(KEY_TTL).put(workloadRecord.getUpdateTime().getTime() / 1000L + expiryTime)
                     );
             updateItemRetryDynamoDBCommand.run(() -> table.updateItem(updateItemSpec));
             return true;
         } catch (Exception ex) {
-            LOGGER.error("DynamoDB Workload update Error for {}: {}/{}", workloadRecord, ex.getClass(), ex.getMessage());
+            LOGGER.error("DynamoDB Workload update Error={}: {}/{}", workloadRecord, ex.getClass(), ex.getMessage());
             return false;
         }
     }
@@ -156,16 +161,17 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
         try {
             Item item = new Item()
                     .withPrimaryKey(KEY_PRIMARY, getPrimaryKey(workloadRecord.getService(), workloadRecord.getInstanceId(), workloadRecord.getIp()))
+                    .withString(KEY_SERVICE, workloadRecord.getService())
                     .withString(KEY_PROVIDER, workloadRecord.getProvider())
                     .withString(KEY_IP, workloadRecord.getIp())
                     .withString(KEY_INSTANCE_ID, workloadRecord.getInstanceId())
                     .with(KEY_CREATION_TIME, DynamoDBUtils.getLongFromDate(workloadRecord.getCreationTime()))
                     .with(KEY_UPDATE_TIME, DynamoDBUtils.getLongFromDate(workloadRecord.getUpdateTime()))
-                    .withLong(KEY_TTL, workloadRecord.getCreationTime().getTime() / 1000L + expiryTime);
+                    .withLong(KEY_TTL, workloadRecord.getUpdateTime().getTime() / 1000L + expiryTime);
             putItemRetryDynamoDBCommand.run(() -> table.putItem(item));
             return true;
         } catch (Exception ex) {
-            LOGGER.error("DynamoDB Workload Insert Error for {}: {}/{}", workloadRecord, ex.getClass(), ex.getMessage());
+            LOGGER.error("DynamoDB Workload Insert Error={}: {}/{}", workloadRecord, ex.getClass(), ex.getMessage());
             return false;
         }
     }
