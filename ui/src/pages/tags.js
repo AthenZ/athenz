@@ -74,11 +74,12 @@ export default class TagsPage extends React.Component {
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
             api.getForm(),
+            api.getFeatureFlag(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}];
         });
 
         return {
@@ -92,6 +93,7 @@ export default class TagsPage extends React.Component {
             _csrf: tagsData[3],
             domain: props.query.domain,
             nonce: props.req.headers.rid,
+            featureFlag: tagsData[4],
         };
     }
 
@@ -144,6 +146,7 @@ export default class TagsPage extends React.Component {
                                             api={this.api}
                                             domain={domain}
                                             selectedName={'tags'}
+                                            featureFlag={this.props.featureFlag}
                                         />
                                     </PageHeaderDiv>
                                     <TagList

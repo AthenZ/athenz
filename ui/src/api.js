@@ -1265,6 +1265,21 @@ const Api = (req) => {
             });
         },
 
+        getServiceHeaderDetails() {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('service-header-details')
+                    .params()
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         getServicePageConfig() {
             return new Promise((resolve, reject) => {
                 fetchr
@@ -1340,6 +1355,51 @@ const Api = (req) => {
                 fetchr
                     .read('domain-role-member')
                     .params({ principal })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        getFeatureFlag() {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('feature-flag')
+                    .params()
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        getInstances(domainName, serviceName, category) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('instances')
+                    .params({ domainName, serviceName, category })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        getInboundOutbound(domainName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('microsegmentation')
+                    .params({ domainName: domainName })
                     .end((err, data) => {
                         if (err) {
                             reject(err);

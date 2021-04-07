@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,8 @@ import AddModal from '../modal/AddModal';
 import RequestUtils from '../utils/RequestUtils';
 import InputDropdown from '../denali/InputDropdown';
 import Icon from '../denali/icons/Icon';
-
-const Resourcetypes = [
-    {
-        name: 'IP Address',
-        value: 'IP Address',
-    },
-];
+import { STATIC_INSTANCES_RESOURCE_TYPES } from '../constants/constants';
+import NameUtils from '../utils/NameUtils';
 
 const SectionDiv = styled.div`
     align-items: center;
@@ -95,11 +90,7 @@ export default class AddStaticInstances extends React.Component {
         if (!resourceVal) {
             return;
         }
-        let names = (resourceVal || '')
-            .replace(/[\r\n\s]+/g, ',')
-            .split(',')
-            .map((n) => n.trim())
-            .filter((n) => n);
+        let names = NameUtils.splitNames(resourceVal);
 
         for (let i = 0; i < names.length; i++) {
             members.push({
@@ -147,9 +138,7 @@ export default class AddStaticInstances extends React.Component {
         }
 
         var urlParts = window.location.pathname.split('/');
-        var serviceName = urlParts[4].substring(
-            urlParts[4].lastIndexOf('.') + 1
-        );
+        var serviceName = this.props.service;
         var fullServiceName = this.props.domain + '.' + serviceName;
         var auditRef = 'adding static ips for micro-segment';
         var hostDetails = [];
@@ -223,11 +212,10 @@ export default class AddStaticInstances extends React.Component {
             <SectionsDiv>
                 <SectionDiv>
                     <StyledInputLabel>Type and value:</StyledInputLabel>
-                    {/* <ContentDiv> */}
                     <InputDropdown
                         name='resourceType'
                         defaultSelectedValue={this.state.resourceType}
-                        options={Resourcetypes}
+                        options={STATIC_INSTANCES_RESOURCE_TYPES}
                         onChange={this.resourceTypeChanged}
                         placeholder='Select Resourcetype'
                         noclear
@@ -251,7 +239,6 @@ export default class AddStaticInstances extends React.Component {
                             onClick={this.addMember}
                         />
                     </AddCircleDiv>
-                    {/* </ContentDiv> */}
                 </SectionDiv>
                 <SectionDiv>
                     <StyledInputLabel />

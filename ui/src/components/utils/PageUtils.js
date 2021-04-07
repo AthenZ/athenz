@@ -29,6 +29,9 @@ class PageUtils {
     static manageDomainPage() {
         return `/domain/manage`;
     }
+    static servicePage(domain) {
+        return `/domain/${domain}/service`;
+    }
 }
 
 export default PageUtils;

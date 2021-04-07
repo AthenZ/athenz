@@ -79,11 +79,12 @@ export default class RolePage extends React.Component {
             api.getForm(),
             api.isAWSTemplateApplied(props.query.domain),
             api.getRolePrefix(),
+            api.getFeatureFlag(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}, {}];
         });
         let domainDetails = domains[2];
         domainDetails.isAWSTemplateApplied = !!domains[6];
@@ -102,6 +103,7 @@ export default class RolePage extends React.Component {
             _csrf: domains[5],
             prefixes: domains[7].allPrefixes,
             nonce: props.req.headers.rid,
+            featureFlag: domains[8],
         };
     }
 
@@ -162,6 +164,7 @@ export default class RolePage extends React.Component {
                                             api={this.api}
                                             domain={domain}
                                             selectedName={'roles'}
+                                            featureFlag={this.props.featureFlag}
                                         />
                                     </PageHeaderDiv>
                                     <RoleList

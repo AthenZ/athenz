@@ -79,11 +79,12 @@ export default class TemplatePage extends React.Component {
             api.getServicePageConfig(),
             api.isAWSTemplateApplied(props.query.domain),
             api.getDomainTemplateDetailsList(props.query.domain),
+            api.getFeatureFlag(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
         });
         let domainDetails = domains[2];
         domainDetails.isAWSTemplateApplied = !!domains[7];
@@ -102,6 +103,7 @@ export default class TemplatePage extends React.Component {
             pageConfig: domains[6],
             domainTemplateDetails: domains[8],
             nonce: props.req.headers.rid,
+            featureFlag: domains[9],
         };
     }
 
@@ -160,6 +162,7 @@ export default class TemplatePage extends React.Component {
                                             api={this.api}
                                             domain={domain}
                                             selectedName={'templates'}
+                                            featureFlag={this.props.featureFlag}
                                         />
                                     </PageHeaderDiv>
                                     <TemplateList

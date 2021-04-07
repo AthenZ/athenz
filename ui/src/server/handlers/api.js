@@ -1724,11 +1724,193 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'service-header-details',
+    read(req, resource, params, config, callback) {
+        callback(null, {
+            static: appConfig.serviceHeaderLinks[0],
+            dynamic: appConfig.serviceHeaderLinks[1],
+        });
+    },
+});
+
+Fetchr.registerService({
     name: 'service-page-config',
     read(req, resource, params, config, callback) {
         callback(null, {
             servicePageConfig: appConfig.servicePageConfig,
         });
+    },
+});
+
+Fetchr.registerService({
+    name: 'feature-flag',
+    read(req, resource, params, config, callback) {
+        callback(null, appConfig.featureFlag);
+    },
+});
+
+Fetchr.registerService({
+    name: 'microsegmentation',
+    read(req, resource, params, config, callback) {
+        let jsonData = {
+            inbound: [],
+            outbound: [],
+        };
+
+        let promises = [];
+
+        req.clients.zms.getPolicies(
+            { domainName: params.domainName, assertions: true },
+            (err, data) => {
+                if (!err && Array.isArray(data.list)) {
+                    data.list.forEach((item, index) => {
+                        if (
+                            item.name.startsWith(
+                                params.domainName + ':policy.' + 'acl.'
+                            )
+                        ) {
+                            let temp = item.name.split('.');
+                            //sample policy name - ACL.<service-name>.[inbound/outbound]
+                            let serviceName = temp[temp.length - 2];
+                            let category = '';
+
+                            item.assertions &&
+                                item.assertions.forEach(
+                                    (assertionItem, assertionIdx) => {
+                                        let tempData = {};
+                                        let tempProtocol = assertionItem.action.split(
+                                            '-'
+                                        );
+                                        tempData['layer'] = tempProtocol[0];
+                                        let tempPort = assertionItem.action.split(
+                                            ':'
+                                        );
+                                        tempData['source_port'] = tempPort[1];
+                                        tempData['destination_port'] =
+                                            tempPort[2];
+                                        let index = 0;
+                                        if (item.name.includes('inbound')) {
+                                            category = 'inbound';
+                                            tempData[
+                                                'destination_service'
+                                            ] = serviceName;
+                                            tempData['source_services'] = [];
+                                            tempData['assertionIdx'] =
+                                                assertionItem.id;
+                                            jsonData['inbound'].push(tempData);
+                                            index = jsonData['inbound'].length;
+                                        } else if (
+                                            item.name.includes('outbound')
+                                        ) {
+                                            category = 'outbound';
+                                            tempData[
+                                                'source_service'
+                                            ] = serviceName;
+                                            tempData[
+                                                'destination_services'
+                                            ] = [];
+                                            tempData['assertionIdx'] =
+                                                assertionItem.id;
+                                            jsonData['outbound'].push(tempData);
+                                            index = jsonData['outbound'].length;
+                                        }
+                                        //assertion convention for micro-segmentation:
+                                        //GRANT [Action: <transport layer>-IN / <transport layer>-OUT]:[Source Port]:[Destination Port] [Resource:<service-name>] ON <role-name>
+                                        // role name will be of the form : <domain>:role.<roleName>
+                                        let roleName = assertionItem.role.substring(
+                                            params.domainName.length + 6
+                                        );
+                                        promises.push(
+                                            getRole(
+                                                roleName,
+                                                params.domainName,
+                                                category,
+                                                index
+                                            )
+                                        );
+                                    }
+                                );
+                        }
+                    });
+                } else if (err) {
+                    return this.callback(errorHandler.fetcherError(err));
+                }
+                Promise.all(promises)
+                    .then(() => {
+                        return callback(null, jsonData);
+                    })
+                    .catch((err) => {
+                        return this.callback(errorHandler.fetcherError(err));
+                    });
+            }
+        );
+
+        function getRole(roleName, domainName, category, jsonIndex) {
+            return new Promise((resolve, reject) => {
+                req.clients.zms.getRole(
+                    {
+                        domainName: params.domainName,
+                        roleName: roleName,
+                        auditLog: false,
+                        pending: false,
+                        expand: false,
+                    },
+                    (err, data) => {
+                        if (data) {
+                            if (data.roleMembers) {
+                                data.roleMembers.forEach((roleMember, idx) => {
+                                    if (category === 'inbound') {
+                                        jsonData[category][jsonIndex - 1][
+                                            'source_services'
+                                        ].push(roleMember.memberName);
+                                    } else if (category === 'outbound') {
+                                        jsonData[category][jsonIndex - 1][
+                                            'destination_services'
+                                        ].push(roleMember.memberName);
+                                    }
+                                });
+                                resolve();
+                            } else {
+                                resolve();
+                            }
+                        } else if (err) {
+                            reject(err);
+                        }
+                    }
+                );
+            });
+        }
+    },
+});
+
+Fetchr.registerService({
+    name: 'instances',
+    read(req, resource, params, config, callback) {
+        req.clients.zts.getWorkloadsByService(
+            { domainName: params.domainName, serviceName: params.serviceName },
+            (err, data) => {
+                let result = [];
+                if (data) {
+                    if (params.category === 'static') {
+                        data.workloadList.forEach((workload) => {
+                            if (workload.provider === 'Static') {
+                                result.push(workload);
+                            }
+                        });
+                        return callback(null, result);
+                    } else {
+                        data.workloadList.forEach((workload) => {
+                            if (workload.provider !== 'Static') {
+                                result.push(workload);
+                            }
+                        });
+                        return callback(null, result);
+                    }
+                } else {
+                    return callback(errorHandler.fetcherError(err));
+                }
+            }
+        );
     },
 });
 
@@ -1744,6 +1926,8 @@ module.exports.load = function (config, secrets) {
         productMasterLink: config.productMasterLink,
         allPrefixes: config.allPrefixes,
         zmsLoginUrl: config.zmsLoginUrl,
+        featureFlag: config.featureFlag,
+        serviceHeaderLinks: config.serviceHeaderLinks,
     };
     return CLIENTS.load(config, secrets);
 };

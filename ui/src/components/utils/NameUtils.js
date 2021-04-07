@@ -30,6 +30,14 @@ class NameUtils {
     static getFlatPickrKey(key) {
         return key.replace(/\./g, '_').replace(/\W/g, '_');
     }
+
+    static splitNames(names) {
+        return (names || '')
+            .replace(/[\r\n\s]+/g, ',')
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n);
+    }
 }
 
 export default NameUtils;

@@ -177,6 +177,7 @@ export default class ServiceList extends React.Component {
                     key={item.name}
                     _csrf={this.props._csrf}
                     onClickDeleteService={onClickDeleteService}
+                    featureFlag={this.props.featureFlag}
                 />
             );
             return toReturn;
@@ -212,6 +213,9 @@ export default class ServiceList extends React.Component {
                             </TableHeadStyled>
                             <TableHeadStyled align={left}>
                                 Modified Date
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                Instances
                             </TableHeadStyled>
                             <TableHeadStyled align={center}>
                                 Public Keys

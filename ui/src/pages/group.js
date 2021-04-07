@@ -77,11 +77,12 @@ export default class GroupPage extends React.Component {
             api.getPendingDomainMembersList(),
             api.getForm(),
             api.isAWSTemplateApplied(props.query.domain),
+            api.getFeatureFlag(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}];
         });
         let domainDetails = domains[2];
         domainDetails.isAWSTemplateApplied = !!domains[6];
@@ -99,6 +100,7 @@ export default class GroupPage extends React.Component {
             pending: domains[4],
             _csrf: domains[5],
             nonce: props.req.headers.rid,
+            featureFlag: domains[7],
         };
     }
 
@@ -158,6 +160,7 @@ export default class GroupPage extends React.Component {
                                             api={this.api}
                                             domain={domain}
                                             selectedName={'groups'}
+                                            featureFlag={this.props.featureFlag}
                                         />
                                     </PageHeaderDiv>
                                     <GroupList

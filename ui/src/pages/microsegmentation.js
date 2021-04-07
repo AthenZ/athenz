@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,13 @@ import UserDomains from '../components/domain/UserDomains';
 import API from '../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-
-import DomainDetails from '../components/header/DomainDetails';
-import ServiceList from '../components/service/ServiceList';
 import RequestUtils from '../components/utils/RequestUtils';
-import Tabs from '../components/header/Tabs';
 import Error from './_error';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
+import DomainDetails from '../components/header/DomainDetails';
+import Tabs from '../components/header/Tabs';
+import RulesList from '../components/microsegmentation/RulesList';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -36,13 +35,18 @@ const AppContainerDiv = styled.div`
     justify-content: flex-start;
 `;
 
+const TitleDiv = styled.div`
+    font: 600 20px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
+    margin-bottom: 10px;
+`;
+
 const MainContentDiv = styled.div`
     flex: 1 1 calc(100vh - 60px);
     overflow: hidden;
     font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
 `;
 
-const ServicesContainerDiv = styled.div`
+const RolesContainerDiv = styled.div`
     align-items: stretch;
     flex: 1 1;
     height: calc(100vh - 60px);
@@ -51,33 +55,28 @@ const ServicesContainerDiv = styled.div`
     flex-direction: column;
 `;
 
-const ServicesContentDiv = styled.div``;
+const RolesContentDiv = styled.div``;
 
 const PageHeaderDiv = styled.div`
     background: linear-gradient(to top, #f2f2f2, #fff);
     padding: 20px 30px 0;
 `;
 
-const TitleDiv = styled.div`
-    font: 600 20px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
-    margin-bottom: 10px;
-`;
-
-export default class ServicePage extends React.Component {
+export default class MicrosegmentationPage extends React.Component {
     static async getInitialProps(props) {
         let api = API(props.req);
         let reload = false;
         let notFound = false;
         let error = undefined;
-        const domains = await Promise.all([
+        const data = await Promise.all([
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
-            api.getServices(props.query.domain),
-            api.getForm(),
+            api.getInboundOutbound(props.query.domain),
             api.getPendingDomainMembersList(),
-            api.getServicePageConfig(),
+            api.getForm(),
             api.isAWSTemplateApplied(props.query.domain),
+            api.getDomain(props.query.domain),
             api.getFeatureFlag(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
@@ -85,23 +84,23 @@ export default class ServicePage extends React.Component {
             error = response.error;
             return [{}, {}, {}, {}, {}, {}, {}, {}, {}];
         });
-        let domainDetails = domains[2];
-        domainDetails.isAWSTemplateApplied = !!domains[7];
+        let domainDetails = data[7];
+        domainDetails.isAWSTemplateApplied = !!data[6];
         return {
             api,
             reload,
             notFound,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            domain: props.query.domain,
+            domains: data[0],
+            headerDetails: data[1],
             domainDetails,
-            services: domains[3],
-            _csrf: domains[4],
-            pending: domains[5],
-            pageConfig: domains[6],
-            featureFlag: domains[8],
+            auditEnabled: data[2].auditEnabled,
+            domain: props.query.domain,
+            pending: data[4],
+            _csrf: data[5],
             nonce: props.req.headers.rid,
+            segmentationData: data[3],
+            featureFlag: true,
         };
     }
 
@@ -115,7 +114,14 @@ export default class ServicePage extends React.Component {
     }
 
     render() {
-        const { domain, reload, domainDetails, services, _csrf } = this.props;
+        const {
+            domain,
+            reload,
+            domainDetails,
+            isDomainAuditEnabled,
+            _csrf,
+            segmentationData,
+        } = this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -125,7 +131,7 @@ export default class ServicePage extends React.Component {
         }
         return (
             <CacheProvider value={this.cache}>
-                <div data-testid='service'>
+                <div data-testid='micro-segmentation'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
@@ -136,8 +142,8 @@ export default class ServicePage extends React.Component {
                     />
                     <MainContentDiv>
                         <AppContainerDiv>
-                            <ServicesContainerDiv>
-                                <ServicesContentDiv>
+                            <RolesContainerDiv>
+                                <RolesContentDiv>
                                     <PageHeaderDiv>
                                         <TitleDiv>{domain}</TitleDiv>
                                         <DomainDetails
@@ -152,20 +158,21 @@ export default class ServicePage extends React.Component {
                                         <Tabs
                                             api={this.api}
                                             domain={domain}
-                                            selectedName={'services'}
+                                            selectedName={'microsegmentation'}
                                             featureFlag={this.props.featureFlag}
                                         />
                                     </PageHeaderDiv>
-                                    <ServiceList
+                                    <RulesList
                                         api={this.api}
                                         domain={domain}
-                                        services={services}
-                                        _csrf={this.props._csrf}
-                                        pageConfig={this.props.pageConfig}
-                                        featureFlag={this.props.featureFlag}
+                                        _csrf={_csrf}
+                                        isDomainAuditEnabled={
+                                            isDomainAuditEnabled
+                                        }
+                                        data={segmentationData}
                                     />
-                                </ServicesContentDiv>
-                            </ServicesContainerDiv>
+                                </RolesContentDiv>
+                            </RolesContainerDiv>
                             <UserDomains
                                 domains={this.props.domains}
                                 api={this.api}

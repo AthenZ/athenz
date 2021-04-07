@@ -35,6 +35,7 @@ const config = {
     servicePageConfig: '',
     productMasterLink: '',
     userData: () => {},
+    serviceHeaderLinks: [],
 };
 const secrets = {};
 const expressApp = require('express')();

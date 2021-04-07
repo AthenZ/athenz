@@ -1,0 +1,110 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ServiceList should render 1`] = `
+.emotion-0 {
+  display: inline-block;
+  overflow-y: scroll;
+  max-height: 600px;
+}
+
+.emotion-2 {
+  width: 100%;
+  text-align: center;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: black;
+  box-sizing: border-box;
+  margin-top: 5px;
+  box-shadow: 0 1px 4px #d9d9d9;
+  border: 5px solid #fff;
+  -webkit-border-image: none;
+  border-image: none;
+  -webkit-border-image: initial;
+  border-image: initial;
+  max-height: 600px;
+}
+
+.emotion-4:nth-child(even) {
+  background-color: #3570f40d;
+}
+
+.emotion-6 {
+  padding: 6px;
+  border: 1px solid #dddddd;
+}
+
+.emotion-10 {
+  border: 1px solid #dddddd;
+  padding: 5px;
+  color: blue;
+}
+
+.emotion-12 {
+  cursor: pointer;
+}
+
+<div
+  class="emotion-0 emotion-1"
+  data-testid="segmentation-service-list"
+>
+  <table
+    class="emotion-2 emotion-3"
+  >
+    <tr
+      class="emotion-4 emotion-5"
+    >
+      <th
+        class="emotion-6 emotion-7"
+      >
+         Services 
+      </th>
+    </tr>
+    <tr
+      class="emotion-4 emotion-5"
+    >
+      <td
+        class="emotion-10 emotion-11"
+      >
+        <a
+          class="emotion-12 emotion-13"
+        >
+           
+          serviceB
+           
+        </a>
+      </td>
+    </tr>
+    <tr
+      class="emotion-4 emotion-5"
+    >
+      <td
+        class="emotion-10 emotion-11"
+      >
+        <a
+          class="emotion-12 emotion-13"
+        >
+           
+          serviceC
+           
+        </a>
+      </td>
+    </tr>
+    <tr
+      class="emotion-4 emotion-5"
+    >
+      <td
+        class="emotion-10 emotion-11"
+      >
+        <a
+          class="emotion-12 emotion-13"
+        >
+           
+          serviceD
+           
+        </a>
+      </td>
+    </tr>
+  </table>
+</div>
+`;

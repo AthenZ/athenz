@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import ProviderTable from '../service/ProviderTable';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import { keyframes, css } from '@emotion/react';
+import { withRouter } from 'next/router';
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -48,16 +49,27 @@ const TrStyled = styled.tr`
         `}
 `;
 
-export default class ServiceRow extends React.Component {
+class ServiceRow extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;
         this.togglePublicKeys = this.togglePublicKeys.bind(this);
         this.toggleProviders = this.toggleProviders.bind(this);
+        this.toggleInstances = this.toggleInstances.bind(this);
         this.state = {
             provider: null,
         };
         this.localDate = new DateUtils();
+    }
+
+    toggleInstances() {
+        let domain = this.props.domainName;
+        let service = this.props.serviceName;
+        this.props.router.push(
+            `/domain/${domain}/service/${service}/instance/dynamic`,
+            `/domain/${domain}/service/${service}/instance/dynamic`,
+            { getInitialProps: true }
+        );
     }
 
     togglePublicKeys() {
@@ -132,6 +144,16 @@ export default class ServiceRow extends React.Component {
                 </TdStyled>
                 <TdStyled color={color} align={center}>
                     <Icon
+                        icon={'data-source'}
+                        onClick={this.toggleInstances}
+                        color={colors.icons}
+                        isLink
+                        size={'1.25em'}
+                        verticalAlign={'text-bottom'}
+                    />
+                </TdStyled>
+                <TdStyled color={color} align={center}>
+                    <Icon
                         icon={'key'}
                         onClick={this.togglePublicKeys}
                         color={colors.icons}
@@ -197,3 +219,4 @@ export default class ServiceRow extends React.Component {
         return row;
     }
 }
+export default withRouter(ServiceRow);

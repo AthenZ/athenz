@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import API from '../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
 
-import DomainDetails from '../components/header/DomainDetails';
-import ServiceList from '../components/service/ServiceList';
 import RequestUtils from '../components/utils/RequestUtils';
-import Tabs from '../components/header/Tabs';
 import Error from './_error';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
+import ServiceTabs from '../components/header/ServiceTabs';
+import ServiceNameHeader from '../components/header/ServiceNameHeader';
+import InstanceList from '../components/service/InstanceList';
+import ServiceInstanceDetails from '../components/header/ServiceInstanceDetails';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -42,7 +43,7 @@ const MainContentDiv = styled.div`
     font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
 `;
 
-const ServicesContainerDiv = styled.div`
+const ServiceContainerDiv = styled.div`
     align-items: stretch;
     flex: 1 1;
     height: calc(100vh - 60px);
@@ -51,57 +52,53 @@ const ServicesContainerDiv = styled.div`
     flex-direction: column;
 `;
 
-const ServicesContentDiv = styled.div``;
+const ServiceContentDiv = styled.div``;
 
 const PageHeaderDiv = styled.div`
     background: linear-gradient(to top, #f2f2f2, #fff);
     padding: 20px 30px 0;
 `;
 
-const TitleDiv = styled.div`
-    font: 600 20px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
-    margin-bottom: 10px;
-`;
-
-export default class ServicePage extends React.Component {
+export default class DynamicInstancePage extends React.Component {
     static async getInitialProps(props) {
         let api = API(props.req);
         let reload = false;
         let notFound = false;
         let error = undefined;
-        const domains = await Promise.all([
+        const data = await Promise.all([
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
-            api.getServices(props.query.domain),
-            api.getForm(),
+            api.getInstances(
+                props.query.domain,
+                props.query.service,
+                'dynamic'
+            ),
             api.getPendingDomainMembersList(),
-            api.getServicePageConfig(),
-            api.isAWSTemplateApplied(props.query.domain),
-            api.getFeatureFlag(),
+            api.getForm(),
+            api.getServiceHeaderDetails(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}];
         });
-        let domainDetails = domains[2];
-        domainDetails.isAWSTemplateApplied = !!domains[7];
         return {
             api,
             reload,
             notFound,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
+            domains: data[0],
+            service: props.query.service,
+            headerDetails: data[1],
+            domainDetails: data[2],
+            auditEnabled: data[2].auditEnabled,
+            instanceDetails: data[3],
             domain: props.query.domain,
-            domainDetails,
-            services: domains[3],
-            _csrf: domains[4],
-            pending: domains[5],
-            pageConfig: domains[6],
-            featureFlag: domains[8],
+            pending: data[4],
+            _csrf: data[5],
             nonce: props.req.headers.rid,
+            serviceHeaderDetails: data[6].dynamic,
         };
     }
 
@@ -115,7 +112,14 @@ export default class ServicePage extends React.Component {
     }
 
     render() {
-        const { domain, reload, domainDetails, services, _csrf } = this.props;
+        const {
+            domain,
+            reload,
+            instanceDetails,
+            service,
+            isDomainAuditEnabled,
+            _csrf,
+        } = this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -125,7 +129,7 @@ export default class ServicePage extends React.Component {
         }
         return (
             <CacheProvider value={this.cache}>
-                <div data-testid='service'>
+                <div data-testid='dynamic-instance'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
@@ -136,36 +140,35 @@ export default class ServicePage extends React.Component {
                     />
                     <MainContentDiv>
                         <AppContainerDiv>
-                            <ServicesContainerDiv>
-                                <ServicesContentDiv>
+                            <ServiceContainerDiv>
+                                <ServiceContentDiv>
                                     <PageHeaderDiv>
-                                        <TitleDiv>{domain}</TitleDiv>
-                                        <DomainDetails
-                                            domainDetails={domainDetails}
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
+                                        <ServiceNameHeader
+                                            domain={domain}
+                                            service={service}
+                                        />
+                                        <ServiceInstanceDetails
+                                            details={
+                                                this.props.serviceHeaderDetails
                                             }
                                         />
-                                        <Tabs
+                                        <ServiceTabs
                                             api={this.api}
                                             domain={domain}
-                                            selectedName={'services'}
-                                            featureFlag={this.props.featureFlag}
+                                            service={service}
+                                            selectedName={'dynamic'}
                                         />
                                     </PageHeaderDiv>
-                                    <ServiceList
+                                    <InstanceList
+                                        category={'dynamic'}
                                         api={this.api}
                                         domain={domain}
-                                        services={services}
-                                        _csrf={this.props._csrf}
-                                        pageConfig={this.props.pageConfig}
-                                        featureFlag={this.props.featureFlag}
+                                        _csrf={_csrf}
+                                        instances={instanceDetails}
+                                        service={this.props.service}
                                     />
-                                </ServicesContentDiv>
-                            </ServicesContainerDiv>
+                                </ServiceContentDiv>
+                            </ServiceContainerDiv>
                             <UserDomains
                                 domains={this.props.domains}
                                 api={this.api}
