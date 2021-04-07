@@ -37,10 +37,10 @@ WORKDIR /athenz
 COPY pom.xml .
 # cat pom.xml | grep "<module>.*</module>" | awk -F'[><]' '{ printf "COPY ./%s/pom.xml ./%s/pom.xml\n", $3, $3 }'
 COPY ./rdl/rdl-gen-athenz-server/pom.xml ./rdl/rdl-gen-athenz-server/pom.xml
-COPY ./rdl/rdl-gen-athenz-java-model/pom.xml ./rdl/rdl-gen-athenz-java-model/pom.xml
-COPY ./rdl/rdl-gen-athenz-java-client/pom.xml ./rdl/rdl-gen-athenz-java-client/pom.xml
 COPY ./rdl/rdl-gen-athenz-go-model/pom.xml ./rdl/rdl-gen-athenz-go-model/pom.xml
 COPY ./rdl/rdl-gen-athenz-go-client/pom.xml ./rdl/rdl-gen-athenz-go-client/pom.xml
+COPY ./rdl/rdl-gen-athenz-java-model/pom.xml ./rdl/rdl-gen-athenz-java-model/pom.xml
+COPY ./rdl/rdl-gen-athenz-java-client/pom.xml ./rdl/rdl-gen-athenz-java-client/pom.xml
 COPY ./core/zms/pom.xml ./core/zms/pom.xml
 COPY ./core/zts/pom.xml ./core/zts/pom.xml
 COPY ./libs/java/auth_core/pom.xml ./libs/java/auth_core/pom.xml
