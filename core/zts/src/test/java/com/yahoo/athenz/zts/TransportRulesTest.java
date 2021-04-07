@@ -26,11 +26,12 @@ public class TransportRulesTest {
     @Test
     public void testTransportRulesFields() {
         TransportRules trs1 = new TransportRules();
+
         TransportRule tr1 = new TransportRule();
         tr1.setEndPoint("10.20.30.40/26").setPort(4443).setProtocol("TCP").setSourcePortRange("1024-65535");
 
         TransportRule tr2 = new TransportRule();
-        tr2.setEndPoint("10.20.30.40/26").setPort(4443).setProtocol("TCP").setSourcePortRange("1024-65535");
+        tr2.setEndPoint("10.20.30.40/26").setPort(8443).setProtocol("TCP").setSourcePortRange("1024-65535");
 
         List<TransportRule> ingressTransportRules1 = Collections.singletonList(tr1);
         List<TransportRule> egressTransportRules1 = Collections.singletonList(tr2);
@@ -42,14 +43,14 @@ public class TransportRulesTest {
         assertNotNull(trs1.getEgressRules());
 
         TransportRules trs2 = new TransportRules();
+
         TransportRule tr21 = new TransportRule();
-        tr2.setEndPoint("10.20.30.40/26").setPort(4443).setProtocol("TCP").setSourcePortRange("1024-65535");
+        tr21.setEndPoint("10.20.30.40/26").setPort(4443).setProtocol("TCP").setSourcePortRange("1024-65535");
 
         TransportRule tr22 = new TransportRule();
-        tr2.setEndPoint("10.20.30.40/26").setPort(4443).setProtocol("TCP").setSourcePortRange("1024-65535");
+        tr22.setEndPoint("10.20.30.40/26").setPort(8443).setProtocol("TCP").setSourcePortRange("1024-65535");
 
         List<TransportRule> ingressTransportRules2 = Collections.singletonList(tr21);
-
         List<TransportRule> egressTransportRules2 = Collections.singletonList(tr22);
 
         trs2.setIngressRules(ingressTransportRules2);
@@ -58,24 +59,27 @@ public class TransportRulesTest {
         assertNotNull(trs2.getIngressRules());
         assertNotNull(trs2.getEgressRules());
 
-        assertNotEquals(trs1, trs2);
-
         trs2.setIngressRules(ingressTransportRules1);
-        trs2.setEgressRules(ingressTransportRules1);
+        trs2.setEgressRules(egressTransportRules1);
 
         assertEquals(trs1, trs2);
 
-        trs1.setIngressRules(null);
+        trs2.setIngressRules(null);
         assertNotEquals(trs1, trs2);
 
-        trs1.setIngressRules(ingressTransportRules1);
-        trs1.setEgressRules(null);
+        trs2.setIngressRules(ingressTransportRules1);
+        trs2.setEgressRules(null);
         assertNotEquals(trs1, trs2);
+        trs2.setIngressRules(ingressTransportRules1);
+
+        trs2 = trs1;
+        assertEquals(trs1, trs2);
 
         // for code coverage
         assertFalse(trs1.equals("anotherstring"));
 
         assertNotEquals(trs1, null);
         assertNotEquals(trs1, "mystring");
+
     }
 }

@@ -77,6 +77,14 @@ public class FileWorkloadRecordStoreConnectionTest {
         assertNotNull(wlRecordCheck);
         assertEquals(wlRecordCheck.get(0).getProvider(), "kubernetes");
 
+        assertTrue(con.getWorkloadRecordsByService("xyz", "abc").isEmpty());
+        assertTrue(con.getWorkloadRecordsByIp("172.10.0.131").isEmpty());
+        assertNull(con.getWorkloadRecord(new File("/proc/root")));
+        try {
+            con.writeWorkloadRecord(new File("/proc/root"), "xyz");
+        } catch (Exception ignored) {
+            fail();
+        }
         con.close();
     }
 }

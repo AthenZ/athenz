@@ -49,9 +49,13 @@ public class WorkloadTest {
 
         wl2.setDomainName("sports");
         assertNotEquals(wl1, wl2);
+        wl2.setDomainName(null);
+        assertNotEquals(wl1, wl2);
 
         wl2.setDomainName("athenz");
         wl2.setServiceName("apiv2");
+        assertNotEquals(wl1, wl2);
+        wl2.setServiceName(null);
         assertNotEquals(wl1, wl2);
 
         wl2.setServiceName("api");
@@ -61,13 +65,19 @@ public class WorkloadTest {
         wl2.setIpAddresses(ipAddresses);
         wl2.setProvider("aws");
         assertNotEquals(wl1, wl2);
+        wl2.setProvider(null);
+        assertNotEquals(wl1, wl2);
 
         wl2.setProvider("kubernetes");
         wl2.setUuid("23rwf-ews-13");
         assertNotEquals(wl1, wl2);
+        wl2.setUuid(null);
+        assertNotEquals(wl1, wl2);
 
         wl2.setUuid("1234-rsaq-422dcz");
         wl2.setUpdateTime(Timestamp.fromMillis(123456789456L));
+        assertNotEquals(wl1, wl2);
+        wl2.setUpdateTime(null);
         assertNotEquals(wl1, wl2);
 
         wl2.setUpdateTime(Timestamp.fromMillis(123456789123L));

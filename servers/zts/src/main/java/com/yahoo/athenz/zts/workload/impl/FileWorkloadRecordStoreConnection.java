@@ -57,10 +57,8 @@ public class FileWorkloadRecordStoreConnection implements WorkloadRecordStoreCon
 
         File[] foundFiles = rootDir.listFiles((dir, name) -> name.startsWith(AthenzUtils.getPrincipalName(domain, service)));
         List<WorkloadRecord> workloadRecords = new ArrayList<>();
-        if (foundFiles != null) {
-            for (File file : foundFiles) {
-                workloadRecords.add(getWorkloadRecord(file));
-            }
+        for (File file : foundFiles) {
+            workloadRecords.add(getWorkloadRecord(file));
         }
         return workloadRecords;
     }
@@ -69,24 +67,19 @@ public class FileWorkloadRecordStoreConnection implements WorkloadRecordStoreCon
     public List<WorkloadRecord> getWorkloadRecordsByIp(String ip) {
         File[] foundFiles = rootDir.listFiles((dir, name) -> name.startsWith(ip));
         List<WorkloadRecord> workloadRecords = new ArrayList<>();
-        if (foundFiles != null) {
-            for (File file : foundFiles) {
-                workloadRecords.add(getWorkloadRecord(file));
-            }
+        for (File file : foundFiles) {
+            workloadRecords.add(getWorkloadRecord(file));
         }
         return workloadRecords;
     }
 
-    private WorkloadRecord getWorkloadRecord(File file) {
-        if (!file.exists()) {
-            return null;
-        }
+    WorkloadRecord getWorkloadRecord(File file) {
         WorkloadRecord record = null;
         try {
             Path path = Paths.get(file.toURI());
             record = JSON.fromBytes(Files.readAllBytes(path), WorkloadRecord.class);
         } catch (IOException ex) {
-            LOGGER.error("Unable to get workload record", ex);
+            LOGGER.error("Unable to get workload record:{}", ex.getMessage());
         }
         return record;
     }
@@ -106,12 +99,12 @@ public class FileWorkloadRecordStoreConnection implements WorkloadRecordStoreCon
         return true;
     }
 
-    private void writeWorkloadRecord(File file, String data) {
+    void writeWorkloadRecord(File file, String data) {
         try (FileWriter fileWriter = new FileWriter(file)) {
             fileWriter.write(data);
             fileWriter.flush();
         } catch (IOException ex) {
-            LOGGER.error("Unable to save workload record", ex);
+            LOGGER.error("Unable to save workload record:{}", ex.getMessage());
         }
     }
 
