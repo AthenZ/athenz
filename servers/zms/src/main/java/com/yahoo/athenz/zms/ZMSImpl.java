@@ -28,6 +28,8 @@ import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidatorFactory;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
+import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
+import com.yahoo.athenz.common.server.metastore.DomainMetaStoreFactory;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.rest.Http;
@@ -200,6 +202,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected StatusChecker statusChecker = null;
     protected ObjectStore objectStore = null;
     protected ZMSGroupMembersFetcher groupMemberFetcher = null;
+    protected DomainMetaStore domainMetaStore = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -567,6 +570,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         loadPrivateKeyStore();
 
+        // load our domain meta store object
+
+        loadDomainMetaStore();
+
         // check if we need to load any metric support for stats
 
         loadMetricObject();
@@ -903,6 +910,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         } else {
             privateKey = privateRSAKey;
         }
+    }
+
+    void loadDomainMetaStore() {
+
+        final String metaStoreFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_META_STORE_FACTORY_CLASS,
+                ZMSConsts.ZMS_DOMAIN_META_STORE_FACTORY_CLASS);
+        DomainMetaStoreFactory metaStoreFactory;
+        try {
+            metaStoreFactory = (DomainMetaStoreFactory) Class.forName(metaStoreFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOG.error("Invalid DomainMetaStoreFactory class: {} error: {}", metaStoreFactoryClass, e.getMessage());
+            throw new IllegalArgumentException("Invalid metastore factory");
+        }
+
+        // get our meta store object
+
+        domainMetaStore = metaStoreFactory.create(keyStore);
     }
 
     void loadAuthorities() {
@@ -1268,6 +1292,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return domain;
     }
 
+    @Override
     public Domain postTopLevelDomain(ResourceContext ctx, String auditRef, TopLevelDomain detail) {
 
         final String caller = ctx.getApiName();
@@ -1824,9 +1849,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("putDomainMeta: name={}, meta={}", domainName, meta);
         }
 
+        // first obtain our domain object
+
+        Domain domain = dbService.getDomain(domainName, true);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("No such domain: " + domainName, caller);
+        }
+
+        // if any of our meta values has changed we need to validate
+        // them against the meta store
+
+        BitSet changedAttrs = validateDomainRegularMetaStoreValues(domain, meta);
+
         // process put domain meta request
 
-        dbService.executePutDomainMeta(ctx, domainName, meta, null, false, auditRef, caller);
+        dbService.executePutDomainMeta(ctx, domain, meta, null, false, auditRef, caller);
+
+        // since our operation was successful we need to see if we
+        // need to update any of our values in the meta store
+
+        updateExistingDomainMetaStoreDetails(domainName, meta, changedAttrs);
     }
 
     void validateString(final String value, final String type, final String caller) {
@@ -1856,6 +1898,79 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateString(domain.getAccount(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAzureSubscription(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
+
+        // we're going to check the meta values for our new domain
+        // requests against our meta store
+
+        if (!domainMetaStore.isValidBusinessService(domain.getName(), domain.getBusinessService())) {
+            throw ZMSUtils.requestError("invalid business service name for domain", caller);
+        }
+        if (!domainMetaStore.isValidAWSAccount(domain.getName(), domain.getAccount())) {
+            throw ZMSUtils.requestError("invalid aws account for domain", caller);
+        }
+        if (!domainMetaStore.isValidAzureSubscription(domain.getName(), domain.getAzureSubscription())) {
+            throw ZMSUtils.requestError("invalid azure subscription for domain", caller);
+        }
+        if (!domainMetaStore.isValidProductId(domain.getName(), domain.getYpmId())) {
+            throw ZMSUtils.requestError("invalid product id for domain", caller);
+        }
+    }
+
+    BitSet validateDomainSystemMetaStoreValues(Domain domain, DomainMeta meta, final String attributeName) {
+
+        final String caller = "validateDomainSystemMetaStoreValues";
+
+        // we're going to check the meta values for our new domain
+        // requests against our meta store.
+
+        BitSet changedAttrs = new BitSet();
+        switch (attributeName) {
+            case ZMSConsts.SYSTEM_META_ACCOUNT:
+                if (ZMSUtils.metaValueChanged(domain.getAccount(), meta.getAccount())) {
+                    if (!domainMetaStore.isValidAWSAccount(domain.getName(), meta.getAccount())) {
+                        throw ZMSUtils.requestError("invalid aws account for domain", caller);
+                    }
+                    changedAttrs.set(DomainMetaStore.META_ATTR_AWS_ACCOUNT);
+                }
+                break;
+            case ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION:
+                if (ZMSUtils.metaValueChanged(domain.getAzureSubscription(), meta.getAzureSubscription())) {
+                    if (!domainMetaStore.isValidAzureSubscription(domain.getName(), meta.getAzureSubscription())) {
+                        throw ZMSUtils.requestError("invalid azure subscription for domain", caller);
+                    }
+                    changedAttrs.set(DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION);
+                }
+                break;
+            case ZMSConsts.SYSTEM_META_PRODUCT_ID:
+                if (ZMSUtils.metaValueChanged(domain.getYpmId(), meta.getYpmId())) {
+                    if (!domainMetaStore.isValidProductId(domain.getName(), meta.getYpmId())) {
+                        throw ZMSUtils.requestError("invalid product id for domain", caller);
+                    }
+                    changedAttrs.set(DomainMetaStore.META_ATTR_PRODUCT_ID);
+                }
+                break;
+        }
+
+        return changedAttrs;
+    }
+
+    BitSet validateDomainRegularMetaStoreValues(Domain domain, DomainMeta meta) {
+
+        final String caller = "validateDomainRegularMetaStoreValues";
+
+        // we're going to check the meta values for our new domain
+        // requests against our meta store - for now we only have
+        // business service as a regular domain meta attribute
+
+        BitSet changedAttrs = new BitSet();
+        if (ZMSUtils.metaValueChanged(domain.getBusinessService(), meta.getBusinessService())) {
+            if (!domainMetaStore.isValidBusinessService(domain.getName(), meta.getBusinessService())) {
+                throw ZMSUtils.requestError("invalid business service name for domain", caller);
+            }
+            changedAttrs.set(DomainMetaStore.META_ATTR_BUSINESS_SERVICE);
+        }
+
+        return changedAttrs;
     }
 
     void validateDomainMetaValues(DomainMeta meta) {
@@ -1872,6 +1987,82 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
         validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);
+    }
+
+    void updateDomainMetaStoreAttributeDetails(final String domainName, int metaAttribute, final Object value) {
+
+        // we are not going to fail our operation if any of these checks
+        // fail. instead we're just going to log the failure and let the
+        // administrator deal with them later. It is expected that there
+        // some offline process that runs every day and verifies all the
+        // data within athenz and the external meta store is in sync
+
+        try {
+            switch (metaAttribute) {
+                case DomainMetaStore.META_ATTR_BUSINESS_SERVICE:
+                    domainMetaStore.setBusinessServiceDomain(domainName, (String) value);
+                    break;
+                case DomainMetaStore.META_ATTR_AWS_ACCOUNT:
+                    domainMetaStore.setAWSAccountDomain(domainName, (String) value);
+                    break;
+                case DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION:
+                    domainMetaStore.setAzureSubscriptionDomain(domainName, (String) value);
+                    break;
+                case DomainMetaStore.META_ATTR_PRODUCT_ID:
+                    domainMetaStore.setProductIdDomain(domainName, (Integer) value);
+                    break;
+            }
+        } catch (Exception ex) {
+            LOG.error("Unable to update attribute {} with value {} for domain {}",
+                    metaAttribute, value, domainName, ex);
+        }
+    }
+
+    void updateNewDomainMetaStoreDetails(Domain domain) {
+
+        if (!StringUtil.isEmpty(domain.getBusinessService())) {
+            updateDomainMetaStoreAttributeDetails(domain.getName(), DomainMetaStore.META_ATTR_BUSINESS_SERVICE,
+                    domain.getBusinessService());
+        }
+        if (!StringUtil.isEmpty(domain.getAccount())) {
+            updateDomainMetaStoreAttributeDetails(domain.getName(), DomainMetaStore.META_ATTR_AWS_ACCOUNT,
+                    domain.getAccount());
+        }
+        if (!StringUtil.isEmpty(domain.getAzureSubscription())) {
+            updateDomainMetaStoreAttributeDetails(domain.getName(), DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION,
+                    domain.getAzureSubscription());
+        }
+        if (domain.getYpmId() != null) {
+            updateDomainMetaStoreAttributeDetails(domain.getName(), DomainMetaStore.META_ATTR_PRODUCT_ID,
+                    domain.getYpmId());
+        }
+    }
+
+    Object getDomainMetaAttribute(DomainMeta meta, int metaAttribute) {
+        Object value = null;
+        switch (metaAttribute) {
+            case DomainMetaStore.META_ATTR_BUSINESS_SERVICE:
+                value = meta.getBusinessService();
+                break;
+            case DomainMetaStore.META_ATTR_AWS_ACCOUNT:
+                value = meta.getAccount();
+                break;
+            case DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION:
+                value = meta.getAzureSubscription();
+                break;
+            case DomainMetaStore.META_ATTR_PRODUCT_ID:
+                value = meta.getYpmId();
+                break;
+        }
+        return value;
+    }
+
+    void updateExistingDomainMetaStoreDetails(final String domainName, DomainMeta meta, BitSet changedAttrs) {
+
+        for (int metaAttribute : changedAttrs.stream().toArray()) {
+            updateDomainMetaStoreAttributeDetails(domainName, metaAttribute,
+                    getDomainMetaAttribute(meta, metaAttribute));
+        }
     }
 
     void validateRoleMetaValues(RoleMeta meta) {
@@ -1942,7 +2133,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
         validate(attribute, TYPE_SIMPLE_NAME, caller);
 
         // validate meta values - validator will enforce any patters
@@ -1972,6 +2162,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainName, attribute, meta);
         }
 
+        // first obtain our domain object
+
+        Domain domain = dbService.getDomain(domainName, true);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("No such domain: " + domainName, caller);
+        }
+
+        // if this is just to update the timestamp then we will handle it separately
+
+        if (ZMSConsts.SYSTEM_META_LAST_MOD_TIME.equals(attribute)) {
+            dbService.updateDomainModTimestamp(domainName);
+            return;
+        }
+
         // if we are resetting the configured value then the caller
         // must also have a delete action available for the same resource
 
@@ -1992,13 +2196,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateUserAuthorityFilterAttribute(meta.getUserAuthorityFilter(), caller);
 
-        // if this is just to update the timestamp then we will handle it separately
+        // if any of our meta values has changed we need to validate
+        // them against the meta store
 
-        if (ZMSConsts.SYSTEM_META_LAST_MOD_TIME.equals(attribute)) {
-            dbService.updateDomainModTimestamp(domainName);
-        } else {
-            dbService.executePutDomainMeta(ctx, domainName, meta, attribute, deleteAllowed, auditRef, caller);
-        }
+        BitSet changedAttrs = validateDomainSystemMetaStoreValues(domain, meta, attribute);
+
+        // process our put domain meta request
+
+        dbService.executePutDomainMeta(ctx, domain, meta, attribute, deleteAllowed, auditRef, caller);
+
+        // since our operation was successful we need to see if we
+        // need to update any of our values in the meta store
+
+        updateExistingDomainMetaStoreDetails(domainName, meta, changedAttrs);
     }
 
     void validateSolutionTemplates(List<String> templateNames, String caller) {
@@ -6863,7 +7073,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     Domain createTopLevelDomain(ResourceContext ctx, Domain domain, List<String> adminUsers,
                 List<String> solutionTemplates, String auditRef) {
         List<String> users = validatedAdminUsers(adminUsers);
-        return dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef);
+        Domain newDomain = dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef);
+
+        // since the domain was successfully created we need to update
+        // the meta attributes in the meta store if required
+
+        updateNewDomainMetaStoreDetails(domain);
+        return newDomain;
     }
 
     Domain createSubDomain(ResourceContext ctx, Domain domain, List<String> adminUsers,
@@ -6877,7 +7093,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         List<String> users = validatedAdminUsers(adminUsers);
-        return dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef);
+        Domain newDomain = dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef);
+
+        // since the domain was successfully created we need to update
+        // the meta attributes in the meta store if required
+
+        updateNewDomainMetaStoreDetails(domain);
+        return newDomain;
     }
 
     int countDots(String str) {

@@ -2806,7 +2806,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executePutDomainMeta(ResourceContext ctx, String domainName, DomainMeta meta,
+    void executePutDomainMeta(ResourceContext ctx, Domain domain, DomainMeta meta,
             final String systemAttribute, boolean deleteAllowed, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
@@ -2817,11 +2817,7 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
-                Domain domain = con.getDomain(domainName);
-                if (domain == null) {
-                    con.rollbackChanges();
-                    throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
-                }
+                final String domainName = domain.getName();
 
                 // first verify that auditing requirements are met
 

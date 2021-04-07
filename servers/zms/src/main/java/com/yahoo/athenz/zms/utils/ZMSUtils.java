@@ -421,4 +421,8 @@ public class ZMSUtils {
 
         return SimplePrincipal.create(domain, name, (String) null);
     }
+
+    public static boolean metaValueChanged(Object domainValue, Object metaValue) {
+        return (metaValue == null) ? false : !metaValue.equals(domainValue);
+    }
 }

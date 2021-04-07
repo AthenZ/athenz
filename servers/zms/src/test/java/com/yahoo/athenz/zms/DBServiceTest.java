@@ -1112,11 +1112,12 @@ public class DBServiceTest {
     @Test
     public void testExecutePutDomainMeta() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("MetaDom1",
+        final String domainName = "metadom1";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
+        Domain resDom1 = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom1);
         assertEquals("Test Domain1", resDom1.getDescription());
         assertEquals("testorg", resDom1.getOrg());
@@ -1135,13 +1136,18 @@ public class DBServiceTest {
                 .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001)
                 .setCertDnsDomain("athenz1.cloud").setMemberExpiryDays(10).setTokenExpiryMins(20)
                 .setServiceExpiryDays(45).setGroupExpiryDays(50).setBusinessService("service1");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, false, auditRef, "putDomainMeta");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "productid", true, auditRef, "putDomainMeta");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "account", true, auditRef, "putDomainMeta");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "certdnsdomain", true, auditRef, "putDomainMeta");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "org", true, auditRef, "putDomainMeta");
+        Domain metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
+        metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, "productid", true, auditRef, "putDomainMeta");
+        metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, "account", true, auditRef, "putDomainMeta");
+        metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, "certdnsdomain", true, auditRef, "putDomainMeta");
+        metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, "org", true, auditRef, "putDomainMeta");
 
-        Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
+        Domain resDom2 = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom2);
         assertEquals("Test2 Domain", resDom2.getDescription());
         assertEquals("NewOrg", resDom2.getOrg());
@@ -1164,10 +1170,12 @@ public class DBServiceTest {
                 .setEnabled(true).setAuditEnabled(false).setRoleCertExpiryMins(30)
                 .setServiceCertExpiryMins(40).setSignAlgorithm("rsa")
                 .setServiceExpiryDays(45).setGroupExpiryDays(50);
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, false, auditRef, "putDomainMeta");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "org", true, auditRef, "putDomainMeta");
+        metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
+        metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, "org", true, auditRef, "putDomainMeta");
 
-        Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
+        Domain resDom3 = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom3);
         assertEquals("Test2 Domain-New", resDom3.getDescription());
         assertEquals("NewOrg-New", resDom3.getOrg());
@@ -1190,9 +1198,10 @@ public class DBServiceTest {
                 .setServiceCertExpiryMins(400).setTokenExpiryMins(500)
                 .setSignAlgorithm("ec").setServiceExpiryDays(20).setGroupExpiryDays(25)
                 .setBusinessService("service2");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, false, auditRef, "putDomainMeta");
+        metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
 
-        Domain resDom4 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
+        Domain resDom4 = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom4);
         assertEquals("Test2 Domain-New", resDom4.getDescription());
         assertEquals("NewOrg-New", resDom4.getOrg());
@@ -1210,7 +1219,7 @@ public class DBServiceTest {
         assertEquals(resDom4.getSignAlgorithm(), "ec");
         assertEquals("service2", resDom4.getBusinessService());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
@@ -1237,7 +1246,8 @@ public class DBServiceTest {
         zms.dbService.defaultRetryCount = 2;
 
         try {
-            zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta,
+            Domain metaDomain = zms.dbService.getDomain(domainName, true);
+            zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta,
                     null, false, auditRef, "testExecutePutDomainMetaRetryException");
             fail();
         } catch (ResourceException ex) {
@@ -5226,7 +5236,8 @@ public class DBServiceTest {
         Domain d1 = zms.dbService.getDomain(domainName, false);
         zms.dbService.updateSystemMetaFields(d1, "auditenabled", false, meta2);
 
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta2, "auditenabled", false, auditRef, "");
+        Domain metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta2, "auditenabled", false, auditRef, "");
 
         Role role1 = createRoleObject(domainName, roleName, null,"user.joe", "user.jane");
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole");
@@ -5429,9 +5440,11 @@ public class DBServiceTest {
         DomainMeta meta = new DomainMeta().setDescription("Test2 Domain").setOrg("NewOrg")
                 .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001)
                 .setCertDnsDomain("athenz1.cloud");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, null, false, auditRef, "putDomainMeta");
+        Domain metaDomain = zms.dbService.getDomain("metadom1", true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
         try {
-            zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "metadom1", meta, "org", false, auditRef, "putDomainMeta");
+            metaDomain = zms.dbService.getDomain("metadom1", true);
+            zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, "org", false, auditRef, "putDomainMeta");
             fail();
         } catch (ResourceException re) {
             assertEquals(re.getCode(), 403);
@@ -5886,8 +5899,9 @@ public class DBServiceTest {
         Role role3 = createRoleObject(domainName, "role3", "coretech", null, null);
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role3", role3, "test", "putrole");
 
+        Domain metaDomain = zms.dbService.getDomain(domainName, true);
         DomainMeta meta = new DomainMeta().setMemberExpiryDays(40);
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta, null, false, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
 
         Role resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
 
@@ -5933,7 +5947,8 @@ public class DBServiceTest {
         // now reduce limit to 5 days
 
         meta.setMemberExpiryDays(5);
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta, null, false, auditRef, "putDomainMeta");
+        metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
 
         resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
 
@@ -5975,7 +5990,8 @@ public class DBServiceTest {
         // now set it back to 40 but nothing will change
 
         meta.setMemberExpiryDays(40);
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta, null, false, auditRef, "putDomainMeta");
+        metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
 
         resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
 
@@ -6050,7 +6066,8 @@ public class DBServiceTest {
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role3", role3, "test", "putrole");
 
         DomainMeta meta = new DomainMeta().setUserAuthorityFilter("employee");
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta, "userauthorityfilter", false, auditRef, "putDomainMeta");
+        Domain metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, "userauthorityfilter", false, auditRef, "putDomainMeta");
 
         Role resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
 
@@ -6113,7 +6130,8 @@ public class DBServiceTest {
         // since the both roles have values set.
 
         DomainMeta meta = new DomainMeta().setMemberExpiryDays(5);
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domainName, meta, null, false, auditRef, "putDomainMeta");
+        Domain metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
 
         // verify that all users in role1 have not changed since the role already
         // has an expiration
@@ -9817,7 +9835,7 @@ public class DBServiceTest {
 
         // update domain meta
         DomainMeta meta = new DomainMeta().setTags(newDomainTags);
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "newDomain", meta, null, false, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domain, meta, null, false, auditRef, "putDomainMeta");
 
         // assert tags to remove
         Set<String> expectedTagsToBeRemoved = new HashSet<>(Collections.singletonList("tagToBeRemoved")) ;
@@ -9884,7 +9902,7 @@ public class DBServiceTest {
 
         // update domain meta
         DomainMeta meta = new DomainMeta().setTags(newDomainTags);
-        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, "newDomainTagsUpdate", meta, null, false, auditRef, "putDomainMeta");
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domain, meta, null, false, auditRef, "putDomainMeta");
 
         // assert tags to remove is empty
         ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
