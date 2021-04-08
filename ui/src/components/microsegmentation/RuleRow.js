@@ -104,7 +104,7 @@ export default class RuleRow extends React.Component {
             ),
             this.api.deleteRole(
                 domain,
-                deletePolicyName + "-" + this.state.port,
+                deletePolicyName + '-' + this.state.port,
                 'deleted using Athenz UI',
                 this.props._csrf
             ),
