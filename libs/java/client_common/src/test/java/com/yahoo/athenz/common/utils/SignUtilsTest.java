@@ -133,6 +133,8 @@ public class SignUtilsTest {
         Mockito.when(mRole.getMemberReviewDays()).thenReturn(null);
         Mockito.when(mRole.getServiceReviewDays()).thenReturn(null);
         Mockito.when(mRole.getTokenExpiryMins()).thenReturn(null);
+        Mockito.when(mRole.getGroupExpiryDays()).thenReturn(null);
+        Mockito.when(mRole.getGroupReviewDays()).thenReturn(null);
         roles.add(mRole);
         
         List<String> items = new ArrayList<>();
@@ -189,7 +191,8 @@ public class SignUtilsTest {
         List<RoleMember> roleMembers1 = new ArrayList<>();
         Role role1 = new Role().setName("role1").setRoleMembers(roleMembers1)
                 .setMemberExpiryDays(30).setTokenExpiryMins(450)
-                .setCertExpiryMins(300).setServiceExpiryDays(40);
+                .setCertExpiryMins(300).setServiceExpiryDays(40)
+                .setGroupExpiryDays(70).setGroupReviewDays(80);
 
         List<RoleMember> roleMembers2 = new ArrayList<>();
         roleMembers2.add(new RoleMember().setMemberName("user.joe").setExpiration(Timestamp.fromMillis(0)));
@@ -205,7 +208,7 @@ public class SignUtilsTest {
 
         final String check = SignUtils.asCanonicalString(data);
         final String expected = "{\"enabled\":true,\"roles\":[{\"certExpiryMins\":300,"
-            +"\"memberExpiryDays\":30,\"name\":\"role1\","
+            +"\"groupExpiryDays\":70,\"groupReviewDays\":80,\"memberExpiryDays\":30,\"name\":\"role1\","
             +"\"roleMembers\":[],\"serviceExpiryDays\":40,\"tokenExpiryMins\":450},"
             +"{\"name\":\"role2\",\"roleMembers\":[{\"expiration\":\"1970-01-01T00:00:00.000Z\","
             +"\"memberName\":\"user.joe\"},{\"expiration\":\"1970-01-01T00:00:00.000Z\","

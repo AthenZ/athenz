@@ -191,6 +191,7 @@ func init() {
 	tRoleMeta.Field("userAuthorityFilter", "String", true, nil, "membership filtered based on user authority configured attributes")
 	tRoleMeta.Field("userAuthorityExpiration", "String", true, nil, "expiration enforced by a user authority configured attribute")
 	tRoleMeta.Field("groupExpiryDays", "Int32", true, nil, "all groups in the domain roles will have specified max expiry days")
+	tRoleMeta.Field("groupReviewDays", "Int32", true, nil, "all groups in the domain roles will have specified max review days")
 	tRoleMeta.MapField("tags", "CompoundName", "StringList", true, "key-value pair tags, tag might contain multiple values")
 	sb.AddType(tRoleMeta.Build())
 

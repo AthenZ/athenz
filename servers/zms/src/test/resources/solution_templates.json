@@ -413,6 +413,8 @@
                   "serviceExpiryDays": 50,
                   "memberReviewDays": 65,
                   "serviceReviewDays": 15,
+                  "groupExpiryDays": 70,
+                  "groupReviewDays": 80,
                   "reviewEnabled": true,
                   "notifyRoles": "testnotify-role",
                   "userAuthorityFilter": "none",

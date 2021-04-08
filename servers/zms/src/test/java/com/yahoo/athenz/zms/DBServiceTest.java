@@ -4906,8 +4906,9 @@ public class DBServiceTest {
         zms.dbService.auditLogRoleMeta(auditDetails, role, "role1");
         assertEquals(auditDetails.toString(),
                 "{\"name\": \"role1\", \"selfServe\": \"true\", \"memberExpiryDays\": \"null\","
-                        + " \"serviceExpiryDays\": \"null\", \"tokenExpiryMins\": \"null\","
+                        + " \"serviceExpiryDays\": \"null\", \"groupExpiryDays\": \"null\", \"tokenExpiryMins\": \"null\","
                         + " \"certExpiryMins\": \"null\", \"memberReviewDays\": \"null\", \"serviceReviewDays\": \"null\","
+                        + " \"groupReviewDays\": \"null\","
                         + " \"reviewEnabled\": \"false\", \"notifyRoles\": \"null\", \"signAlgorithm\": \"null\","
                         + " \"userAuthorityFilter\": \"null\", \"userAuthorityExpiration\": \"null\"}");
     }
@@ -4942,6 +4943,7 @@ public class DBServiceTest {
         rm.setMemberExpiryDays(10);
         rm.setServiceExpiryDays(15);
         rm.setGroupExpiryDays(25);
+        rm.setGroupReviewDays(40);
         rm.setTokenExpiryMins(20);
         rm.setReviewEnabled(true);
         rm.setNotifyRoles("role1,role2");
@@ -4959,6 +4961,7 @@ public class DBServiceTest {
         assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(10));
         assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(15));
         assertEquals(resRole1.getGroupExpiryDays(), Integer.valueOf(25));
+        assertEquals(resRole1.getGroupReviewDays(), Integer.valueOf(40));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(20));
         assertTrue(resRole1.getReviewEnabled());
         assertEquals(resRole1.getNotifyRoles(), "role1,role2");
@@ -4973,6 +4976,7 @@ public class DBServiceTest {
         rm.setTokenExpiryMins(25);
         rm.setServiceExpiryDays(15);
         rm.setGroupExpiryDays(20);
+        rm.setGroupReviewDays(40);
         rm.setSignAlgorithm("rsa");
         rm.setReviewEnabled(false);
         rm.setServiceReviewDays(35);
@@ -4987,6 +4991,7 @@ public class DBServiceTest {
         assertEquals(resRole1.getMemberExpiryDays(), Integer.valueOf(10));
         assertEquals(resRole1.getServiceExpiryDays(), Integer.valueOf(15));
         assertEquals(resRole1.getGroupExpiryDays(), Integer.valueOf(20));
+        assertEquals(resRole1.getGroupReviewDays(), Integer.valueOf(40));
         assertEquals(resRole1.getTokenExpiryMins(), Integer.valueOf(25));
         assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(30));
         assertEquals(resRole1.getServiceReviewDays(), Integer.valueOf(35));
@@ -7955,6 +7960,8 @@ public class DBServiceTest {
         assertEquals(role.getServiceExpiryDays().intValue(), 50);
         assertEquals(role.getMemberReviewDays().intValue(), 65);
         assertEquals(role.getServiceReviewDays().intValue(), 15);
+        assertEquals(role.getGroupExpiryDays().intValue(), 70);
+        assertEquals(role.getGroupReviewDays().intValue(), 80);
         assertTrue(role.getReviewEnabled());
         assertEquals(role.getNotifyRoles(), "testnotify-role");
         assertEquals(role.getUserAuthorityFilter(), "none");
@@ -8040,6 +8047,8 @@ public class DBServiceTest {
         assertEquals(role.getServiceExpiryDays().intValue(), 50); //Existing Value
         assertEquals(role.getMemberReviewDays().intValue(), 65); //Existing Value
         assertEquals(role.getServiceReviewDays().intValue(), 15); //Existing Value
+        assertEquals(role.getGroupExpiryDays().intValue(), 70); //Existing Value
+        assertEquals(role.getGroupReviewDays().intValue(), 80); //Existing Value
         assertTrue(role.getReviewEnabled()); //Existing Value
         assertEquals(role.getNotifyRoles(), "testnotify-role"); //Existing Value
         assertEquals(role.getUserAuthorityFilter(), "none"); //Existing Value

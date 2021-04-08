@@ -167,6 +167,7 @@ public class ZMSCoreTest {
                 .setMemberExpiryDays(30)
                 .setServiceExpiryDays(40)
                 .setGroupExpiryDays(50)
+                .setGroupReviewDays(55)
                 .setTokenExpiryMins(300)
                 .setCertExpiryMins(120)
                 .setMemberReviewDays(70)
@@ -193,6 +194,7 @@ public class ZMSCoreTest {
         assertEquals(r.getMemberExpiryDays(), Integer.valueOf(30));
         assertEquals(r.getServiceExpiryDays(), Integer.valueOf(40));
         assertEquals(r.getGroupExpiryDays(), Integer.valueOf(50));
+        assertEquals(r.getGroupReviewDays(), Integer.valueOf(55));
         assertEquals(r.getTokenExpiryMins(), Integer.valueOf(300));
         assertEquals(r.getCertExpiryMins(), Integer.valueOf(120));
         assertEquals(r.getMemberReviewDays(), Integer.valueOf(70));
@@ -217,6 +219,7 @@ public class ZMSCoreTest {
                 .setMemberExpiryDays(30)
                 .setServiceExpiryDays(40)
                 .setGroupExpiryDays(50)
+                .setGroupReviewDays(55)
                 .setTokenExpiryMins(300)
                 .setCertExpiryMins(120)
                 .setMemberReviewDays(70)
@@ -279,6 +282,13 @@ public class ZMSCoreTest {
         r2.setGroupExpiryDays(null);
         assertFalse(r2.equals(r));
         r2.setGroupExpiryDays(50);
+        assertTrue(r2.equals(r));
+
+        r2.setGroupReviewDays(60);
+        assertFalse(r2.equals(r));
+        r2.setGroupReviewDays(null);
+        assertFalse(r2.equals(r));
+        r2.setGroupReviewDays(55);
         assertTrue(r2.equals(r));
 
         r2.setTokenExpiryMins(450);
@@ -3485,6 +3495,7 @@ public class ZMSCoreTest {
                 .setSignAlgorithm("rsa")
                 .setServiceExpiryDays(40)
                 .setGroupExpiryDays(50)
+                .setGroupReviewDays(55)
                 .setNotifyRoles("role1,domain:role.role2")
                 .setMemberReviewDays(70)
                 .setServiceReviewDays(80)
@@ -3498,6 +3509,7 @@ public class ZMSCoreTest {
         assertEquals(rm.getMemberExpiryDays(), Integer.valueOf(30));
         assertEquals(rm.getServiceExpiryDays(), Integer.valueOf(40));
         assertEquals(rm.getGroupExpiryDays(), Integer.valueOf(50));
+        assertEquals(rm.getGroupReviewDays(), Integer.valueOf(55));
         assertEquals(rm.getTokenExpiryMins(), Integer.valueOf(300));
         assertEquals(rm.getCertExpiryMins(), Integer.valueOf(120));
         assertEquals(rm.getSignAlgorithm(), "rsa");
@@ -3517,6 +3529,7 @@ public class ZMSCoreTest {
                 .setSignAlgorithm("rsa")
                 .setServiceExpiryDays(40)
                 .setGroupExpiryDays(50)
+                .setGroupReviewDays(55)
                 .setNotifyRoles("role1,domain:role.role2")
                 .setMemberReviewDays(70)
                 .setServiceReviewDays(80)
@@ -3567,6 +3580,13 @@ public class ZMSCoreTest {
         rm2.setGroupExpiryDays(null);
         assertFalse(rm2.equals(rm));
         rm2.setGroupExpiryDays(50);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setGroupReviewDays(60);
+        assertFalse(rm2.equals(rm));
+        rm2.setGroupReviewDays(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setGroupReviewDays(55);
         assertTrue(rm2.equals(rm));
 
         rm2.setTokenExpiryMins(450);

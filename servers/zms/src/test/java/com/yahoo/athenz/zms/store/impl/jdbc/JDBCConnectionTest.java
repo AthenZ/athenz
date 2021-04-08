@@ -858,6 +858,7 @@ public class JDBCConnectionTest {
         assertNull(role.getServiceExpiryDays());
         assertNull(role.getMemberReviewDays());
         assertNull(role.getServiceReviewDays());
+        assertNull(role.getGroupReviewDays());
         assertNull(role.getUserAuthorityExpiration());
         assertNull(role.getUserAuthorityFilter());
         assertEquals(role.getSignAlgorithm(), "ec");
@@ -884,6 +885,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(40).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS);
         Mockito.doReturn(70).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_MEMBER_REVIEW_DAYS);
         Mockito.doReturn(80).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_SERVICE_REVIEW_DAYS);
+        Mockito.doReturn(90).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_GROUP_REVIEW_DAYS);
 
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet)
                 .getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
@@ -907,6 +909,7 @@ public class JDBCConnectionTest {
         assertEquals(role.getUserAuthorityFilter(), "filter");
         assertEquals(role.getMemberReviewDays(), Integer.valueOf(70));
         assertEquals(role.getServiceReviewDays(), Integer.valueOf(80));
+        assertEquals(role.getGroupReviewDays(), Integer.valueOf(90));
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
@@ -1026,10 +1029,11 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(10, 0);
         Mockito.verify(mockPrepStmt, times(1)).setInt(11, 0);
         Mockito.verify(mockPrepStmt, times(1)).setInt(12, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(13, false);
-        Mockito.verify(mockPrepStmt, times(1)).setString(14, "");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(13, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(14, false);
         Mockito.verify(mockPrepStmt, times(1)).setString(15, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(16, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(17, "");
 
         jdbcConn.close();
     }
@@ -1041,6 +1045,7 @@ public class JDBCConnectionTest {
 
         Role role = new Role().setName("my-domain:role.role1").setAuditEnabled(true)
                 .setSelfServe(true).setMemberExpiryDays(45).setMemberReviewDays(70).setServiceReviewDays(80)
+                .setGroupReviewDays(90)
                 .setReviewEnabled(true).setNotifyRoles("role1,role2")
                 .setUserAuthorityFilter("filter").setUserAuthorityExpiration("expiry");
 
@@ -1064,10 +1069,11 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(10, 0);
         Mockito.verify(mockPrepStmt, times(1)).setInt(11, 70);
         Mockito.verify(mockPrepStmt, times(1)).setInt(12, 80);
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(13, true);
-        Mockito.verify(mockPrepStmt, times(1)).setString(14, "role1,role2");
-        Mockito.verify(mockPrepStmt, times(1)).setString(15, "filter");
-        Mockito.verify(mockPrepStmt, times(1)).setString(16, "expiry");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(13, 90);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(14, true);
+        Mockito.verify(mockPrepStmt, times(1)).setString(15, "role1,role2");
+        Mockito.verify(mockPrepStmt, times(1)).setString(16, "filter");
+        Mockito.verify(mockPrepStmt, times(1)).setString(17, "expiry");
         jdbcConn.close();
     }
 
@@ -1131,10 +1137,11 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(10, 0);
         Mockito.verify(mockPrepStmt, times(1)).setInt(11, 0);
         Mockito.verify(mockPrepStmt, times(1)).setInt(12, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(13, false);
-        Mockito.verify(mockPrepStmt, times(1)).setString(14, "");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(13, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(14, false);
         Mockito.verify(mockPrepStmt, times(1)).setString(15, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(16, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(17, "");
         jdbcConn.close();
     }
 
@@ -1167,6 +1174,7 @@ public class JDBCConnectionTest {
                 .setSelfServe(true).setMemberExpiryDays(30).setTokenExpiryMins(10)
                 .setCertExpiryMins(20).setSignAlgorithm("ec").setServiceExpiryDays(45)
                 .setMemberReviewDays(70).setServiceReviewDays(80).setGroupExpiryDays(50)
+                .setGroupReviewDays(90)
                 .setReviewEnabled(true).setNotifyRoles("role1,role2")
                 .setUserAuthorityFilter("filter").setUserAuthorityExpiration("expiry");
 
@@ -1194,12 +1202,13 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(8, 45);
         Mockito.verify(mockPrepStmt, times(1)).setInt(9, 70);
         Mockito.verify(mockPrepStmt, times(1)).setInt(10, 80);
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(11, true);
-        Mockito.verify(mockPrepStmt, times(1)).setString(12, "role1,role2");
-        Mockito.verify(mockPrepStmt, times(1)).setString(13, "filter");
-        Mockito.verify(mockPrepStmt, times(1)).setString(14, "expiry");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(15, 50);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(16, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(11, 90);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(12, true);
+        Mockito.verify(mockPrepStmt, times(1)).setString(13, "role1,role2");
+        Mockito.verify(mockPrepStmt, times(1)).setString(14, "filter");
+        Mockito.verify(mockPrepStmt, times(1)).setString(15, "expiry");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(16, 50);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(17, 4);
         jdbcConn.close();
     }
 
@@ -1236,12 +1245,13 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(8, 0);
         Mockito.verify(mockPrepStmt, times(1)).setInt(9, 0);
         Mockito.verify(mockPrepStmt, times(1)).setInt(10, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(11, false);
-        Mockito.verify(mockPrepStmt, times(1)).setString(12, "");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(11, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(12, false);
         Mockito.verify(mockPrepStmt, times(1)).setString(13, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(15, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(16, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setString(15, "");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(16, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(17, 7);
         jdbcConn.close();
     }
 

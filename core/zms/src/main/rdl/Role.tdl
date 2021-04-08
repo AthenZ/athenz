@@ -48,6 +48,7 @@ type RoleMeta Struct {
     String userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
     String userAuthorityExpiration (optional); //expiration enforced by a user authority configured attribute
     Int32 groupExpiryDays (optional); //all groups in the domain roles will have specified max expiry days
+    Int32 groupReviewDays (optional); //all groups in the domain roles will have specified max review days
     Map<CompoundName,StringList> tags (optional); //key-value pair tags, tag might contain multiple values
 }
 

@@ -2076,6 +2076,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(meta.getCertExpiryMins(), "certExpiryMins");
         validateIntegerValue(meta.getMemberReviewDays(), "memberReviewDays");
         validateIntegerValue(meta.getServiceReviewDays(), "serviceReviewDays");
+        validateIntegerValue(meta.getGroupReviewDays(), "groupReviewDays");
 
         validateString(meta.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(meta.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
@@ -2093,6 +2094,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(role.getCertExpiryMins(), "certExpiryMins");
         validateIntegerValue(role.getMemberReviewDays(), "memberReviewDays");
         validateIntegerValue(role.getServiceReviewDays(), "serviceReviewDays");
+        validateIntegerValue(role.getGroupReviewDays(), "groupReviewDays");
 
         validateString(role.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(role.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
@@ -3050,6 +3052,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         .setMemberExpiryDays(role.getMemberExpiryDays())
                         .setServiceExpiryDays(role.getServiceExpiryDays())
                         .setGroupExpiryDays(role.getGroupExpiryDays())
+                        .setGroupReviewDays(role.getGroupReviewDays())
                         .setTokenExpiryMins(role.getTokenExpiryMins())
                         .setCertExpiryMins(role.getCertExpiryMins())
                         .setMemberReviewDays(role.getMemberReviewDays())
@@ -3373,7 +3376,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // update role review based on our configurations
 
-        updateRoleMemberReviewReminder(role.getMemberReviewDays(), role.getServiceReviewDays(), role.getRoleMembers());
+        updateRoleMemberReviewReminder(role.getMemberReviewDays(), role.getServiceReviewDays(),
+                role.getGroupReviewDays(), role.getRoleMembers());
 
         // process our request
 
@@ -3732,6 +3736,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     void updateRoleMemberReviewReminder(Integer roleUserMemberDueDateDays,
                                         Integer roleServiceMemberDueDateDays,
+                                        Integer roleGroupMemberDueDateDays,
                                         List<RoleMember> roleMembers) {
         updateRoleMemberDueDate(
                 null,
@@ -3739,7 +3744,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 null,
                 roleServiceMemberDueDateDays,
                 null,
-                null,
+                roleGroupMemberDueDateDays,
                 roleMembers,
                 roleMember -> roleMember.getReviewReminder(),
                 (roleMember, reviewReminder) -> roleMember.setReviewReminder(reviewReminder));
@@ -4000,14 +4005,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void setRoleMemberReview(final Role role, final RoleMember roleMember,
                                  final Membership membership) {
 
-        boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMember.getMemberName(), userDomainPrefix,
-                addlUserCheckDomainPrefixList);
-        if (bUser) {
-            roleMember.setReviewReminder(memberDueDateTimestamp(null,
-                    role.getMemberReviewDays(), membership.getReviewReminder()));
-        } else {
-            roleMember.setReviewReminder(memberDueDateTimestamp(null,
-                    role.getServiceReviewDays(), membership.getReviewReminder()));
+        switch (Principal.Type.getType(roleMember.getPrincipalType())) {
+            case USER:
+                roleMember.setReviewReminder(memberDueDateTimestamp(null,
+                        role.getMemberReviewDays(), membership.getReviewReminder()));
+                break;
+
+            case SERVICE:
+                roleMember.setReviewReminder(memberDueDateTimestamp(null,
+                        role.getServiceReviewDays(), membership.getReviewReminder()));
+                break;
+
+            case GROUP:
+                roleMember.setReviewReminder(memberDueDateTimestamp(null,
+                        role.getGroupReviewDays(), membership.getReviewReminder()));
+                break;
         }
     }
 
@@ -8390,7 +8402,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // update role review based on our configurations
 
-        updateRoleMemberReviewReminder(dbRole.getMemberReviewDays(), dbRole.getServiceReviewDays(), role.getRoleMembers());
+        updateRoleMemberReviewReminder(dbRole.getMemberReviewDays(), dbRole.getServiceReviewDays(),
+                dbRole.getGroupReviewDays(), role.getRoleMembers());
 
         // process our request
 

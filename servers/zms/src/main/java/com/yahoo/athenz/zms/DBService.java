@@ -696,6 +696,9 @@ public class DBService implements RolesProvider {
         if (templateRole.getGroupExpiryDays() == null) {
             templateRole.setGroupExpiryDays(originalRole.getGroupExpiryDays());
         }
+        if (templateRole.getGroupReviewDays() == null) {
+            templateRole.setGroupReviewDays(originalRole.getGroupReviewDays());
+        }
         if (templateRole.getTokenExpiryMins() == null) {
             templateRole.setTokenExpiryMins(originalRole.getTokenExpiryMins());
         }
@@ -3072,7 +3075,7 @@ public class DBService implements RolesProvider {
             List<RoleMember> roleMembersWithUpdatedDueDates = getRoleMembersWithUpdatedDueDates(roleMembers,
                     userExpiration, userExpiryMillis, serviceExpiration, serviceExpiryMillis,
                     groupExpiration, groupExpiryMillis, null, 0,
-                    null, 0, null);
+                    null, 0, null, null, 0);
             if (insertRoleMembers(ctx, con, roleMembersWithUpdatedDueDates, domain.getName(),
                     roleName, principal, auditRef, caller)) {
 
@@ -3607,6 +3610,7 @@ public class DBService implements RolesProvider {
                 .setSignAlgorithm(role.getSignAlgorithm())
                 .setServiceExpiryDays(role.getServiceExpiryDays())
                 .setGroupExpiryDays(role.getGroupExpiryDays())
+                .setGroupReviewDays(role.getGroupReviewDays())
                 .setMemberReviewDays(role.getMemberReviewDays())
                 .setServiceReviewDays(role.getServiceReviewDays())
                 .setReviewEnabled(role.getReviewEnabled())
@@ -3631,6 +3635,7 @@ public class DBService implements RolesProvider {
                 }
                 newRoleMember.setMemberName(memberName);
                 newRoleMember.setExpiration(roleMember.getExpiration());
+                newRoleMember.setReviewReminder(roleMember.getReviewReminder());
                 newMembers.add(newRoleMember);
             }
         }
@@ -4537,10 +4542,12 @@ public class DBService implements RolesProvider {
                 .append("\", \"selfServe\": \"").append(role.getSelfServe())
                 .append("\", \"memberExpiryDays\": \"").append(role.getMemberExpiryDays())
                 .append("\", \"serviceExpiryDays\": \"").append(role.getServiceExpiryDays())
+                .append("\", \"groupExpiryDays\": \"").append(role.getGroupExpiryDays())
                 .append("\", \"tokenExpiryMins\": \"").append(role.getTokenExpiryMins())
                 .append("\", \"certExpiryMins\": \"").append(role.getCertExpiryMins())
                 .append("\", \"memberReviewDays\": \"").append(role.getMemberReviewDays())
                 .append("\", \"serviceReviewDays\": \"").append(role.getServiceReviewDays())
+                .append("\", \"groupReviewDays\": \"").append(role.getGroupReviewDays())
                 .append("\", \"reviewEnabled\": \"").append(role.getReviewEnabled())
                 .append("\", \"notifyRoles\": \"").append(role.getNotifyRoles())
                 .append("\", \"signAlgorithm\": \"").append(role.getSignAlgorithm())
@@ -4673,6 +4680,7 @@ public class DBService implements RolesProvider {
                         .setMemberExpiryDays(originalRole.getMemberExpiryDays())
                         .setServiceExpiryDays(originalRole.getServiceExpiryDays())
                         .setGroupExpiryDays(originalRole.getGroupExpiryDays())
+                        .setGroupReviewDays(originalRole.getGroupReviewDays())
                         .setTokenExpiryMins(originalRole.getTokenExpiryMins())
                         .setCertExpiryMins(originalRole.getCertExpiryMins())
                         .setMemberReviewDays(originalRole.getMemberReviewDays())
@@ -4840,6 +4848,9 @@ public class DBService implements RolesProvider {
         if (meta.getGroupExpiryDays() != null) {
             role.setGroupExpiryDays(meta.getGroupExpiryDays());
         }
+        if (meta.getGroupReviewDays() != null) {
+            role.setGroupReviewDays(meta.getGroupReviewDays());
+        }
         if (meta.getTokenExpiryMins() != null) {
             role.setTokenExpiryMins(meta.getTokenExpiryMins());
         }
@@ -4897,6 +4908,7 @@ public class DBService implements RolesProvider {
                         .setMemberExpiryDays(originalRole.getMemberExpiryDays())
                         .setServiceExpiryDays(originalRole.getServiceExpiryDays())
                         .setGroupExpiryDays(originalRole.getGroupExpiryDays())
+                        .setGroupReviewDays(originalRole.getGroupReviewDays())
                         .setTokenExpiryMins(originalRole.getTokenExpiryMins())
                         .setCertExpiryMins(originalRole.getCertExpiryMins())
                         .setMemberReviewDays(originalRole.getMemberReviewDays())
@@ -5337,6 +5349,8 @@ public class DBService implements RolesProvider {
                 null,
                 0,
                 userAuthorityExpiry,
+                null,
+                0,
                 member -> member.getExpiration(),
                 member -> null,
                 (member, timestamp) -> member.setExpiration(timestamp),
@@ -5347,7 +5361,8 @@ public class DBService implements RolesProvider {
     <T> List<T> getMembersWithUpdatedDueDates(List<T> members, Timestamp userExpiration,
                                           long userExpiryMillis, Timestamp serviceExpiration, long serviceExpiryMillis,
                                           Timestamp groupExpiration, long groupExpiryMillis, Timestamp userReview,
-                                          long userReviewMillis, Timestamp serviceReview, long serviceReviewMillis, final String userAuthorityExpiry,
+                                          long userReviewMillis, Timestamp serviceReview, long serviceReviewMillis,
+                                              final String userAuthorityExpiry, Timestamp groupReview, long groupReviewMillis,
                                               Function<T, Timestamp> expirationGetter,
                                               Function<T, Timestamp> reviewReminderGetter,
                                               BiConsumer<T, Timestamp> expirationSetter,
@@ -5394,6 +5409,10 @@ public class DBService implements RolesProvider {
                         expirationSetter.accept(member, groupExpiration);
                         dueDateUpdated = true;
                     }
+                    if (isEarlierDueDate(groupReviewMillis, reviewDate)) {
+                        reviewReminderSetter.accept(member, groupReview);
+                        dueDateUpdated = true;
+                    }
                     break;
 
                 case SERVICE:
@@ -5420,7 +5439,8 @@ public class DBService implements RolesProvider {
     List<RoleMember> getRoleMembersWithUpdatedDueDates(List<RoleMember> roleMembers, Timestamp userExpiration,
             long userExpiryMillis, Timestamp serviceExpiration, long serviceExpiryMillis,
             Timestamp groupExpiration, long groupExpiryMillis, Timestamp userReview,
-            long userReviewMillis, Timestamp serviceReview, long serviceReviewMillis, final String userAuthorityExpiry) {
+            long userReviewMillis, Timestamp serviceReview, long serviceReviewMillis,
+            final String userAuthorityExpiry, Timestamp groupReview, long groupReviewMillis) {
 
         return getMembersWithUpdatedDueDates(
                 roleMembers,
@@ -5435,6 +5455,8 @@ public class DBService implements RolesProvider {
                 serviceReview,
                 serviceReviewMillis,
                 userAuthorityExpiry,
+                groupReview,
+                groupReviewMillis,
                 member -> member.getExpiration(),
                 member -> member.getReviewReminder(),
                 (member, timestamp) -> member.setExpiration(timestamp),
@@ -5798,10 +5820,13 @@ public class DBService implements RolesProvider {
                  updatedRole.getMemberReviewDays());
          boolean serviceMemberReviewDayReduced = isNumOfDaysReduced(originalRole.getServiceReviewDays(),
                  updatedRole.getServiceReviewDays());
+        boolean groupMemberReviewDayReduced = isNumOfDaysReduced(originalRole.getGroupReviewDays(),
+                updatedRole.getGroupReviewDays());
 
         if (!userMemberExpiryDayReduced && !serviceMemberExpiryDayReduced &&
                 !groupMemberExpiryDayReduced && !userMemberReviewDayReduced &&
-                !serviceMemberReviewDayReduced && !userAuthorityExpiryChanged) {
+                !serviceMemberReviewDayReduced && !userAuthorityExpiryChanged &&
+                !groupMemberReviewDayReduced) {
             return;
         }
 
@@ -5819,6 +5844,8 @@ public class DBService implements RolesProvider {
                  + TimeUnit.MILLISECONDS.convert(updatedRole.getMemberReviewDays(), TimeUnit.DAYS) : 0;
          long serviceReviewMillis = serviceMemberReviewDayReduced ? System.currentTimeMillis()
                  + TimeUnit.MILLISECONDS.convert(updatedRole.getServiceReviewDays(), TimeUnit.DAYS) : 0;
+        long groupReviewMillis = groupMemberReviewDayReduced ? System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(updatedRole.getGroupReviewDays(), TimeUnit.DAYS) : 0;
 
         Timestamp userExpiration = Timestamp.fromMillis(userExpiryMillis);
         Timestamp serviceExpiration = Timestamp.fromMillis(serviceExpiryMillis);
@@ -5826,6 +5853,7 @@ public class DBService implements RolesProvider {
 
         Timestamp userReview = Timestamp.fromMillis(userReviewMillis);
         Timestamp serviceReview = Timestamp.fromMillis(serviceReviewMillis);
+        Timestamp groupReview = Timestamp.fromMillis(groupReviewMillis);
 
         final String principal = getPrincipalName(ctx);
 
@@ -5836,7 +5864,7 @@ public class DBService implements RolesProvider {
         List<RoleMember> roleMembersWithUpdatedDueDates = getRoleMembersWithUpdatedDueDates(roleMembers,
                 userExpiration, userExpiryMillis, serviceExpiration, serviceExpiryMillis, groupExpiration,
                 groupExpiryMillis, userReview, userReviewMillis, serviceReview, serviceReviewMillis,
-                userAuthorityExpiry);
+                userAuthorityExpiry, groupReview, groupReviewMillis);
         if (insertRoleMembers(ctx, con, roleMembersWithUpdatedDueDates, domainName,
                 roleName, principal, auditRef, caller)) {
 

@@ -247,6 +247,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";
     public static final String DB_COLUMN_GROUP_EXPIRY_DAYS        = "group_expiry_days";
+    public static final String DB_COLUMN_GROUP_REVIEW_DAYS        = "group_review_days";
     public static final String DB_COLUMN_ROLE_CERT_EXPIRY_MINS    = "role_cert_expiry_mins";
     public static final String DB_COLUMN_SERVICE_CERT_EXPIRY_MINS = "service_cert_expiry_mins";
     public static final String DB_COLUMN_PRINCIPAL_GROUP          = "principal_group";
