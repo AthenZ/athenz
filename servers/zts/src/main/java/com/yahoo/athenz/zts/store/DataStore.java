@@ -807,6 +807,10 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
         processDomainEntities(domainData, domainCache);
 
+        // Athenz System domain special role processing
+
+        processSystemBehaviorRoles(domainData, domainCache);
+
         /* save the full domain object with the cache entry itself
          * since we need to that information to handle
          * getServiceIdentity and getServiceIdentityList requests */
@@ -823,7 +827,11 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         
         return true;
     }
-    
+
+    private void processSystemBehaviorRoles(DomainData domainData, DataCache domainCache) {
+        domainCache.processSystemBehaviorRoles(domainData);
+    }
+
     boolean validDomainListResponse(Set<String> zmsDomainList) {
         
         /* we're doing some basic validation to make sure our

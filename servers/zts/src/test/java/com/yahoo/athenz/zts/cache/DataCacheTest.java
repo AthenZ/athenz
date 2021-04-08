@@ -1307,5 +1307,35 @@ public class DataCacheTest {
         expectedMap.put("TCP-IN:49152-65535:8443", Collections.singletonList("dom3.svc3"));
         assertEquals(cache.getTransportRulesInfoForService("api"), expectedMap);
     }
+
+    @Test
+    public void testIsWorkloadStoreExcludedProvider() {
+        final String domainName = "sys.auth";
+        DataCache cache = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setName(domainName);
+        cache.setDomainData(domainData);
+        domainData.setRoles(new ArrayList<>());
+        Role role1 = ZTSTestUtils.createRoleObject(domainName, "workload.store.excluded.providers", "cd.screwdriver.project", "vespa.vespa");
+        domainData.getRoles().add(role1);
+        cache.processSystemBehaviorRoles(domainData);
+        assertTrue(cache.isWorkloadStoreExcludedProvider("cd.screwdriver.project"));
+        assertTrue(cache.isWorkloadStoreExcludedProvider("vespa.vespa"));
+        assertFalse(cache.isWorkloadStoreExcludedProvider("sys.openstack.classic"));
+        RoleMember rm1 = new RoleMember().setMemberName("sys.openstack.classic");
+        role1.getRoleMembers().add(rm1);
+        cache.processSystemBehaviorRoles(domainData);
+        assertTrue(cache.isWorkloadStoreExcludedProvider("cd.screwdriver.project"));
+        assertTrue(cache.isWorkloadStoreExcludedProvider("vespa.vespa"));
+        assertTrue(cache.isWorkloadStoreExcludedProvider("sys.openstack.classic"));
+        role1.getRoleMembers().remove(rm1);
+        RoleMember rm2 = new RoleMember().setMemberName("omega.k8s.identity");
+        role1.getRoleMembers().add(rm2);
+        cache.processSystemBehaviorRoles(domainData);
+        assertTrue(cache.isWorkloadStoreExcludedProvider("cd.screwdriver.project"));
+        assertTrue(cache.isWorkloadStoreExcludedProvider("vespa.vespa"));
+        assertFalse(cache.isWorkloadStoreExcludedProvider("sys.openstack.classic"));
+        assertTrue(cache.isWorkloadStoreExcludedProvider("omega.k8s.identity"));
+    }
 }
 

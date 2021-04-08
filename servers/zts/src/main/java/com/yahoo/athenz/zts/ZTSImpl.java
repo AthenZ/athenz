@@ -2888,7 +2888,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
         }
 
-        if (enableWorkloadStore) {
+        if (enableWorkloadStore && !athenzSysDomainCache.isWorkloadStoreExcludedProvider(provider)) {
             // insert into workloads store is on best-effort basis. No errors are thrown if the op is not successful.
             insertWorkloadRecord(cn, provider, certReqInstanceId, sanIpStrForWorkloadStore);
         }
@@ -3351,7 +3351,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
         }
 
-        if (enableWorkloadStore) {
+        if (enableWorkloadStore && !athenzSysDomainCache.isWorkloadStoreExcludedProvider(provider)) {
             // workloads store update is on best-effort basis. No errors are thrown if the op is not successful.
             updateWorkloadRecord(AthenzUtils.getPrincipalName(domain, service), provider, instanceId, sanIpStrForWorkloadStore);
         }
