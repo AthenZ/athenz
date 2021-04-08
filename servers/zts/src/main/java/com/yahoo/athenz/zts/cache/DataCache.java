@@ -53,6 +53,7 @@ public class DataCache {
     private final Map<String, List<String>> providerHostnameDeniedSuffixCache;
     private final Map<String, List<AuthzDetailsEntity>> authzDetailsCache;
     private final Map<String, Map<String, List<String>>> transportRulesCache;
+    private final Set<String> workloadStoreExcludeProvidersCache;
 
     public static final String ACTION_ASSUME_ROLE = "assume_role";
     public static final String ACTION_ASSUME_AWS_ROLE = "assume_aws_role";
@@ -60,6 +61,7 @@ public class DataCache {
 
     public static final String RESOURCE_DNS_PREFIX = "sys.auth:dns.";
     public static final String RESOURCE_HOSTNAME_PREFIX = "sys.auth:hostname.";
+    public static final String ROLE_WORKLOAD_STORE_EXCLUDED_PROVIDER_NAME = "sys.auth:role.workload.store.excluded.providers";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataCache.class);
     
@@ -77,6 +79,7 @@ public class DataCache {
         providerHostnameDeniedSuffixCache = new HashMap<>();
         authzDetailsCache = new HashMap<>();
         transportRulesCache = new HashMap<>();
+        workloadStoreExcludeProvidersCache = new HashSet<>();
     }
     
     public void setDomainData(DomainData domainData) {
@@ -565,5 +568,34 @@ public class DataCache {
 
     public Map<String, List<String>> getTransportRulesInfoForService(final String service) {
         return transportRulesCache.get(service);
+    }
+
+    public boolean isWorkloadStoreExcludedProvider(final String provider) {
+        return workloadStoreExcludeProvidersCache.contains(provider);
+    }
+
+    /**
+     * This method populates relevant cache objects from system configurations via Athenz system domain
+     * @param domainData domain object with updates
+     */
+    public void processSystemBehaviorRoles(DomainData domainData) {
+        // only processing system domain
+        if (!domainData.getName().equals(ATHENZ_SYS_DOMAIN)) {
+            return;
+        }
+        // if we have a role by name workload.store.excluded.providers then its members will be stored in a set
+        // and those providers' workloads will be excluded from workload store
+        Set<String> currentExcludedProviders = domainData.getRoles().stream()
+                .filter(r -> ROLE_WORKLOAD_STORE_EXCLUDED_PROVIDER_NAME.equals(r.getName()))
+                .map(Role::getRoleMembers)
+                .flatMap(List::stream)
+                .map(RoleMember::getMemberName).collect(Collectors.toSet());
+        // first add missing new entries
+        if (!workloadStoreExcludeProvidersCache.containsAll(currentExcludedProviders)) {
+            workloadStoreExcludeProvidersCache.addAll(currentExcludedProviders);
+        }
+        // now delete entries which were removed
+        workloadStoreExcludeProvidersCache.retainAll(currentExcludedProviders);
+
     }
 }
