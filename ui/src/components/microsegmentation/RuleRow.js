@@ -95,7 +95,6 @@ export default class RuleRow extends React.Component {
     onSubmitDelete(domain) {
         let deletePolicyName =
             'acl.' + this.state.deleteName + '.' + this.props.category;
-
         Promise.all([
             this.api.deleteAssertion(
                 domain,
@@ -105,7 +104,7 @@ export default class RuleRow extends React.Component {
             ),
             this.api.deleteRole(
                 domain,
-                deletePolicyName,
+                deletePolicyName + "-" + this.state.port,
                 'deleted using Athenz UI',
                 this.props._csrf
             ),

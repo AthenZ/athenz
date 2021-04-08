@@ -1331,7 +1331,7 @@ exports[`PendingApprovalPage should render 1`] = `
                     <th
                       class="emotion-39 emotion-75"
                     >
-                      Review Date
+                      Reminder Date
                     </th>
                     <th
                       class="emotion-96 emotion-97"

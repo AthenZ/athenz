@@ -645,7 +645,7 @@ exports[`PendingApprovalTable should render 1`] = `
       <th
         class="emotion-7 emotion-43"
       >
-        Review Date
+        Reminder Date
       </th>
       <th
         class="emotion-64 emotion-65"

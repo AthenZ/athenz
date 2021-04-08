@@ -146,7 +146,7 @@ export default class RulesList extends React.Component {
                 ) : null}
                 {!showInbound && !showInbound ? (
                     <div>
-                        Use the Add Segmentation button to add inbound and
+                        Use the Add ACL Policy button to add inbound and
                         outbound rules.
                     </div>
                 ) : null}
