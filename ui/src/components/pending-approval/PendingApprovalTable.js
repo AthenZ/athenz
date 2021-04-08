@@ -392,7 +392,7 @@ export default class PendingApprovalTable extends React.Component {
                             <TableHeader>Request Time</TableHeader>
                             <TableHeader>Audit Reference</TableHeader>
                             <TableHeader>Expiration Date</TableHeader>
-                            <TableHeader>Review Date</TableHeader>
+                            <TableHeader>Reminder Date</TableHeader>
                             <ApproveTableHeader>Approve</ApproveTableHeader>
                             <RejectTableHeader>Reject</RejectTableHeader>
                         </tr>
