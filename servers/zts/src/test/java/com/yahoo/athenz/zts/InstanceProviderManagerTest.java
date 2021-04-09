@@ -34,6 +34,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 
 import com.yahoo.athenz.auth.ServerPrivateKey;
+import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.zts.store.MockZMSFileChangeLogStore;
@@ -60,6 +61,7 @@ import javax.net.ssl.SSLContext;
 public class InstanceProviderManagerTest {
 
     private PrivateKey privateKey = null;
+    private Metric ztsMetric = null;
     private DataStore store = null;
     
     private static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
@@ -69,6 +71,10 @@ public class InstanceProviderManagerTest {
     public void setUpClass() {
         System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         System.setProperty(ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
+
+        // setup our metric class
+
+        ztsMetric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
     }
     
     @BeforeMethod
@@ -88,7 +94,7 @@ public class InstanceProviderManagerTest {
         
         System.setProperty(ZTSConsts.ZTS_PROP_PROVIDER_ENDPOINTS, ".athenz2.com,.athenz.com");
         
-        store = new DataStore(structStore, null);
+        store = new DataStore(structStore, null, ztsMetric);
     }
 
     @AfterMethod

@@ -280,7 +280,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // create our data store. we must have our cloud store and private
             // key details already retrieved at this point
             
-            dataStore = new DataStore(clogStore, cloudStore);
+            dataStore = new DataStore(clogStore, cloudStore, metric);
             
             // Initialize our storage subsystem which would load all data into
             // memory and if necessary retrieve the data from ZMS. It will also

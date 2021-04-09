@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts.store;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
@@ -67,6 +68,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
     ChangeLogStore changeLogStore;
     private CloudStore cloudStore;
+    private final Metric metric;
     private final Cache<String, DataCache> cacheStore;
     final Cache<String, PublicKey> zmsPublicKeyCache;
     final Cache<String, List<GroupMember>> groupMemberCache;
@@ -98,12 +100,13 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataStore.class);
     
-    public DataStore(ChangeLogStore clogStore, CloudStore cloudStore) {
+    public DataStore(ChangeLogStore clogStore, CloudStore cloudStore, Metric metric) {
 
         /* save our store objects */
 
         this.changeLogStore = clogStore;
         this.setCloudStore(cloudStore);
+        this.metric = metric;
         
         /* generate our cache stores */
 
@@ -519,6 +522,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         boolean result = Crypto.verify(SignUtils.asCanonicalString(domainData), zmsKey, signature);
         
         if (!result) {
+            metric.increment("domain_validation_failure", domainData.getName());
             LOGGER.error("validateSignedDomain: Domain={} signature validation failed", domainData.getName());
             LOGGER.error("validateSignedDomain: Signed Domain Data: {}", SignUtils.asCanonicalString(domainData));
         }

@@ -27,7 +27,6 @@ import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
-import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
@@ -62,9 +61,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.ArgumentCaptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -104,6 +100,7 @@ public class ZTSImplTest {
     private int roleTokenMaxTimeout = 96000;
 
     private ZTSImpl zts = null;
+    private Metric ztsMetric = null;
     private ZTSAuthorizer authorizer = null;
     private DataStore store = null;
     private PrivateKey privateKey = null;
@@ -170,6 +167,10 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES, "Athenz, Inc.|My Test Company|Athenz|Yahoo");
         System.setProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST, "/zts/v1/schema,/zts/v1/status");
         System.setProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "screwdriver");
+
+        // setup our metric class
+
+        ztsMetric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
     }
 
     @BeforeMethod
@@ -221,7 +222,7 @@ public class ZTSImplTest {
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_REQUEST_VERIFY_IP, "true");
 
-        store = new DataStore(structStore, cloudStore);
+        store = new DataStore(structStore, cloudStore, ztsMetric);
         zts = new ZTSImpl(cloudStore, store);
         ZTSImpl.serverHostName = "localhost";
 
@@ -2388,7 +2389,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ZTSImpl.serverHostName = "localhost";
@@ -2415,7 +2416,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ZTSImpl.serverHostName = "localhost";
 
@@ -2443,7 +2444,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ZTSImpl.serverHostName = "localhost";
 
@@ -2470,7 +2471,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ZTSImpl.serverHostName = "localhost";
@@ -4382,7 +4383,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         Mockito.when(mockCloudStore.getAzureSubscription("athenz")).thenReturn("12345");
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
@@ -4441,7 +4442,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
@@ -4470,7 +4471,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -4535,7 +4536,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -4597,7 +4598,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -4671,7 +4672,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -4736,7 +4737,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -4797,7 +4798,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -4875,7 +4876,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -4938,7 +4939,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -4996,7 +4997,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5054,7 +5055,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5093,7 +5094,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5149,7 +5150,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5189,7 +5190,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5231,7 +5232,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5287,7 +5288,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5321,7 +5322,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5355,7 +5356,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5386,7 +5387,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5434,7 +5435,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5486,7 +5487,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5540,7 +5541,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5594,7 +5595,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5667,7 +5668,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5757,7 +5758,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5855,7 +5856,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5898,7 +5899,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -5938,7 +5939,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6003,7 +6004,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6083,7 +6084,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6149,7 +6150,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
@@ -6184,7 +6185,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6277,7 +6278,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6343,7 +6344,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6409,7 +6410,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6473,7 +6474,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6517,7 +6518,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6554,7 +6555,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6621,7 +6622,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6688,7 +6689,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6750,7 +6751,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6819,7 +6820,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6888,7 +6889,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -6953,7 +6954,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -7020,7 +7021,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -7089,7 +7090,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7123,7 +7124,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7160,7 +7161,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
@@ -7191,7 +7192,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7221,7 +7222,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -7290,7 +7291,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -7339,7 +7340,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -7388,7 +7389,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -7441,7 +7442,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         InstanceCertManager instanceManager = Mockito.mock(InstanceCertManager.class);
@@ -7466,7 +7467,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ZTSImpl.serverHostName = "localhost";
@@ -7497,7 +7498,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ZTSImpl.serverHostName = "localhost";
@@ -7604,7 +7605,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ztsImpl.secureRequestsOnly = false;
@@ -7632,7 +7633,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ztsImpl.secureRequestsOnly = true;
@@ -7666,7 +7667,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ztsImpl.secureRequestsOnly = true;
@@ -7696,7 +7697,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ztsImpl.secureRequestsOnly = true;
@@ -7731,7 +7732,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ztsImpl.statusPort = 0;
@@ -7751,7 +7752,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ztsImpl.statusPort = 0;
@@ -7798,7 +7799,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         Principal principal = SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -7882,7 +7883,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ztsImpl.statusPort = 0;
@@ -7906,7 +7907,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ztsImpl.statusPort = 0;
@@ -7934,7 +7935,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
@@ -7977,7 +7978,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
@@ -8017,7 +8018,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
@@ -8065,7 +8066,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
@@ -8108,7 +8109,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
@@ -8144,7 +8145,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid.csr");
@@ -8187,7 +8188,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid.csr");
@@ -8230,7 +8231,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
@@ -8256,7 +8257,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
@@ -8283,7 +8284,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
@@ -8311,7 +8312,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
@@ -8337,7 +8338,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
@@ -8382,7 +8383,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
@@ -8429,7 +8430,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
@@ -8481,7 +8482,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         String publicKeyName = "athenz.syncer_v0";
@@ -8576,7 +8577,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ztsImpl.readOnlyMode = true;
@@ -8650,7 +8651,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -8705,7 +8706,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -8778,7 +8779,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         System.setProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS, "invalid.class");
@@ -8848,7 +8849,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         System.setProperty(ZTSConsts.ZTS_PROP_AUTHORITY_CLASSES, "com.yahoo.athenz.zts.MockAuthority");
@@ -8914,7 +8915,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
 
         System.clearProperty(ZTSConsts.ZTS_PROP_AUTHORIZED_PROXY_USERS);
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES);
@@ -9019,7 +9020,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         assertNotNull(ztsImpl.hostnameResolver);
 
@@ -10489,7 +10490,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME, "src/test/resources/ca-bundle-file.json");
@@ -11563,7 +11564,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -11618,7 +11619,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
@@ -11659,7 +11660,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -11700,7 +11701,7 @@ public class ZTSImplTest {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
-        DataStore store = new DataStore(structStore, null);
+        DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
