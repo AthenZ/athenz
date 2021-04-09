@@ -97,7 +97,10 @@ public class ZMSUtils {
         StringBuilder rolePrefix = new StringBuilder(256);
         rolePrefix.append(provSvcName).append(".tenant.").append(tenantDomain).append('.');
         if (resourceGroup != null) {
-            rolePrefix.append("res_group.").append(resourceGroup).append('.');
+            rolePrefix.append("res_group.");
+            if (!resourceGroup.isEmpty()) {
+                rolePrefix.append(resourceGroup).append('.');
+            }
         }
         return rolePrefix.toString();
     }
@@ -106,7 +109,7 @@ public class ZMSUtils {
         
         StringBuilder rolePrefix = new StringBuilder(256);
         rolePrefix.append(provSvcDomain).append('.').append(provSvcName).append('.');
-        if (resourceGroup != null) {
+        if (!StringUtil.isEmpty(resourceGroup)) {
             rolePrefix.append("res_group.").append(resourceGroup).append('.');
         }
         return rolePrefix.toString();
@@ -118,7 +121,7 @@ public class ZMSUtils {
         StringBuilder trustedRole = new StringBuilder(256);
         trustedRole.append(provSvcDomain).append(AuthorityConsts.ROLE_SEP).append(provSvcName)
                 .append(".tenant.").append(tenantDomain).append('.');
-        if (resourceGroup != null) {
+        if (!StringUtil.isEmpty(resourceGroup)) {
             trustedRole.append("res_group.").append(resourceGroup).append('.');
         }
         return trustedRole.toString();

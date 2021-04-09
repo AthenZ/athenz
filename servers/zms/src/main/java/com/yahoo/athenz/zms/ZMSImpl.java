@@ -6108,7 +6108,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (authzServiceTokenOperation) {
             setupTenantAdminPolicyInProvider(ctx, provSvcDomain, provSvcName, tenantDomain,
-                    auditRef, caller);
+                    false, auditRef, caller);
         }
     }
 
@@ -6216,7 +6216,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         setupTenantAdminPolicyInProvider(ctx, providerDomain, providerService, tenantDomain,
-                auditRef, caller);
+                false, auditRef, caller);
     }
 
     @Override
@@ -6368,7 +6368,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // first setup the domain as a tenant in the provider domain
 
         setupTenantAdminPolicyInProvider(ctx, provSvcDomain, provSvcName, tenantDomain,
-                auditRef, caller);
+                true, auditRef, caller);
 
         // then setup the requested resource group roles
 
@@ -6880,7 +6880,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // happens to be the first resource group
 
             setupTenantAdminPolicyInProvider(ctx, provSvcDomain, provSvcName, tenantDomain,
-                    auditRef, caller);
+                    true, auditRef, caller);
 
             // now onboard the requested resource group
 
@@ -6892,14 +6892,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void setupTenantAdminPolicyInProvider(ResourceContext ctx, final String provSvcDomain,
-            final String provSvcName, final String tenantDomain, final String auditRef,
-            final String caller) {
+            final String provSvcName, final String tenantDomain, boolean resourceGroupComp,
+            final String auditRef, final String caller) {
 
         List<TenantRoleAction> roles = new ArrayList<>();
         TenantRoleAction roleAction = new TenantRoleAction().setAction("*").setRole(ADMIN_ROLE_NAME);
         roles.add(roleAction);
-        dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
-                roles, auditRef, caller);
+
+        // if we want the admin policy with a resource group component then we'll
+        // pass an empty string for the resource group which indicate that tenancy
+        // is based on resource groups otherwise null
+
+        dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
+                resourceGroupComp ? "" : null, roles, auditRef, caller);
     }
 
     String getProviderRoleAction(String provSvcDomain, String roleName) {
