@@ -171,15 +171,13 @@ public class ZTSAuthorizer implements Authorizer {
             String resource, List<Role> roles, String trustDomain) {
 
         // Lowercase action and resource as it is possible to store them case-sensitive
-        assertion.setResource(assertion.getResource().toLowerCase());
-        assertion.setAction(assertion.getAction().toLowerCase());
 
-        String opPattern = StringUtils.patternFromGlob(assertion.getAction());
+        String opPattern = StringUtils.patternFromGlob(assertion.getAction().toLowerCase());
         if (!op.matches(opPattern)) {
             return false;
         }
         
-        String rezPattern = StringUtils.patternFromGlob(assertion.getResource());
+        String rezPattern = StringUtils.patternFromGlob(assertion.getResource().toLowerCase());
         if (!resource.matches(rezPattern)) {
             return false;
         }
