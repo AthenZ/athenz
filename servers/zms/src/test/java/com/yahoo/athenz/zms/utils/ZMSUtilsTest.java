@@ -50,6 +50,8 @@ public class ZMSUtilsTest {
 
         assertEquals("storage.tenant.sports.api.",
                 ZMSUtils.getTenantResourceGroupRolePrefix("storage", "sports.api", null));
+        assertEquals("storage.tenant.sports.api.res_group.",
+                ZMSUtils.getTenantResourceGroupRolePrefix("storage", "sports.api", ""));
         assertEquals("storage.tenant.sports.api.res_group.Group1.",
                 ZMSUtils.getTenantResourceGroupRolePrefix("storage", "sports.api", "Group1"));
     }
@@ -58,6 +60,8 @@ public class ZMSUtilsTest {
     public void testGetTrustedResourceGroupRolePrefix() {
         assertEquals("coretech:role.storage.tenant.sports.api.",
                 ZMSUtils.getTrustedResourceGroupRolePrefix("coretech", "storage", "sports.api", null));
+        assertEquals("coretech:role.storage.tenant.sports.api.",
+                ZMSUtils.getTrustedResourceGroupRolePrefix("coretech", "storage", "sports.api", ""));
         assertEquals("coretech:role.storage.tenant.sports.api.res_group.group1.",
                 ZMSUtils.getTrustedResourceGroupRolePrefix("coretech", "storage", "sports.api", "group1"));
     }
@@ -68,6 +72,8 @@ public class ZMSUtilsTest {
                 ZMSUtils.getProviderResourceGroupRolePrefix("sports", "hosted", "hockey"));
         assertEquals("sports.hosted.",
                 ZMSUtils.getProviderResourceGroupRolePrefix("sports", "hosted", null));
+        assertEquals("sports.hosted.",
+                ZMSUtils.getProviderResourceGroupRolePrefix("sports", "hosted", ""));
     }
 
     @Test
