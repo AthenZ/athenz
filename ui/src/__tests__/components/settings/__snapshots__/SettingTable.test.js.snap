@@ -447,6 +447,46 @@ exports[`SettingTable should render setting table 1`] = `
       <td
         class="emotion-4 emotion-5"
       >
+        Group Review (Days)
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+      >
+        <div
+          class="emotion-26 emotion-27"
+        >
+          <div
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              id="setting-groupReviewDays"
+              pattern="[0-9]*"
+              placeholder="Days"
+              value=""
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
+        </div>
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+      >
+        All groups in the role will have specified max review days
+      </td>
+    </tr>
+    <tr
+      class="emotion-2 emotion-3"
+      data-testid="setting-row"
+    >
+      <td
+        class="emotion-4 emotion-5"
+      >
         Service Expiry (Days)
       </td>
       <td

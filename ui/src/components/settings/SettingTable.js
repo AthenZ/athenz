@@ -92,6 +92,10 @@ export default class SettingTable extends React.Component {
                 collection.groupExpiryDays === undefined
                     ? ''
                     : collection.groupExpiryDays.toString(),
+            groupReviewDays:
+                collection.groupReviewDays === undefined
+                    ? ''
+                    : collection.groupReviewDays.toString(),
             serviceExpiryDays:
                 collection.serviceExpiryDays === undefined
                     ? ''
@@ -373,6 +377,25 @@ export default class SettingTable extends React.Component {
                     desc='All group members in the role will have specified max expiry days'
                     unit='Days'
                     value={this.state.copyCollectionDetails.groupExpiryDays}
+                    api={this.api}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                    justificationRequired={this.props.justificationRequired}
+                    userProfileLink={this.props.userProfileLink}
+                />
+            );
+
+        this.props.category === 'role' &&
+            rows.push(
+                <StyledSettingRow
+                    key={'setting-row-groupReviewDays'}
+                    domain={domain}
+                    name='groupReviewDays'
+                    label='Group Review'
+                    type='input'
+                    desc='All groups in the role will have specified max review days'
+                    unit='Days'
+                    value={this.state.copyCollectionDetails.groupReviewDays}
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
