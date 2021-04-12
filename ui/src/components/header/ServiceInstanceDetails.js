@@ -34,22 +34,25 @@ const StyledAnchor = styled.a`
 export default function ServiceInstanceDetails(props) {
     const { details } = props;
 
-    let text =
-        details.url === ''
-            ? details.description
-            : details.description +
-              ' For more information click ' +
-              (
-                  <StyledAnchor
-                      onClick={() => window.open(details.url, details.target)}
-                  >
-                      'here'
-                  </StyledAnchor>
-              );
+    let message = [details.description];
+
+    if (details.url != '') {
+        message.push(' For more information click ');
+        var link = (
+            <StyledAnchor
+                onClick={() => window.open(details.url, details.target)}
+            >
+                here
+            </StyledAnchor>
+        );
+        message.push(link);
+    }
 
     return (
         <DomainSectionDiv>
-            <DetailsDiv>{text}</DetailsDiv>
+            <DetailsDiv>
+                <p>{message}</p>
+            </DetailsDiv>
         </DomainSectionDiv>
     );
 }
