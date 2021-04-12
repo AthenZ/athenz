@@ -950,7 +950,9 @@ exports[`StaticInstancePage should render 1`] = `
               <div
                 class="emotion-34 emotion-35"
               >
-                Here you can add / see instances which can not obtain Athenz identity because of limitations, but would be associated with your service.
+                <p>
+                  Here you can add / see instances which can not obtain Athenz identity because of limitations, but would be associated with your service.
+                </p>
               </div>
             </div>
             <div
