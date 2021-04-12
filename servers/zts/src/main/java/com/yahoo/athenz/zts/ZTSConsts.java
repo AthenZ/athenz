@@ -221,6 +221,8 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST            = "athenz.zts.notification_cert_fail_provider_list";
     public static final String ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST    = "athenz.zts.notification_cert_fail_ignored_services_list";
     public static final String ZTS_PROP_NOTIFICATION_GRACE_PERIOD_HOURS                 = "athenz.zts.notification_cert_fail_grace_hours";
+    public static final String ZTS_PROP_ATHENZ_GUIDE                                    = "athenz.zts.notification_cert_fail_athenz_guide";
+
     public static final String ZTS_PROP_NOTIFICATION_AWS_HEALTH_DOMAIN                  = "athenz.zts.notification_aws_health_domain";
     public static final String ZTS_PROP_NOTIFICATION_API_HOSTNAME                       = "athenz.zts.notification_api_hostname";
 

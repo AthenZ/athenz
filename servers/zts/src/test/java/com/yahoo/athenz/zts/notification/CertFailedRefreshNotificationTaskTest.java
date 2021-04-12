@@ -89,7 +89,7 @@ public class CertFailedRefreshNotificationTaskTest {
                     "            <p> 3. If you already have monitoring in place for unrefreshed certificates, you may disable unrefreshed\n" +
                     "            certificate notifications by adding the following domain tag:</p>\n" +
                     "            <p>Tag: <b>zts.DisableCertRefreshNotifications</b> Value: <b>true</b></p>\n" +
-                    "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
+                    "            <br>For additional support, please review <a href=\"https://athenz.github.io/athenz/\">Athenz Guide</a> or contact us at <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
                     "        </div>\n" +
                     "    </div>\n" +
                     "    <div class=\"footer-container\">\n" +
@@ -97,7 +97,7 @@ public class CertFailedRefreshNotificationTaskTest {
                     "    </div>\n" +
                     "</div>\n" +
                     "</body>\n" +
-                    "</html>";
+                    "</html>\n";
     private final String htmlSingleRecord =
             "<div class=\"athenz-wrapper\">\n" +
                     "    <div class=\"mbrapproval unrefreshedcerts\">\n" +
@@ -136,7 +136,7 @@ public class CertFailedRefreshNotificationTaskTest {
                     "            <p> 3. If you already have monitoring in place for unrefreshed certificates, you may disable unrefreshed\n" +
                     "            certificate notifications by adding the following domain tag:</p>\n" +
                     "            <p>Tag: <b>zts.DisableCertRefreshNotifications</b> Value: <b>true</b></p>\n" +
-                    "            <br>For additional support, please contact <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
+                    "            <br>For additional support, please review <a href=\"https://athenz.github.io/athenz/\">Athenz Guide</a> or contact us at <a href=\"https://link.to.athenz.channel.com\">#Athenz slack channel</a>\n" +
                     "        </div>\n" +
                     "    </div>\n" +
                     "    <div class=\"footer-container\">\n" +
