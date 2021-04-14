@@ -199,6 +199,12 @@
       <version>${jetty.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.amazonaws.secretsmanager</groupId>
+      <artifactId>aws-secretsmanager-jdbc</artifactId>
+      <version>1.0.6</version>
+    </dependency>
+
   </dependencies>
 
 </project>
