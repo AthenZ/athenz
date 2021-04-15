@@ -56,7 +56,7 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
         
         PoolableDataSource readOnlySrc = null;
         String jdbcReadOnlyStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
-        if (jdbcReadOnlyStore != null && jdbcReadOnlyStore.startsWith("jdbc:")) {
+        if (jdbcReadOnlyStore != null && jdbcReadOnlyStore.startsWith("jdbc")) {
             final String jdbcReadOnlyUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_USER, jdbcUser);
             final String readOnlyPassword = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, password);
             final String jdbcReadOnlyPassword = keyStore.getApplicationSecret(jdbcAppName, readOnlyPassword);
