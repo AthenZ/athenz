@@ -3805,7 +3805,7 @@ public class DBService implements RolesProvider {
     }
 
     void executePutTenantRoles(ResourceContext ctx, String provSvcDomain, String provSvcName, String tenantDomain,
-            String resourceGroup, List<TenantRoleAction> roles, String auditRef, String caller) {
+            String resourceGroup, List<TenantRoleAction> roles, boolean ignoreDeletes, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -3850,7 +3850,7 @@ public class DBService implements RolesProvider {
 
                     auditDetails.append("{\"role\": ");
                     if (!processRole(con, originalRole, provSvcDomain, trustedName, role,
-                            getPrincipalName(ctx), auditRef, false, auditDetails)) {
+                            getPrincipalName(ctx), auditRef, ignoreDeletes, auditDetails)) {
                         con.rollbackChanges();
                         throw ZMSUtils.internalServerError("unable to put role: " + trustedRole, caller);
                     }
@@ -3877,7 +3877,7 @@ public class DBService implements RolesProvider {
                     // now process the request
 
                     auditDetails.append(", \"policy\": ");
-                    if (!processPolicy(con, originalPolicy, provSvcDomain, trustedName, policy, false, auditDetails)) {
+                    if (!processPolicy(con, originalPolicy, provSvcDomain, trustedName, policy, ignoreDeletes, auditDetails)) {
                         con.rollbackChanges();
                         throw ZMSUtils.internalServerError("unable to put policy: " + policy.getName(), caller);
                     }
