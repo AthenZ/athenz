@@ -16,6 +16,7 @@ public class Workload {
     public String serviceName;
     public String uuid;
     public List<String> ipAddresses;
+    public String hostname;
     public String provider;
     public Timestamp updateTime;
 
@@ -46,6 +47,13 @@ public class Workload {
     }
     public List<String> getIpAddresses() {
         return ipAddresses;
+    }
+    public Workload setHostname(String hostname) {
+        this.hostname = hostname;
+        return this;
+    }
+    public String getHostname() {
+        return hostname;
     }
     public Workload setProvider(String provider) {
         this.provider = provider;
@@ -79,6 +87,9 @@ public class Workload {
                 return false;
             }
             if (ipAddresses == null ? a.ipAddresses != null : !ipAddresses.equals(a.ipAddresses)) {
+                return false;
+            }
+            if (hostname == null ? a.hostname != null : !hostname.equals(a.hostname)) {
                 return false;
             }
             if (provider == null ? a.provider != null : !provider.equals(a.provider)) {

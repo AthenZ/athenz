@@ -30,7 +30,7 @@ public class WorkloadsTest {
         Workload wl1 = new Workload();
         List<String> ipAddresses = Collections.singletonList("10.20.30.40");
         wl1.setDomainName("athenz").setServiceName("api").setIpAddresses(ipAddresses).setProvider("kubernetes").setUuid("1234-rsaq-422dcz")
-                .setUpdateTime(Timestamp.fromMillis(123456789123L));
+                .setUpdateTime(Timestamp.fromMillis(123456789123L)).setHostname("testhost-1");
 
         List<Workload> workloadList1 = Collections.singletonList(wl1);
 
@@ -43,7 +43,7 @@ public class WorkloadsTest {
         Workloads workloads2 = new Workloads();
         Workload wl2 = new Workload();
         wl2.setDomainName("athenz").setServiceName("api").setIpAddresses(ipAddresses).setProvider("kubernetes").setUuid("1234-rsaq-422dcz")
-                .setUpdateTime(Timestamp.fromMillis(123456789123L));
+                .setUpdateTime(Timestamp.fromMillis(123456789123L)).setHostname("testhost-1");
 
         List<Workload> workloadList2 = Collections.singletonList(wl2);
         workloads2.setWorkloadList(workloadList2);
