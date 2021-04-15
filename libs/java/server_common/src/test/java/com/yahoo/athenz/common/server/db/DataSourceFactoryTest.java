@@ -15,8 +15,6 @@
  */
 package com.yahoo.athenz.common.server.db;
 
-import static com.yahoo.athenz.common.server.db.DataSourceFactory.AWS_SECRETS_MNGR_DRIVER_CLASS_NAME;
-import static com.yahoo.athenz.common.server.db.DataSourceFactory.DRIVER_CLASS_NAME;
 import static org.testng.Assert.*;
 
 import java.util.Properties;
@@ -39,30 +37,6 @@ public class DataSourceFactoryTest {
         PoolableDataSource src = DataSourceFactory.create("jdbc:mysql:localhost:3306/athenz",
                 props);
         assertNotNull(src);
-    }
-
-    @Test
-    public void testCreateDataSourceAwsSecretsManager() {
-        System.setProperty(DRIVER_CLASS_NAME, AWS_SECRETS_MNGR_DRIVER_CLASS_NAME);
-
-        Properties props = new Properties();
-        props.setProperty("user", "user");
-
-        try {
-            DataSourceFactory.create("jdbc:mysql:localhost:3306/athenz", props);
-            fail();
-        } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "Cannot load driver class: com.amazonaws.secretsmanager.sql.AWSSecretsManagerMySQLDriver");
-        } finally {
-            System.clearProperty(DRIVER_CLASS_NAME);    
-        }
-    }
-
-    @Test
-    public void testAwsSecretsManagerManipulateUrl() {
-        String url = "jdbc:mysql:localhost:3306/athenz";
-        assertEquals("jdbc-secretsmanager:mysql:localhost:3306/athenz", 
-            DataSourceFactory.manipulateConnectionUrl(url, AWS_SECRETS_MNGR_DRIVER_CLASS_NAME));
     }
     
     @Test
@@ -269,7 +243,7 @@ public class DataSourceFactoryTest {
 
     @Test
     public void testWrongDbClass() {
-        System.setProperty(DRIVER_CLASS_NAME, "testDbDriverClass");
+        System.setProperty(DataSourceFactory.DRIVER_CLASS_NAME, "testDbDriverClass");
         Properties props = new Properties();
         props.setProperty("user", "user");
         props.setProperty("password", "password");
@@ -277,6 +251,6 @@ public class DataSourceFactoryTest {
         assertThrows(RuntimeException.class, () -> {
             DataSourceFactory.create("jdbc:mysql:localhost:3306/athenz", props);
         });
-        System.clearProperty(DRIVER_CLASS_NAME);
+        System.clearProperty(DataSourceFactory.DRIVER_CLASS_NAME);
     }
 }

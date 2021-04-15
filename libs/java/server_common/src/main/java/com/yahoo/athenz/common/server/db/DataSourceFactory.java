@@ -47,7 +47,6 @@ public class DataSourceFactory {
     static final String MYSQL_VALIDATION_QUERY = "/* ping */ SELECT 1";
 
     static final String DRIVER_CLASS_NAME = "athenz.db.driver.class";
-    static final String AWS_SECRETS_MNGR_DRIVER_CLASS_NAME = "com.amazonaws.secretsmanager.sql.AWSSecretsManagerMySQLDriver";
     public static PoolableDataSource create(String url, Properties mysqlConnectionProperties) {
         
         String driver = null;
@@ -55,7 +54,6 @@ public class DataSourceFactory {
             if (url.indexOf(":mysql:") > 0) {
                 
                 driver = System.getProperty(DRIVER_CLASS_NAME, "com.mysql.cj.jdbc.Driver");
-                url = manipulateConnectionUrl(url, driver);
                 Class.forName(driver);
                 
                 ConnectionFactory connectionFactory =
@@ -65,21 +63,14 @@ public class DataSourceFactory {
             } else {
                 throw new RuntimeException("Cannot figure out how to instantiate this data source: " + url);
             }
-        } catch (ClassNotFoundException | ExceptionInInitializerError e) {
+        } catch (ClassNotFoundException e) {
             throw new RuntimeException("Cannot load driver class: " + driver);
         } catch (Exception exc) {
             throw new RuntimeException("Failed to create database source(" +
                 url + ") with driver(" + driver + ")", exc);
         }
     }
-
-    static String manipulateConnectionUrl(String url, String driver) {
-        if (driver.equals(AWS_SECRETS_MNGR_DRIVER_CLASS_NAME)) {
-            url = url.replaceAll("jdbc:", "jdbc-secretsmanager:");
-        }
-        return url;
-    }
-
+    
     static long retrieveConfigSetting(String propName, long defaultValue) {
 
         String propValue = System.getProperty(propName);
