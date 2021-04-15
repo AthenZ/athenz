@@ -515,11 +515,18 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         
         PublicKey zmsKey = zmsPublicKeyCache.getIfPresent(keyId == null ? "0" : keyId);
         if (zmsKey == null) {
+            metric.increment("domain_validation_failure", domainData.getName());
             LOGGER.error("validateSignedDomain: ZMS Public Key id={} not available", keyId);
             return false;
         }
 
-        boolean result = Crypto.verify(SignUtils.asCanonicalString(domainData), zmsKey, signature);
+        boolean result = false;
+        try {
+            result = Crypto.verify(SignUtils.asCanonicalString(domainData), zmsKey, signature);
+        } catch (Exception ex) {
+            LOGGER.error("validateSignedDomain: Domain={} signature validation exception",
+                    domainData.getName(), ex);
+        }
         
         if (!result) {
             metric.increment("domain_validation_failure", domainData.getName());
