@@ -6373,7 +6373,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // then setup the requested resource group roles
 
         dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
-                resourceGroup, detail.getRoles(), auditRef, caller);
+                resourceGroup, detail.getRoles(), false, auditRef, caller);
         return detail;
     }
 
@@ -6885,7 +6885,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // now onboard the requested resource group
 
             dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
-                    resourceGroup, roleActions, auditRef, caller);
+                    resourceGroup, roleActions, false, auditRef, caller);
         }
 
         return detail;
@@ -6904,7 +6904,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is based on resource groups otherwise null
 
         dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
-                resourceGroupComp ? "" : null, roles, auditRef, caller);
+                resourceGroupComp ? "" : null, roles, true, auditRef, caller);
     }
 
     String getProviderRoleAction(String provSvcDomain, String roleName) {

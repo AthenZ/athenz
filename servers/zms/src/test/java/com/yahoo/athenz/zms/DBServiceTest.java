@@ -2158,7 +2158,7 @@ public class DBServiceTest {
         }
 
         zms.dbService.executePutTenantRoles(mockDomRsrcCtx, providerDomain, providerService,
-                tenantDomain, null, roleActions, auditRef, "putTenantRoles");
+                tenantDomain, null, roleActions, false, auditRef, "putTenantRoles");
 
         zms.deleteTenancy(mockDomRsrcCtx, tenantDomain, "coretech.storage", auditRef);
 
