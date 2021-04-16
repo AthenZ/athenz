@@ -30,7 +30,7 @@ public class WorkloadTest {
         Workload wl1 = new Workload();
         List<String> ipAddresses = Collections.singletonList("10.20.30.40");
         wl1.setDomainName("athenz").setServiceName("api").setIpAddresses(ipAddresses).setProvider("kubernetes").setUuid("1234-rsaq-422dcz")
-                .setUpdateTime(Timestamp.fromMillis(123456789123L));
+                .setUpdateTime(Timestamp.fromMillis(123456789123L)).setHostname("testhost-1");
 
         assertNotNull(wl1);
         assertEquals(wl1.getDomainName(), "athenz");
@@ -39,11 +39,12 @@ public class WorkloadTest {
         assertEquals(wl1.getProvider(), "kubernetes");
         assertEquals(wl1.getUuid(), "1234-rsaq-422dcz");
         assertEquals(wl1.getUpdateTime(), Timestamp.fromMillis(123456789123L));
+        assertEquals(wl1.getHostname(), "testhost-1");
         assertEquals(wl1, wl1);
 
         Workload wl2 = new Workload();
         wl2.setDomainName("athenz").setServiceName("api").setIpAddresses(ipAddresses).setProvider("kubernetes").setUuid("1234-rsaq-422dcz")
-                .setUpdateTime(Timestamp.fromMillis(123456789123L));
+                .setUpdateTime(Timestamp.fromMillis(123456789123L)).setHostname("testhost-1");
 
         assertEquals(wl1, wl2);
 
@@ -81,6 +82,12 @@ public class WorkloadTest {
         assertNotEquals(wl1, wl2);
 
         wl2.setUpdateTime(Timestamp.fromMillis(123456789123L));
+        wl2.setHostname("random");
+        assertNotEquals(wl1, wl2);
+        wl2.setHostname(null);
+        assertNotEquals(wl1, wl2);
+
+        wl2.setHostname("testhost-1");
         assertEquals(wl1, wl2);
 
         assertNotEquals(wl1, null);

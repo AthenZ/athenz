@@ -3325,6 +3325,11 @@ type Workload struct {
 	IpAddresses []string `json:"ipAddresses"`
 
 	//
+	// hostname associated with the workload
+	//
+	Hostname string `json:"hostname"`
+
+	//
 	// infrastructure provider e.g. k8s, AWS, Azure, openstack etc.
 	//
 	Provider string `json:"provider"`
@@ -3404,6 +3409,14 @@ func (self *Workload) Validate() error {
 	}
 	if self.IpAddresses == nil {
 		return fmt.Errorf("Workload: Missing required field: ipAddresses")
+	}
+	if self.Hostname == "" {
+		return fmt.Errorf("Workload.hostname is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Hostname)
+		if !val.Valid {
+			return fmt.Errorf("Workload.hostname does not contain a valid String (%v)", val.Error)
+		}
 	}
 	if self.Provider == "" {
 		return fmt.Errorf("Workload.provider is missing but is a required field")

@@ -400,6 +400,7 @@ func init() {
 	tWorkload.Field("serviceName", "EntityName", false, nil, "name of the service, , optional for getWorkloadsByService API call")
 	tWorkload.Field("uuid", "String", false, nil, "unique identifier for the workload, usually defined by provider")
 	tWorkload.ArrayField("ipAddresses", "String", false, "list of IP addresses associated with the workload, optional for getWorkloadsByIP API call")
+	tWorkload.Field("hostname", "String", false, nil, "hostname associated with the workload")
 	tWorkload.Field("provider", "String", false, nil, "infrastructure provider e.g. k8s, AWS, Azure, openstack etc.")
 	tWorkload.Field("updateTime", "Timestamp", false, nil, "most recent update timestamp in the backend")
 	sb.AddType(tWorkload.Build())
