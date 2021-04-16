@@ -83,6 +83,9 @@ public class WorkloadTest {
 
         wl2.setUpdateTime(Timestamp.fromMillis(123456789123L));
         wl2.setHostname("random");
+        assertNotEquals(wl1, wl2);
+        wl2.setHostname(null);
+        assertNotEquals(wl1, wl2);
 
         wl2.setHostname("testhost-1");
         assertEquals(wl1, wl2);
