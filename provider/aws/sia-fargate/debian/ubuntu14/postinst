@@ -1,0 +1,2 @@
+/usr/sbin/update-rc.d sia defaults
+/usr/sbin/update-rc.d sia enable

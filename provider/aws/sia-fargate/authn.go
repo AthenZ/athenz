@@ -23,28 +23,65 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
+	"strings"
 
-	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/logutil"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/util"
 
+	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/aws/aws-sdk-go/service/sts"
 )
 
-func GetEKSPodId() string {
-	podId := os.Getenv("HOSTNAME")
-	if podId == "" {
-		podId = "eksPod"
+var (
+	ECSMetaEndPoint = "http://169.254.170.2"
+)
+
+func GetECSFargateData(metaEndPoint string) (string, string, string, error) {
+	// now we're going to check if we're running within
+	// ECS Fargate and retrieve our account number and
+	// task id from our data
+	document, err := meta.GetData(metaEndPoint, "/task")
+	if err != nil {
+		return "", "", "", err
 	}
-	return podId
+	taskArn, err := doc.GetDocumentEntry(document, "TaskARN")
+	if err != nil {
+		return "", "", "", err
+	}
+	// fargate task arn has the following format (old and new):
+	// arn:aws:ecs:us-west-2:012345678910:task/9781c248-0edd-4cdb-9a93-f63cb662a5d3
+	// arn:aws:ecs:us-west-2:012345678910:task/cluster-name/9781c248-0edd-4cdb-9a93-f63cb662a5d3
+	if !strings.HasPrefix(taskArn, "arn:aws:ecs:") {
+		return "", "", "", fmt.Errorf("unable to parse task arn (ecs prefix error): %s", taskArn)
+	}
+	arn := strings.Split(taskArn, ":")
+	if len(arn) < 6 {
+		return "", "", "", fmt.Errorf("unable to parse task arn (number of components): %s", taskArn)
+	}
+	region := arn[3]
+	account := arn[4]
+	taskComps := strings.Split(arn[5], "/")
+	if taskComps[0] != "task" {
+		return "", "", "", fmt.Errorf("unable to parse task arn (task prefix): %s", taskArn)
+	}
+	var taskId string
+	lenComps := len(taskComps)
+	if lenComps == 2 || lenComps == 3 {
+		taskId = taskComps[lenComps-1]
+	} else {
+		return "", "", "", fmt.Errorf("unable to parse task arn (task prefix): %s", taskArn)
+	}
+	return account, taskId, region, nil
 }
 
 // New creates a new AttestationData with values fed to it and from the result of STS Assume Role
-func GetAttestationData(domain, service, account, region string, useRegionalSTS bool, sysLogger io.Writer) (*attestation.AttestationData, error) {
+
+func GetAttestationData(domain, service, account, region, taskId string, useRegionalSTS bool, sysLogger io.Writer) (*attestation.AttestationData, error) {
 
 	role := fmt.Sprintf("%s.%s", domain, service)
 
@@ -70,7 +107,7 @@ func GetAttestationData(domain, service, account, region string, useRegionalSTS 
 		Access: *tok.Credentials.AccessKeyId,
 		Secret: *tok.Credentials.SecretAccessKey,
 		Token:  *tok.Credentials.SessionToken,
-		TaskId: GetEKSPodId(),
+		TaskId: taskId,
 	}, nil
 }
 
