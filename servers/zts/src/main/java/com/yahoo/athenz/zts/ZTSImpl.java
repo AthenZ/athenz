@@ -26,12 +26,12 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
+import com.yahoo.athenz.common.config.AuthzDetailsEntityList;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
-import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
@@ -76,9 +76,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -141,6 +145,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected File healthCheckFile = null;
     protected int maxAuthzDetailsLength;
     protected boolean enableWorkloadStore = false;
+    protected AuthzDetailsEntityList systemAuthzDetails = null;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -240,7 +245,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // settings
         
         loadConfigurationSettings();
-        
+
+        // load system authorization details
+
+        loadSystemAuthorizationDetails();
+
         // load our schema validator - we need this before we initialize
         // our store, if necessary
         
@@ -335,7 +344,29 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 getRootDir() + "/conf/zts_server/zts.properties");
         ConfigProperties.loadProperties(propFile);
     }
-    
+
+    void loadSystemAuthorizationDetails() {
+
+        // process any system authorization details
+
+        final String authzDetailsFname = System.getProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH);
+        if (StringUtil.isEmpty(authzDetailsFname)) {
+            return;
+        }
+
+        try {
+            Path path = Paths.get(authzDetailsFname);
+            systemAuthzDetails = JSON.fromBytes(Files.readAllBytes(path), AuthzDetailsEntityList.class);
+        } catch (IOException ex) {
+            LOGGER.error("Unable to read authorization details file {}", authzDetailsFname, ex);
+        }
+
+        if (systemAuthzDetails == null || systemAuthzDetails.getEntities() == null) {
+            LOGGER.error("Unable to parse service authorization details file {}", authzDetailsFname);
+            throw new IllegalArgumentException("Invalid authorization details file");
+        }
+    }
+
     void loadConfigurationSettings() {
         
         // make sure all requests run in secure mode
@@ -474,7 +505,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // setup our health check file
 
         final String healthCheckPath = System.getProperty(ZTSConsts.ZTS_PROP_HEALTH_CHECK_PATH);
-        if (healthCheckPath != null && !healthCheckPath.isEmpty()) {
+        if (!StringUtil.isEmpty(healthCheckPath)) {
             healthCheckFile = new File(healthCheckPath);
         }
 
@@ -520,7 +551,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     
     void setAuthorityKeyStore() {
         for (Authority authority : authorities.getAuthorities()) {
-            if (AuthorityKeyStore.class.isInstance(authority)) {
+            if (authority instanceof AuthorityKeyStore) {
                 ((AuthorityKeyStore) authority).setKeyStore(this);
             }
         }
@@ -681,33 +712,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             statusChecker = statusCheckerFactory.create();
         }
-    }
-
-    AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx, String domainName,
-            String caller, String method) {
-        
-        AuditLogMsgBuilder msgBldr = auditLogger.getMsgBuilder();
-
-        // get the where - which means where this server is running
-        
-        msgBldr.where(serverHostName).whatDomain(domainName)
-            .whatApi(caller).whatMethod(method)
-            .when(Timestamp.fromCurrentTime().toString());
-
-        // get the 'who' and set it
-        
-        Principal princ = ((RsrcCtxWrapper) ctx).principal();
-        if (princ != null) {
-            final String fullName = princ.getFullName();
-            final String unsignedCreds = princ.getUnsignedCredentials();
-            msgBldr.who(unsignedCreds == null ? fullName : unsignedCreds);
-            msgBldr.whoFullName(fullName);
-        }
-
-        // get the client IP
-        
-        msgBldr.clientIp(ServletRequestUtil.getRemoteAddress(ctx.request()));
-        return msgBldr;
     }
 
     @Override
@@ -1248,7 +1252,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // first we're going to assume the resource group as part
         // of the domain name and see if that domain exists
         
-        String fullDomainName = domainNameBuf.toString() + "." + resourceGroup;
+        String fullDomainName = domainNameBuf + "." + resourceGroup;
         if (dataStore.getDataCache(fullDomainName) != null) {
             return fullDomainName;
         }
@@ -1760,13 +1764,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             return;
         }
 
-        // with authz details, we must have a single role name specified
-
-        if (requestedRoles == null || requestedRoles.length != 1) {
-            throw requestError("Authorization Details must be requested for a single role only",
-                    caller, domainName, principalDomain);
-        }
-
         // authz details must not exceed our configured limit
 
         if (authzDetails.length() > maxAuthzDetailsLength) {
@@ -1774,11 +1771,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName, principalDomain);
         }
 
-        // now extract the authz details defined for the role
+        // if we have a single role defined in our request, extract the authz details
+        // defined for the role
 
-        List<AuthzDetailsEntity> roleAuthzDetails = data.getAuthzDetailsEntities(requestedRoles[0]);
-        if (roleAuthzDetails == null) {
-            throw requestError("Role not configured with Authorization Details",
+        List<AuthzDetailsEntity> roleAuthzDetails = null;
+        if (requestedRoles != null && requestedRoles.length == 1) {
+            roleAuthzDetails = data.getAuthzDetailsEntities(requestedRoles[0]);
+        }
+
+        // at this point we must either have a single role defined or
+        // some system authz details
+
+        if (systemAuthzDetails == null && roleAuthzDetails == null) {
+            throw requestError("Authorization Details not valid for this request",
                     caller, domainName, principalDomain);
         }
 
@@ -1791,21 +1796,32 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         // we should iterate through the given authz object and make sure those
-        // are valid for the given role
+        // are valid for the given role and/or system
 
         for (LinkedHashMap authzDetailsItem : authzDetailsList) {
-            if (!validateAuthzDetailsAgainstConfig(authzDetailsItem, roleAuthzDetails)) {
-                throw requestError("Authorization Details configuration mismatch", caller, domainName, principalDomain);
+
+            // first check to see if this is valid based on role config
+
+            if (roleAuthzDetails != null && validateAuthzDetailsAgainstConfig(authzDetailsItem, roleAuthzDetails)) {
+                continue;
             }
+
+            // next check if this is valid based on server config
+
+            if (systemAuthzDetails != null && validateAuthzDetailsAgainstConfig(authzDetailsItem, systemAuthzDetails.getEntities())) {
+                continue;
+            }
+
+            throw requestError("Authorization Details configuration mismatch", caller, domainName, principalDomain);
         }
     }
 
-    boolean validateAuthzDetailsAgainstConfig(LinkedHashMap authzDetailsItem, List<AuthzDetailsEntity> roleAuthzDetails) {
+    boolean validateAuthzDetailsAgainstConfig(LinkedHashMap authzDetailsItem, List<AuthzDetailsEntity> authzDetails) {
 
         // first let's look for the config with the same type
 
         final String type = (String) authzDetailsItem.get(KEY_TYPE);
-        for (AuthzDetailsEntity entity : roleAuthzDetails) {
+        for (AuthzDetailsEntity entity : authzDetails) {
 
             if (!entity.getType().equals(type)) {
                 continue;
@@ -2530,7 +2546,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
         }
         
-        LOGGER.error("verifyAWSAssumeRole: Principal: {} has no acccess to resource: {}" +
+        LOGGER.error("verifyAWSAssumeRole: Principal: {} has no access to resource: {}" +
                 " in domain: {}", principal, roleResource, domainName);
         
         return false;
@@ -2751,7 +2767,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
                 serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver, errorMsg)) {
-            throw requestError("CSR validation failed - " + errorMsg.toString(),
+            throw requestError("CSR validation failed - " + errorMsg,
                     caller, domain, principalDomain);
         }
 
@@ -3181,7 +3197,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         StringBuilder errorMsg = new StringBuilder(256);
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
                 serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver, errorMsg)) {
-            throw requestError("CSR validation failed - " + errorMsg.toString(),
+            throw requestError("CSR validation failed - " + errorMsg,
                     caller, domain, principalDomain);
         }
 

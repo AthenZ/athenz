@@ -19,10 +19,10 @@ import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
-import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
@@ -150,7 +150,7 @@ public class ZTSImplTest {
 
     @BeforeClass
     public void setupClass() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
 
         System.setProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS, METRIC_DEFAULT_FACTORY_CLASS);
@@ -8859,57 +8859,6 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetAuditLogMsgBuilderUnsignedCreds() {
-
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
-                "v=S1;d=athenz;n=production;s=signature", 0, null);
-        principal.setUnsignedCreds("unsigned-creds");
-
-        ResourceContext context = createResourceContext(principal);
-
-        AuditLogMsgBuilder msgBuilder = zts.getAuditLogMsgBuilder(context, "athenz", "test", "test");
-        assertEquals(msgBuilder.who(), "unsigned-creds");
-    }
-
-    @Test
-    public void testGetAuditLogMsgBuilderPrincipalName() {
-
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
-                "v=S1;d=athenz;n=production;s=signature", 0, null);
-        principal.setUnsignedCreds(null);
-
-        ResourceContext context = createResourceContext(principal);
-
-        AuditLogMsgBuilder msgBuilder = zts.getAuditLogMsgBuilder(context, "athenz", "test", "test");
-        assertEquals(msgBuilder.who(), "athenz.production");
-    }
-
-    @Test
-    public void testGetAuditLogMsgBuilderNoPrincipal() {
-
-        ResourceContext context = createResourceContext(null);
-
-        AuditLogMsgBuilder msgBuilder = zts.getAuditLogMsgBuilder(context, "athenz", "test", "test");
-        assertEquals(msgBuilder.who(), "null");
-    }
-
-    @Test
-    public void testGetAuditLogMsgBuilderBuild() {
-
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
-                "v=S1;d=athenz;n=production;s=signature", 0, null);
-        principal.setUnsignedCreds(null);
-
-        ResourceContext context = createResourceContext(principal);
-
-        AuditLogMsgBuilder msgBuilder = zts.getAuditLogMsgBuilder(context, "athenz", "test", "test");
-        String auditLog = msgBuilder.build();
-        assertEquals(msgBuilder.whoFullName(), "athenz.production");
-        assertTrue(auditLog.contains("UUID="), "Test string=" + auditLog);
-        assertTrue(auditLog.contains("WHEN-epoch="), "Test string=" + auditLog);
-    }
-
-    @Test
     public void testConfigurationSettings() {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
@@ -9960,7 +9909,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostRoleCertificateExtValidateFailed() throws IOException {
+    public void testPostRoleCertificateExtValidateFailed() {
 
         // this csr is for coretech:role.readers and coretech:role.writers roles
 
@@ -10000,7 +9949,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostRoleCertificateExtRequestNullCertReturn() throws IOException {
+    public void testPostRoleCertificateExtRequestNullCertReturn() {
 
         // this csr is for coretech:role.readers and coretech:role.writers roles
 
@@ -10577,8 +10526,8 @@ public class ZTSImplTest {
             hostnameBuilder.append("123456");
         }
 
-        final String check = "provider=aws&certReqInstanceId=id001&hostname=" + hostnameBuilder.toString();
-        assertEquals(check, zts.getInstanceRegisterQueryLog("aws", "id001", hostnameBuilder.toString() + "01234"));
+        final String check = "provider=aws&certReqInstanceId=id001&hostname=" + hostnameBuilder;
+        assertEquals(check, zts.getInstanceRegisterQueryLog("aws", "id001", hostnameBuilder + "01234"));
     }
 
     @Test
@@ -11076,7 +11025,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestWithAuthorizationDetails() throws UnsupportedEncodingException {
+    public void testPostAccessTokenRequestWithAuthorizationDetails() {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -11118,15 +11067,107 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestWithAuthorizationDetailsFailures() {
+    public void testPostAccessTokenRequestWithSystemAuthorizationDetails() {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_single_authz_details.json");
 
         CloudStore cloudStore = new CloudStore();
         cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
-        // set back to our zts rsa private key
+
+        // set back to our zts rsa private key and clear authz details path
+
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+        System.clearProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        // first role based match
+
+        String authzDetails = "[{\"type\":\"message_access\",\"location\":[\"https://location1\"," +
+                "\"https://location2\"],\"identifier\":\"id1\"}]";
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:role.writers&authorization_details=" + authzDetails);
+        assertNotNull(resp);
+        assertNull(resp.getScope());
+
+        String accessTokenStr = resp.getAccess_token();
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("coretech", claims.getBody().getAudience());
+        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
+        List<String> scopes = (List<String>) claims.getBody().get("scp");
+        assertNotNull(scopes);
+        assertEquals(1, scopes.size());
+        assertEquals("writers", scopes.get(0));
+        assertEquals(authzDetails, claims.getBody().get("authorization_details"));
+
+        // next system based match
+
+        authzDetails = "[{\"type\":\"proxy_access\",\"principal\":\"spiffe://athenz/sa/api\"}]";
+        resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:role.writers&authorization_details=" + authzDetails);
+        assertNotNull(resp);
+        assertNull(resp.getScope());
+
+        accessTokenStr = resp.getAccess_token();
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("coretech", claims.getBody().getAudience());
+        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
+        assertEquals(authzDetails, claims.getBody().get("authorization_details"));
+
+        // now match both - role and system based authz details
+
+        authzDetails = "[{\"type\":\"message_access\",\"location\":[\"https://location1\"," +
+                "\"https://location2\"],\"identifier\":\"id1\"}," +
+                "{\"type\":\"proxy_access\",\"principal\":\"spiffe://athenz.proxy/sa/api\"}]";
+        resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:role.writers&authorization_details=" + authzDetails);
+        assertNotNull(resp);
+        assertNull(resp.getScope());
+
+        accessTokenStr = resp.getAccess_token();
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("coretech", claims.getBody().getAudience());
+        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
+        assertEquals(authzDetails, claims.getBody().get("authorization_details"));
+    }
+
+    @Test
+    public void testPostAccessTokenRequestWithSystemAuthorizationDetailsFailures() {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_single_authz_details.json");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        // set back to our zts rsa private key and clear authz details path
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+        System.clearProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processDomain(signedDomain, false);
@@ -11138,24 +11179,24 @@ public class ZTSImplTest {
         String authzDetails = "[{\"type\":\"message_access\",\"location\":[\"https://location1\"," +
                 "\"https://location2\"],\"identifier\":\"id1\"}]";
 
-        // no roles - should be rejected
+        // no roles - should be rejected due to no match with system filters
 
         try {
             ztsImpl.postAccessTokenRequest(context,
                     "grant_type=client_credentials&scope=coretech:domain&authorization_details=" + authzDetails);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Authorization Details must be requested for a single role only"));
+            assertTrue(ex.getMessage().contains("Authorization Details configuration mismatch"));
         }
 
-        // multiple roles - should be rejected
+        // multiple roles - should be rejected due to no match with system filters
 
         try {
             ztsImpl.postAccessTokenRequest(context,
                     "grant_type=client_credentials&scope=coretech:role.writers coretech:role.readers&authorization_details=" + authzDetails);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Authorization Details must be requested for a single role only"));
+            assertTrue(ex.getMessage().contains("Authorization Details configuration mismatch"));
         }
 
         // missing role configuration - readers has no access
@@ -11165,7 +11206,7 @@ public class ZTSImplTest {
                     "grant_type=client_credentials&scope=coretech:role.readers&authorization_details=" + authzDetails);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Role not configured with Authorization Details"));
+            assertTrue(ex.getMessage().contains("Authorization Details configuration mismatch"));
         }
 
         // invalid authz details request
@@ -11214,6 +11255,105 @@ public class ZTSImplTest {
             assertTrue(ex.getMessage().contains("Authorization Details configuration mismatch"));
         }
     }
+
+    @Test
+    public void testPostAccessTokenRequestWithAuthorizationDetailsFailures() {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        String authzDetails = "[{\"type\":\"message_access\",\"location\":[\"https://location1\"," +
+                "\"https://location2\"],\"identifier\":\"id1\"}]";
+
+        // no roles - should be rejected
+
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:domain&authorization_details=" + authzDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization Details not valid for this request"));
+        }
+
+        // multiple roles - should be rejected
+
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.writers coretech:role.readers&authorization_details=" + authzDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization Details not valid for this request"));
+        }
+
+        // missing role configuration - readers has no access
+
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.readers&authorization_details=" + authzDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization Details not valid for this request"));
+        }
+
+        // invalid authz details request
+
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.writers&authorization_details={\"type\"}");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid Authorization Details data"));
+        }
+
+        // max length restriction
+
+        ztsImpl.maxAuthzDetailsLength = 10;
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.writers&authorization_details=" + authzDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization Details exceeds configured length limit"));
+        }
+        ztsImpl.maxAuthzDetailsLength = 1024;
+
+        // unknown type of authorization details
+
+        authzDetails = "[{\"type\":\"file_access\",\"location\":[\"https://location1\"," +
+                "\"https://location2\"],\"identifier\":\"id1\"}]";
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.writers&authorization_details=" + authzDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization Details configuration mismatch"));
+        }
+
+        // unknown field value should be rejected
+
+        authzDetails = "[{\"type\":\"message_access\",\"location\":[\"https://location1\"," +
+                "\"https://location2\"],\"uuid\":\"id1\"}]";
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:role.writers&authorization_details=" + authzDetails);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Authorization Details configuration mismatch"));
+        }
+    }
+
     @Test
     public void getTransportRulesROTest() {
         zts.readOnlyMode = true;
@@ -11738,5 +11878,55 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("unable to get instance register token"));
         }
+    }
+
+    @Test
+    public void testLoadSystemAuthorizationDetails() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_invalid_authz_details.json");
+
+        try {
+            zts.loadSystemAuthorizationDetails();
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Invalid authorization details file"));
+        }
+
+        // next authz details with empty list
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_empty_authz_details.json");
+
+        try {
+            zts.loadSystemAuthorizationDetails();
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Invalid authorization details file"));
+        }
+
+        // next unknown file
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "invalid_authz_details.json");
+
+        try {
+            zts.loadSystemAuthorizationDetails();
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Invalid authorization details file"));
+        }
+
+        // finally a valid authz details file
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_multiple_authz_details.json");
+        zts.loadSystemAuthorizationDetails();
+        assertNotNull(zts.systemAuthzDetails);
+
+        List<AuthzDetailsEntity> entities = zts.systemAuthzDetails.getEntities();
+        assertNotNull(entities);
+        assertEquals(entities.size(), 2);
+        assertEquals(entities.get(0).getType(), "proxy_access");
+        assertEquals(entities.get(1).getType(), "data_access");
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH);
+        zts.systemAuthzDetails = null;
     }
 }
