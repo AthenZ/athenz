@@ -1,0 +1,5 @@
+Package: sia-ec2
+Version: SIA_PACKAGE_VERSION
+Maintainer: cncf-athenz-maintainers@lists.cncf.io
+Architecture: amd64
+Description: AWS EC2 Athenz Service Identity Agent
