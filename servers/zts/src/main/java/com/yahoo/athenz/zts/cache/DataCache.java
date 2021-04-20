@@ -216,7 +216,7 @@ public class DataCache {
     }
 
     void processProviderSuffixAssertion(Assertion assertion, AssertionEffect effect, Map<String, Role> roles,
-            final String resoourceSuffix, Map<String, List<String>> providerSuffixCache) {
+            final String resourceSuffix, Map<String, List<String>> providerSuffixCache) {
 
         // make sure we have satisfied the effect
         // if effect is null then it defaults to ALLOW
@@ -229,7 +229,7 @@ public class DataCache {
         // make sure we're processing dns suffix assertion
 
         final String resource = assertion.getResource();
-        if (!resource.startsWith(resoourceSuffix)) {
+        if (!resource.startsWith(resourceSuffix)) {
             return;
         }
 
@@ -244,7 +244,7 @@ public class DataCache {
         // we don't check to make sure there is . in front of it.
         // so we're going to reduce the length by 1 to get the .
 
-        final String suffix = resource.substring(resoourceSuffix.length() - 1);
+        final String suffix = resource.substring(resourceSuffix.length() - 1);
         for (RoleMember roleMember : role.getRoleMembers()) {
 
             final String memberName = roleMember.getMemberName();
@@ -451,7 +451,7 @@ public class DataCache {
         try {
             detailsEntity = AuthzHelper.convertEntityToAuthzDetailsEntity(entity);
         } catch (JsonProcessingException ex) {
-            LOGGER.error("Unable to process entity {}, error {}", entity.toString(), ex.getMessage());
+            LOGGER.error("Unable to process entity {}, error {}", entity, ex.getMessage());
             return;
         }
 

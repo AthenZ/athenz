@@ -1,0 +1,20 @@
+{
+  "entities": [
+    {
+      "type": "proxy_access",
+      "fields": [
+        {
+          "name": "principal"
+        }
+      ]
+    },
+    {
+      "type": "data_access",
+      "fields": [
+        {
+          "name": "principal"
+        }
+      ]
+    }
+  ]
+}
