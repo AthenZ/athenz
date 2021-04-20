@@ -1474,11 +1474,14 @@ public class ZTSClient implements Closeable {
         
         // now let's generate our dsnName field based on our principal's details
 
+        GeneralName[] sanArray = new GeneralName[2];
+
         final String hostName = service + '.' + domain.replace('.', '-') + '.' + csrDomain;
-        
-        GeneralName[] sanArray = new GeneralName[1];
         sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostName));
-        
+
+        final String spiffeUri = "spiffe://" + domain + "/sa/" + service;
+        sanArray[1] = new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(spiffeUri));
+
         String csr;
         try {
             csr = Crypto.generateX509CSR(privateKey, dn, sanArray);
