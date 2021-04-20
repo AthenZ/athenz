@@ -1,12 +1,11 @@
-Name:           sia-eks
+Name:           sia-fargate
 Version:        %{PACKAGE_VERSION}
 Release:        %{RELEASE}.el%{CENTOS_VERSION}
-Summary:        Athenz Service Identity Agent (SIA) for AWS EKS
+Summary:        Athenz Service Identity Agent (SIA) for AWS Fargate
 
 Group:          System Environment/Daemons
 License:        Apache 2.0
 URL:            https://www.athenz.io/
-Requires:       openssh-server
 BuildRoot:      %{SOURCEURL0}/rpm/BUILD/%{name}-%{version}-%{release}
 
 %{?systemd_ordering}
@@ -28,7 +27,6 @@ install -pm 0755 %{BIN_DIR}/siad $RPM_BUILD_ROOT/%{_sbindir}
 mkdir -p $RPM_BUILD_ROOT/%{_unitdir}
 install -pm 0644 %{SRC_DIR}/build/service/sia.service $RPM_BUILD_ROOT/%{_unitdir}/
 
-
 %files
 %{_sbindir}/siad
 %{_unitdir}/sia.service
@@ -39,4 +37,3 @@ systemctl enable sia > /dev/null 2>&1
 
 %preun
 %systemd_preun sia.service
-

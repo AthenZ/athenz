@@ -18,6 +18,13 @@ package sia
 
 import (
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
+	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
+	"github.com/AthenZ/athenz/provider/aws/sia-ec2/util"
+	"github.com/AthenZ/athenz/provider/aws/sia-fargate/devel/metamock"
+	"github.com/AthenZ/athenz/provider/aws/sia-fargate/devel/ztsmock"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"io"
 	"io/ioutil"
 	"log"
@@ -25,18 +32,11 @@ import (
 	"os"
 	"testing"
 	"time"
-
-	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/util"
-	"github.com/AthenZ/athenz/provider/aws/sia-eks/devel/metamock"
-	"github.com/AthenZ/athenz/provider/aws/sia-eks/devel/ztsmock"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func setup() {
+
+	os.Setenv("ECS_CONTAINER_METADATA_URI_V4", "http://127.0.0.1:5080")
 
 	go metamock.StartMetaServer("127.0.0.1:5080")
 	go ztsmock.StartZtsServer("127.0.0.1:5081")
@@ -63,7 +63,8 @@ func TestUpdateFileNew(test *testing.T) {
 	//make sure our temp file does not exist
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
-	_ = os.Remove(fileName)
+	defer os.Remove(fileName)
+
 	testContents := "sia-unit-test"
 	err = util.UpdateFile(fileName, testContents, 0, 0, 0644, sysLogger)
 	if err != nil {
@@ -73,15 +74,12 @@ func TestUpdateFileNew(test *testing.T) {
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		test.Errorf("Cannot read new created file: %v", err)
-		_ = os.Remove(fileName)
 		return
 	}
 	if string(data) != testContents {
 		test.Errorf("Read %s data not the same as stored %s data", data, testContents)
-		_ = os.Remove(fileName)
 		return
 	}
-	_ = os.Remove(fileName)
 }
 
 func TestUpdateFileExisting(test *testing.T) {
@@ -96,6 +94,9 @@ func TestUpdateFileExisting(test *testing.T) {
 	//create our temporary file
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
+
+	defer os.Remove(fileName)
+
 	testContents := "sia-unit-test"
 	err = ioutil.WriteFile(fileName, []byte(testContents), 0644)
 	if err != nil {
@@ -111,15 +112,12 @@ func TestUpdateFileExisting(test *testing.T) {
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		test.Errorf("Cannot read new created file: %v", err)
-		_ = os.Remove(fileName)
 		return
 	}
 	if string(data) != testNewContents {
 		test.Errorf("Read %s data not the same as stored %s data", data, testNewContents)
-		_ = os.Remove(fileName)
 		return
 	}
-	_ = os.Remove(fileName)
 }
 
 func TestRegisterInstance(test *testing.T) {
@@ -148,7 +146,7 @@ func TestRegisterInstance(test *testing.T) {
 
 	a := &attestation.AttestationData{
 		Role:   "athenz.hockey",
-		TaskId: "pod-1234",
+		TaskId: "task-1234",
 	}
 
 	err = RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, "us-west-2", os.Stdout)
@@ -222,7 +220,7 @@ func TestRefreshInstance(test *testing.T) {
 
 	a := &attestation.AttestationData{
 		Role:   "athenz.hockey",
-		TaskId: "pod-1234",
+		TaskId: "task-1234",
 	}
 
 	err = RefreshInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, "us-west-2", os.Stdout)
@@ -307,5 +305,22 @@ func TestExtractProviderFromCertWithoutOU(test *testing.T) {
 func TestExtractProviderFromCert(test *testing.T) {
 	if extractProviderFromCert("devel/data/cert.pem") != "Athenz" {
 		test.Error("Unable to extract Athenz ou provider from cert.pem")
+	}
+}
+func TestGetMetadata(test *testing.T) {
+
+	// "TaskARN": "arn:aws:ecs:us-west-2:012345678910:task/9781c248-0edd-4cdb-9a93-f63cb662a5d3",
+	account, taskId, region, err := GetECSFargateData("http://127.0.0.1:5080")
+	if err != nil {
+		test.Errorf("Unable to get account, task id from fargate: %v", err)
+	}
+	if account != "012345678910" {
+		test.Errorf("Account number mismatch %s vs 012345678910", account)
+	}
+	if taskId != "9781c248-0edd-4cdb-9a93-f63cb662a5d3" {
+		test.Errorf("Task Id mismatch %s vs 9781c248-0edd-4cdb-9a93-f63cb662a5d3", taskId)
+	}
+	if region != "us-west-2" {
+		test.Errorf("Region mismatch %s vs us-west-2", region)
 	}
 }

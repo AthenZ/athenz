@@ -1,4 +1,4 @@
-GOPKGNAME:=github.com/AthenZ/athenz/provider/aws/sia-eks
+GOPKGNAME:=github.com/AthenZ/athenz/provider/aws/sia-fargate
 export GOPATH ?= /tmp/go
 export GOPRIVATE=github.com
 
@@ -39,7 +39,6 @@ clean:
 custom.clean.post:
 	rm -rf $(GOPATH)/bin/linux_amd64/{metamock,ztsmock,siad}
 
-
 RPM_DIR := $(shell pwd)/rpm
 RPM_VARS :=
 RPM_VARS += --define 'BIN_DIR $(GOPATH)/bin'
@@ -49,11 +48,11 @@ RPM_VARS += --define 'CENTOS_VERSION $(CENTOS_VERSION)'
 RPM_VARS += --define '_topdir $(RPM_DIR)'
 
 package:
-	echo "rpmbuild $(RPM_VARS) -bb sia-eks.spec"
+	echo "rpmbuild $(RPM_VARS) -bb sia-fargate.spec"
 	find $(GOPATH)/bin
 	echo "siad version"
 	$(GOPATH)/bin/siad -version
-	rpmbuild $(RPM_VARS) -bb sia-eks.spec
+	rpmbuild $(RPM_VARS) -bb sia-fargate.spec
 
 ubuntu:
 	sed -i.bak s/SIA_PACKAGE_VERSION/$(PACKAGE_VERSION)/g debian/sia/DEBIAN/control

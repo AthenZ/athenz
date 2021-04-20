@@ -1,0 +1,10 @@
+[Unit]
+Description=Athenz SIA for Fargate
+
+[Service]
+ExecStart=/usr/sbin/siad
+Restart=always
+RestartSec=120
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,5 @@
+Package: sia-fargate
+Version: SIA_PACKAGE_VERSION
+Maintainer: cncf-athenz-maintainers@lists.cncf.io
+Architecture: amd64
+Description: AWS Fargate Athenz Service Identity Agent
