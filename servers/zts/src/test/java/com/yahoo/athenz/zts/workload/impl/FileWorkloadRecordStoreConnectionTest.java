@@ -47,6 +47,7 @@ public class FileWorkloadRecordStoreConnectionTest {
         workloadRecord.setProvider("openstack");
         workloadRecord.setInstanceId("instance-id");
         workloadRecord.setIp("10.0.0.1");
+        workloadRecord.setHostname("test-host.corp.yahoo.com");
         workloadRecord.setCreationTime(now);
         workloadRecord.setUpdateTime(now);
 
@@ -58,6 +59,7 @@ public class FileWorkloadRecordStoreConnectionTest {
         assertEquals(wlRecordCheck.get(0).getProvider(), "openstack");
         assertEquals(wlRecordCheck.get(0).getInstanceId(), "instance-id");
         assertEquals(wlRecordCheck.get(0).getIp(), "10.0.0.1");
+        assertEquals(wlRecordCheck.get(0).getHostname(), "test-host.corp.yahoo.com");
         assertEquals(wlRecordCheck.get(0).getCreationTime().getTime(), now.getTime());
         assertEquals(wlRecordCheck.get(0).getUpdateTime().getTime(), now.getTime());
 
@@ -66,6 +68,7 @@ public class FileWorkloadRecordStoreConnectionTest {
         assertEquals(wlRecordCheck.get(0).getProvider(), "openstack");
         assertEquals(wlRecordCheck.get(0).getInstanceId(), "instance-id");
         assertEquals(wlRecordCheck.get(0).getService(), "athenz.api");
+        assertEquals(wlRecordCheck.get(0).getHostname(), "test-host.corp.yahoo.com");
         assertEquals(wlRecordCheck.get(0).getCreationTime().getTime(), now.getTime());
         assertEquals(wlRecordCheck.get(0).getUpdateTime().getTime(), now.getTime());
 

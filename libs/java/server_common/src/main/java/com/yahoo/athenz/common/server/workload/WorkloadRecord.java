@@ -24,7 +24,15 @@ public class WorkloadRecord {
     private String ip;
     private Date creationTime;
     private Date updateTime;
+    private String hostname;
 
+    public String getHostname() {
+        return hostname;
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
     public String getService() {
         return service;
     }
@@ -82,6 +90,7 @@ public class WorkloadRecord {
                 ", ip='" + ip + '\'' +
                 ", creationTime=" + creationTime +
                 ", updateTime=" + updateTime +
+                ", hostname='" + hostname + '\'' +
                 '}';
     }
 }
