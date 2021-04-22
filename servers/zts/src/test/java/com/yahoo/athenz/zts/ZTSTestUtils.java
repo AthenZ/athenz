@@ -445,6 +445,7 @@ public class ZTSTestUtils {
                                                                               String instanceId,
                                                                               String provider,
                                                                               String ip,
+                                                                              String hostname,
                                                                               String creationTime,
                                                                               String updateTime) {
         String primaryKey = service + "#" + instanceId + "#" + ip;
@@ -454,6 +455,7 @@ public class ZTSTestUtils {
         item.put("provider", new AttributeValue(provider));
         item.put("instanceId", new AttributeValue(instanceId));
         item.put("ip", new AttributeValue(ip));
+        item.put("hostname", new AttributeValue(hostname));
         AttributeValue creationTimeVal = new AttributeValue();
         creationTimeVal.setN(creationTime);
         AttributeValue updateTimeVal = new AttributeValue();
@@ -468,6 +470,7 @@ public class ZTSTestUtils {
                                                       Date updateTime,
                                                       String provider,
                                                       String instanceId,
+                                                      String hostname,
                                                       String ip,
                                                       String service) {
         WorkloadRecord workloadRecord = new WorkloadRecord();
@@ -476,6 +479,7 @@ public class ZTSTestUtils {
         workloadRecord.setService(service);
         workloadRecord.setIp(ip);
         workloadRecord.setInstanceId(instanceId);
+        workloadRecord.setHostname(hostname);
         workloadRecord.setProvider(provider);
         return workloadRecord;
     }

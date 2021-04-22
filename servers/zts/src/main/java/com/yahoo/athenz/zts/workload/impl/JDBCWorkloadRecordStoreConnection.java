@@ -36,10 +36,11 @@ public class JDBCWorkloadRecordStoreConnection implements WorkloadRecordStoreCon
     public static final String DB_COLUMN_IP             = "ip";
     public static final String DB_COLUMN_UPDATE_TIME    = "updateTime";
     public static final String DB_COLUMN_CREATION_TIME    = "creationTime";
+    public static final String DB_COLUMN_HOSTNAME   = "hostname";
 
     private static final String SQL_GET_WORKLOADS_BY_SERVICE = "SELECT * FROM workloads WHERE service=?;";
     private static final String SQL_GET_WORKLOADS_BY_IP = "SELECT * FROM workloads WHERE ip=?;";
-    private static final String SQL_INSERT_WORKLOAD_RECORD = "INSERT INTO workloads (service, instanceId, provider, ip) VALUES (?,?,?,?);";
+    private static final String SQL_INSERT_WORKLOAD_RECORD = "INSERT INTO workloads (service, instanceId, provider, ip, hostname) VALUES (?,?,?,?,?);";
     private static final String SQL_UPDATE_WORKLOAD_RECORD = "UPDATE workloads SET updateTime=CURRENT_TIMESTAMP(3), provider=? WHERE instanceId=? AND service=? AND ip=?;";
 
     Connection con;
@@ -108,6 +109,7 @@ public class JDBCWorkloadRecordStoreConnection implements WorkloadRecordStoreCon
                     workloadRecord.setProvider(rs.getString(DB_COLUMN_PROVIDER));
                     workloadRecord.setIp(rs.getString(DB_COLUMN_IP));
                     workloadRecord.setCreationTime(rs.getTimestamp(DB_COLUMN_CREATION_TIME));
+                    workloadRecord.setHostname(rs.getString(DB_COLUMN_HOSTNAME));
                     workloadRecord.setUpdateTime(rs.getTimestamp(DB_COLUMN_UPDATE_TIME));
                     workloadRecordList.add(workloadRecord);
                 }
@@ -133,6 +135,7 @@ public class JDBCWorkloadRecordStoreConnection implements WorkloadRecordStoreCon
                     workloadRecord.setProvider(rs.getString(DB_COLUMN_PROVIDER));
                     workloadRecord.setService(rs.getString(DB_COLUMN_SERVICE));
                     workloadRecord.setCreationTime(rs.getTimestamp(DB_COLUMN_CREATION_TIME));
+                    workloadRecord.setHostname(rs.getString(DB_COLUMN_HOSTNAME));
                     workloadRecord.setUpdateTime(rs.getTimestamp(DB_COLUMN_UPDATE_TIME));
                     workloadRecordList.add(workloadRecord);
                 }
@@ -171,6 +174,7 @@ public class JDBCWorkloadRecordStoreConnection implements WorkloadRecordStoreCon
             ps.setString(2, processInsertValue(workloadRecord.getInstanceId()));
             ps.setString(3, processInsertValue(workloadRecord.getProvider()));
             ps.setString(4, processInsertValue(workloadRecord.getIp()));
+            ps.setString(5, processInsertValue(workloadRecord.getHostname()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

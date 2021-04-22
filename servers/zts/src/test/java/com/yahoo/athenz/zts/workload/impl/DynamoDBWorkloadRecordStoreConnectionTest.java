@@ -69,6 +69,7 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
         Mockito.doReturn("1234").when(item).getString("instanceId");
         Mockito.doReturn("openstack").when(item).getString("provider");
         Mockito.doReturn("10.10.10.11").when(item).getString("ip");
+        Mockito.doReturn("test-host.corp.yahoo.com").when(item).getString("hostname");
         Mockito.doReturn(currTime).when(item).get("creationTime");
         Mockito.doReturn(currTime).when(item).get("updateTime");
         Mockito.doReturn(currTime).when(item).getLong("creationTime");
@@ -89,6 +90,7 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
         Assert.assertEquals(wlRecordList.get(0).getInstanceId(), "1234");
         Assert.assertEquals(wlRecordList.get(0).getProvider(), "openstack");
         Assert.assertEquals(wlRecordList.get(0).getIp(), "10.10.10.11");
+        Assert.assertEquals(wlRecordList.get(0).getHostname(), "test-host.corp.yahoo.com");
         Assert.assertEquals(wlRecordList.get(0).getUpdateTime(), new Date(currTime));
 
         dbConn.close();
@@ -112,6 +114,7 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
         Mockito.doReturn("1234").when(item).getString("instanceId");
         Mockito.doReturn("openstack").when(item).getString("provider");
         Mockito.doReturn("athenz.api").when(item).getString("service");
+        Mockito.doReturn("test-host.corp.yahoo.com").when(item).getString("hostname");
         Mockito.doReturn(currTime).when(item).get("creationTime");
         Mockito.doReturn(currTime).when(item).get("updateTime");
         Mockito.doReturn(currTime).when(item).getLong("creationTime");
@@ -132,6 +135,7 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
         Assert.assertEquals(wlRecordList.get(0).getInstanceId(), "1234");
         Assert.assertEquals(wlRecordList.get(0).getProvider(), "openstack");
         Assert.assertEquals(wlRecordList.get(0).getService(), "athenz.api");
+        Assert.assertEquals(wlRecordList.get(0).getHostname(), "test-host.corp.yahoo.com");
         Assert.assertEquals(wlRecordList.get(0).getUpdateTime(), new Date(currTime));
 
         dbConn.close();
@@ -182,12 +186,13 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
         workloadRecord.setService("athenz.api");
         workloadRecord.setProvider("openstack");
         workloadRecord.setIp("10.0.0.1");
+        workloadRecord.setHostname("test-host.corp.yahoo.com");
         long currTime = System.currentTimeMillis();
         Date currDate = new Date(currTime);
         workloadRecord.setCreationTime(currDate);
         workloadRecord.setUpdateTime(currDate);
 
-        Item item = ItemUtils.toItem(ZTSTestUtils.generateWorkloadAttributeValues("athenz.api", "1234", "opensack", "10.0.0.1",
+        Item item = ItemUtils.toItem(ZTSTestUtils.generateWorkloadAttributeValues("athenz.api", "1234", "opensack", "10.0.0.1", "test-host.corp.yahoo.com",
                 Long.toString(currTime), Long.toString(currTime)));
 
 

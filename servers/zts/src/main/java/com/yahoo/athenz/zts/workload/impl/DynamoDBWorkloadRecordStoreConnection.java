@@ -43,6 +43,7 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
     private static final String KEY_PROVIDER = "provider";
     private static final String KEY_INSTANCE_ID = "instanceId";
     private static final String KEY_IP = "ip";
+    private static final String KEY_HOSTNAME = "hostname";
     private static final String KEY_CREATION_TIME = "creationTime";
     private static final String KEY_UPDATE_TIME = "updateTime";
     private static final String KEY_TTL = "ttl";
@@ -125,6 +126,7 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
         workloadRecord.setInstanceId(item.getString(KEY_INSTANCE_ID));
         workloadRecord.setService(item.getString(KEY_SERVICE));
         workloadRecord.setIp(item.getString(KEY_IP));
+        workloadRecord.setHostname(item.getString(KEY_HOSTNAME));
         workloadRecord.setProvider(item.getString(KEY_PROVIDER));
         workloadRecord.setCreationTime(DynamoDBUtils.getDateFromItem(item, KEY_CREATION_TIME));
         workloadRecord.setUpdateTime(DynamoDBUtils.getDateFromItem(item, KEY_UPDATE_TIME));
@@ -165,6 +167,7 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
                     .withString(KEY_PROVIDER, workloadRecord.getProvider())
                     .withString(KEY_IP, workloadRecord.getIp())
                     .withString(KEY_INSTANCE_ID, workloadRecord.getInstanceId())
+                    .withString(KEY_HOSTNAME, workloadRecord.getHostname())
                     .with(KEY_CREATION_TIME, DynamoDBUtils.getLongFromDate(workloadRecord.getCreationTime()))
                     .with(KEY_UPDATE_TIME, DynamoDBUtils.getLongFromDate(workloadRecord.getUpdateTime()))
                     .withLong(KEY_TTL, workloadRecord.getUpdateTime().getTime() / 1000L + expiryTime);
