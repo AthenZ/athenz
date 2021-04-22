@@ -2906,12 +2906,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (enableWorkloadStore && !athenzSysDomainCache.isWorkloadStoreExcludedProvider(provider)) {
             // insert into workloads store is on best-effort basis. No errors are thrown if the op is not successful.
-            String hostName = info.getHostname();
-            if (hostName == null) {
-                LOGGER.debug("hostname is not set by agent, hence forming the hostname {} with domain {} service {} and sanIpStr {} ..", hostName, info.getDomain(), info.getService(), sanIpStrForWorkloadStore);
-                hostName = info.getDomain() + "." + info.getService() + "." + sanIpStrForWorkloadStore;
-            }
-            insertWorkloadRecord(cn, provider, certReqInstanceId, sanIpStrForWorkloadStore, hostName);
+            insertWorkloadRecord(cn, provider, certReqInstanceId, sanIpStrForWorkloadStore, info.getHostname());
         }
         
         // if we're asked to return an NToken in addition to ZTS Certificate
@@ -2938,6 +2933,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     void insertWorkloadRecord(String cn, String provider, String certReqInstanceId, String sanIpStr, String hostName) {
         if (StringUtil.isEmpty(sanIpStr)) {
             return;
+        }
+        if (hostName == null) {
+            hostName = cn + "." + sanIpStr;
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("hostname is not set by agent, hence forming the hostname {} with domain.service {} and sanIpStr {} ..", hostName, cn, sanIpStr);
+            }
         }
         WorkloadRecord workloadRecord;
         String[] sanIps = sanIpStr.split(",");
