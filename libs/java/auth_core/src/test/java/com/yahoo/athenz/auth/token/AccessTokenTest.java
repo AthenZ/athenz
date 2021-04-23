@@ -21,6 +21,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import io.jsonwebtoken.*;
 import org.mockito.Mockito;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.net.ssl.SSLContext;
@@ -146,6 +147,11 @@ public class AccessTokenTest {
         } else {
             System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF, oldConf);
         }
+    }
+
+    @BeforeMethod
+    public void setup() {
+        AccessToken.setAccessTokenCertOffset(3600);
     }
 
     @Test
@@ -649,7 +655,218 @@ public class AccessTokenTest {
     }
 
     @Test
+    public void testConfirmX509CertProxyPrincipal() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+        final String authzDetails = "[{\"type\":\"proxy_access\",\"principal\":[\"spiffe://athenz/domain1/service1\"]}]";
+        accessToken.setAuthorizationDetails(authzDetails);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+
+        Path path = Paths.get("src/test/resources/x509_altnames_singleuri.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        AccessToken checkToken = new AccessToken(accessJws, resolver, cert);
+        assertNotNull(checkToken);
+    }
+
+    @Test
+    public void testConfirmX509CertMultipleProxyPrincipal() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+        final String authzDetails = "[{\"type\":\"proxy_access\",\"principal\":" +
+                "[\"spiffe://athenz/domain1/service2\",\"spiffe://athenz/domain1/service1\"]}]";
+        accessToken.setAuthorizationDetails(authzDetails);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+
+        Path path = Paths.get("src/test/resources/x509_altnames_singleuri.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        AccessToken checkToken = new AccessToken(accessJws, resolver, cert);
+        assertNotNull(checkToken);
+    }
+
+    @Test
+    public void testConfirmX509CertMismatchProxyPrincipal() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+        final String authzDetails = "[{\"type\":\"proxy_access\",\"principal\":[\"spiffe://athenz/sports/service1\"]}]";
+        accessToken.setAuthorizationDetails(authzDetails);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+
+        Path path = Paths.get("src/test/resources/x509_altnames_singleuri.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        try {
+            new AccessToken(accessJws, resolver, cert);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Confirmation failure"));
+        }
+    }
+
+    @Test
+    public void testConfirmX509CertInvalidProxyPrincipal() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+        final String authzDetails = "[{\"type\":\"proxy_access\",\"principal\":\"spiffe://athenz/domain1/service1\"}]";
+        accessToken.setAuthorizationDetails(authzDetails);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+
+        Path path = Paths.get("src/test/resources/x509_altnames_singleuri.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        try {
+            new AccessToken(accessJws, resolver, cert);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Confirmation failure"));
+        }
+    }
+
+    @Test
+    public void testConfirmX509CertInvalidEmptyProxyPrincipal() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+        final String authzDetails = "[{\"type\":\"proxy_access\",\"principal\":[]]}]";
+        accessToken.setAuthorizationDetails(authzDetails);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+
+        Path path = Paths.get("src/test/resources/x509_altnames_singleuri.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        try {
+            new AccessToken(accessJws, resolver, cert);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Confirmation failure"));
+        }
+    }
+
+    @Test
+    public void testConfirmX509CertInvalidAuthzDetails() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+        final String authzDetails = "[{\"type\":\"proxy_access\",\"principalnz/domain1/service1\"}]";
+        accessToken.setAuthorizationDetails(authzDetails);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+
+        Path path = Paths.get("src/test/resources/x509_altnames_singleuri.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        try {
+            new AccessToken(accessJws, resolver, cert);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Confirmation failure"));
+        }
+    }
+
+    @Test
+    public void testConfirmX509CertNoAuthzDetails() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+        accessToken.setAuthorizationDetails(null);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+
+        Path path = Paths.get("src/test/resources/x509_altnames_singleuri.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        try {
+            new AccessToken(accessJws, resolver, cert);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Confirmation failure"));
+        }
+    }
+
+    @Test
     public void testConfirmX509CertPrincipalCertStartTime() throws IOException {
+
+        AccessToken.setAccessTokenCertOffset(3600);
 
         // our cert issue time is 1565245568
         // so we're going to set token issue time to cert time + 3600 + 100

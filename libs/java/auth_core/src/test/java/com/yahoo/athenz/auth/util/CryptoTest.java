@@ -868,6 +868,9 @@ public class CryptoTest {
 
             List<String> uris = Crypto.extractX509CertURIs(cert);
             assertTrue(uris.isEmpty());
+
+            // no spiffe uri - returning null
+            assertNull(Crypto.extractX509CertSpiffeUri(cert));
         }
 
         try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_noip.cert")) {
@@ -876,6 +879,9 @@ public class CryptoTest {
 
             List<String> uris = Crypto.extractX509CertURIs(cert);
             assertTrue(uris.isEmpty());
+
+            // no spiffe uri - returning null
+            assertNull(Crypto.extractX509CertSpiffeUri(cert));
         }
     }
 
@@ -889,6 +895,9 @@ public class CryptoTest {
             List<String> uris = Crypto.extractX509CertURIs(cert);
             assertEquals(1, uris.size());
             assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
+
+            // single spiffe uri - successfully validated
+            assertEquals(Crypto.extractX509CertSpiffeUri(cert), "spiffe://athenz/domain1/service1");
         }
     }
 
@@ -903,6 +912,26 @@ public class CryptoTest {
             assertEquals(2, uris.size());
             assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
             assertEquals(uris.get(1), "spiffe://athenz/domain1/service2");
+
+            // multiple spiffe uri - invalid - returning null
+            assertNull(Crypto.extractX509CertSpiffeUri(cert));
+        }
+    }
+
+    @Test
+    public void testExtractX509CertSpifeeURINull() throws Exception {
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/role_cert_principal_uri_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            List<String> uris = Crypto.extractX509CertURIs(cert);
+            assertEquals(2, uris.size());
+            assertEquals(uris.get(0), "athenz://instanceid/sys.auth.zts/id001");
+            assertEquals(uris.get(1), "athenz://principal/athenz.production");
+
+            // valid uris - but not spiffe - returning null
+            assertNull(Crypto.extractX509CertSpiffeUri(cert));
         }
     }
 
