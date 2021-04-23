@@ -3398,10 +3398,19 @@ public class ZTSImplTest {
         access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, "user.user2");
         assertFalse(access.getGranted());
 
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, "user.USER2");
+        assertFalse(access.getGranted());
+
         access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, "user.user3");
         assertTrue(access.getGranted());
 
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, "user.USER3");
+        assertTrue(access.getGranted());
+
         access = zts.getResourceAccess(ctx, "update", domainName + ":table2", null, "user.user3");
+        assertFalse(access.getGranted());
+
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table2", null, "user.USER3");
         assertFalse(access.getGranted());
 
         store.getCacheStore().invalidate(domainName);
