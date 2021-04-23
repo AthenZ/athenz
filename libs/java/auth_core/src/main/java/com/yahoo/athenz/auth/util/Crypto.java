@@ -120,6 +120,7 @@ public class Crypto {
     private static final String BC_PROVIDER = "BC";
 
     public static final String CERT_RESTRICTED_SUFFIX = ":restricted";
+    public static final String CERT_SPIFFE_URI = "spiffe://";
 
     static final SecureRandom RANDOM;
     static {
@@ -1197,6 +1198,23 @@ public class Crypto {
 
     public static List<String> extractX509CertURIs(X509Certificate x509Cert) {
         return extractX509CertSANField(x509Cert, GeneralName.uniformResourceIdentifier);
+    }
+
+    public static String extractX509CertSpiffeUri(X509Certificate x509Cert) {
+        // each certificate must have a single SPIFFE URI
+        // if there are multiple we'll reject and return null
+        List<String> uris = extractX509CertURIs(x509Cert);
+        String spiffeUri = null;
+        for (String uri : uris) {
+            if (!uri.toLowerCase().startsWith(CERT_SPIFFE_URI)) {
+                continue;
+            }
+            if (spiffeUri != null) {
+                return null;
+            }
+            spiffeUri = uri;
+        }
+        return spiffeUri;
     }
 
     public static String extractX509CertPublicKey(X509Certificate x509Cert) {
