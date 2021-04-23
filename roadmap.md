@@ -3,6 +3,18 @@ planning to work on. At Verizon Media, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
+# Q2 2021
+
+- Micro Segmentation: Service Identity based ACLs (IP Table update)
+- Support proxy principal support with the use Rich Authorization Request feature
+- Implement an interface to allow validation and sync of domain meta fields (business service, aws account, etc)
+- Support member and service auto-expiry support for groups
+- Extend periodic review workflow to expose reminder date support
+- Extend ZMS CLI to provide additional output formats such as JSON
+- Enhance periodic review workflow to extend review reminder date standalone / in addition to expiry date wherever applicable
+- UI: expose all domain / role configuration options
+- UI: Apply available server templates from UI
+
 # Q1 2021
 
 - Deliver OAuth 2.0 Rich Authorization Requests feature based on Internet Draft
@@ -66,6 +78,5 @@ we implement several smaller features as they're requested by our customers.
 - Unix SSH Access Management solution
   - Define least privileged access policies in Athenz like who can login, sudo, what sudo commands are permitted for a given set of users, headless accounts, unix groups, headless users incoming and outgoing policies etc 
   - Provision the access policies on the target hosts in near realtime
-- Micro Segmentation: Service Identity based ACLs (IP Table update) 
 - Athenz Integration with Google Cloud Platform (GCP)
 - Implement SPIFEE workload API to be 100% SPIFEE spec compliant
