@@ -12,6 +12,7 @@ type Workload Struct {
     String hostname; //hostname associated with the workload
     String provider; // infrastructure provider e.g. k8s, AWS, Azure, openstack etc.
     Timestamp updateTime; // most recent update timestamp in the backend
+    Timestamp certExpiryTime; // certificate expiry time (ex: getNotAfter)
 }
 
 type Workloads Struct {

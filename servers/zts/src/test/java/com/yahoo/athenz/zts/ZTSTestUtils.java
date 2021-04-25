@@ -447,7 +447,8 @@ public class ZTSTestUtils {
                                                                               String ip,
                                                                               String hostname,
                                                                               String creationTime,
-                                                                              String updateTime) {
+                                                                              String updateTime,
+                                                                              String certExpiryTime) {
         String primaryKey = service + "#" + instanceId + "#" + ip;
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("primaryKey", new AttributeValue(primaryKey));
@@ -460,8 +461,11 @@ public class ZTSTestUtils {
         creationTimeVal.setN(creationTime);
         AttributeValue updateTimeVal = new AttributeValue();
         updateTimeVal.setN(updateTime);
+        AttributeValue certExpiryTimeVal = new AttributeValue();
+        certExpiryTimeVal.setN(certExpiryTime);
         item.put("creationTime", creationTimeVal);
         item.put("updateTime", updateTimeVal);
+        item.put("certExpiryTime", certExpiryTimeVal);
 
         return item;
     }
@@ -472,7 +476,8 @@ public class ZTSTestUtils {
                                                       String instanceId,
                                                       String hostname,
                                                       String ip,
-                                                      String service) {
+                                                      String service,
+                                                      Date certExpiryTime) {
         WorkloadRecord workloadRecord = new WorkloadRecord();
         workloadRecord.setCreationTime(creationTime);
         workloadRecord.setUpdateTime(updateTime);
@@ -481,6 +486,7 @@ public class ZTSTestUtils {
         workloadRecord.setInstanceId(instanceId);
         workloadRecord.setHostname(hostname);
         workloadRecord.setProvider(provider);
+        workloadRecord.setCertExpiryTime(certExpiryTime);
         return workloadRecord;
     }
 }

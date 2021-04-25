@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStoreConnection {
@@ -47,6 +48,8 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
     private static final String KEY_CREATION_TIME = "creationTime";
     private static final String KEY_UPDATE_TIME = "updateTime";
     private static final String KEY_TTL = "ttl";
+    private static final String KEY_EXPIRY_TIME = "certExpiryTime";
+    private static final String DEFAULT_HOSTNAME_IF_NULL = "NA";
 
     // the configuration setting is in hours so we'll automatically
     // convert into seconds since that's what dynamoDB needs
@@ -126,10 +129,20 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
         workloadRecord.setInstanceId(item.getString(KEY_INSTANCE_ID));
         workloadRecord.setService(item.getString(KEY_SERVICE));
         workloadRecord.setIp(item.getString(KEY_IP));
-        workloadRecord.setHostname(item.getString(KEY_HOSTNAME));
+
+        if (item.hasAttribute(KEY_HOSTNAME)) {
+            workloadRecord.setHostname(item.getString(KEY_HOSTNAME));
+        } else {
+            workloadRecord.setHostname(DEFAULT_HOSTNAME_IF_NULL);
+        }
         workloadRecord.setProvider(item.getString(KEY_PROVIDER));
         workloadRecord.setCreationTime(DynamoDBUtils.getDateFromItem(item, KEY_CREATION_TIME));
         workloadRecord.setUpdateTime(DynamoDBUtils.getDateFromItem(item, KEY_UPDATE_TIME));
+        if (item.hasAttribute(KEY_EXPIRY_TIME)) {
+            workloadRecord.setCertExpiryTime(DynamoDBUtils.getDateFromItem(item, KEY_EXPIRY_TIME));
+        } else {
+            workloadRecord.setCertExpiryTime(new Date(0)); //setting default date to 01/01/1970.
+        }
 
         return workloadRecord;
     }
@@ -148,6 +161,8 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
                             new AttributeUpdate(KEY_INSTANCE_ID).put(workloadRecord.getInstanceId()),
                             new AttributeUpdate(KEY_CREATION_TIME).put(DynamoDBUtils.getLongFromDate(workloadRecord.getCreationTime())),
                             new AttributeUpdate(KEY_UPDATE_TIME).put(DynamoDBUtils.getLongFromDate(workloadRecord.getUpdateTime())),
+                            new AttributeUpdate(KEY_EXPIRY_TIME).put(DynamoDBUtils.getLongFromDate(workloadRecord.getCertExpiryTime())),
+                            new AttributeUpdate(KEY_HOSTNAME).put(workloadRecord.getHostname()),
                             new AttributeUpdate(KEY_TTL).put(workloadRecord.getUpdateTime().getTime() / 1000L + expiryTime)
                     );
             updateItemRetryDynamoDBCommand.run(() -> table.updateItem(updateItemSpec));
@@ -170,6 +185,7 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
                     .withString(KEY_HOSTNAME, workloadRecord.getHostname())
                     .with(KEY_CREATION_TIME, DynamoDBUtils.getLongFromDate(workloadRecord.getCreationTime()))
                     .with(KEY_UPDATE_TIME, DynamoDBUtils.getLongFromDate(workloadRecord.getUpdateTime()))
+                    .with(KEY_EXPIRY_TIME, DynamoDBUtils.getLongFromDate(workloadRecord.getCertExpiryTime()))
                     .withLong(KEY_TTL, workloadRecord.getUpdateTime().getTime() / 1000L + expiryTime);
             putItemRetryDynamoDBCommand.run(() -> table.putItem(item));
             return true;

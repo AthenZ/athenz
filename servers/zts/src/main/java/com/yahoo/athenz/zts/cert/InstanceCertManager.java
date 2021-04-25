@@ -1072,7 +1072,8 @@ public class InstanceCertManager {
             Map<String, List<String>> flattenedIpAddresses = new HashMap<>();
             String mapKey;
             for (WorkloadRecord workloadRecord : workloadRecords) {
-                mapKey = workloadRecord.getInstanceId() + ":" + workloadRecord.getProvider() + ":" + workloadRecord.getUpdateTime().getTime() + ":" + workloadRecord.getHostname();
+                mapKey = workloadRecord.getInstanceId() + ":" + workloadRecord.getProvider() + ":" + workloadRecord.getUpdateTime().getTime() +
+                        ":" + workloadRecord.getCertExpiryTime().getTime() + ":" + workloadRecord.getHostname();
                 if (flattenedIpAddresses.containsKey(mapKey)) {
                     flattenedIpAddresses.get(mapKey).add(workloadRecord.getIp());
                 } else {
@@ -1087,7 +1088,8 @@ public class InstanceCertManager {
                 wl.setUuid(tempArr[0])
                         .setProvider(tempArr[1])
                         .setUpdateTime(Timestamp.fromMillis(Long.parseLong(tempArr[2])))
-                        .setHostname(tempArr[3])
+                        .setCertExpiryTime(Timestamp.fromMillis(Long.parseLong(tempArr[3])))
+                        .setHostname(tempArr[4])
                         .setIpAddresses(entry.getValue());
                 return wl;
             }).collect(Collectors.toList());
@@ -1107,8 +1109,8 @@ public class InstanceCertManager {
                         if (strArr != null) {
                             wl.setDomainName(strArr[0]).setServiceName(strArr[1]);
                         }
-                        wl.setProvider(wr.getProvider()).setUuid(wr.getInstanceId()).setUpdateTime(Timestamp.fromDate(wr.getUpdateTime())).setHostname(wr.getHostname());
-                        return wl;
+                        wl.setProvider(wr.getProvider()).setUuid(wr.getInstanceId()).setUpdateTime(Timestamp.fromDate(wr.getUpdateTime()))
+                                .setHostname(wr.getHostname()).setCertExpiryTime(Timestamp.fromDate(wr.getCertExpiryTime()));                        return wl;
                     })
                     .filter(distinctByKey(w -> w.getUuid() + "#" + AthenzUtils.getPrincipalName(w.getDomainName(), w.getServiceName())))
                     .collect(Collectors.toList());

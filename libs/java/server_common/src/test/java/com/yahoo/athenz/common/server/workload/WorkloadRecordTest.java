@@ -31,15 +31,19 @@ public class WorkloadRecordTest {
         wr.setIp("10.0.0.1");
         wr.setProvider("aws");
         wr.setInstanceId("afve-24dq2d");
+        wr.setHostname("test-host1");
         Date date = new Date();
         wr.setCreationTime(date);
         wr.setUpdateTime(date);
+        wr.setCertExpiryTime(date);
 
         assertEquals(wr.getService(), "athenz.api");
         assertEquals(wr.getIp(), "10.0.0.1");
         assertEquals(wr.getProvider(), "aws");
         assertEquals(wr.getInstanceId(), "afve-24dq2d");
+        assertEquals(wr.getHostname(), "test-host1");
         assertEquals(wr.getCreationTime(), date);
         assertEquals(wr.getUpdateTime(), date);
+        assertEquals(wr.getCertExpiryTime(), date);
     }
 }

@@ -37,12 +37,13 @@ public class JDBCWorkloadRecordStoreConnection implements WorkloadRecordStoreCon
     public static final String DB_COLUMN_UPDATE_TIME    = "updateTime";
     public static final String DB_COLUMN_CREATION_TIME    = "creationTime";
     public static final String DB_COLUMN_HOSTNAME   = "hostname";
+    public static final String DB_COLUMN_CERT_EXPIRY_TIME    = "certExpiryTime";
+
 
     private static final String SQL_GET_WORKLOADS_BY_SERVICE = "SELECT * FROM workloads WHERE service=?;";
     private static final String SQL_GET_WORKLOADS_BY_IP = "SELECT * FROM workloads WHERE ip=?;";
-    private static final String SQL_INSERT_WORKLOAD_RECORD = "INSERT INTO workloads (service, instanceId, provider, ip, hostname) VALUES (?,?,?,?,?);";
-    private static final String SQL_UPDATE_WORKLOAD_RECORD = "UPDATE workloads SET updateTime=CURRENT_TIMESTAMP(3), provider=? WHERE instanceId=? AND service=? AND ip=?;";
-
+    private static final String SQL_INSERT_WORKLOAD_RECORD = "INSERT INTO workloads (service, instanceId, provider, ip, hostname, certExpiryTime) VALUES (?,?,?,?,?,?);";
+    private static final String SQL_UPDATE_WORKLOAD_RECORD = "UPDATE workloads SET updateTime=CURRENT_TIMESTAMP(3), provider=?, certExpiryTime=? WHERE instanceId=? AND service=? AND ip=?;";
     Connection con;
     int queryTimeout = 10;
 
@@ -111,6 +112,7 @@ public class JDBCWorkloadRecordStoreConnection implements WorkloadRecordStoreCon
                     workloadRecord.setCreationTime(rs.getTimestamp(DB_COLUMN_CREATION_TIME));
                     workloadRecord.setHostname(rs.getString(DB_COLUMN_HOSTNAME));
                     workloadRecord.setUpdateTime(rs.getTimestamp(DB_COLUMN_UPDATE_TIME));
+                    workloadRecord.setCertExpiryTime(rs.getTimestamp(DB_COLUMN_CERT_EXPIRY_TIME));
                     workloadRecordList.add(workloadRecord);
                 }
             }
@@ -137,6 +139,7 @@ public class JDBCWorkloadRecordStoreConnection implements WorkloadRecordStoreCon
                     workloadRecord.setCreationTime(rs.getTimestamp(DB_COLUMN_CREATION_TIME));
                     workloadRecord.setHostname(rs.getString(DB_COLUMN_HOSTNAME));
                     workloadRecord.setUpdateTime(rs.getTimestamp(DB_COLUMN_UPDATE_TIME));
+                    workloadRecord.setCertExpiryTime(rs.getTimestamp(DB_COLUMN_CERT_EXPIRY_TIME));
                     workloadRecordList.add(workloadRecord);
                 }
             }
@@ -154,9 +157,10 @@ public class JDBCWorkloadRecordStoreConnection implements WorkloadRecordStoreCon
 
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_WORKLOAD_RECORD)) {
             ps.setString(1, processInsertValue(workloadRecord.getProvider()));
-            ps.setString(2, processInsertValue(workloadRecord.getInstanceId()));
-            ps.setString(3, processInsertValue(workloadRecord.getService()));
-            ps.setString(4, processInsertValue(workloadRecord.getIp()));
+            ps.setTimestamp(2, new java.sql.Timestamp(workloadRecord.getCertExpiryTime().getTime()));
+            ps.setString(3, processInsertValue(workloadRecord.getInstanceId()));
+            ps.setString(4, processInsertValue(workloadRecord.getService()));
+            ps.setString(5, processInsertValue(workloadRecord.getIp()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -175,6 +179,7 @@ public class JDBCWorkloadRecordStoreConnection implements WorkloadRecordStoreCon
             ps.setString(3, processInsertValue(workloadRecord.getProvider()));
             ps.setString(4, processInsertValue(workloadRecord.getIp()));
             ps.setString(5, processInsertValue(workloadRecord.getHostname()));
+            ps.setTimestamp(6, new java.sql.Timestamp(workloadRecord.getCertExpiryTime().getTime()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

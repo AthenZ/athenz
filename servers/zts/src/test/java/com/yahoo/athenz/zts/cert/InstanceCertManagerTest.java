@@ -1620,8 +1620,7 @@ public class InstanceCertManagerTest {
 
         Date d = new Date();
         assertTrue(instance.insertWorkloadRecord(ZTSTestUtils.createWorkloadRecord(d, d,
-                "aws", "i-123", "test-host1.corp.yahoo.com", "10.0.0.1", "athenz.api")));
-
+                "aws", "i-123", "test-host1.corp.yahoo.com", "10.0.0.1", "athenz.api", d)));
         instance.shutdown();
     }
 
@@ -1636,13 +1635,13 @@ public class InstanceCertManagerTest {
 
         Date d = new Date();
         assertTrue(instance.updateWorkloadRecord(ZTSTestUtils.createWorkloadRecord(d, d,
-                "aws", "i-123", "test-host1.corp.yahoo.com", "10.0.0.1", "athenz.api")));
+                "aws", "i-123", "test-host1.corp.yahoo.com", "10.0.0.1", "athenz.api", d)));
 
         Mockito.when(storeConn.updateWorkloadRecord(any())).thenReturn(false);
         Mockito.when(storeConn.insertWorkloadRecord(any())).thenReturn(true);
 
         assertTrue(instance.updateWorkloadRecord(ZTSTestUtils.createWorkloadRecord(d, d,
-                "aws", "i-123", "test-host1.corp.yahoo.com", "10.0.0.1", "athenz.api")));
+                "aws", "i-123", "test-host1.corp.yahoo.com", "10.0.0.1", "athenz.api", d)));
 
         instance.shutdown();
     }
@@ -1659,13 +1658,13 @@ public class InstanceCertManagerTest {
         Date d = new Date(currTime);
 
         WorkloadRecord w1 = ZTSTestUtils.createWorkloadRecord(d, d,
-                "aws", "i-123", "test-host1.corp.yahoo.com", "10.0.0.1", "athenz.api");
+                "aws", "i-123", "test-host1.corp.yahoo.com", "10.0.0.1", "athenz.api", d);
 
         WorkloadRecord w2 = ZTSTestUtils.createWorkloadRecord(d, d,
-                "aws", "i-234", "test-host2.corp.yahoo.com", "10.0.0.2", "athenz.api");
+                "aws", "i-234", "test-host2.corp.yahoo.com", "10.0.0.2", "athenz.api", d);
 
         WorkloadRecord w3 = ZTSTestUtils.createWorkloadRecord(d, d,
-                "aws", "i-234", "test-host2.corp.yahoo.com", "2001:0db8:85a3:0000:0000:8a2e:0370:7334", "athenz.api");
+                "aws", "i-234", "test-host2.corp.yahoo.com", "2001:0db8:85a3:0000:0000:8a2e:0370:7334", "athenz.api", d);
 
         List<WorkloadRecord> workloadRecordList = new ArrayList<>();
         workloadRecordList.add(w1);
@@ -1692,10 +1691,10 @@ public class InstanceCertManagerTest {
         Date d = new Date(currTime);
 
         WorkloadRecord w1 = ZTSTestUtils.createWorkloadRecord(d, d,
-                "aws", "i-123", "test-host1.corp.yahoo.com", "10.0.0.1", "athenz.api");
+                "aws", "i-123", "test-host1.corp.yahoo.com", "10.0.0.1", "athenz.api", d);
 
         WorkloadRecord w5 = ZTSTestUtils.createWorkloadRecord(d, d,
-                "aws", "i-123", "test-host2.corp.yahoo.com", "10.0.0.1", "athenz.secondapi");
+                "aws", "i-123", "test-host2.corp.yahoo.com", "10.0.0.1", "athenz.secondapi", d);
 
         List<WorkloadRecord> workloadRecordList = new ArrayList<>();
         workloadRecordList.add(w1);

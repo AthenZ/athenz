@@ -149,6 +149,8 @@ public class JDBCWorkloadRecordStoreConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "instance-id");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "openstack");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "10.0.0.1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "test-host1.yahoo.cloud");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(6, new java.sql.Timestamp(now.getTime()));
         jdbcConn.close();
     }
 
@@ -176,9 +178,10 @@ public class JDBCWorkloadRecordStoreConnectionTest {
         boolean requestSuccess = jdbcConn.updateWorkloadRecord(workloadRecord);
         assertTrue(requestSuccess);
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "openstack");
-        Mockito.verify(mockPrepStmt, times(1)).setString(2, "instance-id");
-        Mockito.verify(mockPrepStmt, times(1)).setString(3, "athenz.api");
-        Mockito.verify(mockPrepStmt, times(1)).setString(4, "10.0.0.1");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(2, new java.sql.Timestamp(now.getTime()));
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "athenz.api");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "10.0.0.1");
         jdbcConn.close();
     }
 
@@ -249,6 +252,8 @@ public class JDBCWorkloadRecordStoreConnectionTest {
         workloadRecord.setProvider("openstack");
         workloadRecord.setInstanceId("instance-id");
         workloadRecord.setIp("10.0.0.1");
+        workloadRecord.setHostname("test-host1.yahoo.cloud");
+        workloadRecord.setCertExpiryTime(now);
         workloadRecord.setCreationTime(now);
         workloadRecord.setUpdateTime(now);
 
