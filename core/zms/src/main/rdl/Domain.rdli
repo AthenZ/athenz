@@ -282,3 +282,21 @@ resource DomainTemplate DELETE "/domain/{name}/template/{template}" {
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+//List of valid domain meta attribute values
+type DomainMetaStoreValidValuesList Struct {
+    Array<String> validValues; //list of valid values for attribute
+}
+
+//List all valid values for the given attribute and user
+resource DomainMetaStoreValidValuesList GET "/domain/metastore?attribute={attributeName}&user={userName}" {
+    String attributeName; //name of attribute
+    String userName (optional); //restrict to values associated with the given user
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

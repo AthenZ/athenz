@@ -48,15 +48,12 @@ import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
-import org.mockito.Mockito;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
@@ -26065,5 +26062,82 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
+    }
+
+    @Test
+    public void testGetDomainMetaStoreValidValuesList() {
+        DomainMetaStore savedMetaStore = zms.domainMetaStore;
+        DomainMetaStore mockDomainMetaStore = Mockito.mock(DomainMetaStore.class);
+        List<String> awsAccountsList = Collections.singletonList("awsAcc");
+        Mockito.when(mockDomainMetaStore.getValidAWSAccounts(isNull())).thenReturn(awsAccountsList);
+        List<String> businessServicesList = Collections.singletonList("bservice");
+        Mockito.when(mockDomainMetaStore.getValidBusinessServices(isNull())).thenReturn(businessServicesList);
+        List<String> azureList = Collections.singletonList("azureSub");
+        Mockito.when(mockDomainMetaStore.getValidAzureSubscriptions(isNull())).thenReturn(azureList);
+        List<String> productIdList = Collections.singletonList("product");
+        Mockito.when(mockDomainMetaStore.getValidProductIds(isNull())).thenReturn(productIdList);
+        zms.domainMetaStore = mockDomainMetaStore;
+        assertEquals("bservice", zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "businessService", null).getValidValues().get(0));
+        assertEquals("awsAcc", zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "awsAccount", null).getValidValues().get(0));
+        assertEquals("azureSub", zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "azureSubscription", null).getValidValues().get(0));
+        assertEquals("product", zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "productId", null).getValidValues().get(0));
+        zms.domainMetaStore = savedMetaStore;
+    }
+
+    @Test
+    public void testGetDomainMetaStoreValidValuesListEmpty() {
+        DomainMetaStore savedMetaStore = zms.domainMetaStore;
+        zms.domainMetaStore = new TestDomainMetaStore();
+        DomainMetaStoreValidValuesList emptyValidValuesList = new DomainMetaStoreValidValuesList();
+        emptyValidValuesList.setValidValues(new ArrayList<>());
+        assertEquals(emptyValidValuesList, zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "businessService", null));
+        assertEquals(emptyValidValuesList, zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "awsAccount", null));
+        assertEquals(emptyValidValuesList, zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "azureSubscription", null));
+        assertEquals(emptyValidValuesList, zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "productId", null));
+        zms.domainMetaStore = savedMetaStore;
+    }
+
+    @Test
+    public void testGetDomainMetaStoreValidValuesListBadAttribute() {
+        DomainMetaStore savedMetaStore = zms.domainMetaStore;
+        zms.domainMetaStore = new TestDomainMetaStore();
+        try {
+            zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "badAttribute", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (400): {code: 400, message: \"Invalid attribute: badAttribute\"}");
+        } finally {
+            zms.domainMetaStore = savedMetaStore;
+        }
+    }
+
+    @Test
+    public void testGetDomainMetaStoreValidValuesListMissingAttribute() {
+        DomainMetaStore savedMetaStore = zms.domainMetaStore;
+        zms.domainMetaStore = new TestDomainMetaStore();
+        try {
+            zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (400): {code: 400, message: \"attributeName is mandatory\"}");
+        } finally {
+            zms.domainMetaStore = savedMetaStore;
+        }
+    }
+
+    @Test
+    public void testGetDomainMetaStoreValidValuesUsernameLowered() {
+        DomainMetaStore savedMetaStore = zms.domainMetaStore;
+        DomainMetaStore mockDomainMetaStore = Mockito.mock(DomainMetaStore.class);
+        List<String> businessServicesList = Collections.singletonList("bservice");
+        Mockito.when(mockDomainMetaStore.getValidBusinessServices(anyString())).thenReturn(businessServicesList);
+
+        zms.domainMetaStore = mockDomainMetaStore;
+        ArgumentCaptor<String> userCapture = ArgumentCaptor.forClass(String.class);
+        zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "businessService", "TestUser");
+        Mockito.verify(mockDomainMetaStore, times(1)).getValidBusinessServices(userCapture.capture());
+
+        assertEquals(userCapture.getValue(), "testuser");
+        zms.domainMetaStore = savedMetaStore;
     }
 }

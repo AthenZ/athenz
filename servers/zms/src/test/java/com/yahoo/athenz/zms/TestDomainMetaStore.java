@@ -18,6 +18,9 @@ package com.yahoo.athenz.zms;
 import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 import com.yahoo.athenz.common.server.rest.ResourceException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TestDomainMetaStore implements DomainMetaStore {
 
     @Override
@@ -31,6 +34,11 @@ public class TestDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
+    public List<String> getValidBusinessServices(String userName) {
+        return new ArrayList<>();
+    }
+
+    @Override
     public boolean isValidAWSAccount(String domainName, String awsAccountId) {
         return isValidAttribute(awsAccountId);
     }
@@ -38,6 +46,11 @@ public class TestDomainMetaStore implements DomainMetaStore {
     @Override
     public void setAWSAccountDomain(String domainName, String awsAccountId) {
         setAttribute(awsAccountId);
+    }
+
+    @Override
+    public List<String> getValidAWSAccounts(String userName) {
+        return new ArrayList<>();
     }
 
     @Override
@@ -51,6 +64,11 @@ public class TestDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
+    public List<String> getValidAzureSubscriptions(String userName) {
+        return new ArrayList<>();
+    }
+
+    @Override
     public boolean isValidProductId(String domainName, Integer productId) {
         return isValidAttribute(productId);
     }
@@ -58,6 +76,11 @@ public class TestDomainMetaStore implements DomainMetaStore {
     @Override
     public void setProductIdDomain(String domainName, Integer productId) {
         setAttribute(productId);
+    }
+
+    @Override
+    public List<String> getValidProductIds(String userName) {
+        return new ArrayList<>();
     }
 
     private boolean isValidAttribute(String value) {

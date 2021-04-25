@@ -17,6 +17,9 @@ package com.yahoo.athenz.common.server.metastore;
 
 import com.yahoo.athenz.common.server.metastore.impl.NoOpDomainMetaStoreFactory;
 import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+
 import static org.testng.Assert.*;
 
 public class DomainMetaStoreTest {
@@ -40,6 +43,15 @@ public class DomainMetaStoreTest {
 
         assertTrue(metaStore.isValidBusinessService("athenz", "security"));
         assertTrue(metaStore.isValidBusinessService("athenz", null));
+
+        assertEquals(metaStore.getValidBusinessServices(null), new ArrayList<>());
+        assertEquals(metaStore.getValidBusinessServices("user"), new ArrayList<>());
+        assertEquals(metaStore.getValidAWSAccounts(null), new ArrayList<>());
+        assertEquals(metaStore.getValidAWSAccounts("user"), new ArrayList<>());
+        assertEquals(metaStore.getValidAzureSubscriptions(null), new ArrayList<>());
+        assertEquals(metaStore.getValidAzureSubscriptions("user"), new ArrayList<>());
+        assertEquals(metaStore.getValidProductIds(null), new ArrayList<>());
+        assertEquals(metaStore.getValidProductIds("user"), new ArrayList<>());
 
         // these methods would throw no exceptions
 

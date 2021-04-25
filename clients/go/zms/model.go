@@ -3988,6 +3988,66 @@ func (self *UserDomain) Validate() error {
 }
 
 //
+// DomainMetaStoreValidValuesList - List of valid domain meta attribute values
+//
+type DomainMetaStoreValidValuesList struct {
+
+	//
+	// list of valid values for attribute
+	//
+	ValidValues []string `json:"validValues"`
+}
+
+//
+// NewDomainMetaStoreValidValuesList - creates an initialized DomainMetaStoreValidValuesList instance, returns a pointer to it
+//
+func NewDomainMetaStoreValidValuesList(init ...*DomainMetaStoreValidValuesList) *DomainMetaStoreValidValuesList {
+	var o *DomainMetaStoreValidValuesList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainMetaStoreValidValuesList)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *DomainMetaStoreValidValuesList) Init() *DomainMetaStoreValidValuesList {
+	if self.ValidValues == nil {
+		self.ValidValues = make([]string, 0)
+	}
+	return self
+}
+
+type rawDomainMetaStoreValidValuesList DomainMetaStoreValidValuesList
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DomainMetaStoreValidValuesList
+//
+func (self *DomainMetaStoreValidValuesList) UnmarshalJSON(b []byte) error {
+	var m rawDomainMetaStoreValidValuesList
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainMetaStoreValidValuesList(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DomainMetaStoreValidValuesList) Validate() error {
+	if self.ValidValues == nil {
+		return fmt.Errorf("DomainMetaStoreValidValuesList: Missing required field: validValues")
+	}
+	return nil
+}
+
+//
 // DanglingPolicy - A dangling policy where the assertion is referencing a role
 // name that doesn't exist in the domain
 //

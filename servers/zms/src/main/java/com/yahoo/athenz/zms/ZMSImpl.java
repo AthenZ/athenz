@@ -2375,6 +2375,52 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller);
     }
 
+    @Override
+    public DomainMetaStoreValidValuesList getDomainMetaStoreValidValuesList(ResourceContext ctx, String attributeName, String userName) {
+        final String caller = ctx.getApiName();
+
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("getDomainMetaStoreValidValuesList: user: {}, attribute: {}", userName, attributeName);
+        }
+
+        if (StringUtil.isEmpty(attributeName)) {
+            throw ZMSUtils.requestError("attributeName is mandatory", caller);
+        }
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        if (userName != null) {
+            userName = userName.toLowerCase();
+        }
+
+        List<String> values;
+        switch (attributeName) {
+            case DomainMetaStore.META_ATTR_BUSINESS_SERVICE_NAME:
+                values = domainMetaStore.getValidBusinessServices(userName);
+                break;
+            case DomainMetaStore.META_ATTR_AWS_ACCOUNT_NAME:
+                values = domainMetaStore.getValidAWSAccounts(userName);
+                break;
+            case DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION_NAME:
+                values = domainMetaStore.getValidAzureSubscriptions(userName);
+                break;
+            case DomainMetaStore.META_ATTR_PRODUCT_ID_NAME:
+                values = domainMetaStore.getValidProductIds(userName);
+                break;
+            default:
+                throw ZMSUtils.requestError("Invalid attribute: " + attributeName, caller);
+        }
+        DomainMetaStoreValidValuesList domainMetaStoreValidValuesList = new DomainMetaStoreValidValuesList();
+        domainMetaStoreValidValuesList.setValidValues(values);
+        return domainMetaStoreValidValuesList;
+    }
+
     boolean validateRoleBasedAccessCheck(List<String> roles, final String trustDomain, final String domainName,
                                          final String principalName) {
 

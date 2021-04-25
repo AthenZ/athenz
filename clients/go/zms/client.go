@@ -757,6 +757,38 @@ func (client ZMSClient) DeleteDomainTemplate(name DomainName, template SimpleNam
 	}
 }
 
+func (client ZMSClient) GetDomainMetaStoreValidValuesList(attributeName string, userName string) (*DomainMetaStoreValidValuesList, error) {
+	var data *DomainMetaStoreValidValuesList
+	url := client.URL + "/domain/metastore" + encodeParams(encodeStringParam("attribute", string(attributeName), ""), encodeStringParam("user", string(userName), ""))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client ZMSClient) GetDomainDataCheck(domainName DomainName) (*DomainDataCheck, error) {
 	var data *DomainDataCheck
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/check"

@@ -532,6 +532,39 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/domain/metastore")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "List all valid values for the given attribute and user")
+    public DomainMetaStoreValidValuesList getDomainMetaStoreValidValuesList(
+        @Parameter(description = "name of attribute", required = true) @QueryParam("attribute") String attributeName,
+        @Parameter(description = "restrict to values associated with the given user", required = false) @QueryParam("user") String userName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getDomainMetaStoreValidValuesList");
+            context.authenticate();
+            return this.delegate.getDomainMetaStoreValidValuesList(context, attributeName, userName);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainMetaStoreValidValuesList");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/domain/{domainName}/check")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Carry out data check operation for the specified domain.")

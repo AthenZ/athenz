@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.metastore;
 
+import java.util.List;
+
 /**
  * An interface that allows the server to verify and update domain's
  * meta attributes in some external store
@@ -27,6 +29,13 @@ public interface DomainMetaStore {
     int META_ATTR_AWS_ACCOUNT         = 1;
     int META_ATTR_AZURE_SUBSCRIPTION  = 2;
     int META_ATTR_PRODUCT_ID          = 3;
+
+    // valid attribute names
+
+    String META_ATTR_BUSINESS_SERVICE_NAME = "businessService";
+    String META_ATTR_AWS_ACCOUNT_NAME = "awsAccount";
+    String META_ATTR_AZURE_SUBSCRIPTION_NAME = "azureSubscription";
+    String META_ATTR_PRODUCT_ID_NAME = "productId";
 
     /**
      * Validate if the given business service is valid for the domain.
@@ -46,6 +55,13 @@ public interface DomainMetaStore {
     void setBusinessServiceDomain(final String domainName, final String businessService);
 
     /**
+     * Get a list of valid business services
+     * @param userName (optional) if not null, only get business services associated with the user
+     * @return Business Services List
+     */
+    List<String> getValidBusinessServices(final String userName);
+
+    /**
      * Validate if the given AWS account number is valid for the domain
      * @param domainName - name of the domain
      * @param awsAccountId - aws account id (can be null)
@@ -61,6 +77,13 @@ public interface DomainMetaStore {
      * @throws com.yahoo.athenz.common.server.rest.ResourceException in case of any failure
      */
     void setAWSAccountDomain(final String domainName, final String awsAccountId);
+
+    /**
+     * Get a list of valid AWS Accounts
+     * @param userName (optional) if not null, only get AWS accounts associated with the user
+     * @return AWS Accounts List
+     */
+    List<String> getValidAWSAccounts(final String userName);
 
     /**
      * Validate if the given Azure subscription id is valid for the domain
@@ -80,6 +103,13 @@ public interface DomainMetaStore {
     void setAzureSubscriptionDomain(final String domainName, final String azureSubscription);
 
     /**
+     * Get a list of valid Azue Subscriptions
+     * @param userName (optional) if not null, only get Azure subscriptions associated with the user
+     * @return Azure Subscriptions List
+     */
+    List<String> getValidAzureSubscriptions(final String userName);
+
+    /**
      * Validate if the given product id is valid for the domain
      * @param domainName - name of the domain
      * @param productId - product id (can be null)
@@ -95,4 +125,11 @@ public interface DomainMetaStore {
      * @throws com.yahoo.athenz.common.server.rest.ResourceException in case of any failure
      */
     void setProductIdDomain(final String domainName, Integer productId);
+
+    /**
+     * Get a list of valid Product Ids
+     * @param userName (optional) if not null, only get Product ids associated with the user
+     * @return Product Ids List
+     */
+    List<String> getValidProductIds(final String userName);
 }
