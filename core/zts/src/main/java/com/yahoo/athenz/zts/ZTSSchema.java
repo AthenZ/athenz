@@ -346,7 +346,8 @@ public class ZTSSchema {
             .arrayField("ipAddresses", "String", false, "list of IP addresses associated with the workload, optional for getWorkloadsByIP API call")
             .field("hostname", "String", false, "hostname associated with the workload")
             .field("provider", "String", false, "infrastructure provider e.g. k8s, AWS, Azure, openstack etc.")
-            .field("updateTime", "Timestamp", false, "most recent update timestamp in the backend");
+            .field("updateTime", "Timestamp", false, "most recent update timestamp in the backend")
+            .field("certExpiryTime", "Timestamp", false, "certificate expiry time (ex: getNotAfter)");
 
         sb.structType("Workloads")
             .arrayField("workloadList", "Workload", false, "list of workloads");

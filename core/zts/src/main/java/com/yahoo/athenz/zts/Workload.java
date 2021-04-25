@@ -19,6 +19,7 @@ public class Workload {
     public String hostname;
     public String provider;
     public Timestamp updateTime;
+    public Timestamp certExpiryTime;
 
     public Workload setDomainName(String domainName) {
         this.domainName = domainName;
@@ -69,6 +70,13 @@ public class Workload {
     public Timestamp getUpdateTime() {
         return updateTime;
     }
+    public Workload setCertExpiryTime(Timestamp certExpiryTime) {
+        this.certExpiryTime = certExpiryTime;
+        return this;
+    }
+    public Timestamp getCertExpiryTime() {
+        return certExpiryTime;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -96,6 +104,9 @@ public class Workload {
                 return false;
             }
             if (updateTime == null ? a.updateTime != null : !updateTime.equals(a.updateTime)) {
+                return false;
+            }
+            if (certExpiryTime == null ? a.certExpiryTime != null : !certExpiryTime.equals(a.certExpiryTime)) {
                 return false;
             }
         }

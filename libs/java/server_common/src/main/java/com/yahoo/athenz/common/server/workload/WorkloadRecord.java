@@ -26,6 +26,15 @@ public class WorkloadRecord {
     private Date updateTime;
     private String hostname;
 
+    public Date getCertExpiryTime() {
+        return certExpiryTime;
+    }
+
+    public void setCertExpiryTime(Date certExpiryTime) {
+        this.certExpiryTime = certExpiryTime;
+    }
+
+    private Date certExpiryTime;
     public String getHostname() {
         return hostname;
     }
@@ -91,6 +100,7 @@ public class WorkloadRecord {
                 ", creationTime=" + creationTime +
                 ", updateTime=" + updateTime +
                 ", hostname='" + hostname + '\'' +
+                ", certExpiryTime=" + certExpiryTime +
                 '}';
     }
 }

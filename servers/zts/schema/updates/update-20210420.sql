@@ -1,1 +1,3 @@
-ALTER TABLE `zts_store`.`workloads` ADD COLUMN `hostname` VARCHAR(256) NOT NULL;
+ALTER TABLE `zts_store`.`workloads`
+ADD COLUMN `hostname` VARCHAR(256) NOT NULL DEFAULT 'NA',
+ADD COLUMN `certExpiryTime` DATETIME(3) NOT NULL DEFAULT '1970-01-01 00:00:00.000';
