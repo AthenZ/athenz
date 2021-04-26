@@ -169,7 +169,6 @@ describe('Input', () => {
 
         expect(wrapper).toMatchSnapshot();
         expect(wrapper).toHaveClass('error');
-        expect(message).toHaveTextContent('An error has occurred');
     });
 
     it('should render an input with a label', () => {
@@ -185,9 +184,6 @@ describe('Input', () => {
         const wrapper = getByTestId('input-wrapper');
 
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.querySelector('.input-label')).toHaveTextContent(
-            'label'
-        );
     });
 
     it('should render an input with an icon', () => {

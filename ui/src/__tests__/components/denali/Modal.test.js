@@ -39,10 +39,6 @@ describe('Modal', () => {
 
         expect(baseElement).toMatchSnapshot();
         expect(baseElement.querySelector('.denali-modal')).not.toBeNull();
-        expect(queryByTestId('modal-title')).toHaveTextContent('A modal');
-        expect(queryByTestId('modal-content')).toHaveTextContent(
-            'Modal content'
-        );
     });
 
     it('should render with title as an element', () => {
@@ -57,9 +53,6 @@ describe('Modal', () => {
             </Modal>
         );
 
-        expect(queryByTestId('custom-modal-title')).toHaveTextContent(
-            'Bold not bold'
-        );
     });
 
     it('should render with an additional class name', () => {
