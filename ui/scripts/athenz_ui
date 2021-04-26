@@ -36,7 +36,7 @@ if [ -z "${ZMS_SERVER}" ]; then
     exit 1
 fi
 
-if [ -z "${ZMS_SERVER_URL}" ]; then
+if [ -z "${ZMS_SERVER}" ]; then
     export ZMS_SERVER_URL=https://${ZMS_SERVER}:4443/zms/v1/
 fi
 
