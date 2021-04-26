@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -574,7 +575,7 @@ public class ZTSClient implements Closeable {
     }
 
     /**
-     * Generate the SSLContext object based on give key/cert and trusttore
+     * Generate the SSLContext object based on give key/cert and truststore
      * files. If configured, the method will monitor any changes in the given
      * key/cert files and automatically update the ssl context.
      * @param trustStorePath path to the trust-store
@@ -1121,6 +1122,18 @@ public class ZTSClient implements Closeable {
     }
 
     /**
+     * Generate the authorization details for an access token request when
+     * the request is processed through a proxy server and we need to convey
+     * that information to the origin server to support mtls bind check
+     * @param proxyPrincipalSpiffeUris list of proxy principal spiffe Uris
+     * @return authorization details json object to include in the getAccessToken call
+     */
+    public static String generateProxyPrincipalAuthorizationDetails(final List<String> proxyPrincipalSpiffeUris) {
+        return proxyPrincipalSpiffeUris.stream().collect(
+                Collectors.joining("\",\"", "[{\"type\":\"proxy_access\",\"principal\":[\"", "\"]}]"));
+    }
+
+    /**
      * For the specified requester(user/service) return the corresponding Access Token that
      * includes the list of roles that the principal has access to in the specified domain
      * @param domainName name of the domain
@@ -1358,7 +1371,7 @@ public class ZTSClient implements Closeable {
      * @param expiryTime number of seconds to request certificate to be valid for
      * @return RoleCertificateRequest object
      */
-    static public RoleCertificateRequest generateRoleCertificateRequest(final String principalDomain,
+    public static RoleCertificateRequest generateRoleCertificateRequest(final String principalDomain,
             final String principalService, final String roleDomainName, final String roleName,
             PrivateKey privateKey, final String csrDn, final String csrDomain, int expiryTime) {
         
@@ -1417,7 +1430,7 @@ public class ZTSClient implements Closeable {
      * @param expiryTime number of seconds to request certificate to be valid for
      * @return RoleCertificateRequest object
      */
-    static public RoleCertificateRequest generateRoleCertificateRequest(final String principalDomain,
+    public static RoleCertificateRequest generateRoleCertificateRequest(final String principalDomain,
             final String principalService, final String roleDomainName, final String roleName,
             final PrivateKey privateKey, final String cloud, int expiryTime) {
         
@@ -1448,7 +1461,7 @@ public class ZTSClient implements Closeable {
      * @param expiryTime number of seconds to request certificate to be valid for
      * @return InstanceRefreshRequest object
      */
-    static public InstanceRefreshRequest generateInstanceRefreshRequest(final String principalDomain,
+    public static InstanceRefreshRequest generateInstanceRefreshRequest(final String principalDomain,
             final String principalService, PrivateKey privateKey, final String csrDn,
             final String csrDomain, int expiryTime) {
         
@@ -1502,7 +1515,7 @@ public class ZTSClient implements Closeable {
      * @param expiryTime number of seconds to request certificate to be valid for
      * @return InstanceRefreshRequest object
      */
-    static public InstanceRefreshRequest generateInstanceRefreshRequest(String principalDomain,
+    public static InstanceRefreshRequest generateInstanceRefreshRequest(String principalDomain,
             String principalService, PrivateKey privateKey, String cloud, int expiryTime) {
         
         if (cloud == null) {
@@ -2827,11 +2840,11 @@ public class ZTSClient implements Closeable {
      * given provider. Not all providers may support such functionality.
      * @param provider name of the provider
      * @param domain name of the domain
-     * @param service name of the serice
+     * @param service name of the service
      * @param instanceId unique id assigned to the instance by the provider
      * @return instance register token. ZTSClientException will be thrown in case of failure
      */
-    public InstanceRegisterToken getIntanceRegisterToken(String provider, String domain, String service, String instanceId) {
+    public InstanceRegisterToken getInstanceRegisterToken(String provider, String domain, String service, String instanceId) {
         try {
             return ztsClient.getInstanceRegisterToken(provider, domain, service, instanceId);
         } catch (ResourceException ex) {
