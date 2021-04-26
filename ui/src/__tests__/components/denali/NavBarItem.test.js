@@ -23,7 +23,6 @@ describe('NavBarItem', () => {
         const navbarItem = getByTestId('navbar-item');
 
         expect(navbarItem).toMatchSnapshot();
-        expect(navbarItem).toHaveTextContent('An item');
     });
 
     it('should render a link item', () => {
@@ -86,7 +85,6 @@ describe('NavBarItem', () => {
         const navbarItem = getByTestId('navbar-item');
 
         expect(navbarItem).toMatchSnapshot();
-        expect(navbarItem).toHaveTextContent('A complex item');
     });
 
     it('should render a complex active link item', () => {
@@ -102,7 +100,6 @@ describe('NavBarItem', () => {
         const navbarItem = getByTestId('navbar-item');
 
         expect(navbarItem).toMatchSnapshot();
-        expect(navbarItem).toHaveTextContent('A complex active link item');
         expect(navbarItem).toHaveClass('active');
         expect(navbarItem).toHaveClass('nav-link');
     });

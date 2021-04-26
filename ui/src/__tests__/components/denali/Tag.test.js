@@ -23,7 +23,6 @@ describe('Tag', () => {
         const tag = getByTestId('tag');
 
         expect(tag).toMatchSnapshot();
-        expect(tag).toHaveTextContent('A tag');
     });
 
     it('should render a removable Tag', () => {
