@@ -3485,24 +3485,37 @@ public class ZTSClientTest {
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
-        InstanceRegisterToken token = client.getIntanceRegisterToken("sys.auth.zts", "coretech",
+        InstanceRegisterToken token = client.getInstanceRegisterToken("sys.auth.zts", "coretech",
                 "api", "id-001");
         assertNotNull(token);
 
         try {
-            client.getIntanceRegisterToken("sys.auth.zts", "bad-domain", "api", "id-001");
+            client.getInstanceRegisterToken("sys.auth.zts", "bad-domain", "api", "id-001");
             fail();
         } catch (ZTSClientException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         try {
-            client.getIntanceRegisterToken("sys.auth.zts", "exc", "api", "id-001");
+            client.getInstanceRegisterToken("sys.auth.zts", "exc", "api", "id-001");
             fail();
         } catch (ZTSClientException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
         client.close();
+    }
+
+    @Test
+    public void testGenerateProxyPrincipalAuthorizationDetails() {
+        assertEquals(ZTSClient.generateProxyPrincipalAuthorizationDetails(Collections.emptyList()),
+                "[{\"type\":\"proxy_access\",\"principal\":[\"\"]}]");
+        List<String> spiffeUris = new ArrayList<>();
+        spiffeUris.add("spiffe://sports/sa/api");
+        assertEquals(ZTSClient.generateProxyPrincipalAuthorizationDetails(spiffeUris),
+                "[{\"type\":\"proxy_access\",\"principal\":[\"spiffe://sports/sa/api\"]}]");
+        spiffeUris.add("spiffe://sports/sa/backend");
+        assertEquals(ZTSClient.generateProxyPrincipalAuthorizationDetails(spiffeUris),
+                "[{\"type\":\"proxy_access\",\"principal\":[\"spiffe://sports/sa/api\",\"spiffe://sports/sa/backend\"]}]");
     }
 }
