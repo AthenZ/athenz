@@ -47,7 +47,7 @@ const TableHeadStyledGroupName = styled.th`
     padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
-    padding: 5px 0 5px 35px;
+    padding: 5px 0 5px 25px;
     word-break: break-all;
 `;
 
@@ -99,9 +99,11 @@ export default class InstanceTable extends React.Component {
         return (
             <StyleTable key='instance-table' data-testid='instancetable'>
                 <colgroup>
-                    <col style={{ width: 50 + '%' }} />
-                    <col style={{ width: 25 + '%' }} />
-                    <col style={{ width: 25 + '%' }} />
+                    <col style={{ width: 20 + '%' }} />
+                    <col style={{ width: 20 + '%' }} />
+                    <col style={{ width: 20 + '%' }} />
+                    <col style={{ width: 20 + '%' }} />
+                    <col style={{ width: 20 + '%' }} />
                 </colgroup>
                 {this.props.category === 'dynamic' && (
                     <thead>
@@ -109,10 +111,18 @@ export default class InstanceTable extends React.Component {
                             <TableHeadStyledGroupName align={'left'}>
                                 Instance
                             </TableHeadStyledGroupName>
-                            <TableHeadStyled>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Hostname
+                            </TableHeadStyledGroupName>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Provider
+                            </TableHeadStyledGroupName>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Expires On
+                            </TableHeadStyledGroupName>
+                            <TableHeadStyledGroupName align={'left'}>
                                 Last Certificate Refresh
-                            </TableHeadStyled>
-                            <TableHeadStyled>Provider</TableHeadStyled>
+                            </TableHeadStyledGroupName>
                         </tr>
                     </thead>
                 )}

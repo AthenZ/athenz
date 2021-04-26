@@ -1890,7 +1890,7 @@ Fetchr.registerService({
             { domainName: params.domainName, serviceName: params.serviceName },
             (err, data) => {
                 let result = [];
-                if (data) {
+                if (data && data.workloadList != null) {
                     if (params.category === 'static') {
                         data.workloadList.forEach((workload) => {
                             if (workload.provider === 'Static') {
