@@ -77,17 +77,31 @@ class InstanceRow extends React.Component {
                         {ipAddress}
                     </TDStyled>
                     {this.props.category === 'dynamic' && (
-                        <TDStyled color={color} align={center}>
+                        <TDStyled color={color} align={left}>
+                            {details.hostname}
+                        </TDStyled>
+                    )}
+                    {this.props.category === 'dynamic' && (
+                        <TDStyled color={color} align={left}>
+                            {details.provider}
+                        </TDStyled>
+                    )}
+                    {this.props.category === 'dynamic' && (
+                        <TDStyled color={color} align={left}>
                             {this.localDate.getLocalDate(
-                                details.updateTime,
+                                details.certExpiryTime,
                                 'UTC',
                                 'UTC'
                             )}
                         </TDStyled>
                     )}
                     {this.props.category === 'dynamic' && (
-                        <TDStyled color={color} align={center}>
-                            {details.provider}
+                        <TDStyled color={color} align={left}>
+                            {this.localDate.getLocalDate(
+                                details.updateTime,
+                                'UTC',
+                                'UTC'
+                            )}
                         </TDStyled>
                     )}
                     {this.props.category === 'static' && (

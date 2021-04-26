@@ -18,23 +18,11 @@ exports[`InstanceTable should render 1`] = `
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
-  padding: 5px 0 5px 35px;
+  padding: 5px 0 5px 25px;
   word-break: break-all;
 }
 
-.emotion-4 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-8 {
+.emotion-12 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -46,15 +34,8 @@ exports[`InstanceTable should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-10 {
+.emotion-14 {
   text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-12 {
-  text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
@@ -66,13 +47,19 @@ exports[`InstanceTable should render 1`] = `
 >
   <colgroup>
     <col
-      style="width: 50%;"
+      style="width: 20%;"
     />
     <col
-      style="width: 25%;"
+      style="width: 20%;"
     />
     <col
-      style="width: 25%;"
+      style="width: 20%;"
+    />
+    <col
+      style="width: 20%;"
+    />
+    <col
+      style="width: 20%;"
     />
   </colgroup>
   <thead>
@@ -83,39 +70,59 @@ exports[`InstanceTable should render 1`] = `
         Instance
       </th>
       <th
-        class="emotion-4 emotion-5"
+        class="emotion-2 emotion-3"
       >
-        Last Certificate Refresh
+        Hostname
       </th>
       <th
-        class="emotion-4 emotion-5"
+        class="emotion-2 emotion-3"
       >
         Provider
+      </th>
+      <th
+        class="emotion-2 emotion-3"
+      >
+        Expires On
+      </th>
+      <th
+        class="emotion-2 emotion-3"
+      >
+        Last Certificate Refresh
       </th>
     </tr>
   </thead>
   <tbody>
     <tr
-      class="emotion-8 emotion-9"
+      class="emotion-12 emotion-13"
       data-testid="instance-row"
     >
       <td
-        class="emotion-10 emotion-11"
+        class="emotion-14 emotion-15"
         color=""
       >
         host1
       </td>
       <td
-        class="emotion-12 emotion-11"
+        class="emotion-14 emotion-15"
         color=""
-      >
-        2021-03-28 21:38 UTC
-      </td>
+      />
       <td
-        class="emotion-12 emotion-11"
+        class="emotion-14 emotion-15"
         color=""
       >
         aws
+      </td>
+      <td
+        class="emotion-14 emotion-15"
+        color=""
+      >
+        Invalid date
+      </td>
+      <td
+        class="emotion-14 emotion-15"
+        color=""
+      >
+        2021-03-28 21:38 UTC
       </td>
     </tr>
   </tbody>
