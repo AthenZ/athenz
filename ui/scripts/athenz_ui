@@ -36,7 +36,10 @@ if [ -z "${ZMS_SERVER}" ]; then
     exit 1
 fi
 
-if [ -z "${ZMS_SERVER}" ]; then
+# if ZMS_SERVER_URL is not found in the environment, then we are going to generate
+# ZMS_SERVER_URL based on the ZMS_SERVER environment variable, otherwise we will use the
+# ZMS_SERVER_URL as-is.
+if [ -z "${ZMS_SERVER_URL}" ]; then
     export ZMS_SERVER_URL=https://${ZMS_SERVER}:4443/zms/v1/
 fi
 
