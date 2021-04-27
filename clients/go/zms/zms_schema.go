@@ -394,6 +394,11 @@ func init() {
 	tUserDomain.Field("templates", "DomainTemplateList", true, nil, "list of solution template names")
 	sb.AddType(tUserDomain.Build())
 
+	tDomainMetaStoreValidValuesList := rdl.NewStructTypeBuilder("Struct", "DomainMetaStoreValidValuesList")
+	tDomainMetaStoreValidValuesList.Comment("List of valid domain meta attribute values")
+	tDomainMetaStoreValidValuesList.ArrayField("validValues", "String", false, "list of valid values for attribute")
+	sb.AddType(tDomainMetaStoreValidValuesList.Build())
+
 	tDanglingPolicy := rdl.NewStructTypeBuilder("Struct", "DanglingPolicy")
 	tDanglingPolicy.Comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
 	tDanglingPolicy.Field("policyName", "EntityName", false, nil, "")
@@ -847,6 +852,17 @@ func init() {
 	mDeleteDomainTemplate.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mDeleteDomainTemplate.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mDeleteDomainTemplate.Build())
+
+	mGetDomainMetaStoreValidValuesList := rdl.NewResourceBuilder("DomainMetaStoreValidValuesList", "GET", "/domain/metastore")
+	mGetDomainMetaStoreValidValuesList.Comment("List all valid values for the given attribute and user")
+	mGetDomainMetaStoreValidValuesList.Input("attributeName", "String", false, "attribute", "", false, nil, "name of attribute")
+	mGetDomainMetaStoreValidValuesList.Input("userName", "String", false, "user", "", true, nil, "restrict to values associated with the given user")
+	mGetDomainMetaStoreValidValuesList.Auth("", "", true, "")
+	mGetDomainMetaStoreValidValuesList.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetDomainMetaStoreValidValuesList.Exception("NOT_FOUND", "ResourceError", "")
+	mGetDomainMetaStoreValidValuesList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetDomainMetaStoreValidValuesList.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetDomainMetaStoreValidValuesList.Build())
 
 	mGetDomainDataCheck := rdl.NewResourceBuilder("DomainDataCheck", "GET", "/domain/{domainName}/check")
 	mGetDomainDataCheck.Comment("Carry out data check operation for the specified domain.")

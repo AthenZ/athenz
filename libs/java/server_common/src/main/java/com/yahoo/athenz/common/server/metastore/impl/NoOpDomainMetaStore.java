@@ -17,6 +17,9 @@ package com.yahoo.athenz.common.server.metastore.impl;
 
 import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Default and empty implementation for {@link DomainMetaStore}
  */
@@ -32,12 +35,22 @@ public class NoOpDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
+    public List<String> getValidBusinessServices(String userName) {
+        return new ArrayList<>();
+    }
+
+    @Override
     public boolean isValidAWSAccount(final String domainName, final String awsAccountId) {
         return true;
     }
 
     @Override
     public void setAWSAccountDomain(final String domainName, final String awsAccountId) {
+    }
+
+    @Override
+    public List<String> getValidAWSAccounts(String userName) {
+        return new ArrayList<>();
     }
 
     @Override
@@ -50,11 +63,21 @@ public class NoOpDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
+    public List<String> getValidAzureSubscriptions(String userName) {
+        return new ArrayList<>();
+    }
+
+    @Override
     public boolean isValidProductId(final String domainName, Integer productId) {
         return true;
     }
 
     @Override
     public void setProductIdDomain(final String domainName, Integer productId) {
+    }
+
+    @Override
+    public List<String> getValidProductIds(String userName) {
+        return new ArrayList<>();
     }
 }

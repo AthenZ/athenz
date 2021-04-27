@@ -1327,6 +1327,42 @@ public class ZMSCoreTest {
     }
 
     @Test
+    public void testDomainMetaStoreValidValuesList() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+        List<String> validValues = new ArrayList<>();
+        validValues.add("bs1");
+        validValues.add("bs2");
+        validValues.add("bs3");
+        validValues.add("bs4");
+        validValues.add("bs5");
+        DomainMetaStoreValidValuesList validValuesList = new DomainMetaStoreValidValuesList();
+        validValuesList.setValidValues(validValues);
+
+        Result result = validator.validate(validValuesList, "DomainMetaStoreValidValuesList");
+        assertTrue(result.valid);
+        assertEquals(validValuesList.getValidValues().get(0), "bs1");
+        assertEquals(validValuesList.getValidValues().size(), 5);
+
+        List<String> validValues2 = new ArrayList<>();
+        validValues2.add("bs1");
+        validValues2.add("bs2");
+        validValues2.add("bs3");
+        validValues2.add("bs4");
+        validValues2.add("bs5");
+        DomainMetaStoreValidValuesList validValuesList2 = new DomainMetaStoreValidValuesList();
+        validValuesList2.setValidValues(validValues2);
+
+        assertEquals(validValuesList, validValuesList2);
+
+        validValuesList2.getValidValues().remove("bs3");
+        assertFalse(validValuesList.equals(validValuesList2));
+        validValuesList.getValidValues().remove("bs3");
+        assertTrue(validValuesList.equals(validValuesList2));
+        assertFalse(validValuesList.equals(null));
+    }
+
+    @Test
     public void testDomainMetaMethod() {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);

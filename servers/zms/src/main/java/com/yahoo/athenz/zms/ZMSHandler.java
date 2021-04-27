@@ -26,6 +26,7 @@ public interface ZMSHandler {
     void putDomainTemplateExt(ResourceContext context, String name, String template, String auditRef, DomainTemplate domainTemplate);
     DomainTemplateList getDomainTemplateList(ResourceContext context, String name);
     void deleteDomainTemplate(ResourceContext context, String name, String template, String auditRef);
+    DomainMetaStoreValidValuesList getDomainMetaStoreValidValuesList(ResourceContext context, String attributeName, String userName);
     DomainDataCheck getDomainDataCheck(ResourceContext context, String domainName);
     void putEntity(ResourceContext context, String domainName, String entityName, String auditRef, Entity entity);
     Entity getEntity(ResourceContext context, String domainName, String entityName);

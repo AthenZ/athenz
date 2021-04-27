@@ -339,6 +339,10 @@ public class ZMSSchema {
             .field("name", "SimpleName", false, "user id which will be the domain name")
             .field("templates", "DomainTemplateList", true, "list of solution template names");
 
+        sb.structType("DomainMetaStoreValidValuesList")
+            .comment("List of valid domain meta attribute values")
+            .arrayField("validValues", "String", false, "list of valid values for attribute");
+
         sb.structType("DanglingPolicy")
             .comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
             .field("policyName", "EntityName", false, "")
@@ -813,6 +817,21 @@ public class ZMSSchema {
             .exception("CONFLICT", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("DomainMetaStoreValidValuesList", "GET", "/domain/metastore")
+            .comment("List all valid values for the given attribute and user")
+            .queryParam("attribute", "attributeName", "String", null, "name of attribute")
+            .queryParam("user", "userName", "String", null, "restrict to values associated with the given user")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
 
