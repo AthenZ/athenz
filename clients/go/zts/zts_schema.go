@@ -403,6 +403,7 @@ func init() {
 	tWorkload.Field("hostname", "String", false, nil, "hostname associated with the workload")
 	tWorkload.Field("provider", "String", false, nil, "infrastructure provider e.g. k8s, AWS, Azure, openstack etc.")
 	tWorkload.Field("updateTime", "Timestamp", false, nil, "most recent update timestamp in the backend")
+	tWorkload.Field("certExpiryTime", "Timestamp", false, nil, "certificate expiry time (ex: getNotAfter)")
 	sb.AddType(tWorkload.Build())
 
 	tWorkloads := rdl.NewStructTypeBuilder("Struct", "Workloads")
