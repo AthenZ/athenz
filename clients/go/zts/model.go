@@ -3338,6 +3338,11 @@ type Workload struct {
 	// most recent update timestamp in the backend
 	//
 	UpdateTime rdl.Timestamp `json:"updateTime"`
+
+	//
+	// certificate expiry time (ex: getNotAfter)
+	//
+	CertExpiryTime rdl.Timestamp `json:"certExpiryTime"`
 }
 
 //
@@ -3428,6 +3433,9 @@ func (self *Workload) Validate() error {
 	}
 	if self.UpdateTime.IsZero() {
 		return fmt.Errorf("Workload: Missing required field: updateTime")
+	}
+	if self.CertExpiryTime.IsZero() {
+		return fmt.Errorf("Workload: Missing required field: certExpiryTime")
 	}
 	return nil
 }
