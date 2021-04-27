@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 
-set -e
+function deployProject ()
+{
+    max_retry=3
+    counter=0
+    echo "Publishing package $1..."
+    until mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects $1 --settings screwdriver/settings/settings-publish.xml
+    do
+      [[ counter -eq $max_retry ]] && echo "Failed to deploy package $1" && exit 1
+      counter=$(( $counter + 1 ))
+      sleep 30
+      echo "Re-trying to publish package (attempt #$counter)"
+    done
+}
 
 # for openssl 1.1+ we need to add -pbkdf2 to remove the
 # warning but that option does not exist in openssl 1.0.x
@@ -13,19 +25,19 @@ chmod 0400 screwdriver/deploy
 openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE -in screwdriver/pubring.gpg.enc -out screwdriver/deploy/pubring.gpg -pbkdf2 -d
 openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE -in screwdriver/secring.gpg.enc -out screwdriver/deploy/secring.gpg -pbkdf2 -d
 
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zms-core --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zts-core --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-auth-core --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-client-common --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-cert-refresher --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zms-java-client --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zts-java-client-core --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zts-java-client --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-zpe-java-client --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-server-common --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-instance-provider --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-jetty-container --settings screwdriver/settings/settings-publish.xml
-mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects com.yahoo.athenz:athenz-utils --settings screwdriver/settings/settings-publish.xml
+deployProject "com.yahoo.athenz:athenz"
+deployProject "com.yahoo.athenz:athenz-zms-core"
+deployProject "com.yahoo.athenz:athenz-zts-core"
+deployProject "com.yahoo.athenz:athenz-auth-core"
+deployProject "com.yahoo.athenz:athenz-client-common"
+deployProject "com.yahoo.athenz:athenz-cert-refresher"
+deployProject "com.yahoo.athenz:athenz-zms-java-client"
+deployProject "com.yahoo.athenz:athenz-zts-java-client-core"
+deployProject "com.yahoo.athenz:athenz-zts-java-client"
+deployProject "com.yahoo.athenz:athenz-zpe-java-client"
+deployProject "com.yahoo.athenz:athenz-server-common"
+deployProject "com.yahoo.athenz:athenz-instance-provider"
+deployProject "com.yahoo.athenz:athenz-jetty-container"
+deployProject "com.yahoo.athenz:athenz-utils"
 
 rm -rf screwdriver/deploy
