@@ -38,10 +38,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"os/exec"
-	"strconv"
 	"strings"
-	"time"
 	"unicode"
 )
 
@@ -57,8 +54,6 @@ type CertReqDetails struct {
 	EmailList  []string
 	URIs       []*url.URL
 }
-
-const siaUnixGroup = "athenz"
 
 func SplitRoleName(roleName string) (string, string, error) {
 	tmp := strings.Split(roleName, ":role.")
@@ -301,142 +296,11 @@ func PrivatePem(privateKey *rsa.PrivateKey) string {
 	return string(block)
 }
 
-func UpdateFile(fileName, contents string, uid, gid int, perm os.FileMode, sysLogger io.Writer) error {
-	// verify we have valid contents otherwise we're just
-	// going to skip and return success without doing anything
-	if contents == "" {
-		logutil.LogInfo(sysLogger, "Contents is empty. Skipping writing to file %s\n", fileName)
-		return nil
-	}
-	// if the original file does not exists then we
-	// we just write the contents to the given file
-	// directly
-	_, err := os.Stat(fileName)
-	if err != nil && os.IsNotExist(err) {
-		logutil.LogInfo(sysLogger, "Updating file %s...\n", fileName)
-		err = ioutil.WriteFile(fileName, []byte(contents), perm)
-		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to write new file %s, err: %v\n", fileName, err)
-			return err
-		}
-	} else {
-		timeNano := time.Now().UnixNano()
-		// write the new contents to a temporary file
-		newFileName := fmt.Sprintf("%s.tmp%d", fileName, timeNano)
-		logutil.LogInfo(sysLogger, "Writing contents to temporary file %s...\n", newFileName)
-		err = ioutil.WriteFile(newFileName, []byte(contents), perm)
-		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to write new file %s, err: %v\n", newFileName, err)
-			return err
-		}
-		// move the contents of the old file to a backup file
-		bakFileName := fmt.Sprintf("%s.bak%d", fileName, timeNano)
-		logutil.LogInfo(sysLogger, "Renaming original file %s to backup file %s...\n", fileName, bakFileName)
-		err = os.Rename(fileName, bakFileName)
-		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to rename file %s to %s, err: %v\n", fileName, bakFileName, err)
-			return err
-		}
-		// move the new contents to the original location
-		logutil.LogInfo(sysLogger, "Renaming temporary file %s to requested file %s...\n", newFileName, fileName)
-		err = os.Rename(newFileName, fileName)
-		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to rename file %s to %s, err: %v\n", newFileName, fileName, err)
-			// before returning try to restore the original file
-			_ = os.Rename(bakFileName, fileName)
-			return err
-		}
-		// remove the temporary backup file
-		logutil.LogInfo(sysLogger, "Removing backup file %s...\n", bakFileName)
-		_ = os.Remove(bakFileName)
-	}
-	if uid != 0 || gid != 0 {
-		logutil.LogInfo(sysLogger, "Changing file %s ownership to %d:%d...\n", fileName, uid, gid)
-		err = os.Chown(fileName, uid, gid)
-		if err != nil {
-			logutil.LogInfo(sysLogger, "Cannot chown file %s to %d:%d, err: %v\n", fileName, uid, gid, err)
-			return err
-		}
-	}
-	return nil
-}
-
 func FileExists(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
 	}
 	return true
-}
-
-func UidGidForUserGroup(username, groupname string, sysLogger io.Writer) (int, int) {
-	// Get uid and gid for the username.
-	uid, gid := uidGidForUser(username, sysLogger)
-
-	// Override the group id if user explicitly specified the group.
-	ggid := -1
-	if groupname != "" {
-		ggid = gidForGroup(groupname, sysLogger)
-	}
-	// if the group is not specified or invalid then we'll default
-	// to our unix group name called athenz
-	if ggid == -1 {
-		ggid = gidForGroup(siaUnixGroup, sysLogger)
-	}
-	// if we have a valid value then update the gid
-	// otherwise use the user group id value
-	if ggid != -1 {
-		gid = ggid
-	}
-	return uid, gid
-}
-
-func gidForGroup(groupname string, sysLogger io.Writer) int {
-	//shelling out to id is used here because the os/user package
-	//requires cgo, which doesn't cross-compile. we can use getent group
-	//command but instead we opted for a simple grep for /etc/group
-	cmdStr := fmt.Sprintf("^%s:", groupname)
-	out, err := exec.Command("grep", cmdStr, "/etc/group").Output()
-	if err != nil {
-		logutil.LogInfo(sysLogger, "Cannot exec 'grep %s '/etc/group': %v\n", groupname, err)
-		return -1
-	}
-	s := strings.Trim(string(out), "\n\r ")
-	comps := strings.Split(string(out), ":")
-	if len(comps) < 3 {
-		logutil.LogInfo(sysLogger, "Invalid response from grep group command: %s\n", s)
-		return -1
-	}
-	//the group id should be the third value: 'group_name:password:group_id:group_list'
-	id, err := strconv.Atoi(comps[2])
-	if err != nil {
-		logutil.LogInfo(sysLogger, "Invalid response from getent group command: %s\n", s)
-		return -1
-	}
-	return id
-}
-
-func idCommand(username, arg string, sysLogger io.Writer) int {
-	//shelling out to id is used here because the os/user package
-	//requires cgo, which doesn't cross-compile
-	out, err := exec.Command("id", arg, username).Output()
-	if err != nil {
-		logutil.LogFatal(sysLogger, "Cannot exec 'id %s %s': %v", arg, username, err)
-	}
-	s := strings.Trim(string(out), "\n\r ")
-	id, err := strconv.Atoi(s)
-	if err != nil {
-		logutil.LogFatal(sysLogger, "Unexpected UID/GID format in user record: %s\n", string(out))
-	}
-	return id
-}
-
-func uidGidForUser(username string, sysLogger io.Writer) (int, int) {
-	if username == "" {
-		return 0, 0
-	}
-	uid := idCommand(username, "-u", sysLogger)
-	gid := idCommand(username, "-g", sysLogger)
-	return uid, gid
 }
 
 func PrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
@@ -510,32 +374,66 @@ func ExtractServiceName(arn, comp string) (string, string, error) {
 	return profile[:idx], profile[idx+1:], nil
 }
 
-func SetupSIADirs(siaMainDir, siaLinkDir string, sysLogger io.Writer) error {
-	// Create the certs directory, if it doesn't exist
-	certDir := fmt.Sprintf("%s/certs", siaMainDir)
-	if !FileExists(certDir) {
-		err := os.MkdirAll(certDir, 0755)
+func PrivateKey(keyFile string, rotateKey bool) (*rsa.PrivateKey, error) {
+	if rotateKey == true || !FileExists(keyFile) {
+		key, err := GenerateKeyPair(2048)
 		if err != nil {
-			return fmt.Errorf("unable to create certs dir: %q, error: %v", certDir, err)
+			return nil, fmt.Errorf("cannot generate private key err: %v", err)
 		}
+		return key, err
 	}
-
-	// Create the keys directory, if it doesn't exist
-	keyDir := fmt.Sprintf("%s/keys", siaMainDir)
-	if !FileExists(keyDir) {
-		err := os.MkdirAll(keyDir, 0755)
-		if err != nil {
-			return fmt.Errorf("unable to create keys dir: %q, error: %v", keyDir, err)
-		}
+	key, err := PrivateKeyFromFile(keyFile)
+	if err != nil {
+		log.Printf("Unable to read private key from %s, err: %v\n", keyFile, err)
+		return nil, err
 	}
+	return key, err
+}
 
-	//make sure the link directory exists as well
-	if siaLinkDir != "" && !FileExists(siaLinkDir) {
-		err := os.Symlink(siaMainDir, siaLinkDir)
+func EnsureBackUpDir(backUpDir string) error {
+	if !FileExists(backUpDir) {
+		err := os.MkdirAll(backUpDir, 0755)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to symlink SIA directory '%s': %v", siaLinkDir, err)
-			return nil
+			return err
 		}
 	}
 	return nil
+}
+
+func Copy(sourceFile, destFile string, perm os.FileMode) error {
+	sourceBytes, err := ioutil.ReadFile(sourceFile)
+	if err != nil {
+		return err
+	}
+	if FileExists(destFile) {
+		if err := os.Remove(destFile); err != nil {
+			log.Printf("Unable to delete file %s", destFile)
+		}
+	}
+	return ioutil.WriteFile(destFile, sourceBytes, perm)
+}
+
+func CopyCertKeyFile(srcKey, destKey, srcCert, destCert string, keyPerm int) error {
+	if err := Copy(srcCert, destCert, 0444); err != nil {
+		return err
+	}
+	return Copy(srcKey, destKey, os.FileMode(keyPerm))
+}
+
+func UpdateKey(keyFile string, uid, gid int) {
+	if uid != 0 || gid != 0 {
+		// Change the ownership on keyfile
+		log.Printf("Changing file %s ownership to %d:%d...\n", keyFile, uid, gid)
+		err := os.Chown(keyFile, uid, gid)
+		if err != nil {
+			log.Fatalf("Cannot chown file %s to %d:%d, err: %v", keyFile, uid, gid, err)
+		}
+	}
+	if gid != 0 {
+		log.Printf("Changing file %s permission to 0440\n", keyFile)
+		err := os.Chmod(keyFile, 0440)
+		if err != nil {
+			log.Fatalf("Cannot chmod file %s to 0440, err: %v", keyFile, err)
+		}
+	}
 }

@@ -17,6 +17,8 @@
 package sia
 
 import (
+	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
@@ -29,6 +31,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -71,8 +74,18 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			failures += 1
 			continue
 		}
-		certFilePem := util.GetRoleCertFileName(mkDirPath(opts.CertDir), role.Filename, roleName)
 		spiffe := fmt.Sprintf("spiffe://%s/ra/%s", domainNameRequest, roleNameRequest)
+
+		if opts.GenerateRoleKey {
+			var err error
+			key, err = RoleKey(opts.RotateKey, svcKeyFile)
+			if err != nil {
+				logutil.LogInfo(sysLogger, "unable to read generate/read key from %s, err: %v\n", role.Filename, err)
+				failures += 1
+				continue
+			}
+		}
+
 		csr, err := util.GenerateCSR(key, opts.Domain, opts.Services[0].Name, roleName, "", provider, spiffe, opts.ZTSAWSDomain, true)
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
@@ -92,7 +105,17 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 
 		//we have the roletoken
 		//write the cert to pem file using Role.Filename
-		err = util.UpdateFile(certFilePem, roleToken.Token, 0, 0, 0444, sysLogger)
+		roleKeyBytes := util.PrivatePem(key)
+		optsRole := options.Role{
+			Name:     roleName,
+			Service:  opts.Services[0].Name,
+			Filename: role.Filename,
+			User:     "",
+			Uid:      opts.Services[0].Uid,
+			Gid:      opts.Services[0].Gid,
+			FileMode: 0444,
+		}
+		err = SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleToken.Token), optsRole, opts, sysLogger)
 		if err != nil {
 			failures += 1
 			continue
@@ -149,7 +172,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 		}
 	}
 
-	provider, ec2Provider := getProviderName(opts.Provider, region, data.TaskId)
+	provider, ec2Provider := getProviderName(opts.Provider, region, data.TaskId, opts.ProviderParentDomain)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
 	csr, err := util.GenerateCSR(key, opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomain, false)
 	if err != nil {
@@ -188,18 +211,18 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 		return err
 	}
 	svcKeyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
-	err = util.UpdateFile(svcKeyFile, util.PrivatePem(key), svc.Uid, svc.Gid, 0440, sysLogger)
+	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440, sysLogger)
 	if err != nil {
 		return err
 	}
 	certFile := getCertFileName(svc.Filename, opts.Domain, svc.Name, opts.CertDir)
-	err = util.UpdateFile(certFile, instIdent.X509Certificate, svc.Uid, svc.Gid, 0444, sysLogger)
+	err = util.UpdateFile(certFile, []byte(instIdent.X509Certificate), svc.Uid, svc.Gid, 0444, sysLogger)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, instIdent.X509CertificateSigner, svc.Uid, svc.Gid, 0444, sysLogger)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(instIdent.X509CertificateSigner), svc.Uid, svc.Gid, 0444, sysLogger)
 		if err != nil {
 			return err
 		}
@@ -236,12 +259,6 @@ func RefreshInstance(data []*attestation.AttestationData, ztsUrl string, opts *o
 
 func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl string, opts *options.Options, sysLogger io.Writer) error {
 	keyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
-	key, err := util.PrivateKeyFromFile(keyFile)
-	if err != nil {
-		log.Printf("Unable to read private key from %s, err: %v\n", keyFile, err)
-		return err
-	}
-
 	certFile := fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, svc.Name)
 
 	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, keyFile, certFile, opts.ZTSCACertFile, sysLogger)
@@ -272,8 +289,15 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	if err != nil {
 		return err
 	}
-	provider, _ := getProviderName(opts.Provider, region, data.TaskId)
+	provider, _ := getProviderName(opts.Provider, region, data.TaskId, opts.ProviderParentDomain)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
+
+	key, err := util.PrivateKey(keyFile, opts.RotateKey)
+	if err != nil {
+		log.Printf("Unable to read private key from %s, err: %v\n", keyFile, err)
+		return err
+	}
+
 	csr, err := util.GenerateCSR(key, opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomain, false)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
@@ -286,13 +310,15 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		return err
 	}
 
-	err = util.UpdateFile(certFile, ident.X509Certificate, svc.Uid, svc.Gid, 0444, sysLogger)
+	svcKeyBytes := util.PrivatePem(key)
+	svcCertBytes := []byte(ident.X509Certificate)
+	err = SaveSvcCertKey([]byte(svcKeyBytes), svcCertBytes, svc, opts, sysLogger, false)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, ident.X509CertificateSigner, svc.Uid, svc.Gid, 0444, sysLogger)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444, sysLogger)
 		if err != nil {
 			return err
 		}
@@ -312,12 +338,12 @@ func updateSSH(hostCert, hostSigner string, ostype int, sysLogger io.Writer) err
 	// we have nothing to update for ssh access
 
 	if hostCert == "" && hostSigner == "" {
-		logutil.LogInfo(sysLogger, "No host ssh certificate available to update")
+		logutil.LogInfo(sysLogger, "No host ssh certificate available to update\n")
 		return nil
 	}
 
 	//write the host cert file
-	err := util.UpdateFile(sshCertFile, hostCert, 0, 0, 0644, sysLogger)
+	err := util.UpdateFile(sshCertFile, []byte(hostCert), 0, 0, 0644, sysLogger)
 	if err != nil {
 		return err
 	}
@@ -331,7 +357,7 @@ func updateSSH(hostCert, hostSigner string, ostype int, sysLogger io.Writer) err
 	i := strings.Index(conf, "#HostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub")
 	if i >= 0 {
 		conf = conf[:i] + conf[i+1:]
-		err = util.UpdateFile(sshConfigFile, conf, 0, 0, 0644, sysLogger)
+		err = util.UpdateFile(sshConfigFile, []byte(conf), 0, 0, 0644, sysLogger)
 		if err != nil {
 			return err
 		}
@@ -385,14 +411,14 @@ func generateSSHHostCSR(sshCert bool, domain, service, ip, ztsAwsDomain string, 
 	return string(csr), err
 }
 
-func getProviderName(provider, region, taskId string) (string, bool) {
+func getProviderName(provider, region, taskId, providerParentDomain string) (string, bool) {
 	if provider != "" {
 		return provider, false
 	}
 	if taskId == "" {
-		return "athenz.aws." + region, true
+		return providerParentDomain + ".aws." + region, true
 	} else {
-		return "athenz.aws-ecs." + region, false
+		return providerParentDomain + ".aws-ecs." + region, false
 	}
 }
 
@@ -427,10 +453,120 @@ func getCertFileName(file, domain, service, certDir string) string {
 	}
 }
 
+func getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix string) (string, string) {
+	if file != "" && file[0] == '/' {
+		return file, fmt.Sprintf("%s/%s.key.pem", keyDir, keyPrefix)
+	} else {
+		return fmt.Sprintf("%s/%s.cert.pem", certDir, certPrefix), fmt.Sprintf("%s/%s.key.pem", keyDir, keyPrefix)
+	}
+}
+
 // mkDirPath appends "/" if missing at the end
 func mkDirPath(dir string) string {
 	if !strings.HasSuffix(dir, "/") {
 		return fmt.Sprintf("%s/", dir)
 	}
 	return dir
+}
+
+func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options, sysLogger io.Writer) error {
+	certPrefix := role.Name
+	if role.Filename != "" {
+		certPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
+	}
+	keyPrefix := fmt.Sprintf("%s.%s", opts.Domain, role.Service)
+	if opts.GenerateRoleKey == true {
+		keyPrefix = role.Name
+		if role.Filename != "" {
+			keyPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
+		}
+	}
+	return saveCertKey(key, cert, role.Filename, keyPrefix, certPrefix, role.Uid, role.Gid, role.FileMode, opts, sysLogger, false)
+}
+
+func SaveSvcCertKey(key, cert []byte, svc options.Service, opts *options.Options, sysLogger io.Writer, createKey bool) error {
+	prefix := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
+	return saveCertKey(key, cert, svc.Filename, prefix, prefix, svc.Uid, svc.Gid, svc.FileMode, opts, sysLogger, createKey)
+}
+
+func saveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid, fileMode int, options *options.Options,
+	sysLogger io.Writer, createKey bool) error {
+
+	certFile, keyFile := getCertKeyFileName(file, options.KeyDir, options.CertDir, keyPrefix, certPrefix)
+
+	// perform validation of x509KeyPair pair match before writing to disk
+	x509KeyPair, err := tls.X509KeyPair(cert, key)
+	if err != nil {
+		return fmt.Errorf("x509KeyPair and key for: %s do not match, error: %v", keyPrefix, err)
+	}
+	_, err = x509.ParseCertificate(x509KeyPair.Certificate[0])
+	if err != nil {
+		return fmt.Errorf("x509KeyPair and key for: %s unable to parse cert, error: %v", keyPrefix, err)
+	}
+
+	backUpKeyFile := fmt.Sprintf("%s/%s.key.pem", options.BackUpDir, keyPrefix)
+	backUpCertFile := fmt.Sprintf("%s/%s.cert.pem", options.BackUpDir, certPrefix)
+
+	if options.RotateKey == true {
+		err = util.EnsureBackUpDir(options.BackUpDir)
+		if err != nil {
+			return err
+		}
+		// taking back up of key and cert
+		log.Printf("taking back up of cert: %s to %s and key: %s to %s", certFile, backUpCertFile,
+			keyFile, backUpKeyFile)
+		err = util.CopyCertKeyFile(keyFile, backUpKeyFile, certFile, backUpCertFile, 0400)
+		if err != nil {
+			return err
+		}
+		//write the new key and x509KeyPair to disk
+		log.Printf("writing new key file: %s to disk", keyFile)
+		err = util.UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode), nil)
+		if err != nil {
+			return err
+		}
+	} else if (options.GenerateRoleKey == true || createKey == true) && !util.FileExists(keyFile) {
+		//write the new key and x509KeyPair to disk
+		log.Printf("writing new key file: %s to disk", keyFile)
+		err = util.UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode), nil)
+		if err != nil {
+			return err
+		}
+	} else if util.FileExists(keyFile) {
+		util.UpdateKey(keyFile, uid, gid)
+	}
+
+	err = util.UpdateFile(certFile, cert, uid, gid, os.FileMode(0444), sysLogger)
+
+	if err != nil {
+		return err
+	}
+
+	// perform 2nd validation of x509KeyPair pair match after writing to disk
+	x509KeyPair, err = tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		log.Printf("x509KeyPair: %s, key: %s do not match, error: %v", certFile, keyFile, err)
+		err = util.CopyCertKeyFile(backUpKeyFile, keyFile, backUpCertFile, certFile, fileMode)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = x509.ParseCertificate(x509KeyPair.Certificate[0])
+	if err != nil {
+		log.Printf("x509KeyPair: %s, key: %s, unable to parse cert, error: %v", certFile, keyFile, err)
+		err = util.CopyCertKeyFile(backUpKeyFile, keyFile, backUpCertFile, certFile, fileMode)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func RoleKey(rotateKey bool, svcKey string) (*rsa.PrivateKey, error) {
+	if rotateKey == true {
+		return util.GenerateKeyPair(2048)
+	}
+	return util.PrivateKeyFromFile(svcKey)
 }

@@ -29,7 +29,6 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"log/syslog"
 	"os"
 	"strings"
 	"time"
@@ -43,7 +42,11 @@ var MetaEndPoint = "http://169.254.169.254:80"
 
 const siaMainDir = "/var/lib/sia"
 const siaLinkDir = "/var/run/sia"
-const siaVersion = "1.0"
+
+var siaVersion string
+var ztsEndPointStr string
+var ztsAwsDomainStr string
+var providerParentDomain string
 
 func main() {
 	cmd := flag.String("cmd", "", "optional sub command to run")
@@ -52,20 +55,42 @@ func main() {
 	ztsServerName := flag.String("ztsservername", "", "zts server name for tls connections")
 	ztsCACert := flag.String("ztscacert", "", "zts CA certificate file")
 	ztsAwsDomain := flag.String("ztsawsdomain", "", "ZTS AWS Domain")
+	providrPntDomain := flag.String("providerParentDomain", "athenz", "providerParentDomain")
+
 	ztsPort := flag.Int("ztsport", 4443, "ZTS port number")
 	pConf := flag.String("config", "/etc/sia/sia_config", "The config file to run against")
 
 	flag.Parse()
 
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
+	sysLogger, err := util.NewSysLogger()
 	if err != nil {
 		log.Printf("Unable to create sys logger: %v\n", err)
 		sysLogger = os.Stdout
 	}
 
-	if *ztsAwsDomain == "" {
-		logutil.LogFatal(sysLogger, "ztsawsdomain argument must be specified")
+	if ztsAwsDomainStr == "" {
+		ztsAwsDomainStr = *ztsAwsDomain
+		if ztsAwsDomainStr == "" {
+			logutil.LogFatal(sysLogger, "ztsawsdomain argument must be specified")
+		}
+	}
+
+	if ztsEndPointStr == "" {
+		ztsEndPointStr = *ztsEndPoint
+		if ztsEndPointStr == "" {
+			logutil.LogFatal(sysLogger, "zts argument must be specified")
+		}
+	}
+
+	if providerParentDomain == "" {
+		providerParentDomain = *providrPntDomain
+		if providerParentDomain == "" {
+			logutil.LogFatal(sysLogger, "providerParentDomain argument must be specified")
+		}
+	}
+
+	if siaVersion == "" {
+		siaVersion = "1.0"
 	}
 
 	document, err := meta.GetData(MetaEndPoint, "/latest/dynamic/instance-identity/document")
@@ -88,7 +113,7 @@ func main() {
 	}
 
 	confBytes, _ := ioutil.ReadFile(*pConf)
-	opts, err := options.NewOptions(confBytes, accountId, MetaEndPoint, siaMainDir, siaVersion, *ztsCACert, *ztsServerName, *ztsAwsDomain, sysLogger)
+	opts, err := options.NewOptions(confBytes, accountId, MetaEndPoint, siaMainDir, siaVersion, *ztsCACert, *ztsServerName, ztsAwsDomainStr, providerParentDomain, sysLogger)
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v", err)
 	}
@@ -105,7 +130,7 @@ func main() {
 	//30 days by default
 	rotationInterval := 24 * 60 * time.Minute
 
-	ztsUrl := fmt.Sprintf("https://%s:%d/zts/v1", *ztsEndPoint, *ztsPort)
+	ztsUrl := fmt.Sprintf("https://%s:%d/zts/v1", ztsEndPointStr, *ztsPort)
 
 	err = util.SetupSIADirs(siaMainDir, siaLinkDir, sysLogger)
 	if err != nil {

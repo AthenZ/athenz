@@ -80,7 +80,7 @@ func TestOptionsNoConfig(t *testing.T) {
 	metaServer.start(router)
 	defer metaServer.stop()
 
-	opts, e := NewOptions([]byte{}, "123456789012", metaServer.httpUrl(), "/tmp", "1.0.0", "", "", "zts-aws-domain", os.Stdout)
+	opts, e := NewOptions([]byte{}, "123456789012", metaServer.httpUrl(), "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -113,7 +113,7 @@ func TestOptionsWithConfig(t *testing.T) {
   		]
 	}`
 
-	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", os.Stdout)
+	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -145,7 +145,7 @@ func TestOptionsNoService(t *testing.T) {
   		]
 	}`
 
-	_, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", os.Stdout)
+	_, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 
 	config = `{
@@ -163,7 +163,7 @@ func TestOptionsNoService(t *testing.T) {
   		]
 	}`
 
-	_, e = NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", os.Stdout)
+	_, e = NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 }
 
@@ -181,7 +181,7 @@ func TestOptionsNoServices(t *testing.T) {
   		]
 	}`
 
-	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", os.Stdout)
+	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 
 	// Make sure one service is set
@@ -241,4 +241,42 @@ func getGid(t *testing.T, group string) int {
 
 	require.FailNow(t, fmt.Sprintf("Unable to find group: %q", group))
 	return 0
+}
+
+func TestOptionsWithGenerateRoleKeyConfig(t *testing.T) {
+	config := `{
+		"version": "1.0.0",
+		"service": "api",
+		"generate_role_key": true,
+  		"accounts": [
+  			{
+  			    "domain": "athenz",
+    			"user": "nobody",
+    	  		"account": "123456789012"
+    		}
+  		]
+	}`
+
+	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
+	require.Nilf(t, e, "error should not be thrown, error: %v", e)
+	assert.True(t, opts.GenerateRoleKey == true)
+}
+
+func TestOptionsWithRotateKeyConfig(t *testing.T) {
+	config := `{
+		"version": "1.0.0",
+		"service": "api",
+		"rotate_key": true,
+  		"accounts": [
+  			{
+  			    "domain": "athenz",
+    			"user": "nobody",
+    	  		"account": "123456789012"
+    		}
+  		]
+	}`
+
+	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
+	require.Nilf(t, e, "error should not be thrown, error: %v", e)
+	assert.True(t, opts.RotateKey == true)
 }
