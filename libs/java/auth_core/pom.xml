@@ -27,8 +27,9 @@
   <description>Core Auth Interfaces</description>
 
   <properties>
-    <code.coverage.min>0.89</code.coverage.min>
+    <code.coverage.min>0.898</code.coverage.min>
   </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.bouncycastle</groupId>

@@ -29,6 +29,10 @@
   <description>Athenz SSL Cert Refresher Package</description>
   <packaging>jar</packaging>
 
+  <properties>
+    <code.coverage.min>1.00</code.coverage.min>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.bouncycastle</groupId>
