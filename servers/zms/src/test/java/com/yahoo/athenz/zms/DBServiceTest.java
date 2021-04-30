@@ -1673,14 +1673,187 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testExecuteDeletePolicyFailure() {
+    public void testExecuteDeleteAssertionNotFoundFailure() {
 
-        String domainName = "policyDelet1";
+        String domainName = "policy-assertion-delete-notfound-failure";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.getAssertion(domainName, policyName, 1001L)).thenReturn(null);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeleteAssertion(mockDomRsrcCtx, domainName, policyName,
+                    1001L, auditRef, "deleteAssertion");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteAssertionRequestFailure() {
+
+        String domainName = "policy-assertion-delete-request-failure";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Assertion assertion = new Assertion().setRole("reader").setResource("table")
+                .setAction("update").setId(1001L);
+        Mockito.when(mockJdbcConn.getAssertion(domainName, policyName, 1001L)).thenReturn(assertion);
+        Mockito.when(mockJdbcConn.deleteAssertion(domainName, policyName, 1001L)).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeleteAssertion(mockDomRsrcCtx, domainName, policyName,
+                    1001L, auditRef, "deleteAssertion");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteAssertionFailureRetry() {
+
+        String domainName = "policy-delete-assertion-failure-retry";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Assertion assertion = new Assertion().setRole("reader").setResource("table")
+                .setAction("update").setId(1001L);
+        Mockito.when(mockJdbcConn.getAssertion(domainName, policyName, 1001L)).thenReturn(assertion);
+        Mockito.when(mockJdbcConn.deleteAssertion(domainName, policyName, 1001L))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeDeleteAssertion(mockDomRsrcCtx, domainName, policyName,
+                    1001L, auditRef, "deleteAssertion");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecutePutAssertionFailureRequestError() {
+
+        String domainName = "policy-put-assertion-failure-request-error";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Assertion assertion = new Assertion().setRole("reader").setResource("table")
+                .setAction("update").setId(1001L);
+        Mockito.when(mockJdbcConn.insertAssertion(domainName, policyName, assertion)).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executePutAssertion(mockDomRsrcCtx, domainName, policyName,
+                    assertion, auditRef, "putAssertion");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecutePutAssertionFailureRetry() {
+
+        String domainName = "policy-put-assertion-failure-retry";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Assertion assertion = new Assertion().setRole("reader").setResource("table")
+                .setAction("update").setId(1001L);
+        Mockito.when(mockJdbcConn.insertAssertion(domainName, policyName, assertion))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executePutAssertion(mockDomRsrcCtx, domainName, policyName,
+                    assertion, auditRef, "putAssertion");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeletePolicyNotFoundFailure() {
+
+        String domainName = "policy-delete-failure";
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
         Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName)).thenReturn(null);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeletePolicy(mockDomRsrcCtx, domainName, policyName,
+                    auditRef, "deletePolicy");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeletePolicyFailure() {
+
+        String domainName = "policy-delete-failure";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Policy policy = new Policy().setName(policyName);
+        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName)).thenReturn(policy);
         Mockito.when(mockJdbcConn.deletePolicy(domainName, policyName)).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
@@ -1691,7 +1864,7 @@ public class DBServiceTest {
                     auditRef, "deletePolicy");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         zms.dbService.store = saveStore;
@@ -1700,12 +1873,14 @@ public class DBServiceTest {
     @Test
     public void testExecuteDeletePolicyFailureRetry() {
 
-        String domainName = "policyDelet1";
+        String domainName = "policy-delete-failure-retry";
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
         Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Policy policy = new Policy().setName(policyName);
+        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName)).thenReturn(policy);
         Mockito.when(mockJdbcConn.deletePolicy(domainName, policyName))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
@@ -9927,5 +10102,25 @@ public class DBServiceTest {
         Map<String, StringList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
         assertEquals(resultFirstInsertTags, Collections.singletonMap("tagKey", new StringList().setList(Arrays.asList("val1", "val2"))));
         zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testAuditLogPolicy() {
+
+        StringBuilder auditDetails = new StringBuilder();
+        Policy policy = new Policy().setName("policy1").setAssertions(null);
+
+        zms.dbService.auditLogPolicy(auditDetails, policy, "delete-assertions");
+        assertEquals(auditDetails.toString(), "{\"name\": \"policy1\", \"modified\": \"null\"}");
+
+        Assertion assertion = new Assertion().setAction("update")
+                .setResource("table").setRole("reader");
+        policy.setAssertions(new ArrayList<>());
+        policy.getAssertions().add(assertion);
+
+        auditDetails.setLength(0);
+        zms.dbService.auditLogPolicy(auditDetails, policy, "delete-assertions");
+        assertEquals(auditDetails.toString(), "{\"name\": \"policy1\", \"modified\": \"null\", " +
+                "\"delete-assertions\": [{\"role\": \"reader\", \"action\": \"update\", \"effect\": \"ALLOW\", \"resource\": \"table\"}]}");
     }
 }

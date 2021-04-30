@@ -16386,7 +16386,7 @@ public class ZMSImplTest {
             zms.deleteAssertion(mockDomRsrcCtx, domainName, "policy2", 1L, auditRef);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 404);
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         // delete the assertion which should fail due to unknown assertion id
@@ -16395,7 +16395,7 @@ public class ZMSImplTest {
             zms.deleteAssertion(mockDomRsrcCtx, domainName, "policy1", 1L, auditRef);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
