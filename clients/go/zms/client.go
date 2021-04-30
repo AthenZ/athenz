@@ -3194,9 +3194,9 @@ func (client ZMSClient) GetDomainTemplateDetailsList(name DomainName) (*DomainTe
 	}
 }
 
-func (client ZMSClient) GetUserList() (*UserList, error) {
+func (client ZMSClient) GetUserList(domainName DomainName) (*UserList, error) {
 	var data *UserList
-	url := client.URL + "/user"
+	url := client.URL + "/user" + encodeParams(encodeStringParam("domain", string(domainName), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

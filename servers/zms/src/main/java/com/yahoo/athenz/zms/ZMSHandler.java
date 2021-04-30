@@ -101,7 +101,7 @@ public interface ZMSHandler {
     ServerTemplateList getServerTemplateList(ResourceContext context);
     Template getTemplate(ResourceContext context, String template);
     DomainTemplateDetailsList getDomainTemplateDetailsList(ResourceContext context, String name);
-    UserList getUserList(ResourceContext context);
+    UserList getUserList(ResourceContext context, String domainName);
     void deleteUser(ResourceContext context, String name, String auditRef);
     void deleteDomainRoleMember(ResourceContext context, String domainName, String memberName, String auditRef);
     Quota getQuota(ResourceContext context, String name);

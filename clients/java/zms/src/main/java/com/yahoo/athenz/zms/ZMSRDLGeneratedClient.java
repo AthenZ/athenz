@@ -2129,8 +2129,11 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public UserList getUserList() {
+    public UserList getUserList(String domainName) {
         WebTarget target = base.path("/user");
+        if (domainName != null) {
+            target = target.queryParam("domain", domainName);
+        }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),

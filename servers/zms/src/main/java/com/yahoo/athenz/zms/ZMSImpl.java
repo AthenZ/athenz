@@ -176,6 +176,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected String userDomainAlias;
     protected String userDomainAliasPrefix;
     protected String serverRegion = null;
+    protected Set<String> addlUserCheckDomainSet = null;
     protected List<String> addlUserCheckDomainPrefixList = null;
     protected Http.AuthorityList authorities = null;
     protected List<String> providerEndpoints = null;
@@ -680,8 +681,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String addlUserCheckDomains = System.getProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS);
         if (addlUserCheckDomains != null && !addlUserCheckDomains.isEmpty()) {
             String[] checkDomains = addlUserCheckDomains.split(",");
+            addlUserCheckDomainSet = new HashSet<>();
             addlUserCheckDomainPrefixList = new ArrayList<>();
             for (String checkDomain : checkDomains) {
+                addlUserCheckDomainSet.add(checkDomain);
                 addlUserCheckDomainPrefixList.add(checkDomain + ".");
             }
         }
@@ -1737,14 +1740,31 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         deleteDomain(ctx, auditRef, domainName, caller);
     }
 
-    public UserList getUserList(ResourceContext ctx) {
+    @Override
+    public UserList getUserList(ResourceContext ctx, String domainName) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
 
-        List<String> names = dbService.listPrincipals(userDomain, true);
+        // if we're not given an domain name then we'll
+        // default to our system user domain otherwise
+        // we'll validate the value and confirm it's one
+        // of our configured user domains
+
+        if (domainName != null) {
+            validate(domainName, TYPE_DOMAIN_NAME, caller);
+            domainName = domainName.toLowerCase();
+            if (!domainName.equals(userDomain) &&
+                    (addlUserCheckDomainSet == null || !addlUserCheckDomainSet.contains(domainName))) {
+                throw ZMSUtils.requestError("Unknown user domain", caller);
+            }
+        } else {
+            domainName = userDomain;
+        }
+
+        List<String> names = dbService.listPrincipals(domainName, true);
         return new UserList().setNames(names);
     }
 

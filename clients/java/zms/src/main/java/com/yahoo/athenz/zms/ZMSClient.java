@@ -1194,18 +1194,29 @@ public class ZMSClient implements Closeable {
     /**
      * Get list of users defined in the system
      *
+     * @param domainName optional name of the user domain and/or alias domain
      * @return list of user names
      * @throws ZMSClientException in case of failure
      */
-    public UserList getUserList() {
+    public UserList getUserList(String domainName) {
         updatePrincipal();
         try {
-            return client.getUserList();
+            return client.getUserList(domainName);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
+    }
+
+    /**
+     * Get list of users defined in the system
+     *
+     * @return list of user names
+     * @throws ZMSClientException in case of failure
+     */
+    public UserList getUserList() {
+        return getUserList(null);
     }
 
     /**
