@@ -1295,11 +1295,8 @@ public class DBService implements RolesProvider {
 
                 // audit log the request
 
-                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditDetails.append("{\"deleted-publicKeys\": [{\"id\": \"").append(keyId).append("\"}]}");
-
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                        serviceName, auditDetails.toString());
+                        serviceName, "{\"deleted-publicKeys\": [{\"id\": \"" + keyId + "\"}]}");
 
                 return;
 
@@ -1879,6 +1876,17 @@ public class DBService implements RolesProvider {
 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
 
+                // extract the current policy for audit log purposes
+
+                Policy policy = getPolicy(con, domainName, policyName);
+                if (policy == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": unable to read policy: " + policyName, caller);
+                }
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogPolicy(auditDetails, policy, "deleted-assertions");
+
                 // process our delete policy request
 
                 if (!con.deletePolicy(domainName, policyName)) {
@@ -1893,7 +1901,7 @@ public class DBService implements RolesProvider {
                 // audit log the request
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                        policyName, null);
+                        policyName, auditDetails.toString());
 
                 return;
 
@@ -2738,6 +2746,14 @@ public class DBService implements RolesProvider {
 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
 
+                // fetch the assertion for our audit log
+
+                Assertion assertion = con.getAssertion(domainName, policyName, assertionId);
+                if (assertion == null) {
+                    throw ZMSUtils.notFoundError(caller + ": unable to read assertion: " +
+                            assertionId + " from policy: " + policyName, caller);
+                }
+
                 // process our delete assertion. since this is a "single"
                 // operation, we are not using any transactions.
 
@@ -2754,10 +2770,15 @@ public class DBService implements RolesProvider {
 
                 // audit log the request
 
-                final String auditDetails = "{\"policy\": \"" + policyName +
-                        "\", \"assertionId\": \"" + assertionId + "\"}";
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditDetails.append("{\"policy\": \"").append(policyName)
+                        .append("\", \"assertionId\": \"").append(assertionId)
+                        .append("\", \"deleted-assertions\": [");
+                auditLogAssertion(auditDetails, assertion, true);
+                auditDetails.append("]}");
+
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                        policyName, auditDetails);
+                        policyName, auditDetails.toString());
 
                 return;
 
@@ -4474,6 +4495,15 @@ public class DBService implements RolesProvider {
         firstEntry = auditLogSeparator(auditDetails, firstEntry);
         auditDetails.append("{\"id\": \"").append(publicKeyId).append("\"}");
         return firstEntry;
+    }
+
+    void auditLogPolicy(StringBuilder auditDetails, Policy policy, String label)  {
+        auditDetails.append("{\"name\": \"").append(policy.getName())
+                .append("\", \"modified\": \"").append(policy.getModified()).append('"');
+        if (policy.getAssertions() != null) {
+            auditLogAssertions(auditDetails, label, policy.getAssertions());
+        }
+        auditDetails.append("}");
     }
 
     void auditLogAssertions(StringBuilder auditDetails, String label, Collection<Assertion> values) {
