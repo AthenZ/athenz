@@ -15,7 +15,8 @@ type UserList Struct {
 
 //Enumerate users that are registered as principals in the system
 //This will return only the principals with "<user-domain>." prefix
-resource UserList GET "/user" {
+resource UserList GET "/user?domain={domainName}" {
+    DomainName domainName (optional); // name of the allowed user-domains and/or aliases
     authenticate;
     exceptions {
         ResourceError UNAUTHORIZED;

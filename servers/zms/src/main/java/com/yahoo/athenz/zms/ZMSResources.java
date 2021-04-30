@@ -3317,13 +3317,13 @@ public class ZMSResources {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")
     public UserList getUserList(
-        ) {
+        @Parameter(description = "name of the allowed user-domains and/or aliases", required = false) @QueryParam("domain") String domainName) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getUserList");
             context.authenticate();
-            return this.delegate.getUserList(context);
+            return this.delegate.getUserList(context, domainName);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

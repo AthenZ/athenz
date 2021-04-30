@@ -16931,8 +16931,19 @@ public class ZMSImplTest {
                 "user.ana", "user.janie");
         zms.putRole(mockDomRsrcCtx, "listusersports", "role4", auditRef, role4);
 
-        UserList userList = zms.getUserList(mockDomRsrcCtx);
+        UserList userList = zms.getUserList(mockDomRsrcCtx, null);
         List<String> users = userList.getNames();
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.janie"));
+        assertTrue(users.contains("user.ana"));
+        assertTrue(users.contains("user.jack"));
+        assertTrue(users.contains("user.joe"));
+
+        // retry the operation with the default user domain and
+        // we should get the same results
+
+        userList = zms.getUserList(mockDomRsrcCtx, "user");
+        users = userList.getNames();
         assertTrue(users.contains("user.testadminuser"));
         assertTrue(users.contains("user.janie"));
         assertTrue(users.contains("user.ana"));
@@ -16942,6 +16953,83 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "listusersports", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "listuserweather", auditRef);
+    }
+
+    @Test
+    public void testGetUserListInvalidDomain() {
+
+        try {
+            zms.getUserList(mockDomRsrcCtx, "coretech");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Unknown user domain"));
+        }
+    }
+
+    @Test
+    public void testGetUserListUserDomains() {
+
+        Set<String> currentUserDomainSet = zms.addlUserCheckDomainSet;
+        zms.addlUserCheckDomainSet = new HashSet<>();
+        zms.addlUserCheckDomainSet.add("unix");
+        zms.addlUserCheckDomainSet.add("grid");
+
+        ZMSTestUtils.cleanupNotAdminUsers(zms, adminUser, mockDomRsrcCtx);
+
+        String domainName = "listusersdomians";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        TopLevelDomain dom2 = createTopLevelDomainObject("unix",
+                "Test Domain2", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        TopLevelDomain dom3 = createTopLevelDomainObject("grid",
+                "Test Domain3", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
+
+        Role role1 = createRoleObject(domainName, "role1", null,
+                "user.joe", "unix.nobody");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+
+        Role role2 = createRoleObject(domainName, "role2", null,
+                "user.joe", "grid.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2);
+
+        Role role3 = createRoleObject(domainName, "role3", null,
+                "unix.root", "user.ana");
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, role3);
+
+        UserList userList = zms.getUserList(mockDomRsrcCtx, null);
+        List<String> users = userList.getNames();
+        assertTrue(users.contains("user.testadminuser"));
+        assertTrue(users.contains("user.joe"));
+        assertTrue(users.contains("user.ana"));
+
+        userList = zms.getUserList(mockDomRsrcCtx, "unix");
+        users = userList.getNames();
+        assertTrue(users.contains("unix.nobody"));
+        assertTrue(users.contains("unix.root"));
+
+        userList = zms.getUserList(mockDomRsrcCtx, "grid");
+        users = userList.getNames();
+        assertTrue(users.contains("grid.jane"));
+
+        try {
+            zms.getUserList(mockDomRsrcCtx, "coretech");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Unknown user domain"));
+        }
+
+        zms.addlUserCheckDomainSet = currentUserDomainSet;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "unix", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "grid", auditRef);
     }
 
     @Test
@@ -16979,7 +17067,7 @@ public class ZMSImplTest {
                 "user.jack", "user.jack.sub1.api");
         zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, role3);
 
-        UserList userList = zms.getUserList(mockDomRsrcCtx);
+        UserList userList = zms.getUserList(mockDomRsrcCtx, null);
         List<String> users = userList.getNames();
         int userSize = users.size();
         assertTrue(users.contains("user.testadminuser"));
@@ -16988,7 +17076,7 @@ public class ZMSImplTest {
 
         zms.deleteUser(mockDomRsrcCtx, "jack", auditRef);
 
-        userList = zms.getUserList(mockDomRsrcCtx);
+        userList = zms.getUserList(mockDomRsrcCtx, null);
         users = userList.getNames();
         assertEquals(users.size(), userSize - 1);
         assertTrue(users.contains("user.testadminuser"));

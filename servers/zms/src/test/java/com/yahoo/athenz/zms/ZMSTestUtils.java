@@ -135,7 +135,7 @@ public class ZMSTestUtils {
 
     public static void cleanupNotAdminUsers(ZMSImpl zms, final String adminUser, ResourceContext ctx) {
 
-        UserList userList = zms.getUserList(ctx);
+        UserList userList = zms.getUserList(ctx, null);
         List<String> users = userList.getNames();
         for (String user : users) {
             if (user.equals(adminUser)) {

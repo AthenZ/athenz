@@ -1919,6 +1919,7 @@ func init() {
 
 	mGetUserList := rdl.NewResourceBuilder("UserList", "GET", "/user")
 	mGetUserList.Comment("Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")
+	mGetUserList.Input("domainName", "DomainName", false, "domain", "", true, nil, "name of the allowed user-domains and/or aliases")
 	mGetUserList.Auth("", "", true, "")
 	mGetUserList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetUserList.Exception("UNAUTHORIZED", "ResourceError", "")

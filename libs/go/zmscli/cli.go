@@ -303,7 +303,11 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.ShowResourceAccess(args[0], args[1])
 			}
 		case "list-user":
-			return cli.ListUsers()
+			domainName := ""
+			if argc == 1 {
+				domainName = args[0]
+			}
+			return cli.ListUsers(domainName)
 		case "delete-user":
 			if argc == 1 {
 				return cli.DeleteUser(args[0])
@@ -2222,9 +2226,10 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " delete-domain-template vipng\n")
 	case "list-user":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   list-user\n")
+		buf.WriteString("   list-user [domain]\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   list-user\n")
+		buf.WriteString("   list-user unix\n")
 	case "delete-user":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   delete-user user\n")
@@ -2733,7 +2738,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("\n")
 	buf.WriteString(" System Administrator commands:\n")
 	buf.WriteString("   set-default-admins domain admin [admin ...]\n")
-	buf.WriteString("   list-user\n")
+	buf.WriteString("   list-user [domain]\n")
 	buf.WriteString("   delete-user user\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Other commands:\n")

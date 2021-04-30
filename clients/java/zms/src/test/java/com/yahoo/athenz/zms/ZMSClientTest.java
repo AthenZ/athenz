@@ -2222,8 +2222,9 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
-        UserList userListMock = Mockito.mock(UserList.class);
-        Mockito.when(c.getUserList())
+        UserList userListMock = Mockito
+                .mock(UserList.class);
+        Mockito.when(c.getUserList(null))
                 .thenReturn(userListMock)
                 .thenThrow(new ResourceException(401))
                 .thenThrow(new NullPointerException());
@@ -2244,6 +2245,40 @@ public class ZMSClientTest {
 
         try {
             client.getUserList();
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testGetUserListWithDomain() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        UserList userListMock = Mockito
+                .mock(UserList.class);
+        Mockito.when(c.getUserList("unix"))
+                .thenReturn(userListMock)
+                .thenThrow(new ResourceException(401))
+                .thenThrow(new NullPointerException());
+
+        try {
+            UserList userList = client.getUserList("unix");
+            assertNotNull(userList);
+        } catch (ZMSClientException ex) {
+            fail();
+        }
+
+        try {
+            client.getUserList("unix");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+
+        try {
+            client.getUserList("unix");
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), 400);

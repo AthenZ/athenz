@@ -2247,6 +2247,7 @@ public class ZMSSchema {
 
         sb.resource("UserList", "GET", "/user")
             .comment("Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")
+            .queryParam("domain", "domainName", "DomainName", null, "name of the allowed user-domains and/or aliases")
             .auth("", "", true)
             .expected("OK")
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")

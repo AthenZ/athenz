@@ -9,9 +9,9 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zms"
 )
 
-func (cli Zms) ListUsers() (*string, error) {
+func (cli Zms) ListUsers(domainName string) (*string, error) {
 	var buf bytes.Buffer
-	users, err := cli.Zms.GetUserList()
+	users, err := cli.Zms.GetUserList(zms.DomainName(domainName))
 	if err != nil {
 		return nil, err
 	}
