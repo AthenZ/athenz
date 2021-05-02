@@ -2477,8 +2477,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         if (!cloudStore.isAwsEnabled()) {
-            throw requestError("getAWSTemporaryCredentials: AWS support is not available",
-                    caller, domainName, principalDomain);
+            throw requestError("AWS support is not available", caller, domainName, principalDomain);
         }
         
         // get our principal's name
@@ -2490,7 +2489,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // with aws assume role assertion for the specified role and domain
         
         if (!verifyAWSAssumeRole(domainName, roleResource, principalName)) {
-            throw forbiddenError("getAWSTemporaryCredentials: Forbidden (ASSUME_AWS_ROLE on "
+            throw forbiddenError("Athenz Configuration Error: Forbidden (assume_aws_role on "
                     + roleResource + " for " + principalName + ")", caller, domainName, principalDomain);
         }
         
@@ -2498,18 +2497,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         String account = cloudStore.getAwsAccount(domainName);
         if (account == null) {
-            throw requestError("getAWSTemporaryCredentials: unable to retrieve AWS account for: "
+            throw requestError("Athenz Configuration Error: unable to retrieve AWS account for: "
                     + domainName, caller, domainName, principalDomain);
         }
         
         // obtain the credentials from the cloud store
-        
+
+        StringBuilder errorMessage = new StringBuilder();
         AWSTemporaryCredentials creds = cloudStore.assumeAWSRole(account, roleName, principalName,
-                durationSeconds, externalId);
+                durationSeconds, externalId, errorMessage);
         if (creds == null) {
-            throw requestError("getAWSTemporaryCredentials: unable to assume role " + roleName
-                    + " in domain " + domainName + " for principal " + principalName,
-                    caller, domainName, principalDomain);
+            throw requestError("AWS Configuration Error: Unable to assume role " + roleName + " in domain " +
+                            domainName + " for principal " + principalName + "error: " + errorMessage,
+                            caller, domainName, principalDomain);
         }
         
         return creds;

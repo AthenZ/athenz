@@ -440,7 +440,7 @@ public class ZTSResources {
     @GET
     @Path("/domain/{domainName}/role/{role}/creds")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "perform an AWS AssumeRole of the target role and return the credentials. ZTS must have been granted the ability to assume the role in IAM, and granted the ability to ASSUME_AWS_ROLE in Athenz for this to succeed.")
+    @Operation(description = "perform an AWS AssumeRole of the target role and return the credentials. ZTS must have been granted the ability to assume the role in IAM, and granted the ability to assume_aws_role in Athenz for this to succeed.")
     public AWSTemporaryCredentials getAWSTemporaryCredentials(
         @Parameter(description = "name of the domain containing the role, which implies the target account", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "the target AWS role name in the domain account, in Athenz terms, i.e. \"the.role\"", required = true) @PathParam("role") String role,

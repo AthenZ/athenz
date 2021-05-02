@@ -450,7 +450,7 @@ Exception:
 
 Perform an AWS AssumeRole of the target role and return the credentials. ZTS
 must have been granted the ability to assume the role in IAM, and granted
-the ability to ASSUME_AWS_ROLE in Athenz for this to succeed. There are two
+the ability to assume_aws_role in Athenz for this to succeed. There are two
 optional query parameters to specify the duration in seconds for the requested
 credentials and the external id. Both of these options require the role to be
 configured accordingly in AWS IAM.

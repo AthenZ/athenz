@@ -454,7 +454,7 @@ public class CloudStore {
         // iterate through all entries in the map and remove any
         // entries that have been expired already
 
-        long checkTime = System.currentTimeMillis() - invalidCacheTimeout * 1000;
+        long checkTime = System.currentTimeMillis() - invalidCacheTimeout * 1000L;
         return awsInvalidCredsCache.entrySet().removeIf(entry -> entry.getValue() <= checkTime);
     }
 
@@ -526,7 +526,7 @@ public class CloudStore {
     }
 
     public AWSTemporaryCredentials assumeAWSRole(String account, String roleName, String principal,
-                                                 Integer durationSeconds, String externalId) {
+                                                 Integer durationSeconds, String externalId, StringBuilder errorMessage) {
 
         if (!awsEnabled) {
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
@@ -547,8 +547,8 @@ public class CloudStore {
         // and eventually become rate limited
 
         if (isFailedTempCredsRequest(cacheKey)) {
-            LOGGER.error("CloudStore: assumeAWSRole - failed cached request for account {} with role: {}",
-                    account, roleName);
+            errorMessage.append("Cached invalid request. Retry operation after ").append(invalidCacheTimeout)
+                    .append(" seconds.");
             return null;
         }
 
@@ -577,6 +577,7 @@ public class CloudStore {
                 putInvalidCacheCreds(cacheKey);
             }
 
+            errorMessage.append(ex.getErrorMessage());
             return null;
 
         } catch (Exception ex) {
@@ -584,6 +585,7 @@ public class CloudStore {
             LOGGER.error("CloudStore: assumeAWSRole - unable to assume role: {}, error: {}",
                     req.getRoleArn(), ex.getMessage());
 
+            errorMessage.append(ex.getMessage());
             return null;
         }
 

@@ -462,7 +462,7 @@ ZTS Server returns a unique error message indicating what part of the configurat
 ### Athenz Domain Configuration
 
 ```
-getAWSTemporaryCredentials: unable to retrieve AWS account for: <domainName>
+Athenz Configuration Error: unable to retrieve AWS account for: <domainName>
 ```
 
 The domain, identified in the `<domainName>` field, does not have AWS account id configured. Follow the steps in the `AWS Account ID Registration` section to register your AWS account id for your domain.
@@ -470,7 +470,7 @@ The domain, identified in the `<domainName>` field, does not have AWS account id
 ### Athenz Role Configuration
 
 ```
-getAWSTemporaryCredentials: Forbidden (ASSUME_AWS_ROLE on <resource-name> for <principal>)
+Athenz Configuration Error: Forbidden (assume_aws_role on <resource-name> for <principal>)
 ```
 
 This error indicates that the principal, identified in the `<principal>` field, requesting the temporary credentials is not authorized. There are two common issues that generate this error message:
@@ -482,7 +482,7 @@ This error indicates that the principal, identified in the `<principal>` field, 
 ### AWS Configuration
 
 ```
-getAWSTemporaryCredentials: unable to assume role <roleName> in domain <domainName> for principal <principal>
+AWS Configuration Error: unable to assume role <roleName> in domain <domainName> for principal <principal> error: <aws-error-message>
 ```
 
 This error indicates that AWS STS refused to issue temporary credentials to the Athenz ZTS service. This usually indicates that either the role name specified in the request is incorrect (you must specify the IAM Role name you're trying to assume and not the Athenz Role Name) or the role in IAM does not have the trust relationship setup for ZTS service as described in the `AWS Configuration Setup` section in this document.

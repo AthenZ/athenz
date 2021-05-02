@@ -24,7 +24,7 @@ type AWSTemporaryCredentials Struct {
 
 // perform an AWS AssumeRole of the target role and return the credentials. ZTS
 // must have been granted the ability to assume the role in IAM, and granted
-// the ability to ASSUME_AWS_ROLE in Athenz for this to succeed.
+// the ability to assume_aws_role in Athenz for this to succeed.
 resource AWSTemporaryCredentials GET "/domain/{domainName}/role/{role}/creds?durationSeconds={durationSeconds}&externalId={externalId}" {
     DomainName domainName; //name of the domain containing the role, which implies the target account
     AWSArnRoleName role; //the target AWS role name in the domain account, in Athenz terms, i.e. "the.role"
