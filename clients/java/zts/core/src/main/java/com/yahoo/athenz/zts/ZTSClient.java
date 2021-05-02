@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -1122,18 +1121,6 @@ public class ZTSClient implements Closeable {
     }
 
     /**
-     * Generate the authorization details for an access token request when
-     * the request is processed through a proxy server and we need to convey
-     * that information to the origin server to support mtls bind check
-     * @param proxyPrincipalSpiffeUris list of proxy principal spiffe Uris
-     * @return authorization details json object to include in the getAccessToken call
-     */
-    public static String generateProxyPrincipalAuthorizationDetails(final List<String> proxyPrincipalSpiffeUris) {
-        return proxyPrincipalSpiffeUris.stream().collect(
-                Collectors.joining("\",\"", "[{\"type\":\"proxy_access\",\"principal\":[\"", "\"]}]"));
-    }
-
-    /**
      * For the specified requester(user/service) return the corresponding Access Token that
      * includes the list of roles that the principal has access to in the specified domain
      * @param domainName name of the domain
@@ -1144,7 +1131,7 @@ public class ZTSClient implements Closeable {
      * @return ZTS generated Access Token Response object. ZTSClientException will be thrown in case of failure
      */
     public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, long expiryTime) {
-        return getAccessToken(domainName, roleNames, null, null, null, expiryTime, false);
+        return getAccessToken(domainName, roleNames, null, null, null, null, expiryTime, false);
     }
 
     /**
@@ -1163,7 +1150,7 @@ public class ZTSClient implements Closeable {
      */
     public AccessTokenResponse getAccessToken(String domainName, String roleName, String authorizationDetails, long expiryTime) {
         return getAccessToken(domainName, Collections.singletonList(roleName), null, null,
-                authorizationDetails, expiryTime, false);
+                authorizationDetails, null, expiryTime, false);
     }
 
     /**
@@ -1182,7 +1169,7 @@ public class ZTSClient implements Closeable {
      */
     public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames,
             String idTokenServiceName, long expiryTime, boolean ignoreCache) {
-        return getAccessToken(domainName, roleNames, idTokenServiceName, null, null, expiryTime, ignoreCache);
+        return getAccessToken(domainName, roleNames, idTokenServiceName, null, null, null, expiryTime, ignoreCache);
     }
 
     /**
@@ -1203,6 +1190,31 @@ public class ZTSClient implements Closeable {
      */
     public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, String idTokenServiceName,
             String proxyForPrincipal, String authorizationDetails, long expiryTime, boolean ignoreCache) {
+        return getAccessToken(domainName, roleNames, idTokenServiceName, proxyForPrincipal, authorizationDetails,
+                null, expiryTime, ignoreCache);
+    }
+
+    /**
+     * For the specified requester(user/service) return the corresponding Access Token that
+     * includes the list of roles that the principal has access to in the specified domain
+     * @param domainName name of the domain
+     * @param roleNames (optional) only interested in roles with these names, comma separated list of roles
+     * @param idTokenServiceName (optional) as part of the response return an id token whose audience
+     *          is the specified service (only service name e.g. api) in the
+     *          domainName domain.
+     * @param proxyForPrincipal (optional) this request is proxy for this principal
+     * @param authorizationDetails (optional) rich authorization request details
+     * @param proxyPrincipalSpiffeUris (optional) comma separated list of spiffe uris of proxy
+     *          principals that this token will be routed through
+     * @param expiryTime (optional) specifies that the returned Access must be
+     *          at least valid for specified number of seconds. Pass 0 to use
+     *          server default timeout.
+     * @param ignoreCache ignore the cache and retrieve the token from ZTS Server
+     * @return ZTS generated Access Token Response object. ZTSClientException will be thrown in case of failure
+     */
+    public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, String idTokenServiceName,
+            String proxyForPrincipal, String authorizationDetails, String proxyPrincipalSpiffeUris, long expiryTime,
+            boolean ignoreCache) {
 
         AccessTokenResponse accessTokenResponse = null;
 
@@ -1212,7 +1224,7 @@ public class ZTSClient implements Closeable {
         String cacheKey = null;
         if (!cacheDisabled) {
             cacheKey = getAccessTokenCacheKey(domainName, roleNames, idTokenServiceName,
-                    proxyForPrincipal, authorizationDetails);
+                    proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris);
             if (cacheKey != null && !ignoreCache) {
                 accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, expiryTime);
                 if (accessTokenResponse != null) {
@@ -1221,7 +1233,7 @@ public class ZTSClient implements Closeable {
                 // start prefetch for this token if prefetch is enabled
                 if (enablePrefetch && prefetchAutoEnable) {
                     if (prefetchAccessToken(domainName, roleNames, idTokenServiceName,
-                            proxyForPrincipal, authorizationDetails, expiryTime)) {
+                            proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris, expiryTime)) {
                         accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, expiryTime);
                     }
                     if (accessTokenResponse != null) {
@@ -1245,7 +1257,8 @@ public class ZTSClient implements Closeable {
             updateServicePrincipal();
             try {
                 final String requestBody = generateAccessTokenRequestBody(domainName, roleNames,
-                        idTokenServiceName, proxyForPrincipal, authorizationDetails, expiryTime);
+                        idTokenServiceName, proxyForPrincipal, authorizationDetails,
+                        proxyPrincipalSpiffeUris, expiryTime);
                 accessTokenResponse = ztsClient.postAccessTokenRequest(requestBody);
             } catch (ResourceException ex) {
                 if (cacheKey != null && !ignoreCache) {
@@ -1273,7 +1286,7 @@ public class ZTSClient implements Closeable {
         if (!cacheDisabled) {
             if (cacheKey == null) {
                 cacheKey = getAccessTokenCacheKey(domainName, roleNames, idTokenServiceName,
-                        proxyForPrincipal, authorizationDetails);
+                        proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris);
             }
             if (cacheKey != null) {
                 ACCESS_TOKEN_CACHE.put(cacheKey, new AccessTokenResponseCacheEntry(accessTokenResponse));
@@ -1284,7 +1297,8 @@ public class ZTSClient implements Closeable {
     }
 
     String generateAccessTokenRequestBody(String domainName, List<String> roleNames, String idTokenServiceName,
-            String proxyForPrincipal, String authorizationDetails, long expiryTime) throws UnsupportedEncodingException {
+            String proxyForPrincipal, String authorizationDetails, String proxyPrincipalSpiffeUris,
+            long expiryTime) throws UnsupportedEncodingException {
 
         StringBuilder body = new StringBuilder(256);
         body.append("grant_type=client_credentials");
@@ -1315,6 +1329,10 @@ public class ZTSClient implements Closeable {
 
         if (!isEmpty(authorizationDetails)) {
             body.append("&authorization_details=").append(URLEncoder.encode(authorizationDetails, "UTF-8"));
+        }
+
+        if (!isEmpty(proxyPrincipalSpiffeUris)) {
+            body.append("&proxy_principal_spiffe_uris=").append(URLEncoder.encode(proxyPrincipalSpiffeUris, "UTF-8"));
         }
 
         return body.toString();
@@ -1860,14 +1878,15 @@ public class ZTSClient implements Closeable {
     }
 
     public boolean prefetchAccessToken(String domainName, List<String> roleNames,
-            String idTokenServiceName, String proxyForPrincipal, String authorizationDetails, long expiryTime) {
+            String idTokenServiceName, String proxyForPrincipal, String authorizationDetails,
+            String proxyPrincipalSpiffeUris, long expiryTime) {
 
         if (domainName == null || domainName.trim().isEmpty()) {
             throw new ZTSClientException(ResourceException.BAD_REQUEST, "Domain Name cannot be empty");
         }
 
         AccessTokenResponse tokenResponse = getAccessToken(domainName, roleNames, idTokenServiceName,
-                proxyForPrincipal, authorizationDetails, expiryTime, true);
+                proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris, expiryTime, true);
         if (tokenResponse == null) {
             LOG.error("PrefetchToken: No access token fetchable using domain={}", domainName);
             return false;
@@ -1941,7 +1960,7 @@ public class ZTSClient implements Closeable {
     }
 
     String getAccessTokenCacheKey(String domainName, List<String> roleNames, String idTokenServiceName,
-            String proxyForPrincipal, String authorizationDetails) {
+            String proxyForPrincipal, String authorizationDetails, String proxyPrincipalSpiffeUris) {
 
         // if we don't have a tenant domain specified but we have a ssl context
         // then we're going to use the hash code for our sslcontext as the
@@ -1952,12 +1971,12 @@ public class ZTSClient implements Closeable {
             tenantDomain = sslContext.toString();
         }
         return getAccessTokenCacheKey(tenantDomain, service, domainName, roleNames,
-                idTokenServiceName, proxyForPrincipal, authorizationDetails);
+                idTokenServiceName, proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris);
     }
 
     String getAccessTokenCacheKey(String tenantDomain, String tenantService, String domainName,
             List<String> roleNames, String idTokenServiceName, String proxyForPrincipal,
-            String authorizationDetails) {
+            String authorizationDetails, String proxyPrincipalSpiffeUris) {
 
         // before we generate a cache key we need to have a valid domain
 
@@ -1993,6 +2012,11 @@ public class ZTSClient implements Closeable {
         if (!isEmpty(authorizationDetails)) {
             cacheKey.append(";z=");
             cacheKey.append(Base64.getUrlEncoder().withoutPadding().encodeToString(Crypto.sha256(authorizationDetails)));
+        }
+
+        if (!isEmpty(proxyPrincipalSpiffeUris)) {
+            cacheKey.append(";s=");
+            cacheKey.append(proxyPrincipalSpiffeUris);
         }
 
         return cacheKey.toString();

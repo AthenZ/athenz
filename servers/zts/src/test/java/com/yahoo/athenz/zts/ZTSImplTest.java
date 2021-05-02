@@ -74,9 +74,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.URLEncoder;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1325,6 +1323,7 @@ public class ZTSImplTest {
         //success
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        assertNotNull(principal);
         principal.setApplicationId("coretech.api");
         ResourceContext context = createResourceContext(principal);
 
@@ -1340,6 +1339,7 @@ public class ZTSImplTest {
         //failure - domain name and principal authorized service doesn't match
         principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        assertNotNull(principal);
         principal.setAuthorizedService("sports.hockey.api");
         context = createResourceContext(principal);
 
@@ -1414,6 +1414,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, new CertificateAuthority());
+        assertNotNull(principal);
         ResourceContext context = createResourceContext(principal);
 
         // for the first principal we're not going to match - not including
@@ -2834,6 +2835,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain",
                 "user101", "v=U1;d=user_domain;n=user101;s=signature", 0, null);
+        assertNotNull(principal);
         principal.setAuthorizedService("athenz.service");
         MockCloudStore cloudStore = new MockCloudStore();
         cloudStore.setMockFields("1234", "aws_role_name", "user_domain.user101");
@@ -3132,6 +3134,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("0");
         String publicKeyName = "athenz.syncer_0";
         final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
@@ -3168,6 +3171,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "production", "v=S1,d=athenz;n=production;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("0");
         String publicKeyName = "athenz.production_0";
         final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
@@ -3214,6 +3218,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("0");
         String publicKeyName = "athenz.syncer_0";
         final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
@@ -3249,6 +3254,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "production", "v=S1,d=athenz;n=production;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("0");
         String publicKeyName = "athenz.production_0";
         final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
@@ -3281,6 +3287,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "production", "v=S1,d=athenz;n=production;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("0");
         String publicKeyName = "athenz.production_0";
         final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
@@ -4215,6 +4222,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        assertNotNull(principal);
         principal.setAuthorizedService("athenz.api");
         ResourceContext context = createResourceContext(principal);
 
@@ -5656,6 +5664,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -5739,6 +5748,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -5831,6 +5841,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -5997,6 +6008,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -6062,6 +6074,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -6143,6 +6156,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -6244,6 +6258,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -6334,6 +6349,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -6404,6 +6420,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -6468,6 +6485,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -6611,6 +6629,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -6678,6 +6697,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -6740,6 +6760,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -6809,6 +6830,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -6878,6 +6900,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -6948,6 +6971,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -7010,6 +7034,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -7079,6 +7104,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -7280,6 +7306,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -7325,6 +7352,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
         Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr", null, "user")).thenReturn(true);
@@ -7374,6 +7402,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
         Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr", null, "user")).thenReturn(true);
@@ -7423,6 +7452,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
         Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr", null, "user")).thenReturn(false);
@@ -7957,6 +7987,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
                 "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("0");
 
         String publicKeyName = "athenz.syncer_v0";
@@ -8000,6 +8031,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
                 "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("0");
 
         String publicKeyName = "athenz.syncer_v0";
@@ -8040,6 +8072,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
                 "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("0");
 
         String publicKeyName = "athenz.syncer_v0";
@@ -8088,6 +8121,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
                 "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("0");
 
         String publicKeyName = "athenz.syncer_v0";
@@ -8131,6 +8165,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
                 "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("1");
 
         ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
@@ -8167,6 +8202,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
                 "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("1");
 
         String publicKeyName = "athenz.api_v0";
@@ -8210,6 +8246,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
                 "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("1");
 
         String publicKeyName = "athenz.syncer_v0";
@@ -8257,6 +8294,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        assertNotNull(principal);
         principal.setX509Certificate(cert);
 
         assertSame(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1"), ServiceX509RefreshRequestStatus.SUCCESS);
@@ -8284,6 +8322,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        assertNotNull(principal);
         principal.setX509Certificate(cert);
 
         assertSame(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1"), ServiceX509RefreshRequestStatus.PUBLIC_KEY_MISMATCH);
@@ -8310,6 +8349,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        assertNotNull(principal);
         principal.setX509Certificate(cert);
 
         // our ip will not match 10.0.0.1 thus failure
@@ -8338,6 +8378,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        assertNotNull(principal);
         principal.setX509Certificate(cert);
 
         assertSame(ztsImpl.validateServiceX509RefreshRequest(principal, certReq, "10.0.0.1"), ServiceX509RefreshRequestStatus.DNS_NAME_MISMATCH);
@@ -8364,6 +8405,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        assertNotNull(principal);
         principal.setX509Certificate(cert);
 
         String publicKeyName = "athenz.syncer_v0";
@@ -8409,6 +8451,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        assertNotNull(principal);
         principal.setX509Certificate(cert);
 
         String publicKeyName = "athenz.syncer_v0";
@@ -8456,6 +8499,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
                 "syncer", "v=S1,d=athenz;n=syncer;s=sig", 0, new CertificateAuthority());
+        assertNotNull(principal);
         principal.setX509Certificate(cert);
 
         String publicKeyName = "athenz.syncer_v0";
@@ -8508,6 +8552,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
                 "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setKeyId("1");
 
         ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
@@ -8534,6 +8579,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
                 "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         zts.checkRoleTokenAuthorizedServiceRequest(principal, "athenz", "caller");
 
         // empty authorized service
@@ -8549,6 +8595,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
                 "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setAuthorizedService("sports.api");
 
         zts.checkRoleTokenAuthorizedServiceRequest(principal, "sports", "caller");
@@ -8702,6 +8749,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -8755,6 +8803,7 @@ public class ZTSImplTest {
         CertificateAuthority certAuthority = new CertificateAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "production",
                 "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+        assertNotNull(principal);
 
         X509Certificate cert = Crypto.loadX509Certificate(pem);
         principal.setX509Certificate(cert);
@@ -9072,6 +9121,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user1;s=signature", 0, new CertificateAuthority());
+        assertNotNull(principal);
         ResourceContext context = createResourceContext(principal);
 
         List<String> principalRoles = new ArrayList<>();
@@ -9114,6 +9164,7 @@ public class ZTSImplTest {
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "x509-certificate-details", 0, new CertificateAuthority());
+        assertNotNull(principal);
 
         Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
         String certStr = new String(Files.readAllBytes(path));
@@ -9804,6 +9855,7 @@ public class ZTSImplTest {
 
         Principal principal = SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user1;s=signature", 0, null);
+        assertNotNull(principal);
         ((SimplePrincipal) principal).setAuthorizedService("sports.hockey.api");
 
         ResourceContext context = createResourceContext(principal);
@@ -10038,6 +10090,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("sports", "api",
                 "creds", 0, new PrincipalAuthority());
+        assertNotNull(principal);
 
         // no errors with regular principal
 
@@ -10059,6 +10112,7 @@ public class ZTSImplTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("sports", "api",
                 "creds", 0, new PrincipalAuthority());
+        assertNotNull(principal);
 
         Set<String> roles = new HashSet<>();
         roles.add("readers");
@@ -11366,6 +11420,59 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testPostAccessTokenRequestWithProxyPrincipals() throws IOException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processDomain(signedDomain, false);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+        principal.setX509Certificate(cert);
+
+        ResourceContext context = createResourceContext(principal);
+        final String proxyPrincipalsEncoded = "spiffe%3A%2F%2Fathenz%2Fsa%2Fapi%2Cspiffe%3A%2F%2Fsports%2Fsa%2Fapi";
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:role.writers&proxy_principal_spiffe_uris=" + proxyPrincipalsEncoded);
+        assertNotNull(resp);
+        assertNull(resp.getScope());
+
+        final String accessTokenStr = resp.getAccess_token();
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("coretech", claims.getBody().getAudience());
+        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
+        List<String> scopes = (List<String>) claims.getBody().get("scp");
+        assertNotNull(scopes);
+        assertEquals(1, scopes.size());
+        assertEquals("writers", scopes.get(0));
+
+        LinkedHashMap<String, Object> cnf = (LinkedHashMap<String, Object>) claims.getBody().get("cnf");
+        assertNotNull(cnf);
+        List<String> spiffeUris = (List<String>) cnf.get("proxy-principals#spiffe");
+        assertNotNull(spiffeUris);
+        assertEquals(spiffeUris.size(), 2);
+        assertTrue(spiffeUris.contains("spiffe://athenz/sa/api"));
+        assertTrue(spiffeUris.contains("spiffe://sports/sa/api"));
+    }
+
+    @Test
     public void getTransportRulesROTest() {
         zts.readOnlyMode = true;
         try {
@@ -11692,8 +11799,10 @@ public class ZTSImplTest {
         Mockito.when(mockICM.insertWorkloadRecord(any())).thenReturn(true, false);
         zts.insertWorkloadRecord("athenz.api", "openstack", "123", "", "test1.host.yahoo.cloud", certExpiryTime);
         Mockito.verify(mockICM, Mockito.times(0)).insertWorkloadRecord(any(WorkloadRecord.class));
+        zts.insertWorkloadRecord("athenz.api", "openstack", "123", "10.0.0.1", "test1.host.yahoo.cloud", certExpiryTime);
+        Mockito.verify(mockICM, Mockito.times(1)).insertWorkloadRecord(any(WorkloadRecord.class));
         zts.insertWorkloadRecord("athenz.api", "openstack", "123", "10.0.0.1, 10.0.0.2", null, certExpiryTime);
-        Mockito.verify(mockICM, Mockito.times(2)).insertWorkloadRecord(any(WorkloadRecord.class));
+        Mockito.verify(mockICM, Mockito.times(3)).insertWorkloadRecord(any(WorkloadRecord.class));
         zts.instanceCertManager = origICM;
     }
 
@@ -11706,8 +11815,10 @@ public class ZTSImplTest {
         Mockito.when(mockICM.updateWorkloadRecord(any())).thenReturn(true, false);
         zts.updateWorkloadRecord("athenz.api", "openstack", "123", "", "test.host-1.yahoo.cloud", certExpiryTime);
         Mockito.verify(mockICM, Mockito.times(0)).updateWorkloadRecord(any(WorkloadRecord.class));
+        zts.updateWorkloadRecord("athenz.api", "openstack", "123", "10.0.0.1", "test.host-1.yahoo.cloud", certExpiryTime);
+        Mockito.verify(mockICM, Mockito.times(1)).updateWorkloadRecord(any(WorkloadRecord.class));
         zts.updateWorkloadRecord("athenz.api", "openstack", "123", "10.0.0.1, 10.0.0.2", null, certExpiryTime);
-        Mockito.verify(mockICM, Mockito.times(2)).updateWorkloadRecord(any(WorkloadRecord.class));
+        Mockito.verify(mockICM, Mockito.times(3)).updateWorkloadRecord(any(WorkloadRecord.class));
         zts.instanceCertManager = origICM;
     }
 
@@ -11941,5 +12052,58 @@ public class ZTSImplTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH);
         zts.systemAuthzDetails = null;
+    }
+
+    @Test
+    public void testGetProxyPrincipalSpiffeUris() {
+
+        List<String> uris = zts.getProxyPrincipalSpiffeUris("spiffe://data/sa/service", "athenz", "caller");
+        assertEquals(uris.size(), 1);
+        assertTrue(uris.contains("spiffe://data/sa/service"));
+
+        uris = zts.getProxyPrincipalSpiffeUris(" spiffe://data/sa/service", "athenz", "caller");
+        assertEquals(uris.size(), 1);
+        assertTrue(uris.contains("spiffe://data/sa/service"));
+
+        uris = zts.getProxyPrincipalSpiffeUris("spiffe://data/sa/service,spiffe://sports/sa/api", "athenz", "caller");
+        assertEquals(uris.size(), 2);
+        assertTrue(uris.contains("spiffe://data/sa/service"));
+        assertTrue(uris.contains("spiffe://sports/sa/api"));
+
+        uris = zts.getProxyPrincipalSpiffeUris("spiffe://data/sa/service , spiffe://sports/sa/api ", "athenz", "caller");
+        assertEquals(uris.size(), 2);
+        assertTrue(uris.contains("spiffe://data/sa/service"));
+        assertTrue(uris.contains("spiffe://sports/sa/api"));
+    }
+
+    @Test
+    public void testGetProxyPrincipalSpiffeUrisFailures() {
+
+        // null value
+
+        assertNull(zts.getProxyPrincipalSpiffeUris("", "athenz", "caller"));
+
+        // uri does not start with spiffe://
+
+        try {
+            zts.getProxyPrincipalSpiffeUris("athenz://data/sa/service", "athenz", "caller");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid spiffe uri specified: athenz://data/sa/service"));
+        }
+
+        try {
+            zts.getProxyPrincipalSpiffeUris("spiffe://athenz/sa/service,athenz://data/sa/service", "athenz", "caller");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid spiffe uri specified: athenz://data/sa/service"));
+        }
+
+        try {
+            zts.getProxyPrincipalSpiffeUris("spiffe://\\athenz/sa/service", "athenz", "caller");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid spiffe uri specified: spiffe://\\athenz/sa/service"));
+        }
     }
 }

@@ -78,6 +78,8 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -89,6 +91,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
 
@@ -173,6 +176,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String KEY_EXPIRES_IN = "expires_in";
     private static final String KEY_PROXY_FOR_PRINCIPAL = "proxy_for_principal";
     private static final String KEY_AUTHORIZATION_DETAILS = "authorization_details";
+    private static final String KEY_PROXY_PRINCIPAL_SPIFFE_URIS = "proxy_principal_spiffe_uris";
     private static final String KEY_TYPE = "type";
 
     private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
@@ -1464,6 +1468,34 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
     }
 
+    List<String> getProxyPrincipalSpiffeUris(final String proxyPrincipalSpiffeUris, final String principalDomain,
+                                             final String caller) {
+
+        if (proxyPrincipalSpiffeUris.isEmpty()) {
+            return null;
+        }
+        List<String> uris= Stream.of(proxyPrincipalSpiffeUris.split(","))
+                .map(String::trim)
+                .collect(Collectors.toList());
+
+        // verify that all values are valid spiffe uris structurally
+
+        for (String uri : uris) {
+            if (!uri.startsWith(ZTSConsts.ZTS_CERT_SPIFFE_URI)) {
+                throw requestError("Invalid spiffe uri specified: " + uri, caller,
+                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            }
+
+            try {
+                new URI(uri);
+            } catch (URISyntaxException ex) {
+                throw requestError("Invalid spiffe uri specified: " + uri, caller,
+                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            }
+        }
+        return uris;
+    }
+
     String getProxyForPrincipalValue(final String proxyName, final String principalName,
                                      final String principalDomain, final String caller) {
 
@@ -1524,6 +1556,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         String scope = null;
         String proxyForPrincipal = null;
         String authzDetails = null;
+        List<String> proxyPrincipalsSpiffeUris = null;
         int expiryTime = 0;
 
         String[] comps = request.split("&");
@@ -1562,6 +1595,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     break;
                 case KEY_AUTHORIZATION_DETAILS:
                     authzDetails = value;
+                    break;
+                case KEY_PROXY_PRINCIPAL_SPIFFE_URIS:
+                    proxyPrincipalsSpiffeUris = getProxyPrincipalSpiffeUris(value.toLowerCase(),
+                            principalDomain, caller);
                     break;
             }
         }
@@ -1700,10 +1737,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // if we have a certificate used for mTLS authentication then
         // we're going to bind the certificate to the access token
+        // and the optional proxy principals if specified
 
         X509Certificate cert = principal.getX509Certificate();
         if (cert != null) {
             accessToken.setConfirmX509CertHash(cert);
+            accessToken.setConfirmProxyPrincipalSpiffeUris(proxyPrincipalsSpiffeUris);
         }
 
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
