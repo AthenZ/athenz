@@ -743,7 +743,8 @@ public class CloudStoreTest {
     public void testAssumeAWSRoleAWSNotEnabled() {
         CloudStore cloudStore = new CloudStore();
         try {
-            cloudStore.assumeAWSRole("account", "sycner", "athenz.syncer", null, null);
+            StringBuilder errorMessage = new StringBuilder();
+            cloudStore.assumeAWSRole("account", "sycner", "athenz.syncer", null, null, errorMessage);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 500);
@@ -765,7 +766,8 @@ public class CloudStoreTest {
         cloudStore.setAssumeRoleResult(mockResult);
         cloudStore.setReturnSuperAWSRole(true);
 
-        AWSTemporaryCredentials awsCreds = cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null);
+        StringBuilder errorMessage = new StringBuilder();
+        AWSTemporaryCredentials awsCreds = cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null, errorMessage);
         assertNotNull(awsCreds);
         assertEquals(awsCreds.getAccessKeyId(), "accesskeyid");
         assertEquals(awsCreds.getSessionToken(), "sessiontoken");
@@ -790,8 +792,10 @@ public class CloudStoreTest {
         // add our key to the invalid cache
 
         cloudStore.putInvalidCacheCreds(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null));
-        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
-        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+        StringBuilder errorMessage = new StringBuilder();
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null, errorMessage));
+        errorMessage.setLength(0);
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null, errorMessage));
 
         // now set the timeout to 1 second and sleep that long and after
         // that our test case should work as before
@@ -801,7 +805,8 @@ public class CloudStoreTest {
             Thread.sleep(1000);
         } catch (InterruptedException ignored) {
         }
-        assertNotNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+        errorMessage.setLength(0);
+        assertNotNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null, errorMessage));
         cloudStore.close();
     }
 
@@ -816,7 +821,8 @@ public class CloudStoreTest {
         // in which case we won't cache the failed creds
 
         cloudStore.setGetServiceException(403, false);
-        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+        StringBuilder errorMessage = new StringBuilder();
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null, errorMessage));
         assertNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
 
         // now we're going to return aamazon service exception
@@ -824,14 +830,16 @@ public class CloudStoreTest {
         // caching of failed credentials
 
         cloudStore.setGetServiceException(401, true);
-        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+        errorMessage.setLength(0);
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null, errorMessage));
         assertNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
 
         // finally we're going to return access denied - 403
         // amazon exception and we should cache the failed creds
 
         cloudStore.setGetServiceException(403, true);
-        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null));
+        errorMessage.setLength(0);
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null, errorMessage));
         assertNotNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
 
         cloudStore.close();
@@ -968,8 +976,9 @@ public class CloudStoreTest {
         creds.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 3600 * 1000));
         cloudStore.putCacheCreds("account:role:user::ext", creds);
 
+        StringBuilder errorMessage = new StringBuilder();
         AWSTemporaryCredentials testCreds = cloudStore.assumeAWSRole("account", "role", "user",
-                null, "ext");
+                null, "ext", errorMessage);
         assertNotNull(testCreds);
         assertEquals(testCreds.getAccessKeyId(), "keyid");
         assertEquals(testCreds.getSecretAccessKey(), "accesskey");

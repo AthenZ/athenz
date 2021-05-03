@@ -82,7 +82,7 @@ public class MockCloudStore extends CloudStore {
 
     @Override
     public AWSTemporaryCredentials assumeAWSRole(String account, String roleName, String principal,
-                                                 Integer durationSeconds, String externalId) {
+                                                 Integer durationSeconds, String externalId, StringBuilder errorMessage) {
 
         if (!returnSuperAWSRole) {
             AWSTemporaryCredentials tempCreds = null;
@@ -93,7 +93,7 @@ public class MockCloudStore extends CloudStore {
 
             return tempCreds;
         } else {
-            return super.assumeAWSRole(account, roleName, principal, durationSeconds, externalId);
+            return super.assumeAWSRole(account, roleName, principal, durationSeconds, externalId, errorMessage);
         }
     }
 

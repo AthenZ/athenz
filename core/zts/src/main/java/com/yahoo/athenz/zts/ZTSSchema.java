@@ -556,7 +556,7 @@ public class ZTSSchema {
 ;
 
         sb.resource("AWSTemporaryCredentials", "GET", "/domain/{domainName}/role/{role}/creds")
-            .comment("perform an AWS AssumeRole of the target role and return the credentials. ZTS must have been granted the ability to assume the role in IAM, and granted the ability to ASSUME_AWS_ROLE in Athenz for this to succeed.")
+            .comment("perform an AWS AssumeRole of the target role and return the credentials. ZTS must have been granted the ability to assume the role in IAM, and granted the ability to assume_aws_role in Athenz for this to succeed.")
             .pathParam("domainName", "DomainName", "name of the domain containing the role, which implies the target account")
             .pathParam("role", "AWSArnRoleName", "the target AWS role name in the domain account, in Athenz terms, i.e. \"the.role\"")
             .queryParam("durationSeconds", "durationSeconds", "Int32", null, "how long the aws temp creds should be issued for")
