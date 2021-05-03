@@ -1474,7 +1474,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (proxyPrincipalSpiffeUris.isEmpty()) {
             return null;
         }
-        List<String> uris= Stream.of(proxyPrincipalSpiffeUris.split(","))
+        List<String> uris = Stream.of(proxyPrincipalSpiffeUris.split(","))
                 .map(String::trim)
                 .collect(Collectors.toList());
 
@@ -1742,7 +1742,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         X509Certificate cert = principal.getX509Certificate();
         if (cert != null) {
             accessToken.setConfirmX509CertHash(cert);
-            accessToken.setConfirmProxyPrincipalSpiffeUris(proxyPrincipalsSpiffeUris);
+            if (proxyPrincipalsSpiffeUris != null) {
+                accessToken.setConfirmProxyPrincipalSpiffeUris(proxyPrincipalsSpiffeUris);
+            }
         }
 
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
