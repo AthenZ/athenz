@@ -659,8 +659,7 @@ public class AccessTokenTest {
 
         long now = System.currentTimeMillis() / 1000;
         AccessToken accessToken = createAccessToken(now);
-        final String authzDetails = "[{\"type\":\"proxy_access\",\"principal\":[\"spiffe://athenz/domain1/service1\"]}]";
-        accessToken.setAuthorizationDetails(authzDetails);
+        accessToken.setConfirmProxyPrincipalSpiffeUris(Collections.singletonList("spiffe://athenz/domain1/service1"));
 
         // now get the signed token
 
@@ -686,9 +685,10 @@ public class AccessTokenTest {
 
         long now = System.currentTimeMillis() / 1000;
         AccessToken accessToken = createAccessToken(now);
-        final String authzDetails = "[{\"type\":\"proxy_access\",\"principal\":" +
-                "[\"spiffe://athenz/domain1/service2\",\"spiffe://athenz/domain1/service1\"]}]";
-        accessToken.setAuthorizationDetails(authzDetails);
+        List<String> proxyPrincipalUris = new ArrayList<>();
+        proxyPrincipalUris.add("spiffe://athenz/domain1/service2");
+        proxyPrincipalUris.add("spiffe://athenz/domain1/service1");
+        accessToken.setConfirmProxyPrincipalSpiffeUris(proxyPrincipalUris);
 
         // now get the signed token
 
@@ -714,8 +714,7 @@ public class AccessTokenTest {
 
         long now = System.currentTimeMillis() / 1000;
         AccessToken accessToken = createAccessToken(now);
-        final String authzDetails = "[{\"type\":\"proxy_access\",\"principal\":[\"spiffe://athenz/sports/service1\"]}]";
-        accessToken.setAuthorizationDetails(authzDetails);
+        accessToken.setConfirmProxyPrincipalSpiffeUris(Collections.singletonList("spiffe://athenz/sports/service1"));
 
         // now get the signed token
 
@@ -745,8 +744,7 @@ public class AccessTokenTest {
 
         long now = System.currentTimeMillis() / 1000;
         AccessToken accessToken = createAccessToken(now);
-        final String authzDetails = "[{\"type\":\"proxy_access\",\"principal\":\"spiffe://athenz/domain1/service1\"}]";
-        accessToken.setAuthorizationDetails(authzDetails);
+        accessToken.setConfirmProxyPrincipalSpiffeUris(Collections.singletonList("spiffe://athenz/sports/service1"));
 
         // now get the signed token
 
@@ -776,8 +774,7 @@ public class AccessTokenTest {
 
         long now = System.currentTimeMillis() / 1000;
         AccessToken accessToken = createAccessToken(now);
-        final String authzDetails = "[{\"type\":\"proxy_access\",\"principal\":[]]}]";
-        accessToken.setAuthorizationDetails(authzDetails);
+        accessToken.setConfirmProxyPrincipalSpiffeUris(Collections.emptyList());
 
         // now get the signed token
 
@@ -803,12 +800,11 @@ public class AccessTokenTest {
     }
 
     @Test
-    public void testConfirmX509CertInvalidAuthzDetails() throws IOException {
+    public void testConfirmX509CertInvalidProxyPrincipalDetails() throws IOException {
 
         long now = System.currentTimeMillis() / 1000;
         AccessToken accessToken = createAccessToken(now);
-        final String authzDetails = "[{\"type\":\"proxy_access\",\"principalnz/domain1/service1\"}]";
-        accessToken.setAuthorizationDetails(authzDetails);
+        accessToken.setConfirmEntry("proxy-principals#spiffe", "spiffe://athenz/sports/service1");
 
         // now get the signed token
 

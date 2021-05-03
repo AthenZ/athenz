@@ -15,8 +15,6 @@
  */
 package com.yahoo.athenz.auth.token;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
@@ -47,13 +45,9 @@ public class AccessToken extends OAuth2Token {
     public static final String CLAIM_AUTHZ_DETAILS = "authorization_details";
 
     public static final String CLAIM_CONFIRM_X509_HASH = "x5t#S256";
-
-    private static final String AUTHZ_DETAILS_PROXY_ACCESS = "proxy_access";
-    private static final String AUTHZ_DETAILS_PRINCIPAL    = "principal";
-    private static final String AUTHZ_DETAILS_KEY_TYPE     = "type";
+    public static final String CLAIM_CONFIRM_PROXY_SPIFFE = "proxy-principals#spiffe";
 
     private static final Logger LOG = LoggerFactory.getLogger(AccessToken.class);
-    private static final ObjectMapper JSON_MAPPER = initJsonMapper();
 
     // by default we're going to allow the access token to be
     // validated by the identity/spiffe uris and not carry
@@ -164,12 +158,6 @@ public class AccessToken extends OAuth2Token {
             LOG.error("AccessToken: X.509 Certificate Confirmation failure");
             throw new CryptoException(CryptoException.CERT_HASH_MISMATCH, "X.509 Certificate Confirmation failure");
         }
-    }
-
-    static ObjectMapper initJsonMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        return mapper;
     }
 
     /**
@@ -289,6 +277,10 @@ public class AccessToken extends OAuth2Token {
         setConfirmEntry(CLAIM_CONFIRM_X509_HASH, getX509CertificateHash(cert));
     }
 
+    public void setConfirmProxyPrincipalSpiffeUris(List<String> proxyPrincipalSpiffeUris) {
+        setConfirmEntry(CLAIM_CONFIRM_PROXY_SPIFFE, proxyPrincipalSpiffeUris);
+    }
+
     public boolean confirmMTLSBoundToken(X509Certificate x509Cert, final String x509CertHash) {
 
         if (x509Cert == null) {
@@ -341,45 +333,23 @@ public class AccessToken extends OAuth2Token {
 
     boolean confirmX509CertPrincipalAuthzDetails(X509Certificate cert) {
 
-        // make sure we have valid authorization details specified
+        // make sure we have valid proxy principals specified
 
-        if (authorizationDetails == null || authorizationDetails.isEmpty()) {
-            return false;
-        }
-
-        // parse our authorization details object
-
-        List<LinkedHashMap> authzDetailsList;
+        List<String> spiffeUris;
         try {
-            authzDetailsList = JSON_MAPPER.readValue(authorizationDetails, List.class);
+            spiffeUris = (List<String>) confirm.get(CLAIM_CONFIRM_PROXY_SPIFFE);
         } catch (Exception ex) {
-            LOG.error("Unable to parse authz details: {}", authorizationDetails);
+            LOG.error("Unable to parse proxy principal claim: {}", ex.getMessage());
+            return false;
+        }
+        if (spiffeUris == null) {
             return false;
         }
 
-        // we should iterate through the given authz object and
-        // check if we have a proxy access type defined
-
-        for (LinkedHashMap authzDetailsItem : authzDetailsList) {
-            if (!AUTHZ_DETAILS_PROXY_ACCESS.equals(authzDetailsItem.get(AUTHZ_DETAILS_KEY_TYPE))) {
-                continue;
-            }
-            // handle any cast errors in case the client didn't send
-            // as a list of principals as expected
-            List<String> proxyPrincipals = null;
-            try {
-                proxyPrincipals = (List<String>) authzDetailsItem.get(AUTHZ_DETAILS_PRINCIPAL);
-            } catch (Exception ex) {
-                LOG.error("Unable to extract principal field", ex);
-            }
-            if (proxyPrincipals == null || proxyPrincipals.isEmpty()) {
-                continue;
-            }
-            final String spiffeUri = Crypto.extractX509CertSpiffeUri(cert);
-            for (String proxyPrincipal : proxyPrincipals) {
-                if (proxyPrincipal.equalsIgnoreCase(spiffeUri)) {
-                    return true;
-                }
+        final String certSpiffeUri = Crypto.extractX509CertSpiffeUri(cert);
+        for (String spiffeUri : spiffeUris) {
+            if (spiffeUri.equalsIgnoreCase(certSpiffeUri)) {
+                return true;
             }
         }
 

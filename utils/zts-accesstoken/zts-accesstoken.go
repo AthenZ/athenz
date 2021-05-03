@@ -31,7 +31,7 @@ var (
 )
 
 func usage() {
-	fmt.Println("usage: zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] <credentials> -zts <zts-server-url> [-expire-time <time-in-mins>] [-authorization-details <authz-details>]")
+	fmt.Println("usage: zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] <credentials> -zts <zts-server-url> [-expire-time <time-in-mins>] [-authorization-details <authz-details>] [-proxy-principal-spiffe-uris <spiffe-uris>]")
 	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-svc-cacert-file <ca-cert-file>] | ")
 	fmt.Println("           	             -ntoken-file <ntoken-file> [-hdr <auth-header-name>]")
 	fmt.Println("       zts-accesstoken -validate -access-token <access-token> -conf <athenz-conf-path> [-claims]")
@@ -47,7 +47,7 @@ func printVersion() {
 }
 
 func main() {
-	var domain, service, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr, conf, accessToken, authzDetails string
+	var domain, service, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr, conf, accessToken, authzDetails, proxyPrincipalSpiffeUris string
 	var expireTime int
 	var proxy, validate, claims, showVersion bool
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
@@ -66,6 +66,7 @@ func main() {
 	flag.StringVar(&accessToken, "access-token", "", "access token to validate")
 	flag.StringVar(&conf, "conf", "/home/athenz/conf/athenz.conf", "path to configuration file with public keys")
 	flag.StringVar(&authzDetails, "authorization-details", "", "Authorization Details (json document)")
+	flag.StringVar(&proxyPrincipalSpiffeUris, "proxy-principal-spiffe-uris", "", "comm separated list of proxy principal spiffe uris")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.Parse()
 
@@ -77,7 +78,7 @@ func main() {
 	if validate {
 		validateAccessToken(accessToken, conf, claims)
 	} else {
-		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxy, expireTime)
+		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, proxy, expireTime)
 	}
 }
 
@@ -122,7 +123,7 @@ func validateAccessToken(accessToken, conf string, showClaims bool) {
 	fmt.Println("Access Token successfully validated")
 }
 
-func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails string, proxy bool, expireTime int) {
+func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris string, proxy bool, expireTime int) {
 	if domain == "" || ztsURL == "" {
 		usage()
 	}
@@ -146,7 +147,7 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 	}
 
 	// generate the scope for the request, convert time to seconds
-	request := generateRequestString(domain, service, roles, authzDetails, expireTime*60)
+	request := generateRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris, expireTime*60)
 
 	// request an access token
 	accessTokenResponse, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(request))
@@ -162,7 +163,7 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 	fmt.Println(string(data))
 }
 
-func generateRequestString(domain, service, roles, authzDetails string, expiryTime int) string {
+func generateRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris string, expiryTime int) string {
 
 	params := url.Values{}
 	params.Add("grant_type", "client_credentials")
@@ -187,6 +188,9 @@ func generateRequestString(domain, service, roles, authzDetails string, expiryTi
 	params.Add("scope", scope)
 	if authzDetails != "" {
 		params.Add("authorization_details", authzDetails)
+	}
+	if proxyPrincipalSpiffeUris != "" {
+		params.Add("proxy_principal_spiffe_uris", proxyPrincipalSpiffeUris)
 	}
 	return params.Encode()
 }
