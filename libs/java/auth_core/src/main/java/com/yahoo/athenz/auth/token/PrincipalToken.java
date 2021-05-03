@@ -383,15 +383,11 @@ public class PrincipalToken extends Token {
             LOG.error(errMsg.toString());
             return false;
         }
-        
+
+        // since at this point authorizedServiceSignature is not null
+        // our signed token has the ";bs=" component
+
         int idx = signedToken.indexOf(";bs=");
-        if (idx == -1) {
-            errMsg.append("PrincipalToken:validateForAuthorizedService: token=").
-                   append(unsignedToken).append(" : not signed by any authorized service");
-            LOG.error(errMsg.toString());
-            return false;
-        }
-        
         String unsignedAuthorizedServiceToken = signedToken.substring(0, idx);
         
         if (pubKey == null) {

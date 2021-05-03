@@ -599,7 +599,7 @@ public class PrincipalTokenTest {
         userTokenToValidate = new PrincipalToken(tamperedToken.replace(";bs=", ";bs=ab"));
         errMsg = new StringBuilder();
         assertFalse(userTokenToValidate.validateForAuthorizedService(servicePublicKeyStringK1, errMsg));
-        assertTrue(!errMsg.toString().isEmpty());
+        assertFalse(errMsg.toString().isEmpty());
     }
 
     @Test
@@ -621,7 +621,7 @@ public class PrincipalTokenTest {
         PrincipalToken userTokenToValidate = new PrincipalToken(userTokenToSign.getSignedToken());
         StringBuilder errMsg = new StringBuilder();
         assertFalse(userTokenToValidate.validateForAuthorizedService(servicePublicKeyStringK1, errMsg));
-        assertTrue(!errMsg.toString().isEmpty());
+        assertFalse(errMsg.toString().isEmpty());
     }
 
     @Test
@@ -670,7 +670,7 @@ public class PrincipalTokenTest {
         PrincipalToken svcToken = new PrincipalToken(token);
         StringBuilder errMsg = new StringBuilder();
         assertFalse(svcToken.isValidAuthorizedServiceToken(errMsg));
-        assertTrue(!errMsg.toString().isEmpty());
+        assertFalse(errMsg.toString().isEmpty());
     }
 
     @Test
@@ -683,7 +683,7 @@ public class PrincipalTokenTest {
         PrincipalToken svcToken = new PrincipalToken(token);
         StringBuilder errMsg = new StringBuilder();
         assertFalse(svcToken.isValidAuthorizedServiceToken(errMsg));
-        assertTrue(!errMsg.toString().isEmpty());
+        assertFalse(errMsg.toString().isEmpty());
     }
 
     @Test
@@ -697,7 +697,7 @@ public class PrincipalTokenTest {
         PrincipalToken svcToken = new PrincipalToken(token);
         StringBuilder errMsg = new StringBuilder();
         assertFalse(svcToken.isValidAuthorizedServiceToken(errMsg));
-        assertTrue(!errMsg.toString().isEmpty());
+        assertFalse(errMsg.toString().isEmpty());
 
         // service list (multiple entries)
 
@@ -705,7 +705,7 @@ public class PrincipalTokenTest {
         svcToken = new PrincipalToken(token);
         errMsg = new StringBuilder();
         assertFalse(svcToken.isValidAuthorizedServiceToken(errMsg));
-        assertTrue(!errMsg.toString().isEmpty());
+        assertFalse(errMsg.toString().isEmpty());
     }
 
     @Test
@@ -719,7 +719,7 @@ public class PrincipalTokenTest {
         PrincipalToken svcToken = new PrincipalToken(token);
         StringBuilder errMsg = new StringBuilder();
         assertFalse(svcToken.isValidAuthorizedServiceToken(errMsg));
-        assertTrue(!errMsg.toString().isEmpty());
+        assertFalse(errMsg.toString().isEmpty());
     }
 
     @Test

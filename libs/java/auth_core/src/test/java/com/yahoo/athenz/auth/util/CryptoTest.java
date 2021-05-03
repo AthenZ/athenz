@@ -556,10 +556,19 @@ public class CryptoTest {
     }
 
     @Test
-    public void testEnDecodedFile() {
+    public void testEncodedFile() {
         String encoded = Crypto.encodedFile(argFile);
         assertNotNull(encoded);
+    }
 
+    @Test
+    public void testEncodedFileNotFound() {
+        try {
+            File file = new File("src/test/resources/not-found-file");
+            Crypto.encodedFile(file);
+            fail();
+        } catch (Exception ignored) {
+        }
     }
 
     @Test
@@ -574,7 +583,6 @@ public class CryptoTest {
             fail();
         }
     }
-
 
     @Test
     public void testSHA256() {
