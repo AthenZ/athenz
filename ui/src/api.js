@@ -111,9 +111,7 @@ const Api = (req) => {
                     name,
                     detail: {
                         name,
-                        templates: {
-                            templateNames: ['openhouse'],
-                        },
+                        templates: {},
                     },
                 };
                 fetchr
