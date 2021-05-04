@@ -8,6 +8,9 @@ import (
 	"crypto/x509"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 )
@@ -58,4 +61,36 @@ func tlsConfiguration(keypem, certpem, cacertpem []byte) (*tls.Config, error) {
 		config.RootCAs = certPool
 	}
 	return config, nil
+}
+
+func GenerateAccessTokenRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris string, expiryTime int) string {
+
+	params := url.Values{}
+	params.Add("grant_type", "client_credentials")
+	params.Add("expires_in", strconv.Itoa(expiryTime))
+
+	var scope string
+	if roles == "" {
+		scope = domain + ":domain"
+	} else {
+		roleList := strings.Split(roles, ",")
+		for idx, role := range roleList {
+			if idx != 0 {
+				scope += " "
+			}
+			scope += domain + ":role." + role
+		}
+	}
+	if service != "" {
+		scope += " openid " + domain + ":service." + service
+	}
+
+	params.Add("scope", scope)
+	if authzDetails != "" {
+		params.Add("authorization_details", authzDetails)
+	}
+	if proxyPrincipalSpiffeUris != "" {
+		params.Add("proxy_principal_spiffe_uris", proxyPrincipalSpiffeUris)
+	}
+	return params.Encode()
 }
