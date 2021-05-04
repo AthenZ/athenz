@@ -78,6 +78,7 @@ Fetchr.registerService({
                 responseHandler.bind({ caller: 'postSubDomain', callback, req })
             );
         } else {
+            params.detail.templates.templateNames = appConfig.templates;
             req.clients.zms.postUserDomain(
                 params,
                 responseHandler.bind({
@@ -1928,6 +1929,7 @@ module.exports.load = function (config, secrets) {
         zmsLoginUrl: config.zmsLoginUrl,
         featureFlag: config.featureFlag,
         serviceHeaderLinks: config.serviceHeaderLinks,
+        templates: config.templates,
     };
     return CLIENTS.load(config, secrets);
 };

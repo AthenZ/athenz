@@ -36,6 +36,7 @@ const config = {
     productMasterLink: '',
     userData: () => {},
     serviceHeaderLinks: [],
+    templates: ['openhouse'],
 };
 const secrets = {};
 const expressApp = require('express')();
@@ -398,14 +399,20 @@ describe('Fetchr Server API Test', () => {
                         g0: {
                             resource: 'domain',
                             operation: 'create',
-                            params: { domainName: 'test' },
+                            params: {
+                                name: 'test',
+                                detail: {
+                                    name: 'test',
+                                    templates: {},
+                                },
+                            },
                         },
                     },
                 })
                 .set('Accept', 'application/json')
                 .set('Content-Type', 'application/json')
                 .then((res) => {
-                    expect(res.body.g0.data).toEqual({ success: 'true' });
+                        expect(res.body.g0.data).toEqual({ success: 'true' });
                 });
         });
         it('deleteSubDomain test success', async () => {

@@ -126,6 +126,7 @@ const config = {
                 target: '_blank',
             },
         ],
+        templates: ['openhouse'],
     },
     unittest: {
         athenzDomainService: 'athenz.unit-test',
@@ -154,6 +155,7 @@ const config = {
                 target: '_blank',
             },
         ],
+        templates: ['openhouse'],
     },
 };
 
