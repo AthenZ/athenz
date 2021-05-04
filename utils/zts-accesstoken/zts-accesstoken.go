@@ -16,9 +16,7 @@ import (
 	"gopkg.in/square/go-jose.v2/jwt"
 	"io/ioutil"
 	"log"
-	"net/url"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -147,7 +145,7 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 	}
 
 	// generate the scope for the request, convert time to seconds
-	request := generateRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris, expireTime*60)
+	request := athenzutils.GenerateAccessTokenRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris, expireTime*60)
 
 	// request an access token
 	accessTokenResponse, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(request))
@@ -161,38 +159,6 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 	}
 
 	fmt.Println(string(data))
-}
-
-func generateRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris string, expiryTime int) string {
-
-	params := url.Values{}
-	params.Add("grant_type", "client_credentials")
-	params.Add("expires_in", strconv.Itoa(expiryTime))
-
-	var scope string
-	if roles == "" {
-		scope = domain + ":domain"
-	} else {
-		roleList := strings.Split(roles, ",")
-		for idx, role := range roleList {
-			if idx != 0 {
-				scope += " "
-			}
-			scope += domain + ":role." + role
-		}
-	}
-	if service != "" {
-		scope += " openid " + domain + ":service." + service
-	}
-
-	params.Add("scope", scope)
-	if authzDetails != "" {
-		params.Add("authorization_details", authzDetails)
-	}
-	if proxyPrincipalSpiffeUris != "" {
-		params.Add("proxy_principal_spiffe_uris", proxyPrincipalSpiffeUris)
-	}
-	return params.Encode()
 }
 
 func ztsNtokenClient(ztsURL, ntokenFile, hdr string) (*zts.ZTSClient, error) {
@@ -213,10 +179,10 @@ func ztsNtokenClient(ztsURL, ntokenFile, hdr string) (*zts.ZTSClient, error) {
 func loadPublicKey(publicKeyPEM []byte) (interface{}, error) {
 	block, _ := pem.Decode(publicKeyPEM)
 	if block == nil {
-		return nil, fmt.Errorf("Unable to load public key")
+		return nil, fmt.Errorf("unable to load public key")
 	}
 	if !strings.HasSuffix(block.Type, "PUBLIC KEY") {
-		return nil, fmt.Errorf("Invalid public key type: %s", block.Type)
+		return nil, fmt.Errorf("invalid public key type: %s", block.Type)
 	}
 
 	return x509.ParsePKIXPublicKey(block.Bytes)
