@@ -70,6 +70,15 @@ export default class RolePage extends React.Component {
         let reload = false;
         let notFound = false;
         let error = undefined;
+        var bServicesParams = {
+            category: 'domain',
+            attributeName: 'businessService',
+            userName: props.req.session.shortId,
+        };
+        var bServicesParamsAll = {
+            category: 'domain',
+            attributeName: 'businessService',
+        };
         const domains = await Promise.all([
             api.listUserDomains(),
             api.getHeaderDetails(),
@@ -80,12 +89,32 @@ export default class RolePage extends React.Component {
             api.isAWSTemplateApplied(props.query.domain),
             api.getRolePrefix(),
             api.getFeatureFlag(),
+            api.getMeta(bServicesParams),
+            api.getMeta(bServicesParamsAll),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
         });
+        let businessServiceOptions = [];
+        if (domains[9] && domains[9].validValues) {
+            domains[9].validValues.forEach((businessService) => {
+                businessServiceOptions.push({
+                    value: businessService,
+                    name: businessService,
+                });
+            });
+        }
+        let businessServiceOptionsAll = [];
+        if (domains[10] && domains[10].validValues) {
+            domains[10].validValues.forEach((businessService) => {
+                businessServiceOptionsAll.push({
+                    value: businessService,
+                    name: businessService,
+                });
+            });
+        }
         let domainDetails = domains[2];
         domainDetails.isAWSTemplateApplied = !!domains[6];
         return {
@@ -104,6 +133,8 @@ export default class RolePage extends React.Component {
             prefixes: domains[7].allPrefixes,
             nonce: props.req.headers.rid,
             featureFlag: domains[8],
+            validBusinessServices: businessServiceOptions,
+            validBusinessServicesAll: businessServiceOptionsAll,
         };
     }
 
@@ -151,6 +182,13 @@ export default class RolePage extends React.Component {
                                             productMasterLink={
                                                 this.props.headerDetails
                                                     .productMasterLink
+                                            }
+                                            validBusinessServices={
+                                                this.props.validBusinessServices
+                                            }
+                                            validBusinessServicesAll={
+                                                this.props
+                                                    .validBusinessServicesAll
                                             }
                                         />
                                         <Tabs

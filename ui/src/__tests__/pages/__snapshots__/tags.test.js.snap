@@ -651,6 +651,24 @@ exports[`Tag Page should render 1`] = `
 }
 
 .emotion-67 {
+  font-weight: 600;
+  title: add;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 400px;
+}
+
+.emotion-69 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: '';
+}
+
+.emotion-75 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -676,25 +694,25 @@ exports[`Tag Page should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-67:first-of-type {
+.emotion-75:first-of-type {
   margin-left: 0;
 }
 
-.emotion-67:disabled {
+.emotion-75:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-67:disabled {
+.emotion-75:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-67:hover:not(:disabled) {
+.emotion-75:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-68 {
+.emotion-76 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -709,7 +727,7 @@ exports[`Tag Page should render 1`] = `
   position: relative;
 }
 
-.emotion-68.vertical {
+.emotion-76.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -725,7 +743,7 @@ exports[`Tag Page should render 1`] = `
   width: 300px;
 }
 
-.emotion-69 {
+.emotion-77 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -749,11 +767,11 @@ exports[`Tag Page should render 1`] = `
   z-index: 1;
 }
 
-.emotion-69:hover {
+.emotion-77:hover {
   color: #3570f4;
 }
 
-.emotion-69.active {
+.emotion-77.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -761,11 +779,11 @@ exports[`Tag Page should render 1`] = `
   cursor: initial;
 }
 
-.emotion-69.active:hover {
+.emotion-77.active:hover {
   color: #303030;
 }
 
-.emotion-69.vertical {
+.emotion-77.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -777,21 +795,21 @@ exports[`Tag Page should render 1`] = `
   text-align: left;
 }
 
-.emotion-69.vertical.active {
+.emotion-77.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-69.vertical.active:hover {
+.emotion-77.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-76 {
+.emotion-84 {
   margin: 20px;
 }
 
-.emotion-78 {
+.emotion-86 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -811,7 +829,7 @@ exports[`Tag Page should render 1`] = `
   float: right;
 }
 
-.emotion-81 {
+.emotion-89 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -837,13 +855,13 @@ exports[`Tag Page should render 1`] = `
   width: 20px;
 }
 
-.emotion-83 {
+.emotion-91 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-84 {
+.emotion-92 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -858,7 +876,7 @@ exports[`Tag Page should render 1`] = `
   width: 350px;
 }
 
-.emotion-86 {
+.emotion-94 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -877,28 +895,28 @@ exports[`Tag Page should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-88 {
+.emotion-96 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-90 {
+.emotion-98 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-92 {
+.emotion-100 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-96 {
+.emotion-104 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-98 {
+.emotion-106 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -906,12 +924,12 @@ exports[`Tag Page should render 1`] = `
   display: flex;
 }
 
-.emotion-100 {
+.emotion-108 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-102 {
+.emotion-110 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1148,8 +1166,27 @@ exports[`Tag Page should render 1`] = `
                 <div
                   class="emotion-34 emotion-35"
                 >
+                  <div
+                    class="emotion-67 emotion-68"
+                    title="add"
+                  >
+                    <a
+                      class="emotion-69 emotion-70"
+                    >
+                      add
+                    </a>
+                  </div>
+                  <div
+                    class="emotion-38 emotion-39"
+                  >
+                    BUSINESS SERVICE
+                  </div>
+                </div>
+                <div
+                  class="emotion-34 emotion-35"
+                >
                   <button
-                    class="emotion-67 denali-button"
+                    class="emotion-75 denali-button"
                   >
                     Onboard to AWS
                   </button>
@@ -1157,47 +1194,47 @@ exports[`Tag Page should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-68 denali-tab-group"
+              class="emotion-76 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-69 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 Roles
               </div>
               <div
-                class="emotion-69 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 Groups
               </div>
               <div
-                class="emotion-69 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 Services
               </div>
               <div
-                class="emotion-69 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 Policies
               </div>
               <div
-                class="emotion-69 denali-tab active"
+                class="emotion-77 denali-tab active"
                 data-active="true"
               >
                 Tags
               </div>
               <div
-                class="emotion-69 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 Templates
               </div>
               <div
-                class="emotion-69 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 History
@@ -1205,15 +1242,15 @@ exports[`Tag Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-76 emotion-77"
+            class="emotion-84 emotion-85"
             data-testid="tag-list"
           >
             <div
-              class="emotion-78 emotion-79"
+              class="emotion-86 emotion-87"
             >
               <div>
                 <button
-                  class="emotion-67 denali-button"
+                  class="emotion-75 denali-button"
                 >
                   Add Tag
                 </button>
@@ -1228,11 +1265,11 @@ exports[`Tag Page should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-81 emotion-82"
+          class="emotion-89 emotion-90"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-83"
+            class="emotion-91"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1247,45 +1284,45 @@ exports[`Tag Page should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-84 emotion-85"
+          class="emotion-92 emotion-93"
         >
           <div
-            class="emotion-86 emotion-87"
+            class="emotion-94 emotion-95"
           >
             <div
-              class="emotion-88 emotion-89"
+              class="emotion-96 emotion-97"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-90 emotion-91"
+                class="emotion-98 emotion-99"
               >
                 Create
               </a>
               <span
-                class="emotion-92 emotion-93"
+                class="emotion-100 emotion-101"
               >
                  | 
               </span>
               <a
-                class="emotion-90 emotion-91"
+                class="emotion-98 emotion-99"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-96 emotion-97"
+            class="emotion-104 emotion-105"
           >
             <div
-              class="emotion-98 emotion-99"
+              class="emotion-106 emotion-107"
             >
               <div
-                class="emotion-100 emotion-101"
+                class="emotion-108 emotion-109"
               >
                 <svg
-                  class="emotion-102"
+                  class="emotion-110"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1306,19 +1343,19 @@ exports[`Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-90 emotion-91"
+                class="emotion-98 emotion-99"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-98 emotion-99"
+              class="emotion-106 emotion-107"
             >
               <div
-                class="emotion-100 emotion-101"
+                class="emotion-108 emotion-109"
               >
                 <svg
-                  class="emotion-102"
+                  class="emotion-110"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1339,7 +1376,7 @@ exports[`Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-90 emotion-91"
+                class="emotion-98 emotion-99"
               >
                 athens.ci
               </a>

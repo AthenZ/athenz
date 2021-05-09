@@ -17,7 +17,7 @@ obj = {
 ### getDomainList(*obj, function(err, json, response) { });
 
 `GET /domain`
-Enumerate domains. Can be filtered by prefix and depth, and paginated. This operation can be expensive, as it may span multiple domains.
+Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the query options that are looking for specific domain attributes (e.g. aws account, azure subscriptions, business service, tags, etc) are mutually exclusive. The server will only process the first query argument and ignore the others.
 
 ```
 obj = {
@@ -29,10 +29,14 @@ obj = {
 	"productId": "<Int32>", // (optional) restrict the domain names that have specified product id
 	"roleMember": "<ResourceName>", // (optional) restrict the domain names where the specified user is in a role - see roleName
 	"roleName": "<ResourceName>", // (optional) restrict the domain names where the specified user is in this role - see roleMember
+	"subscription": "<String>", // (optional) restrict to domain names that have specified azure subscription name
+	"tagKey": "<CompoundName>", // (optional) flag to query all domains that have a given tagName
+	"tagValue": "<CompoundName>", // (optional) flag to query all domains that have a given tag name and value
+	"businessService": "<String>", // (optional) restrict to domain names that have specified business service name
 	"modifiedSince": "<String>" // (optional) This header specifies to the server to return any domains modified since this HTTP date
 };
 ```
-*Types:* [`ResourceName <String>`](#resourcename-string)
+*Types:* [`ResourceName <String>`](#resourcename-string), [`CompoundName <String>`](#compoundname-string)
 
 ### postTopLevelDomain(*obj, function(err, json, response) { });
 
@@ -199,6 +203,18 @@ obj = {
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`SimpleName <String>`](#simplename-string)
 
+### getDomainMetaStoreValidValuesList(*obj, function(err, json, response) { });
+
+`GET /domain/metastore`
+List all valid values for the given attribute and user
+
+```
+obj = {
+	"attributeName": "<String>", // (optional) name of attribute
+	"userName": "<String>" // (optional) restrict to values associated with the given user
+};
+```
+
 ### getDomainDataCheck(*obj, function(err, json, response) { });
 
 `GET /domain/{domainName}/check`
@@ -287,10 +303,12 @@ Get the list of all roles in a domain with optional flag whether or not include 
 ```
 obj = {
 	"domainName": "<DomainName>", // name of the domain
-	"members": "<Bool>" // return list of members in the role
+	"members": "<Bool>", // return list of members in the role
+	"tagKey": "<CompoundName>", // (optional) flag to query all roles that have a given tagName
+	"tagValue": "<CompoundName>" // (optional) flag to query all roles that have a given tag name and value
 };
 ```
-*Types:* [`DomainName <String>`](#domainname-string)
+*Types:* [`DomainName <String>`](#domainname-string), [`CompoundName <String>`](#compoundname-string)
 
 ### getRole(*obj, function(err, json, response) { });
 
@@ -354,6 +372,18 @@ obj = {
 
 ### getDomainRoleMembers(*obj, function(err, json, response) { });
 
+`GET /domain/{domainName}/overdue`
+Get members with overdue review
+
+```
+obj = {
+	"domainName": "<DomainName>" // name of the domain
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string)
+
+### getDomainRoleMembers(*obj, function(err, json, response) { });
+
 `GET /domain/{domainName}/member`
 Get list of principals defined in roles in the given domain
 
@@ -364,10 +394,23 @@ obj = {
 ```
 *Types:* [`DomainName <String>`](#domainname-string)
 
+### getDomainRoleMember(*obj, function(err, json, response) { });
+
+`GET /role`
+Fetch all the roles across domains by either calling or specified principal
+
+```
+obj = {
+	"principal": "<ResourceName>", // (optional) If not present, will return roles for the user making the call
+	"domainName": "<DomainName>" // (optional) If not present, will return roles from all domains
+};
+```
+*Types:* [`ResourceName <String>`](#resourcename-string), [`DomainName <String>`](#domainname-string)
+
 ### putMembership(*obj, function(err, json, response) { });
 
 `PUT /domain/{domainName}/role/{roleName}/member/{memberName}`
-Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:role.{roleName}") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )
+Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:role.{roleName}") or ("update_members", "{domainName}:role.{roleName}"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )
 
 ```
 obj = {
@@ -383,7 +426,7 @@ obj = {
 ### deleteMembership(*obj, function(err, json, response) { });
 
 `DELETE /domain/{domainName}/role/{roleName}/member/{memberName}`
-Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).
+Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: ("update", "{domainName}:role.{roleName}") or ("update_members", "{domainName}:role.{roleName}")
 
 ```
 obj = {
@@ -485,6 +528,211 @@ obj = {
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`Role <RoleMeta>`](#role-rolemeta)
+
+### getGroups(*obj, function(err, json, response) { });
+
+`GET /domain/{domainName}/groups`
+Get the list of all groups in a domain with optional flag whether or not include members
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"members": "<Bool>" // return list of members in the group
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string)
+
+### getGroup(*obj, function(err, json, response) { });
+
+`GET /domain/{domainName}/group/{groupName}`
+Get the specified group in the domain.
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"groupName": "<EntityName>", // name of the group to be retrieved
+	"auditLog": "<Bool>", // flag to indicate whether or not to return group audit log
+	"pending": "<Bool>" // include pending members
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
+
+### putGroup(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/group/{groupName}`
+Create/update the specified group.
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"groupName": "<EntityName>", // name of the group to be added/updated
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"group": "<Group>" // Group object to be added/updated in the domain
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`Group <GroupMeta>`](#group-groupmeta)
+
+### deleteGroup(*obj, function(err, json, response) { });
+
+`DELETE /domain/{domainName}/group/{groupName}`
+Delete the specified group. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"groupName": "<EntityName>", // name of the group to be deleted
+	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
+
+### getGroupMembership(*obj, function(err, json, response) { });
+
+`GET /domain/{domainName}/group/{groupName}/member/{memberName}`
+Get the membership status for a specified user in a group.
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"groupName": "<EntityName>", // name of the group
+	"memberName": "<GroupMemberName>", // user name to be checked for membership
+	"expiration": "<String>" // (optional) the expiration timestamp
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`GroupMemberName <String>`](#groupmembername-string)
+
+### getDomainGroupMember(*obj, function(err, json, response) { });
+
+`GET /group`
+Fetch all the groups across domains by either calling or specified principal
+
+```
+obj = {
+	"principal": "<EntityName>", // (optional) If not present, will return groups for the user making the call
+	"domainName": "<DomainName>" // (optional) If not present, will return groups from all domains
+};
+```
+*Types:* [`EntityName <String>`](#entityname-string), [`DomainName <String>`](#domainname-string)
+
+### putGroupMembership(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/group/{groupName}/member/{memberName}`
+Add the specified user to the group's member list. If the group is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:group.{groupName}") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to domain admins ( in case of selfserve groups )
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"groupName": "<EntityName>", // name of the group
+	"memberName": "<GroupMemberName>", // name of the user to be added as a member
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"membership": "<GroupMembership>" // Membership object (must contain group/member names as specified in the URI)
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`GroupMemberName <String>`](#groupmembername-string), [`GroupMembership <Struct>`](#groupmembership-struct)
+
+### deleteGroupMembership(*obj, function(err, json, response) { });
+
+`DELETE /domain/{domainName}/group/{groupName}/member/{memberName}`
+Delete the specified group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"groupName": "<EntityName>", // name of the group
+	"memberName": "<GroupMemberName>", // name of the user to be removed as a member
+	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`GroupMemberName <String>`](#groupmembername-string)
+
+### deleteGroupMembership(*obj, function(err, json, response) { });
+
+`DELETE /domain/{domainName}/group/{groupName}/pendingmember/{memberName}`
+Delete the specified pending group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). Authorization will be completed within the server itself since there are two possibilities: 1) The domain admins can delete any pending requests 2) the requestor can also delete his/her own pending request.
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"groupName": "<EntityName>", // name of the group
+	"memberName": "<GroupMemberName>", // name of the user to be removed as a pending member
+	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`GroupMemberName <String>`](#groupmembername-string)
+
+### putGroupSystemMeta(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/group/{groupName}/meta/system/{attribute}`
+Set the specified group metadata. Caller must have update privileges on the sys.auth domain. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"groupName": "<EntityName>", // name of the group
+	"attribute": "<SimpleName>", // name of the system attribute to be modified
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"detail": "<GroupSystemMeta>" // GroupSystemMeta object with updated attribute values
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`SimpleName <String>`](#simplename-string), [`GroupSystemMeta <Struct>`](#groupsystemmeta-struct)
+
+### putGroupMeta(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/group/{groupName}/meta`
+Update the specified group metadata. Caller must have update privileges on the domain itself.
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain to be updated
+	"groupName": "<EntityName>", // name of the group
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"detail": "<GroupMeta>" // GroupMeta object with updated attribute values
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`GroupMeta <Struct>`](#groupmeta-struct)
+
+### putGroupMembership(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/group/{groupName}/member/{memberName}/decision`
+Approve or Reject the request to add specified user to group membership. This endpoint will be used by 2 use cases: 1. Audit enabled groups with authorize ("update", "sys.auth:meta.group.{attribute}.{domainName}") 2. Selfserve groups in any domain with authorize ("update", "{domainName}:")
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"groupName": "<EntityName>", // name of the group
+	"memberName": "<GroupMemberName>", // name of the user to be added as a member
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"membership": "<GroupMembership>" // GroupMembership object (must contain group/member names as specified in the URI)
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`GroupMemberName <String>`](#groupmembername-string), [`GroupMembership <Struct>`](#groupmembership-struct)
+
+### putGroup(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/group/{groupName}/review`
+Review group membership and take action to either extend and/or delete existing members.
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"groupName": "<EntityName>", // name of the group
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"group": "<Group>" // Group object with updated and/or deleted members
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`Group <GroupMeta>`](#group-groupmeta)
+
+### getDomainGroupMembership(*obj, function(err, json, response) { });
+
+`GET /pending_group_members`
+List of domains containing groups and corresponding members to be approved by either calling or specified principal
+
+```
+obj = {
+	"principal": "<EntityName>" // (optional) If present, return pending list for this principal
+};
+```
+*Types:* [`EntityName <String>`](#entityname-string)
 
 ### getPolicyList(*obj, function(err, json, response) { });
 
@@ -919,15 +1167,15 @@ obj = {
 ### getResourceAccessList(*obj, function(err, json, response) { });
 
 `GET /resource`
-Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified unless the caller has authorization from sys.auth domain to check access for all user principals. (action: access, resource: resource-lookup-all)
+Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified
 
 ```
 obj = {
-	"principal": "<EntityName>", // (optional) specifies principal to query the resource list for
+	"principal": "<ResourceName>", // (optional) specifies principal to query the resource list for
 	"action": "<ActionName>" // (optional) action as specified in the policy assertion
 };
 ```
-*Types:* [`EntityName <String>`](#entityname-string), [`ActionName <String>`](#actionname-string)
+*Types:* [`ResourceName <String>`](#resourcename-string), [`ActionName <String>`](#actionname-string)
 
 ### getSignedDomains(*obj, function(err, json, response) { });
 
@@ -1008,11 +1256,29 @@ obj = {
 ```
 *Types:* [`SimpleName <String>`](#simplename-string)
 
+### getDomainTemplateDetailsList(*obj, function(err, json, response) { });
+
+`GET /domain/{name}/templatedetails`
+Get a list of Solution templates with meta data details given a domain name
+
+```
+obj = {
+	"name": "<DomainName>" // List of templates given a domain name
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string)
+
 ### getUserList(*obj, function(err, json, response) { });
 
 `GET /user`
 Enumerate users that are registered as principals in the system This will return only the principals with "<user-domain>." prefix
 
+```
+obj = {
+	"domainName": "<DomainName>" // (optional) name of the allowed user-domains and/or aliases
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string)
 
 ### deleteUser(*obj, function(err, json, response) { });
 
@@ -1283,17 +1549,88 @@ A signed assertion if identity. i.e. the user cookie value. This token will only
 }
 ```
 
+### GroupName `<String>`
+
+A group name
+
+
+```
+{
+    "type": "String",
+    "name": "GroupName",
+    "comment": "A group name",
+    "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:group\\.([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+}
+```
+
+### GroupMemberName `<String>`
+
+A group member name
+
+
+```
+{
+    "type": "String",
+    "name": "GroupMemberName",
+    "comment": "A group member name",
+    "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+}
+```
+
 ### MemberName `<String>`
 
-Role Member name - could be one of three values: *, DomainName.* or ServiceName[*]
+Role Member name - could be one of four values: *, DomainName.* or ServiceName[*], or GroupNames
 
 
 ```
 {
     "type": "String",
     "name": "MemberName",
-    "comment": "Role Member name - could be one of three values: *, DomainName.* or ServiceName[*]",
-    "pattern": "\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?"
+    "comment": "Role Member name - could be one of four values: *, DomainName.* or ServiceName[*], or GroupNames",
+    "pattern": "\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:group\\.([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+}
+```
+
+### AuthorityKeyword `<String>`
+
+A comma separated list of authority keywords
+
+
+```
+{
+    "type": "String",
+    "name": "AuthorityKeyword",
+    "comment": "A comma separated list of authority keywords",
+    "pattern": "[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+}
+```
+
+### AuthorityKeywords `<String>`
+
+```
+{
+    "type": "String",
+    "name": "AuthorityKeywords",
+    "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*,)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+}
+```
+
+### StringList `<Struct>`
+
+```
+{
+    "type": "Struct",
+    "name": "StringList",
+    "fields": [
+        {
+            "name": "list",
+            "type": "Array",
+            "optional": false,
+            "comment": "generic list of strings",
+            "items": "CompoundName"
+        }
+    ],
+    "closed": false
 }
 ```
 
@@ -1318,7 +1655,7 @@ Set of metadata attributes that all domains may have and can be changed.
             "name": "org",
             "type": "ResourceName",
             "optional": true,
-            "comment": "a reference to an Organization. (i.e. org:media)"
+            "comment": "a reference to an audit organization defined in athenz"
         },
         {
             "name": "enabled",
@@ -1338,7 +1675,7 @@ Set of metadata attributes that all domains may have and can be changed.
             "name": "account",
             "type": "String",
             "optional": true,
-            "comment": "associated cloud (i.e. aws) account id (system attribute - uniqueness check)"
+            "comment": "associated aws account id (system attribute - uniqueness check)"
         },
         {
             "name": "ypmId",
@@ -1392,7 +1729,39 @@ Set of metadata attributes that all domains may have and can be changed.
             "name": "serviceExpiryDays",
             "type": "Int32",
             "optional": true,
-            "comment": "all services in the domain will have specified max expiry days"
+            "comment": "all services in the domain roles will have specified max expiry days"
+        },
+        {
+            "name": "groupExpiryDays",
+            "type": "Int32",
+            "optional": true,
+            "comment": "all groups in the domain roles will have specified max expiry days"
+        },
+        {
+            "name": "userAuthorityFilter",
+            "type": "String",
+            "optional": true,
+            "comment": "membership filtered based on user authority configured attributes"
+        },
+        {
+            "name": "azureSubscription",
+            "type": "String",
+            "optional": true,
+            "comment": "associated azure subscription id (system attribute - uniqueness check)"
+        },
+        {
+            "name": "tags",
+            "type": "Map",
+            "optional": true,
+            "comment": "key-value pair tags, tag might contain multiple values",
+            "items": "StringList",
+            "keys": "CompoundName"
+        },
+        {
+            "name": "businessService",
+            "type": "String",
+            "optional": true,
+            "comment": "associated business service with domain"
         }
     ],
     "closed": false
@@ -1551,6 +1920,12 @@ An audit log entry for role membership change.
             "comment": "the expiration timestamp"
         },
         {
+            "name": "reviewReminder",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "the review reminder timestamp"
+        },
+        {
             "name": "active",
             "type": "Bool",
             "optional": true,
@@ -1587,6 +1962,24 @@ An audit log entry for role membership change.
             "type": "ResourceName",
             "optional": true,
             "comment": "pending members only - name of the principal requesting the change"
+        },
+        {
+            "name": "reviewLastNotifiedTime",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "for pending membership requests, time when last notification was sent (for file store)"
+        },
+        {
+            "name": "systemDisabled",
+            "type": "Int32",
+            "optional": true,
+            "comment": "user disabled by system based on configured role setting"
+        },
+        {
+            "name": "principalType",
+            "type": "Int32",
+            "optional": true,
+            "comment": "server use only - principal type: unknown(0), user(1), service(2), or group(3)"
         }
     ],
     "closed": false
@@ -1642,6 +2035,18 @@ Set of metadata attributes that all roles may have and can be changed by domain 
             "comment": "all services in the role will have specified max expiry days"
         },
         {
+            "name": "memberReviewDays",
+            "type": "Int32",
+            "optional": true,
+            "comment": "all user members in the role will have specified max review days"
+        },
+        {
+            "name": "serviceReviewDays",
+            "type": "Int32",
+            "optional": true,
+            "comment": "all services in the role will have specified max review days"
+        },
+        {
             "name": "reviewEnabled",
             "type": "Bool",
             "optional": true,
@@ -1650,9 +2055,41 @@ Set of metadata attributes that all roles may have and can be changed by domain 
         },
         {
             "name": "notifyRoles",
-            "type": "ResourceNames",
+            "type": "String",
             "optional": true,
             "comment": "list of roles whose members should be notified for member review/approval"
+        },
+        {
+            "name": "userAuthorityFilter",
+            "type": "String",
+            "optional": true,
+            "comment": "membership filtered based on user authority configured attributes"
+        },
+        {
+            "name": "userAuthorityExpiration",
+            "type": "String",
+            "optional": true,
+            "comment": "expiration enforced by a user authority configured attribute"
+        },
+        {
+            "name": "groupExpiryDays",
+            "type": "Int32",
+            "optional": true,
+            "comment": "all groups in the domain roles will have specified max expiry days"
+        },
+        {
+            "name": "groupReviewDays",
+            "type": "Int32",
+            "optional": true,
+            "comment": "all groups in the domain roles will have specified max review days"
+        },
+        {
+            "name": "tags",
+            "type": "Map",
+            "optional": true,
+            "comment": "key-value pair tags, tag might contain multiple values",
+            "items": "StringList",
+            "keys": "CompoundName"
         }
     ],
     "closed": false
@@ -1787,6 +2224,12 @@ The representation for a role membership.
             "comment": "the expiration timestamp"
         },
         {
+            "name": "reviewReminder",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "the review reminder timestamp"
+        },
+        {
             "name": "active",
             "type": "Bool",
             "optional": true,
@@ -1811,6 +2254,12 @@ The representation for a role membership.
             "type": "ResourceName",
             "optional": true,
             "comment": "pending members only - name of the principal requesting the change"
+        },
+        {
+            "name": "systemDisabled",
+            "type": "Int32",
+            "optional": true,
+            "comment": "user disabled by system based on configured role setting"
         }
     ],
     "closed": false
@@ -1872,6 +2321,12 @@ The list of domain administrators.
             "comment": "the expiration timestamp"
         },
         {
+            "name": "reviewReminder",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "the review reminder timestamp"
+        },
+        {
             "name": "active",
             "type": "Bool",
             "optional": true,
@@ -1895,6 +2350,12 @@ The list of domain administrators.
             "type": "Timestamp",
             "optional": true,
             "comment": "for pending membership requests, the request time"
+        },
+        {
+            "name": "systemDisabled",
+            "type": "Int32",
+            "optional": true,
+            "comment": "user disabled by system based on configured role setting"
         }
     ],
     "closed": false
@@ -2036,6 +2497,12 @@ A representation for the encapsulation of an action to be performed on a resourc
             "type": "Int64",
             "optional": true,
             "comment": "assertion id - auto generated by server. Not required during put operations."
+        },
+        {
+            "name": "caseSensitive",
+            "type": "Bool",
+            "optional": true,
+            "comment": "If true, we should store action and resource in their original case"
         }
     ],
     "closed": false
@@ -2071,6 +2538,12 @@ The representation for a Policy with set of assertions.
             "optional": false,
             "comment": "list of defined assertions for this policy",
             "items": "Assertion"
+        },
+        {
+            "name": "caseSensitive",
+            "type": "Bool",
+            "optional": true,
+            "comment": "If true, we should store action and resource in their original case"
         }
     ],
     "closed": false
@@ -2274,6 +2747,64 @@ Set of system metadata attributes that all services may have and can be changed 
 }
 ```
 
+### TemplateMetaData `<Struct>`
+
+MetaData for template.
+
+
+```
+{
+    "type": "Struct",
+    "name": "TemplateMetaData",
+    "comment": "MetaData for template.",
+    "fields": [
+        {
+            "name": "templateName",
+            "type": "String",
+            "optional": true,
+            "comment": "name of the template"
+        },
+        {
+            "name": "description",
+            "type": "String",
+            "optional": true,
+            "comment": "description of the template"
+        },
+        {
+            "name": "currentVersion",
+            "type": "Int32",
+            "optional": true,
+            "comment": "Version from DB(zms_store->domain_template->version)"
+        },
+        {
+            "name": "latestVersion",
+            "type": "Int32",
+            "optional": true,
+            "comment": "Bumped up version from solutions-template.json when there is a change"
+        },
+        {
+            "name": "keywordsToReplace",
+            "type": "String",
+            "optional": true,
+            "comment": "placeholders in the template roles/policies to replace (ex:_service_)"
+        },
+        {
+            "name": "timestamp",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "the updated timestamp of the template(solution_templates.json)"
+        },
+        {
+            "name": "autoUpdate",
+            "type": "Bool",
+            "optional": true,
+            "comment": "flag to automatically update the roles/policies that belongs to the template"
+        }
+    ],
+    "closed": false
+}
+```
+
 ### Template `<Struct>`
 
 Solution Template object defined on the server
@@ -2305,6 +2836,12 @@ Solution Template object defined on the server
             "optional": true,
             "comment": "list of services defined in this template",
             "items": "ServiceIdentity"
+        },
+        {
+            "name": "metadata",
+            "type": "TemplateMetaData",
+            "optional": true,
+            "comment": "list of services defined in this template"
         }
     ],
     "closed": false
@@ -2407,6 +2944,29 @@ List of solution templates available in the server
     "name": "ServerTemplateList",
     "comment": "List of solution templates available in the server",
     "fields": [],
+    "closed": false
+}
+```
+
+### DomainTemplateDetailsList `<Struct>`
+
+List of templates with metadata details given a domain
+
+
+```
+{
+    "type": "Struct",
+    "name": "DomainTemplateDetailsList",
+    "comment": "List of templates with metadata details given a domain",
+    "fields": [
+        {
+            "name": "metaData",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of template metadata",
+            "items": "TemplateMetaData"
+        }
+    ],
     "closed": false
 }
 ```
@@ -2525,6 +3085,29 @@ A UserDomain is the user's own top level domain in user - e.g. user.hga
 }
 ```
 
+### DomainMetaStoreValidValuesList `<Struct>`
+
+List of valid domain meta attribute values
+
+
+```
+{
+    "type": "Struct",
+    "name": "DomainMetaStoreValidValuesList",
+    "comment": "List of valid domain meta attribute values",
+    "fields": [
+        {
+            "name": "validValues",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of valid values for attribute",
+            "items": "String"
+        }
+    ],
+    "closed": false
+}
+```
+
 ### DanglingPolicy `<Struct>`
 
 A dangling policy where the assertion is referencing a role name that doesn't exist in the domain
@@ -2626,7 +3209,7 @@ An entity is a name and a structured value. some entity names/prefixes are reser
     "fields": [
         {
             "name": "name",
-            "type": "EntityName",
+            "type": "ResourceName",
             "optional": false,
             "comment": "name of the entity object"
         },
@@ -2658,6 +3241,446 @@ The representation for an enumeration of entities in the namespace
             "optional": false,
             "comment": "list of entity names",
             "items": "EntityName"
+        }
+    ],
+    "closed": false
+}
+```
+
+### GroupAuditLog `<Struct>`
+
+An audit log entry for group membership change.
+
+
+```
+{
+    "type": "Struct",
+    "name": "GroupAuditLog",
+    "comment": "An audit log entry for group membership change.",
+    "fields": [
+        {
+            "name": "member",
+            "type": "GroupMemberName",
+            "optional": false,
+            "comment": "name of the group member"
+        },
+        {
+            "name": "admin",
+            "type": "ResourceName",
+            "optional": false,
+            "comment": "name of the principal executing the change"
+        },
+        {
+            "name": "created",
+            "type": "Timestamp",
+            "optional": false,
+            "comment": "timestamp of the entry"
+        },
+        {
+            "name": "action",
+            "type": "String",
+            "optional": false,
+            "comment": "log action - e.g. add, delete, approve, etc"
+        },
+        {
+            "name": "auditRef",
+            "type": "String",
+            "optional": true,
+            "comment": "audit reference string for the change as supplied by admin"
+        }
+    ],
+    "closed": false
+}
+```
+
+### GroupMember `<Struct>`
+
+```
+{
+    "type": "Struct",
+    "name": "GroupMember",
+    "fields": [
+        {
+            "name": "memberName",
+            "type": "GroupMemberName",
+            "optional": true,
+            "comment": "name of the member"
+        },
+        {
+            "name": "groupName",
+            "type": "ResourceName",
+            "optional": true,
+            "comment": "name of the group"
+        },
+        {
+            "name": "domainName",
+            "type": "DomainName",
+            "optional": true,
+            "comment": "name of the domain"
+        },
+        {
+            "name": "expiration",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "the expiration timestamp"
+        },
+        {
+            "name": "active",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Flag to indicate whether membership is active",
+            "default": true
+        },
+        {
+            "name": "approved",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled groups ) or by domain admins ( in case of selfserve groups )",
+            "default": true
+        },
+        {
+            "name": "auditRef",
+            "type": "String",
+            "optional": true,
+            "comment": "audit reference string for the change as supplied by admin"
+        },
+        {
+            "name": "requestTime",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "for pending membership requests, the request time"
+        },
+        {
+            "name": "lastNotifiedTime",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "for pending membership requests, time when last notification was sent"
+        },
+        {
+            "name": "requestPrincipal",
+            "type": "ResourceName",
+            "optional": true,
+            "comment": "pending members only - name of the principal requesting the change"
+        },
+        {
+            "name": "reviewLastNotifiedTime",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "for pending membership requests, time when last notification was sent (for file store)"
+        },
+        {
+            "name": "systemDisabled",
+            "type": "Int32",
+            "optional": true,
+            "comment": "user disabled by system based on configured group setting"
+        },
+        {
+            "name": "principalType",
+            "type": "Int32",
+            "optional": true,
+            "comment": "server use only - principal type: unknown(0), user(1) or service(2)"
+        }
+    ],
+    "closed": false
+}
+```
+
+### GroupMembership `<Struct>`
+
+The representation for a group membership.
+
+
+```
+{
+    "type": "Struct",
+    "name": "GroupMembership",
+    "comment": "The representation for a group membership.",
+    "fields": [
+        {
+            "name": "memberName",
+            "type": "GroupMemberName",
+            "optional": false,
+            "comment": "name of the member"
+        },
+        {
+            "name": "isMember",
+            "type": "Bool",
+            "optional": true,
+            "comment": "flag to indicate whether or the user is a member or not",
+            "default": true
+        },
+        {
+            "name": "groupName",
+            "type": "ResourceName",
+            "optional": true,
+            "comment": "name of the group"
+        },
+        {
+            "name": "expiration",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "the expiration timestamp"
+        },
+        {
+            "name": "active",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Flag to indicate whether membership is active",
+            "default": true
+        },
+        {
+            "name": "approved",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled groups ) or by domain admins ( in case of selfserve groups )",
+            "default": true
+        },
+        {
+            "name": "auditRef",
+            "type": "String",
+            "optional": true,
+            "comment": "audit reference string for the change as supplied by admin"
+        },
+        {
+            "name": "requestPrincipal",
+            "type": "ResourceName",
+            "optional": true,
+            "comment": "pending members only - name of the principal requesting the change"
+        },
+        {
+            "name": "systemDisabled",
+            "type": "Int32",
+            "optional": true,
+            "comment": "user disabled by system based on configured group setting"
+        }
+    ],
+    "closed": false
+}
+```
+
+### GroupMeta `<Struct>`
+
+Set of metadata attributes that all groups may have and can be changed by domain admins.
+
+
+```
+{
+    "type": "Struct",
+    "name": "GroupMeta",
+    "comment": "Set of metadata attributes that all groups may have and can be changed by domain admins.",
+    "fields": [
+        {
+            "name": "selfServe",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Flag indicates whether or not group allows self service. Users can add themselves in the group, but it has to be approved by domain admins to be effective.",
+            "default": false
+        },
+        {
+            "name": "reviewEnabled",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Flag indicates whether or not group updates require another review and approval",
+            "default": false
+        },
+        {
+            "name": "notifyRoles",
+            "type": "String",
+            "optional": true,
+            "comment": "list of roles whose members should be notified for member review/approval"
+        },
+        {
+            "name": "userAuthorityFilter",
+            "type": "String",
+            "optional": true,
+            "comment": "membership filtered based on user authority configured attributes"
+        },
+        {
+            "name": "userAuthorityExpiration",
+            "type": "String",
+            "optional": true,
+            "comment": "expiration enforced by a user authority configured attribute"
+        },
+        {
+            "name": "memberExpiryDays",
+            "type": "Int32",
+            "optional": true,
+            "comment": "all user members in the group will have specified max expiry days"
+        },
+        {
+            "name": "serviceExpiryDays",
+            "type": "Int32",
+            "optional": true,
+            "comment": "all services in the group will have specified max expiry days"
+        }
+    ],
+    "closed": false
+}
+```
+
+### Group `<GroupMeta>`
+
+The representation for a Group with set of members.
+
+
+```
+{
+    "type": "GroupMeta",
+    "name": "Group",
+    "comment": "The representation for a Group with set of members.",
+    "fields": [
+        {
+            "name": "name",
+            "type": "ResourceName",
+            "optional": false,
+            "comment": "name of the group"
+        },
+        {
+            "name": "modified",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "last modification timestamp of the group"
+        },
+        {
+            "name": "groupMembers",
+            "type": "Array",
+            "optional": true,
+            "comment": "members with expiration",
+            "items": "GroupMember"
+        },
+        {
+            "name": "auditLog",
+            "type": "Array",
+            "optional": true,
+            "comment": "an audit log for group membership changes",
+            "items": "GroupAuditLog"
+        },
+        {
+            "name": "auditEnabled",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it",
+            "default": false
+        },
+        {
+            "name": "lastReviewedDate",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "last review timestamp of the group"
+        }
+    ],
+    "closed": false
+}
+```
+
+### Groups `<Struct>`
+
+The representation for a list of groups with full details
+
+
+```
+{
+    "type": "Struct",
+    "name": "Groups",
+    "comment": "The representation for a list of groups with full details",
+    "fields": [
+        {
+            "name": "list",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of group objects",
+            "items": "Group"
+        }
+    ],
+    "closed": false
+}
+```
+
+### DomainGroupMember `<Struct>`
+
+```
+{
+    "type": "Struct",
+    "name": "DomainGroupMember",
+    "fields": [
+        {
+            "name": "memberName",
+            "type": "GroupMemberName",
+            "optional": false,
+            "comment": "name of the member"
+        },
+        {
+            "name": "memberGroups",
+            "type": "Array",
+            "optional": false,
+            "comment": "groups for this member",
+            "items": "GroupMember"
+        }
+    ],
+    "closed": false
+}
+```
+
+### DomainGroupMembers `<Struct>`
+
+```
+{
+    "type": "Struct",
+    "name": "DomainGroupMembers",
+    "fields": [
+        {
+            "name": "domainName",
+            "type": "DomainName",
+            "optional": false,
+            "comment": "name of the domain"
+        },
+        {
+            "name": "members",
+            "type": "Array",
+            "optional": false,
+            "comment": "group members",
+            "items": "DomainGroupMember"
+        }
+    ],
+    "closed": false
+}
+```
+
+### DomainGroupMembership `<Struct>`
+
+```
+{
+    "type": "Struct",
+    "name": "DomainGroupMembership",
+    "fields": [
+        {
+            "name": "domainGroupMembersList",
+            "type": "Array",
+            "optional": false,
+            "items": "DomainGroupMembers"
+        }
+    ],
+    "closed": false
+}
+```
+
+### GroupSystemMeta `<Struct>`
+
+Set of system metadata attributes that all groups may have and can be changed by system admins.
+
+
+```
+{
+    "type": "Struct",
+    "name": "GroupSystemMeta",
+    "comment": "Set of system metadata attributes that all groups may have and can be changed by system admins.",
+    "fields": [
+        {
+            "name": "auditEnabled",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Flag indicates whether or not group updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.",
+            "default": false
         }
     ],
     "closed": false
@@ -2722,6 +3745,13 @@ A representation of tenant.
             "optional": true,
             "comment": "registered resource groups for this tenant",
             "items": "EntityName"
+        },
+        {
+            "name": "createAdminRole",
+            "type": "Bool",
+            "optional": true,
+            "comment": "optional flag indicating whether to create a default tenancy admin role",
+            "default": true
         }
     ],
     "closed": false
@@ -2844,6 +3874,13 @@ A representation of provider roles to be provisioned.
             "type": "EntityName",
             "optional": false,
             "comment": "tenant resource group"
+        },
+        {
+            "name": "createAdminRole",
+            "type": "Bool",
+            "optional": true,
+            "comment": "optional flag indicating whether to create a default tenancy admin role",
+            "default": true
         }
     ],
     "closed": false
@@ -2881,7 +3918,7 @@ Access can be checked and returned as this resource.
     "fields": [
         {
             "name": "principal",
-            "type": "EntityName",
+            "type": "ResourceName",
             "optional": false
         },
         {
@@ -3021,6 +4058,13 @@ A domain object that includes its roles, policies and services.
             "items": "Entity"
         },
         {
+            "name": "groups",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of groups in the domain",
+            "items": "Group"
+        },
+        {
             "name": "modified",
             "type": "Timestamp",
             "optional": false,
@@ -3104,7 +4148,7 @@ SignedDomain using flattened JWS JSON Serialization syntax. https://tools.ietf.o
             "optional": false
         },
         {
-            "name": "protectedHeader",
+            "name": "protected",
             "type": "String",
             "optional": false
         },
@@ -3300,6 +4344,18 @@ The representation for a quota object
             "comment": "number of public keys per service"
         },
         {
+            "name": "group",
+            "type": "Int32",
+            "optional": false,
+            "comment": "number of groups per domain"
+        },
+        {
+            "name": "groupMember",
+            "type": "Int32",
+            "optional": false,
+            "comment": "number of members a group may have"
+        },
+        {
             "name": "modified",
             "type": "Timestamp",
             "optional": true,
@@ -3357,4 +4413,4 @@ The representation for a status object
 ```
 
 
-*generated on Tue Apr 07 2020 09:54:12 GMT-0700 (Pacific Daylight Time)*
+*generated on Sun May 09 2021 14:04:29 GMT+0300 (Israel Daylight Time)*

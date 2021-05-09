@@ -1177,6 +1177,21 @@ const Api = (req) => {
             });
         },
 
+        getMeta(params) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('meta')
+                    .params(params)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         isAWSTemplateApplied(domainName) {
             return new Promise((resolve, reject) => {
                 fetchr
