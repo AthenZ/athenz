@@ -191,6 +191,7 @@ export default class InstanceList extends React.Component {
                             <InputDropdown
                                 name='search-type'
                                 defaultSelectedValue={this.state.selected}
+                                placeholder='Select an option'
                                 onChange={this.optionChanged}
                                 options={this.state.options}
                                 noclear
