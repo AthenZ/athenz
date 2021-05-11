@@ -21,6 +21,7 @@ import Alert from '../denali/Alert';
 import RequestUtils from '../utils/RequestUtils';
 import InstanceTable from './InstanceTable';
 import AddStaticInstances from '../microsegmentation/AddStaticInstances';
+import InputDropdown from '../denali/InputDropdown';
 
 const InstanceSectionDiv = styled.div`
     margin: 20px;
@@ -38,6 +39,22 @@ const AddContainerDiv = styled.div`
     flex-flow: row nowrap;
 `;
 
+const SearchDiv = styled.div`
+    display: flex;
+    width: 100%;
+`;
+
+const DropDownDiv = styled.div`
+    background: #ffffff;
+    width: 35%;
+`;
+
+const SearchTextDiv = styled.div`
+    background: #ffffff;
+    width: 65%;
+    margin-left: 5px;
+`;
+
 export default class InstanceList extends React.Component {
     constructor(props) {
         super(props);
@@ -48,10 +65,19 @@ export default class InstanceList extends React.Component {
             errorMessage: null,
             searchText: '',
             error: false,
+            placeholder: 'Search',
+            options: [
+                { value: 'Instance', name: 'Instance' },
+                { value: 'Hostname', name: 'Hostname' },
+                { value: 'Provider', name: 'Provider' },
+            ],
+            selected: this.props.option || 'Instance',
+            searchText: this.props.searchText || '',
         };
         this.toggleAddInstance = this.toggleAddInstance.bind(this);
         this.closeModal = this.closeModal.bind(this);
         this.reloadInstances = this.reloadInstances.bind(this);
+        this.optionChanged = this.optionChanged.bind(this);
     }
 
     toggleAddInstance() {
@@ -99,15 +125,47 @@ export default class InstanceList extends React.Component {
         this.setState({ showSuccess: null });
     }
 
+    optionChanged(chosen) {
+        if (chosen && chosen.value != null) {
+            this.setState({
+                selected: chosen.value,
+            });
+        }
+    }
+
     render() {
         let instances = this.state.instances;
         if (this.state.searchText.trim() !== '') {
-            instances = this.state.instances.filter((instance) => {
-                let temp = instance.ipAddresses.filter((ipAddress) => {
-                    return ipAddress.includes(this.state.searchText.trim());
-                });
-                return temp.length > 0;
-            });
+            switch (this.state.selected) {
+                case 'Instance':
+                    instances = this.state.instances.filter((instance) => {
+                        let temp = instance.ipAddresses.filter((ipAddress) => {
+                            return ipAddress.includes(
+                                this.state.searchText.trim()
+                            );
+                        });
+                        return temp.length > 0;
+                    });
+                    break;
+                case 'Hostname':
+                    instances = this.state.instances.filter((instance) => {
+                        return instance.hostname
+                            .toLowerCase()
+                            .includes(
+                                this.state.searchText.toLowerCase().trim()
+                            );
+                    });
+                    break;
+                case 'Provider':
+                    instances = this.state.instances.filter((instance) => {
+                        return instance.provider
+                            .toLowerCase()
+                            .includes(
+                                this.state.searchText.toLowerCase().trim()
+                            );
+                    });
+                    break;
+            }
         }
 
         let addStaticInstance = this.state.showAddInstance ? (
@@ -124,25 +182,66 @@ export default class InstanceList extends React.Component {
             ''
         );
 
-        let searchInput =
-            this.state.instances.length > 0 ? (
-                <SearchInput
-                    dark={false}
-                    name='search'
-                    fluid={true}
-                    value={this.state.searchText}
-                    placeholder={'Enter instance ip address'}
-                    error={this.state.error}
-                    onChange={(event) =>
-                        this.setState({
-                            searchText: event.target.value,
-                            error: false,
-                        })
-                    }
-                />
-            ) : (
-                'No instances found'
-            );
+        let searchInput;
+        if (this.state.instances.length > 0) {
+            if (this.props.category != 'static') {
+                searchInput = (
+                    <SearchDiv>
+                        <DropDownDiv>
+                            <InputDropdown
+                                name='search-type'
+                                defaultSelectedValue={this.state.selected}
+                                placeholder='Select an option'
+                                onChange={this.optionChanged}
+                                options={this.state.options}
+                                noclear
+                                fluid
+                            />
+                        </DropDownDiv>
+                        <SearchTextDiv>
+                            <SearchInput
+                                dark={false}
+                                name='search'
+                                fluid={true}
+                                value={this.state.searchText}
+                                placeholder={'Search'}
+                                error={this.state.error}
+                                onChange={(event) =>
+                                    this.setState({
+                                        searchText: event.target.value,
+                                        error: false,
+                                    })
+                                }
+                            />
+                        </SearchTextDiv>
+                    </SearchDiv>
+                );
+            } else {
+                searchInput = (
+                    <SearchDiv>
+                        <SearchTextDiv>
+                            <SearchInput
+                                dark={false}
+                                name='search'
+                                fluid={true}
+                                value={this.state.searchText}
+                                placeholder={'Search'}
+                                error={this.state.error}
+                                onChange={(event) =>
+                                    this.setState({
+                                        searchText: event.target.value,
+                                        error: false,
+                                    })
+                                }
+                            />
+                        </SearchTextDiv>
+                    </SearchDiv>
+                );
+            }
+        } else {
+            searchInput = 'No instances found';
+        }
+
         return (
             <InstanceSectionDiv data-testid='instancelist'>
                 <AddContainerDiv>
