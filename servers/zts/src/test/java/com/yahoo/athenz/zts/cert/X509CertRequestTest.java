@@ -62,18 +62,15 @@ public class X509CertRequestTest {
     @Test
     public void testConstructorValidUriHostname() throws IOException {
         Path path = Paths.get("src/test/resources/athenz.examples.uri-instanceid-hostname.csr");
-        String csr = new String(Files.readAllBytes(path));
 
         X509CertRequest certReq = new X509CertRequest(new String(Files.readAllBytes(path)));
         assertNotNull(certReq);
 
-        StringBuilder errorMsg = new StringBuilder(256);
         assertEquals(certReq.getUriHostname(), "abc.athenz.com");
 
         path = Paths.get("src/test/resources/athenz.examples.uri-hostname-only.csr");
-        csr = new String(Files.readAllBytes(path));
 
-        certReq = new X509CertRequest(csr);
+        certReq = new X509CertRequest(new String(Files.readAllBytes(path)));
         assertNotNull(certReq);
         assertEquals(certReq.getUriHostname(), "abc.athenz.com");
     }
@@ -102,7 +99,6 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/invalid_dns.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        StringBuilder errorMsg = new StringBuilder(256);
         X509CertRequest certReq = new X509CertRequest(csr);
         assertNotNull(certReq);
     }
@@ -359,19 +355,19 @@ public class X509CertRequestTest {
 
         // now specify a resolver for the hostname check
 
-        HostnameResolver resolver = new TestHostnameResolver();
+        TestHostnameResolver resolver = new TestHostnameResolver();
         assertFalse(certReq.validateDnsNames("athenz", "api", "provider", athenzSysDomainCache,
                 "zts.athenz.info", "api.athenz.ostk.athenz.info", null, resolver));
 
         // include resolver with invalid hostname
 
-        ((TestHostnameResolver) resolver).addValidHostname("api1.athenz.ostk.athenz.info");
+        resolver.addValidHostname("api1.athenz.ostk.athenz.info");
         assertFalse(certReq.validateDnsNames("athenz", "api", "provider", athenzSysDomainCache,
                 "zts.athenz.info", "api.athenz.ostk.athenz.info", null, resolver));
 
         // now add the hostname to the list
 
-        ((TestHostnameResolver) resolver).addValidHostname("api.athenz.ostk.athenz.info");
+        resolver.addValidHostname("api.athenz.ostk.athenz.info");
         assertTrue(certReq.validateDnsNames("athenz", "api", "provider", athenzSysDomainCache,
                 "zts.athenz.info", "api.athenz.ostk.athenz.info", null, resolver));
     }
