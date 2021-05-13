@@ -31,6 +31,8 @@ public class X509RoleCertRequest extends X509CertRequest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(X509RoleCertRequest.class);
 
+    private static final String SPIFFE_ROLE_AGENT    = "ra";
+
     protected String reqRoleName;
     protected String reqRoleDomain;
     protected String rolePrincipal;
@@ -186,7 +188,7 @@ public class X509RoleCertRequest extends X509CertRequest {
 
         // validate spiffe uri if one is provided
 
-        return validateSpiffeURI(reqRoleDomain, "ra", reqRoleName);
+        return validateSpiffeURI(reqRoleDomain, SPIFFE_ROLE_AGENT, reqRoleName);
     }
 
     public boolean validateIPAddress(X509Certificate cert, final String ip) {
