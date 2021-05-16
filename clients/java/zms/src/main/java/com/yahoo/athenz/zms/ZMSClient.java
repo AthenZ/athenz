@@ -2008,6 +2008,23 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Retrieve all valid values for the given attribute and user
+     * @param attributeName   name of attribute
+     * @param userName        restrict to values associated with the given user
+     * @return all valid values for the given attribute and user
+     */
+    public DomainMetaStoreValidValuesList getDomainMetaStoreValidValuesList(String attributeName, String userName) {
+        updatePrincipal();
+        try {
+            return client.getDomainMetaStoreValidValuesList(attributeName, userName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * For the specified user credentials return the corresponding User Token that
      * can be used for authenticating other ZMS operations. The client internally
      * automatically calls this method and uses the UserToken if the ZMSClient
