@@ -222,8 +222,6 @@
                   <goal>compile</goal>
                 </goals>
                 <configuration>
-                  <source>11</source>
-                  <target>11</target>
                   <release>11</release>
                   <compileSourceRoots>
                     <compileSourceRoot>${project.basedir}/src/main/java11</compileSourceRoot>

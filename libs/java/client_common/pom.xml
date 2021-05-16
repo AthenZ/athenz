@@ -70,6 +70,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
+            <version>${maven-compiler-plugin.version}</version>
             <executions>
               <execution>
                 <id>jdk11</id>
@@ -77,8 +78,6 @@
                   <goal>compile</goal>
                 </goals>
                 <configuration>
-                  <source>11</source>
-                  <target>11</target>
                   <release>11</release>
                   <compileSourceRoots>
                     <compileSourceRoot>${project.basedir}/src/main/java11</compileSourceRoot>
