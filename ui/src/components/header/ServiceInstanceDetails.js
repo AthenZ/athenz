@@ -15,6 +15,17 @@
  */
 import styled from '@emotion/styled';
 import React from 'react';
+import Menu from '../denali/Menu/Menu';
+import Icon from '../denali/icons/Icon';
+import { colors } from '../denali/styles';
+import {
+    TOTAL_DYNAMIC_INSTANCES_LABEL,
+    TOTAL_DYNAMIC_INSTANCES_DESC,
+    TOTAL_STATIC_INSTANCES_DESC,
+    TOTAL_HEALTHY_DYNAMIC_INSTANCES_LABEL,
+    TOTAL_STATIC_INSTANCES_LABEL,
+    TOTAL_HEALTHY_DYNAMIC_INSTANCES_DESC,
+} from '../constants/constants';
 
 const DomainSectionDiv = styled.div`
     margin: 20px 0;
@@ -31,27 +42,173 @@ const StyledAnchor = styled.a`
     cursor: pointer;
 `;
 
+const SectionDiv = styled.div`
+    padding-right: 50px;
+`;
+
+const ValueDiv = styled.div`
+    font-weight: 600;
+`;
+const LabelDiv = styled.div`
+    color: #9a9a9a;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+`;
+
+const SubLabelDiv = styled.div`
+    margin: 10px 10px;
+`;
+
+const HeaderMenuUserDiv = styled.div`
+    margin-left: 15px;
+`;
+
+const StyledAnchorDiv = styled.div`
+    color: #9a9a9a;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+    margin: 15px 15px;
+`;
+
+const SectionHeader = styled.span`
+    margin: 3px;
+    vertical-align: 2px;
+`;
+
 export default function ServiceInstanceDetails(props) {
-    const { details } = props;
-
-    let message = [details.description];
-
-    if (details.url != '') {
-        message.push(' For more information click ');
-        var link = (
-            <StyledAnchor
-                onClick={() => window.open(details.url, details.target)}
-            >
-                here
-            </StyledAnchor>
-        );
-        message.push(link);
-    }
+    const { instanceDetailsMeta, categoryType } = props;
 
     return (
         <DomainSectionDiv>
             <DetailsDiv>
-                <p>{message}</p>
+                {categoryType !== 'Static' && (
+                    <span>
+                        <SectionDiv>
+                            <ValueDiv>
+                                {categoryType !== 'Static'
+                                    ? instanceDetailsMeta.workloadMeta
+                                          .totalDynamic
+                                    : 'NA'}
+                            </ValueDiv>
+                            <LabelDiv>
+                                {TOTAL_DYNAMIC_INSTANCES_LABEL}
+                                <SectionHeader>
+                                    <Menu
+                                        placement='bottom-end'
+                                        trigger={({
+                                            getTriggerProps,
+                                            triggerRef,
+                                        }) => (
+                                            <Icon
+                                                icon={'help-circle'}
+                                                {...getTriggerProps({
+                                                    innerRef: triggerRef,
+                                                })}
+                                                isLink
+                                                size={'15px'}
+                                                color={colors.graphBlue}
+                                                enableTitle={false}
+                                            />
+                                        )}
+                                        triggerOn='click'
+                                    >
+                                        <StyledAnchorDiv>
+                                            {TOTAL_DYNAMIC_INSTANCES_DESC}
+                                        </StyledAnchorDiv>
+                                    </Menu>
+                                </SectionHeader>
+                            </LabelDiv>
+                        </SectionDiv>
+                    </span>
+                )}
+
+                {categoryType !== 'Static' && (
+                    <span>
+                        <SectionDiv>
+                            <ValueDiv>
+                                {categoryType !== 'Static'
+                                    ? instanceDetailsMeta.workloadMeta
+                                          .totalHealthyDynamic
+                                    : 'NA'}
+                            </ValueDiv>
+                            <LabelDiv>
+                                {TOTAL_HEALTHY_DYNAMIC_INSTANCES_LABEL}
+                                <SectionHeader>
+                                    <Menu
+                                        placement='bottom-end'
+                                        padding-left='10px'
+                                        trigger={({
+                                            getTriggerProps,
+                                            triggerRef,
+                                        }) => (
+                                            <Icon
+                                                icon={'help-circle'}
+                                                {...getTriggerProps({
+                                                    innerRef: triggerRef,
+                                                })}
+                                                isLink
+                                                size={'15px'}
+                                                color={colors.graphBlue}
+                                                enableTitle={false}
+                                            />
+                                        )}
+                                        triggerOn='click'
+                                    >
+                                        <StyledAnchorDiv>
+                                            {
+                                                TOTAL_HEALTHY_DYNAMIC_INSTANCES_DESC
+                                            }
+                                        </StyledAnchorDiv>
+                                    </Menu>
+                                </SectionHeader>
+                            </LabelDiv>
+                        </SectionDiv>
+                    </span>
+                )}
+
+                {categoryType === 'Static' && (
+                    <span>
+                        <SectionDiv>
+                            <ValueDiv>
+                                {categoryType === 'Static'
+                                    ? instanceDetailsMeta.workloadMeta
+                                          .totalStatic
+                                    : 'NA'}
+                            </ValueDiv>
+                            <LabelDiv>
+                                {TOTAL_STATIC_INSTANCES_LABEL}
+                                <SectionHeader>
+                                    <Menu
+                                        placement='bottom-end'
+                                        padding-left='10px'
+                                        trigger={({
+                                            getTriggerProps,
+                                            triggerRef,
+                                        }) => (
+                                            <Icon
+                                                icon={'help-circle'}
+                                                {...getTriggerProps({
+                                                    innerRef: triggerRef,
+                                                })}
+                                                isLink
+                                                size={'15px'}
+                                                color={colors.graphBlue}
+                                                enableTitle={false}
+                                            />
+                                        )}
+                                        triggerOn='click'
+                                    >
+                                        <StyledAnchorDiv>
+                                            {TOTAL_STATIC_INSTANCES_DESC}
+                                        </StyledAnchorDiv>
+                                    </Menu>
+                                </SectionHeader>
+                            </LabelDiv>
+                        </SectionDiv>
+                    </span>
+                )}
             </DetailsDiv>
         </DomainSectionDiv>
     );

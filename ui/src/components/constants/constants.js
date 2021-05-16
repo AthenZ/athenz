@@ -30,6 +30,15 @@ export const SEGMENTATION_TYPE_OUTBOUND = 'outbound';
 export const SEGMENTATION_TYPE_INBOUND = 'inbound';
 export const SEGMENTATION_TYPE_OUTBOUND_LABEL = 'Outbound';
 export const SEGMENTATION_TYPE_INBOUND_LABEL = 'Inbound';
+export const TOTAL_DYNAMIC_INSTANCES_DESC =
+    'List of all dynamic instances(Both Active and Dormant).';
+export const TOTAL_STATIC_INSTANCES_DESC = 'List of all static instances.';
+export const TOTAL_HEALTHY_DYNAMIC_INSTANCES_LABEL =
+    'Total Healthy Dynamic Instances';
+export const TOTAL_STATIC_INSTANCES_LABEL = 'Total Static Instances';
+export const TOTAL_HEALTHY_DYNAMIC_INSTANCES_DESC =
+    'List of only active dynamic instances(i.e. instances refreshed certs within last 7 days).';
+export const TOTAL_DYNAMIC_INSTANCES_LABEL = 'Total Dynamic Instances';
 
 export const SERVICE_TABS = [
     {

@@ -28,6 +28,7 @@ import ServiceTabs from '../components/header/ServiceTabs';
 import ServiceNameHeader from '../components/header/ServiceNameHeader';
 import InstanceList from '../components/service/InstanceList';
 import ServiceInstanceDetails from '../components/header/ServiceInstanceDetails';
+import { SERVICE_TYPE_STATIC_LABEL } from '../components/constants/constants';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -142,10 +143,16 @@ export default class StaticInstancePage extends React.Component {
                                         <ServiceNameHeader
                                             domain={domain}
                                             service={service}
+                                            serviceHeaderDetails={
+                                                this.props.serviceHeaderDetails
+                                            }
                                         />
                                         <ServiceInstanceDetails
-                                            details={
-                                                this.props.serviceHeaderDetails
+                                            instanceDetailsMeta={
+                                                this.props.instanceDetails
+                                            }
+                                            categoryType={
+                                                SERVICE_TYPE_STATIC_LABEL
                                             }
                                         />
                                         <ServiceTabs
@@ -160,7 +167,7 @@ export default class StaticInstancePage extends React.Component {
                                         api={this.api}
                                         domain={domain}
                                         _csrf={_csrf}
-                                        instances={instanceDetails}
+                                        instances={instanceDetails.workLoadData}
                                         service={this.props.service}
                                     />
                                 </ServiceContentDiv>

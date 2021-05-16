@@ -36,6 +36,15 @@ class DateUtils {
         return this.getLocalDate(currDt, currentTimezone, 'UTC');
     }
 
+    getDateMinusSevenDays(currentDate, currentTimezone) {
+        debugger;
+        let currDt = new Date();
+        let inputDay = this.getLocalDate(currentDate, currentTimezone, 'UTC');
+        currDt.setDate(currDt.getDate() - 7);
+        let minusSevenDays = this.getLocalDate(currDt, currentTimezone, 'UTC');
+        return inputDay >= minusSevenDays;
+    }
+
     getCurrentTimeZone() {
         return Intl.DateTimeFormat().resolvedOptions().timeZone;
     }

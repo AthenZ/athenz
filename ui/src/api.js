@@ -16,8 +16,10 @@
 import Fetchr from 'fetchr';
 import 'setimmediate';
 import NameUtils from './components/utils/NameUtils';
+import DateUtils from './components/utils/DateUtils';
 
 const Api = (req) => {
+    let localDate = new DateUtils();
     const fetchr = new Fetchr({
         xhrPath: '/api/v1',
         xhrTimeout: 10000,
@@ -1387,7 +1389,54 @@ const Api = (req) => {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve(data);
+                            let result = {
+                                workLoadData: [],
+                            };
+                            let workloadMeta = {
+                                totalDynamic: 0,
+                                totalStatic: 0,
+                                totalRecords: 0,
+                                totalHealthyDynamic: 0,
+                            };
+                            let totalHealthyDynamicCount = 0;
+                            if (data && data.workloadList != null) {
+                                workloadMeta.totalRecords =
+                                    data.workloadList.length;
+                                if (category === 'static') {
+                                    data.workloadList.forEach((workload) => {
+                                        if (workload.provider === 'Static') {
+                                            result.workLoadData.push(workload);
+                                        }
+                                    });
+                                    workloadMeta.totalStatic =
+                                        result.workLoadData.length;
+                                    result.workloadMeta = workloadMeta;
+                                    resolve(result);
+                                } else {
+                                    workloadMeta.totalRecords =
+                                        data.workloadList.length;
+                                    data.workloadList.forEach((workload) => {
+                                        if (workload.provider !== 'Static') {
+                                            result.workLoadData.push(workload);
+                                            if (
+                                                workload.provider !==
+                                                    'Static' &&
+                                                workload.hostname !== 'NA' &&
+                                                localDate.getDateMinusSevenDays(
+                                                    workload.updateTime
+                                                )
+                                            ) {
+                                                totalHealthyDynamicCount++;
+                                            }
+                                        }
+                                    });
+                                    workloadMeta.totalHealthyDynamic = totalHealthyDynamicCount;
+                                    workloadMeta.totalDynamic =
+                                        result.workLoadData.length;
+                                    result.workloadMeta = workloadMeta;
+                                    resolve(result);
+                                }
+                            }
                         }
                     });
             });
