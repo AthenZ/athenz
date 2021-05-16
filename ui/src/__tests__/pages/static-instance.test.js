@@ -19,24 +19,24 @@ import StaticInstancePage from '../../pages/static-instance';
 
 const testInstancedetails = {
     workLoadData: [
-    {
-      domainName: null,
-      serviceName: null,
-      uuid: '10.1.1.1',
-      ipAddresses: [Array],
-      hostname: null,
-      provider: 'Static',
-      updateTime: '2021-05-15T01:17:31.759Z',
-      certExpiryTime: null
-    }
-  ],
-  workloadMeta: {
-    totalDynamic: 10,
-    totalStatic: 9,
-    totalRecords: 19,
-    totalHealthyDynamic: 8
-  }
-}
+        {
+            domainName: null,
+            serviceName: null,
+            uuid: '10.1.1.1',
+            ipAddresses: [Array],
+            hostname: null,
+            provider: 'Static',
+            updateTime: '2021-05-15T01:17:31.759Z',
+            certExpiryTime: null,
+        },
+    ],
+    workloadMeta: {
+        totalDynamic: 10,
+        totalStatic: 9,
+        totalRecords: 19,
+        totalHealthyDynamic: 8,
+    },
+};
 
 describe('StaticInstancePage', () => {
     it('should render', () => {
