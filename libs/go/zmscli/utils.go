@@ -76,7 +76,8 @@ func indexOfString(s []string, match string) int {
 }
 
 func (cli Zms) validatedUser(user string) string {
-	if !strings.Contains(user, ".") {
+	//special case to support adding * as a member
+	if !strings.Contains(user, ".") && user != "*" {
 		return cli.UserDomain + "." + user
 	}
 	return user
@@ -85,11 +86,7 @@ func (cli Zms) validatedUser(user string) string {
 func (cli Zms) validatedUsers(users []string, forceSelf bool) []string {
 	validatedUsers := make([]string, 0)
 	for _, v := range users {
-		if !strings.Contains(v, ".") {
-			validatedUsers = append(validatedUsers, cli.UserDomain+"."+v)
-		} else {
-			validatedUsers = append(validatedUsers, v)
-		}
+		validatedUsers = append(validatedUsers, cli.validatedUser(v))
 	}
 	if forceSelf && indexOfString(validatedUsers, cli.Identity) < 0 {
 		validatedUsers = append(validatedUsers, cli.Identity)
@@ -131,11 +128,7 @@ func (cli Zms) convertRoleMembers(users []string) []*zms.RoleMember {
 	roleMembers := make([]*zms.RoleMember, 0)
 	for _, v := range users {
 		roleMember := zms.NewRoleMember()
-		if !strings.Contains(v, ".") {
-			roleMember.MemberName = zms.MemberName(cli.UserDomain + "." + v)
-		} else {
-			roleMember.MemberName = zms.MemberName(v)
-		}
+		roleMember.MemberName = zms.MemberName(cli.validatedUser(v))
 		roleMembers = append(roleMembers, roleMember)
 	}
 	return roleMembers

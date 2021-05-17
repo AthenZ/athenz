@@ -46,7 +46,6 @@ func (cli Zms) ListServices(dn string) (*string, error) {
 		cli.dumpObjectList(&buf, services, dn, "service")
 	}
 	return cli.switchOverFormats(services, buf.String())
-
 }
 
 func (cli Zms) ShowService(dn string, sn string) (*string, error) {
@@ -101,6 +100,10 @@ func (cli Zms) AddService(dn string, sn string, keyID string, pubKey *string) (*
 		// case we're going to do a quick sleep and retry request
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.ShowService(dn, shortName)
+		if err != nil {
+			s := ""
+			return &s, nil
+		}
 	}
 	return cli.switchOverFormats(*output)
 }
@@ -199,6 +202,10 @@ func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *st
 		// case we're going to do a quick sleep and retry request
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.ShowService(dn, shortName)
+		if err != nil {
+			s := ""
+			return &s, nil
+		}
 	}
 	return cli.switchOverFormats(*output)
 }
