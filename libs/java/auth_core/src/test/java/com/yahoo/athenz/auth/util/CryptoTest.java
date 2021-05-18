@@ -161,6 +161,24 @@ public class CryptoTest {
     }
 
     @Test
+    public void testSignatureProviderException() {
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        assertNotNull(privateKey);
+
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        assertNotNull(publicKey);
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER, "C");
+        assertThrows(CryptoException.class, () -> Crypto.sign(serviceToken, privateKey));
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
+
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER, "C");
+        assertThrows(CryptoException.class, () -> Crypto.verify(serviceToken, publicKey, serviceECSignature));
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
+    }
+
+    @Test
     public void testExtractPublicKeyRSAException() {
 
         PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
