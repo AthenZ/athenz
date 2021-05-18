@@ -155,9 +155,34 @@ public class CryptoTest {
         assertThrows(CryptoException.class, () -> Crypto.extractPublicKey(privateKey));
         System.clearProperty(Crypto.ATHENZ_CRYPTO_ALGO_ECDSA);
 
-        System.setProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER, "C");
+        System.setProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER, "C");
         assertThrows(CryptoException.class, () -> Crypto.extractPublicKey(privateKey));
-        System.clearProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER);
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER);
+    }
+
+    @Test
+    public void testSignatureProviderException() {
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        assertNotNull(privateKey);
+
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        assertNotNull(publicKey);
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER, "C");
+        assertThrows(CryptoException.class, () -> Crypto.sign(serviceToken, privateKey));
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER, "C");
+        assertThrows(CryptoException.class, () -> Crypto.sign(serviceToken.getBytes(StandardCharsets.UTF_8), privateKey, Crypto.SHA256));
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER, "C");
+        assertThrows(CryptoException.class, () -> Crypto.verify(serviceToken, publicKey, serviceECSignature));
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER, "C");
+        assertThrows(CryptoException.class, () -> Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), publicKey, serviceECSignature.getBytes(StandardCharsets.UTF_8), Crypto.SHA256));
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
     }
 
     @Test
@@ -170,9 +195,9 @@ public class CryptoTest {
         assertThrows(CryptoException.class, () -> Crypto.extractPublicKey(privateKey));
         System.clearProperty(Crypto.ATHENZ_CRYPTO_ALGO_RSA);
 
-        System.setProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER, "C");
+        System.setProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER, "C");
         assertThrows(CryptoException.class, () -> Crypto.extractPublicKey(privateKey));
-        System.clearProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER);
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER);
     }
 
     @Test
@@ -320,9 +345,9 @@ public class CryptoTest {
 
         Crypto.sign(serviceToken, privateKey);
 
-        System.setProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER, "C");
+        System.setProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER, "C");
         assertThrows(CryptoException.class, () -> Crypto.loadPublicKey(ecPublicParamsKey));
-        System.clearProperty(Crypto.ATHENZ_CRYPTO_BC_PROVIDER);
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER);
 
         System.setProperty(Crypto.ATHENZ_CRYPTO_ALGO_ECDSA, "TESTAlgo");
         assertThrows(CryptoException.class, () -> Crypto.loadPublicKey(ecPublicParamsKey));
