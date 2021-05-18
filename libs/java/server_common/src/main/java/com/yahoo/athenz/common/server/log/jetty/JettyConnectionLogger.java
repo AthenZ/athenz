@@ -162,18 +162,12 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements SslHands
         }
 
         synchronized String[] toMetric() {
-            String peerAddressKey = "peerAddress";
-            String peerAddressValue = "unknown";
             String failureTypeKey = "failureType";
             String failureTypeValue = "unknown";
-            if (peerHost != null) {
-                peerAddressValue = peerHost + ":" + peerPort;
-            }
             if (sslHandshakeFailureType != null) {
                 failureTypeValue = sslHandshakeFailureType;
             }
             return new String[] {
-                    peerAddressKey, peerAddressValue,
                     failureTypeKey, failureTypeValue
             };
         }
