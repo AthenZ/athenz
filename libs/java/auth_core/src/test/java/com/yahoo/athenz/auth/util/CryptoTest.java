@@ -172,9 +172,16 @@ public class CryptoTest {
         assertThrows(CryptoException.class, () -> Crypto.sign(serviceToken, privateKey));
         System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
 
+        System.setProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER, "C");
+        assertThrows(CryptoException.class, () -> Crypto.sign(serviceToken.getBytes(StandardCharsets.UTF_8), privateKey, Crypto.SHA256));
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
 
         System.setProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER, "C");
         assertThrows(CryptoException.class, () -> Crypto.verify(serviceToken, publicKey, serviceECSignature));
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER, "C");
+        assertThrows(CryptoException.class, () -> Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), publicKey, serviceECSignature.getBytes(StandardCharsets.UTF_8), Crypto.SHA256));
         System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
     }
 
