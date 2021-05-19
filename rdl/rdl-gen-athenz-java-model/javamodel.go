@@ -654,7 +654,11 @@ func (gen *javaModelGenerator) emitStructFields(fields []*rdl.StructFieldDef, na
 			if optional {
 				gen.emit("    @RdlOptional\n")
 				if gen.jackson {
-					gen.emit("    @JsonInclude(JsonInclude.Include.NON_EMPTY)\n")
+				    if f.Annotations["x_allowempty"] == "true" {
+				        gen.emit("    @JsonInclude(JsonInclude.Include.NON_NULL)\n")
+				    } else {
+					    gen.emit("    @JsonInclude(JsonInclude.Include.NON_EMPTY)\n")
+					}
 				}
 			}
 			gen.emit(fmt.Sprintf("    public %s %s;\n", ftype, fname))
