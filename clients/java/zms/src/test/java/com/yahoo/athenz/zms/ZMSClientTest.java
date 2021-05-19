@@ -18,6 +18,8 @@ package com.yahoo.athenz.zms;
 import java.security.*;
 import java.util.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
@@ -3939,4 +3941,19 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 401);
         }
     }
+
+    @Test
+    public void testEmptyMetaValues() throws JsonProcessingException {
+        DomainMeta domainMeta = new DomainMeta();
+        domainMeta.setAccount("testAccount");
+        domainMeta.setBusinessService("");
+        ObjectMapper om = new ObjectMapper();
+        String jsonString = om.writeValueAsString(domainMeta);
+        assertEquals("{\"account\":\"testAccount\"}", jsonString);
+        domainMeta.setBusinessService("Now with value");
+        om = new ObjectMapper();
+        jsonString = om.writeValueAsString(domainMeta);
+        assertEquals("{\"account\":\"testAccount\",\"businessService\":\"Now with value\"}", jsonString);
+    }
+
 }
