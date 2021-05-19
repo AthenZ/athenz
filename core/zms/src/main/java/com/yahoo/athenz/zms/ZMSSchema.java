@@ -749,6 +749,27 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("Domain", "DELETE", "/domain/{name}/meta/clear/{attribute}")
+            .comment("Clear the specified domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself.")
+            .name("ClearDomainMeta")
+            .pathParam("name", "DomainName", "name of the domain to be updated")
+            .pathParam("attribute", "SimpleName", "name of the system attribute to be cleared")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .auth("update", "{name}:")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("DomainTemplate", "PUT", "/domain/{name}/template")
             .comment("Update the given domain by applying the roles and policies defined in the specified solution template(s). Caller must have UPDATE privileges on the domain itself.")
             .pathParam("name", "DomainName", "name of the domain to be updated")

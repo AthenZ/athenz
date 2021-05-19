@@ -2025,6 +2025,23 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Clear domain meta attribute
+     * @param domainName - name of the domain
+     * @param attribute  - name of the meta attribute
+     * @param auditRef   - string containing audit specification or ticket number
+     */
+    public void clearDomainMeta(String domainName, String attribute, String auditRef) {
+        updatePrincipal();
+        try {
+            client.clearDomainMeta(domainName, attribute, auditRef);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * For the specified user credentials return the corresponding User Token that
      * can be used for authenticating other ZMS operations. The client internally
      * automatically calls this method and uses the UserToken if the ZMSClient

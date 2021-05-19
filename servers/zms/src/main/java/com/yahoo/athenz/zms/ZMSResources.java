@@ -382,6 +382,44 @@ public class ZMSResources {
         }
     }
 
+    @DELETE
+    @Path("/domain/{name}/meta/clear/{attribute}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Clear the specified domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself.")
+    public void clearDomainMeta(
+        @Parameter(description = "name of the domain to be updated", required = true) @PathParam("name") String name,
+        @Parameter(description = "name of the system attribute to be cleared", required = true) @PathParam("attribute") String attribute,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "clearDomainMeta");
+            context.authorize("update", "" + name + ":", null);
+            this.delegate.clearDomainMeta(context, name, attribute, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource clearDomainMeta");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
     @PUT
     @Path("/domain/{name}/template")
     @Consumes(MediaType.APPLICATION_JSON)

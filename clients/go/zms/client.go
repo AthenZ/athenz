@@ -627,6 +627,36 @@ func (client ZMSClient) PutDomainSystemMeta(name DomainName, attribute SimpleNam
 	}
 }
 
+func (client ZMSClient) ClearDomainMeta(name DomainName, attribute SimpleName, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(name) + "/meta/clear/" + fmt.Sprint(attribute)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client ZMSClient) PutDomainTemplate(name DomainName, auditRef string, domainTemplate *DomainTemplate) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,

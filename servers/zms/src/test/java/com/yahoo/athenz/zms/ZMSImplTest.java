@@ -1916,6 +1916,95 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testClearDomainMeta() {
+        TopLevelDomain dom1 = createTopLevelDomainObject("MetaDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
+                true, true, "12345", 1001);
+        meta.setBusinessService("Test business service");
+        zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
+
+
+        Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
+        assertNotNull(resDom3);
+        assertEquals(resDom3.getBusinessService(), "Test business service");
+
+        // Clearing business service
+        zms.clearDomainMeta(mockDomRsrcCtx, "MetaDom1", "businessService", auditRef);
+        resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
+        assertNotNull(resDom3);
+        assertEquals(resDom3.getBusinessService(), null);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom1", auditRef);
+    }
+
+    @Test
+    public void testClearDomainMetaReadOnly() {
+        TopLevelDomain dom1 = createTopLevelDomainObject("MetaDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
+                true, true, "12345", 1001);
+        meta.setBusinessService("Test business service");
+        zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
+
+
+        Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
+        assertNotNull(resDom3);
+        assertEquals(resDom3.getBusinessService(), "Test business service");
+
+        setDatabaseReadOnlyMode(true);
+
+        // Clearing business service
+        try {
+            zms.clearDomainMeta(mockDomRsrcCtx, "MetaDom1", "businessService", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals("ResourceException (410): {code: 410, message: \"MySQL Database running in read-only mode\"}", ex.getMessage());
+        }
+        setDatabaseReadOnlyMode(false);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom1", auditRef);
+    }
+
+    @Test
+    public void testClearDomainMetaBadDomain() {
+        try {
+            zms.clearDomainMeta(mockDomRsrcCtx, "invalidDomain", "businessService", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals("ResourceException (404): {code: 404, message: \"No such domain: invaliddomain\"}", ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testClearDomainMetaBadAttribute() {
+        TopLevelDomain dom1 = createTopLevelDomainObject("MetaDom1",
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg",
+                true, true, "12345", 1001);
+        meta.setBusinessService("Test business service");
+        zms.putDomainMeta(mockDomRsrcCtx, "MetaDom1", auditRef, meta);
+
+        Domain resDom3 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
+        assertNotNull(resDom3);
+        assertEquals(resDom3.getBusinessService(), "Test business service");
+
+        // Clearing invalid attribute
+        try {
+            zms.clearDomainMeta(mockDomRsrcCtx, "MetaDom1", "badAttribute", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals("ResourceException (400): {code: 400, message: \"Invalid attribute: badAttribute\"}", ex.getMessage());
+        }
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom1", auditRef);
+    }
+
+    @Test
     public void testPutDomainMeta() {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("MetaDom1",

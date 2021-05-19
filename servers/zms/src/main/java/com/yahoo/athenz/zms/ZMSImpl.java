@@ -2233,6 +2233,67 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         updateExistingDomainMetaStoreDetails(domainName, meta, changedAttrs);
     }
 
+    @Override
+    public void clearDomainMeta(ResourceContext ctx, String domainName, String attribute, String auditRef) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(attribute, TYPE_SIMPLE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        // verify that request is properly authenticated for this request
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("clearDomainMeta: name={}, attribute={}",
+                    domainName, attribute);
+        }
+
+        // first obtain our domain object
+
+        Domain domain = dbService.getDomain(domainName, true);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("No such domain: " + domainName, caller);
+        }
+
+        // Create meta object. For now we only support clearing Business Service
+        DomainMeta domainMeta = new DomainMeta();
+        switch (attribute) {
+            case DomainMetaStore.META_ATTR_BUSINESS_SERVICE_NAME:
+                domainMeta.setBusinessService("");
+                break;
+            default:
+                throw ZMSUtils.requestError("Invalid attribute: " + attribute, caller);
+        }
+
+        // if any of our meta values has changed we need to validate
+        // them against the meta store
+
+        BitSet changedAttrs = validateDomainRegularMetaStoreValues(domain, domainMeta);
+
+        // process put domain meta request
+
+        dbService.executePutDomainMeta(ctx, domain, domainMeta, null, false, auditRef, caller);
+
+        // since our operation was successful we need to see if we
+        // need to update any of our values in the meta store
+
+        updateExistingDomainMetaStoreDetails(domainName, domainMeta, changedAttrs);
+    }
+
     void validateSolutionTemplates(List<String> templateNames, String caller) {
         for (String templateName : templateNames) {
             if (!serverSolutionTemplates.contains(templateName)) {

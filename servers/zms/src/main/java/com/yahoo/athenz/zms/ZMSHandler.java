@@ -22,6 +22,7 @@ public interface ZMSHandler {
     void deleteUserDomain(ResourceContext context, String name, String auditRef);
     void putDomainMeta(ResourceContext context, String name, String auditRef, DomainMeta detail);
     void putDomainSystemMeta(ResourceContext context, String name, String attribute, String auditRef, DomainMeta detail);
+    void clearDomainMeta(ResourceContext context, String name, String attribute, String auditRef);
     void putDomainTemplate(ResourceContext context, String name, String auditRef, DomainTemplate domainTemplate);
     void putDomainTemplateExt(ResourceContext context, String name, String template, String auditRef, DomainTemplate domainTemplate);
     DomainTemplateList getDomainTemplateList(ResourceContext context, String name);

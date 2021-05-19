@@ -18,6 +18,8 @@ package com.yahoo.athenz.zms;
 import java.security.*;
 import java.util.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
@@ -2084,6 +2086,47 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testClearDomainMeta() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        Mockito.when(
+                c.clearDomainMeta("good domain", "good attribute", null)).thenReturn(null);
+        client.clearDomainMeta("good domain", "good attribute", null);
+
+        try {
+            Mockito.when(
+                    c.clearDomainMeta(null, null, null))
+                    .thenThrow(new RuntimeException());
+            client.clearDomainMeta(null, null, null);
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getClass().toString(), "class com.yahoo.athenz.zms.ZMSClientException");
+        }
+
+        try {
+            Mockito.when(
+                    c.clearDomainMeta("bad domain", "bad attribute", null))
+                    .thenThrow(new InvalidParameterException("Bad parameter"));
+            client.clearDomainMeta("bad domain", "bad attribute", null);
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (400): Bad parameter");
+        }
+
+        try {
+            Mockito.when(
+                    c.clearDomainMeta("bad domain", "bad attribute2", null))
+                    .thenThrow(new ResourceException(400));
+            client.clearDomainMeta("bad domain", "bad attribute2", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
     public void testGetDomainListException() {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -3939,4 +3982,19 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 401);
         }
     }
+
+    @Test
+    public void testEmptyMetaValues() throws JsonProcessingException {
+        DomainMeta domainMeta = new DomainMeta();
+        domainMeta.setAccount("testAccount");
+        domainMeta.setBusinessService("");
+        ObjectMapper om = new ObjectMapper();
+        String jsonString = om.writeValueAsString(domainMeta);
+        assertEquals("{\"account\":\"testAccount\"}", jsonString);
+        domainMeta.setBusinessService("Now with value");
+        om = new ObjectMapper();
+        jsonString = om.writeValueAsString(domainMeta);
+        assertEquals("{\"account\":\"testAccount\",\"businessService\":\"Now with value\"}", jsonString);
+    }
+
 }
