@@ -17,6 +17,10 @@ import Fetchr from 'fetchr';
 import 'setimmediate';
 import NameUtils from './components/utils/NameUtils';
 import DateUtils from './components/utils/DateUtils';
+import {
+    SERVICE_TYPE_STATIC,
+    SERVICE_TYPE_STATIC_LABEL,
+} from './components/constants/constants';
 
 const Api = (req) => {
     let localDate = new DateUtils();
@@ -1392,7 +1396,7 @@ const Api = (req) => {
                             let result = {
                                 workLoadData: [],
                             };
-                            let workloadMeta = {
+                            let workLoadMeta = {
                                 totalDynamic: 0,
                                 totalStatic: 0,
                                 totalRecords: 0,
@@ -1400,40 +1404,43 @@ const Api = (req) => {
                             };
                             let totalHealthyDynamicCount = 0;
                             if (data && data.workloadList != null) {
-                                workloadMeta.totalRecords =
+                                workLoadMeta.totalRecords =
                                     data.workloadList.length;
-                                if (category === 'static') {
+                                if (category === SERVICE_TYPE_STATIC) {
                                     data.workloadList.forEach((workload) => {
-                                        if (workload.provider === 'Static') {
+                                        if (
+                                            workload.provider ===
+                                            SERVICE_TYPE_STATIC_LABEL
+                                        ) {
                                             result.workLoadData.push(workload);
                                         }
                                     });
-                                    workloadMeta.totalStatic =
+                                    workLoadMeta.totalStatic =
                                         result.workLoadData.length;
-                                    result.workloadMeta = workloadMeta;
+                                    result.workLoadMeta = workLoadMeta;
                                     resolve(result);
                                 } else {
-                                    workloadMeta.totalRecords =
-                                        data.workloadList.length;
                                     data.workloadList.forEach((workload) => {
-                                        if (workload.provider !== 'Static') {
+                                        if (
+                                            workload.provider !==
+                                            SERVICE_TYPE_STATIC_LABEL
+                                        ) {
                                             result.workLoadData.push(workload);
                                             if (
-                                                workload.provider !==
-                                                    'Static' &&
                                                 workload.hostname !== 'NA' &&
-                                                localDate.getDateMinusSevenDays(
-                                                    workload.updateTime
+                                                localDate.isRefreshedinLastSevenDays(
+                                                    workload.updateTime,
+                                                    'UTC'
                                                 )
                                             ) {
                                                 totalHealthyDynamicCount++;
                                             }
                                         }
                                     });
-                                    workloadMeta.totalHealthyDynamic = totalHealthyDynamicCount;
-                                    workloadMeta.totalDynamic =
+                                    workLoadMeta.totalHealthyDynamic = totalHealthyDynamicCount;
+                                    workLoadMeta.totalDynamic =
                                         result.workLoadData.length;
-                                    result.workloadMeta = workloadMeta;
+                                    result.workLoadMeta = workLoadMeta;
                                     resolve(result);
                                 }
                             }

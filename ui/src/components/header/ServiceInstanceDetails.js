@@ -19,6 +19,7 @@ import Menu from '../denali/Menu/Menu';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import {
+    SERVICE_TYPE_STATIC,
     TOTAL_DYNAMIC_INSTANCES_LABEL,
     TOTAL_DYNAMIC_INSTANCES_DESC,
     TOTAL_STATIC_INSTANCES_DESC,
@@ -83,14 +84,11 @@ export default function ServiceInstanceDetails(props) {
     return (
         <DomainSectionDiv>
             <DetailsDiv>
-                {categoryType !== 'Static' && (
+                {categoryType !== SERVICE_TYPE_STATIC && (
                     <span>
                         <SectionDiv>
                             <ValueDiv>
-                                {categoryType !== 'Static'
-                                    ? instanceDetailsMeta.workloadMeta
-                                          .totalDynamic
-                                    : 'NA'}
+                                {instanceDetailsMeta.totalDynamic}
                             </ValueDiv>
                             <LabelDiv>
                                 {TOTAL_DYNAMIC_INSTANCES_LABEL}
@@ -124,14 +122,11 @@ export default function ServiceInstanceDetails(props) {
                     </span>
                 )}
 
-                {categoryType !== 'Static' && (
+                {categoryType !== SERVICE_TYPE_STATIC && (
                     <span>
                         <SectionDiv>
                             <ValueDiv>
-                                {categoryType !== 'Static'
-                                    ? instanceDetailsMeta.workloadMeta
-                                          .totalHealthyDynamic
-                                    : 'NA'}
+                                {instanceDetailsMeta.totalHealthyDynamic}
                             </ValueDiv>
                             <LabelDiv>
                                 {TOTAL_HEALTHY_DYNAMIC_INSTANCES_LABEL}
@@ -168,14 +163,11 @@ export default function ServiceInstanceDetails(props) {
                     </span>
                 )}
 
-                {categoryType === 'Static' && (
+                {categoryType === SERVICE_TYPE_STATIC && (
                     <span>
                         <SectionDiv>
                             <ValueDiv>
-                                {categoryType === 'Static'
-                                    ? instanceDetailsMeta.workloadMeta
-                                          .totalStatic
-                                    : 'NA'}
+                                {instanceDetailsMeta.totalStatic}
                             </ValueDiv>
                             <LabelDiv>
                                 {TOTAL_STATIC_INSTANCES_LABEL}

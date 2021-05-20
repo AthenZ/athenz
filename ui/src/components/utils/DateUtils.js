@@ -36,10 +36,11 @@ class DateUtils {
         return this.getLocalDate(currDt, currentTimezone, 'UTC');
     }
 
-    getDateMinusSevenDays(currentDate, currentTimezone) {
-        debugger;
+    // Function to check if the instance is refreshed in the last 7 days
+    // Input is workload.updateTime(last refresh time).
+    isRefreshedinLastSevenDays(refreshDate, currentTimezone) {
         let currDt = new Date();
-        let inputDay = this.getLocalDate(currentDate, currentTimezone, 'UTC');
+        let inputDay = this.getLocalDate(refreshDate, currentTimezone, 'UTC');
         currDt.setDate(currDt.getDate() - 7);
         let minusSevenDays = this.getLocalDate(currDt, currentTimezone, 'UTC');
         return inputDay >= minusSevenDays;

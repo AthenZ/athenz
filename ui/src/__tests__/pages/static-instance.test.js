@@ -30,7 +30,7 @@ const testInstancedetails = {
             certExpiryTime: null,
         },
     ],
-    workloadMeta: {
+    workLoadMeta: {
         totalDynamic: 10,
         totalStatic: 9,
         totalRecords: 19,

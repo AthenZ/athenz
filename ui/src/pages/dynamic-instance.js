@@ -28,7 +28,7 @@ import ServiceTabs from '../components/header/ServiceTabs';
 import ServiceNameHeader from '../components/header/ServiceNameHeader';
 import InstanceList from '../components/service/InstanceList';
 import ServiceInstanceDetails from '../components/header/ServiceInstanceDetails';
-import { SERVICE_TYPE_DYNAMIC_LABEL } from '../components/constants/constants';
+import { SERVICE_TYPE_DYNAMIC } from '../components/constants/constants';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -58,14 +58,6 @@ const ServiceContentDiv = styled.div``;
 const PageHeaderDiv = styled.div`
     background: linear-gradient(to top, #f2f2f2, #fff);
     padding: 20px 30px 0;
-`;
-
-const StyledAnchorDiv = styled.div`
-    color: #9a9a9a;
-    text-decoration: none;
-    font-size: 12px;
-    cursor: pointer;
-    margin: 15px 15px;
 `;
 
 export default class DynamicInstancePage extends React.Component {
@@ -163,10 +155,9 @@ export default class DynamicInstancePage extends React.Component {
                                         <ServiceInstanceDetails
                                             instanceDetailsMeta={
                                                 this.props.instanceDetails
+                                                    .workLoadMeta
                                             }
-                                            categoryType={
-                                                SERVICE_TYPE_DYNAMIC_LABEL
-                                            }
+                                            categoryType={SERVICE_TYPE_DYNAMIC}
                                         />
                                         <ServiceTabs
                                             api={this.api}

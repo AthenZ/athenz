@@ -1891,9 +1891,7 @@ Fetchr.registerService({
             { domainName: params.domainName, serviceName: params.serviceName },
             (err, data) => {
                 if (data && data.workloadList != null) {
-                    if (params.category === 'static') {
-                        return callback(null, data);
-                    }
+                    return callback(null, data);
                 } else {
                     return callback(errorHandler.fetcherError(err));
                 }

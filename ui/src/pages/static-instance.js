@@ -28,7 +28,7 @@ import ServiceTabs from '../components/header/ServiceTabs';
 import ServiceNameHeader from '../components/header/ServiceNameHeader';
 import InstanceList from '../components/service/InstanceList';
 import ServiceInstanceDetails from '../components/header/ServiceInstanceDetails';
-import { SERVICE_TYPE_STATIC_LABEL } from '../components/constants/constants';
+import { SERVICE_TYPE_STATIC } from '../components/constants/constants';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -150,10 +150,9 @@ export default class StaticInstancePage extends React.Component {
                                         <ServiceInstanceDetails
                                             instanceDetailsMeta={
                                                 this.props.instanceDetails
+                                                    .workLoadMeta
                                             }
-                                            categoryType={
-                                                SERVICE_TYPE_STATIC_LABEL
-                                            }
+                                            categoryType={SERVICE_TYPE_STATIC}
                                         />
                                         <ServiceTabs
                                             api={this.api}
