@@ -157,7 +157,7 @@
     <dependency>
       <groupId>org.ehcache</groupId>
       <artifactId>ehcache</artifactId>
-      <version>3.9.2</version>
+      <version>3.9.4</version>
     </dependency>
 
     <!-- Test dependencies -->
