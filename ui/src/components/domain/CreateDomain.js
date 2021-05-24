@@ -123,9 +123,10 @@ class CreateDomain extends React.Component {
                                 })
                                 .catch((err) => {
                                     self.setState({
-                                        errorMessage: RequestUtils.xhrErrorCheckHelper(
-                                            err
-                                        ),
+                                        errorMessage:
+                                            RequestUtils.xhrErrorCheckHelper(
+                                                err
+                                            ),
                                     });
                                 });
                         } else {

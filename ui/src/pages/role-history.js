@@ -107,14 +107,8 @@ export default class RoleHistoryPage extends React.Component {
     }
 
     render() {
-        const {
-            domain,
-            reload,
-            roleDetails,
-            role,
-            historyrows,
-            _csrf,
-        } = this.props;
+        const { domain, reload, roleDetails, role, historyrows, _csrf } =
+            this.props;
         if (reload) {
             window.location.reload();
             return <div />;
