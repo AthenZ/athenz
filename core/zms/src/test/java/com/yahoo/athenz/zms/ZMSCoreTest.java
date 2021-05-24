@@ -16,6 +16,8 @@
 
 package com.yahoo.athenz.zms;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -3881,5 +3883,27 @@ public class ZMSCoreTest {
         assertNotEquals(stl, stl2);
         assertNotEquals(stl, null);
         assertFalse(stl.equals("str"));
+    }
+
+    @Test
+    public void testEmptyBusinessService() throws JsonProcessingException {
+        DomainMeta domainMeta = new DomainMeta();
+
+        // Set business service to "" (empty string). Will be part of Json.
+        domainMeta.setAccount("testAccount");
+        domainMeta.setBusinessService("");
+        ObjectMapper om = new ObjectMapper();
+        String jsonString = om.writeValueAsString(domainMeta);
+        assertEquals("{\"account\":\"testAccount\",\"businessService\":\"\"}", jsonString);
+
+        // Set business service with regular value. Will be part of Json.
+        domainMeta.setBusinessService("Now with value");
+        jsonString = om.writeValueAsString(domainMeta);
+        assertEquals("{\"account\":\"testAccount\",\"businessService\":\"Now with value\"}", jsonString);
+
+        // Set business service with null. Will NOT be part of Json.
+        domainMeta.setBusinessService(null);
+        jsonString = om.writeValueAsString(domainMeta);
+        assertEquals("{\"account\":\"testAccount\"}", jsonString);
     }
 }

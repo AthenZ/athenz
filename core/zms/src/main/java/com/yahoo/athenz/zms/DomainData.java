@@ -69,7 +69,7 @@ public class DomainData {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, StringList> tags;
     @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String businessService;
     public String name;
     public List<Role> roles;

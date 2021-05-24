@@ -24,7 +24,7 @@ type DomainMeta Struct {
     String userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
     String azureSubscription (optional); //associated azure subscription id (system attribute - uniqueness check)
     Map<CompoundName,StringList> tags (optional); //key-value pair tags, tag might contain multiple values
-    String businessService (optional); //associated business service with domain
+    String businessService (optional, x_allowempty="true"); //associated business service with domain
 }
 
 //A domain is an independent partition of users, roles, and resources.
