@@ -252,9 +252,8 @@ export default class AddSegmentation extends React.Component {
                         })
                         .catch((err) => {
                             this.setState({
-                                errorMessage: RequestUtils.xhrErrorCheckHelper(
-                                    err
-                                ),
+                                errorMessage:
+                                    RequestUtils.xhrErrorCheckHelper(err),
                             });
                         });
                 }
@@ -278,9 +277,8 @@ export default class AddSegmentation extends React.Component {
                         })
                         .catch((err) => {
                             this.setState({
-                                errorMessage: RequestUtils.xhrErrorCheckHelper(
-                                    err
-                                ),
+                                errorMessage:
+                                    RequestUtils.xhrErrorCheckHelper(err),
                             });
                         });
                 } else {
@@ -505,9 +503,8 @@ export default class AddSegmentation extends React.Component {
                         })
                         .catch((err) => {
                             this.setState({
-                                errorMessage: RequestUtils.xhrErrorCheckHelper(
-                                    err
-                                ),
+                                errorMessage:
+                                    RequestUtils.xhrErrorCheckHelper(err),
                             });
                         });
                 } else {

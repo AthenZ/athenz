@@ -160,14 +160,8 @@ class Checkbox extends React.PureComponent {
     }
 
     render() {
-        const {
-            checked,
-            className,
-            innerRef,
-            label,
-            noanim,
-            ...rest
-        } = this.props;
+        const { checked, className, innerRef, label, noanim, ...rest } =
+            this.props;
         const checkedState = this.getCheckedStateFromProps(checked);
         const cssProps = { noanim };
         const cssCheckbox = makeCssCheckbox(cssProps);

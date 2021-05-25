@@ -115,14 +115,8 @@ export default class HistoryPage extends React.Component {
     }
 
     render() {
-        const {
-            domain,
-            reload,
-            domainDetails,
-            historyrows,
-            roles,
-            _csrf,
-        } = this.props;
+        const { domain, reload, domainDetails, historyrows, roles, _csrf } =
+            this.props;
         if (reload) {
             window.location.reload();
             return <div />;
