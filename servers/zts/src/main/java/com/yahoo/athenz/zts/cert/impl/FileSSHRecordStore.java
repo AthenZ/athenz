@@ -20,7 +20,7 @@ import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
-import com.yahoo.athenz.zts.cert.X509CertUtils;
+import com.yahoo.athenz.common.utils.X509CertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

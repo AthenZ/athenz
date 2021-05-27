@@ -33,6 +33,7 @@ import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStore;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStoreConnection;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStoreFactory;
+import com.yahoo.athenz.common.utils.X509CertUtils;
 import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.utils.*;
 import com.yahoo.rdl.Timestamp;
