@@ -2944,6 +2944,10 @@ public class DBService implements RolesProvider {
             return true;
         }
 
+        if (domainTags == null) {
+            return true;
+        }
+
         Map<String, StringList> originalDomainTags = originalDomain.getTags();
 
         Set<String> tagsToRemove = originalDomainTags.entrySet().stream()
