@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.cert;
+package com.yahoo.athenz.common.utils;
 
 import static org.testng.Assert.*;
 
@@ -42,7 +42,14 @@ public class X509CertUtilsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(X509CertUtilsTest.class);
 
     @Test
+    public void testEmptyConstructor() {
+        X509CertUtils certUtils = new X509CertUtils();
+        assertNotNull(certUtils);
+    }
+
+    @Test
     public void testExtractRequestInstanceId() throws CertificateParsingException {
+
 
         assertNull(X509CertUtils.extractRequestInstanceId(null));
 
@@ -96,7 +103,7 @@ public class X509CertUtilsTest {
     }
 
     @Test
-    public void testLogNullLogger() {
+    public void testCertSshLogger() {
 
         // we should not get any exceptions when calling this log
         // record with all nulls since nothing will be processed
@@ -111,10 +118,24 @@ public class X509CertUtilsTest {
 
         X509CertUtils.logCert(LOGGER, null, "10.11.12.13", "athenz.api", "id1234", null);
         X509CertUtils.logSSH(LOGGER, null, "10.11.12.13", "athenz.api", "id1234");
+
+        // now let's pass with valid cert
+
+        File file = new File("src/test/resources/cert_log.pem");
+        String pem = null;
+        try {
+            pem = new String(Files.readAllBytes(file.toPath()));
+        } catch (IOException ex) {
+            fail();
+        }
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
+        Principal principal = SimplePrincipal.create("user", "joe", "creds");
+        X509CertUtils.logCert(LOGGER, principal, "10.11.12.13", "athenz.provider", "instance-id-1234", cert);
     }
 
     @Test
-    public void extractReqeustInstanceIdFromURI() {
+    public void testExtractReqeustInstanceIdFromURI() {
 
         // first no list
 
@@ -135,5 +156,24 @@ public class X509CertUtilsTest {
 
         uriList.add("athenz://instanceid/provider/id-001");
         assertEquals(X509CertUtils.extractRequestInstanceIdFromURI(uriList), "id-001");
+    }
+
+    @Test
+    public void testExtractItemFromURI() {
+
+        // first no list
+
+        List<String> uriList = new ArrayList<>();
+        assertNull(X509CertUtils.extractItemFromURI(uriList, "athenz://"));
+
+        // does not start with uri
+
+        uriList.add("spiffe://athenz/sa/api");
+        assertNull(X509CertUtils.extractItemFromURI(uriList, "athenz://"));
+
+        // finally correct match
+
+        uriList.add("athenz://instanceid/provider/id-001");
+        assertEquals(X509CertUtils.extractItemFromURI(uriList, "athenz://"), "instanceid/provider/id-001");
     }
 }

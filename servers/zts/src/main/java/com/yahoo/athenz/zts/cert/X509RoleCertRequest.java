@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts.cert;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.utils.X509CertUtils;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import org.eclipse.jetty.util.StringUtil;

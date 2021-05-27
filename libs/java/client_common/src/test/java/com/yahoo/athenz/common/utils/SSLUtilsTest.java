@@ -99,8 +99,14 @@ public class SSLUtilsTest {
     private static final String DEFAULT_TRUST_STORE_TYPE = "pkcs12";
     private static final String KEYSTORE_PASSWORD_APP_NAME = "testKeystorePassword";
     private static final String KEY_MANAGER_PASSWORD_APP_NAME = "testKeyManager";
-    private static final String TRSUTSTORE_PASSWORD_APP_NAME = "testTruststorePassword";
+    private static final String TRUSTSTORE_PASSWORD_APP_NAME = "testTruststorePassword";
     private static final String TRUSTSTORE_PATH = "src/test/resources/testKeyStore.pkcs12";
+
+    @Test
+    public void testEmptyConstructor() {
+        SSLUtils sslUtils = new SSLUtils();
+        assertNotNull(sslUtils);
+    }
 
     @Test
     public void testClientSSLContextBuilder() {
@@ -113,7 +119,7 @@ public class SSLUtilsTest {
                 .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
                 .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
                 .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
-                .trustStorePasswordAppName(TRSUTSTORE_PASSWORD_APP_NAME)
+                .trustStorePasswordAppName(TRUSTSTORE_PASSWORD_APP_NAME)
                 .privateKeyStore(new FilePrivateKeyStore())
                 .build();
         assertEquals(sslContext.getProtocol(), protocol);
@@ -122,22 +128,20 @@ public class SSLUtilsTest {
         Assert.assertNull(sslContext);
 
         //key manager password is null
-        assertThrows(RuntimeException.class, () -> {
-            SSLContext temp = new SSLUtils.ClientSSLContextBuilder(protocol)
-                    .keyStorePath(DEFAULT_SERVER_KEY_STORE)
-                    .keyManagerPassword(null)
-                    .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
-                    .keyStoreType(DEFAULT_KEY_STORE_TYPE)
-                    .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
-                    .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
-                    .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
-                    .trustStorePasswordAppName(TRSUTSTORE_PASSWORD_APP_NAME)
-                    .privateKeyStore(new FilePrivateKeyStore())
-                    .build();
-        });
+        assertThrows(RuntimeException.class, () -> new ClientSSLContextBuilder(protocol)
+                .keyStorePath(DEFAULT_SERVER_KEY_STORE)
+                .keyManagerPassword(null)
+                .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
+                .keyStoreType(DEFAULT_KEY_STORE_TYPE)
+                .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
+                .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
+                .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
+                .trustStorePasswordAppName(TRUSTSTORE_PASSWORD_APP_NAME)
+                .privateKeyStore(new FilePrivateKeyStore())
+                .build());
 
         //trust store password is null
-        SSLContext temp = new SSLUtils.ClientSSLContextBuilder(protocol)
+        new SSLUtils.ClientSSLContextBuilder(protocol)
                 .keyStorePath(DEFAULT_SERVER_KEY_STORE)
                 .keyManagerPassword(DEFAULT_CERT_PWD.toCharArray())
                 .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
@@ -145,13 +149,13 @@ public class SSLUtilsTest {
                 .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
                 .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
                 .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
-                .trustStorePasswordAppName(TRSUTSTORE_PASSWORD_APP_NAME)
+                .trustStorePasswordAppName(TRUSTSTORE_PASSWORD_APP_NAME)
                 .trustStorePassword(null)
                 .trustStorePath(TRUSTSTORE_PATH)
                 .privateKeyStore(new FilePrivateKeyStore())
                 .build();
 
-        temp = new SSLUtils.ClientSSLContextBuilder(protocol)
+        new SSLUtils.ClientSSLContextBuilder(protocol)
             .keyStorePath("")
             .keyManagerPassword(DEFAULT_CERT_PWD.toCharArray())
             .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
@@ -159,7 +163,7 @@ public class SSLUtilsTest {
             .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
             .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
             .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
-            .trustStorePasswordAppName(TRSUTSTORE_PASSWORD_APP_NAME)
+            .trustStorePasswordAppName(TRUSTSTORE_PASSWORD_APP_NAME)
             .trustStorePassword(null)
             .trustStorePath(TRUSTSTORE_PATH)
             .privateKeyStore(new FilePrivateKeyStore())
@@ -171,19 +175,11 @@ public class SSLUtilsTest {
 
         SSLUtils.ClientAliasedX509ExtendedKeyManager keyManager = new SSLUtils.ClientAliasedX509ExtendedKeyManager(null, "testKeyAlias");
         assertNull(keyManager.getDelegate());
-        assertThrows(RuntimeException.class, () -> {
-            keyManager.chooseEngineServerAlias(null, null, null);
-        });
-        assertThrows(RuntimeException.class, () -> {
-            keyManager.getServerAliases(null, null);
-        });
-        assertThrows(RuntimeException.class, () -> {
-            keyManager.chooseServerAlias(null, null, null);
-        });
+        assertThrows(RuntimeException.class, () -> keyManager.chooseEngineServerAlias(null, null, null));
+        assertThrows(RuntimeException.class, () -> keyManager.getServerAliases(null, null));
+        assertThrows(RuntimeException.class, () -> keyManager.chooseServerAlias(null, null, null));
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            SSLUtils.loadServicePrivateKey("testFactoryClassFail");
-        });
+        assertThrows(IllegalArgumentException.class, () -> SSLUtils.loadServicePrivateKey("testFactoryClassFail"));
         String[] temp = new String[1];
         temp[0] = "tempTest";
         String[] clientAliases  = new String[2];

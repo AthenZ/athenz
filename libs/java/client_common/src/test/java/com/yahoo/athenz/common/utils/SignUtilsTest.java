@@ -30,9 +30,15 @@ public class SignUtilsTest {
 
     @BeforeMethod
     public void setUp(){
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
-    
+
+    @Test
+    public void testEmptyConstructor() {
+        SignUtils signUtils = new SignUtils();
+        assertNotNull(signUtils);
+    }
+
     @Test
     public void testAsCanonicalStringPolicyData() {
         Mockito.when(mockPolicy.getPolicies()).thenReturn(null);
