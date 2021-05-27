@@ -237,7 +237,7 @@ export default class DomainDetails extends React.Component {
             this,
             this.props.domainDetails.name,
             this.props.domainDetails.businessService,
-            this.state.auditEnabled
+            this.props.domainDetails.auditEnabled
         );
         let businessServiceTitle = this.state.businessServiceName
             ? this.state.businessServiceName

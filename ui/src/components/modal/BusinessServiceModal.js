@@ -42,7 +42,7 @@ const ModifiedButton = styled(Button)`
 
 const StyledInput = styled(Input)`
     width: 500px;
-    padding: 10px 0px;
+    padding: 0px 0px 20px 0px;
 `;
 
 const ContentDiv = styled.div`
@@ -52,11 +52,11 @@ const ContentDiv = styled.div`
 
 const StyledInputDropDown = styled(InputDropdown)`
     width: 500px;
-    padding: 10px 0px;
+    padding: 0px 0px 20px 0px;
 `;
 
 const StyledCheckbox = styled.div`
-    padding: 20px 0px;
+    padding: 0px 0px 20px 0px;
 `;
 
 export default class BusinessServiceModal extends React.Component {
@@ -136,17 +136,6 @@ export default class BusinessServiceModal extends React.Component {
                         }}
                     />
                 </StyledCheckbox>
-                {this.props.showJustification && (
-                    <MessageDiv>
-                        <StyledInput
-                            id='justification'
-                            name='justification'
-                            onChange={this.onJustification}
-                            autoComplete={'off'}
-                            placeholder='Justification for this action'
-                        />
-                    </MessageDiv>
-                )}
                 <ContentDiv>
                     <StyledInputDropDown
                         fluid
@@ -159,6 +148,17 @@ export default class BusinessServiceModal extends React.Component {
                         defaultSelectedValue={this.state.selectedBservice}
                     />
                 </ContentDiv>
+                {this.props.showJustification && (
+                    <MessageDiv>
+                        <StyledInput
+                            id='justification'
+                            name='justification'
+                            onChange={this.onJustification}
+                            autoComplete={'off'}
+                            placeholder='Justification for this action'
+                        />
+                    </MessageDiv>
+                )}
                 {this.props.errorMessage && (
                     <Color name={'red600'}>{this.props.errorMessage}</Color>
                 )}
