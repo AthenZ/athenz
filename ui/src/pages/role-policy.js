@@ -112,8 +112,14 @@ export default class RolePolicyPage extends React.Component {
     }
 
     render() {
-        const { domain, role, reload, roleDetails, policies, _csrf } =
-            this.props;
+        const {
+            domain,
+            role,
+            reload,
+            roleDetails,
+            policies,
+            _csrf,
+        } = this.props;
 
         let filteredPolicies = policies;
 

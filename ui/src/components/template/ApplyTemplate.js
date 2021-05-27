@@ -59,8 +59,9 @@ export default class ApplyTemplate extends React.Component {
         this.api = props.api;
         this.initialKeywordsLoad = this.initialKeywordsLoad.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
-        this.reloadTemplatePageOnSubmit =
-            this.reloadTemplatePageOnSubmit.bind(this);
+        this.reloadTemplatePageOnSubmit = this.reloadTemplatePageOnSubmit.bind(
+            this
+        );
         this.state = {
             keywordsList: [],
         };

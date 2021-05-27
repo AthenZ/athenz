@@ -379,10 +379,12 @@ export default class ManageDomains extends React.Component {
             );
         }
         if (this.state.showBusinessService) {
-            let clickBusinessServiceCancel =
-                this.onClickBusinessServiceCancel.bind(this);
-            let clickBusinessServiceSubmit =
-                this.onSubmitBusinessService.bind(this);
+            let clickBusinessServiceCancel = this.onClickBusinessServiceCancel.bind(
+                this
+            );
+            let clickBusinessServiceSubmit = this.onSubmitBusinessService.bind(
+                this
+            );
             rows.push(
                 <BusinessServiceModal
                     isOpen={this.state.showBusinessService}

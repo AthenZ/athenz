@@ -203,14 +203,10 @@ export default class SettingTable extends React.Component {
         if (this.props.category === 'role') {
             collectionMeta = this.state.copyCollectionDetails;
         } else if (this.props.category === 'group') {
-            collectionMeta.reviewEnabled =
-                this.state.copyCollectionDetails.reviewEnabled;
-            collectionMeta.selfServe =
-                this.state.copyCollectionDetails.selfServe;
-            collectionMeta.memberExpiryDays =
-                this.state.copyCollectionDetails.memberExpiryDays;
-            collectionMeta.serviceExpiryDays =
-                this.state.copyCollectionDetails.serviceExpiryDays;
+            collectionMeta.reviewEnabled = this.state.copyCollectionDetails.reviewEnabled;
+            collectionMeta.selfServe = this.state.copyCollectionDetails.selfServe;
+            collectionMeta.memberExpiryDays = this.state.copyCollectionDetails.memberExpiryDays;
+            collectionMeta.serviceExpiryDays = this.state.copyCollectionDetails.serviceExpiryDays;
         }
 
         this.api

@@ -72,8 +72,9 @@ export default class AddService extends React.Component {
                         })
                         .catch((err) => {
                             this.setState({
-                                errorMessage:
-                                    RequestUtils.xhrErrorCheckHelper(err),
+                                errorMessage: RequestUtils.xhrErrorCheckHelper(
+                                    err
+                                ),
                             });
                         });
                 } else {

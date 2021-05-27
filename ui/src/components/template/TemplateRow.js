@@ -36,8 +36,9 @@ export default class TemplateRow extends React.Component {
     constructor(props) {
         super(props);
         this.toggleDescription = this.toggleDescription.bind(this);
-        this.toggleApplyTemplateNoKeyword =
-            this.toggleApplyTemplateNoKeyword.bind(this);
+        this.toggleApplyTemplateNoKeyword = this.toggleApplyTemplateNoKeyword.bind(
+            this
+        );
         this.toggleApplyTemplate = this.toggleApplyTemplate.bind(this);
         this.onCancelUpdateTemplate = this.onCancelUpdateTemplate.bind(this);
         this.reloadTemplates = this.reloadTemplates.bind(this);

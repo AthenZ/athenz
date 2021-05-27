@@ -123,11 +123,11 @@ export default class BusinessServiceModal extends React.Component {
                             let newChecked = !this.state.checked;
                             let newValidBusinessServices = [];
                             if (newChecked) {
-                                newValidBusinessServices =
-                                    this.props.validBusinessServices;
+                                newValidBusinessServices = this.props
+                                    .validBusinessServices;
                             } else {
-                                newValidBusinessServices =
-                                    this.props.validBusinessServicesAll;
+                                newValidBusinessServices = this.props
+                                    .validBusinessServicesAll;
                             }
                             this.setState({
                                 checked: newChecked,

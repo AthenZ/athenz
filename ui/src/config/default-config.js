@@ -82,7 +82,8 @@ const config = {
         servicePageConfig: {
             keyCreationLink: {
                 title: 'Key Creation',
-                url: 'https://yahoo.github.io/athenz/site/reg_service_guide/#key-generation',
+                url:
+                    'https://yahoo.github.io/athenz/site/reg_service_guide/#key-generation',
                 target: '_blank',
             },
             keyCreationMessage:
