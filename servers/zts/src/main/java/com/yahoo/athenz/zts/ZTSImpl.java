@@ -48,6 +48,7 @@ import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.utils.SignUtils;
+import com.yahoo.athenz.common.utils.X509CertUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.impl.InstanceUtils;

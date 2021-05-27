@@ -69,7 +69,7 @@ public class DomainMeta {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, StringList> tags;
     @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String businessService;
 
     public DomainMeta setDescription(String description) {

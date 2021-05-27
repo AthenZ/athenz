@@ -47,7 +47,7 @@ const fadeIn = keyframes`
   to { opacity: 1 }
 `;
 
-const cssMenuDropdown = css`
+const cssMenuDropdown = (props) => css`
     ${cssDropShadow};
     ${cssFontStyles.default};
     background-color: ${colors.white};
@@ -59,6 +59,7 @@ const cssMenuDropdown = css`
     margin: 2px 0;
     opacity: 1;
     overflow: auto;
+    width: ${props.valuesWidth ? props.valuesWidth : undefined};
     overscroll-behavior: contain; /* Not supported on Safari :( */
     z-index: 100000; /* Make sure this is higher than <Modal> */
     label: input-dropdown-options;
@@ -196,66 +197,70 @@ class InputDropdown extends React.Component {
     /**
      * Add icons within the <Input> field
      */
-    renderIcons = ({
-        clearSelection,
-        isOpen,
-        showArrow,
-        showClose,
-        toggleMenu,
-        disabled,
-    }) => ({ sizePx }) => {
-        return (
-            <React.Fragment>
-                {showClose && (
-                    <Icon
-                        icon={'close-circle'}
-                        className='clear-selection'
-                        color={colors.grey500}
-                        colorHover={!disabled ? colors.grey600 : colors.grey500}
-                        isLink={!disabled}
-                        size='16px'
-                        onClick={() => {
-                            if (!disabled) {
-                                this.setState({ results: null });
-                                clearSelection();
-                            }
-                        }}
-                    />
-                )}
-                {showArrow &&
-                    (isOpen ? (
+    renderIcons =
+        ({
+            clearSelection,
+            isOpen,
+            showArrow,
+            showClose,
+            toggleMenu,
+            disabled,
+        }) =>
+        ({ sizePx }) => {
+            return (
+                <React.Fragment>
+                    {showClose && (
                         <Icon
-                            icon='arrowhead-up'
+                            icon={'close-circle'}
+                            className='clear-selection'
                             color={colors.grey500}
                             colorHover={
                                 !disabled ? colors.grey600 : colors.grey500
                             }
                             isLink={!disabled}
-                            size={sizePx}
-                            onClick={!disabled ? toggleMenu : undefined}
+                            size='16px'
+                            onClick={() => {
+                                if (!disabled) {
+                                    this.setState({ results: null });
+                                    clearSelection();
+                                }
+                            }}
                         />
-                    ) : (
-                        <Icon
-                            icon='arrowhead-down'
-                            color={colors.grey500}
-                            colorHover={
-                                !disabled ? colors.grey600 : colors.grey500
-                            }
-                            isLink={!disabled}
-                            size={sizePx}
-                            onClick={!disabled ? toggleMenu : undefined}
-                        />
-                    ))}
-            </React.Fragment>
-        );
-    };
+                    )}
+                    {showArrow &&
+                        (isOpen ? (
+                            <Icon
+                                icon='arrowhead-up'
+                                color={colors.grey500}
+                                colorHover={
+                                    !disabled ? colors.grey600 : colors.grey500
+                                }
+                                isLink={!disabled}
+                                size={sizePx}
+                                onClick={!disabled ? toggleMenu : undefined}
+                            />
+                        ) : (
+                            <Icon
+                                icon='arrowhead-down'
+                                color={colors.grey500}
+                                colorHover={
+                                    !disabled ? colors.grey600 : colors.grey500
+                                }
+                                isLink={!disabled}
+                                size={sizePx}
+                                onClick={!disabled ? toggleMenu : undefined}
+                            />
+                        ))}
+                </React.Fragment>
+            );
+        };
 
     /**
      * Render the dropdown menu with options
      */
     renderMenu = (options) => {
         const classes = cx(
-            cssMenuDropdown,
+            cssMenuDropdown(this.props),
             { animated: !options.noanim },
             'denali-input-dropdown-options'
         );

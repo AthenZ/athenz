@@ -125,16 +125,8 @@ class RadioButton extends React.PureComponent {
     };
 
     render() {
-        const {
-            className,
-            id,
-            innerRef,
-            label,
-            name,
-            noanim,
-            value,
-            ...rest
-        } = this.props;
+        const { className, id, innerRef, label, name, noanim, value, ...rest } =
+            this.props;
         const cssProps = { noanim };
         const cssRadioButton = makeCssRadioButton(cssProps);
         const classes = cx(cssRadioButton, 'denali-radiobutton', className);

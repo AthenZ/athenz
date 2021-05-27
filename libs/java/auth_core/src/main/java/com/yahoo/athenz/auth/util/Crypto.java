@@ -116,7 +116,8 @@ public class Crypto {
     public static final String SHA1 = "SHA1";
     public static final String SHA256 = "SHA256";
 
-    static final String ATHENZ_CRYPTO_BC_PROVIDER = "athenz.crypto.bc_provider";
+    static final String ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER = "athenz.crypto.key_factory_provider";
+    static final String ATHENZ_CRYPTO_SIGNATURE_PROVIDER = "athenz.crypto.signature_provider";
     private static final String BC_PROVIDER = "BC";
 
     public static final String CERT_RESTRICTED_SUFFIX = ":restricted";
@@ -138,8 +139,12 @@ public class Crypto {
         RANDOM.nextBytes(new byte[] { 8 });
     }
 
-    private static String getProvider() {
-        return System.getProperty(ATHENZ_CRYPTO_BC_PROVIDER, "BC");
+    private static String getKeyFactoryProvider() {
+        return System.getProperty(ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER, BC_PROVIDER);
+    }
+
+    private static String getSignatureProvider() {
+        return System.getProperty(ATHENZ_CRYPTO_SIGNATURE_PROVIDER, BC_PROVIDER);
     }
 
     private static String getECDSAAlgo() {
@@ -228,7 +233,7 @@ public class Crypto {
     public static String sign(String message, PrivateKey key, String digestAlgorithm) throws CryptoException {
         try {
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
-            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
+            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, getSignatureProvider());
             signer.initSign(key);
             signer.update(utf8Bytes(message));
             byte[] sig = signer.sign();
@@ -261,7 +266,7 @@ public class Crypto {
     public static byte[] sign(byte[] message, PrivateKey key, String digestAlgorithm) throws CryptoException {
         try {
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
-            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
+            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, getSignatureProvider());
             signer.initSign(key);
             signer.update(message);
             return signer.sign();
@@ -305,7 +310,7 @@ public class Crypto {
         try {
             byte [] sig = ybase64Decode(signature);
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
-            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
+            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, getSignatureProvider());
             signer.initVerify(key);
             signer.update(utf8Bytes(message));
             return signer.verify(sig);
@@ -351,7 +356,7 @@ public class Crypto {
                                  String digestAlgorithm) throws CryptoException {
         try {
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
-            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, BC_PROVIDER);
+            java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, getSignatureProvider());
             signer.initVerify(key);
             signer.update(message);
             return signer.verify(signature);
@@ -548,7 +553,7 @@ public class Crypto {
             if (ecParam != null && ECDSA.equals(pubKey.getAlgorithm())) {
                 ECParameterSpec ecSpec = new ECParameterSpec(ecParam.getCurve(), ecParam.getG(),
                         ecParam.getN(), ecParam.getH(), ecParam.getSeed());
-                KeyFactory keyFactory = KeyFactory.getInstance(getECDSAAlgo(), getProvider());
+                KeyFactory keyFactory = KeyFactory.getInstance(getECDSAAlgo(), getKeyFactoryProvider());
                 ECPublicKeySpec keySpec = new ECPublicKeySpec(((BCECPublicKey) pubKey).getQ(), ecSpec);
                 pubKey = keyFactory.generatePublic(keySpec);
             }
@@ -593,7 +598,7 @@ public class Crypto {
         switch (privateKey.getAlgorithm()) {
             case RSA:
                 try {
-                    KeyFactory kf = KeyFactory.getInstance(getRSAAlgo(), getProvider());
+                    KeyFactory kf = KeyFactory.getInstance(getRSAAlgo(), getKeyFactoryProvider());
                     RSAPrivateCrtKey rsaCrtKey = (RSAPrivateCrtKey) privateKey;
                     RSAPublicKeySpec keySpec = new RSAPublicKeySpec(rsaCrtKey.getModulus(),
                             rsaCrtKey.getPublicExponent());
@@ -614,7 +619,7 @@ public class Crypto {
 
             case ECDSA:
                 try {
-                    KeyFactory kf = KeyFactory.getInstance(getECDSAAlgo(), getProvider());
+                    KeyFactory kf = KeyFactory.getInstance(getECDSAAlgo(), getKeyFactoryProvider());
                     BCECPrivateKey ecPrivKey = (BCECPrivateKey) privateKey;
                     ECMultiplier ecMultiplier = new FixedPointCombMultiplier();
                     ECParameterSpec ecParamSpec = ecPrivKey.getParameters();
@@ -735,7 +740,7 @@ public class Crypto {
             if (ecParam != null && privKey != null && ECDSA.equals(privKey.getAlgorithm())) {
                 ECParameterSpec ecSpec = new ECParameterSpec(ecParam.getCurve(), ecParam.getG(),
                         ecParam.getN(), ecParam.getH(), ecParam.getSeed());
-                KeyFactory keyFactory = KeyFactory.getInstance(getECDSAAlgo(), getProvider());
+                KeyFactory keyFactory = KeyFactory.getInstance(getECDSAAlgo(), getKeyFactoryProvider());
                 ECPrivateKeySpec keySpec = new ECPrivateKeySpec(((BCECPrivateKey) privKey).getS(), ecSpec);
                 privKey = keyFactory.generatePrivate(keySpec);
             }

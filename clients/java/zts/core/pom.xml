@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.10.15-SNAPSHOT</version>
+    <version>1.10.18-SNAPSHOT</version>
     <relativePath>../../../../pom.xml</relativePath>
   </parent>
 
@@ -157,7 +157,7 @@
     <dependency>
       <groupId>org.ehcache</groupId>
       <artifactId>ehcache</artifactId>
-      <version>3.9.2</version>
+      <version>3.9.4</version>
     </dependency>
 
     <!-- Test dependencies -->
@@ -249,8 +249,6 @@
                   <goal>compile</goal>
                 </goals>
                 <configuration>
-                  <source>11</source>
-                  <target>11</target>
                   <release>11</release>
                   <compileSourceRoots>
                     <compileSourceRoot>${project.basedir}/src/main/java11</compileSourceRoot>

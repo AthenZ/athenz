@@ -69,6 +69,15 @@ export default class HistoryPage extends React.Component {
         let reload = false;
         let notFound = false;
         let error = undefined;
+        var bServicesParams = {
+            category: 'domain',
+            attributeName: 'businessService',
+            userName: props.req.session.shortId,
+        };
+        var bServicesParamsAll = {
+            category: 'domain',
+            attributeName: 'businessService',
+        };
         const historyData = await Promise.all([
             api.listUserDomains(),
             api.getHeaderDetails(),
@@ -79,12 +88,32 @@ export default class HistoryPage extends React.Component {
             api.getPendingDomainMembersList(),
             api.isAWSTemplateApplied(props.query.domain),
             api.getFeatureFlag(),
+            api.getMeta(bServicesParams),
+            api.getMeta(bServicesParamsAll),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
         });
+        let businessServiceOptions = [];
+        if (historyData[9] && historyData[9].validValues) {
+            historyData[9].validValues.forEach((businessService) => {
+                businessServiceOptions.push({
+                    value: businessService,
+                    name: businessService,
+                });
+            });
+        }
+        let businessServiceOptionsAll = [];
+        if (historyData[10] && historyData[10].validValues) {
+            historyData[10].validValues.forEach((businessService) => {
+                businessServiceOptionsAll.push({
+                    value: businessService,
+                    name: businessService,
+                });
+            });
+        }
         let domainDetails = historyData[2];
         domainDetails.isAWSTemplateApplied = !!historyData[7];
         return {
@@ -102,6 +131,8 @@ export default class HistoryPage extends React.Component {
             pending: historyData[6],
             nonce: props.req.headers.rid,
             featureFlag: historyData[8],
+            validBusinessServices: businessServiceOptions,
+            validBusinessServicesAll: businessServiceOptionsAll,
         };
     }
 
@@ -115,14 +146,8 @@ export default class HistoryPage extends React.Component {
     }
 
     render() {
-        const {
-            domain,
-            reload,
-            domainDetails,
-            historyrows,
-            roles,
-            _csrf,
-        } = this.props;
+        const { domain, reload, domainDetails, historyrows, roles, _csrf } =
+            this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -155,6 +180,13 @@ export default class HistoryPage extends React.Component {
                                             productMasterLink={
                                                 this.props.headerDetails
                                                     .productMasterLink
+                                            }
+                                            validBusinessServices={
+                                                this.props.validBusinessServices
+                                            }
+                                            validBusinessServicesAll={
+                                                this.props
+                                                    .validBusinessServicesAll
                                             }
                                         />
                                         <Tabs

@@ -142,6 +142,24 @@ exports[`DomainDetails should render 1`] = `
   background: #d5d5d5;
 }
 
+.emotion-37 {
+  font-weight: 600;
+  title: add;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 400px;
+}
+
+.emotion-39 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: '';
+}
+
 <div
   class="emotion-0 emotion-1"
   data-testid="domain-details"
@@ -231,6 +249,25 @@ exports[`DomainDetails should render 1`] = `
         class="emotion-8 emotion-9"
       >
         AWS ACCOUNT ID
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-37 emotion-38"
+        title="add"
+      >
+        <a
+          class="emotion-39 emotion-40"
+        >
+          add
+        </a>
+      </div>
+      <div
+        class="emotion-8 emotion-9"
+      >
+        BUSINESS SERVICE
       </div>
     </div>
   </div>
@@ -387,6 +424,24 @@ exports[`DomainDetails should render with mock data 1`] = `
 }
 
 .emotion-39 {
+  font-weight: 600;
+  title: add;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 400px;
+}
+
+.emotion-41 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: '';
+}
+
+.emotion-47 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -412,21 +467,21 @@ exports[`DomainDetails should render with mock data 1`] = `
   color: #3697f2;
 }
 
-.emotion-39:first-of-type {
+.emotion-47:first-of-type {
   margin-left: 0;
 }
 
-.emotion-39:disabled {
+.emotion-47:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-39:disabled {
+.emotion-47:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-39:hover:not(:disabled) {
+.emotion-47:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
@@ -530,8 +585,27 @@ exports[`DomainDetails should render with mock data 1`] = `
     <div
       class="emotion-4 emotion-5"
     >
+      <div
+        class="emotion-39 emotion-40"
+        title="add"
+      >
+        <a
+          class="emotion-41 emotion-42"
+        >
+          add
+        </a>
+      </div>
+      <div
+        class="emotion-8 emotion-9"
+      >
+        BUSINESS SERVICE
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
       <button
-        class="emotion-39 denali-button"
+        class="emotion-47 denali-button"
       >
         Onboard to AWS
       </button>

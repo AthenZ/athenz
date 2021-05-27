@@ -15,14 +15,11 @@
  */
 package com.yahoo.athenz.zms;
 
-import java.lang.reflect.Field;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.util.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
@@ -2048,6 +2045,78 @@ public class ZMSClientTest {
             client.getSignedDomains("dom1", "meta1", null, true, "tag1", respHdrs);
             fail();
         } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testGetDomainMetaStoreValidValuesList() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        try {
+            Mockito.when(
+                    c.getDomainMetaStoreValidValuesList(null, null))
+                    .thenThrow(new RuntimeException());
+            client.getDomainMetaStoreValidValuesList(null, null);
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getClass().toString(), "class com.yahoo.athenz.zms.ZMSClientException");
+        }
+
+        try {
+            Mockito.when(
+                    c.getDomainMetaStoreValidValuesList("bad attribute", null))
+                    .thenThrow(new InvalidParameterException("Bad parameter"));
+            client.getDomainMetaStoreValidValuesList("bad attribute", null);
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (400): Bad parameter");
+        }
+
+        try {
+            Mockito.when(
+                    c.getDomainMetaStoreValidValuesList("bad attribute2", null))
+                    .thenThrow(new ResourceException(400));
+            client.getDomainMetaStoreValidValuesList("bad attribute2", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testGetDomainListException() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        try {
+            Mockito.when(
+                    c.getDomainList(0, null, null, null, null, null, null, null, null, null, null, null, null))
+                    .thenThrow(new RuntimeException());
+            client.getDomainList(0, null, null, null, null, null, null, null, null, null, null);
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getClass().toString(), "class com.yahoo.athenz.zms.ZMSClientException");
+        }
+
+        try {
+            Mockito.when(
+                    c.getDomainList(1, null, null, null, null, null, null, null, null, null, null, null, null))
+                    .thenThrow(new InvalidParameterException("Bad parameter"));
+            client.getDomainList(1, null, null, null, null, null, null, null, null, null, null);
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (400): Bad parameter");
+        }
+
+        try {
+            Mockito.when(
+                    c.getDomainList(2, null, null, null, null, null, null, null, null, null, null, null, null))
+                    .thenThrow(new ResourceException(400));
+            client.getDomainList(2, null, null, null, null, null, null, null, null, null, null);
+            fail();
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
     }

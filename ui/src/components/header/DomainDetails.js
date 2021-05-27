@@ -22,6 +22,8 @@ import Alert from '../denali/Alert';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import AddModal from '../modal/AddModal';
 import RequestUtils from '../utils/RequestUtils';
+import BusinessServiceModal from '../modal/BusinessServiceModal';
+import { colors } from '../denali/styles';
 
 const DomainSectionDiv = styled.div`
     margin: 20px 0;
@@ -52,6 +54,23 @@ const StyledAnchorDiv = styled.div`
     cursor: pointer;
 `;
 
+const DivStyledBusinessService = styled.div`
+    font-weight: 600;
+    title: ${(props) => props.title};
+    word-break: break-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 400px;
+`;
+
+const StyledAnchor = styled.a`
+    color: ${colors.linkActive};
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: '';
+`;
+
 export default class DomainDetails extends React.Component {
     constructor(props) {
         super(props);
@@ -59,10 +78,105 @@ export default class DomainDetails extends React.Component {
         this.state = {
             showOnBoardToAWSModal: false,
             showSuccess: false,
+            showBusinessService: false,
+            businessServiceName: this.props.domainDetails.businessService,
+            category: 'domain',
         };
         this.closeModal = this.closeModal.bind(this);
         this.onClickOnboardToAWS = this.onClickOnboardToAWS.bind(this);
         this.toggleOnboardToAWSModal = this.toggleOnboardToAWSModal.bind(this);
+        this.saveBusinessService = this.saveBusinessService.bind(this);
+        this.saveJustification = this.saveJustification.bind(this);
+    }
+
+    onClickBusinessService(domainName, businessServiceName, auditEnabled) {
+        this.setState({
+            showBusinessService: true,
+            businessServiceName: businessServiceName,
+            businessServiceDomainName: domainName,
+            auditEnabled: auditEnabled,
+            showDelete: false,
+        });
+    }
+
+    onClickBusinessServiceCancel() {
+        this.setState({
+            showBusinessService: false,
+            errorMessage: null,
+            businessServiceName: '',
+            businessServiceDomainName: '',
+            auditRef: '',
+            showDelete: false,
+        });
+    }
+
+    saveJustification(val) {
+        this.setState({
+            auditRef: val,
+        });
+    }
+    saveBusinessService(val) {
+        this.setState({
+            businessServiceName: val,
+        });
+    }
+
+    updateMeta(meta, domainName, csrf, successMessage) {
+        this.api
+            .putMeta(
+                domainName,
+                domainName,
+                meta,
+                'Updated ' + domainName + ' Meta using Athenz UI',
+                csrf,
+                this.state.category
+            )
+            .then(() => {
+                this.setState({
+                    showDelete: false,
+                    deleteName: null,
+                    auditEnabled: false,
+                    auditRef: '',
+                    errorMessage: null,
+                    showBusinessService: false,
+                    businessServiceName: meta.businessService,
+                    successMessage: successMessage,
+                    showSuccess: true,
+                });
+                // this is to close the success alert
+                setTimeout(
+                    () =>
+                        this.setState({
+                            showSuccess: false,
+                        }),
+                    MODAL_TIME_OUT + 1000
+                );
+            })
+            .catch((err) => {
+                this.setState({
+                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    showDelete: false,
+                    deleteName: null,
+                    auditEnabled: false,
+                    auditRef: '',
+                    showBusinessService: false,
+                    businessServiceName: '',
+                });
+            });
+    }
+
+    onSubmitBusinessService() {
+        let domainName = this.state.businessServiceDomainName;
+        let businessServiceName = this.state.businessServiceName;
+        let domainMeta = {};
+        domainMeta.businessService = businessServiceName;
+        let successMessage = `Successfully set business service for domain ${domainName}`;
+        this.updateMeta(
+            domainMeta,
+            domainName,
+            this.props._csrf,
+            successMessage
+        );
     }
 
     onClickOnboardToAWS() {
@@ -119,6 +233,19 @@ export default class DomainDetails extends React.Component {
         ) {
             showOnBoardToAWS = true;
         }
+        let businessServiceItem = this.onClickBusinessService.bind(
+            this,
+            this.props.domainDetails.name,
+            this.props.domainDetails.businessService,
+            this.props.domainDetails.auditEnabled
+        );
+        let businessServiceTitle = this.state.businessServiceName
+            ? this.state.businessServiceName
+            : 'add';
+        let clickBusinessServiceCancel =
+            this.onClickBusinessServiceCancel.bind(this);
+        let clickBusinessServiceSubmit =
+            this.onSubmitBusinessService.bind(this);
         return (
             <DomainSectionDiv data-testid='domain-details'>
                 <DetailsDiv>
@@ -174,6 +301,14 @@ export default class DomainDetails extends React.Component {
                         </ValueDiv>
                         <LabelDiv>AWS ACCOUNT ID</LabelDiv>
                     </SectionDiv>
+                    <SectionDiv>
+                        <DivStyledBusinessService title={businessServiceTitle}>
+                            <StyledAnchor onClick={businessServiceItem}>
+                                {businessServiceTitle}
+                            </StyledAnchor>
+                        </DivStyledBusinessService>
+                        <LabelDiv>BUSINESS SERVICE</LabelDiv>
+                    </SectionDiv>
                     {showOnBoardToAWS && (
                         <SectionDiv>
                             <Button
@@ -200,6 +335,28 @@ export default class DomainDetails extends React.Component {
                             title={this.state.successMessage}
                             onClose={this.closeModal}
                             type='success'
+                        />
+                    ) : null}
+                    {this.state.showBusinessService ? (
+                        <BusinessServiceModal
+                            isOpen={this.state.showBusinessService}
+                            cancel={clickBusinessServiceCancel}
+                            businessServiceName={this.state.businessServiceName}
+                            domainName={this.state.businessServiceDomainName}
+                            submit={clickBusinessServiceSubmit}
+                            showJustification={this.state.auditEnabled}
+                            onJustification={this.saveJustification}
+                            onBusinessService={this.saveBusinessService}
+                            key={'business-service-modal'}
+                            errorMessage={this.state.errorMessageForModal}
+                            api={this.api}
+                            userId={this.state.userId}
+                            validBusinessServices={
+                                this.props.validBusinessServices
+                            }
+                            validBusinessServicesAll={
+                                this.props.validBusinessServicesAll
+                            }
                         />
                     ) : null}
                 </DetailsDiv>

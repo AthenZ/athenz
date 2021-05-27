@@ -777,9 +777,10 @@ Fetchr.registerService({
                         if (data && data.groupMembers) {
                             roleMember.groupMembers = data.groupMembers;
                             roleMember.groupMembers.forEach((member) => {
-                                member.memberFullName = userService.getUserFullName(
-                                    member.memberName
-                                );
+                                member.memberFullName =
+                                    userService.getUserFullName(
+                                        member.memberName
+                                    );
                             });
                         }
                         resolve();
@@ -822,20 +823,19 @@ Fetchr.registerService({
                         if (data) {
                             if (data.auditLog) {
                                 data.auditLog.forEach((m) => {
-                                    m.memberFullName = userService.getUserFullName(
-                                        m.member
-                                    );
-                                    m.adminFullName = userService.getUserFullName(
-                                        m.admin
-                                    );
+                                    m.memberFullName =
+                                        userService.getUserFullName(m.member);
+                                    m.adminFullName =
+                                        userService.getUserFullName(m.admin);
                                 });
                             }
                             if (data.roleMembers) {
                                 let roleMembers = data.roleMembers;
                                 roleMembers.forEach((member) => {
-                                    member.memberFullName = userService.getUserFullName(
-                                        member.memberName
-                                    );
+                                    member.memberFullName =
+                                        userService.getUserFullName(
+                                            member.memberName
+                                        );
                                 });
 
                                 roleMembers.forEach((member) => {
@@ -958,7 +958,19 @@ Fetchr.registerService({
                     auditRef: params.auditRef,
                     detail: params.detail,
                 },
-                responseHandler.bind({ caller: 'putRoleMeta', callback, req })
+                responseHandler.bind({ caller: 'putDomainMeta', callback, req })
+            );
+        }
+    },
+    read(req, resource, params, config, callback) {
+        if (params.category === 'domain') {
+            req.clients.zms.getDomainMetaStoreValidValuesList(
+                params,
+                responseHandler.bind({
+                    caller: 'getDomainMetaStoreValidValuesList',
+                    callback,
+                    req,
+                })
             );
         }
     },
@@ -1120,16 +1132,16 @@ Fetchr.registerService({
                                 category: 'role',
                                 domainName: domainName,
                                 memberName: memberName,
-                                memberNameFull: userService.getUserFullName(
-                                    memberName
-                                ),
+                                memberNameFull:
+                                    userService.getUserFullName(memberName),
                                 roleName: roleName,
                                 userComment: userComment,
                                 auditRef: '',
                                 requestPrincipal: role.requestPrincipal,
-                                requestPrincipalFull: userService.getUserFullName(
-                                    role.requestPrincipal
-                                ),
+                                requestPrincipalFull:
+                                    userService.getUserFullName(
+                                        role.requestPrincipal
+                                    ),
                                 requestTime: role.requestTime,
                                 expiryDate: expiryDate,
                             };
@@ -1149,16 +1161,16 @@ Fetchr.registerService({
                                 category: 'group',
                                 domainName: domainName,
                                 memberName: memberName,
-                                memberNameFull: userService.getUserFullName(
-                                    memberName
-                                ),
+                                memberNameFull:
+                                    userService.getUserFullName(memberName),
                                 roleName: groupName,
                                 userComment: userComment,
                                 auditRef: '',
                                 requestPrincipal: group.requestPrincipal,
-                                requestPrincipalFull: userService.getUserFullName(
-                                    group.requestPrincipal
-                                ),
+                                requestPrincipalFull:
+                                    userService.getUserFullName(
+                                        group.requestPrincipal
+                                    ),
                                 requestTime: group.requestTime,
                                 expiryDate: expiryDate,
                             };
@@ -1478,9 +1490,10 @@ Fetchr.registerService({
                         if (data.groupMembers) {
                             let groupMembers = data.groupMembers;
                             groupMembers.forEach((member) => {
-                                member.memberFullName = userService.getUserFullName(
-                                    member.memberName
-                                );
+                                member.memberFullName =
+                                    userService.getUserFullName(
+                                        member.memberName
+                                    );
                             });
                         }
                     }
@@ -1503,9 +1516,10 @@ Fetchr.registerService({
                                     roleMember.groupMembers = data.groupMembers;
                                     roleMember.groupMembers.forEach(
                                         (member) => {
-                                            member.memberFullName = userService.getUserFullName(
-                                                member.memberName
-                                            );
+                                            member.memberFullName =
+                                                userService.getUserFullName(
+                                                    member.memberName
+                                                );
                                         }
                                     );
                                 }
@@ -1537,20 +1551,19 @@ Fetchr.registerService({
                         if (data) {
                             if (data.auditLog) {
                                 data.auditLog.forEach((m) => {
-                                    m.memberFullName = userService.getUserFullName(
-                                        m.member
-                                    );
-                                    m.adminFullName = userService.getUserFullName(
-                                        m.admin
-                                    );
+                                    m.memberFullName =
+                                        userService.getUserFullName(m.member);
+                                    m.adminFullName =
+                                        userService.getUserFullName(m.admin);
                                 });
                             }
                             if (data.roleMembers) {
                                 let roleMembers = data.roleMembers;
                                 roleMembers.forEach((member) => {
-                                    member.memberFullName = userService.getUserFullName(
-                                        member.memberName
-                                    );
+                                    member.memberFullName =
+                                        userService.getUserFullName(
+                                            member.memberName
+                                        );
                                 });
 
                                 roleMembers.forEach((member) => {
@@ -1598,9 +1611,10 @@ Fetchr.registerService({
                                     roleMember.groupMembers = data.groupMembers;
                                     roleMember.groupMembers.forEach(
                                         (member) => {
-                                            member.memberFullName = userService.getUserFullName(
-                                                member.memberName
-                                            );
+                                            member.memberFullName =
+                                                userService.getUserFullName(
+                                                    member.memberName
+                                                );
                                         }
                                     );
                                 }
@@ -1632,20 +1646,19 @@ Fetchr.registerService({
                         if (data) {
                             if (data.auditLog) {
                                 data.auditLog.forEach((m) => {
-                                    m.memberFullName = userService.getUserFullName(
-                                        m.member
-                                    );
-                                    m.adminFullName = userService.getUserFullName(
-                                        m.admin
-                                    );
+                                    m.memberFullName =
+                                        userService.getUserFullName(m.member);
+                                    m.adminFullName =
+                                        userService.getUserFullName(m.admin);
                                 });
                             }
                             if (data.roleMembers) {
                                 let roleMembers = data.roleMembers;
                                 roleMembers.forEach((member) => {
-                                    member.memberFullName = userService.getUserFullName(
-                                        member.memberName
-                                    );
+                                    member.memberFullName =
+                                        userService.getUserFullName(
+                                            member.memberName
+                                        );
                                 });
 
                                 roleMembers.forEach((member) => {
@@ -1779,22 +1792,19 @@ Fetchr.registerService({
                                 item.assertions.forEach(
                                     (assertionItem, assertionIdx) => {
                                         let tempData = {};
-                                        let tempProtocol = assertionItem.action.split(
-                                            '-'
-                                        );
+                                        let tempProtocol =
+                                            assertionItem.action.split('-');
                                         tempData['layer'] = tempProtocol[0];
-                                        let tempPort = assertionItem.action.split(
-                                            ':'
-                                        );
+                                        let tempPort =
+                                            assertionItem.action.split(':');
                                         tempData['source_port'] = tempPort[1];
                                         tempData['destination_port'] =
                                             tempPort[2];
                                         let index = 0;
                                         if (item.name.includes('inbound')) {
                                             category = 'inbound';
-                                            tempData[
-                                                'destination_service'
-                                            ] = serviceName;
+                                            tempData['destination_service'] =
+                                                serviceName;
                                             tempData['source_services'] = [];
                                             tempData['assertionIdx'] =
                                                 assertionItem.id;
@@ -1804,12 +1814,10 @@ Fetchr.registerService({
                                             item.name.includes('outbound')
                                         ) {
                                             category = 'outbound';
-                                            tempData[
-                                                'source_service'
-                                            ] = serviceName;
-                                            tempData[
-                                                'destination_services'
-                                            ] = [];
+                                            tempData['source_service'] =
+                                                serviceName;
+                                            tempData['destination_services'] =
+                                                [];
                                             tempData['assertionIdx'] =
                                                 assertionItem.id;
                                             jsonData['outbound'].push(tempData);
@@ -1818,9 +1826,10 @@ Fetchr.registerService({
                                         //assertion convention for micro-segmentation:
                                         //GRANT [Action: <transport layer>-IN / <transport layer>-OUT]:[Source Port]:[Destination Port] [Resource:<service-name>] ON <role-name>
                                         // role name will be of the form : <domain>:role.<roleName>
-                                        let roleName = assertionItem.role.substring(
-                                            params.domainName.length + 6
-                                        );
+                                        let roleName =
+                                            assertionItem.role.substring(
+                                                params.domainName.length + 6
+                                            );
                                         promises.push(
                                             getRole(
                                                 roleName,

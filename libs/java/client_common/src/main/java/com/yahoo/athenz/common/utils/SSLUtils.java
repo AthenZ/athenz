@@ -120,7 +120,7 @@ public class SSLUtils {
             try {
                 if (keyStorePath != null) {
                     LOGGER.info("createSSLContextObject: using SSL KeyStore path: {}", keyStorePath);
-                    keyStore = loadStore(keyStorePath, keyStoreType, null, getPassword(keyStorePassword, privateKeyStore, keyStorePasswordAppName));
+                    keyStore = loadStore(keyStorePath, keyStoreType, getPassword(keyStorePassword, privateKeyStore, keyStorePasswordAppName));
                     kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
                     if (keyManagerPassword == null) {
                         throw new IllegalArgumentException("Missing key manager password for the key store: " + keyStorePath);
@@ -131,7 +131,7 @@ public class SSLUtils {
                 }
                 if (trustStorePath != null) {
                     LOGGER.info("createSSLContextObject: using SSL TrustStore path: {}", trustStorePath);
-                    trustStore = loadStore(trustStorePath, trustStoreType, null, getPassword(trustStorePassword, privateKeyStore, trustStorePasswordAppName));
+                    trustStore = loadStore(trustStorePath, trustStoreType, getPassword(trustStorePassword, privateKeyStore, trustStorePasswordAppName));
                     tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                     tmf.init(trustStore);
                     trustManagers = tmf.getTrustManagers();
@@ -155,16 +155,10 @@ public class SSLUtils {
             return password;
         }
         
-        private static KeyStore loadStore(String store, String storeType, String storeProvider, char[] storePassword) throws Exception {
+        private static KeyStore loadStore(String store, String storeType, char[] storePassword) throws Exception {
             KeyStore keystore = null;
-            if (store != null && !store.isEmpty()) {
-                ///CLOVER:OFF
-                if (storeProvider == null) {
-                    keystore = KeyStore.getInstance(storeType);
-                } else {
-                    keystore = KeyStore.getInstance(storeType, storeProvider);
-                }
-                ///CLOVER:ON
+            if (!store.isEmpty()) {
+                keystore = KeyStore.getInstance(storeType);
                 try (InputStream inStream = new FileInputStream(store)) {
                     keystore.load(inStream, storePassword);
                 }
@@ -173,16 +167,12 @@ public class SSLUtils {
         }
         
         private static KeyManager[] getAliasedKeyManagers(KeyManager[] managers, String alias) {
-            ///CLOVER:OFF
             if (managers != null) {
-                ///CLOVER:ON
                 if (alias != null) {
                     for (int idx = 0; idx < managers.length; idx++) {
-                        ///CLOVER:OFF
                         if (managers[idx] instanceof X509ExtendedKeyManager) {
                             managers[idx] = new ClientAliasedX509ExtendedKeyManager((X509ExtendedKeyManager) managers[idx], alias);
                         }
-                        ///CLOVER:ON
                     }
                 }
             }
@@ -208,17 +198,7 @@ public class SSLUtils {
             if (alias == null) {
                 return delegate.chooseClientAlias(keyType, issuers, socket);
             }
-            for (String kt : keyType) {
-                String[] aliases = delegate.getClientAliases(kt, issuers);
-                if (aliases != null) {
-                    for (String a : aliases) {
-                        if (alias.equals(a)) {
-                            return alias;
-                        }
-                    }
-                }
-            }
-            return null;
+            return getClientAlias(keyType, issuers);
         }
 
         @Override
@@ -241,6 +221,10 @@ public class SSLUtils {
             if (alias == null) {
                 return delegate.chooseEngineClientAlias(keyType, issuers, engine);
             }
+            return getClientAlias(keyType, issuers);
+        }
+
+        String getClientAlias(String[] keyType, Principal[] issuers) {
             for (String kt : keyType) {
                 String[] aliases = delegate.getClientAliases(kt, issuers);
                 if (aliases != null) {
@@ -253,7 +237,7 @@ public class SSLUtils {
             }
             return null;
         }
-        
+
         @Override
         public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine) {
             throw new UnsupportedOperationException();

@@ -69,6 +69,16 @@ export default class ServicePage extends React.Component {
         let reload = false;
         let notFound = false;
         let error = undefined;
+
+        var bServicesParams = {
+            category: 'domain',
+            attributeName: 'businessService',
+            userName: props.req.session.shortId,
+        };
+        var bServicesParamsAll = {
+            category: 'domain',
+            attributeName: 'businessService',
+        };
         const domains = await Promise.all([
             api.listUserDomains(),
             api.getHeaderDetails(),
@@ -79,12 +89,32 @@ export default class ServicePage extends React.Component {
             api.getServicePageConfig(),
             api.isAWSTemplateApplied(props.query.domain),
             api.getFeatureFlag(),
+            api.getMeta(bServicesParams),
+            api.getMeta(bServicesParamsAll),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
         });
+        let businessServiceOptions = [];
+        if (domains[9] && domains[9].validValues) {
+            domains[9].validValues.forEach((businessService) => {
+                businessServiceOptions.push({
+                    value: businessService,
+                    name: businessService,
+                });
+            });
+        }
+        let businessServiceOptionsAll = [];
+        if (domains[10] && domains[10].validValues) {
+            domains[10].validValues.forEach((businessService) => {
+                businessServiceOptionsAll.push({
+                    value: businessService,
+                    name: businessService,
+                });
+            });
+        }
         let domainDetails = domains[2];
         domainDetails.isAWSTemplateApplied = !!domains[7];
         return {
@@ -102,6 +132,8 @@ export default class ServicePage extends React.Component {
             pageConfig: domains[6],
             featureFlag: domains[8],
             nonce: props.req.headers.rid,
+            validBusinessServices: businessServiceOptions,
+            validBusinessServicesAll: businessServiceOptionsAll,
         };
     }
 
@@ -147,6 +179,13 @@ export default class ServicePage extends React.Component {
                                             productMasterLink={
                                                 this.props.headerDetails
                                                     .productMasterLink
+                                            }
+                                            validBusinessServices={
+                                                this.props.validBusinessServices
+                                            }
+                                            validBusinessServicesAll={
+                                                this.props
+                                                    .validBusinessServicesAll
                                             }
                                         />
                                         <Tabs

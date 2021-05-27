@@ -23,6 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.utils.X509CertUtils;
 import com.yahoo.athenz.zts.CertType;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cache.DataCache;

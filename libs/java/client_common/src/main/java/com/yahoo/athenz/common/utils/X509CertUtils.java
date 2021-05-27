@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.cert;
+package com.yahoo.athenz.common.utils;
 
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.zts.ZTSConsts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,19 +25,22 @@ import java.util.List;
 
 public class X509CertUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(X509RoleCertRequest.class);
+    static final String ZTS_CERT_INSTANCE_ID_DNS    = ".instanceid.athenz.";
+    static final String ZTS_CERT_INSTANCE_ID_URI    = "athenz://instanceid/";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(X509CertUtils.class);
     private static final ThreadLocal<StringBuilder> TLS_BUILDER = ThreadLocal.withInitial(() -> new StringBuilder(256));
 
     public static String extractRequestInstanceIdFromURI(final List<String> uriList) {
 
         for (String uri : uriList) {
-            if (!uri.startsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_URI)) {
+            if (!uri.startsWith(ZTS_CERT_INSTANCE_ID_URI)) {
                 continue;
             }
             // skip the provider value
-            int idx = uri.substring(ZTSConsts.ZTS_CERT_INSTANCE_ID_URI.length()).indexOf('/');
+            int idx = uri.indexOf('/', ZTS_CERT_INSTANCE_ID_URI.length());
             if (idx != -1) {
-                return uri.substring(ZTSConsts.ZTS_CERT_INSTANCE_ID_URI.length() + idx + 1);
+                return uri.substring(idx + 1);
             }
         }
 
@@ -59,7 +61,7 @@ public class X509CertUtils {
     public static String extractRequestInstanceIdFromDnsNames(final List<String> dnsNames) {
 
         for (String dnsName : dnsNames) {
-            int idx = dnsName.indexOf(ZTSConsts.ZTS_CERT_INSTANCE_ID_DNS);
+            int idx = dnsName.indexOf(ZTS_CERT_INSTANCE_ID_DNS);
             if (idx != -1) {
                 return dnsName.substring(0, idx);
             }
