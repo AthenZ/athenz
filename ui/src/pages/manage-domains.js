@@ -68,18 +68,48 @@ export default class ManageDomainsPage extends React.Component {
         let reload = false;
         let notFound = false;
         let error = undefined;
+        var bServicesParams = {
+            category: 'domain',
+            attributeName: 'businessService',
+            userName: props.req.session.shortId,
+        };
+        var bServicesParamsAll = {
+            category: 'domain',
+            attributeName: 'businessService',
+        };
         const domains = await Promise.all([
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.listAdminDomains(),
             api.getPendingDomainMembersList(),
             api.getForm(),
+            api.getMeta(bServicesParams),
+            api.getMeta(bServicesParamsAll),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}];
         });
+
+        let businessServiceOptions = [];
+        if (domains[5] && domains[5].validValues) {
+            domains[5].validValues.forEach((businessService) => {
+                businessServiceOptions.push({
+                    value: businessService,
+                    name: businessService,
+                });
+            });
+        }
+        let businessServiceOptionsAll = [];
+        if (domains[6] && domains[6].validValues) {
+            domains[6].validValues.forEach((businessService) => {
+                businessServiceOptionsAll.push({
+                    value: businessService,
+                    name: businessService,
+                });
+            });
+        }
         return {
             api,
             reload,
@@ -91,6 +121,8 @@ export default class ManageDomainsPage extends React.Component {
             pending: domains[3],
             _csrf: domains[4],
             nonce: props.req.headers.rid,
+            validBusinessServices: businessServiceOptions,
+            validBusinessServicesAll: businessServiceOptionsAll,
         };
     }
 
@@ -171,6 +203,13 @@ export default class ManageDomainsPage extends React.Component {
                                         _csrf={this.props._csrf}
                                         api={this.api}
                                         loadDomains={this.loadDomains}
+                                        userId={this.props.headerDetails.userId}
+                                        validBusinessServices={
+                                            this.props.validBusinessServices
+                                        }
+                                        validBusinessServicesAll={
+                                            this.props.validBusinessServicesAll
+                                        }
                                     />
                                     <Alert
                                         isOpen={this.state.showSuccess}

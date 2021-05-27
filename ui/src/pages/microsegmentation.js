@@ -68,6 +68,16 @@ export default class MicrosegmentationPage extends React.Component {
         let reload = false;
         let notFound = false;
         let error = undefined;
+
+        var bServicesParams = {
+            category: 'domain',
+            attributeName: 'businessService',
+            userName: props.req.session.shortId,
+        };
+        var bServicesParamsAll = {
+            category: 'domain',
+            attributeName: 'businessService',
+        };
         const data = await Promise.all([
             api.listUserDomains(),
             api.getHeaderDetails(),
@@ -78,12 +88,32 @@ export default class MicrosegmentationPage extends React.Component {
             api.isAWSTemplateApplied(props.query.domain),
             api.getDomain(props.query.domain),
             api.getFeatureFlag(),
+            api.getMeta(bServicesParams),
+            api.getMeta(bServicesParamsAll),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
         });
+        let businessServiceOptions = [];
+        if (data[9] && data[9].validValues) {
+            data[9].validValues.forEach((businessService) => {
+                businessServiceOptions.push({
+                    value: businessService,
+                    name: businessService,
+                });
+            });
+        }
+        let businessServiceOptionsAll = [];
+        if (data[10] && data[10].validValues) {
+            data[10].validValues.forEach((businessService) => {
+                businessServiceOptionsAll.push({
+                    value: businessService,
+                    name: businessService,
+                });
+            });
+        }
         let domainDetails = data[7];
         domainDetails.isAWSTemplateApplied = !!data[6];
         return {
@@ -101,6 +131,8 @@ export default class MicrosegmentationPage extends React.Component {
             nonce: props.req.headers.rid,
             segmentationData: data[3],
             featureFlag: true,
+            validBusinessServices: businessServiceOptions,
+            validBusinessServicesAll: businessServiceOptionsAll,
         };
     }
 
@@ -153,6 +185,13 @@ export default class MicrosegmentationPage extends React.Component {
                                             productMasterLink={
                                                 this.props.headerDetails
                                                     .productMasterLink
+                                            }
+                                            validBusinessServices={
+                                                this.props.validBusinessServices
+                                            }
+                                            validBusinessServicesAll={
+                                                this.props
+                                                    .validBusinessServicesAll
                                             }
                                         />
                                         <Tabs

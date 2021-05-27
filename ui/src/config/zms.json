@@ -179,7 +179,7 @@
                         "name": "org",
                         "type": "ResourceName",
                         "optional": true,
-                        "comment": "a reference to an Organization. (i.e. org:media)"
+                        "comment": "a reference to an audit organization defined in athenz"
                     },
                     {
                         "name": "enabled",
@@ -280,6 +280,12 @@
                         "comment": "key-value pair tags, tag might contain multiple values",
                         "items": "StringList",
                         "keys": "CompoundName"
+                    },
+                    {
+                        "name": "businessService",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "associated business service with domain"
                     }
                 ],
                 "closed": false
@@ -561,6 +567,12 @@
                         "type": "Int32",
                         "optional": true,
                         "comment": "all groups in the domain roles will have specified max expiry days"
+                    },
+                    {
+                        "name": "groupReviewDays",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "all groups in the domain roles will have specified max review days"
                     },
                     {
                         "name": "tags",
@@ -1404,6 +1416,23 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
+                "name": "DomainMetaStoreValidValuesList",
+                "comment": "List of valid domain meta attribute values",
+                "fields": [
+                    {
+                        "name": "validValues",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of valid values for attribute",
+                        "items": "String"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
                 "name": "DanglingPolicy",
                 "comment": "A dangling policy where the assertion is referencing a role name that doesn't exist in the domain",
                 "fields": [
@@ -1749,6 +1778,18 @@
                         "type": "String",
                         "optional": true,
                         "comment": "expiration enforced by a user authority configured attribute"
+                    },
+                    {
+                        "name": "memberExpiryDays",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "all user members in the group will have specified max expiry days"
+                    },
+                    {
+                        "name": "serviceExpiryDays",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "all services in the group will have specified max expiry days"
                     }
                 ],
                 "closed": false
@@ -2550,7 +2591,7 @@
             "type": "DomainList",
             "method": "GET",
             "path": "/domain",
-            "comment": "Enumerate domains. Can be filtered by prefix and depth, and paginated. This operation can be expensive, as it may span multiple domains.",
+            "comment": "Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the query options that are looking for specific domain attributes (e.g. aws account, azure subscriptions, business service, tags, etc) are mutually exclusive. The server will only process the first query argument and ignore the others.",
             "inputs": [
                 {
                     "name": "limit",
@@ -2648,6 +2689,15 @@
                     "comment": "flag to query all domains that have a given tag name and value",
                     "pathParam": false,
                     "queryParam": "tagValue",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "businessService",
+                    "type": "String",
+                    "comment": "restrict to domain names that have specified business service name",
+                    "pathParam": false,
+                    "queryParam": "businessService",
                     "optional": true,
                     "flag": false
                 },
@@ -3326,6 +3376,50 @@
                     "type": "ResourceError"
                 },
                 "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "DomainMetaStoreValidValuesList",
+            "method": "GET",
+            "path": "/domain/metastore",
+            "comment": "List all valid values for the given attribute and user",
+            "inputs": [
+                {
+                    "name": "attributeName",
+                    "type": "String",
+                    "comment": "name of attribute",
+                    "pathParam": false,
+                    "queryParam": "attribute",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "userName",
+                    "type": "String",
+                    "comment": "restrict to values associated with the given user",
+                    "pathParam": false,
+                    "queryParam": "user",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
                     "type": "ResourceError"
                 }
             }
@@ -7337,7 +7431,7 @@
             "type": "ResourceAccessList",
             "method": "GET",
             "path": "/resource",
-            "comment": "Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified unless the caller has authorization from sys.auth domain to check access for all user principals. (action: access, resource: resource-lookup-all)",
+            "comment": "Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified",
             "inputs": [
                 {
                     "name": "principal",
@@ -7689,6 +7783,17 @@
             "method": "GET",
             "path": "/user",
             "comment": "Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the allowed user-domains and/or aliases",
+                    "pathParam": false,
+                    "queryParam": "domain",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
             "auth": {
                 "authenticate": true
             },

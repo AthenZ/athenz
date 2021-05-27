@@ -958,7 +958,19 @@ Fetchr.registerService({
                     auditRef: params.auditRef,
                     detail: params.detail,
                 },
-                responseHandler.bind({ caller: 'putRoleMeta', callback, req })
+                responseHandler.bind({ caller: 'putDomainMeta', callback, req })
+            );
+        }
+    },
+    read(req, resource, params, config, callback) {
+        if (params.category === 'domain') {
+            req.clients.zms.getDomainMetaStoreValidValuesList(
+                params,
+                responseHandler.bind({
+                    caller: 'getDomainMetaStoreValidValuesList',
+                    callback,
+                    req,
+                })
             );
         }
     },

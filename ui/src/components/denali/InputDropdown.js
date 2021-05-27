@@ -47,7 +47,7 @@ const fadeIn = keyframes`
   to { opacity: 1 }
 `;
 
-const cssMenuDropdown = css`
+const cssMenuDropdown = (props) => css`
     ${cssDropShadow};
     ${cssFontStyles.default};
     background-color: ${colors.white};
@@ -59,6 +59,7 @@ const cssMenuDropdown = css`
     margin: 2px 0;
     opacity: 1;
     overflow: auto;
+    width: ${props.valuesWidth ? props.valuesWidth : undefined};
     overscroll-behavior: contain; /* Not supported on Safari :( */
     z-index: 100000; /* Make sure this is higher than <Modal> */
     label: input-dropdown-options;
@@ -259,7 +260,7 @@ class InputDropdown extends React.Component {
      */
     renderMenu = (options) => {
         const classes = cx(
-            cssMenuDropdown,
+            cssMenuDropdown(this.props),
             { animated: !options.noanim },
             'denali-input-dropdown-options'
         );
