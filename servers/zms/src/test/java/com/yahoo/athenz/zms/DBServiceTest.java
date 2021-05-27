@@ -10051,6 +10051,45 @@ public class DBServiceTest {
             .containsAll(Arrays.asList("val0", "val1", "val2")));
         zms.dbService.store = savedStore;
     }
+    
+    @Test
+    public void testProcessDomainWithUpdateNullTags() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        ObjectStore savedStore = zms.dbService.store;
+
+        Map<String, StringList> domainTags = new HashMap<>();
+        domainTags.put("tagToBeRemoved", new StringList().setList(Collections.singletonList("val0")));
+        domainTags.put("tagKey", new StringList().setList(Arrays.asList("val1", "val2")));
+
+        Domain domain = new Domain().setName("newDomain").setTags(domainTags);
+        Mockito.when(conn.insertDomain(domain)).thenReturn(true);
+        Mockito.when(conn.insertDomainTags("newDomain", domainTags)).thenReturn(true);
+        Mockito.when(conn.insertRole(anyString(), any(Role.class))).thenReturn(true);
+        Mockito.when(conn.insertRoleMember(any(), any(), any(), any(), any())).thenReturn(true);
+        Mockito.when(conn.insertPolicy(any(), any())).thenReturn(true);
+        Mockito.when(conn.insertAssertion(any(), any(), any())).thenReturn(true);
+        Mockito.when(mockObjStore.getConnection(false, true))
+                .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
+        zms.dbService.store = mockObjStore;
+
+        Domain createdDomain = zms.dbService.makeDomain(mockDomRsrcCtx, domain, Collections.singletonList(adminUser), null, auditRef);
+        assertEquals(createdDomain.getTags(), domainTags);
+
+        Mockito.when(conn.updateDomain(any(Domain.class))).thenReturn(true);
+        Mockito.when(conn.deleteDomainTags(anyString(), anySet())).thenReturn(true);
+        Mockito.when(conn.insertDomainTags(anyString(), anyMap())).thenReturn(true);
+        Mockito.when(conn.getDomain("newDomain")).thenReturn(domain);
+
+        Mockito.when(mockObjStore.getConnection(false, true))
+                .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
+
+        // update domain meta
+        DomainMeta meta = new DomainMeta().setTags(null);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domain, meta, null, false, auditRef, "putDomainMeta");
+
+        assertEquals(createdDomain.getTags(), domainTags);
+        zms.dbService.store = savedStore;
+    }
 
     @Test
     public void testProcessDomainWithSameTagsUpdate() {
