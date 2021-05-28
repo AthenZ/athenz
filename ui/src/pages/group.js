@@ -145,14 +145,8 @@ export default class GroupPage extends React.Component {
     }
 
     render() {
-        const {
-            domain,
-            reload,
-            domainDetails,
-            groups,
-            users,
-            _csrf,
-        } = this.props;
+        const { domain, reload, domainDetails, groups, users, _csrf } =
+            this.props;
         if (reload) {
             window.location.reload();
             return <div />;

@@ -70,14 +70,8 @@ const makeCssButton = (props) => css`
 
 class ButtonGroup extends React.PureComponent {
     render() {
-        const {
-            buttons,
-            className,
-            dark,
-            id,
-            noanim,
-            selectedName,
-        } = this.props;
+        const { buttons, className, dark, id, noanim, selectedName } =
+            this.props;
 
         if (!buttons.length) return null;
 

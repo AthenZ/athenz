@@ -1452,7 +1452,8 @@ const Api = (req) => {
                                             }
                                         }
                                     });
-                                    workLoadMeta.totalHealthyDynamic = totalHealthyDynamicCount;
+                                    workLoadMeta.totalHealthyDynamic =
+                                        totalHealthyDynamicCount;
                                     workLoadMeta.totalDynamic =
                                         result.workLoadData.length;
                                     result.workLoadMeta = workLoadMeta;

@@ -197,59 +197,63 @@ class InputDropdown extends React.Component {
     /**
      * Add icons within the <Input> field
      */
-    renderIcons = ({
-        clearSelection,
-        isOpen,
-        showArrow,
-        showClose,
-        toggleMenu,
-        disabled,
-    }) => ({ sizePx }) => {
-        return (
-            <React.Fragment>
-                {showClose && (
-                    <Icon
-                        icon={'close-circle'}
-                        className='clear-selection'
-                        color={colors.grey500}
-                        colorHover={!disabled ? colors.grey600 : colors.grey500}
-                        isLink={!disabled}
-                        size='16px'
-                        onClick={() => {
-                            if (!disabled) {
-                                this.setState({ results: null });
-                                clearSelection();
-                            }
-                        }}
-                    />
-                )}
-                {showArrow &&
-                    (isOpen ? (
+    renderIcons =
+        ({
+            clearSelection,
+            isOpen,
+            showArrow,
+            showClose,
+            toggleMenu,
+            disabled,
+        }) =>
+        ({ sizePx }) => {
+            return (
+                <React.Fragment>
+                    {showClose && (
                         <Icon
-                            icon='arrowhead-up'
+                            icon={'close-circle'}
+                            className='clear-selection'
                             color={colors.grey500}
                             colorHover={
                                 !disabled ? colors.grey600 : colors.grey500
                             }
                             isLink={!disabled}
-                            size={sizePx}
-                            onClick={!disabled ? toggleMenu : undefined}
+                            size='16px'
+                            onClick={() => {
+                                if (!disabled) {
+                                    this.setState({ results: null });
+                                    clearSelection();
+                                }
+                            }}
                         />
-                    ) : (
-                        <Icon
-                            icon='arrowhead-down'
-                            color={colors.grey500}
-                            colorHover={
-                                !disabled ? colors.grey600 : colors.grey500
-                            }
-                            isLink={!disabled}
-                            size={sizePx}
-                            onClick={!disabled ? toggleMenu : undefined}
-                        />
-                    ))}
-            </React.Fragment>
-        );
-    };
+                    )}
+                    {showArrow &&
+                        (isOpen ? (
+                            <Icon
+                                icon='arrowhead-up'
+                                color={colors.grey500}
+                                colorHover={
+                                    !disabled ? colors.grey600 : colors.grey500
+                                }
+                                isLink={!disabled}
+                                size={sizePx}
+                                onClick={!disabled ? toggleMenu : undefined}
+                            />
+                        ) : (
+                            <Icon
+                                icon='arrowhead-down'
+                                color={colors.grey500}
+                                colorHover={
+                                    !disabled ? colors.grey600 : colors.grey500
+                                }
+                                isLink={!disabled}
+                                size={sizePx}
+                                onClick={!disabled ? toggleMenu : undefined}
+                            />
+                        ))}
+                </React.Fragment>
+            );
+        };
 
     /**
      * Render the dropdown menu with options

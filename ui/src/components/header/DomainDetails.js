@@ -242,12 +242,10 @@ export default class DomainDetails extends React.Component {
         let businessServiceTitle = this.state.businessServiceName
             ? this.state.businessServiceName
             : 'add';
-        let clickBusinessServiceCancel = this.onClickBusinessServiceCancel.bind(
-            this
-        );
-        let clickBusinessServiceSubmit = this.onSubmitBusinessService.bind(
-            this
-        );
+        let clickBusinessServiceCancel =
+            this.onClickBusinessServiceCancel.bind(this);
+        let clickBusinessServiceSubmit =
+            this.onSubmitBusinessService.bind(this);
         return (
             <DomainSectionDiv data-testid='domain-details'>
                 <DetailsDiv>

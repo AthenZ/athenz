@@ -148,15 +148,8 @@ export default class RolePage extends React.Component {
     }
 
     render() {
-        const {
-            domain,
-            reload,
-            domainDetails,
-            roles,
-            users,
-            prefixes,
-            _csrf,
-        } = this.props;
+        const { domain, reload, domainDetails, roles, users, prefixes, _csrf } =
+            this.props;
         if (reload) {
             window.location.reload();
             return <div />;
