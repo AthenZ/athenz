@@ -109,7 +109,7 @@ export default class InstanceList extends React.Component {
             )
             .then((instances) => {
                 this.setState({
-                    instances: instances,
+                    instances: instances.workLoadData,
                     showAddInstance: false,
                     errorMessage: null,
                 });

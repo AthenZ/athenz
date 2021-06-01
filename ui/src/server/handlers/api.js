@@ -1899,23 +1899,8 @@ Fetchr.registerService({
         req.clients.zts.getWorkloadsByService(
             { domainName: params.domainName, serviceName: params.serviceName },
             (err, data) => {
-                let result = [];
                 if (data && data.workloadList != null) {
-                    if (params.category === 'static') {
-                        data.workloadList.forEach((workload) => {
-                            if (workload.provider === 'Static') {
-                                result.push(workload);
-                            }
-                        });
-                        return callback(null, result);
-                    } else {
-                        data.workloadList.forEach((workload) => {
-                            if (workload.provider !== 'Static') {
-                                result.push(workload);
-                            }
-                        });
-                        return callback(null, result);
-                    }
+                    return callback(null, data);
                 } else {
                     return callback(errorHandler.fetcherError(err));
                 }

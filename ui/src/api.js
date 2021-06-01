@@ -16,8 +16,14 @@
 import Fetchr from 'fetchr';
 import 'setimmediate';
 import NameUtils from './components/utils/NameUtils';
+import DateUtils from './components/utils/DateUtils';
+import {
+    SERVICE_TYPE_STATIC,
+    SERVICE_TYPE_STATIC_LABEL,
+} from './components/constants/constants';
 
 const Api = (req) => {
+    let localDate = new DateUtils();
     const fetchr = new Fetchr({
         xhrPath: '/api/v1',
         xhrTimeout: 10000,
@@ -1402,7 +1408,58 @@ const Api = (req) => {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve(data);
+                            let result = {
+                                workLoadData: [],
+                            };
+                            let workLoadMeta = {
+                                totalDynamic: 0,
+                                totalStatic: 0,
+                                totalRecords: 0,
+                                totalHealthyDynamic: 0,
+                            };
+                            let totalHealthyDynamicCount = 0;
+                            if (data && data.workloadList != null) {
+                                workLoadMeta.totalRecords =
+                                    data.workloadList.length;
+                                if (category === SERVICE_TYPE_STATIC) {
+                                    data.workloadList.forEach((workload) => {
+                                        if (
+                                            workload.provider ===
+                                            SERVICE_TYPE_STATIC_LABEL
+                                        ) {
+                                            result.workLoadData.push(workload);
+                                        }
+                                    });
+                                    workLoadMeta.totalStatic =
+                                        result.workLoadData.length;
+                                    result.workLoadMeta = workLoadMeta;
+                                    resolve(result);
+                                } else {
+                                    data.workloadList.forEach((workload) => {
+                                        if (
+                                            workload.provider !==
+                                            SERVICE_TYPE_STATIC_LABEL
+                                        ) {
+                                            result.workLoadData.push(workload);
+                                            if (
+                                                workload.hostname !== 'NA' &&
+                                                localDate.isRefreshedinLastSevenDays(
+                                                    workload.updateTime,
+                                                    'UTC'
+                                                )
+                                            ) {
+                                                totalHealthyDynamicCount++;
+                                            }
+                                        }
+                                    });
+                                    workLoadMeta.totalHealthyDynamic =
+                                        totalHealthyDynamicCount;
+                                    workLoadMeta.totalDynamic =
+                                        result.workLoadData.length;
+                                    result.workLoadMeta = workLoadMeta;
+                                    resolve(result);
+                                }
+                            }
                         }
                     });
             });

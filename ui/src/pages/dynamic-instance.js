@@ -28,6 +28,7 @@ import ServiceTabs from '../components/header/ServiceTabs';
 import ServiceNameHeader from '../components/header/ServiceNameHeader';
 import InstanceList from '../components/service/InstanceList';
 import ServiceInstanceDetails from '../components/header/ServiceInstanceDetails';
+import { SERVICE_TYPE_DYNAMIC } from '../components/constants/constants';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -146,11 +147,17 @@ export default class DynamicInstancePage extends React.Component {
                                         <ServiceNameHeader
                                             domain={domain}
                                             service={service}
-                                        />
-                                        <ServiceInstanceDetails
-                                            details={
+                                            serviceHeaderDetails={
                                                 this.props.serviceHeaderDetails
                                             }
+                                        />
+
+                                        <ServiceInstanceDetails
+                                            instanceDetailsMeta={
+                                                this.props.instanceDetails
+                                                    .workLoadMeta
+                                            }
+                                            categoryType={SERVICE_TYPE_DYNAMIC}
                                         />
                                         <ServiceTabs
                                             api={this.api}
@@ -164,7 +171,7 @@ export default class DynamicInstancePage extends React.Component {
                                         api={this.api}
                                         domain={domain}
                                         _csrf={_csrf}
-                                        instances={instanceDetails}
+                                        instances={instanceDetails.workLoadData}
                                         service={this.props.service}
                                     />
                                 </ServiceContentDiv>
