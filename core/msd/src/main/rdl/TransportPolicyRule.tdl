@@ -1,0 +1,76 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+// Types of transport policy enforcement states
+type TransportPolicyEnforcementState Enum {
+    ENFORCE,
+    REPORT
+}
+
+// Types of transport policy protocols
+type TransportPolicyProtocol Enum {
+    TCP,
+    UDP
+}
+
+// Subject for a transport policy
+type TransportPolicySubject Struct {
+    DomainName domainName; // Name of the domain
+    EntityName serviceName; // Name of the service
+}
+
+// Transport policy condition. Used to specify additional restrictions for the subject of a transport policy
+type TransportPolicyCondition Struct {
+    TransportPolicyEnforcementState enforcementState; // State of transport policy enforcement ( ENFORCE / REPORT )
+    Array<String> instances (optional); // Acts as restrictions. If present, this transport policy should be restricted to only mentioned instances.
+}
+
+// Transport policy port
+type TransportPolicyPort Struct {
+    Int32 port; // Start port of the port range. port and endPort will have same values for a single port definition.
+    Int32 endPort; // End port of the port range. port and endPort will have same values for a single port definition.
+    TransportPolicyProtocol protocol; // Protocol for this transport policy
+}
+
+
+// Selector for the subject of a transport policy
+type TransportPolicyMatch Struct {
+    TransportPolicySubject athenzService; // Subject where this transport policy applies
+    Array<TransportPolicyCondition> conditions; // List of additional requirements for restrictions. Requirements are ANDed.
+}
+
+// Source or destination for a transport policy
+type TransportPolicyPeer Struct {
+    Array<TransportPolicySubject> athenzServices; // List of transport policy subjects
+    Array<TransportPolicyPort> ports; // List of network traffic port part of this transport policy
+}
+
+// Entity to which a transport policy applies. Describes the subject and port(s) for a transport policy.
+type TransportPolicyEntitySelector Struct {
+    TransportPolicyMatch match; //Requirements for selecting the subject for this transport policy.
+    Array<TransportPolicyPort> ports; // List of network traffic port of the subject eligible for the transport policy
+}
+
+// Transport policy ingress rule
+type TransportPolicyIngressRule Struct {
+    Int64 id; // Assertion id associated with this transport policy
+    Timestamp lastModified; // Last modification timestamp of this transport policy
+    TransportPolicyEntitySelector entitySelector; // Describes the entity to which this transport policy applies
+    TransportPolicyPeer from; // Source of network traffic
+}
+
+// Transport policy egress rule
+type TransportPolicyEgressRule Struct {
+    Int64 id; // Assertion id associated with this transport policy
+    Timestamp lastModified; // Last modification timestamp of this transport policy
+    TransportPolicyEntitySelector entitySelector; // Entity to which this transport policy applies
+    TransportPolicyPeer to; // Destination of network traffic
+}
+
+// Transport policy containing ingress and egress rules
+type TransportPolicyRules Struct {
+    Array<TransportPolicyIngressRule> ingress; // List of ingress rules
+    Array<TransportPolicyEgressRule> egress; // List of egress rules
+}

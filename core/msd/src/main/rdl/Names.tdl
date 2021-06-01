@@ -1,0 +1,46 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//
+//Common name types used by several API definitions
+//
+
+//A simple identifier, an element of compound name.
+type SimpleName String (pattern="[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+
+//A compound name. Most names in this API are compound names.
+type CompoundName String (pattern="({SimpleName}\\.)*{SimpleName}");
+
+//A domain name is the general qualifier prefix, as its uniqueness is managed.
+type DomainName String (pattern="{CompoundName}");
+
+//An entity name is a short form of a resource name,
+//including only the domain and entity.
+type EntityName String (pattern="{CompoundName}");
+
+//An Entity list is comma separated compound Names
+type EntityList String (pattern="({CompoundName},)*{CompoundName}");
+
+//A service name will generally be a unique subdomain.
+type ServiceName String (pattern="{CompoundName}");
+
+//An action (operation) name.
+type ActionName String (pattern="{CompoundName}");
+
+//A resource name
+//Note that the EntityName part is optional, that is, a domain
+//name followed by a colon is valid resource name.
+type ResourceName String (pattern="{DomainName}(:{EntityName})?");
+
+//The Y-specific URL-safe Base64 variant.
+type YBase64 String (pattern="[a-zA-Z0-9\\._-]+");
+
+//YEncoded includes ybase64 chars, as well as = and %. This can
+//represent a user cookie and URL-encoded values.
+type YEncoded String (pattern="[a-zA-Z0-9\\._%=-]*");
+
+//Used as the prefix in a signed assertion. This uniquely identifies a signing authority.
+type AuthorityName String (pattern="{CompoundName}");
+
+//A uri-safe path element
+type PathElement String (pattern="[a-zA-Z0-9-\\._~=+@$,:]*");

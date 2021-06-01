@@ -118,6 +118,7 @@
     <module>rdl/rdl-gen-athenz-java-client</module>
     <module>core/zms</module>
     <module>core/zts</module>
+    <module>core/msd</module>
     <module>libs/java/auth_core</module>
     <module>libs/java/client_common</module>
     <module>libs/java/server_common</module>
