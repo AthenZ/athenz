@@ -145,14 +145,14 @@ exports[`Modal should render open state 1`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-0 animated react-modal-overlay"
+      class="ReactModal__Overlay emotion-0 animated react-modal-overlay"
     >
       <div
         aria-describedby="modal-content"
         aria-label="Modal"
         aria-labelledby="modal-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-1 denali-modal"
+        class="ReactModal__Content emotion-1 denali-modal"
         role="dialog"
         tabindex="-1"
       >
