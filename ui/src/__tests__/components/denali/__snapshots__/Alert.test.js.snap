@@ -167,13 +167,13 @@ exports[`Alert should disable animations 1`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-0"
+      class="ReactModal__Overlay emotion-0"
     >
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-1 denali-alert denali-alert-info"
+        class="ReactModal__Content emotion-1 denali-alert denali-alert-info"
         role="dialog"
         tabindex="-1"
       >
@@ -413,13 +413,13 @@ exports[`Alert should render all alert types 1`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-0"
+      class="ReactModal__Overlay emotion-0"
     >
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-1 denali-alert denali-alert-danger animated"
+        class="ReactModal__Content emotion-1 denali-alert denali-alert-danger animated"
         role="dialog"
         tabindex="-1"
       >
@@ -652,13 +652,13 @@ exports[`Alert should render all alert types 2`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-0"
+      class="ReactModal__Overlay emotion-0"
     >
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-1 denali-alert denali-alert-info animated"
+        class="ReactModal__Content emotion-1 denali-alert denali-alert-info animated"
         role="dialog"
         tabindex="-1"
       >
@@ -891,13 +891,13 @@ exports[`Alert should render all alert types 3`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-0"
+      class="ReactModal__Overlay emotion-0"
     >
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-1 denali-alert denali-alert-success animated"
+        class="ReactModal__Content emotion-1 denali-alert denali-alert-success animated"
         role="dialog"
         tabindex="-1"
       >
@@ -1130,13 +1130,13 @@ exports[`Alert should render all alert types 4`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-0"
+      class="ReactModal__Overlay emotion-0"
     >
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-1 denali-alert denali-alert-warning animated"
+        class="ReactModal__Content emotion-1 denali-alert denali-alert-warning animated"
         role="dialog"
         tabindex="-1"
       >
@@ -1366,13 +1366,13 @@ exports[`Alert should render open state 1`] = `
     class="ReactModalPortal"
   >
     <div
-      class="ReactModal__Overlay ReactModal__Overlay--after-open emotion-0"
+      class="ReactModal__Overlay emotion-0"
     >
       <div
         aria-describedby="alert-description"
         aria-labelledby="alert-title"
         aria-modal="true"
-        class="ReactModal__Content ReactModal__Content--after-open emotion-1 denali-alert denali-alert-info animated"
+        class="ReactModal__Content emotion-1 denali-alert denali-alert-info animated"
         role="dialog"
         tabindex="-1"
       >

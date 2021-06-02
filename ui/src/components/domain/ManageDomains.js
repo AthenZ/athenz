@@ -94,6 +94,7 @@ export default class ManageDomains extends React.Component {
             businessServiceName: '',
             businessServiceDomainName: '',
             category: 'domain',
+            errorMessageForModal: '',
         };
         this.saveJustification = this.saveJustification.bind(this);
         this.saveBusinessService = this.saveBusinessService.bind(this);
@@ -107,18 +108,18 @@ export default class ManageDomains extends React.Component {
             businessServiceName: businessServiceName,
             businessServiceDomainName: domainName,
             auditEnabled: auditEnabled,
-            showDelete: false,
         });
     }
 
     onClickBusinessServiceCancel() {
         this.setState({
             showBusinessService: false,
+            errorMessageForModal: '',
             errorMessage: null,
             businessServiceName: '',
             businessServiceDomainName: '',
             auditRef: '',
-            showDelete: false,
+            auditEnabled: false,
         });
     }
 
@@ -127,9 +128,6 @@ export default class ManageDomains extends React.Component {
             showDelete: true,
             deleteName: name,
             auditEnabled: auditEnabled,
-            showBusinessService: false,
-            businessServiceName: '',
-            businessServiceDomainName: '',
         });
     }
 
@@ -140,9 +138,6 @@ export default class ManageDomains extends React.Component {
             auditEnabled: false,
             auditRef: '',
             errorMessage: null,
-            showBusinessService: false,
-            businessServiceName: '',
-            businessServiceDomainName: '',
         });
     }
 
@@ -223,12 +218,16 @@ export default class ManageDomains extends React.Component {
     }
 
     updateMeta(meta, domainName, csrf, successMessage) {
+        let auditMsg = this.state.auditRef;
+        if (auditMsg === '') {
+            auditMsg = 'Updated ' + domainName + ' Meta using Athenz UI';
+        }
         this.api
             .putMeta(
                 domainName,
                 domainName,
                 meta,
-                'Updated ' + domainName + ' Meta using Athenz UI',
+                auditMsg,
                 csrf,
                 this.state.category
             )
@@ -239,6 +238,7 @@ export default class ManageDomains extends React.Component {
                     auditEnabled: false,
                     auditRef: '',
                     errorMessage: null,
+                    errorMessageForModal: '',
                     showBusinessService: false,
                     businessServiceName: '',
                     businessServiceDomainName: '',
@@ -247,19 +247,31 @@ export default class ManageDomains extends React.Component {
             })
             .catch((err) => {
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    showDelete: false,
-                    deleteName: null,
-                    auditEnabled: false,
-                    auditRef: '',
-                    showBusinessService: false,
-                    businessServiceName: '',
-                    businessServiceDomainName: '',
+                    errorMessageForModal: RequestUtils.xhrErrorCheckHelper(err),
                 });
             });
     }
 
     onSubmitBusinessService() {
+        if (this.state.auditEnabled && !this.state.auditRef) {
+            this.setState({
+                errorMessageForModal: 'Justification is mandatory',
+            });
+            return;
+        }
+
+        if (this.state.businessServiceName) {
+            var index = this.props.validBusinessServicesAll.findIndex(
+                (x) => x.name == this.state.businessServiceName
+            );
+            if (index === -1) {
+                this.setState({
+                    errorMessageForModal: 'Invalid business service value',
+                });
+                return;
+            }
+        }
+
         let domainName = this.state.businessServiceDomainName;
         let businessServiceName = this.state.businessServiceName;
         let domainMeta = {};

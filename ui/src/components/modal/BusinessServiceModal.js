@@ -67,7 +67,7 @@ export default class BusinessServiceModal extends React.Component {
 
         // If selected service isn't part of user's business services, add it
         let bServiceName = this.props.businessServiceName;
-        let validBServicesUser = props.validBusinessServices;
+        let validBServicesUser = props.validBusinessServices.map((x) => x);
         if (bServiceName) {
             var index = validBServicesUser.findIndex(
                 (x) => x.name == bServiceName
@@ -82,9 +82,9 @@ export default class BusinessServiceModal extends React.Component {
 
         this.state = {
             validBusinessServices: validBServicesUser,
-            errorMessage: null,
-            checked: true,
+            onlyAccountValuesChecked: true,
             selectedBservice: bServiceName,
+            errorMessage: this.props.errorMessage,
         };
         this.api = props.api;
     }
@@ -115,12 +115,13 @@ export default class BusinessServiceModal extends React.Component {
                 )}
                 <StyledCheckbox>
                     <CheckBox
-                        checked={this.state.checked}
+                        checked={this.state.onlyAccountValuesChecked}
                         name='checkbox-show-all-bservices'
                         id='checkbox-show-all-bservices'
                         label='Only show business services associated with my account'
                         onChange={() => {
-                            let newChecked = !this.state.checked;
+                            let newChecked =
+                                !this.state.onlyAccountValuesChecked;
                             let newValidBusinessServices = [];
                             if (newChecked) {
                                 newValidBusinessServices =
@@ -130,7 +131,7 @@ export default class BusinessServiceModal extends React.Component {
                                     this.props.validBusinessServicesAll;
                             }
                             this.setState({
-                                checked: newChecked,
+                                onlyAccountValuesChecked: newChecked,
                                 validBusinessServices: newValidBusinessServices,
                             });
                         }}

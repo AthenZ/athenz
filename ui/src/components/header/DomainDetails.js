@@ -80,7 +80,10 @@ export default class DomainDetails extends React.Component {
             showSuccess: false,
             showBusinessService: false,
             businessServiceName: this.props.domainDetails.businessService,
+            tempBusinessServiceName: this.props.domainDetails.businessService,
             category: 'domain',
+            errorMessageForModal: '',
+            errorMessage: null,
         };
         this.closeModal = this.closeModal.bind(this);
         this.onClickOnboardToAWS = this.onClickOnboardToAWS.bind(this);
@@ -92,10 +95,7 @@ export default class DomainDetails extends React.Component {
     onClickBusinessService(domainName, businessServiceName, auditEnabled) {
         this.setState({
             showBusinessService: true,
-            businessServiceName: businessServiceName,
-            businessServiceDomainName: domainName,
-            auditEnabled: auditEnabled,
-            showDelete: false,
+            tempBusinessServiceName: businessServiceName,
         });
     }
 
@@ -103,10 +103,8 @@ export default class DomainDetails extends React.Component {
         this.setState({
             showBusinessService: false,
             errorMessage: null,
-            businessServiceName: '',
-            businessServiceDomainName: '',
+            errorMessageForModal: '',
             auditRef: '',
-            showDelete: false,
         });
     }
 
@@ -117,27 +115,29 @@ export default class DomainDetails extends React.Component {
     }
     saveBusinessService(val) {
         this.setState({
-            businessServiceName: val,
+            tempBusinessServiceName: val,
         });
     }
 
     updateMeta(meta, domainName, csrf, successMessage) {
+        let auditMsg = this.state.auditRef;
+        if (!auditMsg) {
+            auditMsg = 'Updated ' + domainName + ' Meta using Athenz UI';
+        }
         this.api
             .putMeta(
                 domainName,
                 domainName,
                 meta,
-                'Updated ' + domainName + ' Meta using Athenz UI',
+                auditMsg,
                 csrf,
                 this.state.category
             )
             .then(() => {
                 this.setState({
-                    showDelete: false,
-                    deleteName: null,
-                    auditEnabled: false,
                     auditRef: '',
                     errorMessage: null,
+                    errorMessageForModal: '',
                     showBusinessService: false,
                     businessServiceName: meta.businessService,
                     successMessage: successMessage,
@@ -155,19 +155,33 @@ export default class DomainDetails extends React.Component {
             .catch((err) => {
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    showDelete: false,
-                    deleteName: null,
-                    auditEnabled: false,
-                    auditRef: '',
-                    showBusinessService: false,
-                    businessServiceName: '',
+                    errorMessageForModal: RequestUtils.xhrErrorCheckHelper(err),
                 });
             });
     }
 
     onSubmitBusinessService() {
-        let domainName = this.state.businessServiceDomainName;
-        let businessServiceName = this.state.businessServiceName;
+        if (this.props.domainDetails.auditEnabled && !this.state.auditRef) {
+            this.setState({
+                errorMessageForModal: 'Justification is mandatory',
+            });
+            return;
+        }
+
+        if (this.state.tempBusinessServiceName) {
+            var index = this.props.validBusinessServicesAll.findIndex(
+                (x) => x.name == this.state.tempBusinessServiceName
+            );
+            if (index === -1) {
+                this.setState({
+                    errorMessageForModal: 'Invalid business service value',
+                });
+                return;
+            }
+        }
+
+        let domainName = this.props.domainDetails.name;
+        let businessServiceName = this.state.tempBusinessServiceName;
         let domainMeta = {};
         domainMeta.businessService = businessServiceName;
         let successMessage = `Successfully set business service for domain ${domainName}`;
@@ -236,7 +250,7 @@ export default class DomainDetails extends React.Component {
         let businessServiceItem = this.onClickBusinessService.bind(
             this,
             this.props.domainDetails.name,
-            this.props.domainDetails.businessService,
+            this.state.businessServiceName,
             this.props.domainDetails.auditEnabled
         );
         let businessServiceTitle = this.state.businessServiceName
@@ -342,9 +356,11 @@ export default class DomainDetails extends React.Component {
                             isOpen={this.state.showBusinessService}
                             cancel={clickBusinessServiceCancel}
                             businessServiceName={this.state.businessServiceName}
-                            domainName={this.state.businessServiceDomainName}
+                            domainName={this.props.domainDetails.name}
                             submit={clickBusinessServiceSubmit}
-                            showJustification={this.state.auditEnabled}
+                            showJustification={
+                                this.props.domainDetails.auditEnabled
+                            }
                             onJustification={this.saveJustification}
                             onBusinessService={this.saveBusinessService}
                             key={'business-service-modal'}
