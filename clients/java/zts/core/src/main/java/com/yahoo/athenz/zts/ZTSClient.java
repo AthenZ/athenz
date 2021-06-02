@@ -1974,7 +1974,7 @@ public class ZTSClient implements Closeable {
                 idTokenServiceName, proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris);
     }
 
-    String getAccessTokenCacheKey(String tenantDomain, String tenantService, String domainName,
+    static String getAccessTokenCacheKey(String tenantDomain, String tenantService, String domainName,
             List<String> roleNames, String idTokenServiceName, String proxyForPrincipal,
             String authorizationDetails, String proxyPrincipalSpiffeUris) {
 
@@ -3256,11 +3256,11 @@ public class ZTSClient implements Closeable {
         return cacheKeySet;
     }
 
-    boolean isEmpty(final String value) {
+    static boolean isEmpty(final String value) {
         return (value == null || value.isEmpty());
     }
 
-    boolean isEmpty(final List<String> list) {
+    static boolean isEmpty(final List<String> list) {
         return (list == null || list.isEmpty());
     }
 
