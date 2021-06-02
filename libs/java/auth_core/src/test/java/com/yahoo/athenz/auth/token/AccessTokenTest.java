@@ -678,6 +678,9 @@ public class AccessTokenTest {
 
         AccessToken checkToken = new AccessToken(accessJws, resolver, cert);
         assertNotNull(checkToken);
+        List<String> spiffeUris = checkToken.getConfirmProxyPrincpalSpiffeUris();
+        assertEquals(spiffeUris.size(), 1);
+        assertEquals(spiffeUris.get(0), "spiffe://athenz/domain1/service1");
     }
 
     @Test
