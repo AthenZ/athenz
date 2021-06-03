@@ -8,6 +8,8 @@ include "Names.tdl";
 // API endpoint to get the transport policy rules defined in Athenz
 resource TransportPolicyRules GET "/transportpolicies" {
     authenticate;
+    String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time
+    String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
