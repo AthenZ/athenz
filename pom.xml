@@ -134,6 +134,7 @@
     <module>containers/jetty</module>
     <module>clients/go/zms</module>
     <module>clients/go/zts</module>
+    <module>clients/go/msd</module>
     <module>libs/go/zmscli</module>
     <module>libs/go/zmssvctoken</module>
     <module>libs/go/athenzutils</module>
