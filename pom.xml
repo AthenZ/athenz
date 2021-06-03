@@ -128,6 +128,7 @@
     <module>clients/java/zts/core</module>
     <module>clients/java/zts/shade</module>
     <module>clients/java/zpe</module>
+    <module>clients/java/msd</module>
     <module>servers/zms</module>
     <module>servers/zts</module>
     <module>containers/jetty</module>
@@ -274,6 +275,7 @@
                 <exclude>**/FileConnection.class</exclude>
                 <exclude>**/FileObjectStore.class</exclude>
                 <exclude>**/FileWorkloadStore.class</exclude>
+                <exclude>**/*MSDRDLGeneratedClient.class</exclude>
               </excludes>
               <rules>
                 <rules>

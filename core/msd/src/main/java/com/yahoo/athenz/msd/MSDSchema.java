@@ -129,6 +129,8 @@ public class MSDSchema {
 
         sb.resource("TransportPolicyRules", "GET", "/transportpolicies")
             .comment("API endpoint to get the transport policy rules defined in Athenz")
+            .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
+            .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
