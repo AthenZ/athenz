@@ -1917,6 +1917,14 @@ func init() {
 	mGetDomainTemplateDetailsList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetDomainTemplateDetailsList.Build())
 
+	mGetServerTemplateDetailsList := rdl.NewResourceBuilder("DomainTemplateDetailsList", "GET", "/templatedetails")
+	mGetServerTemplateDetailsList.Comment("Get a list of Solution templates with meta data details defined in the server")
+	mGetServerTemplateDetailsList.Name("GetServerTemplateDetailsList")
+	mGetServerTemplateDetailsList.Auth("", "", true, "")
+	mGetServerTemplateDetailsList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetServerTemplateDetailsList.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetServerTemplateDetailsList.Build())
+
 	mGetUserList := rdl.NewResourceBuilder("UserList", "GET", "/user")
 	mGetUserList.Comment("Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")
 	mGetUserList.Input("domainName", "DomainName", false, "domain", "", true, nil, "name of the allowed user-domains and/or aliases")

@@ -38,3 +38,12 @@ resource DomainTemplateDetailsList GET "/domain/{name}/templatedetails" {
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+//Get a list of Solution templates with meta data details defined in the server
+resource DomainTemplateDetailsList GET "/templatedetails" (name=GetServerTemplateDetailsList) {
+    authenticate;
+    exceptions {
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

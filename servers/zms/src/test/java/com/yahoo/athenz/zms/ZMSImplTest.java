@@ -21399,6 +21399,14 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetServerTemplateDetailsList() {
+        DomainTemplateDetailsList serverTemplateDetailsList = zms.getServerTemplateDetailsList(mockDomRsrcCtx);
+        assertEquals(serverTemplateDetailsList.getMetaData().size(), 10);
+        assertEquals(serverTemplateDetailsList.getMetaData().get(6).getDescription(), "Vipng template");
+        assertEquals(serverTemplateDetailsList.getMetaData().get(6).getLatestVersion().intValue(), 10);
+    }
+
+    @Test
     public void testEnforcedUserAuthorityFilter() {
 
         Authority savedAuthority = zms.userAuthority;

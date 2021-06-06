@@ -3068,6 +3068,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return domainTemplateDetailsList;
     }
 
+    @Override
+    public DomainTemplateDetailsList getServerTemplateDetailsList(ResourceContext ctx) {
+        final String caller = ctx.getApiName();
+
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+
+        List<TemplateMetaData> serverTemplateMetadataList = serverSolutionTemplates.getTemplates()
+                .values()
+                .stream()
+                .map(template -> template.getMetadata())
+                .collect(Collectors.toList());
+
+        DomainTemplateDetailsList serverTemplateDetailsList = new DomainTemplateDetailsList();
+        serverTemplateDetailsList.setMetaData(serverTemplateMetadataList);
+        return serverTemplateDetailsList;
+    }
+
     public RoleList getRoleList(ResourceContext ctx, String domainName, Integer limit, String skip) {
 
         final String caller = ctx.getApiName();
