@@ -2245,6 +2245,16 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("DomainTemplateDetailsList", "GET", "/templatedetails")
+            .comment("Get a list of Solution templates with meta data details defined in the server")
+            .name("GetServerTemplateDetailsList")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("UserList", "GET", "/user")
             .comment("Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")
             .queryParam("domain", "domainName", "DomainName", null, "name of the allowed user-domains and/or aliases")

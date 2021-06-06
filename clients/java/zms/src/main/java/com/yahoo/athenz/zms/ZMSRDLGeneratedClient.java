@@ -2129,6 +2129,24 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public DomainTemplateDetailsList getServerTemplateDetailsList() {
+        WebTarget target = base.path("/templatedetails");
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(DomainTemplateDetailsList.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public UserList getUserList(String domainName) {
         WebTarget target = base.path("/user");
         if (domainName != null) {

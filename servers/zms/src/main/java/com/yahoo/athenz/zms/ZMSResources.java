@@ -3313,6 +3313,34 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/templatedetails")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Get a list of Solution templates with meta data details defined in the server")
+    public DomainTemplateDetailsList getServerTemplateDetailsList(
+        ) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getServerTemplateDetailsList");
+            context.authenticate();
+            return this.delegate.getServerTemplateDetailsList(context);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getServerTemplateDetailsList");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/user")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")
