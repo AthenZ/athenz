@@ -19,6 +19,7 @@ import static org.testng.Assert.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
@@ -351,5 +352,38 @@ public class ZMSUtilsTest {
 
         assertTrue(ZMSUtils.metaValueChanged(null, 10));
         assertFalse(ZMSUtils.metaValueChanged(10, null));
+    }
+
+    @Test
+    public void testConfiguredExpiryMillis() {
+
+        assertEquals(ZMSUtils.configuredDueDateMillis(null, null), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(null, -3), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(null, 0), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(-3, null), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, null), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(-3, -3), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, 0), 0);
+
+        long extMillis = TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS);
+        long millis = ZMSUtils.configuredDueDateMillis(null, 10);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(null, 10);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(-1, 10);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(0, 10);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(5, 10);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(20, 10);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+
+        millis = ZMSUtils.configuredDueDateMillis(10, null);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(10, -1);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(10, 0);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
     }
 }

@@ -28,6 +28,7 @@ import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.zms.config.MemberDueDays;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
@@ -76,9 +77,6 @@ public class DBService implements RolesProvider {
     AuditReferenceValidator auditReferenceValidator;
     private ScheduledExecutorService userAuthorityFilterExecutor;
     
-    private int roleTagsLimit;
-    private int domainTagsLimit;
-    
     public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig, AuditReferenceValidator auditReferenceValidator) {
 
         this.store = store;
@@ -92,8 +90,8 @@ public class DBService implements RolesProvider {
         if (defaultOpTimeout < 0) {
             defaultOpTimeout = 60;
         }
-        roleTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
-        domainTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
+        int roleTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
+        int domainTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         if (this.store != null) {
             this.store.setOperationTimeout(defaultOpTimeout);
             this.store.setTagLimit(domainTagsLimit, roleTagsLimit);
@@ -3192,7 +3190,7 @@ public class DBService implements RolesProvider {
         // since our old value is not null then we will only
         // allow if the new value is identical
 
-        return (newValue != null) ? oldValue.equals(newValue) : false;
+        return oldValue.equals(newValue);
     }
 
     boolean isDeleteSystemMetaAllowed(boolean deleteAllowed, Integer oldValue, Integer newValue) {
@@ -3207,7 +3205,7 @@ public class DBService implements RolesProvider {
         // since our old value is not null then we will only
         // allow if the new value is identical
 
-        return (newValue != null) ? newValue.intValue() == oldValue.intValue() : false;
+        return newValue != null && newValue.intValue() == oldValue.intValue();
     }
 
     void updateSystemMetaFields(Domain domain, final String attribute, boolean deleteAllowed,
@@ -6202,7 +6200,8 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executePutGroupReview(ResourceContext ctx, final String domainName, final String groupName, Group group, final String auditRef) {
+    void executePutGroupReview(ResourceContext ctx, final String domainName, final String groupName,
+                               Group group, MemberDueDays memberExpiryDueDays, final String auditRef) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -6224,12 +6223,12 @@ public class DBService implements RolesProvider {
 
                 // now process the request. first we're going to make a copy of our group
 
-                Group updatedGroup = new Group()
-                        .setName(originalGroup.getName());
+                Group updatedGroup = new Group().setName(originalGroup.getName());
 
                 // then we're going to apply the updated expiry and/or active status from the incoming group
 
-                List<GroupMember> noActionMembers = applyMembershipChangesGroup(updatedGroup, originalGroup, group, auditRef);
+                List<GroupMember> noActionMembers = applyMembershipChangesGroup(updatedGroup, originalGroup,
+                        group, memberExpiryDueDays, auditRef);
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
 
@@ -6295,6 +6294,7 @@ public class DBService implements RolesProvider {
     }
 
     void executePutRoleReview(ResourceContext ctx, String domainName, String roleName, Role role,
+                              MemberDueDays memberExpiryDueDays, MemberDueDays memberReminderDueDays,
                               String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
@@ -6321,12 +6321,12 @@ public class DBService implements RolesProvider {
 
                 // now process the request. first we're going to make a copy of our role
 
-                Role updatedRole = new Role()
-                        .setName(originalRole.getName());
+                Role updatedRole = new Role().setName(originalRole.getName());
 
                 // then we're going to apply the updated expiry and/or active status from the incoming role
 
-                List<RoleMember> noactionMembers = applyMembershipChanges(updatedRole, originalRole, role, auditRef);
+                List<RoleMember> noActionMembers = applyMembershipChanges(updatedRole, originalRole, role,
+                        memberExpiryDueDays, memberReminderDueDays, auditRef);
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
 
@@ -6365,7 +6365,7 @@ public class DBService implements RolesProvider {
 
                 auditLogRoleMembers(auditDetails, "deleted-members", deletedMembers);
                 auditLogRoleMembers(auditDetails, "extended-members", extendedMembers);
-                auditLogRoleMembers(auditDetails, "no-action-members", noactionMembers);
+                auditLogRoleMembers(auditDetails, "no-action-members", noActionMembers);
 
                 auditDetails.append("}");
 
@@ -6401,7 +6401,8 @@ public class DBService implements RolesProvider {
      * @param auditRef audit ref for the change
      * @return List of rolemember where no action was taken
      */
-    List<RoleMember> applyMembershipChanges(Role updatedRole, Role originalRole, Role role, String auditRef) {
+    List<RoleMember> applyMembershipChanges(Role updatedRole, Role originalRole, Role role,
+                MemberDueDays memberExpiryDueDays, MemberDueDays memberReminderDueDays, String auditRef) {
 
         Map<String, RoleMember> incomingMemberMap =
                 role.getRoleMembers().stream().collect(Collectors.toMap(RoleMember::getMemberName, item -> item));
@@ -6438,9 +6439,14 @@ public class DBService implements RolesProvider {
 
                 updatedMember.setActive(tempMemberFromMap.getActive());
 
-                // member's new expiration is set by role / domain level expiration setting
+                // member's new expiration/review reminder date is set by
+                // role / domain level expiration setting
 
-                updatedMember.setExpiration(tempMemberFromMap.getExpiration());
+                updatedMember.setExpiration(memberDueDateUpdateRequired(memberExpiryDueDays, tempMemberFromMap.getPrincipalType()) ?
+                        tempMemberFromMap.getExpiration() : originalMember.getExpiration());
+
+                updatedMember.setReviewReminder(memberDueDateUpdateRequired(memberReminderDueDays, tempMemberFromMap.getPrincipalType()) ?
+                        tempMemberFromMap.getReviewReminder() : originalMember.getReviewReminder());
 
                 updatedMember.setAuditRef(auditRef);
                 updatedMembers.add(updatedMember);
@@ -6448,7 +6454,24 @@ public class DBService implements RolesProvider {
                 noActionMembers.add(originalMember);
             }
         }
+
         return noActionMembers;
+    }
+
+    boolean memberDueDateUpdateRequired(MemberDueDays memberDueDays, Integer principalType) {
+        long dueDateMills = 0;
+        switch (Principal.Type.getType(principalType)) {
+            case USER:
+                dueDateMills = memberDueDays.getUserDueDateMillis();
+                break;
+            case SERVICE:
+                dueDateMills = memberDueDays.getServiceDueDateMillis();
+                break;
+            case GROUP:
+                dueDateMills = memberDueDays.getGroupDueDateMillis();
+                break;
+        }
+        return dueDateMills != 0;
     }
 
     /**
@@ -6460,7 +6483,8 @@ public class DBService implements RolesProvider {
      * @param auditRef audit ref for the change
      * @return List of rolemember where no action was taken
      */
-    List<GroupMember> applyMembershipChangesGroup(Group updatedGroup, Group originalGroup, Group group, String auditRef) {
+    List<GroupMember> applyMembershipChangesGroup(Group updatedGroup, Group originalGroup, Group group,
+                                                  MemberDueDays memberExpiryDueDays, String auditRef) {
 
         Map<String, GroupMember> incomingMemberMap =
                 group.getGroupMembers().stream().collect(Collectors.toMap(GroupMember::getMemberName, item -> item));
@@ -6499,7 +6523,8 @@ public class DBService implements RolesProvider {
 
                 // member's new expiration is set by role / domain level expiration setting
 
-                updatedMember.setExpiration(tempMemberFromMap.getExpiration());
+                updatedMember.setExpiration(memberDueDateUpdateRequired(memberExpiryDueDays, tempMemberFromMap.getPrincipalType()) ?
+                        tempMemberFromMap.getExpiration() : originalMember.getExpiration());
 
                 updatedMember.setAuditRef(auditRef);
                 updatedMembers.add(updatedMember);

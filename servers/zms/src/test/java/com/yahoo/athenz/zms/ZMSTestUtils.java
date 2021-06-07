@@ -151,4 +151,8 @@ public class ZMSTestUtils {
     public static Timestamp addDays(Timestamp date, int days) {
         return Timestamp.fromMillis(date.millis() + TimeUnit.MILLISECONDS.convert(days, TimeUnit.DAYS));
     }
+
+    public static boolean validateDueDate(long millis, long extMillis) {
+        return (millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+    }
 }

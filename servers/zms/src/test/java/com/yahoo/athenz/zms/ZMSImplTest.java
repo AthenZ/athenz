@@ -44,6 +44,7 @@ import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.zms.config.MemberDueDays;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
@@ -20220,43 +20221,6 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
 
-    private boolean validateDueDate(long millis, long extMillis) {
-        return (millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
-    }
-
-    @Test
-    public void testConfiguredExpiryMillis() {
-
-        assertEquals(zms.configuredDueDateMillis(null, null), 0);
-        assertEquals(zms.configuredDueDateMillis(null, -3), 0);
-        assertEquals(zms.configuredDueDateMillis(null, 0), 0);
-        assertEquals(zms.configuredDueDateMillis(-3, null), 0);
-        assertEquals(zms.configuredDueDateMillis(0, null), 0);
-        assertEquals(zms.configuredDueDateMillis(-3, -3), 0);
-        assertEquals(zms.configuredDueDateMillis(0, 0), 0);
-
-        long extMillis = TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS);
-        long millis = zms.configuredDueDateMillis(null, 10);
-        assertTrue(validateDueDate(millis, extMillis));
-        millis = zms.configuredDueDateMillis(null, 10);
-        assertTrue(validateDueDate(millis, extMillis));
-        millis = zms.configuredDueDateMillis(-1, 10);
-        assertTrue(validateDueDate(millis, extMillis));
-        millis = zms.configuredDueDateMillis(0, 10);
-        assertTrue(validateDueDate(millis, extMillis));
-        millis = zms.configuredDueDateMillis(5, 10);
-        assertTrue(validateDueDate(millis, extMillis));
-        millis = zms.configuredDueDateMillis(20, 10);
-        assertTrue(validateDueDate(millis, extMillis));
-
-        millis = zms.configuredDueDateMillis(10, null);
-        assertTrue(validateDueDate(millis, extMillis));
-        millis = zms.configuredDueDateMillis(10, -1);
-        assertTrue(validateDueDate(millis, extMillis));
-        millis = zms.configuredDueDateMillis(10, 0);
-        assertTrue(validateDueDate(millis, extMillis));
-    }
-
     @Test
     public void testGetMemberDueDate() {
         assertEquals(zms.getMemberDueDate(100, null), Timestamp.fromMillis(100));
@@ -20275,10 +20239,10 @@ public class ZMSImplTest {
         long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
 
         Timestamp stamp = zms.memberDueDateTimestamp(100, 50, Timestamp.fromMillis(System.currentTimeMillis() + ext75Millis));
-        assertTrue(validateDueDate(stamp.millis(), ext50Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext50Millis));
 
         stamp = zms.memberDueDateTimestamp(75, null, Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis));
-        assertTrue(validateDueDate(stamp.millis(), ext75Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext75Millis));
     }
 
     @Test
@@ -20306,29 +20270,27 @@ public class ZMSImplTest {
                 .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
                 .setPrincipalType(Principal.Type.GROUP.getValue()));
 
-        zms.updateRoleMemberReviewReminder(
-                125,
-                150,
-                175,
-                members);
+        Role role = new Role().setMemberReviewDays(125).setServiceReviewDays(150).setGroupReviewDays(175);
+        MemberDueDays memberDueDays = new MemberDueDays(null, role, MemberDueDays.Type.REMINDER);
+        zms.updateRoleMemberReviewReminder(memberDueDays, members);
 
         Timestamp stamp = members.get(0).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext125Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext125Millis));
 
         stamp = members.get(1).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
         stamp = members.get(2).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext150Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext150Millis));
 
         stamp = members.get(3).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
         stamp = members.get(4).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext175Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext175Millis));
 
         stamp = members.get(5).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
     }
 
     @Test
@@ -20355,28 +20317,27 @@ public class ZMSImplTest {
                 .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
                 .setPrincipalType(Principal.Type.GROUP.getValue()));
 
-        zms.updateRoleMemberReviewReminder(
-                0,
-                150,
-                175,
-                members);
+        Role role = new Role().setMemberReviewDays(0).setServiceReviewDays(150).setGroupReviewDays(175);
+        MemberDueDays memberDueDays = new MemberDueDays(null, role, MemberDueDays.Type.REMINDER);
+
+        zms.updateRoleMemberReviewReminder(memberDueDays, members);
 
         assertNull(members.get(0).getReviewReminder());
 
         Timestamp stamp = members.get(1).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
         stamp = members.get(2).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext150Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext150Millis));
 
         stamp = members.get(3).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
         stamp = members.get(4).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext175Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext175Millis));
 
         stamp = members.get(5).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
     }
 
     @Test
@@ -20384,7 +20345,6 @@ public class ZMSImplTest {
 
         long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
         long ext125Millis = TimeUnit.MILLISECONDS.convert(125, TimeUnit.DAYS);
-        long ext175Millis = TimeUnit.MILLISECONDS.convert(175, TimeUnit.DAYS);
 
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user.joe").setReviewReminder(null)
@@ -20403,18 +20363,20 @@ public class ZMSImplTest {
                 .setReviewReminder(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
                 .setPrincipalType(Principal.Type.GROUP.getValue()));
 
-        zms.updateRoleMemberReviewReminder(125, 0, 175, members);
+        Role role = new Role().setMemberReviewDays(125).setServiceReviewDays(0).setGroupReviewDays(175);
+        MemberDueDays memberDueDays = new MemberDueDays(null, role, MemberDueDays.Type.REMINDER);
+        zms.updateRoleMemberReviewReminder(memberDueDays, members);
 
         Timestamp stamp = members.get(0).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext125Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext125Millis));
 
         stamp = members.get(1).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
         assertNull(members.get(2).getReviewReminder());
 
         stamp = members.get(3).getReviewReminder();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
     }
 
     @Test
@@ -20443,32 +20405,29 @@ public class ZMSImplTest {
 
         // for user members we have 50/125 setup while for service members 75/150
 
-        zms.updateRoleMemberExpiration(
-                50,
-                125,
-                75,
-                150,
-                100,
-                125,
-                members);
+        Role role = new Role().setMemberExpiryDays(125).setServiceExpiryDays(150).setGroupExpiryDays(125);
+        Domain domain = new Domain().setMemberExpiryDays(50).setServiceExpiryDays(75).setGroupExpiryDays(100);
+        MemberDueDays memberDueDays = new MemberDueDays(domain, role, MemberDueDays.Type.EXPIRY);
+
+        zms.updateRoleMemberExpiration(memberDueDays, members);
 
         Timestamp stamp = members.get(0).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext125Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext125Millis));
 
         stamp = members.get(1).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
         stamp = members.get(2).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext150Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext150Millis));
 
         stamp = members.get(3).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
         stamp = members.get(4).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext125Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext125Millis));
 
         stamp = members.get(5).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
     }
 
     @Test
@@ -20496,30 +20455,27 @@ public class ZMSImplTest {
 
         // for user members we have 0 setup while for service members 75/150
 
-        zms.updateRoleMemberExpiration(
-                0,
-                0,
-                75,
-                150,
-                0,
-                0,
-                members);
+        Role role = new Role().setMemberExpiryDays(0).setServiceExpiryDays(150).setGroupExpiryDays(0);
+        Domain domain = new Domain().setMemberExpiryDays(0).setServiceExpiryDays(75).setGroupExpiryDays(0);
+        MemberDueDays memberDueDays = new MemberDueDays(domain, role, MemberDueDays.Type.EXPIRY);
+
+        zms.updateRoleMemberExpiration(memberDueDays, members);
 
         assertNull(members.get(0).getExpiration());
 
         Timestamp stamp = members.get(1).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
         stamp = members.get(2).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext150Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext150Millis));
 
         stamp = members.get(3).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
         assertNull(members.get(4).getExpiration());
 
         stamp = members.get(5).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
     }
 
     @Test
@@ -20542,25 +20498,22 @@ public class ZMSImplTest {
 
         // for user members we have 50/125 setup while for service members 0
 
-        zms.updateRoleMemberExpiration(
-                50,
-                125,
-                0,
-                0,
-                0,
-                0,
-                members);
+        Role role = new Role().setMemberExpiryDays(125).setServiceExpiryDays(0).setGroupExpiryDays(0);
+        Domain domain = new Domain().setMemberExpiryDays(50).setServiceExpiryDays(0).setGroupExpiryDays(0);
+        MemberDueDays memberDueDays = new MemberDueDays(domain, role, MemberDueDays.Type.EXPIRY);
+
+        zms.updateRoleMemberExpiration(memberDueDays, members);
 
         Timestamp stamp = members.get(0).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext125Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext125Millis));
 
         stamp = members.get(1).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
         assertNull(members.get(2).getExpiration());
 
         stamp = members.get(3).getExpiration();
-        assertTrue(validateDueDate(stamp.millis(), ext100Millis));
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
     }
 
     @Test
@@ -20675,88 +20628,293 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testPutRoleReview() {
+    public void testPutRoleReviewExpiration() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("role-review-dom",
+        final String domainName = "role-review-dom";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Role role1 = createRoleObject("role-review-dom", "role1", null,
+        Role role1 = createRoleObject(domainName, "role1", null,
                 "user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "role-review-dom", "role1", auditRef, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
 
         Timestamp tenDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         Timestamp sixtyDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS));
+
         Timestamp fortyFiveDaysLowerBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(45, TimeUnit.DAYS));
+        Timestamp fortyFiveDaysUpperBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(45, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES));
+
+        Timestamp fiftyDaysLowerBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(50, TimeUnit.DAYS));
+        Timestamp fiftyDaysUpperBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(50, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES));
+
+        Timestamp fiftyFiveDaysLowerBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(55, TimeUnit.DAYS));
+        Timestamp fiftyFiveDaysUpperBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(55, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES));
 
         Membership mbr = generateMembership("role1", "user.doe", tenDaysExpiry);
-        zms.putMembership(mockDomRsrcCtx, "role-review-dom", "role1", "user.doe", auditRef, mbr);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", "user.doe", auditRef, mbr);
+
+        Group group1 = createGroupObject(domainName, "group1", null);
+        zms.putGroup(mockDomRsrcCtx, domainName, "group1", auditRef, group1);
+
+        mbr = generateMembership("role1", domainName + ":group.group1", tenDaysExpiry);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", domainName + ":group.group1", auditRef, mbr);
+
+        mbr = generateMembership("role1", "sys.auth.zms", tenDaysExpiry);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", "sys.auth.zms", auditRef, mbr);
 
         RoleMeta rm = createRoleMetaObject(true);
         rm.setMemberExpiryDays(45);
-        zms.putRoleMeta(mockDomRsrcCtx, "role-review-dom", "role1", auditRef, rm);
+        rm.setServiceExpiryDays(50);
+        rm.setGroupExpiryDays(55);
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, "role1", auditRef, rm);
 
         Role inputRole = new Role().setName("role1");
         List<RoleMember> inputMembers = new ArrayList<>();
         inputRole.setRoleMembers(inputMembers);
         inputMembers.add(new RoleMember().setMemberName("user.john").setActive(false));
-        inputMembers.add(new RoleMember().setMemberName("user.doe").setActive(true).setExpiration(sixtyDaysExpiry));
-        zms.putRoleReview(mockDomRsrcCtx, "role-review-dom", "role1", auditRef, inputRole);
+        inputMembers.add(new RoleMember().setMemberName("user.doe").setActive(true)
+                .setExpiration(sixtyDaysExpiry));
+        inputMembers.add(new RoleMember().setMemberName(domainName + ":group.group1").setActive(true)
+                .setExpiration(sixtyDaysExpiry));
+        inputMembers.add(new RoleMember().setMemberName("sys.auth.zms").setActive(true)
+                .setExpiration(sixtyDaysExpiry));
+        zms.putRoleReview(mockDomRsrcCtx, domainName, "role1", auditRef, inputRole);
 
-        Role resRole1 = zms.getRole(mockDomRsrcCtx, "role-review-dom", "role1", false, false, false);
-
-        Timestamp fortyFiveDaysUpperBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(45, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES));
+        Role resRole1 = zms.getRole(mockDomRsrcCtx, domainName, "role1", false, false, false);
 
         int userChecked = 0;
         for (RoleMember roleMember : resRole1.getRoleMembers()) {
-            if (roleMember.getMemberName().equals("user.jane") || roleMember.getMemberName().equals("user.doe")) {
-                userChecked += 1;
-                assertTrue(roleMember.getExpiration().toDate().after(fortyFiveDaysLowerBoundExpiry.toDate()) && roleMember.getExpiration().toDate().before(fortyFiveDaysUpperBoundExpiry.toDate()));
-                assertTrue(roleMember.getApproved());
+            switch (roleMember.getMemberName()) {
+                case "user.jane":
+                case "user.doe":
+                    userChecked += 1;
+                    assertTrue(roleMember.getExpiration().toDate().after(fortyFiveDaysLowerBoundExpiry.toDate()) && roleMember.getExpiration().toDate().before(fortyFiveDaysUpperBoundExpiry.toDate()));
+                    assertTrue(roleMember.getApproved());
+                    break;
+                case "sys.auth.zms":
+                    userChecked += 1;
+                    assertTrue(roleMember.getExpiration().toDate().after(fiftyDaysLowerBoundExpiry.toDate()) && roleMember.getExpiration().toDate().before(fiftyDaysUpperBoundExpiry.toDate()));
+                    assertTrue(roleMember.getApproved());
+                    break;
+                case domainName + ":group.group1":
+                    userChecked += 1;
+                    assertTrue(roleMember.getExpiration().toDate().after(fiftyFiveDaysLowerBoundExpiry.toDate()) && roleMember.getExpiration().toDate().before(fiftyFiveDaysUpperBoundExpiry.toDate()));
+                    assertTrue(roleMember.getApproved());
+                    break;
             }
         }
-        assertEquals(userChecked, 2);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "role-review-dom", auditRef);
+        assertEquals(userChecked, 4);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutRoleReviewReviewReminder() {
+
+        final String domainName = "role-review-reminder";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Role review Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, "role1", null,
+                "user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+
+        Timestamp tenDaysReminder = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
+        Timestamp sixtyDaysReminder = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS));
+
+        Timestamp fortyFiveDaysLowerBoundReminder = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(45, TimeUnit.DAYS));
+        Timestamp fortyFiveDaysUpperBoundReminder = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(45, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES));
+
+        Timestamp fiftyDaysLowerBoundReminder = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(50, TimeUnit.DAYS));
+        Timestamp fiftyDaysUpperBoundReminder = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(50, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES));
+
+        Timestamp fiftyFiveDaysLowerBoundReminder = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(55, TimeUnit.DAYS));
+        Timestamp fiftyFiveDaysUpperBoundReminder = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(55, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES));
+
+        Membership mbr = generateMembership("role1", "user.doe", tenDaysReminder);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", "user.doe", auditRef, mbr);
+
+        Group group1 = createGroupObject(domainName, "group1", null);
+        zms.putGroup(mockDomRsrcCtx, domainName, "group1", auditRef, group1);
+
+        mbr = generateMembership("role1", domainName + ":group.group1", tenDaysReminder);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", domainName + ":group.group1", auditRef, mbr);
+
+        mbr = generateMembership("role1", "sys.auth.zms", tenDaysReminder);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", "sys.auth.zms", auditRef, mbr);
+
+        RoleMeta rm = createRoleMetaObject(true);
+        rm.setMemberReviewDays(45);
+        rm.setServiceReviewDays(50);
+        rm.setGroupReviewDays(55);
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, "role1", auditRef, rm);
+
+        Role inputRole = new Role().setName("role1");
+        List<RoleMember> inputMembers = new ArrayList<>();
+        inputRole.setRoleMembers(inputMembers);
+        inputMembers.add(new RoleMember().setMemberName("user.john").setActive(false));
+        inputMembers.add(new RoleMember().setMemberName("user.doe").setActive(true)
+                .setReviewReminder(sixtyDaysReminder));
+        inputMembers.add(new RoleMember().setMemberName(domainName + ":group.group1").setActive(true)
+                .setReviewReminder(sixtyDaysReminder));
+        inputMembers.add(new RoleMember().setMemberName("sys.auth.zms").setActive(true)
+                .setReviewReminder(sixtyDaysReminder));
+        zms.putRoleReview(mockDomRsrcCtx, domainName, "role1", auditRef, inputRole);
+
+        Role resRole1 = zms.getRole(mockDomRsrcCtx, domainName, "role1", false, false, false);
+
+        int userChecked = 0;
+        for (RoleMember roleMember : resRole1.getRoleMembers()) {
+            switch (roleMember.getMemberName()) {
+                case "user.jane":
+                case "user.doe":
+                    userChecked += 1;
+                    assertTrue(roleMember.getReviewReminder().toDate().after(fortyFiveDaysLowerBoundReminder.toDate()) && roleMember.getReviewReminder().toDate().before(fortyFiveDaysUpperBoundReminder.toDate()));
+                    assertTrue(roleMember.getApproved());
+                    break;
+                case "sys.auth.zms":
+                    userChecked += 1;
+                    assertTrue(roleMember.getReviewReminder().toDate().after(fiftyDaysLowerBoundReminder.toDate()) && roleMember.getReviewReminder().toDate().before(fiftyDaysUpperBoundReminder.toDate()));
+                    assertTrue(roleMember.getApproved());
+                    break;
+                case domainName + ":group.group1":
+                    userChecked += 1;
+                    assertTrue(roleMember.getReviewReminder().toDate().after(fiftyFiveDaysLowerBoundReminder.toDate()) && roleMember.getReviewReminder().toDate().before(fiftyFiveDaysUpperBoundReminder.toDate()));
+                    assertTrue(roleMember.getApproved());
+                    break;
+            }
+        }
+        assertEquals(userChecked, 4);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutRoleReviewNoChanges() {
+
+        final String domainName = "role-review-no-changes";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Role review Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject(domainName, "role1", null,
+                "user.john", "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
+
+        Timestamp tenDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
+        Timestamp twentyDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(20, TimeUnit.DAYS));
+
+        Membership mbr = generateMembership("role1", "user.doe", tenDaysExpiry);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", "user.doe", auditRef, mbr);
+
+        mbr = generateMembership("role1", "user.user1", null);
+        mbr.setReviewReminder(tenDaysExpiry);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", "user.user1", auditRef, mbr);
+
+        mbr = generateMembership("role1", "user.user2", null);
+        mbr.setReviewReminder(tenDaysExpiry);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", "user.user2", auditRef, mbr);
+
+        mbr = generateMembership("role1", "sys.auth.zms", tenDaysExpiry);
+        mbr.setReviewReminder(tenDaysExpiry);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", "sys.auth.zms", auditRef, mbr);
+
+        Group group1 = createGroupObject(domainName, "group1", null);
+        zms.putGroup(mockDomRsrcCtx, domainName, "group1", auditRef, group1);
+
+        mbr = generateMembership("role1", domainName + ":group.group1", tenDaysExpiry);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", domainName + ":group.group1", auditRef, mbr);
+
+        Role inputRole = new Role().setName("role1");
+        List<RoleMember> inputMembers = new ArrayList<>();
+        inputRole.setRoleMembers(inputMembers);
+        inputMembers.add(new RoleMember().setMemberName("user.john").setActive(false));
+        inputMembers.add(new RoleMember().setMemberName("user.doe").setActive(true)
+                .setExpiration(twentyDaysExpiry));
+        inputMembers.add(new RoleMember().setMemberName("user.jane").setActive(true)
+                .setExpiration(tenDaysExpiry));
+        inputMembers.add(new RoleMember().setMemberName("user.user1").setActive(true)
+                .setReviewReminder(twentyDaysExpiry));
+        inputMembers.add(new RoleMember().setMemberName("user.user2").setActive(true));
+        inputMembers.add(new RoleMember().setMemberName("sys.auth.zms").setActive(true)
+                .setReviewReminder(twentyDaysExpiry));
+        inputMembers.add(new RoleMember().setMemberName(domainName + ":group.group1").setActive(true)
+                .setReviewReminder(twentyDaysExpiry));
+
+        zms.putRoleReview(mockDomRsrcCtx, domainName, "role1", auditRef, inputRole);
+
+        Role resRole1 = zms.getRole(mockDomRsrcCtx, domainName, "role1", false, false, false);
+
+        // john should be deleted and all others should stay as before - no changes
+
+        int userChecked = 0;
+        for (RoleMember roleMember : resRole1.getRoleMembers()) {
+            switch (roleMember.getMemberName()) {
+                case "user.jane":
+                    assertTrue(roleMember.getApproved());
+                    assertNull(roleMember.getExpiration());
+                    assertNull(roleMember.getReviewReminder());
+                    userChecked += 1;
+                    break;
+                case "user.doe":
+                case domainName + ":group.group1":
+                    assertTrue(roleMember.getApproved());
+                    assertEquals(roleMember.getExpiration(), tenDaysExpiry);
+                    assertNull(roleMember.getReviewReminder());
+                    userChecked += 1;
+                    break;
+                case "user.user1":
+                case "user.user2":
+                    assertTrue(roleMember.getApproved());
+                    assertEquals(roleMember.getReviewReminder(), tenDaysExpiry);
+                    assertNull(roleMember.getExpiration());
+                    userChecked += 1;
+                    break;
+                case "sys.auth.zms":
+                    assertTrue(roleMember.getApproved());
+                    assertEquals(roleMember.getReviewReminder(), tenDaysExpiry);
+                    assertEquals(roleMember.getExpiration(), tenDaysExpiry);
+                    userChecked += 1;
+                    break;
+                case "user.john":
+                    fail();
+                    break;
+            }
+        }
+        assertEquals(userChecked, 6);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
     public void testPutRoleReviewError() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("role-review-dom",
+        final String domainName = "role-review-error";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Role role1 = createRoleObject("role-review-dom", "role1", null,
+        Role role1 = createRoleObject(domainName, "role1", null,
                 "user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "role-review-dom", "role1", auditRef, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
 
         Timestamp tenDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         Timestamp sixtyDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS));
 
         Membership mbr = generateMembership("role1", "user.doe", tenDaysExpiry);
-        zms.putMembership(mockDomRsrcCtx, "role-review-dom", "role1", "user.doe", auditRef, mbr);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", "user.doe", auditRef, mbr);
 
-        Role inputRole = new Role().setName("role1");
+        RoleMeta rm = createRoleMetaObject(true);
+        rm.setMemberExpiryDays(45);
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, "role1", auditRef, rm);
+
+        Role inputRole = new Role().setName("role2");
         List<RoleMember> inputMembers = new ArrayList<>();
         inputRole.setRoleMembers(inputMembers);
         inputMembers.add(new RoleMember().setMemberName("user.john").setActive(false));
         inputMembers.add(new RoleMember().setMemberName("user.doe").setActive(true).setExpiration(sixtyDaysExpiry));
 
         try {
-            zms.putRoleReview(mockDomRsrcCtx, "role-review-dom", "role1", auditRef, inputRole);
-            fail();
-        } catch (ResourceException re) {
-            assertEquals(re.getCode(), 400);
-        }
-
-        inputRole.setName("role2");
-
-        RoleMeta rm = createRoleMetaObject(true);
-        rm.setMemberExpiryDays(45);
-        zms.putRoleMeta(mockDomRsrcCtx, "role-review-dom", "role1", auditRef, rm);
-
-        try {
-            zms.putRoleReview(mockDomRsrcCtx, "role-review-dom", "role1", auditRef, inputRole);
+            zms.putRoleReview(mockDomRsrcCtx, domainName, "role1", auditRef, inputRole);
             fail();
         } catch (ResourceException re) {
             assertEquals(re.getCode(), 400);
@@ -20770,47 +20928,48 @@ public class ZMSImplTest {
             assertEquals(re.getCode(), 404);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "role-review-dom", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
     public void testPutRoleReviewAuditEnabled() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("role-review-dom",
+        final String domainName = "role-review-audit-enabled";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Role role1 = createRoleObject("role-review-dom", "role1", null,
+        Role role1 = createRoleObject(domainName, "role1", null,
                 "user.john", "user.jane");
-        zms.putRole(mockDomRsrcCtx, "role-review-dom", "role1", auditRef, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
 
         Timestamp tenDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         Timestamp sixtyDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS));
         Timestamp fortyFiveDaysLowerBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(45, TimeUnit.DAYS));
 
         Membership mbr = generateMembership("role1", "user.doe", tenDaysExpiry);
-        zms.putMembership(mockDomRsrcCtx, "role-review-dom", "role1", "user.doe", auditRef, mbr);
+        zms.putMembership(mockDomRsrcCtx, domainName, "role1", "user.doe", auditRef, mbr);
 
         RoleMeta rm = createRoleMetaObject(true);
         rm.setMemberExpiryDays(45);
-        zms.putRoleMeta(mockDomRsrcCtx, "role-review-dom", "role1", auditRef, rm);
+        zms.putRoleMeta(mockDomRsrcCtx, domainName, "role1", auditRef, rm);
 
         DomainMeta meta = createDomainMetaObject("Domain Meta for Role review test", "NewOrg",
                 true, true, "12345", 1001);
-        zms.putDomainMeta(mockDomRsrcCtx, "role-review-dom", auditRef, meta);
-        zms.putDomainSystemMeta(mockDomRsrcCtx, "role-review-dom", "auditenabled", auditRef, meta);
+        zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, meta);
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "auditenabled", auditRef, meta);
 
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
-        zms.putRoleSystemMeta(mockDomRsrcCtx, "role-review-dom", "role1", "auditenabled", auditRef, rsm);
+        zms.putRoleSystemMeta(mockDomRsrcCtx, domainName, "role1", "auditenabled", auditRef, rsm);
 
         Role inputRole = new Role().setName("role1");
         List<RoleMember> inputMembers = new ArrayList<>();
         inputRole.setRoleMembers(inputMembers);
         inputMembers.add(new RoleMember().setMemberName("user.john").setActive(false));
         inputMembers.add(new RoleMember().setMemberName("user.doe").setActive(true).setExpiration(sixtyDaysExpiry));
-        zms.putRoleReview(mockDomRsrcCtx, "role-review-dom", "role1", auditRef, inputRole);
+        zms.putRoleReview(mockDomRsrcCtx, domainName, "role1", auditRef, inputRole);
 
-        Role resRole1 = zms.getRole(mockDomRsrcCtx, "role-review-dom", "role1", false, false, true);
+        Role resRole1 = zms.getRole(mockDomRsrcCtx, domainName, "role1", false, false, true);
 
         Timestamp fortyFiveDaysUpperBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() +
                 TimeUnit.MILLISECONDS.convert(45, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES));
@@ -20839,7 +20998,7 @@ public class ZMSImplTest {
             }
         }
         assertEquals(userChecked, 3);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "role-review-dom", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
@@ -21691,8 +21850,6 @@ public class ZMSImplTest {
         mbrResult = zms.getMembership(mockDomRsrcCtx, domainName, roleName, "userexpirydomain.api", null);
         assertNotNull(mbrResult);
 
-
-
         // add a role with group expiry days set
 
         Group group1 = createGroupObject(domainName, "group1", null);
@@ -21867,13 +22024,13 @@ public class ZMSImplTest {
 
     @Test
     public void testRecordMetricsUnauthenticated() {
-        zms.metric = Mockito.mock(Metric.class);
+        ZMSImpl.metric = Mockito.mock(Metric.class);
         RsrcCtxWrapper ctx = (RsrcCtxWrapper) zms.newResourceContext(mockServletRequest, mockServletResponse, "someApiMethod");
         String testDomain = "testDomain";
         int httpStatus = 200;
         ctx.setRequestDomain(testDomain);
         zms.recordMetrics(ctx, httpStatus);
-        Mockito.verify(zms.metric,
+        Mockito.verify(ZMSImpl.metric,
                 times(1)).increment (
                 eq("zms_api"),
                 eq(testDomain),
@@ -21881,7 +22038,7 @@ public class ZMSImplTest {
                 eq("GET"),
                 eq(httpStatus),
                 eq("someapimethod"));
-        Mockito.verify(zms.metric,
+        Mockito.verify(ZMSImpl.metric,
                 times(1)).stopTiming (
                 eq(ctx.getTimerMetric()),
                 eq(testDomain),
@@ -21889,7 +22046,7 @@ public class ZMSImplTest {
                 eq("GET"),
                 eq(httpStatus),
                 eq("someapimethod_timing"));
-        Mockito.verify(zms.metric,
+        Mockito.verify(ZMSImpl.metric,
                 times(1)).startTiming (
                 eq("zms_api_latency"),
                 eq(null),
@@ -21900,13 +22057,13 @@ public class ZMSImplTest {
 
     @Test
     public void testRecordMetricsAuthenticated() {
-        zms.metric = Mockito.mock(Metric.class);
+        ZMSImpl.metric = Mockito.mock(Metric.class);
         RsrcCtxWrapper ctx = mockDomRsrcCtx;
         String testDomain = "testDomain";
         int httpStatus = 200;
         Mockito.when(ctx.getRequestDomain()).thenReturn(testDomain);
         zms.recordMetrics(ctx, httpStatus);
-        Mockito.verify(zms.metric,
+        Mockito.verify(ZMSImpl.metric,
                 times(1)).increment (
                 eq("zms_api"),
                 eq(testDomain),
@@ -21914,7 +22071,7 @@ public class ZMSImplTest {
                 eq("GET"),
                 eq(httpStatus),
                 eq("someApiMethod"));
-        Mockito.verify(zms.metric,
+        Mockito.verify(ZMSImpl.metric,
                 times(1)).stopTiming (
                 eq(ctx.getTimerMetric()),
                 eq(testDomain),
@@ -21925,9 +22082,9 @@ public class ZMSImplTest {
     @Test
     public void testRecordMetricsNoCtx() {
         int httpStatus = 200;
-        zms.metric = Mockito.mock(Metric.class);
+        ZMSImpl.metric = Mockito.mock(Metric.class);
         zms.recordMetrics(null, httpStatus);
-        Mockito.verify(zms.metric,
+        Mockito.verify(ZMSImpl.metric,
                 times(1)).increment (
                 eq("zms_api"),
                 eq(null),
@@ -21935,7 +22092,7 @@ public class ZMSImplTest {
                 eq(null),
                 eq(httpStatus),
                 eq(null));
-        Mockito.verify(zms.metric,
+        Mockito.verify(ZMSImpl.metric,
                 times(1)).stopTiming (
                 eq(null),
                 eq(null),
@@ -23985,6 +24142,66 @@ public class ZMSImplTest {
         assertEquals(resGroup.getGroupMembers().size(), 1);
         assertEquals(resGroup.getGroupMembers().get(0).getMemberName(), "user.jane");
 
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupReviewNoChanges() {
+
+        final String domainName = "group-review-no-changes";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Role review Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Group group1 = createGroupObject(domainName, "group1", "user.john", "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, "group1", auditRef, group1);
+
+        Timestamp tenDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
+        Timestamp twentyDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(20, TimeUnit.DAYS));
+
+        GroupMembership mbr = generateGroupMembership("group1", "user.doe", tenDaysExpiry);
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, "group1", "user.doe", auditRef, mbr);
+
+        mbr = generateGroupMembership("group1", "sys.auth.zms", tenDaysExpiry);
+        zms.putGroupMembership(mockDomRsrcCtx, domainName, "group1", "sys.auth.zms", auditRef, mbr);
+
+        Group inputGroup = new Group().setName("group1");
+        List<GroupMember> inputMembers = new ArrayList<>();
+        inputGroup.setGroupMembers(inputMembers);
+        inputMembers.add(new GroupMember().setMemberName("user.john").setActive(false));
+        inputMembers.add(new GroupMember().setMemberName("user.doe").setActive(true)
+                .setExpiration(twentyDaysExpiry));
+        inputMembers.add(new GroupMember().setMemberName("user.jane").setActive(true)
+                .setExpiration(tenDaysExpiry));
+        inputMembers.add(new GroupMember().setMemberName("sys.auth.zms").setActive(true)
+                .setExpiration(twentyDaysExpiry));
+
+        zms.putGroupReview(mockDomRsrcCtx, domainName, "group1", auditRef, inputGroup);
+
+        Group resGroup1 = zms.getGroup(mockDomRsrcCtx, domainName, "group1", false, false);
+
+        // john should be deleted and all others should stay as before - no changes
+
+        int userChecked = 0;
+        for (GroupMember groupMember : resGroup1.getGroupMembers()) {
+            switch (groupMember.getMemberName()) {
+                case "user.jane":
+                    assertTrue(groupMember.getApproved());
+                    assertNull(groupMember.getExpiration());
+                    userChecked += 1;
+                    break;
+                case "user.doe":
+                case "sys.auth.zms":
+                    assertTrue(groupMember.getApproved());
+                    assertEquals(groupMember.getExpiration(), tenDaysExpiry);
+                    userChecked += 1;
+                    break;
+                case "user.john":
+                    fail();
+                    break;
+            }
+        }
+        assertEquals(userChecked, 3);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 

@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms.utils;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
@@ -427,5 +428,18 @@ public class ZMSUtils {
 
     public static boolean metaValueChanged(Object domainValue, Object metaValue) {
         return (metaValue == null) ? false : !metaValue.equals(domainValue);
+    }
+
+    public static long configuredDueDateMillis(Integer domainDueDateDays, Integer roleDueDateDays) {
+
+        // the role expiry days settings overrides the domain one if one configured
+
+        int expiryDays = 0;
+        if (roleDueDateDays != null && roleDueDateDays > 0) {
+            expiryDays = roleDueDateDays;
+        } else if (domainDueDateDays != null && domainDueDateDays > 0) {
+            expiryDays = domainDueDateDays;
+        }
+        return expiryDays == 0 ? 0 : System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(expiryDays, TimeUnit.DAYS);
     }
 }

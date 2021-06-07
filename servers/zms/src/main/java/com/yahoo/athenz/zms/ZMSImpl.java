@@ -42,10 +42,7 @@ import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.zms.config.AllowedOperation;
-import com.yahoo.athenz.zms.config.AuthorizedService;
-import com.yahoo.athenz.zms.config.AuthorizedServices;
-import com.yahoo.athenz.zms.config.SolutionTemplates;
+import com.yahoo.athenz.zms.config.*;
 import com.yahoo.athenz.zms.notification.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
@@ -3445,24 +3442,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // update role expiry based on our configurations
 
-        updateRoleMemberExpiration(
-                domain.getMemberExpiryDays(),
-                role.getMemberExpiryDays(),
-                domain.getServiceExpiryDays(),
-                role.getServiceExpiryDays(),
-                domain.getGroupExpiryDays(),
-                role.getGroupExpiryDays(),
-                role.getRoleMembers());
+        MemberDueDays memberExpiryDueDays = new MemberDueDays(domain, role, MemberDueDays.Type.EXPIRY);
+        MemberDueDays memberReminderDueDays = new MemberDueDays(null, role, MemberDueDays.Type.REMINDER);
+
+        updateRoleMemberExpiration(memberExpiryDueDays, role.getRoleMembers());
+
+        // update role review based on our configurations
+
+        updateRoleMemberReviewReminder(memberReminderDueDays, role.getRoleMembers());
 
         // update role expiry based on user authority expiry
         // if configured
 
         updateRoleMemberUserAuthorityExpiry(role, caller);
-
-        // update role review based on our configurations
-
-        updateRoleMemberReviewReminder(role.getMemberReviewDays(), role.getServiceReviewDays(),
-                role.getGroupReviewDays(), role.getRoleMembers());
 
         // process our request
 
@@ -3777,19 +3769,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return dbService.listOverdueReviewRoleMembers(domainName);
     }
 
-    long configuredDueDateMillis(Integer domainDueDateDays, Integer roleDueDateDays) {
-
-        // the role expiry days settings overrides the domain one if one configured
-
-        int expiryDays = 0;
-        if (roleDueDateDays != null && roleDueDateDays > 0) {
-            expiryDays = roleDueDateDays;
-        } else if (domainDueDateDays != null && domainDueDateDays > 0) {
-            expiryDays = domainDueDateDays;
-        }
-        return expiryDays == 0 ? 0 : System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(expiryDays, TimeUnit.DAYS);
-    }
-
     Timestamp getMemberDueDate(long cfgDueDateMillis, Timestamp memberDueDate) {
         if (memberDueDate == null) {
             return Timestamp.fromMillis(cfgDueDateMillis);
@@ -3800,54 +3779,33 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    void updateRoleMemberExpiration(Integer domainUserMemberDueDateDays,
-                                    Integer roleUserMemberDueDateDays,
-                                    Integer domainServiceMemberDueDateDays,
-                                    Integer roleServiceMemberDueDateDays,
-                                    Integer domainGroupMemberDueDateDays,
-                                    Integer roleGroupMemberDueDateDays,
-                                    List<RoleMember> roleMembers) {
-        updateRoleMemberDueDate(
-                domainUserMemberDueDateDays,
-                roleUserMemberDueDateDays,
-                domainServiceMemberDueDateDays,
-                roleServiceMemberDueDateDays,
-                domainGroupMemberDueDateDays,
-                roleGroupMemberDueDateDays,
+    void updateRoleMemberExpiration(MemberDueDays memberExpiryDueDays, List<RoleMember> roleMembers) {
+        updateMemberDueDate(
+                memberExpiryDueDays,
                 roleMembers,
                 roleMember -> roleMember.getExpiration(),
-                (roleMember, expiration) -> roleMember.setExpiration(expiration));
+                (roleMember, expiration) -> roleMember.setExpiration(expiration),
+                roleMember -> roleMember.getPrincipalType());
     }
 
-    void updateRoleMemberReviewReminder(Integer roleUserMemberDueDateDays,
-                                        Integer roleServiceMemberDueDateDays,
-                                        Integer roleGroupMemberDueDateDays,
-                                        List<RoleMember> roleMembers) {
-        updateRoleMemberDueDate(
-                null,
-                roleUserMemberDueDateDays,
-                null,
-                roleServiceMemberDueDateDays,
-                null,
-                roleGroupMemberDueDateDays,
+    void updateRoleMemberReviewReminder(MemberDueDays memberReminderDueDays, List<RoleMember> roleMembers) {
+        updateMemberDueDate(
+                memberReminderDueDays,
                 roleMembers,
                 roleMember -> roleMember.getReviewReminder(),
-                (roleMember, reviewReminder) -> roleMember.setReviewReminder(reviewReminder));
+                (roleMember, reviewReminder) -> roleMember.setReviewReminder(reviewReminder),
+                roleMember -> roleMember.getPrincipalType());
     }
 
-    private <T> void updateMemberDueDate(Integer domainUserMemberDueDateDays,
-                                         Integer userMemberDueDateDays,
-                                         Integer domainServiceMemberDueDateDays,
-                                         Integer serviceMemberDueDateDays,
-                                         Integer domainGroupMemberDueDateDays,
-                                         Integer groupMemberDueDateDays,
+    private <T> void updateMemberDueDate(MemberDueDays memberDueDays,
                                          List<T> members,
                                          Function<T, Timestamp> dueDateGetter,
                                          BiConsumer<T, Timestamp> dueDateSetter,
                                          Function<T, Integer> principalTypeGetter) {
-        long cfgUserMemberDueDateMillis = configuredDueDateMillis(domainUserMemberDueDateDays, userMemberDueDateDays);
-        long cfgServiceMemberDueDateMillis = configuredDueDateMillis(domainServiceMemberDueDateDays, serviceMemberDueDateDays);
-        long cfgGroupMemberDueDateMillis = configuredDueDateMillis(domainGroupMemberDueDateDays, groupMemberDueDateDays);
+
+        long cfgUserMemberDueDateMillis = memberDueDays.getUserDueDateMillis();
+        long cfgServiceMemberDueDateMillis = memberDueDays.getServiceDueDateMillis();
+        long cfgGroupMemberDueDateMillis = memberDueDays.getGroupDueDateMillis();
 
         // if we have no value configured then we have nothing to
         // do so we'll just return right away
@@ -3883,31 +3841,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
     }
-    private void updateRoleMemberDueDate(Integer domainUserMemberDueDateDays,
-                                 Integer roleUserMemberDueDateDays,
-                                 Integer domainServiceMemberDueDateDays,
-                                 Integer roleServiceMemberDueDateDays,
-                                 Integer domainGroupMemberDueDateDays,
-                                 Integer roleGroupMemberDueDateDays,
-                                 List<RoleMember> roleMembers,
-                                 Function<RoleMember, Timestamp> dueDateGetter,
-                                 BiConsumer<RoleMember, Timestamp> dueDateSetter) {
-
-        updateMemberDueDate(domainUserMemberDueDateDays,
-                roleUserMemberDueDateDays,
-                domainServiceMemberDueDateDays,
-                roleServiceMemberDueDateDays,
-                domainGroupMemberDueDateDays,
-                roleGroupMemberDueDateDays,
-                roleMembers,
-                dueDateGetter,
-                dueDateSetter,
-                roleMember -> roleMember.getPrincipalType());
-    }
 
     Timestamp memberDueDateTimestamp(Integer domainDueDateDays, Integer roleDueDateDays, Timestamp memberDueDate) {
 
-        long cfgExpiryMillis = configuredDueDateMillis(domainDueDateDays, roleDueDateDays);
+        long cfgExpiryMillis = ZMSUtils.configuredDueDateMillis(domainDueDateDays, roleDueDateDays);
 
         // if we have no value configured then return
         // the membership expiration as is
@@ -8470,34 +8407,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Role dbRole = getRoleFromDomain(roleName, domain);
 
-        if (configuredDueDateMillis(domain.getDomain().getMemberExpiryDays(), dbRole.getMemberExpiryDays()) == 0 &&
-                configuredDueDateMillis(domain.getDomain().getServiceExpiryDays(), dbRole.getServiceExpiryDays()) == 0) {
-            throw ZMSUtils.requestError(caller + ": Domain member expiry / Role member expiry must be set to review the role. ", caller);
-        }
-
         // normalize and remove duplicate members
 
         normalizeRoleMembers(role);
 
         // update role expiry based on our configurations
 
-        updateRoleMemberExpiration(
-                domain.getDomain().getMemberExpiryDays(),
-                dbRole.getMemberExpiryDays(),
-                domain.getDomain().getServiceExpiryDays(),
-                dbRole.getServiceExpiryDays(),
-                domain.getDomain().getGroupExpiryDays(),
-                dbRole.getGroupExpiryDays(),
-                role.getRoleMembers());
+        MemberDueDays memberExpiryDueDays = new MemberDueDays(domain.getDomain(), dbRole, MemberDueDays.Type.EXPIRY);
+        MemberDueDays memberReminderDueDays = new MemberDueDays(null, dbRole, MemberDueDays.Type.REMINDER);
+
+        updateRoleMemberExpiration(memberExpiryDueDays, role.getRoleMembers());
 
         // update role review based on our configurations
 
-        updateRoleMemberReviewReminder(dbRole.getMemberReviewDays(), dbRole.getServiceReviewDays(),
-                dbRole.getGroupReviewDays(), role.getRoleMembers());
+        updateRoleMemberReviewReminder(memberReminderDueDays, role.getRoleMembers());
 
         // process our request
 
-        dbService.executePutRoleReview(ctx, domainName, roleName, role, auditRef, caller);
+        dbService.executePutRoleReview(ctx, domainName, roleName, role, memberExpiryDueDays,
+                memberReminderDueDays, auditRef, caller);
     }
 
     List<Group> setupGroupList(AthenzDomain domain, Boolean members) {
@@ -8744,12 +8672,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // update group expiry based on our configurations
 
-        updateGroupMemberExpiration(
-                domain.getMemberExpiryDays(),
-                group.getMemberExpiryDays(),
-                domain.getServiceExpiryDays(),
-                group.getServiceExpiryDays(),
-                group.getGroupMembers());
+        MemberDueDays memberExpiryDueDays = new MemberDueDays(domain, group);
+        updateGroupMemberExpiration(memberExpiryDueDays, group.getGroupMembers());
 
         // update group expiry based on user authority expiry if configured
 
@@ -8760,36 +8684,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executePutGroup(ctx, domainName, groupName, group, auditRef);
     }
 
-    void updateGroupMemberExpiration(Integer domainUserMemberDueDateDays,
-                                    Integer groupUserMemberDueDateDays,
-                                    Integer domainServiceMemberDueDateDays,
-                                    Integer groupServiceMemberDueDateDays,
+    void updateGroupMemberExpiration(MemberDueDays memberExpiryDueDays,
                                     List<GroupMember> groupMembers) {
+
         updateGroupMemberDueDate(
-                domainUserMemberDueDateDays,
-                groupUserMemberDueDateDays,
-                domainServiceMemberDueDateDays,
-                groupServiceMemberDueDateDays,
+                memberExpiryDueDays,
                 groupMembers,
                 groupMember -> groupMember.getExpiration(),
                 (groupMember, expiration) -> groupMember.setExpiration(expiration));
     }
 
-    private void updateGroupMemberDueDate(Integer domainUserMemberDueDateDays,
-                                          Integer groupUserMemberDueDateDays,
-                                          Integer domainServiceMemberDueDateDays,
-                                          Integer groupServiceMemberDueDateDays,
+    private void updateGroupMemberDueDate(MemberDueDays memberExpiryDueDays,
                                           List<GroupMember> groupMembers,
                                           Function<GroupMember, Timestamp> dueDateGetter,
                                           BiConsumer<GroupMember, Timestamp> dueDateSetter) {
 
         updateMemberDueDate(
-                domainUserMemberDueDateDays,
-                groupUserMemberDueDateDays,
-                domainServiceMemberDueDateDays,
-                groupServiceMemberDueDateDays,
-                null,
-                null,
+                memberExpiryDueDays,
                 groupMembers,
                 dueDateGetter,
                 dueDateSetter,
@@ -9393,9 +9304,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         normalizeGroupMembers(group);
 
+        // update group expiry based on our configurations
+
+        MemberDueDays memberExpiryDueDays = new MemberDueDays(domain.getDomain(), group);
+        updateGroupMemberExpiration(memberExpiryDueDays, group.getGroupMembers());
+
         // process our request
 
-        dbService.executePutGroupReview(ctx, domainName, groupName, group, auditRef);
+        dbService.executePutGroupReview(ctx, domainName, groupName, group, memberExpiryDueDays, auditRef);
     }
 
     @Override
