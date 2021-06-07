@@ -173,9 +173,24 @@ Fetchr.registerService({
     name: 'templates',
     read(req, resource, params, config, callback) {
         new Promise((resolve, reject) => {
-            req.clients.zms.getDomainTemplateDetailsList(
-                params,
-                function (err, json) {
+            if (params) {
+                req.clients.zms.getDomainTemplateDetailsList(
+                    params,
+                    function (err, json) {
+                        if (err) {
+                            return reject(err);
+                        }
+                        if (!err && Array.isArray(json.metaData)) {
+                            return resolve(json.metaData);
+                        }
+                        return resolve([]);
+                    }
+                );
+            } else {
+                req.clients.zms.getServerTemplateDetailsList(function (
+                    err,
+                    json
+                ) {
                     if (err) {
                         return reject(err);
                     }
@@ -183,8 +198,8 @@ Fetchr.registerService({
                         return resolve(json.metaData);
                     }
                     return resolve([]);
-                }
-            );
+                });
+            }
         })
             .then((data) => {
                 return callback(null, data);

@@ -1269,6 +1269,21 @@ const Api = (req) => {
             });
         },
 
+        getServerTemplateDetailsList() {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('templates')
+                    .params()
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         getAuthOptions() {
             return new Promise((resolve, reject) => {
                 fetchr

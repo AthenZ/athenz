@@ -21563,6 +21563,7 @@ public class ZMSImplTest {
         assertEquals(serverTemplateDetailsList.getMetaData().size(), 10);
         assertEquals(serverTemplateDetailsList.getMetaData().get(6).getDescription(), "Vipng template");
         assertEquals(serverTemplateDetailsList.getMetaData().get(6).getLatestVersion().intValue(), 10);
+        assertEquals(serverTemplateDetailsList.getMetaData().get(6).getTemplateName(), "vipng");
     }
 
     @Test

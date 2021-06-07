@@ -2,7 +2,7 @@
 
 exports[`AddPolicyToRole should render 1`] = `
 .emotion-0 {
-  text-align: center;
+  text-align: left;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   padding-bottom: 15px;
 }
@@ -421,7 +421,7 @@ exports[`AddPolicyToRole should render 1`] = `
 
 exports[`AddPolicyToRole should render fail to submit policy name is required 1`] = `
 .emotion-0 {
-  text-align: center;
+  text-align: left;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   padding-bottom: 15px;
 }
@@ -840,7 +840,7 @@ exports[`AddPolicyToRole should render fail to submit policy name is required 1`
 
 exports[`AddPolicyToRole should render failed to submit action is required 1`] = `
 .emotion-0 {
-  text-align: center;
+  text-align: left;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   padding-bottom: 15px;
 }
