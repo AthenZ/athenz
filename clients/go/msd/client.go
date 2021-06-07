@@ -320,3 +320,75 @@ func (client MSDClient) GetTransportPolicyRules(matchingTag string) (*TransportP
 		return nil, "", errobj
 	}
 }
+
+func (client MSDClient) GetWorkloadsByService(domainName DomainName, serviceName EntityName, matchingTag string) (*Workloads, string, error) {
+	var data *Workloads
+	headers := map[string]string{
+		"If-None-Match": matchingTag,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workloads"
+	resp, err := client.httpGet(url, headers)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return nil, "", err
+		}
+		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
+		return data, tag, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, "", err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return nil, "", errobj
+	}
+}
+
+func (client MSDClient) GetWorkloadsByIP(ip string, matchingTag string) (*Workloads, string, error) {
+	var data *Workloads
+	headers := map[string]string{
+		"If-None-Match": matchingTag,
+	}
+	url := client.URL + "/workloads/" + ip
+	resp, err := client.httpGet(url, headers)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return nil, "", err
+		}
+		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
+		return data, tag, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, "", err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return nil, "", errobj
+	}
+}

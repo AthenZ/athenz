@@ -1,0 +1,22 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Name types
+include "Names.tdl";
+
+// workload type describing workload associated with an identity
+type Workload Struct {
+    DomainName domainName; // name of the domain, optional for getWorkloadsByService API call
+    EntityName serviceName; // name of the service, , optional for getWorkloadsByService API call
+    String uuid; // unique identifier for the workload, usually defined by provider
+    Array<String> ipAddresses; // list of IP addresses associated with the workload, optional for getWorkloadsByIP API call
+    String hostname; //hostname associated with the workload
+    String provider; // infrastructure provider e.g. k8s, AWS, Azure, openstack etc.
+    Timestamp updateTime; // most recent update timestamp in the backend
+    Timestamp certExpiryTime; // certificate expiry time (ex: getNotAfter)
+}
+
+// list of workloads
+type Workloads Struct {
+	Array<Workload> workloadList; // list of workloads
+}

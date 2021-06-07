@@ -126,10 +126,62 @@ public class MSDSchema {
             .arrayField("ingress", "TransportPolicyIngressRule", false, "List of ingress rules")
             .arrayField("egress", "TransportPolicyEgressRule", false, "List of egress rules");
 
+        sb.structType("Workload")
+            .comment("workload type describing workload associated with an identity")
+            .field("domainName", "DomainName", false, "name of the domain, optional for getWorkloadsByService API call")
+            .field("serviceName", "EntityName", false, "name of the service, , optional for getWorkloadsByService API call")
+            .field("uuid", "String", false, "unique identifier for the workload, usually defined by provider")
+            .arrayField("ipAddresses", "String", false, "list of IP addresses associated with the workload, optional for getWorkloadsByIP API call")
+            .field("hostname", "String", false, "hostname associated with the workload")
+            .field("provider", "String", false, "infrastructure provider e.g. k8s, AWS, Azure, openstack etc.")
+            .field("updateTime", "Timestamp", false, "most recent update timestamp in the backend")
+            .field("certExpiryTime", "Timestamp", false, "certificate expiry time (ex: getNotAfter)");
+
+        sb.structType("Workloads")
+            .comment("list of workloads")
+            .arrayField("workloadList", "Workload", false, "list of workloads");
+
 
         sb.resource("TransportPolicyRules", "GET", "/transportpolicies")
             .comment("API endpoint to get the transport policy rules defined in Athenz")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
+            .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Workloads", "GET", "/domain/{domainName}/service/{serviceName}/workloads")
+            .name("getWorkloadsByService")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any workloads modified since this time")
+            .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Workloads", "GET", "/workloads/{ip}")
+            .name("getWorkloadsByIP")
+            .pathParam("ip", "String", "ip address to query")
+            .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any workloads modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)
             .expected("OK")

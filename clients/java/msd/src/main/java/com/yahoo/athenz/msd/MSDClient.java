@@ -136,6 +136,51 @@ public class MSDClient implements Closeable {
   }
 
   /**
+   * Retrieve list of workloads running on the given ip address
+   * @param ipAddress ip address of the workload
+   * @param matchingTag     (can be null) contains modified timestamp received
+   *                        with last request. If null, then return all workloads for given ip.
+   * @param responseHeaders contains the "tag" returned for modification
+   *                        time of the workloads, map key = "tag", List should
+   *                        contain a single value timestamp String to be used
+   *                        with subsequent call as matchingTag to this API
+   * @return list of workloads on success. MSDClientException will be thrown in case of failure
+   */
+  public Workloads getWorkloadsByIP(String ipAddress, String matchingTag,
+                                    Map<String, List<String>> responseHeaders) {
+    try {
+      return client.getWorkloadsByIP(ipAddress, matchingTag, responseHeaders);
+    } catch (ResourceException ex) {
+      throw new MSDClientException(ex.getCode(), ex.getData());
+    } catch (Exception ex) {
+      throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+    }
+  }
+
+  /**
+   * Retrieve list of workloads running with given domain and service
+   * @param domain name of the domain
+   * @param service name of the service
+   * @param matchingTag     (can be null) contains modified timestamp received
+   *                        with last request. If null, then return all workloads for given domain and service.
+   * @param responseHeaders contains the "tag" returned for modification
+   *                        time of the workloads, map key = "tag", List should
+   *                        contain a single value timestamp String to be used
+   *                        with subsequent call as matchingTag to this API
+   * @return list of workloads on success. MSDClientException will be thrown in case of failure
+   */
+  public Workloads getWorkloadsByService(String domain, String service, String matchingTag,
+                                         Map<String, List<String>> responseHeaders) {
+    try {
+      return client.getWorkloadsByService(domain, service, matchingTag, responseHeaders);
+    } catch (ResourceException ex) {
+      throw new MSDClientException(ex.getCode(), ex.getData());
+    } catch (Exception ex) {
+      throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+    }
+  }
+
+  /**
    * Close the MSDClient object and release any allocated resources.
    */
   @Override
