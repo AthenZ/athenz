@@ -1,0 +1,35 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Workload types
+include "Workload.tdl";
+include "Names.tdl";
+
+resource Workloads GET "/domain/{domainName}/service/{serviceName}/workloads" (name=getWorkloadsByService) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any workloads modified since this time
+    String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+resource Workloads GET "/workloads/{ip}" (name=getWorkloadsByIP) {
+    String ip; // ip address to query
+    String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any workloads modified since this time
+    String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

@@ -72,4 +72,55 @@ public class MSDRDLGeneratedClient {
 
     }
 
+    public Workloads getWorkloadsByService(String domainName, String serviceName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
+        WebTarget target = base.path("/domain/{domainName}/service/{serviceName}/workloads")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("serviceName", serviceName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (matchingTag != null) {
+            invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            if (headers != null) {
+                headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
+            }
+            return response.readEntity(Workloads.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Workloads getWorkloadsByIP(String ip, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
+        WebTarget target = base.path("/workloads/{ip}")
+            .resolveTemplate("ip", ip);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (matchingTag != null) {
+            invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            if (headers != null) {
+                headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
+            }
+            return response.readEntity(Workloads.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
 }

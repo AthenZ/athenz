@@ -885,3 +885,205 @@ func (self *TransportPolicyRules) Validate() error {
 	}
 	return nil
 }
+
+//
+// Workload - workload type describing workload associated with an identity
+//
+type Workload struct {
+
+	//
+	// name of the domain, optional for getWorkloadsByService API call
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// name of the service, , optional for getWorkloadsByService API call
+	//
+	ServiceName EntityName `json:"serviceName"`
+
+	//
+	// unique identifier for the workload, usually defined by provider
+	//
+	Uuid string `json:"uuid"`
+
+	//
+	// list of IP addresses associated with the workload, optional for
+	// getWorkloadsByIP API call
+	//
+	IpAddresses []string `json:"ipAddresses"`
+
+	//
+	// hostname associated with the workload
+	//
+	Hostname string `json:"hostname"`
+
+	//
+	// infrastructure provider e.g. k8s, AWS, Azure, openstack etc.
+	//
+	Provider string `json:"provider"`
+
+	//
+	// most recent update timestamp in the backend
+	//
+	UpdateTime rdl.Timestamp `json:"updateTime"`
+
+	//
+	// certificate expiry time (ex: getNotAfter)
+	//
+	CertExpiryTime rdl.Timestamp `json:"certExpiryTime"`
+}
+
+//
+// NewWorkload - creates an initialized Workload instance, returns a pointer to it
+//
+func NewWorkload(init ...*Workload) *Workload {
+	var o *Workload
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(Workload)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *Workload) Init() *Workload {
+	if self.IpAddresses == nil {
+		self.IpAddresses = make([]string, 0)
+	}
+	return self
+}
+
+type rawWorkload Workload
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a Workload
+//
+func (self *Workload) UnmarshalJSON(b []byte) error {
+	var m rawWorkload
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := Workload(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *Workload) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("Workload.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("Workload.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.ServiceName == "" {
+		return fmt.Errorf("Workload.serviceName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.ServiceName)
+		if !val.Valid {
+			return fmt.Errorf("Workload.serviceName does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.Uuid == "" {
+		return fmt.Errorf("Workload.uuid is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Uuid)
+		if !val.Valid {
+			return fmt.Errorf("Workload.uuid does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.IpAddresses == nil {
+		return fmt.Errorf("Workload: Missing required field: ipAddresses")
+	}
+	if self.Hostname == "" {
+		return fmt.Errorf("Workload.hostname is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Hostname)
+		if !val.Valid {
+			return fmt.Errorf("Workload.hostname does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Provider == "" {
+		return fmt.Errorf("Workload.provider is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Provider)
+		if !val.Valid {
+			return fmt.Errorf("Workload.provider does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.UpdateTime.IsZero() {
+		return fmt.Errorf("Workload: Missing required field: updateTime")
+	}
+	if self.CertExpiryTime.IsZero() {
+		return fmt.Errorf("Workload: Missing required field: certExpiryTime")
+	}
+	return nil
+}
+
+//
+// Workloads - list of workloads
+//
+type Workloads struct {
+
+	//
+	// list of workloads
+	//
+	WorkloadList []*Workload `json:"workloadList"`
+}
+
+//
+// NewWorkloads - creates an initialized Workloads instance, returns a pointer to it
+//
+func NewWorkloads(init ...*Workloads) *Workloads {
+	var o *Workloads
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(Workloads)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *Workloads) Init() *Workloads {
+	if self.WorkloadList == nil {
+		self.WorkloadList = make([]*Workload, 0)
+	}
+	return self
+}
+
+type rawWorkloads Workloads
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a Workloads
+//
+func (self *Workloads) UnmarshalJSON(b []byte) error {
+	var m rawWorkloads
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := Workloads(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *Workloads) Validate() error {
+	if self.WorkloadList == nil {
+		return fmt.Errorf("Workloads: Missing required field: workloadList")
+	}
+	return nil
+}

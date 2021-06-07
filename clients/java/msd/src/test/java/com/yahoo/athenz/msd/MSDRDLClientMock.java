@@ -60,4 +60,30 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
 
     return new TransportPolicyRules().setIngress(ingressRuleList1).setEgress(egressRuleList1);
   }
+
+  @Override
+  public Workloads getWorkloadsByService(String domainName, String serviceName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
+    if ("bad-domain".equals(domainName)) {
+      throw new ResourceException(404, "unknown domain");
+    }
+    if ("bad-req".equals(domainName)) {
+      throw new RuntimeException("bad request");
+    }
+    Workload wl = new Workload().setProvider("openstack").setIpAddresses(Collections.singletonList("10.0.0.1"))
+            .setUuid("avve-resw").setUpdateTime(Timestamp.fromMillis(System.currentTimeMillis()));
+    return new Workloads().setWorkloadList(Collections.singletonList(wl));
+  }
+
+  @Override
+  public Workloads getWorkloadsByIP(String ip, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
+    if ("127.0.0.1".equals(ip)) {
+      throw new ResourceException(404, "unknown ip");
+    }
+    if ("bad-req".equals(ip)) {
+      throw new RuntimeException("bad request");
+    }
+    Workload wl = new Workload().setProvider("openstack").setDomainName("athenz").setServiceName("api")
+            .setUuid("avve-resw").setUpdateTime(Timestamp.fromMillis(System.currentTimeMillis()));
+    return new Workloads().setWorkloadList(Collections.singletonList(wl));
+  }
 }
