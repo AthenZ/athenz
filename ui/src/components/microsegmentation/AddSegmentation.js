@@ -332,10 +332,7 @@ export default class AddSegmentation extends React.Component {
 
         //Input field validation
 
-        if (
-            !this.state.identifier ||
-            this.state.identifier === ''
-        ) {
+        if (!this.state.identifier || this.state.identifier === '') {
             this.setState({
                 errorMessage: 'identifier is required.',
             });
