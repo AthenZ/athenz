@@ -32,8 +32,8 @@ func TestExtractInstanceIdValid(test *testing.T) {
 func TestExtractInstanceIdInValid(test *testing.T) {
 
 	tests := []struct {
-		name      string
-		certFile  string
+		name     string
+		certFile string
 	}{
 		{"id1", "data/service_identity1.cert"},
 		{"id2", "data/service_identity2.cert"},

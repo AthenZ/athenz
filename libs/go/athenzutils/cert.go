@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 )
 
+// LoadX509Certificate reads and parses the x509.Certificate from the specified file.
 func LoadX509Certificate(certFile string) (*x509.Certificate, error) {
 	pemBytes, err := ioutil.ReadFile(certFile)
 	if err != nil {
