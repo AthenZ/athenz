@@ -9,7 +9,7 @@ exports[`RuleRow should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-6 {
+.emotion-8 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -19,13 +19,13 @@ exports[`RuleRow should render 1`] = `
   text-decoration: dashed underline;
 }
 
-.emotion-8 {
+.emotion-10 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-13 {
+.emotion-15 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -44,16 +44,20 @@ exports[`RuleRow should render 1`] = `
   <td
     class="emotion-2 emotion-3"
     color="#3570f40D"
+  />
+  <td
+    class="emotion-2 emotion-3"
+    color="#3570f40D"
   >
     2222
   </td>
   <td
-    class="emotion-6 emotion-7"
+    class="emotion-8 emotion-9"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-8"
+        class="emotion-10"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -84,12 +88,12 @@ exports[`RuleRow should render 1`] = `
     tcp
   </td>
   <td
-    class="emotion-13 emotion-3"
+    class="emotion-15 emotion-3"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-8"
+        class="emotion-10"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"

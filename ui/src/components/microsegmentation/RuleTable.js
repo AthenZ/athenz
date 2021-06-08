@@ -154,10 +154,11 @@ export default class RuleTable extends React.Component {
         return (
             <StyleTable data-testid='segmentation-rule-table'>
                 <colgroup>
-                    <col style={{ width: 20 + '%' }} />
-                    <col style={{ width: 20 + '%' }} />
-                    <col style={{ width: 20 + '%' }} />
-                    <col style={{ width: 20 + '%' }} />
+                    <col style={{ width: 14 + '%' }} />
+                    <col style={{ width: 18 + '%' }} />
+                    <col style={{ width: 18 + '%' }} />
+                    <col style={{ width: 12 + '%' }} />
+                    <col style={{ width: 18 + '%' }} />
                     <col style={{ width: 10 + '%' }} />
                     <col style={{ width: 10 + '%' }} />
                 </colgroup>
@@ -176,6 +177,9 @@ export default class RuleTable extends React.Component {
                         {`${caption} (${length})`}
                     </TableCaptionStyled>
                     <tr>
+                        <TableHeadStyledRoleName align={left}>
+                            Identifier
+                        </TableHeadStyledRoleName>
                         <TableHeadStyledRoleName align={left}>
                             {inbound ? 'Destination Service' : 'Source Service'}
                         </TableHeadStyledRoleName>

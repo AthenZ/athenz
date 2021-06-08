@@ -176,6 +176,10 @@ export default class RuleRow extends React.Component {
 
         rows.push(
             <TrStyled key={key} data-testid='segmentation-row'>
+                <TDStyled color={color} align={left}>
+                    {data['identifier']}
+                </TDStyled>
+
                 {inbound && (
                     <TDStyled color={color} align={left}>
                         {data['destination_service']}
