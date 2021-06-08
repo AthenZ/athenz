@@ -9,11 +9,10 @@ import (
 	"strings"
 )
 
-// Return the Athenz Service principal for the given certificate which
-// could be either a service certificate or a role certificate.
+// ExtractServicePrincipal returns the Athenz Service principal for the given
+// certificate which could be either a service certificate or a role certificate.
 // If the certificate does not have the Athenz expected name format
-// the method will an appropriate error
-
+// the method will an appropriate error.
 func ExtractServicePrincipal(x509Cert x509.Certificate) (string, error) {
 
 	// let's first get the common name of the certificate

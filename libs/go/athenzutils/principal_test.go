@@ -32,8 +32,8 @@ func TestExtractServicePrincipalValid(test *testing.T) {
 func TestExtractServicePrincipalInValid(test *testing.T) {
 
 	tests := []struct {
-		name      string
-		certFile  string
+		name     string
+		certFile string
 	}{
 		{"nocn", "data/no_cn_x509.cert"},
 		{"invalidemail", "data/invalid_email_x509.cert"},

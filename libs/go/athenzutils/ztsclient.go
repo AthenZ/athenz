@@ -15,7 +15,8 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zts"
 )
 
-func ZtsClient(ztsUrl, keyFile, certFile, caCertFile string, proxy bool) (*zts.ZTSClient, error) {
+// ZtsClient creates and returns a ZTS client instance.
+func ZtsClient(ztsURL, keyFile, certFile, caCertFile string, proxy bool) (*zts.ZTSClient, error) {
 	keypem, err := ioutil.ReadFile(keyFile)
 	if err != nil {
 		return nil, err
@@ -41,7 +42,7 @@ func ZtsClient(ztsUrl, keyFile, certFile, caCertFile string, proxy bool) (*zts.Z
 	if proxy {
 		tr.Proxy = http.ProxyFromEnvironment
 	}
-	client := zts.NewClient(ztsUrl, tr)
+	client := zts.NewClient(ztsURL, tr)
 	return &client, nil
 }
 
@@ -63,6 +64,7 @@ func tlsConfiguration(keypem, certpem, cacertpem []byte) (*tls.Config, error) {
 	return config, nil
 }
 
+// GenerateAccessTokenRequestString generates and urlencodes an access token string.
 func GenerateAccessTokenRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris string, expiryTime int) string {
 
 	params := url.Values{}
