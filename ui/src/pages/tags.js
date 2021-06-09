@@ -95,18 +95,32 @@ export default class TagsPage extends React.Component {
         let businessServiceOptions = [];
         if (tagsData[5] && tagsData[5].validValues) {
             tagsData[5].validValues.forEach((businessService) => {
+                let bServiceOnlyId = businessService.substring(
+                    0,
+                    businessService.indexOf(':')
+                );
+                let bServiceOnlyName = businessService.substring(
+                    businessService.indexOf(':') + 1
+                );
                 businessServiceOptions.push({
-                    value: businessService,
-                    name: businessService,
+                    value: bServiceOnlyId,
+                    name: bServiceOnlyName,
                 });
             });
         }
         let businessServiceOptionsAll = [];
         if (tagsData[6] && tagsData[6].validValues) {
             tagsData[6].validValues.forEach((businessService) => {
+                let bServiceOnlyId = businessService.substring(
+                    0,
+                    businessService.indexOf(':')
+                );
+                let bServiceOnlyName = businessService.substring(
+                    businessService.indexOf(':') + 1
+                );
                 businessServiceOptionsAll.push({
-                    value: businessService,
-                    name: businessService,
+                    value: bServiceOnlyId,
+                    name: bServiceOnlyName,
                 });
             });
         }

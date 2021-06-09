@@ -170,7 +170,12 @@ export default class DomainDetails extends React.Component {
 
         if (this.state.tempBusinessServiceName) {
             var index = this.props.validBusinessServicesAll.findIndex(
-                (x) => x.name == this.state.tempBusinessServiceName
+                (x) =>
+                    x.value ==
+                    this.state.tempBusinessServiceName.substring(
+                        0,
+                        this.state.tempBusinessServiceName.indexOf(':')
+                    )
             );
             if (index === -1) {
                 this.setState({
@@ -254,8 +259,15 @@ export default class DomainDetails extends React.Component {
             this.props.domainDetails.auditEnabled
         );
         let businessServiceTitle = this.state.businessServiceName
-            ? this.state.businessServiceName
+            ? this.state.businessServiceName.substring(
+                  this.state.businessServiceName.indexOf(':') + 1
+              )
             : 'add';
+        if (!businessServiceTitle) {
+            businessServiceTitle = this.state.businessServiceName
+                ? this.state.businessServiceName
+                : 'add';
+        }
         let clickBusinessServiceCancel =
             this.onClickBusinessServiceCancel.bind(this);
         let clickBusinessServiceSubmit =

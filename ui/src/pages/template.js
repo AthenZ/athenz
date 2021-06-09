@@ -91,27 +91,42 @@ export default class TemplatePage extends React.Component {
             api.getFeatureFlag(),
             api.getMeta(bServicesParams),
             api.getMeta(bServicesParamsAll),
+            api.getServerTemplateDetailsList(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
         });
         let businessServiceOptions = [];
         if (domains[10] && domains[10].validValues) {
             domains[10].validValues.forEach((businessService) => {
+                let bServiceOnlyId = businessService.substring(
+                    0,
+                    businessService.indexOf(':')
+                );
+                let bServiceOnlyName = businessService.substring(
+                    businessService.indexOf(':') + 1
+                );
                 businessServiceOptions.push({
-                    value: businessService,
-                    name: businessService,
+                    value: bServiceOnlyId,
+                    name: bServiceOnlyName,
                 });
             });
         }
         let businessServiceOptionsAll = [];
         if (domains[11] && domains[11].validValues) {
             domains[11].validValues.forEach((businessService) => {
+                let bServiceOnlyId = businessService.substring(
+                    0,
+                    businessService.indexOf(':')
+                );
+                let bServiceOnlyName = businessService.substring(
+                    businessService.indexOf(':') + 1
+                );
                 businessServiceOptionsAll.push({
-                    value: businessService,
-                    name: businessService,
+                    value: bServiceOnlyId,
+                    name: bServiceOnlyName,
                 });
             });
         }

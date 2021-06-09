@@ -262,7 +262,12 @@ export default class ManageDomains extends React.Component {
 
         if (this.state.businessServiceName) {
             var index = this.props.validBusinessServicesAll.findIndex(
-                (x) => x.name == this.state.businessServiceName
+                (x) =>
+                    x.value ==
+                    this.state.businessServiceName.substring(
+                        0,
+                        this.state.businessServiceName.indexOf(':')
+                    )
             );
             if (index === -1) {
                 this.setState({
@@ -313,8 +318,15 @@ export default class ManageDomains extends React.Component {
                       deletable = true;
                   }
                   let title = item.domain.businessService
-                      ? item.domain.businessService
+                      ? item.domain.businessService.substring(
+                            item.domain.businessService.indexOf(':') + 1
+                        )
                       : 'add';
+                  if (!title) {
+                      title = item.domain.businessService
+                          ? item.domain.businessService
+                          : 'add';
+                  }
                   return (
                       <tr key={item.domain.name}>
                           <TDStyled color={color} align={left}>
