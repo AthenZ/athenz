@@ -27,7 +27,7 @@ exports[`ReviewTable should render review table 1`] = `
   word-break: break-all;
 }
 
-.emotion-10 {
+.emotion-12 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -40,7 +40,7 @@ exports[`ReviewTable should render review table 1`] = `
   word-break: break-all;
 }
 
-.emotion-16 {
+.emotion-18 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -52,7 +52,7 @@ exports[`ReviewTable should render review table 1`] = `
   height: 50px;
 }
 
-.emotion-18 {
+.emotion-20 {
   background-color: white;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -61,7 +61,7 @@ exports[`ReviewTable should render review table 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-24 {
+.emotion-28 {
   background-color: white;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -70,7 +70,7 @@ exports[`ReviewTable should render review table 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-26 {
+.emotion-30 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -83,7 +83,7 @@ exports[`ReviewTable should render review table 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-26>input[type='radio'] {
+.emotion-30>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -92,7 +92,7 @@ exports[`ReviewTable should render review table 1`] = `
   visibility: hidden;
 }
 
-.emotion-26>input[type='radio']+label {
+.emotion-30>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -105,7 +105,7 @@ exports[`ReviewTable should render review table 1`] = `
   white-space: nowrap;
 }
 
-.emotion-26>input[type='radio']+label:before {
+.emotion-30>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -121,29 +121,29 @@ exports[`ReviewTable should render review table 1`] = `
   width: 16px;
 }
 
-.emotion-26>input[type='radio']:hover+label:before {
+.emotion-30>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-26>input[type='radio']:focus+label:before {
+.emotion-30>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-26>input[type='radio']:checked+label:before {
+.emotion-30>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-26>input[type='radio']:disabled+label {
+.emotion-30>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-26>input[type='radio']:disabled+label:before {
+.emotion-30>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-26>input[type='radio']:checked+label:after {
+.emotion-30>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -158,7 +158,7 @@ exports[`ReviewTable should render review table 1`] = `
   width: 8px;
 }
 
-.emotion-84 {
+.emotion-94 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -175,7 +175,7 @@ exports[`ReviewTable should render review table 1`] = `
   width: 250px;
 }
 
-.emotion-84 input {
+.emotion-94 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -201,42 +201,42 @@ exports[`ReviewTable should render review table 1`] = `
   width: 100%;
 }
 
-.emotion-84.animated input {
+.emotion-94.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-84 input::-webkit-input-placeholder {
+.emotion-94 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-84 input::-moz-placeholder {
+.emotion-94 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-84 input:-ms-input-placeholder {
+.emotion-94 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-84 input::placeholder {
+.emotion-94 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-84 input.focused,
-.emotion-84 input:active,
-.emotion-84 input:focus {
+.emotion-94 input.focused,
+.emotion-94 input:active,
+.emotion-94 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-84 input:invalid {
+.emotion-94 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-84 .message {
+.emotion-94 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -244,27 +244,27 @@ exports[`ReviewTable should render review table 1`] = `
   top: 2.571rem;
 }
 
-.emotion-84.error input,
-.emotion-84.error input.focused,
-.emotion-84.error input:active,
-.emotion-84.error input:focus {
+.emotion-94.error input,
+.emotion-94.error input.focused,
+.emotion-94.error input:active,
+.emotion-94.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-84.error .message {
+.emotion-94.error .message {
   color: #d01111;
 }
 
-.emotion-85 {
+.emotion-95 {
   width: 300px;
   margin-top: 5px;
 }
 
-.emotion-87 {
+.emotion-97 {
   margin-top: 10px;
 }
 
-.emotion-89 {
+.emotion-99 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -290,29 +290,29 @@ exports[`ReviewTable should render review table 1`] = `
   color: #3697f2;
 }
 
-.emotion-89:first-of-type {
+.emotion-99:first-of-type {
   margin-left: 0;
 }
 
-.emotion-89:disabled {
+.emotion-99:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-89:disabled {
+.emotion-99:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-89:hover:not(:disabled) {
+.emotion-99:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-90 {
+.emotion-100 {
   color: #9a9a9a;
 }
 
-.emotion-92 {
+.emotion-102 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -344,17 +344,22 @@ exports[`ReviewTable should render review table 1`] = `
           EXPIRATION DATE
         </th>
         <th
-          class="emotion-10 emotion-5"
+          class="emotion-4 emotion-5"
+        >
+          REVIEW REMINDER DATE
+        </th>
+        <th
+          class="emotion-12 emotion-5"
         >
           EXTEND
         </th>
         <th
-          class="emotion-10 emotion-5"
+          class="emotion-12 emotion-5"
         >
           NO ACTION
         </th>
         <th
-          class="emotion-10 emotion-5"
+          class="emotion-12 emotion-5"
         >
           DELETE
         </th>
@@ -362,31 +367,37 @@ exports[`ReviewTable should render review table 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-16 emotion-17"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-18 emotion-19"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user1
         </td>
         <td
-          class="emotion-18 emotion-19"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-18 emotion-19"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-24 emotion-19"
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-26 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -402,11 +413,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-19"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-26 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -421,11 +432,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-19"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-26 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -441,31 +452,37 @@ exports[`ReviewTable should render review table 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-16 emotion-17"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-18 emotion-19"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user2
         </td>
         <td
-          class="emotion-18 emotion-19"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-18 emotion-19"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-24 emotion-19"
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-26 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -481,11 +498,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-19"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-26 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -500,11 +517,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-19"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-26 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -520,31 +537,37 @@ exports[`ReviewTable should render review table 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-16 emotion-17"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-18 emotion-19"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user3
         </td>
         <td
-          class="emotion-18 emotion-19"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-18 emotion-19"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-24 emotion-19"
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-26 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -560,11 +583,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-19"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-26 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -579,11 +602,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-19"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-26 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -599,31 +622,37 @@ exports[`ReviewTable should render review table 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-16 emotion-17"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-18 emotion-19"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user4
         </td>
         <td
-          class="emotion-18 emotion-19"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-18 emotion-19"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-24 emotion-19"
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-26 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -639,11 +668,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-19"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-26 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -658,11 +687,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-19"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-26 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -682,7 +711,7 @@ exports[`ReviewTable should render review table 1`] = `
           colspan="2"
         >
           <div
-            class="emotion-84 denali-input animated emotion-85 emotion-86"
+            class="emotion-94 denali-input animated emotion-95 emotion-96"
             data-testid="input-wrapper"
           >
             <input
@@ -703,10 +732,10 @@ exports[`ReviewTable should render review table 1`] = `
           colspan="1"
         >
           <div
-            class="emotion-87 emotion-88"
+            class="emotion-97 emotion-98"
           >
             <button
-              class="emotion-89 denali-button"
+              class="emotion-99 denali-button"
             >
               Submit Review
             </button>
@@ -716,13 +745,783 @@ exports[`ReviewTable should render review table 1`] = `
           colspan="3"
         >
           <span
-            class="emotion-90 emotion-91"
+            class="emotion-100 emotion-101"
           >
-            Current default settings are - Member expiry: 15 days Service expiry: 15 days 
+            Current default settings are - Member Expiry: 15 days. Service Expiry: 15 days. 
             <br />
             To change it, please click 
             <a
-              class="emotion-92 emotion-93"
+              class="emotion-102 emotion-103"
+            >
+               
+              here
+               
+            </a>
+          </span>
+        </td>
+      </tr>
+      <tr>
+        <td
+          colspan="6"
+        />
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`ReviewTable should render review table with reminder settings 1`] = `
+.emotion-0 {
+  margin: 20px;
+}
+
+.emotion-2 {
+  width: 100%;
+  border-spacing: 0 15px;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+  table-layout: fixed;
+}
+
+.emotion-4 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-12 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-18 {
+  box-sizing: border-box;
+  margin-top: 10px;
+  box-shadow: 0 1px 4px #d9d9d9;
+  border: 1px solid #fff;
+  -webkit-border-image: none;
+  border-image: none;
+  -webkit-border-image: initial;
+  border-image: initial;
+  height: 50px;
+}
+
+.emotion-20 {
+  background-color: white;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  border-bottom: 1px solid #d5d5d5;
+}
+
+.emotion-28 {
+  background-color: white;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  border-bottom: 1px solid #d5d5d5;
+}
+
+.emotion-30 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.emotion-30>input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-30>input[type='radio']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-30>input[type='radio']+label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-30>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-30>input[type='radio']:focus+label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-30>input[type='radio']:checked+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-30>input[type='radio']:disabled+label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
+}
+
+.emotion-94 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-94 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-94.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-94 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-94 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-94 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-94 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-94 input.focused,
+.emotion-94 input:active,
+.emotion-94 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-94 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-94 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-94.error input,
+.emotion-94.error input.focused,
+.emotion-94.error input:active,
+.emotion-94.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-94.error .message {
+  color: #d01111;
+}
+
+.emotion-95 {
+  width: 300px;
+  margin-top: 5px;
+}
+
+.emotion-97 {
+  margin-top: 10px;
+}
+
+.emotion-99 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-99:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-99:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-99:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-99:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-100 {
+  color: #9a9a9a;
+}
+
+.emotion-102 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+<div
+  class="emotion-0 emotion-1"
+  data-testid="review-table"
+>
+  <table
+    class="emotion-2 emotion-3"
+  >
+    <thead>
+      <tr>
+        <th
+          class="emotion-4 emotion-5"
+        >
+          MEMBER
+        </th>
+        <th
+          class="emotion-4 emotion-5"
+        >
+          MEMBER NAME
+        </th>
+        <th
+          class="emotion-4 emotion-5"
+        >
+          EXPIRATION DATE
+        </th>
+        <th
+          class="emotion-4 emotion-5"
+        >
+          REVIEW REMINDER DATE
+        </th>
+        <th
+          class="emotion-12 emotion-5"
+        >
+          EXTEND
+        </th>
+        <th
+          class="emotion-12 emotion-5"
+        >
+          NO ACTION
+        </th>
+        <th
+          class="emotion-12 emotion-5"
+        >
+          DELETE
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        class="emotion-18 emotion-19"
+        data-testid="review-row"
+      >
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          user1
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        />
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              checked=""
+              id="radiobutton-undefinedrole-review-0-extend"
+              name="undefinedrole-review-0"
+              type="radio"
+              value="extend"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-0-extend"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-0-no-action"
+              name="undefinedrole-review-0"
+              type="radio"
+              value="no-action"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-0-no-action"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-0-delete"
+              name="undefinedrole-review-0"
+              type="radio"
+              value="delete"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-0-delete"
+            />
+          </div>
+        </td>
+      </tr>
+      <tr
+        class="emotion-18 emotion-19"
+        data-testid="review-row"
+      >
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          user2
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        />
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              checked=""
+              id="radiobutton-undefinedrole-review-1-extend"
+              name="undefinedrole-review-1"
+              type="radio"
+              value="extend"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-1-extend"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-1-no-action"
+              name="undefinedrole-review-1"
+              type="radio"
+              value="no-action"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-1-no-action"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-1-delete"
+              name="undefinedrole-review-1"
+              type="radio"
+              value="delete"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-1-delete"
+            />
+          </div>
+        </td>
+      </tr>
+      <tr
+        class="emotion-18 emotion-19"
+        data-testid="review-row"
+      >
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          user3
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        />
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              checked=""
+              id="radiobutton-undefinedrole-review-2-extend"
+              name="undefinedrole-review-2"
+              type="radio"
+              value="extend"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-2-extend"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-2-no-action"
+              name="undefinedrole-review-2"
+              type="radio"
+              value="no-action"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-2-no-action"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-2-delete"
+              name="undefinedrole-review-2"
+              type="radio"
+              value="delete"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-2-delete"
+            />
+          </div>
+        </td>
+      </tr>
+      <tr
+        class="emotion-18 emotion-19"
+        data-testid="review-row"
+      >
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          user4
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        />
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              checked=""
+              id="radiobutton-undefinedrole-review-3-extend"
+              name="undefinedrole-review-3"
+              type="radio"
+              value="extend"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-3-extend"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-3-no-action"
+              name="undefinedrole-review-3"
+              type="radio"
+              value="no-action"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-3-no-action"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-3-delete"
+              name="undefinedrole-review-3"
+              type="radio"
+              value="delete"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-3-delete"
+            />
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td
+          colspan="2"
+        >
+          <div
+            class="emotion-94 denali-input animated emotion-95 emotion-96"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              id="justification"
+              name="justification"
+              placeholder="Enter justification here"
+              value=""
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
+        </td>
+        <td
+          colspan="1"
+        >
+          <div
+            class="emotion-97 emotion-98"
+          >
+            <button
+              class="emotion-99 denali-button"
+            >
+              Submit Review
+            </button>
+          </div>
+        </td>
+        <td
+          colspan="3"
+        >
+          <span
+            class="emotion-100 emotion-101"
+          >
+            Current default settings are - Member Review: 5 days. Service Review: 10 days. Group Review: 15 days. 
+            <br />
+            To change it, please click 
+            <a
+              class="emotion-102 emotion-103"
             >
                
               here
@@ -743,10 +1542,317 @@ exports[`ReviewTable should render review table 1`] = `
 
 exports[`ReviewTable should render review table without expiry settings 1`] = `
 .emotion-0 {
-  margin: 0;
+  margin: 20px;
 }
 
 .emotion-2 {
+  width: 100%;
+  border-spacing: 0 15px;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+  table-layout: fixed;
+}
+
+.emotion-4 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-12 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-18 {
+  box-sizing: border-box;
+  margin-top: 10px;
+  box-shadow: 0 1px 4px #d9d9d9;
+  border: 1px solid #fff;
+  -webkit-border-image: none;
+  border-image: none;
+  -webkit-border-image: initial;
+  border-image: initial;
+  height: 50px;
+}
+
+.emotion-20 {
+  background-color: white;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  border-bottom: 1px solid #d5d5d5;
+}
+
+.emotion-28 {
+  background-color: white;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  border-bottom: 1px solid #d5d5d5;
+}
+
+.emotion-30 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.emotion-30>input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-30>input[type='radio']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-30>input[type='radio']+label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-30>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-30>input[type='radio']:focus+label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-30>input[type='radio']:checked+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-30>input[type='radio']:disabled+label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
+}
+
+.emotion-94 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-94 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-94.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-94 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-94 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-94 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-94 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-94 input.focused,
+.emotion-94 input:active,
+.emotion-94 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-94 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-94 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-94.error input,
+.emotion-94.error input.focused,
+.emotion-94.error input:active,
+.emotion-94.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-94.error .message {
+  color: #d01111;
+}
+
+.emotion-95 {
+  width: 300px;
+  margin-top: 5px;
+}
+
+.emotion-97 {
+  margin-top: 10px;
+}
+
+.emotion-99 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-99:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-99:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-99:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-99:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-100 {
+  color: #9a9a9a;
+}
+
+.emotion-102 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -755,16 +1861,451 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
 
 <div
   class="emotion-0 emotion-1"
-  data-testid="review-invalid-table"
+  data-testid="review-table"
 >
-  User principal and/or Service principal expiry days are required before a role can be reviewed. Please go to
-  <a
+  <table
     class="emotion-2 emotion-3"
   >
-     
-    Settings
-     
-  </a>
-  tab to set those up.
+    <thead>
+      <tr>
+        <th
+          class="emotion-4 emotion-5"
+        >
+          MEMBER
+        </th>
+        <th
+          class="emotion-4 emotion-5"
+        >
+          MEMBER NAME
+        </th>
+        <th
+          class="emotion-4 emotion-5"
+        >
+          EXPIRATION DATE
+        </th>
+        <th
+          class="emotion-4 emotion-5"
+        >
+          REVIEW REMINDER DATE
+        </th>
+        <th
+          class="emotion-12 emotion-5"
+        >
+          EXTEND
+        </th>
+        <th
+          class="emotion-12 emotion-5"
+        >
+          NO ACTION
+        </th>
+        <th
+          class="emotion-12 emotion-5"
+        >
+          DELETE
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        class="emotion-18 emotion-19"
+        data-testid="review-row"
+      >
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          user1
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        />
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              checked=""
+              id="radiobutton-undefinedrole-review-0-extend"
+              name="undefinedrole-review-0"
+              type="radio"
+              value="extend"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-0-extend"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-0-no-action"
+              name="undefinedrole-review-0"
+              type="radio"
+              value="no-action"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-0-no-action"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-0-delete"
+              name="undefinedrole-review-0"
+              type="radio"
+              value="delete"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-0-delete"
+            />
+          </div>
+        </td>
+      </tr>
+      <tr
+        class="emotion-18 emotion-19"
+        data-testid="review-row"
+      >
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          user2
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        />
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              checked=""
+              id="radiobutton-undefinedrole-review-1-extend"
+              name="undefinedrole-review-1"
+              type="radio"
+              value="extend"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-1-extend"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-1-no-action"
+              name="undefinedrole-review-1"
+              type="radio"
+              value="no-action"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-1-no-action"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-1-delete"
+              name="undefinedrole-review-1"
+              type="radio"
+              value="delete"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-1-delete"
+            />
+          </div>
+        </td>
+      </tr>
+      <tr
+        class="emotion-18 emotion-19"
+        data-testid="review-row"
+      >
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          user3
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        />
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              checked=""
+              id="radiobutton-undefinedrole-review-2-extend"
+              name="undefinedrole-review-2"
+              type="radio"
+              value="extend"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-2-extend"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-2-no-action"
+              name="undefinedrole-review-2"
+              type="radio"
+              value="no-action"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-2-no-action"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-2-delete"
+              name="undefinedrole-review-2"
+              type="radio"
+              value="delete"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-2-delete"
+            />
+          </div>
+        </td>
+      </tr>
+      <tr
+        class="emotion-18 emotion-19"
+        data-testid="review-row"
+      >
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          user4
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        />
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-20 emotion-21"
+          color="white"
+        >
+          N/A
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              checked=""
+              id="radiobutton-undefinedrole-review-3-extend"
+              name="undefinedrole-review-3"
+              type="radio"
+              value="extend"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-3-extend"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-3-no-action"
+              name="undefinedrole-review-3"
+              type="radio"
+              value="no-action"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-3-no-action"
+            />
+          </div>
+        </td>
+        <td
+          class="emotion-28 emotion-21"
+          color="white"
+        >
+          <div
+            class="emotion-30 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-undefinedrole-review-3-delete"
+              name="undefinedrole-review-3"
+              type="radio"
+              value="delete"
+            />
+            <label
+              for="radiobutton-undefinedrole-review-3-delete"
+            />
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td
+          colspan="2"
+        >
+          <div
+            class="emotion-94 denali-input animated emotion-95 emotion-96"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              id="justification"
+              name="justification"
+              placeholder="Enter justification here"
+              value=""
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
+        </td>
+        <td
+          colspan="1"
+        >
+          <div
+            class="emotion-97 emotion-98"
+          >
+            <button
+              class="emotion-99 denali-button"
+            >
+              Submit Review
+            </button>
+          </div>
+        </td>
+        <td
+          colspan="3"
+        >
+          <span
+            class="emotion-100 emotion-101"
+          >
+            Current default settings are - None
+            <br />
+            To change it, please click 
+            <a
+              class="emotion-102 emotion-103"
+            >
+               
+              here
+               
+            </a>
+          </span>
+        </td>
+      </tr>
+      <tr>
+        <td
+          colspan="6"
+        />
+      </tr>
+    </tbody>
+  </table>
 </div>
 `;

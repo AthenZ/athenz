@@ -89,6 +89,9 @@ export default class ReviewRow extends React.Component {
         let exp = member.expiration
             ? this.localDate.getLocalDate(member.expiration, 'UTC', 'UTC')
             : 'N/A';
+        let reminder = member.reviewReminder
+            ? this.localDate.getLocalDate(member.reviewReminder, 'UTC', 'UTC')
+            : 'N/A';
 
         rows.push(
             <TrStyled key={this.props.idx} data-testid='review-row'>
@@ -106,6 +109,11 @@ export default class ReviewRow extends React.Component {
                 {this.props.category === 'role' && (
                     <TDStyled color={color} align={left}>
                         {exp}
+                    </TDStyled>
+                )}
+                {this.props.category === 'role' && (
+                    <TDStyled color={color} align={left}>
+                        {reminder}
                     </TDStyled>
                 )}
                 {this.props.category === 'role' && (

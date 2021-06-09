@@ -646,7 +646,7 @@ exports[`ReviewPage should render 1`] = `
   margin: 0;
 }
 
-.emotion-61 {
+.emotion-59 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -672,13 +672,13 @@ exports[`ReviewPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-63 {
+.emotion-61 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-64 {
+.emotion-62 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -693,7 +693,7 @@ exports[`ReviewPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-66 {
+.emotion-64 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -712,28 +712,28 @@ exports[`ReviewPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-68 {
+.emotion-66 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-70 {
+.emotion-68 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-72 {
+.emotion-70 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-76 {
+.emotion-74 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-78 {
+.emotion-76 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -741,12 +741,12 @@ exports[`ReviewPage should render 1`] = `
   display: flex;
 }
 
-.emotion-80 {
+.emotion-78 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-82 {
+.emotion-80 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -984,17 +984,9 @@ exports[`ReviewPage should render 1`] = `
           >
             <div
               class="emotion-57 emotion-58"
-              data-testid="review-invalid-table"
             >
-              User principal and/or Service principal expiry days are required before a role can be reviewed. Please go to
-              <a
-                class="emotion-30 emotion-60"
-              >
-                 
-                Settings
-                 
-              </a>
-              tab to set those up.
+              There is no members to review for role: 
+              .
             </div>
           </div>
         </div>
@@ -1003,11 +995,11 @@ exports[`ReviewPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-61 emotion-62"
+          class="emotion-59 emotion-60"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-63"
+            class="emotion-61"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1022,45 +1014,45 @@ exports[`ReviewPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-64 emotion-65"
+          class="emotion-62 emotion-63"
         >
           <div
-            class="emotion-66 emotion-67"
+            class="emotion-64 emotion-65"
           >
             <div
-              class="emotion-68 emotion-69"
+              class="emotion-66 emotion-67"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-70 emotion-71"
+                class="emotion-68 emotion-69"
               >
                 Create
               </a>
               <span
-                class="emotion-72 emotion-73"
+                class="emotion-70 emotion-71"
               >
                  | 
               </span>
               <a
-                class="emotion-70 emotion-71"
+                class="emotion-68 emotion-69"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-76 emotion-77"
+            class="emotion-74 emotion-75"
           >
             <div
-              class="emotion-78 emotion-79"
+              class="emotion-76 emotion-77"
             >
               <div
-                class="emotion-80 emotion-81"
+                class="emotion-78 emotion-79"
               >
                 <svg
-                  class="emotion-82"
+                  class="emotion-80"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1081,19 +1073,19 @@ exports[`ReviewPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-70 emotion-71"
+                class="emotion-68 emotion-69"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-78 emotion-79"
+              class="emotion-76 emotion-77"
             >
               <div
-                class="emotion-80 emotion-81"
+                class="emotion-78 emotion-79"
               >
                 <svg
-                  class="emotion-82"
+                  class="emotion-80"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1114,7 +1106,7 @@ exports[`ReviewPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-70 emotion-71"
+                class="emotion-68 emotion-69"
               >
                 athens.ci
               </a>

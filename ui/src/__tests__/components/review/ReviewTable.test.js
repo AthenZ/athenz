@@ -26,6 +26,10 @@ describe('ReviewTable', () => {
         const roleDetails = {
             memberExpiryDays: 15,
             serviceExpiryDays: 15,
+            groupExpiryDays: null,
+            memberReviewDays: null,
+            serviceReviewDays: null,
+            groupReviewDays: null,
         }
         let user1 = {
             memberName: 'user1',
@@ -55,13 +59,17 @@ describe('ReviewTable', () => {
 
         expect(reviewTable).toMatchSnapshot();
     });
-    it('should render review table without expiry settings', () => {
+    it('should render review table with reminder settings', () => {
         let members = [];
         let domain= 'domain';
         let role = 'roleName';
         const roleDetails = {
             memberExpiryDays: null,
             serviceExpiryDays: null,
+            groupExpiryDays: null,
+            memberReviewDays: 5,
+            serviceReviewDays: 10,
+            groupReviewDays: 15,
         }
         let user1 = {
             memberName: 'user1',
@@ -87,8 +95,48 @@ describe('ReviewTable', () => {
         const { getByTestId } = render(
             <ReviewTable api={API()} domain={domain} role={role} roleDetails={roleDetails} members={members} justificationRequired={true} />
         );
-        const reviewTable = getByTestId('review-invalid-table');
+        const reviewTableReminder = getByTestId('review-table');
 
-        expect(reviewTable).toMatchSnapshot();
+        expect(reviewTableReminder).toMatchSnapshot();
+    });
+    it('should render review table without expiry settings', () => {
+        let members = [];
+        let domain= 'domain';
+        let role = 'roleName';
+        const roleDetails = {
+            memberExpiryDays: null,
+            serviceExpiryDays: null,
+            groupExpiryDays: null,
+            memberReviewDays: null,
+            serviceReviewDays: null,
+            groupReviewDays: null,
+        }
+        let user1 = {
+            memberName: 'user1',
+            approved: true,
+        }
+        let user2 = {
+            memberName: 'user2',
+            approved: false,
+        }
+        let user3 = {
+            memberName: 'user3',
+            approved: false,
+        }
+        let user4 = {
+            memberName: 'user4',
+            approved: true,
+        }
+        members.push(user1);
+        members.push(user2);
+        members.push(user3);
+        members.push(user4);
+
+        const { getByTestId } = render(
+            <ReviewTable api={API()} domain={domain} role={role} roleDetails={roleDetails} members={members} justificationRequired={true} />
+        );
+        const reviewTableNoSettings = getByTestId('review-table');
+
+        expect(reviewTableNoSettings).toMatchSnapshot();
     });
 });

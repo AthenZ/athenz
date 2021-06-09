@@ -105,13 +105,7 @@ class ReviewTable extends React.Component {
         this.state = {
             roleObj: props.roleDetails,
             list: props.members || [],
-            memberExpiry: props.roleDetails.memberExpiryDays,
-            serviceExpiry: props.roleDetails.serviceExpiryDays,
             submittedReview: false,
-            showUpdateRoleMeta: !(
-                props.roleDetails.memberExpiryDays ||
-                props.roleDetails.serviceExpiryDays
-            ),
             extendedMembers: new Set(members),
             deletedMembers: new Set(),
         };
@@ -134,11 +128,6 @@ class ReviewTable extends React.Component {
                         this.setState({
                             roleObj: role,
                             list: role.roleMembers || [],
-                            showUpdateRoleMeta: !(
-                                role.memberExpiryDays || role.serviceExpiryDays
-                            ),
-                            memberExpiry: role.memberExpiryDays,
-                            serviceExpiry: role.serviceExpiryDays,
                             extendedMembers: new Set(members),
                             deletedMembers: new Set(),
                             submittedReview: false,
@@ -172,11 +161,6 @@ class ReviewTable extends React.Component {
                         this.setState({
                             roleObj: role,
                             list: role.roleMembers || [],
-                            showUpdateRoleMeta: !(
-                                role.memberExpiryDays || role.serviceExpiryDays
-                            ),
-                            memberExpiry: role.memberExpiryDays,
-                            serviceExpiry: role.serviceExpiryDays,
                             extendedMembers: new Set(members),
                             deletedMembers: new Set(),
                             submittedReview: false,
@@ -196,38 +180,10 @@ class ReviewTable extends React.Component {
     }
 
     submitRoleMetaExpiry() {
-        if (isNaN(this.state.memberExpiry) || isNaN(this.state.serviceExpiry)) {
-            this.setState({
-                errorMessage: 'Expiry days should be whole numbers. ',
-            });
-            return;
-        }
         let roleMeta = {
             selfServe: this.state.roleObj.selfServe,
             reviewEnabled: this.state.roleObj.reviewEnabled,
         };
-        if (!isNaN(this.state.memberExpiry)) {
-            let memExpNum = parseInt(this.state.memberExpiry);
-            if (memExpNum < 1) {
-                this.setState({
-                    errorMessage: 'Expiry days should be greater than 0. ',
-                });
-                return;
-            } else {
-                roleMeta.memberExpiryDays = memExpNum;
-            }
-        }
-        if (!isNaN(this.state.serviceExpiry)) {
-            let memExpNum = parseInt(this.state.serviceExpiry);
-            if (memExpNum < 1) {
-                this.setState({
-                    errorMessage: 'Expiry days should be greater than 0. ',
-                });
-                return;
-            } else {
-                roleMeta.serviceExpiryDays = memExpNum;
-            }
-        }
         this.props.api
             .putRoleMeta(
                 this.props.domain,
@@ -237,9 +193,6 @@ class ReviewTable extends React.Component {
                 this.props._csrf
             )
             .then(() => {
-                this.setState({
-                    showUpdateRoleMeta: false,
-                });
                 this.loadRole();
             })
             .catch((err) => {
@@ -275,6 +228,7 @@ class ReviewTable extends React.Component {
                     m.active = false;
                 }
                 m.expiration = null;
+                m.reviewReminder = null;
                 delete m.memberFullName; // memberFullName is not a valid property on the server
             });
             role.roleMembers = role.roleMembers.filter((m) => {
@@ -321,9 +275,7 @@ class ReviewTable extends React.Component {
         );
     }
 
-    cancelRoleMetaUpdate() {
-        this.setState({ showUpdateRoleMeta: false });
-    }
+    cancelRoleMetaUpdate() {}
 
     onUpdate(key, value) {
         switch (key) {
@@ -344,26 +296,57 @@ class ReviewTable extends React.Component {
 
     getDefaultExpiryText() {
         let text = 'Current default settings are - ';
+        let noDaysConfigured = true;
         if (this.state.roleObj && this.state.roleObj.memberExpiryDays) {
             text =
                 text +
-                'Member expiry: ' +
+                'Member Expiry: ' +
                 this.state.roleObj.memberExpiryDays +
-                ' days ';
+                ' days. ';
+            noDaysConfigured = false;
         }
         if (this.state.roleObj && this.state.roleObj.serviceExpiryDays) {
             text =
                 text +
-                'Service expiry: ' +
+                'Service Expiry: ' +
                 this.state.roleObj.serviceExpiryDays +
-                ' days ';
+                ' days. ';
+            noDaysConfigured = false;
         }
         if (this.state.roleObj && this.state.roleObj.groupExpiryDays) {
             text =
                 text +
-                'Group expiry: ' +
+                'Group Expiry: ' +
                 this.state.roleObj.groupExpiryDays +
-                ' days ';
+                ' days. ';
+            noDaysConfigured = false;
+        }
+        if (this.state.roleObj && this.state.roleObj.memberReviewDays) {
+            text =
+                text +
+                'Member Review: ' +
+                this.state.roleObj.memberReviewDays +
+                ' days. ';
+            noDaysConfigured = false;
+        }
+        if (this.state.roleObj && this.state.roleObj.serviceReviewDays) {
+            text =
+                text +
+                'Service Review: ' +
+                this.state.roleObj.serviceReviewDays +
+                ' days. ';
+            noDaysConfigured = false;
+        }
+        if (this.state.roleObj && this.state.roleObj.groupReviewDays) {
+            text =
+                text +
+                'Group Review: ' +
+                this.state.roleObj.groupReviewDays +
+                ' days. ';
+            noDaysConfigured = false;
+        }
+        if (noDaysConfigured) {
+            text = text + 'None';
         }
 
         const changeText = 'To change it, please click ';
@@ -421,115 +404,92 @@ class ReviewTable extends React.Component {
             );
         }
 
-        if (!this.state.showUpdateRoleMeta) {
-            if (
-                isNaN(this.state.memberExpiry) &&
-                isNaN(this.state.serviceExpiry)
-            ) {
-                //user clicked on cancel without entering memberExpiry and serviceExpiry. We are going to
-                // close the widget.
-                {
-                    this.props.onUpdateSuccess();
-                }
-            }
-
-            if (!this.state.list || this.state.list.length === 0) {
-                return (
-                    <ReviewMembersContainerDiv>
-                        There is no members to review for role:{' '}
-                        {this.props.role}.
-                    </ReviewMembersContainerDiv>
-                );
-            }
-
+        if (!this.state.list || this.state.list.length === 0) {
             return (
                 <ReviewMembersContainerDiv>
-                    <TitleDiv>REVIEW EXPIRING MEMBERS</TitleDiv>
-                    <ReviewMembersSectionDiv data-testid='review-table'>
-                        <ReviewMembersTable>
-                            <thead>
-                                <tr>
-                                    <TableHeadStyled align={left}>
-                                        MEMBER
-                                    </TableHeadStyled>
-                                    <TableHeadStyled align={left}>
-                                        MEMBER NAME
-                                    </TableHeadStyled>
-                                    <TableHeadStyled align={left}>
-                                        EXPIRATION DATE
-                                    </TableHeadStyled>
-                                    <TableHeadStyled align={center}>
-                                        EXTEND
-                                    </TableHeadStyled>
-                                    <TableHeadStyled align={center}>
-                                        NO ACTION
-                                    </TableHeadStyled>
-                                    <TableHeadStyled align={center}>
-                                        DELETE
-                                    </TableHeadStyled>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {rows}
-                                <tr key='submit-review'>
-                                    <td colSpan={2}>
-                                        <StyledJustification
-                                            id='justification'
-                                            name='justification'
-                                            value={
-                                                this.state.justification
-                                                    ? this.state.justification
-                                                    : ''
-                                            }
-                                            onChange={this.inputChanged.bind(
-                                                this,
-                                                'justification'
-                                            )}
-                                            autoComplete={'off'}
-                                            placeholder='Enter justification here'
-                                        />
-                                    </td>
-                                    <td colSpan={1}>
-                                        <SubmitDiv>
-                                            <Button
-                                                secondary={true}
-                                                onClick={this.submitReview}
-                                            >
-                                                Submit Review
-                                            </Button>
-                                        </SubmitDiv>
-                                    </td>
-                                    <td colSpan={3}>
-                                        {this.getDefaultExpiryText()}
-                                    </td>
-                                </tr>
-                                <tr key='error-message'>
-                                    <td colSpan={6}>
-                                        {this.state.errorMessage && (
-                                            <Color name={'red600'}>
-                                                {this.state.errorMessage}
-                                            </Color>
-                                        )}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </ReviewMembersTable>
-                    </ReviewMembersSectionDiv>
-                </ReviewMembersContainerDiv>
-            );
-        } else {
-            return (
-                <ReviewMembersContainerDiv data-testid='review-invalid-table'>
-                    User principal and/or Service principal expiry days are
-                    required before a role can be reviewed. Please go to
-                    <StyledAnchor onClick={this.onClickSettings}>
-                        {' '}
-                        Settings{' '}
-                    </StyledAnchor>
-                    tab to set those up.
+                    There is no members to review for role: {this.props.role}.
                 </ReviewMembersContainerDiv>
             );
         }
+
+        return (
+            <ReviewMembersContainerDiv>
+                <TitleDiv>REVIEW EXPIRING MEMBERS</TitleDiv>
+                <ReviewMembersSectionDiv data-testid='review-table'>
+                    <ReviewMembersTable>
+                        <thead>
+                            <tr>
+                                <TableHeadStyled align={left}>
+                                    MEMBER
+                                </TableHeadStyled>
+                                <TableHeadStyled align={left}>
+                                    MEMBER NAME
+                                </TableHeadStyled>
+                                <TableHeadStyled align={left}>
+                                    EXPIRATION DATE
+                                </TableHeadStyled>
+                                <TableHeadStyled align={left}>
+                                    REVIEW REMINDER DATE
+                                </TableHeadStyled>
+                                <TableHeadStyled align={center}>
+                                    EXTEND
+                                </TableHeadStyled>
+                                <TableHeadStyled align={center}>
+                                    NO ACTION
+                                </TableHeadStyled>
+                                <TableHeadStyled align={center}>
+                                    DELETE
+                                </TableHeadStyled>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows}
+                            <tr key='submit-review'>
+                                <td colSpan={2}>
+                                    <StyledJustification
+                                        id='justification'
+                                        name='justification'
+                                        value={
+                                            this.state.justification
+                                                ? this.state.justification
+                                                : ''
+                                        }
+                                        onChange={this.inputChanged.bind(
+                                            this,
+                                            'justification'
+                                        )}
+                                        autoComplete={'off'}
+                                        placeholder='Enter justification here'
+                                    />
+                                </td>
+                                <td colSpan={1}>
+                                    <SubmitDiv>
+                                        <Button
+                                            secondary={true}
+                                            onClick={this.submitReview}
+                                        >
+                                            Submit Review
+                                        </Button>
+                                    </SubmitDiv>
+                                </td>
+                                <td colSpan={3}>
+                                    {this.getDefaultExpiryText()}
+                                </td>
+                            </tr>
+                            <tr key='error-message'>
+                                <td colSpan={6}>
+                                    {this.state.errorMessage && (
+                                        <Color name={'red600'}>
+                                            {this.state.errorMessage}
+                                        </Color>
+                                    )}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </ReviewMembersTable>
+                </ReviewMembersSectionDiv>
+            </ReviewMembersContainerDiv>
+        );
     }
 }
 export default withRouter(ReviewTable);
