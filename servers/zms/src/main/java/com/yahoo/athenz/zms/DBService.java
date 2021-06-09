@@ -4417,6 +4417,9 @@ public class DBService implements RolesProvider {
         if (roleMember.getExpiration() != null) {
             auditDetails.append(", \"expiration\": \"").append(roleMember.getExpiration().toString()).append('"');
         }
+        if (roleMember.getReviewReminder() != null) {
+            auditDetails.append(", \"reminder\": \"").append(roleMember.getReviewReminder().toString()).append('"');
+        }
         auditDetails.append(", \"approved\": ");
         auditDetails.append(roleMember.getApproved() == Boolean.FALSE ? "false" : "true");
         auditDetails.append(", \"system-disabled\": ");
