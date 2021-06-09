@@ -16,7 +16,7 @@ func TestExtractHostname(test *testing.T) {
 		{"emailnouri", "data/valid_email_x509.cert", ""},
 		{
 			"urihostname",
-			"../../../servers/zts/src/test/resources/athenz.examples.uri-hostname-only.pem",
+			"data/athenz.examples.uri-hostname-only.pem",
 			"abc.athenz.com",
 		},
 	}

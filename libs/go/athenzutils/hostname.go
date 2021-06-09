@@ -1,4 +1,4 @@
-// Copyright 2021 Verizon Media, Inc.
+// Copyright Athenz Authors
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 package athenzutils
