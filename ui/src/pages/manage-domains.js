@@ -95,18 +95,20 @@ export default class ManageDomainsPage extends React.Component {
         let businessServiceOptions = [];
         if (domains[5] && domains[5].validValues) {
             domains[5].validValues.forEach((businessService) => {
+                let businessServiceIdName = businessService.split(':');
                 businessServiceOptions.push({
-                    value: businessService,
-                    name: businessService,
+                    value: businessServiceIdName[0],
+                    name: businessServiceIdName[1],
                 });
             });
         }
         let businessServiceOptionsAll = [];
         if (domains[6] && domains[6].validValues) {
             domains[6].validValues.forEach((businessService) => {
+                let businessServiceIdName = businessService.split(':');
                 businessServiceOptionsAll.push({
-                    value: businessService,
-                    name: businessService,
+                    value: businessServiceIdName[0],
+                    name: businessServiceIdName[1],
                 });
             });
         }

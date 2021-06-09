@@ -98,18 +98,20 @@ export default class GroupPage extends React.Component {
         let businessServiceOptions = [];
         if (domains[8] && domains[8].validValues) {
             domains[8].validValues.forEach((businessService) => {
+                let businessServiceIdName = businessService.split(':');
                 businessServiceOptions.push({
-                    value: businessService,
-                    name: businessService,
+                    value: businessServiceIdName[0],
+                    name: businessServiceIdName[1],
                 });
             });
         }
         let businessServiceOptionsAll = [];
         if (domains[9] && domains[9].validValues) {
             domains[9].validValues.forEach((businessService) => {
+                let businessServiceIdName = businessService.split(':');
                 businessServiceOptionsAll.push({
-                    value: businessService,
-                    name: businessService,
+                    value: businessServiceIdName[0],
+                    name: businessServiceIdName[1],
                 });
             });
         }

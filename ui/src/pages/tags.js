@@ -95,18 +95,20 @@ export default class TagsPage extends React.Component {
         let businessServiceOptions = [];
         if (tagsData[5] && tagsData[5].validValues) {
             tagsData[5].validValues.forEach((businessService) => {
+                let businessServiceIdName = businessService.split(':');
                 businessServiceOptions.push({
-                    value: businessService,
-                    name: businessService,
+                    value: businessServiceIdName[0],
+                    name: businessServiceIdName[1],
                 });
             });
         }
         let businessServiceOptionsAll = [];
         if (tagsData[6] && tagsData[6].validValues) {
             tagsData[6].validValues.forEach((businessService) => {
+                let businessServiceIdName = businessService.split(':');
                 businessServiceOptionsAll.push({
-                    value: businessService,
-                    name: businessService,
+                    value: businessServiceIdName[0],
+                    name: businessServiceIdName[1],
                 });
             });
         }

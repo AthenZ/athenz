@@ -69,13 +69,14 @@ export default class BusinessServiceModal extends React.Component {
         let bServiceName = this.props.businessServiceName;
         let validBServicesUser = props.validBusinessServices.map((x) => x);
         if (bServiceName) {
+            let bServiceIdName = bServiceName.split(':');
             var index = validBServicesUser.findIndex(
-                (x) => x.name == bServiceName
+                (x) => x.value == bServiceIdName[0]
             );
             if (index === -1) {
                 validBServicesUser.push({
-                    value: bServiceName,
-                    name: bServiceName,
+                    value: bServiceIdName[0],
+                    name: bServiceIdName[1],
                 });
             }
         }
@@ -83,7 +84,7 @@ export default class BusinessServiceModal extends React.Component {
         this.state = {
             validBusinessServices: validBServicesUser,
             onlyAccountValuesChecked: true,
-            selectedBservice: bServiceName,
+            selectedBservice: bServiceName ? bServiceName.split(':')[0] : '',
             errorMessage: this.props.errorMessage,
         };
         this.api = props.api;
@@ -94,12 +95,12 @@ export default class BusinessServiceModal extends React.Component {
     }
     businessServiceChanged(evt) {
         let value = evt ? evt.value : '';
-        this.props.onBusinessService(value);
-    }
-
-    inputChanged(key, evt) {
-        this.setState({ [key]: evt.target.value });
-        this.props.onChange(key, evt.target.value);
+        if (value) {
+            let name = evt ? evt.name : '';
+            this.props.onBusinessService(value + ':' + name);
+        } else {
+            this.props.onBusinessService('');
+        }
     }
 
     render() {
