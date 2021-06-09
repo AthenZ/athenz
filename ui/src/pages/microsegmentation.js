@@ -99,20 +99,32 @@ export default class MicrosegmentationPage extends React.Component {
         let businessServiceOptions = [];
         if (data[9] && data[9].validValues) {
             data[9].validValues.forEach((businessService) => {
-                let businessServiceIdName = businessService.split(':');
+                let bServiceOnlyId = businessService.substring(
+                    0,
+                    businessService.indexOf(':')
+                );
+                let bServiceOnlyName = businessService.substring(
+                    businessService.indexOf(':') + 1
+                );
                 businessServiceOptions.push({
-                    value: businessServiceIdName[0],
-                    name: businessServiceIdName[1],
+                    value: bServiceOnlyId,
+                    name: bServiceOnlyName,
                 });
             });
         }
         let businessServiceOptionsAll = [];
         if (data[10] && data[10].validValues) {
             data[10].validValues.forEach((businessService) => {
-                let businessServiceIdName = businessService.split(':');
+                let bServiceOnlyId = businessService.substring(
+                    0,
+                    businessService.indexOf(':')
+                );
+                let bServiceOnlyName = businessService.substring(
+                    businessService.indexOf(':') + 1
+                );
                 businessServiceOptionsAll.push({
-                    value: businessServiceIdName[0],
-                    name: businessServiceIdName[1],
+                    value: bServiceOnlyId,
+                    name: bServiceOnlyName,
                 });
             });
         }

@@ -101,20 +101,32 @@ export default class TemplatePage extends React.Component {
         let businessServiceOptions = [];
         if (domains[10] && domains[10].validValues) {
             domains[10].validValues.forEach((businessService) => {
-                let businessServiceIdName = businessService.split(':');
+                let bServiceOnlyId = businessService.substring(
+                    0,
+                    businessService.indexOf(':')
+                );
+                let bServiceOnlyName = businessService.substring(
+                    businessService.indexOf(':') + 1
+                );
                 businessServiceOptions.push({
-                    value: businessServiceIdName[0],
-                    name: businessServiceIdName[1],
+                    value: bServiceOnlyId,
+                    name: bServiceOnlyName,
                 });
             });
         }
         let businessServiceOptionsAll = [];
         if (domains[11] && domains[11].validValues) {
             domains[11].validValues.forEach((businessService) => {
-                let businessServiceIdName = businessService.split(':');
+                let bServiceOnlyId = businessService.substring(
+                    0,
+                    businessService.indexOf(':')
+                );
+                let bServiceOnlyName = businessService.substring(
+                    businessService.indexOf(':') + 1
+                );
                 businessServiceOptionsAll.push({
-                    value: businessServiceIdName[0],
-                    name: businessServiceIdName[1],
+                    value: bServiceOnlyId,
+                    name: bServiceOnlyName,
                 });
             });
         }
@@ -134,7 +146,6 @@ export default class TemplatePage extends React.Component {
             pending: domains[5],
             pageConfig: domains[6],
             domainTemplateDetails: domains[8],
-            serverTemplateDetails: domains[12],
             nonce: props.req.headers.rid,
             featureFlag: domains[9],
             validBusinessServices: businessServiceOptions,
@@ -157,7 +168,6 @@ export default class TemplatePage extends React.Component {
             reload,
             domainDetails,
             domainTemplateDetails,
-            serverTemplateDetails,
             services,
             _csrf,
         } = this.props;
@@ -213,9 +223,6 @@ export default class TemplatePage extends React.Component {
                                         domain={domain}
                                         domainTemplateDetails={
                                             this.props.domainTemplateDetails
-                                        }
-                                        serverTemplateDetails={
-                                            this.props.serverTemplateDetails
                                         }
                                         _csrf={this.props._csrf}
                                         pageConfig={this.props.pageConfig}

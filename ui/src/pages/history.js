@@ -99,20 +99,32 @@ export default class HistoryPage extends React.Component {
         let businessServiceOptions = [];
         if (historyData[9] && historyData[9].validValues) {
             historyData[9].validValues.forEach((businessService) => {
-                let businessServiceIdName = businessService.split(':');
+                let bServiceOnlyId = businessService.substring(
+                    0,
+                    businessService.indexOf(':')
+                );
+                let bServiceOnlyName = businessService.substring(
+                    businessService.indexOf(':') + 1
+                );
                 businessServiceOptions.push({
-                    value: businessServiceIdName[0],
-                    name: businessServiceIdName[1],
+                    value: bServiceOnlyId,
+                    name: bServiceOnlyName,
                 });
             });
         }
         let businessServiceOptionsAll = [];
         if (historyData[10] && historyData[10].validValues) {
             historyData[10].validValues.forEach((businessService) => {
-                let businessServiceIdName = businessService.split(':');
+                let bServiceOnlyId = businessService.substring(
+                    0,
+                    businessService.indexOf(':')
+                );
+                let bServiceOnlyName = businessService.substring(
+                    businessService.indexOf(':') + 1
+                );
                 businessServiceOptionsAll.push({
-                    value: businessServiceIdName[0],
-                    name: businessServiceIdName[1],
+                    value: bServiceOnlyId,
+                    name: bServiceOnlyName,
                 });
             });
         }

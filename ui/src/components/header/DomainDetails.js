@@ -171,7 +171,11 @@ export default class DomainDetails extends React.Component {
         if (this.state.tempBusinessServiceName) {
             var index = this.props.validBusinessServicesAll.findIndex(
                 (x) =>
-                    x.value == this.state.tempBusinessServiceName.split(':')[0]
+                    x.value ==
+                    this.state.tempBusinessServiceName.substring(
+                        0,
+                        this.state.tempBusinessServiceName.indexOf(':')
+                    )
             );
             if (index === -1) {
                 this.setState({
@@ -255,7 +259,9 @@ export default class DomainDetails extends React.Component {
             this.props.domainDetails.auditEnabled
         );
         let businessServiceTitle = this.state.businessServiceName
-            ? this.state.businessServiceName.split(':')[1]
+            ? this.state.businessServiceName.substring(
+                  this.state.businessServiceName.indexOf(':') + 1
+              )
             : 'add';
         if (!businessServiceTitle) {
             businessServiceTitle = this.state.businessServiceName
