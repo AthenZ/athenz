@@ -645,10 +645,10 @@ func (cli Zms) AddDomainTags(dn string, tagKey string, tagValues []string) (*str
 
 	meta := getDomainMetaObject(domain)
 
-	tagValueArr := make([]zms.CompoundName, 0)
+	tagValueArr := make([]zms.TagCompoundValue, 0)
 
 	if meta.Tags == nil {
-		meta.Tags = map[zms.CompoundName]*zms.StringList{}
+		meta.Tags = map[zms.CompoundName]*zms.TagValueList{}
 	} else {
 		// append current tags
 		currentTagValues := meta.Tags[zms.CompoundName(tagKey)]
@@ -658,10 +658,10 @@ func (cli Zms) AddDomainTags(dn string, tagKey string, tagValues []string) (*str
 	}
 
 	for _, tagValue := range tagValues {
-		tagValueArr = append(tagValueArr, zms.CompoundName(tagValue))
+		tagValueArr = append(tagValueArr, zms.TagCompoundValue(tagValue))
 	}
 
-	meta.Tags[zms.CompoundName(tagKey)] = &zms.StringList{List: tagValueArr}
+	meta.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
 	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
 	if err != nil {
@@ -688,10 +688,10 @@ func (cli Zms) DeleteDomainTags(dn string, tagKey string, tagValue string) (*str
 	}
 	meta := getDomainMetaObject(domain)
 
-	tagValueArr := make([]zms.CompoundName, 0)
+	tagValueArr := make([]zms.TagCompoundValue, 0)
 
 	if meta.Tags == nil {
-		meta.Tags = map[zms.CompoundName]*zms.StringList{}
+		meta.Tags = map[zms.CompoundName]*zms.TagValueList{}
 	}
 
 	// except given tagValue, set the same tags map
@@ -706,7 +706,7 @@ func (cli Zms) DeleteDomainTags(dn string, tagKey string, tagValue string) (*str
 		}
 	}
 
-	meta.Tags[zms.CompoundName(tagKey)] = &zms.StringList{List: tagValueArr}
+	meta.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
 	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
 	if err != nil {

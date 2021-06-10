@@ -76,7 +76,7 @@ public class DBService implements RolesProvider {
 
     AuditReferenceValidator auditReferenceValidator;
     private ScheduledExecutorService userAuthorityFilterExecutor;
-    
+
     public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig, AuditReferenceValidator auditReferenceValidator) {
 
         this.store = store;
@@ -605,8 +605,8 @@ public class DBService implements RolesProvider {
             }
             return con.insertRoleTags(roleName, domainName, role.getTags());
         }
-        Map<String, StringList> originalRoleTags = originalRole.getTags();
-        Map<String, StringList> currentTags = role.getTags();
+        Map<String, TagValueList> originalRoleTags = originalRole.getTags();
+        Map<String, TagValueList> currentTags = role.getTags();
 
         Set<String> tagsToRemove = originalRoleTags.entrySet().stream()
                 .filter(curTag -> currentTags.get(curTag.getKey()) == null
@@ -614,7 +614,7 @@ public class DBService implements RolesProvider {
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
 
-        Map<String, StringList> tagsToAdd = currentTags.entrySet().stream()
+        Map<String, TagValueList> tagsToAdd = currentTags.entrySet().stream()
                 .filter(curTag -> originalRoleTags.get(curTag.getKey()) == null
                         || !originalRoleTags.get(curTag.getKey()).equals(curTag.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -2578,7 +2578,7 @@ public class DBService implements RolesProvider {
                 role.setRoleMembers(getDelegatedRoleMembers(con, domainName, role.getTrust(), roleName));
             }
 
-            Map<String, StringList> roleTags = con.getRoleTags(domainName, roleName);
+            Map<String, TagValueList> roleTags = con.getRoleTags(domainName, roleName);
             if (roleTags != null) {
                 role.setTags(roleTags);
             }
@@ -2925,7 +2925,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    private boolean processDomainTags(ObjectStoreConnection con, Map<String, StringList> domainTags,
+    private boolean processDomainTags(ObjectStoreConnection con, Map<String, TagValueList> domainTags,
             Domain originalDomain, final String domainName, boolean updateDomainLastModTimestamp) {
 
         if (originalDomain == null || originalDomain.getTags() == null || originalDomain.getTags().isEmpty()) {
@@ -2946,7 +2946,7 @@ public class DBService implements RolesProvider {
             return true;
         }
 
-        Map<String, StringList> originalDomainTags = originalDomain.getTags();
+        Map<String, TagValueList> originalDomainTags = originalDomain.getTags();
 
         Set<String> tagsToRemove = originalDomainTags.entrySet().stream()
             .filter(curTag -> domainTags.get(curTag.getKey()) == null
@@ -2962,7 +2962,7 @@ public class DBService implements RolesProvider {
             tagsChanged = true;
         }
 
-        Map<String, StringList> tagsToAdd = domainTags.entrySet().stream()
+        Map<String, TagValueList> tagsToAdd = domainTags.entrySet().stream()
             .filter(curTag -> originalDomainTags.get(curTag.getKey()) == null
                 || !originalDomainTags.get(curTag.getKey()).equals(curTag.getValue()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

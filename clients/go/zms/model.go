@@ -120,25 +120,35 @@ type AuthorityKeyword string
 type AuthorityKeywords string
 
 //
-// StringList -
+// TagValue - TagValue to contain generic string patterns
 //
-type StringList struct {
+type TagValue string
+
+//
+// TagCompoundValue - A compound value of TagValue
+//
+type TagCompoundValue string
+
+//
+// TagValueList -
+//
+type TagValueList struct {
 
 	//
-	// generic list of strings
+	// list of tag values
 	//
-	List []CompoundName `json:"list"`
+	List []TagCompoundValue `json:"list"`
 }
 
 //
-// NewStringList - creates an initialized StringList instance, returns a pointer to it
+// NewTagValueList - creates an initialized TagValueList instance, returns a pointer to it
 //
-func NewStringList(init ...*StringList) *StringList {
-	var o *StringList
+func NewTagValueList(init ...*TagValueList) *TagValueList {
+	var o *TagValueList
 	if len(init) == 1 {
 		o = init[0]
 	} else {
-		o = new(StringList)
+		o = new(TagValueList)
 	}
 	return o.Init()
 }
@@ -146,23 +156,23 @@ func NewStringList(init ...*StringList) *StringList {
 //
 // Init - sets up the instance according to its default field values, if any
 //
-func (self *StringList) Init() *StringList {
+func (self *TagValueList) Init() *TagValueList {
 	if self.List == nil {
-		self.List = make([]CompoundName, 0)
+		self.List = make([]TagCompoundValue, 0)
 	}
 	return self
 }
 
-type rawStringList StringList
+type rawTagValueList TagValueList
 
 //
-// UnmarshalJSON is defined for proper JSON decoding of a StringList
+// UnmarshalJSON is defined for proper JSON decoding of a TagValueList
 //
-func (self *StringList) UnmarshalJSON(b []byte) error {
-	var m rawStringList
+func (self *TagValueList) UnmarshalJSON(b []byte) error {
+	var m rawTagValueList
 	err := json.Unmarshal(b, &m)
 	if err == nil {
-		o := StringList(m)
+		o := TagValueList(m)
 		*self = *((&o).Init())
 		err = self.Validate()
 	}
@@ -172,9 +182,9 @@ func (self *StringList) UnmarshalJSON(b []byte) error {
 //
 // Validate - checks for missing required fields, etc
 //
-func (self *StringList) Validate() error {
+func (self *TagValueList) Validate() error {
 	if self.List == nil {
-		return fmt.Errorf("StringList: Missing required field: list")
+		return fmt.Errorf("TagValueList: Missing required field: list")
 	}
 	return nil
 }
@@ -276,7 +286,7 @@ type DomainMeta struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional"`
 
 	//
 	// associated business service with domain
@@ -490,7 +500,7 @@ type Domain struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional"`
 
 	//
 	// associated business service with domain
@@ -1083,7 +1093,7 @@ type RoleMeta struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional"`
 }
 
 //
@@ -1227,7 +1237,7 @@ type Role struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional"`
 
 	//
 	// name of the role
@@ -3366,7 +3376,7 @@ type TopLevelDomain struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional"`
 
 	//
 	// associated business service with domain
@@ -3604,7 +3614,7 @@ type SubDomain struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional"`
 
 	//
 	// associated business service with domain
@@ -3856,7 +3866,7 @@ type UserDomain struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional"`
 
 	//
 	// associated business service with domain
@@ -6160,7 +6170,7 @@ type DomainData struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*StringList `json:"tags,omitempty" rdl:"optional"`
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional"`
 
 	//
 	// associated business service with domain

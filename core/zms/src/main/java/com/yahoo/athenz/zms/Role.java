@@ -58,7 +58,7 @@ public class Role {
     public Integer groupReviewDays;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Map<String, StringList> tags;
+    public Map<String, TagValueList> tags;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -180,11 +180,11 @@ public class Role {
     public Integer getGroupReviewDays() {
         return groupReviewDays;
     }
-    public Role setTags(Map<String, StringList> tags) {
+    public Role setTags(Map<String, TagValueList> tags) {
         this.tags = tags;
         return this;
     }
-    public Map<String, StringList> getTags() {
+    public Map<String, TagValueList> getTags() {
         return tags;
     }
     public Role setName(String name) {

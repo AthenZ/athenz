@@ -180,7 +180,7 @@ public class ZMSCoreTest {
                 .setLastReviewedDate(Timestamp.fromMillis(123456789123L))
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         Result result = validator.validate(r, "Role");
         assertTrue(result.valid);
@@ -232,7 +232,7 @@ public class ZMSCoreTest {
                 .setLastReviewedDate(Timestamp.fromMillis(123456789123L))
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(r2.equals(r));
         assertTrue(r.equals(r));
@@ -363,7 +363,7 @@ public class ZMSCoreTest {
         assertFalse(r2.equals(r));
         assertFalse(r.equals(new String()));
 
-        r2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue1"))));
+        r2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue1"))));
         assertFalse(r2.equals(r));
         r2.setTags(null);
         assertFalse(r2.equals(r));
@@ -767,7 +767,7 @@ public class ZMSCoreTest {
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120)
                 .setServiceCertExpiryMins(150).setDescription("main domain").setOrg("org").setSignAlgorithm("rsa")
                 .setUserAuthorityFilter("OnShore").setGroups(gl).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))))
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service");
 
         result = validator.validate(dd, "DomainData");
@@ -798,7 +798,7 @@ public class ZMSCoreTest {
         assertEquals(dd.getSignAlgorithm(), "rsa");
         assertEquals(dd.getUserAuthorityFilter(), "OnShore");
         assertEquals(dd.getTags(),
-            Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+            Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(dd.getBusinessService(), "business-service");
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("aws").setYpmId(1).setRoles(rl)
@@ -807,7 +807,7 @@ public class ZMSCoreTest {
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150)
                 .setDescription("main domain").setOrg("org").setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))))
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service");
 
         assertTrue(dd.equals(dd2));
@@ -913,11 +913,11 @@ public class ZMSCoreTest {
         dd2.setOrg("org");
         assertTrue(dd2.equals(dd));
 
-        dd2.setTags(Collections.singletonMap("tagKeyOther", new StringList().setList(Collections.singletonList("tagValue"))));
+        dd2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertFalse(dd2.equals(dd));
         dd2.setTags(null);
         assertFalse(dd2.equals(dd));
-        dd2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+        dd2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertTrue(dd2.equals(dd));
 
         dd2.setBusinessService("business-service2");
@@ -1146,7 +1146,7 @@ public class ZMSCoreTest {
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))))
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service");
 
         Result result = validator.validate(d, "Domain");
@@ -1173,7 +1173,7 @@ public class ZMSCoreTest {
         assertEquals(d.getSignAlgorithm(), "rsa");
         assertEquals(d.getUserAuthorityFilter(), "OnShore");
         assertEquals(d.getTags(),
-            Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+            Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(d.getBusinessService(), "business-service");
 
         Domain d2 = new Domain();
@@ -1183,7 +1183,7 @@ public class ZMSCoreTest {
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))))
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service");
 
         assertTrue(d2.equals(d));
@@ -1210,11 +1210,11 @@ public class ZMSCoreTest {
         d2.setAzureSubscription("azure");
         assertTrue(d2.equals(d));
 
-        d2.setTags(Collections.singletonMap("tagKeyOther", new StringList().setList(Collections.singletonList("tagValue"))));
+        d2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertFalse(d2.equals(d));
         d2.setTags(null);
         assertFalse(d2.equals(d));
-        d2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+        d2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertTrue(d2.equals(d));
 
         d2.setSignAlgorithm("ec");
@@ -1376,7 +1376,7 @@ public class ZMSCoreTest {
                 .setServiceCertExpiryMins(120).setRoleCertExpiryMins(150).setSignAlgorithm("ec")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
                 .setAzureSubscription("azure").setBusinessService("business-service")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -1399,7 +1399,7 @@ public class ZMSCoreTest {
         assertEquals(dm.getSignAlgorithm(), "ec");
         assertEquals(dm.getUserAuthorityFilter(), "OnShore");
         assertEquals(dm.getTags(),
-            Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+            Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(dm.getBusinessService(), "business-service");
 
         DomainMeta dm2 = new DomainMeta().init();
@@ -1409,7 +1409,7 @@ public class ZMSCoreTest {
                 .setServiceCertExpiryMins(120).setRoleCertExpiryMins(150).setSignAlgorithm("ec")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
                 .setAzureSubscription("azure").setBusinessService("business-service")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(dm2.equals(dm));
         assertTrue(dm.equals(dm));
@@ -1435,11 +1435,11 @@ public class ZMSCoreTest {
         dm2.setAzureSubscription("azure");
         assertTrue(dm2.equals(dm));
 
-        dm2.setTags(Collections.singletonMap("tagKeyOther", new StringList().setList(Collections.singletonList("tagValue"))));
+        dm2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertFalse(dm2.equals(dm));
         dm2.setTags(null);
         assertFalse(dm2.equals(dm));
-        dm2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+        dm2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertTrue(dm2.equals(dm));
 
         dm2.setSignAlgorithm("rsa");
@@ -1550,7 +1550,7 @@ public class ZMSCoreTest {
                 .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150).setSignAlgorithm("rsa")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))))
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service");
 
         result = validator.validate(tld, "TopLevelDomain");
@@ -1577,7 +1577,7 @@ public class ZMSCoreTest {
         assertEquals(tld.getSignAlgorithm(), "rsa");
         assertEquals(tld.getUserAuthorityFilter(), "OnShore");
         assertEquals(tld.getTags(),
-            Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+            Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(tld.getBusinessService(), "business-service");
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
@@ -1585,7 +1585,7 @@ public class ZMSCoreTest {
                 .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150).setSignAlgorithm("rsa")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))))
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service");
 
         assertTrue(tld2.equals(tld));
@@ -1612,11 +1612,11 @@ public class ZMSCoreTest {
         tld2.setAzureSubscription("azure");
         assertTrue(tld2.equals(tld));
 
-        tld2.setTags(Collections.singletonMap("tagKeyOther", new StringList().setList(Collections.singletonList("tagValue"))));
+        tld2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertFalse(tld2.equals(tld));
         tld2.setTags(null);
         assertFalse(tld2.equals(tld));
-        tld2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+        tld2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertTrue(tld2.equals(tld));
 
         tld2.setSignAlgorithm("ec");
@@ -1715,7 +1715,7 @@ public class ZMSCoreTest {
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))))
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service");
 
         Result result = validator.validate(sd, "SubDomain");
@@ -1743,7 +1743,7 @@ public class ZMSCoreTest {
         assertEquals(sd.getSignAlgorithm(), "rsa");
         assertEquals(sd.getUserAuthorityFilter(), "OnShore");
         assertEquals(sd.getTags(),
-            Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+            Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(sd.getBusinessService(), "business-service");
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
@@ -1753,7 +1753,7 @@ public class ZMSCoreTest {
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))))
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service");
 
         assertTrue(sd2.equals(sd));
@@ -1780,11 +1780,11 @@ public class ZMSCoreTest {
         sd2.setAzureSubscription("azure");
         assertTrue(sd2.equals(sd));
 
-        sd2.setTags(Collections.singletonMap("tagKeyOther", new StringList().setList(Collections.singletonList("tagValue"))));
+        sd2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertFalse(sd2.equals(sd));
         sd2.setTags(null);
         assertFalse(sd2.equals(sd));
-        sd2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+        sd2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertTrue(sd2.equals(sd));
 
         sd2.setSignAlgorithm("ec");
@@ -1882,7 +1882,7 @@ public class ZMSCoreTest {
                 .setTokenExpiryMins(300).setServiceCertExpiryMins(120).setRoleCertExpiryMins(150)
                 .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore")
                 .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -1907,7 +1907,7 @@ public class ZMSCoreTest {
         assertEquals(ud.getSignAlgorithm(), "rsa");
         assertEquals(ud.getUserAuthorityFilter(), "OnShore");
         assertEquals(ud.getTags(),
-            Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+            Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(ud.getBusinessService(), "business-service");
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
@@ -1917,7 +1917,7 @@ public class ZMSCoreTest {
                 .setTokenExpiryMins(300).setServiceCertExpiryMins(120).setRoleCertExpiryMins(150)
                 .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore")
                 .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(ud2.equals(ud));
         assertTrue(ud.equals(ud));
@@ -1943,11 +1943,11 @@ public class ZMSCoreTest {
         ud2.setAzureSubscription("azure");
         assertTrue(ud2.equals(ud));
 
-        ud2.setTags(Collections.singletonMap("tagKeyOther", new StringList().setList(Collections.singletonList("tagValue"))));
+        ud2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertFalse(ud2.equals(ud));
         ud2.setTags(null);
         assertFalse(ud2.equals(ud));
-        ud2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+        ud2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertTrue(ud2.equals(ud));
 
         ud2.setSignAlgorithm("ec");
@@ -3540,7 +3540,7 @@ public class ZMSCoreTest {
                 .setReviewEnabled(false)
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertTrue(rm.equals(rm));
 
         assertFalse(rm.getSelfServe());
@@ -3574,7 +3574,7 @@ public class ZMSCoreTest {
                 .setReviewEnabled(false)
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
-                .setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(rm2.equals(rm));
 
@@ -3676,11 +3676,11 @@ public class ZMSCoreTest {
         rm2.setUserAuthorityFilter("attr2,attr3");
         assertTrue(rm2.equals(rm));
 
-        rm2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue1"))));
+        rm2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue1"))));
         assertFalse(rm2.equals(rm));
         rm2.setTags(null);
         assertFalse(rm2.equals(rm));
-        rm2.setTags(Collections.singletonMap("tagKey", new StringList().setList(Collections.singletonList("tagValue"))));
+        rm2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertTrue(rm2.equals(rm));
 
         assertFalse(rm2.equals(null));
@@ -3857,19 +3857,19 @@ public class ZMSCoreTest {
     }
 
     @Test
-    public void testStringList() {
+    public void testTagValueList() {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
         List<String> strList = Collections.singletonList("member");
 
-        StringList stl = new StringList().setList(strList);
+        TagValueList stl = new TagValueList().setList(strList);
 
-        Result result = validator.validate(stl, "StringList");
+        Result result = validator.validate(stl, "TagValueList");
         assertTrue(result.valid);
         assertEquals(strList, stl.getList());
 
-        StringList stl2 = new StringList().setList(strList);
+        TagValueList stl2 = new TagValueList().setList(strList);
         assertEquals(stl2, stl);
         assertEquals(stl, stl);
 
@@ -3883,6 +3883,22 @@ public class ZMSCoreTest {
         assertNotEquals(stl, stl2);
         assertNotEquals(stl, null);
         assertFalse(stl.equals("str"));
+
+        TagValueList tvl = new TagValueList().setList(Collections.singletonList("/homes"));
+        Result resultTvl = validator.validate(tvl, "TagValueList");
+        assertTrue(resultTvl.valid);
+
+        tvl = new TagValueList().setList(Collections.singletonList("/homes/"));
+        resultTvl = validator.validate(tvl, "TagValueList");
+        assertTrue(resultTvl.valid);
+
+        tvl = new TagValueList().setList(Collections.singletonList("/homes/home"));
+        resultTvl = validator.validate(tvl, "TagValueList");
+        assertTrue(resultTvl.valid);
+
+        tvl = new TagValueList().setList(Collections.singletonList("/homes/home/"));
+        resultTvl = validator.validate(tvl, "TagValueList");
+        assertTrue(resultTvl.valid);
     }
 
     @Test

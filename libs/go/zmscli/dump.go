@@ -183,7 +183,7 @@ func (cli Zms) dumpRole(buf *bytes.Buffer, role zms.Role, auditLog bool, indent1
 	}
 }
 
-func (cli Zms) dumpTags(buf *bytes.Buffer, indentFirst bool, indent1, indent2 string, tags map[zms.CompoundName]*zms.StringList) {
+func (cli Zms) dumpTags(buf *bytes.Buffer, indentFirst bool, indent1, indent2 string, tags map[zms.CompoundName]*zms.TagValueList) {
 	if tags != nil {
 		if indentFirst {
 			buf.WriteString(indent2)

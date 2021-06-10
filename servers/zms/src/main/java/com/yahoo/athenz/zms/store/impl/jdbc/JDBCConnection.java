@@ -1074,7 +1074,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return res;
     }
 
-    public boolean insertDomainTags(String domainName, Map<String, StringList> tags) {
+    public boolean insertDomainTags(String domainName, Map<String, TagValueList> tags) {
         final String caller = "updateDomainTags";
         int domainId = getDomainId(domainName);
         if (domainId == 0) {
@@ -1088,7 +1088,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         boolean res = true;
-        for (Map.Entry<String, StringList> e : tags.entrySet()) {
+        for (Map.Entry<String, TagValueList> e : tags.entrySet()) {
             for (String tagValue : e.getValue().getList()) {
                 try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_DOMAIN_TAG)) {
                     ps.setInt(1, domainId);
@@ -1104,9 +1104,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         return res;
     }
 
-    private int calculateTagCount(Map<String, StringList> tags) {
+    private int calculateTagCount(Map<String, TagValueList> tags) {
         int count = 0;
-        for (Map.Entry<String, StringList> e : tags.entrySet()) {
+        for (Map.Entry<String, TagValueList> e : tags.entrySet()) {
             count += e.getValue().getList().size();
         }
         return count;
@@ -1128,9 +1128,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         return count;
     }
 
-    public Map<String, StringList> getDomainTags(String domainName) {
+    public Map<String, TagValueList> getDomainTags(String domainName) {
         final String caller = "getDomainTags";
-        Map<String, StringList> domainTag = null;
+        Map<String, TagValueList> domainTag = null;
 
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_TAGS)) {
             ps.setString(1, domainName);
@@ -1141,7 +1141,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (domainTag == null) {
                         domainTag = new HashMap<>();
                     }
-                    StringList tagValues = domainTag.computeIfAbsent(tagKey, k -> new StringList().setList(new ArrayList<>()));
+                    TagValueList tagValues = domainTag.computeIfAbsent(tagKey, k -> new TagValueList().setList(new ArrayList<>()));
                     tagValues.getList().add(tagValue);
                 }
             }
@@ -5954,10 +5954,10 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     private void addTagsToRoles(Map<String, Role> roleMap, String domainName) {
 
-        Map<String, Map<String, StringList>> domainRoleTags = getDomainRoleTags(domainName);
+        Map<String, Map<String, TagValueList>> domainRoleTags = getDomainRoleTags(domainName);
         if (domainRoleTags != null) {
             for (Map.Entry<String, Role> roleEntry : roleMap.entrySet()) {
-                Map<String, StringList> roleTag = domainRoleTags.get(roleEntry.getKey());
+                Map<String, TagValueList> roleTag = domainRoleTags.get(roleEntry.getKey());
                 if (roleTag != null) {
                     roleEntry.getValue().setTags(roleTag);
                 }
@@ -5965,9 +5965,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
     }
 
-    Map<String, Map<String, StringList>> getDomainRoleTags(String domainName) {
+    Map<String, Map<String, TagValueList>> getDomainRoleTags(String domainName) {
         final String caller = "getDomainRoleTags";
-        Map<String, Map<String, StringList>> domainRoleTags = null;
+        Map<String, Map<String, TagValueList>> domainRoleTags = null;
 
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_ROLE_TAGS)) {
             ps.setString(1, domainName);
@@ -5979,8 +5979,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (domainRoleTags == null) {
                         domainRoleTags = new HashMap<>();
                     }
-                    Map<String, StringList> roleTag = domainRoleTags.computeIfAbsent(roleName, tags -> new HashMap<>());
-                    StringList tagValues = roleTag.computeIfAbsent(tagKey, k -> new StringList().setList(new ArrayList<>()));
+                    Map<String, TagValueList> roleTag = domainRoleTags.computeIfAbsent(roleName, tags -> new HashMap<>());
+                    TagValueList tagValues = roleTag.computeIfAbsent(tagKey, k -> new TagValueList().setList(new ArrayList<>()));
                     tagValues.getList().add(tagValue);
                 }
             }
@@ -5991,9 +5991,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Map<String, StringList> getRoleTags(String domainName, String roleName) {
+    public Map<String, TagValueList> getRoleTags(String domainName, String roleName) {
         final String caller = "getRoleTags";
-        Map<String, StringList> roleTag = null;
+        Map<String, TagValueList> roleTag = null;
 
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_ROLE_TAGS)) {
             ps.setString(1, domainName);
@@ -6005,7 +6005,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (roleTag == null) {
                         roleTag = new HashMap<>();
                     }
-                    StringList tagValues = roleTag.computeIfAbsent(tagKey, k -> new StringList().setList(new ArrayList<>()));
+                    TagValueList tagValues = roleTag.computeIfAbsent(tagKey, k -> new TagValueList().setList(new ArrayList<>()));
                     tagValues.getList().add(tagValue);
                 }
             }
@@ -6016,7 +6016,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean insertRoleTags(String roleName, String domainName, Map<String, StringList> roleTags) {
+    public boolean insertRoleTags(String roleName, String domainName, Map<String, TagValueList> roleTags) {
         final String caller = "insertRoleTags";
 
         int domainId = getDomainId(domainName);
@@ -6033,9 +6033,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw requestError(caller, "role tag quota exceeded - limit: "
                 + roleTagsLimit + ", current tags count: " + curTagCount + ", new tags count: " + newTagCount);
         }
-        
+
         boolean res = true;
-        for (Map.Entry<String, StringList> e : roleTags.entrySet()) {
+        for (Map.Entry<String, TagValueList> e : roleTags.entrySet()) {
             for (String tagValue : e.getValue().getList()) {
                 try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_ROLE_TAG)) {
                     ps.setInt(1, roleId);
@@ -6049,7 +6049,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         return res;
     }
-    
+
     private int getRoleTagsCount(int roleId) {
         final String caller = "getRoleTagsCount";
         int count = 0;

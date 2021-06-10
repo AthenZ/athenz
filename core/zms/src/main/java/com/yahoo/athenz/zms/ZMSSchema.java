@@ -89,8 +89,16 @@ public class ZMSSchema {
         sb.stringType("AuthorityKeywords")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*,)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
-        sb.structType("StringList")
-            .arrayField("list", "CompoundName", false, "generic list of strings");
+        sb.stringType("TagValue")
+            .comment("TagValue to contain generic string patterns")
+            .pattern("[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*");
+
+        sb.stringType("TagCompoundValue")
+            .comment("A compound value of TagValue")
+            .pattern("([a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*\\.)*[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*");
+
+        sb.structType("TagValueList")
+            .arrayField("list", "TagCompoundValue", false, "list of tag values");
 
         sb.structType("DomainMeta")
             .comment("Set of metadata attributes that all domains may have and can be changed.")
@@ -111,7 +119,7 @@ public class ZMSSchema {
             .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
             .field("azureSubscription", "String", true, "associated azure subscription id (system attribute - uniqueness check)")
-            .mapField("tags", "CompoundName", "StringList", true, "key-value pair tags, tag might contain multiple values")
+            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("businessService", "String", true, "associated business service with domain");
 
         sb.structType("Domain", "DomainMeta")
@@ -167,7 +175,7 @@ public class ZMSSchema {
             .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute")
             .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
             .field("groupReviewDays", "Int32", true, "all groups in the domain roles will have specified max review days")
-            .mapField("tags", "CompoundName", "StringList", true, "key-value pair tags, tag might contain multiple values");
+            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members.")

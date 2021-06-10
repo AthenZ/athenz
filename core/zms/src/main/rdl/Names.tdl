@@ -70,6 +70,12 @@ type MemberName String (pattern="\\*|{DomainName}\\.\\*|{ServiceName}(\\*)?|{Gro
 type AuthorityKeyword String (pattern="{SimpleName}");
 type AuthorityKeywords String (pattern="({AuthorityKeyword},)*{AuthorityKeyword}");
 
-type StringList Struct {
-    Array<CompoundName> list; //generic list of strings
+//TagValue to contain generic string patterns
+type TagValue String (pattern="[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*");
+
+//A compound value of TagValue
+type TagCompoundValue String (pattern="({TagValue}\\.)*{TagValue}");
+
+type TagValueList Struct {
+    Array<TagCompoundValue> list; //list of tag values
 }

@@ -9992,8 +9992,8 @@ public class DBServiceTest {
     public void testProcessRoleWithTagsInsert() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
 
-        Map<String, StringList> roleTags = Collections.singletonMap(
-                "tagKey", new StringList().setList(Collections.singletonList("tagVal"))
+        Map<String, TagValueList> roleTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
         );
         Role role = new Role().setName("newRole").setTags(roleTags);
         Mockito.when(conn.insertRole("sys.auth", role)).thenReturn(true);
@@ -10010,9 +10010,9 @@ public class DBServiceTest {
     public void testProcessRoleWithTagsUpdate() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
 
-        Map<String, StringList> roleTags = new HashMap<>();
-        roleTags.put("tagToBeRemoved", new StringList().setList(Collections.singletonList("val0")));
-        roleTags.put("tagKey", new StringList().setList(Arrays.asList("val1", "val2")));
+        Map<String, TagValueList> roleTags = new HashMap<>();
+        roleTags.put("tagToBeRemoved", new TagValueList().setList(Collections.singletonList("val0")));
+        roleTags.put("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
 
         Role role = new Role().setName("newRole").setTags(roleTags);
         Mockito.when(conn.insertRole(anyString(), any())).thenReturn(true);
@@ -10025,10 +10025,10 @@ public class DBServiceTest {
         assertTrue(success);
 
         // new role
-        Map<String, StringList> newRoleTags = new HashMap<>();
-        newRoleTags.put("tagKey", new StringList().setList(Arrays.asList("val1", "val2")));
-        newRoleTags.put("newTagKey", new StringList().setList(Arrays.asList("val3", "val4")));
-        newRoleTags.put("newTagKey2", new StringList().setList(Arrays.asList("val5", "val6")));
+        Map<String, TagValueList> newRoleTags = new HashMap<>();
+        newRoleTags.put("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
+        newRoleTags.put("newTagKey", new TagValueList().setList(Arrays.asList("val3", "val4")));
+        newRoleTags.put("newTagKey2", new TagValueList().setList(Arrays.asList("val5", "val6")));
 
         Role newRole = new Role().setName("newRole").setTags(newRoleTags);
 
@@ -10054,11 +10054,11 @@ public class DBServiceTest {
         assertTrue(tagCapture.getValue().containsAll(expectedTagsToBeRemoved));
 
         // assert tags to add
-        ArgumentCaptor<Map<String, StringList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertRoleTags(roleCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
         assertEquals("newRole", roleCapture.getValue());
         assertEquals("sys.auth", domainCapture.getValue());
-        Map<String, StringList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.keySet().containsAll(Arrays.asList("newTagKey", "newTagKey2")));
         assertTrue(resultInsertTags.values().stream()
                 .flatMap(l -> l.getList().stream())
@@ -10066,7 +10066,7 @@ public class DBServiceTest {
                 .containsAll(Arrays.asList("val3", "val4", "val5", "val6")));
 
         // assert first tag insertion
-        Map<String, StringList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
+        Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
         assertTrue(resultFirstInsertTags.keySet().containsAll(Arrays.asList("tagKey", "tagToBeRemoved")));
         assertTrue(resultFirstInsertTags.values().stream()
                 .flatMap(l -> l.getList().stream())
@@ -10078,8 +10078,8 @@ public class DBServiceTest {
     public void testRoleSameTagKeyValues() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
 
-        Map<String, StringList> roleTags = Collections.singletonMap(
-                "tagKey", new StringList().setList(Collections.singletonList("tagVal"))
+        Map<String, TagValueList> roleTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
         );
         Role role = new Role().setName("role").setTags(roleTags);
         Mockito.when(conn.insertRole(anyString(), any())).thenReturn(true);
@@ -10112,15 +10112,15 @@ public class DBServiceTest {
         assertTrue(tagCapture.getValue().isEmpty());
 
         // assert tags to add should be empty
-        ArgumentCaptor<Map<String, StringList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertRoleTags(roleCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
         assertEquals("newRole", roleCapture.getValue());
         assertEquals("sys.auth", domainCapture.getValue());
-        Map<String, StringList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.isEmpty());
 
         // asert first tag insertion
-        Map<String, StringList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
+        Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
         assertTrue(resultFirstInsertTags.containsKey("tagKey"));
         assertTrue(resultFirstInsertTags.values().stream()
                 .flatMap(l -> l.getList().stream())
@@ -10140,7 +10140,7 @@ public class DBServiceTest {
         Role role = new Role().setName(roleName);
         RoleMeta rm = new RoleMeta()
             .setTags(Collections.singletonMap(updateRoleMetaTag,
-                new StringList().setList(updateRoleMetaTagValues)));
+                new TagValueList().setList(updateRoleMetaTagValues)));
 
         // mock dbService store
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
@@ -10155,14 +10155,14 @@ public class DBServiceTest {
         // assert tags to add contains role meta tags
         ArgumentCaptor<String> roleCapture = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Map<String, StringList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
 
         Mockito.verify(conn, times(1)).insertRoleTags(roleCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
         assertEquals(roleName, roleCapture.getValue());
         assertEquals(domainName, domainCapture.getValue());
 
-        Map<String, StringList> resultInsertTags = tagInsertCapture.getAllValues().get(0);
-        StringList tagValues = resultInsertTags.get(updateRoleMetaTag);
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(0);
+        TagValueList tagValues = resultInsertTags.get(updateRoleMetaTag);
         assertNotNull(tagValues);
         assertTrue(tagValues.getList().containsAll(updateRoleMetaTagValues));
         zms.dbService.store = savedStore;
@@ -10181,12 +10181,12 @@ public class DBServiceTest {
         // initial role with tags
         Role role = new Role().setName(roleName)
             .setTags(Collections.singletonMap(initialTagKey,
-                new StringList().setList(initialTagValues)));
+                new TagValueList().setList(initialTagValues)));
 
         // role meta with updated tags
         RoleMeta rm = new RoleMeta()
             .setTags(Collections.singletonMap(updateRoleMetaTag,
-                new StringList().setList(updateRoleMetaTagValues)));
+                new TagValueList().setList(updateRoleMetaTagValues)));
 
         // mock dbService store
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
@@ -10210,13 +10210,13 @@ public class DBServiceTest {
         assertTrue(tagCapture.getValue().contains(initialTagKey));
 
         // assert tags to add
-        ArgumentCaptor<Map<String, StringList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(1)).insertRoleTags(roleCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
         assertEquals(roleName, roleCapture.getValue());
         assertEquals(domainName, domainCapture.getValue());
 
-        Map<String, StringList> resultInsertTags = tagInsertCapture.getAllValues().get(0);
-        StringList tagValues = resultInsertTags.get(updateRoleMetaTag);
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(0);
+        TagValueList tagValues = resultInsertTags.get(updateRoleMetaTag);
         assertNotNull(tagValues);
         assertTrue(tagValues.getList().containsAll(updateRoleMetaTagValues));
         zms.dbService.store = savedStore;
@@ -10227,8 +10227,8 @@ public class DBServiceTest {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
         ObjectStore savedStore = zms.dbService.store;
 
-        Map<String, StringList> domainTags = Collections.singletonMap(
-            "tagKey", new StringList().setList(Collections.singletonList("tagVal"))
+        Map<String, TagValueList> domainTags = Collections.singletonMap(
+            "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
         );
         Domain domain = new Domain().setName("newDomainTagInsert").setTags(domainTags);
         Mockito.when(conn.insertDomain(domain)).thenReturn(true);
@@ -10252,9 +10252,9 @@ public class DBServiceTest {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
         ObjectStore savedStore = zms.dbService.store;
 
-        Map<String, StringList> domainTags = new HashMap<>();
-        domainTags.put("tagToBeRemoved", new StringList().setList(Collections.singletonList("val0")));
-        domainTags.put("tagKey", new StringList().setList(Arrays.asList("val1", "val2")));
+        Map<String, TagValueList> domainTags = new HashMap<>();
+        domainTags.put("tagToBeRemoved", new TagValueList().setList(Collections.singletonList("val0")));
+        domainTags.put("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
 
         Domain domain = new Domain().setName("newDomain").setTags(domainTags);
         Mockito.when(conn.insertDomain(domain)).thenReturn(true);
@@ -10271,10 +10271,10 @@ public class DBServiceTest {
         assertEquals(createdDomain.getTags(), domainTags);
 
         // new tags
-        Map<String, StringList> newDomainTags = new HashMap<>();
-        newDomainTags.put("tagKey", new StringList().setList(Arrays.asList("val1", "val2")));
-        newDomainTags.put("newTagKey", new StringList().setList(Arrays.asList("val3", "val4")));
-        newDomainTags.put("newTagKey2", new StringList().setList(Arrays.asList("val5", "val6")));
+        Map<String, TagValueList> newDomainTags = new HashMap<>();
+        newDomainTags.put("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
+        newDomainTags.put("newTagKey", new TagValueList().setList(Arrays.asList("val3", "val4")));
+        newDomainTags.put("newTagKey2", new TagValueList().setList(Arrays.asList("val5", "val6")));
 
         Mockito.when(conn.updateDomain(any(Domain.class))).thenReturn(true);
         Mockito.when(conn.deleteDomainTags(anyString(), anySet())).thenReturn(true);
@@ -10299,10 +10299,10 @@ public class DBServiceTest {
         assertTrue(tagCapture.getValue().containsAll(expectedTagsToBeRemoved));
 
         // assert tags to add
-        ArgumentCaptor<Map<String, StringList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertDomainTags(domainCapture.capture(), tagInsertCapture.capture());
         assertEquals("newDomain", domainCapture.getValue());
-        Map<String, StringList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.keySet().containsAll(Arrays.asList("newTagKey", "newTagKey2")));
         assertTrue(resultInsertTags.values().stream()
             .flatMap(l -> l.getList().stream())
@@ -10310,7 +10310,7 @@ public class DBServiceTest {
             .containsAll(Arrays.asList("val3", "val4", "val5", "val6")));
 
         // assert first tag insertion
-        Map<String, StringList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
+        Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
         assertTrue(resultFirstInsertTags.keySet().containsAll(Arrays.asList("tagKey", "tagToBeRemoved")));
         assertTrue(resultFirstInsertTags.values().stream()
             .flatMap(l -> l.getList().stream())
@@ -10318,15 +10318,15 @@ public class DBServiceTest {
             .containsAll(Arrays.asList("val0", "val1", "val2")));
         zms.dbService.store = savedStore;
     }
-    
+
     @Test
     public void testProcessDomainWithUpdateNullTags() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
         ObjectStore savedStore = zms.dbService.store;
 
-        Map<String, StringList> domainTags = new HashMap<>();
-        domainTags.put("tagToBeRemoved", new StringList().setList(Collections.singletonList("val0")));
-        domainTags.put("tagKey", new StringList().setList(Arrays.asList("val1", "val2")));
+        Map<String, TagValueList> domainTags = new HashMap<>();
+        domainTags.put("tagToBeRemoved", new TagValueList().setList(Collections.singletonList("val0")));
+        domainTags.put("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
 
         Domain domain = new Domain().setName("newDomain").setTags(domainTags);
         Mockito.when(conn.insertDomain(domain)).thenReturn(true);
@@ -10363,7 +10363,7 @@ public class DBServiceTest {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
         ObjectStore savedStore = zms.dbService.store;
 
-        Map<String, StringList> domainTags = Collections.singletonMap("tagKey", new StringList().setList(Arrays.asList("val1", "val2")));
+        Map<String, TagValueList> domainTags = Collections.singletonMap("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
 
         Domain domain = new Domain().setName("newDomainTagsUpdate").setTags(domainTags);
         Mockito.when(conn.insertDomain(domain)).thenReturn(true);
@@ -10380,7 +10380,7 @@ public class DBServiceTest {
         assertEquals(createdDomain.getTags(), domainTags);
 
         // same tags tags
-        Map<String, StringList> newDomainTags = Collections.singletonMap("tagKey", new StringList().setList(Arrays.asList("val1", "val2")));
+        Map<String, TagValueList> newDomainTags = Collections.singletonMap("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
 
         Mockito.when(conn.updateDomain(any(Domain.class))).thenReturn(true);
         Mockito.when(conn.deleteDomainTags(anyString(), anySet())).thenReturn(true);
@@ -10401,12 +10401,12 @@ public class DBServiceTest {
         Mockito.verify(conn, times(0)).deleteDomainTags(domainCapture.capture(), tagCapture.capture());
 
         // assert tags to add is empty
-        ArgumentCaptor<Map<String, StringList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(1)).insertDomainTags(domainCapture.capture(), tagInsertCapture.capture());
 
         // assert first tag insertion
-        Map<String, StringList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
-        assertEquals(resultFirstInsertTags, Collections.singletonMap("tagKey", new StringList().setList(Arrays.asList("val1", "val2"))));
+        Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
+        assertEquals(resultFirstInsertTags, Collections.singletonMap("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2"))));
         zms.dbService.store = savedStore;
     }
 
