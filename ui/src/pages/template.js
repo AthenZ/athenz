@@ -91,7 +91,6 @@ export default class TemplatePage extends React.Component {
             api.getFeatureFlag(),
             api.getMeta(bServicesParams),
             api.getMeta(bServicesParamsAll),
-            api.getServerTemplateDetailsList(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
