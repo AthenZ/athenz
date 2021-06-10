@@ -95,7 +95,7 @@ export default class TemplatePage extends React.Component {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
         });
         let businessServiceOptions = [];
         if (domains[10] && domains[10].validValues) {
