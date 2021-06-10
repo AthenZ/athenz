@@ -334,7 +334,7 @@ export default class AddSegmentation extends React.Component {
 
         if (!this.state.identifier || this.state.identifier === '') {
             this.setState({
-                errorMessage: 'identifier is required.',
+                errorMessage: 'Identifier is required.',
             });
             return;
         }
