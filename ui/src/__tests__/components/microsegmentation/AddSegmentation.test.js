@@ -71,7 +71,7 @@ describe('AddSegmentation', () => {
 
         fireEvent.click(getByText('Submit'));
 
-        expect(getByText('Destination service is required.')).not.toBeNull();
+        expect(getByText('Identifier is required.')).not.toBeNull();
     });
 
 });
