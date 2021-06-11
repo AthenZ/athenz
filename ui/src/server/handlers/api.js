@@ -1838,6 +1838,14 @@ Fetchr.registerService({
                                                 index
                                             )
                                         );
+
+                                        promises.push(
+                                            getIdentifier(
+                                                roleName,
+                                                category,
+                                                index
+                                            )
+                                        );
                                     }
                                 );
                         }
@@ -1854,6 +1862,17 @@ Fetchr.registerService({
                     });
             }
         );
+
+        function getIdentifier(roleName, category, jsonIndex) {
+            return new Promise((resolve, reject) => {
+                let substringPrefix = '.' + category + '-';
+                let identifier = roleName.substring(
+                    roleName.indexOf(substringPrefix) + substringPrefix.length
+                );
+                jsonData[category][jsonIndex - 1]['identifier'] = identifier;
+                resolve();
+            });
+        }
 
         function getRole(roleName, domainName, category, jsonIndex) {
             return new Promise((resolve, reject) => {

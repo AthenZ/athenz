@@ -85,7 +85,6 @@ export default class RulesList extends React.Component {
     }
 
     render() {
-        debugger;
         const { domain } = this.props;
         let addSegmentationButton = '';
 

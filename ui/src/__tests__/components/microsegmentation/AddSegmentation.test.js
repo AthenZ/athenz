@@ -68,10 +68,6 @@ describe('AddSegmentation', () => {
         );
         const addSegmentation = getByTestId('add-modal-message');
         expect(addSegmentation).toMatchSnapshot();
-
-        fireEvent.click(getByText('Submit'));
-
-        expect(getByText('Destination service is required.')).not.toBeNull();
     });
 
 });

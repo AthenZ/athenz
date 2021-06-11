@@ -113,6 +113,7 @@ export default class AddSegmentation extends React.Component {
             action: '',
             resource: '',
             destinationServiceList: [],
+            identifier: '',
         };
     }
 
@@ -331,6 +332,13 @@ export default class AddSegmentation extends React.Component {
 
         //Input field validation
 
+        if (!this.state.identifier || this.state.identifier === '') {
+            this.setState({
+                errorMessage: 'Identifier is required.',
+            });
+            return;
+        }
+
         if (this.state.isCategory) {
             if (
                 !this.state.inboundDestinationService ||
@@ -426,7 +434,7 @@ export default class AddSegmentation extends React.Component {
                 '.' +
                 SEGMENTATION_CATEGORIES[0].name +
                 '-' +
-                this.state.destinationPort;
+                this.state.identifier;
             action =
                 this.state.protocol +
                 '-' +
@@ -448,7 +456,7 @@ export default class AddSegmentation extends React.Component {
                 '.' +
                 SEGMENTATION_CATEGORIES[1].name +
                 '-' +
-                this.state.destinationPort;
+                this.state.identifier;
             action =
                 this.state.protocol +
                 '-' +
@@ -480,8 +488,10 @@ export default class AddSegmentation extends React.Component {
         this.api
             .getRole(this.props.domain, role.name)
             .then((existingRole) => {
-                this.handleMembers(role);
-                this.handlePolicy(policyName, role.name, resource, action);
+                this.setState({
+                    errorMessage:
+                        'The identifier is already being used for this service. Please use a new identifier.',
+                });
             })
             .catch((err) => {
                 if (err && err.statusCode === 404) {
@@ -572,6 +582,18 @@ export default class AddSegmentation extends React.Component {
                         selectedName={this.state.category}
                         onClick={this.categoryChanged}
                         noanim
+                    />
+                </SectionDiv>
+                <SectionDiv>
+                    <StyledInputLabel>Identifier</StyledInputLabel>
+                    <StyledInput
+                        placeholder='Enter a unique identifier for this ACL policy'
+                        value={this.state.identifier}
+                        onChange={(event) =>
+                            this.inputChanged(event, 'identifier')
+                        }
+                        noanim
+                        fluid
                     />
                 </SectionDiv>
                 <SectionDiv>
