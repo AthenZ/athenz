@@ -55,8 +55,8 @@
 
   <scm>
     <url>https://github.com/AthenZ/athenz</url>
-    <connection>scm:git:https://github.com/AthenZ/athenz.git</connection>
-    <developerConnection>scm:git:https://github.com/AthenZ/athenz.git</developerConnection>
+    <connection>scm:git:ssh://git@github.com/AthenZ/athenz.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/AthenZ/athenz.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
