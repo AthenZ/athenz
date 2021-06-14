@@ -89,7 +89,7 @@ public class JDBCConnectionTest {
         assertNull(domain.getId());
         assertNull(domain.getUserAuthorityFilter());
         assertEquals("service1", domain.getBusinessService());
-        assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new StringList().setList(Collections.singletonList("tag-val"))));
+        assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
         jdbcConn.close();
     }
 
@@ -125,7 +125,7 @@ public class JDBCConnectionTest {
         assertNull(domain.getOrg());
         assertNull(domain.getId());
         assertEquals("OnShore", domain.getUserAuthorityFilter());
-        assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new StringList().setList(Collections.singletonList("tag-val"))));
+        assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
 
         jdbcConn.close();
     }
@@ -391,7 +391,7 @@ public class JDBCConnectionTest {
         assertEquals("cloud_services", domain.getOrg());
         assertEquals(UUID.fromString("e5e97240-e94e-11e4-8163-6d083f3f473f"), domain.getId());
         assertEquals(domain.getUserAuthorityFilter(), "OnShore");
-        assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new StringList().setList(Collections.singletonList("tag-val"))));
+        assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
 
         jdbcConn.close();
     }
@@ -12093,10 +12093,10 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
                 .thenReturn(true, true, false);
 
-        Map<String, StringList> roleTags = jdbcConn.getRoleTags("domain", "role");
+        Map<String, TagValueList> roleTags = jdbcConn.getRoleTags("domain", "role");
         assertNotNull(roleTags);
 
-        StringList tagValues = roleTags.get("tagKey");
+        TagValueList tagValues = roleTags.get("tagKey");
 
         assertNotNull(tagValues);
         assertTrue(tagValues.getList().containsAll(Arrays.asList("tagVal1", "tagVal2")));
@@ -12114,7 +12114,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
                 .thenReturn(false);
 
-        Map<String, StringList> roleTags = jdbcConn.getRoleTags("domain", "role");
+        Map<String, TagValueList> roleTags = jdbcConn.getRoleTags("domain", "role");
         assertNull(roleTags);
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role");
@@ -12151,8 +12151,8 @@ public class JDBCConnectionTest {
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
-        Map<String, StringList> roleTags = Collections.singletonMap(
-                "tagKey", new StringList().setList(Collections.singletonList("tagVal"))
+        Map<String, TagValueList> roleTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
         );
 
         assertTrue(jdbcConn.insertRoleTags("role", "domain", roleTags));
@@ -12183,8 +12183,8 @@ public class JDBCConnectionTest {
                 .thenReturn(true); // this one is for role id
 
         Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
-        Map<String, StringList> roleTags = Collections.singletonMap(
-                "tagKey", new StringList().setList(Collections.singletonList("tagVal"))
+        Map<String, TagValueList> roleTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
         );
         assertFalse(jdbcConn.insertRoleTags("role", "domain", roleTags));
         jdbcConn.close();
@@ -12203,8 +12203,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeUpdate())
                 .thenThrow(new SQLException("sql error"));
         try {
-            Map<String, StringList> roleTags = Collections.singletonMap(
-                    "tagKey", new StringList().setList(Collections.singletonList("tagVal"))
+            Map<String, TagValueList> roleTags = Collections.singletonMap(
+                    "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
             );
             jdbcConn.insertRoleTags("role", "domain", roleTags);
             fail();
@@ -12298,11 +12298,11 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
                 .thenReturn(true, true, false);
 
-        Map<String, Map<String, StringList>> domainRoleTags = jdbcConn.getDomainRoleTags("sys.auth");
+        Map<String, Map<String, TagValueList>> domainRoleTags = jdbcConn.getDomainRoleTags("sys.auth");
         assertNotNull(domainRoleTags);
 
-        Map<String, StringList> roleTags = domainRoleTags.get("role");
-        StringList tagValues = roleTags.get("tagKey");
+        Map<String, TagValueList> roleTags = domainRoleTags.get("role");
+        TagValueList tagValues = roleTags.get("tagKey");
 
         assertNotNull(tagValues);
         assertTrue(tagValues.getList().containsAll(Arrays.asList("tagVal1", "tagVal2")));
@@ -12319,7 +12319,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
                 .thenReturn(false);
 
-        Map<String, Map<String, StringList>> domainRoleTags = jdbcConn.getDomainRoleTags("sys.auth");
+        Map<String, Map<String, TagValueList>> domainRoleTags = jdbcConn.getDomainRoleTags("sys.auth");
         assertNull(domainRoleTags);
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "sys.auth");
 
@@ -12404,10 +12404,10 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
             .thenReturn(true, true, false);
 
-        Map<String, StringList> domainTags = jdbcConn.getDomainTags("domain");
+        Map<String, TagValueList> domainTags = jdbcConn.getDomainTags("domain");
         assertNotNull(domainTags);
 
-        StringList tagValues = domainTags.get("tagKey");
+        TagValueList tagValues = domainTags.get("tagKey");
 
         assertNotNull(tagValues);
         assertTrue(tagValues.getList().containsAll(Arrays.asList("tagVal1", "tagVal2")));
@@ -12424,7 +12424,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
             .thenReturn(false);
 
-        Map<String, StringList> domainTags = jdbcConn.getDomainTags("domain");
+        Map<String, TagValueList> domainTags = jdbcConn.getDomainTags("domain");
         assertNull(domainTags);
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "domain");
 
@@ -12458,8 +12458,8 @@ public class JDBCConnectionTest {
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
-        Map<String, StringList> domainTags = Collections.singletonMap(
-            "tagKey", new StringList().setList(Collections.singletonList("tagVal"))
+        Map<String, TagValueList> domainTags = Collections.singletonMap(
+            "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
         );
 
         assertTrue(jdbcConn.insertDomainTags("domain", domainTags));
@@ -12483,8 +12483,8 @@ public class JDBCConnectionTest {
             .thenReturn(true); // this one is for domain id
 
         Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
-        Map<String, StringList> domainTags = Collections.singletonMap(
-            "tagKey", new StringList().setList(Collections.singletonList("tagVal"))
+        Map<String, TagValueList> domainTags = Collections.singletonMap(
+            "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
         );
         assertFalse(jdbcConn.insertDomainTags("domain", domainTags));
         jdbcConn.close();
@@ -12496,8 +12496,8 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next()).thenReturn(false); // this one is for domain id
 
-        Map<String, StringList> domainTags = Collections.singletonMap(
-                "tagKey", new StringList().setList(Collections.singletonList("tagVal"))
+        Map<String, TagValueList> domainTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
         );
         try {
             jdbcConn.insertDomainTags("unknown-domain", domainTags);
@@ -12521,8 +12521,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeUpdate())
             .thenThrow(new SQLException("sql error"));
         try {
-            Map<String, StringList> domainTags = Collections.singletonMap(
-                "tagKey", new StringList().setList(Collections.singletonList("tagVal"))
+            Map<String, TagValueList> domainTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
             );
             jdbcConn.insertDomainTags("domain",  domainTags);
             fail();

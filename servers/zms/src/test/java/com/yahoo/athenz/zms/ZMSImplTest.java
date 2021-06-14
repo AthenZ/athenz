@@ -25587,14 +25587,14 @@ public class ZMSImplTest {
         final String tagKey = "tag-key";
         List<String> tagValues = Arrays.asList("val1", "val2");
         Role role = createRoleObject(domainName, roleWithTags, null);
-        role.setTags(Collections.singletonMap(tagKey, new StringList().setList(tagValues)));
+        role.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
         zms.putRole(mockDomRsrcCtx, domainName, roleWithTags, auditRef, role);
 
         // put role with single tags
         final String roleSingleTag = "roleSingleTag";
         List<String> singleTagValue = Collections.singletonList("val1");
         role = createRoleObject(domainName, roleSingleTag, null);
-        role.setTags(Collections.singletonMap(tagKey, new StringList().setList(singleTagValue)));
+        role.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
         zms.putRole(mockDomRsrcCtx, domainName, roleSingleTag, auditRef, role);
 
         //put role without tags
@@ -25638,11 +25638,11 @@ public class ZMSImplTest {
         final String domainName = "sys.auth";
         final String roleName = "roleWithTagLimit";
         final String tagKey = "tag-key";
-        
+
         //insert role with 4 tags
         List<String> tagValues = Arrays.asList("val1", "val2", "val3", "val4");
         Role role = createRoleObject(domainName, roleName, null);
-        role.setTags(Collections.singletonMap(tagKey, new StringList().setList(tagValues)));
+        role.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
         try {
             zmsTest.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
             fail();
@@ -25658,7 +25658,7 @@ public class ZMSImplTest {
         } catch(ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
-        
+
         System.clearProperty(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG);
     }
 
@@ -25678,7 +25678,7 @@ public class ZMSImplTest {
 
         // update tag list
         List<String> tagValues = Arrays.asList("val1", "val2", "val3");
-        role.setTags(Collections.singletonMap(tagKey, new StringList().setList(tagValues)));
+        role.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
         zms.putRole(mockDomRsrcCtx, domainName, noTagsRole, auditRef, role);
 
         // 2 tags should be presented
@@ -25696,12 +25696,12 @@ public class ZMSImplTest {
         assertEquals(roleList.getList().size(), 1);
 
         // now create a different tags Map, part is from tagValues
-        Map<String, StringList> tagsMap = new HashMap<>();
+        Map<String, TagValueList> tagsMap = new HashMap<>();
         List<String> modifiedTagValues = Arrays.asList("val1", "new-val");
         String newTagKey = "newTagKey";
         List<String> newTagValues = Arrays.asList("val4", "val5", "val6");
-        tagsMap.put(tagKey, new StringList().setList(modifiedTagValues));
-        tagsMap.put(newTagKey, new StringList().setList(newTagValues));
+        tagsMap.put(tagKey, new TagValueList().setList(modifiedTagValues));
+        tagsMap.put(newTagKey, new TagValueList().setList(newTagValues));
         role.setTags(tagsMap);
         zms.putRole(mockDomRsrcCtx, domainName, noTagsRole, auditRef, role);
 
@@ -25742,7 +25742,7 @@ public class ZMSImplTest {
 
         RoleMeta rm = new RoleMeta()
             .setTags(Collections.singletonMap(updateRoleMetaTag,
-                new StringList().setList(updateRoleMetaTagValues)));
+                new TagValueList().setList(updateRoleMetaTagValues)));
 
         // update role tags using role meta
         zms.putRoleMeta(mockDomRsrcCtx, domainName, roleName, auditRef, rm);
@@ -25763,7 +25763,7 @@ public class ZMSImplTest {
         final String roleName = "roleWithTagUpdateMeta";
         List<String> singleTagValue = Collections.singletonList("val1");
         Role role = createRoleObject(domainName, roleName, null);
-        role.setTags(Collections.singletonMap(tagKey, new StringList().setList(singleTagValue)));
+        role.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
         zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
 
         // tag tagKey should be presented
@@ -25772,7 +25772,7 @@ public class ZMSImplTest {
 
         RoleMeta rm = new RoleMeta()
             .setTags(Collections.singletonMap(updateRoleMetaTag,
-                new StringList().setList(updateRoleMetaTagValues)));
+                new TagValueList().setList(updateRoleMetaTagValues)));
 
         // update role tags using role meta
         zms.putRoleMeta(mockDomRsrcCtx, domainName, roleName, auditRef, rm);
@@ -25798,7 +25798,7 @@ public class ZMSImplTest {
     }
 
     private boolean hasTag(Role role, String tagKey, String tagValue) {
-        StringList tagValues = role.getTags().get(tagKey);
+        TagValueList tagValues = role.getTags().get(tagKey);
         if (tagValue != null) {
             return tagValues.getList().contains(tagValue);
         }
@@ -25833,11 +25833,11 @@ public class ZMSImplTest {
         // define limit of 3 domain tags
         System.setProperty(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, "3");
         ZMSImpl zmsTest = zmsInit();
-        
+
         final String domainName = "tld-with-tag-limit";
 
         TopLevelDomain topLevelDomain = createTopLevelDomainObject(domainName, "Test Domain With Tag Limit", "testOrg", adminUser);
-        topLevelDomain.setTags(Collections.singletonMap("tag-key", new StringList().setList(Arrays.asList("val1", "val2", "val3", "val4"))));
+        topLevelDomain.setTags(Collections.singletonMap("tag-key", new TagValueList().setList(Arrays.asList("val1", "val2", "val3", "val4"))));
         try {
             zmsTest.postTopLevelDomain(mockDomRsrcCtx, auditRef, topLevelDomain);
             fail();
@@ -25852,7 +25852,7 @@ public class ZMSImplTest {
         } catch(ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
-        
+
         System.clearProperty(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG);
     }
 
@@ -25922,7 +25922,7 @@ public class ZMSImplTest {
         SignedDomains sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
-        Map<String, StringList> signedDomainTags = sdoms.getDomains().stream()
+        Map<String, TagValueList> signedDomainTags = sdoms.getDomains().stream()
             .filter(dom -> dom.getDomain().getName().equals(domainName))
             .map(dom -> dom.getDomain().getTags())
             .findFirst().get();
@@ -25967,8 +25967,8 @@ public class ZMSImplTest {
         return zms.jsonMapper.readValue(jsonDomain, DomainData.class);
     }
 
-    private Map<String, StringList> simpleDomainTag() {
-        return Collections.singletonMap("tag-key", new StringList().setList(Arrays.asList("val1", "val2")));
+    private Map<String, TagValueList> simpleDomainTag() {
+        return Collections.singletonMap("tag-key", new TagValueList().setList(Arrays.asList("val1", "val2")));
     }
 
     @Test
@@ -25989,9 +25989,9 @@ public class ZMSImplTest {
         assertEquals(domain1.getTags(), simpleDomainTag());
 
         // second domain - 2 tags
-        Map<String, StringList> twoTags = new HashMap<>();
-        twoTags.put("tag-key", new StringList().setList(Arrays.asList("tld2-val1", "tld2-val2")));
-        twoTags.put("tag-key-2", new StringList().setList(Arrays.asList("tld2-val3", "tld2-val4")));
+        Map<String, TagValueList> twoTags = new HashMap<>();
+        twoTags.put("tag-key", new TagValueList().setList(Arrays.asList("tld2-val1", "tld2-val2")));
+        twoTags.put("tag-key-2", new TagValueList().setList(Arrays.asList("tld2-val3", "tld2-val4")));
         String domainName2 = "tld-tag-2";
         TopLevelDomain topLevelDomain2 = createTopLevelDomainObject(domainName2, "Test Domain With Tags", "testOrg", adminUser);
         topLevelDomain2.setTags(twoTags);
@@ -26046,7 +26046,7 @@ public class ZMSImplTest {
 
         // update domain meta with the same tag, key, but different values..
         domainMeta = createDomainMetaObject("Domain Meta for domain tags", "testOrg", true, true, "12345", 1001);
-        Map<String, StringList> newTags = Collections.singletonMap("tag-key", new StringList().setList(Arrays.asList("val2", "val3")));
+        Map<String, TagValueList> newTags = Collections.singletonMap("tag-key", new TagValueList().setList(Arrays.asList("val2", "val3")));
         domainMeta.setTags(newTags);
         zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, domainMeta);
 
@@ -26056,7 +26056,7 @@ public class ZMSImplTest {
 
         // update domain meta with the different tags
         domainMeta = createDomainMetaObject("Domain Meta for domain tags", "testOrg", true, true, "12345", 1001);
-        Map<String, StringList> newTags2 = Collections.singletonMap("tag-key-2", new StringList().setList(Arrays.asList("new-val1", "new-val2")));
+        Map<String, TagValueList> newTags2 = Collections.singletonMap("tag-key-2", new TagValueList().setList(Arrays.asList("new-val1", "new-val2")));
         domainMeta.setTags(newTags2);
         zms.putDomainMeta(mockDomRsrcCtx, domainName, auditRef, domainMeta);
 

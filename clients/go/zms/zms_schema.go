@@ -107,9 +107,19 @@ func init() {
 	tAuthorityKeywords.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*,)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
 	sb.AddType(tAuthorityKeywords.Build())
 
-	tStringList := rdl.NewStructTypeBuilder("Struct", "StringList")
-	tStringList.ArrayField("list", "CompoundName", false, "generic list of strings")
-	sb.AddType(tStringList.Build())
+	tTagValue := rdl.NewStringTypeBuilder("TagValue")
+	tTagValue.Comment("TagValue to contain generic string patterns")
+	tTagValue.Pattern("[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*")
+	sb.AddType(tTagValue.Build())
+
+	tTagCompoundValue := rdl.NewStringTypeBuilder("TagCompoundValue")
+	tTagCompoundValue.Comment("A compound value of TagValue")
+	tTagCompoundValue.Pattern("([a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*\\.)*[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*")
+	sb.AddType(tTagCompoundValue.Build())
+
+	tTagValueList := rdl.NewStructTypeBuilder("Struct", "TagValueList")
+	tTagValueList.ArrayField("list", "TagCompoundValue", false, "list of tag values")
+	sb.AddType(tTagValueList.Build())
 
 	tDomainMeta := rdl.NewStructTypeBuilder("Struct", "DomainMeta")
 	tDomainMeta.Comment("Set of metadata attributes that all domains may have and can be changed.")
@@ -130,7 +140,7 @@ func init() {
 	tDomainMeta.Field("groupExpiryDays", "Int32", true, nil, "all groups in the domain roles will have specified max expiry days")
 	tDomainMeta.Field("userAuthorityFilter", "String", true, nil, "membership filtered based on user authority configured attributes")
 	tDomainMeta.Field("azureSubscription", "String", true, nil, "associated azure subscription id (system attribute - uniqueness check)")
-	tDomainMeta.MapField("tags", "CompoundName", "StringList", true, "key-value pair tags, tag might contain multiple values")
+	tDomainMeta.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	tDomainMeta.Field("businessService", "String", true, nil, "associated business service with domain")
 	sb.AddType(tDomainMeta.Build())
 
@@ -192,7 +202,7 @@ func init() {
 	tRoleMeta.Field("userAuthorityExpiration", "String", true, nil, "expiration enforced by a user authority configured attribute")
 	tRoleMeta.Field("groupExpiryDays", "Int32", true, nil, "all groups in the domain roles will have specified max expiry days")
 	tRoleMeta.Field("groupReviewDays", "Int32", true, nil, "all groups in the domain roles will have specified max review days")
-	tRoleMeta.MapField("tags", "CompoundName", "StringList", true, "key-value pair tags, tag might contain multiple values")
+	tRoleMeta.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")

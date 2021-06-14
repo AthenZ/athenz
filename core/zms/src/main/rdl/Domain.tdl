@@ -23,7 +23,7 @@ type DomainMeta Struct {
     Int32 groupExpiryDays (optional); //all groups in the domain roles will have specified max expiry days
     String userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
     String azureSubscription (optional); //associated azure subscription id (system attribute - uniqueness check)
-    Map<CompoundName,StringList> tags (optional); //key-value pair tags, tag might contain multiple values
+    Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
     String businessService (optional, x_allowempty="true"); //associated business service with domain
 }
 

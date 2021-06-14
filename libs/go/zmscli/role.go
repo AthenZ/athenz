@@ -435,10 +435,10 @@ func (cli Zms) AddRoleTags(dn string, rn, tagKey string, tagValues []string) (*s
 		return nil, err
 	}
 
-	tagValueArr := make([]zms.CompoundName, 0)
+	tagValueArr := make([]zms.TagCompoundValue, 0)
 
 	if role.Tags == nil {
-		role.Tags = map[zms.CompoundName]*zms.StringList{}
+		role.Tags = map[zms.CompoundName]*zms.TagValueList{}
 	} else {
 		// append current tags
 		currentTagValues := role.Tags[zms.CompoundName(tagKey)]
@@ -448,10 +448,10 @@ func (cli Zms) AddRoleTags(dn string, rn, tagKey string, tagValues []string) (*s
 	}
 
 	for _, tagValue := range tagValues {
-		tagValueArr = append(tagValueArr, zms.CompoundName(tagValue))
+		tagValueArr = append(tagValueArr, zms.TagCompoundValue(tagValue))
 	}
 
-	role.Tags[zms.CompoundName(tagKey)] = &zms.StringList{List: tagValueArr}
+	role.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
 	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, role)
 	if err != nil {
@@ -475,10 +475,10 @@ func (cli Zms) DeleteRoleTags(dn string, rn, tagKey string, tagValue string) (*s
 		return nil, err
 	}
 
-	tagValueArr := make([]zms.CompoundName, 0)
+	tagValueArr := make([]zms.TagCompoundValue, 0)
 
 	if role.Tags == nil {
-		role.Tags = map[zms.CompoundName]*zms.StringList{}
+		role.Tags = map[zms.CompoundName]*zms.TagValueList{}
 	}
 
 	// except given tagValue, set the same tags map
@@ -493,7 +493,7 @@ func (cli Zms) DeleteRoleTags(dn string, rn, tagKey string, tagValue string) (*s
 		}
 	}
 
-	role.Tags[zms.CompoundName(tagKey)] = &zms.StringList{List: tagValueArr}
+	role.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
 	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, role)
 	if err != nil {

@@ -49,8 +49,8 @@ public interface ObjectStoreConnection extends Closeable {
     DomainMetaList listModifiedDomains(long modifiedSince);
 
     // Domain tags
-    Map<String, StringList> getDomainTags(String domainName);
-    boolean insertDomainTags(String domainName, Map<String, StringList> tags);
+    Map<String, TagValueList> getDomainTags(String domainName);
+    boolean insertDomainTags(String domainName, Map<String, TagValueList> tags);
     boolean deleteDomainTags(String domainName, Set<String> tagsToRemove);
     List<String> lookupDomainByTags(String tagKey, String tagValue);
 
@@ -197,10 +197,10 @@ public interface ObjectStoreConnection extends Closeable {
 
     List<String> getPrincipals(int queriedState);
 
-    boolean insertRoleTags(String roleName, String domainName, Map<String, StringList> roleTags);
+    boolean insertRoleTags(String roleName, String domainName, Map<String, TagValueList> roleTags);
 
     boolean deleteRoleTags(String roleName, String domainName, Set<String> tagKeys);
 
-    Map<String, StringList> getRoleTags(String domainName, String roleName);
+    Map<String, TagValueList> getRoleTags(String domainName, String roleName);
 
 }

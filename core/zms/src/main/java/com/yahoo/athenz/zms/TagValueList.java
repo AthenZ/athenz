@@ -8,13 +8,13 @@ import java.util.List;
 import com.yahoo.rdl.*;
 
 //
-// StringList -
+// TagValueList -
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class StringList {
+public class TagValueList {
     public List<String> list;
 
-    public StringList setList(List<String> list) {
+    public TagValueList setList(List<String> list) {
         this.list = list;
         return this;
     }
@@ -25,10 +25,10 @@ public class StringList {
     @Override
     public boolean equals(Object another) {
         if (this != another) {
-            if (another == null || another.getClass() != StringList.class) {
+            if (another == null || another.getClass() != TagValueList.class) {
                 return false;
             }
-            StringList a = (StringList) another;
+            TagValueList a = (TagValueList) another;
             if (list == null ? a.list != null : !list.equals(a.list)) {
                 return false;
             }

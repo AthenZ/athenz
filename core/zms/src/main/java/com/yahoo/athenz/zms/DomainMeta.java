@@ -67,7 +67,7 @@ public class DomainMeta {
     public String azureSubscription;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Map<String, StringList> tags;
+    public Map<String, TagValueList> tags;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String businessService;
@@ -191,11 +191,11 @@ public class DomainMeta {
     public String getAzureSubscription() {
         return azureSubscription;
     }
-    public DomainMeta setTags(Map<String, StringList> tags) {
+    public DomainMeta setTags(Map<String, TagValueList> tags) {
         this.tags = tags;
         return this;
     }
-    public Map<String, StringList> getTags() {
+    public Map<String, TagValueList> getTags() {
         return tags;
     }
     public DomainMeta setBusinessService(String businessService) {

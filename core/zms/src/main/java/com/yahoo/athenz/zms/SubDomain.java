@@ -67,7 +67,7 @@ public class SubDomain {
     public String azureSubscription;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Map<String, StringList> tags;
+    public Map<String, TagValueList> tags;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String businessService;
@@ -197,11 +197,11 @@ public class SubDomain {
     public String getAzureSubscription() {
         return azureSubscription;
     }
-    public SubDomain setTags(Map<String, StringList> tags) {
+    public SubDomain setTags(Map<String, TagValueList> tags) {
         this.tags = tags;
         return this;
     }
-    public Map<String, StringList> getTags() {
+    public Map<String, TagValueList> getTags() {
         return tags;
     }
     public SubDomain setBusinessService(String businessService) {

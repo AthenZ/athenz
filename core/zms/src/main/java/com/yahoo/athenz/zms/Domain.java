@@ -71,7 +71,7 @@ public class Domain {
     public String azureSubscription;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Map<String, StringList> tags;
+    public Map<String, TagValueList> tags;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String businessService;
@@ -202,11 +202,11 @@ public class Domain {
     public String getAzureSubscription() {
         return azureSubscription;
     }
-    public Domain setTags(Map<String, StringList> tags) {
+    public Domain setTags(Map<String, TagValueList> tags) {
         this.tags = tags;
         return this;
     }
-    public Map<String, StringList> getTags() {
+    public Map<String, TagValueList> getTags() {
         return tags;
     }
     public Domain setBusinessService(String businessService) {
