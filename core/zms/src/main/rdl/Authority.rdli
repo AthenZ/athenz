@@ -1,0 +1,22 @@
+// Copyright Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+type UserAuthorityAttributes Struct {
+    Array<String> values
+}
+
+//Map of user authority attributes
+type UserAuthorityAttributeMap Struct {
+    Map<SimpleName, UserAuthorityAttributes> attributes; //map of type to attribute values
+}
+
+//Map of type to attribute values for the user authority
+resource UserAuthorityAttributeMap GET "/authority/user/attribute" {
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

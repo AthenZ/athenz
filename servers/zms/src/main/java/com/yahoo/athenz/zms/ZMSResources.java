@@ -3608,6 +3608,38 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/authority/user/attribute")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Map of type to attribute values for the user authority")
+    public UserAuthorityAttributeMap getUserAuthorityAttributeMap(
+        ) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getUserAuthorityAttributeMap");
+            context.authenticate();
+            return this.delegate.getUserAuthorityAttributeMap(context);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getUserAuthorityAttributeMap");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Get RDL Schema")

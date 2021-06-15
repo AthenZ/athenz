@@ -25,3 +25,4 @@ include "User.rdli";
 include "Quota.rdli";
 include "Status.rdli";
 include "DomainRoleMembership.rdli"
+include "Authority.rdli"

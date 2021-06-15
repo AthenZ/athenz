@@ -110,6 +110,7 @@ public interface ZMSHandler {
     void deleteQuota(ResourceContext context, String name, String auditRef);
     Status getStatus(ResourceContext context);
     DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext context, String principal);
+    UserAuthorityAttributeMap getUserAuthorityAttributeMap(ResourceContext context);
     Schema getRdlSchema(ResourceContext context);
     ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
     void recordMetrics(ResourceContext ctx, int httpStatus);

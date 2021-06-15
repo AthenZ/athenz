@@ -666,6 +666,16 @@ func init() {
 	tDomainRoleMembership.ArrayField("domainRoleMembersList", "DomainRoleMembers", false, "")
 	sb.AddType(tDomainRoleMembership.Build())
 
+	tUserAuthorityAttributes := rdl.NewStructTypeBuilder("Struct", "UserAuthorityAttributes")
+	tUserAuthorityAttributes.Comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.")
+	tUserAuthorityAttributes.ArrayField("values", "String", false, "")
+	sb.AddType(tUserAuthorityAttributes.Build())
+
+	tUserAuthorityAttributeMap := rdl.NewStructTypeBuilder("Struct", "UserAuthorityAttributeMap")
+	tUserAuthorityAttributeMap.Comment("Map of user authority attributes")
+	tUserAuthorityAttributeMap.MapField("attributes", "SimpleName", "UserAuthorityAttributes", false, "map of type to attribute values")
+	sb.AddType(tUserAuthorityAttributeMap.Build())
+
 	mGetDomain := rdl.NewResourceBuilder("Domain", "GET", "/domain/{domain}")
 	mGetDomain.Comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
 	mGetDomain.Input("domain", "DomainName", true, "", "", false, nil, "name of the domain")
@@ -2026,6 +2036,15 @@ func init() {
 	mGetPendingDomainRoleMembersList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetPendingDomainRoleMembersList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetPendingDomainRoleMembersList.Build())
+
+	mGetUserAuthorityAttributeMap := rdl.NewResourceBuilder("UserAuthorityAttributeMap", "GET", "/authority/user/attribute")
+	mGetUserAuthorityAttributeMap.Comment("Map of type to attribute values for the user authority")
+	mGetUserAuthorityAttributeMap.Auth("", "", true, "")
+	mGetUserAuthorityAttributeMap.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetUserAuthorityAttributeMap.Exception("NOT_FOUND", "ResourceError", "")
+	mGetUserAuthorityAttributeMap.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetUserAuthorityAttributeMap.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetUserAuthorityAttributeMap.Build())
 
 	var err error
 	schema, err = sb.BuildParanoid()

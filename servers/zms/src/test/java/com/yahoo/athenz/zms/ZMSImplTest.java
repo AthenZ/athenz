@@ -26453,4 +26453,24 @@ public class ZMSImplTest {
         assertEquals(userCapture.getValue(), "testuser");
         zms.domainMetaStore = savedMetaStore;
     }
+
+    @Test
+    public void testGetUserAuthorityAttributeMap() {
+        Authority savedAuthority = zms.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Mockito.when(authority.booleanAttributesSupported()).thenReturn(new HashSet<>(Arrays.asList("boolAttr1")));
+        Mockito.when(authority.dateAttributesSupported()).thenReturn(new HashSet<>(Arrays.asList("dateAttr1")));
+        zms.userAuthority = authority;
+        UserAuthorityAttributeMap attributes = zms.getUserAuthorityAttributeMap(mockDomRsrcCtx);
+        assertEquals(attributes.getAttributes().size(), 2);
+        assertEquals(attributes.getAttributes().get("bool").getValues().size(), 1);
+        assertEquals(attributes.getAttributes().get("bool").getValues().get(0), "boolAttr1");
+
+        assertEquals(attributes.getAttributes().get("date").getValues().size(), 1);
+        assertEquals(attributes.getAttributes().get("date").getValues().get(0), "dateAttr1");
+
+        zms.userAuthority = savedAuthority;
+    }
 }
