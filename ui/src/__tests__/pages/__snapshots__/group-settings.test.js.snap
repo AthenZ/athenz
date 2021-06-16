@@ -889,7 +889,142 @@ exports[`GroupSettingPage should render 1`] = `
   margin-top: 5px;
 }
 
-.emotion-181 {
+.emotion-189 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-189 input {
+  cursor: inherit;
+}
+
+.emotion-190 {
+  margin-top: 5px;
+  display: block;
+}
+
+.emotion-192 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-192 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-192.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-192 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-192 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-192 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-192 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-192 input.focused,
+.emotion-192 input:active,
+.emotion-192 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-192 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-192 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-192.error input,
+.emotion-192.error input.focused,
+.emotion-192.error input:active,
+.emotion-192.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-192.error .message {
+  color: #d01111;
+}
+
+.emotion-192 input {
+  padding-right: 36px;
+}
+
+.emotion-192 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-193 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-211 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -908,7 +1043,7 @@ exports[`GroupSettingPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-183 {
+.emotion-213 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -934,25 +1069,25 @@ exports[`GroupSettingPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-183:first-of-type {
+.emotion-213:first-of-type {
   margin-left: 0;
 }
 
-.emotion-183:disabled {
+.emotion-213:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-183:disabled {
+.emotion-213:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-183:hover:not(:disabled) {
+.emotion-213:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-185 {
+.emotion-215 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -978,13 +1113,13 @@ exports[`GroupSettingPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-187 {
+.emotion-217 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-188 {
+.emotion-218 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -999,7 +1134,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-190 {
+.emotion-220 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1018,28 +1153,28 @@ exports[`GroupSettingPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-192 {
+.emotion-222 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-194 {
+.emotion-224 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-196 {
+.emotion-226 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-200 {
+.emotion-230 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-202 {
+.emotion-232 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1047,12 +1182,12 @@ exports[`GroupSettingPage should render 1`] = `
   display: flex;
 }
 
-.emotion-204 {
+.emotion-234 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-206 {
+.emotion-236 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1679,21 +1814,165 @@ exports[`GroupSettingPage should render 1`] = `
                     Certs issued for this role will have specified max timeout in mins
                   </td>
                 </tr>
+                <tr
+                  class="emotion-59 emotion-60"
+                  data-testid="setting-row"
+                >
+                  <td
+                    class="emotion-61 emotion-62"
+                  >
+                    User Authority Filter
+                  </td>
+                  <td
+                    class="emotion-61 emotion-62"
+                  >
+                    <div
+                      class="emotion-83 emotion-84"
+                    >
+                      <div
+                        aria-expanded="false"
+                        aria-haspopup="listbox"
+                        aria-labelledby="downshift-0-label"
+                        class="emotion-189 denali-input-dropdown emotion-190 emotion-191"
+                        data-testid="input-dropdown"
+                        role="combobox"
+                      >
+                        <div
+                          class="emotion-192 denali-input animated"
+                          data-testid="input-wrapper"
+                        >
+                          <input
+                            aria-autocomplete="list"
+                            aria-labelledby="downshift-0-label"
+                            autocomplete="off"
+                            autocorrect="off"
+                            data-testid="input-node"
+                            id="downshift-0-input"
+                            name="setting-userAuthorityFilter"
+                            placeholder="User Authority Filter"
+                            spellcheck="false"
+                            value=""
+                          />
+                          <div
+                            class="input-icon"
+                          >
+                            
+                            <svg
+                              class="emotion-193"
+                              data-testid="icon"
+                              height="24px"
+                              viewBox="0 0 1024 1024"
+                              width="24px"
+                            >
+                              <title>
+                                arrowhead-down
+                              </title>
+                              <path
+                                d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="message"
+                            data-testid="message"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-61 emotion-62"
+                  >
+                    membership filtered based on user authority configured attributes
+                  </td>
+                </tr>
+                <tr
+                  class="emotion-59 emotion-60"
+                  data-testid="setting-row"
+                >
+                  <td
+                    class="emotion-61 emotion-62"
+                  >
+                    User Authority Expiration
+                  </td>
+                  <td
+                    class="emotion-61 emotion-62"
+                  >
+                    <div
+                      class="emotion-83 emotion-84"
+                    >
+                      <div
+                        aria-expanded="false"
+                        aria-haspopup="listbox"
+                        aria-labelledby="downshift-1-label"
+                        class="emotion-189 denali-input-dropdown emotion-190 emotion-191"
+                        data-testid="input-dropdown"
+                        role="combobox"
+                      >
+                        <div
+                          class="emotion-192 denali-input animated"
+                          data-testid="input-wrapper"
+                        >
+                          <input
+                            aria-autocomplete="list"
+                            aria-labelledby="downshift-1-label"
+                            autocomplete="off"
+                            autocorrect="off"
+                            data-testid="input-node"
+                            id="downshift-1-input"
+                            name="setting-userAuthorityExpiration"
+                            placeholder="User Authority Expiration"
+                            spellcheck="false"
+                            value=""
+                          />
+                          <div
+                            class="input-icon"
+                          >
+                            
+                            <svg
+                              class="emotion-193"
+                              data-testid="icon"
+                              height="24px"
+                              viewBox="0 0 1024 1024"
+                              width="24px"
+                            >
+                              <title>
+                                arrowhead-down
+                              </title>
+                              <path
+                                d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+                              />
+                            </svg>
+                          </div>
+                          <div
+                            class="message"
+                            data-testid="message"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-61 emotion-62"
+                  >
+                    expiration enforced by a user authority configured attribute
+                  </td>
+                </tr>
               </tbody>
             </table>
             <div
-              class="emotion-181 emotion-182"
+              class="emotion-211 emotion-212"
             >
               <div>
                 <button
-                  class="emotion-183 denali-button"
+                  class="emotion-213 denali-button"
                   disabled=""
                 >
                   Submit
                 </button>
                 
                 <button
-                  class="emotion-183 denali-button"
+                  class="emotion-213 denali-button"
                 >
                   Reset
                 </button>
@@ -1706,11 +1985,11 @@ exports[`GroupSettingPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-185 emotion-186"
+          class="emotion-215 emotion-216"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-187"
+            class="emotion-217"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1725,45 +2004,45 @@ exports[`GroupSettingPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-188 emotion-189"
+          class="emotion-218 emotion-219"
         >
           <div
-            class="emotion-190 emotion-191"
+            class="emotion-220 emotion-221"
           >
             <div
-              class="emotion-192 emotion-193"
+              class="emotion-222 emotion-223"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-194 emotion-195"
+                class="emotion-224 emotion-225"
               >
                 Create
               </a>
               <span
-                class="emotion-196 emotion-197"
+                class="emotion-226 emotion-227"
               >
                  | 
               </span>
               <a
-                class="emotion-194 emotion-195"
+                class="emotion-224 emotion-225"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-200 emotion-201"
+            class="emotion-230 emotion-231"
           >
             <div
-              class="emotion-202 emotion-203"
+              class="emotion-232 emotion-233"
             >
               <div
-                class="emotion-204 emotion-205"
+                class="emotion-234 emotion-235"
               >
                 <svg
-                  class="emotion-206"
+                  class="emotion-236"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1784,19 +2063,19 @@ exports[`GroupSettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-194 emotion-195"
+                class="emotion-224 emotion-225"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-202 emotion-203"
+              class="emotion-232 emotion-233"
             >
               <div
-                class="emotion-204 emotion-205"
+                class="emotion-234 emotion-235"
               >
                 <svg
-                  class="emotion-206"
+                  class="emotion-236"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1817,7 +2096,7 @@ exports[`GroupSettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-194 emotion-195"
+                class="emotion-224 emotion-225"
               >
                 athens.ci
               </a>

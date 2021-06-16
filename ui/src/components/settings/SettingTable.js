@@ -66,6 +66,34 @@ export default class SettingTable extends React.Component {
             this.props.collectionDetails
         );
         let copyCollectionDetails = _.cloneDeep(originalCollectionDetails);
+
+        let boolUserAuthorityAttributes = [];
+        let dateUserAuthorityAttributes = [];
+        if (
+            this.props.userAuthorityAttributes &&
+            this.props.userAuthorityAttributes.attributes
+        ) {
+            let authorityAttributes =
+                this.props.userAuthorityAttributes.attributes;
+            if (authorityAttributes.bool && authorityAttributes.bool.values) {
+                authorityAttributes.bool.values.forEach((attribute) => {
+                    boolUserAuthorityAttributes.push({
+                        value: attribute,
+                        name: attribute,
+                    });
+                });
+            }
+
+            if (authorityAttributes.date && authorityAttributes.date.values) {
+                authorityAttributes.date.values.forEach((attribute) => {
+                    dateUserAuthorityAttributes.push({
+                        value: attribute,
+                        name: attribute,
+                    });
+                });
+            }
+        }
+
         this.state = {
             originalCollectionDetails: originalCollectionDetails,
             copyCollectionDetails: copyCollectionDetails,
@@ -73,6 +101,8 @@ export default class SettingTable extends React.Component {
             showSuccess: false,
             errorMessage: null,
             enableSubmit: false,
+            boolUserAuthorityAttributes: boolUserAuthorityAttributes,
+            dateUserAuthorityAttributes: dateUserAuthorityAttributes,
         };
     }
 
@@ -112,6 +142,14 @@ export default class SettingTable extends React.Component {
                 collection.certExpiryMins === undefined
                     ? ''
                     : collection.certExpiryMins.toString(),
+            userAuthorityFilter:
+                collection.userAuthorityFilter === undefined
+                    ? ''
+                    : collection.userAuthorityFilter.toString(),
+            userAuthorityExpiration:
+                collection.userAuthorityExpiration === undefined
+                    ? ''
+                    : collection.userAuthorityExpiration.toString(),
         };
         return collectionDetails;
     }
@@ -486,6 +524,44 @@ export default class SettingTable extends React.Component {
                     userProfileLink={this.props.userProfileLink}
                 />
             );
+
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-userAuthorityFilter'}
+                domain={domain}
+                name='userAuthorityFilter'
+                label='User Authority Filter'
+                type='dropdown'
+                options={this.state.boolUserAuthorityAttributes}
+                placeholder='User Authority Filter'
+                desc='membership filtered based on user authority configured attributes'
+                value={this.state.copyCollectionDetails.userAuthorityFilter}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                justificationRequired={this.props.justificationRequired}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
+
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-userAuthorityExpiration'}
+                domain={domain}
+                name='userAuthorityExpiration'
+                label='User Authority Expiration'
+                type='dropdown'
+                options={this.state.dateUserAuthorityAttributes}
+                placeholder='User Authority Expiration'
+                desc='expiration enforced by a user authority configured attribute'
+                value={this.state.copyCollectionDetails.userAuthorityExpiration}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                justificationRequired={this.props.justificationRequired}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         rows.push();
 
