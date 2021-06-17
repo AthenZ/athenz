@@ -7075,3 +7075,120 @@ func (self *DomainRoleMembership) Validate() error {
 	}
 	return nil
 }
+
+//
+// UserAuthorityAttributes - Copyright Athenz Authors Licensed under the terms
+// of the Apache version 2.0 license. See LICENSE file for terms.
+//
+type UserAuthorityAttributes struct {
+	Values []string `json:"values"`
+}
+
+//
+// NewUserAuthorityAttributes - creates an initialized UserAuthorityAttributes instance, returns a pointer to it
+//
+func NewUserAuthorityAttributes(init ...*UserAuthorityAttributes) *UserAuthorityAttributes {
+	var o *UserAuthorityAttributes
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(UserAuthorityAttributes)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *UserAuthorityAttributes) Init() *UserAuthorityAttributes {
+	if self.Values == nil {
+		self.Values = make([]string, 0)
+	}
+	return self
+}
+
+type rawUserAuthorityAttributes UserAuthorityAttributes
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a UserAuthorityAttributes
+//
+func (self *UserAuthorityAttributes) UnmarshalJSON(b []byte) error {
+	var m rawUserAuthorityAttributes
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := UserAuthorityAttributes(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *UserAuthorityAttributes) Validate() error {
+	if self.Values == nil {
+		return fmt.Errorf("UserAuthorityAttributes: Missing required field: values")
+	}
+	return nil
+}
+
+//
+// UserAuthorityAttributeMap - Map of user authority attributes
+//
+type UserAuthorityAttributeMap struct {
+
+	//
+	// map of type to attribute values
+	//
+	Attributes map[SimpleName]*UserAuthorityAttributes `json:"attributes"`
+}
+
+//
+// NewUserAuthorityAttributeMap - creates an initialized UserAuthorityAttributeMap instance, returns a pointer to it
+//
+func NewUserAuthorityAttributeMap(init ...*UserAuthorityAttributeMap) *UserAuthorityAttributeMap {
+	var o *UserAuthorityAttributeMap
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(UserAuthorityAttributeMap)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *UserAuthorityAttributeMap) Init() *UserAuthorityAttributeMap {
+	if self.Attributes == nil {
+		self.Attributes = make(map[SimpleName]*UserAuthorityAttributes)
+	}
+	return self
+}
+
+type rawUserAuthorityAttributeMap UserAuthorityAttributeMap
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a UserAuthorityAttributeMap
+//
+func (self *UserAuthorityAttributeMap) UnmarshalJSON(b []byte) error {
+	var m rawUserAuthorityAttributeMap
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := UserAuthorityAttributeMap(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *UserAuthorityAttributeMap) Validate() error {
+	if self.Attributes == nil {
+		return fmt.Errorf("UserAuthorityAttributeMap: Missing required field: attributes")
+	}
+	return nil
+}

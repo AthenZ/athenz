@@ -1928,6 +1928,19 @@ Fetchr.registerService({
     },
 });
 
+Fetchr.registerService({
+    name: 'authority',
+    read(req, resource, params, config, callback) {
+        req.clients.zms.getUserAuthorityAttributeMap(
+            responseHandler.bind({
+                caller: 'getUserAuthorityAttributeMap',
+                callback,
+                req,
+            })
+        );
+    },
+});
+
 module.exports.load = function (config, secrets) {
     appConfig = {
         zms: config.zms,

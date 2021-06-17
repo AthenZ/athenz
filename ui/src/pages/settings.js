@@ -78,11 +78,12 @@ export default class SettingPage extends React.Component {
             ),
             api.getPendingDomainMembersList(),
             api.getForm(),
+            api.getAuthorityAttributes(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}];
         });
         return {
             api,
@@ -98,6 +99,7 @@ export default class SettingPage extends React.Component {
             domain: props.query.domain,
             pending: roles[4],
             _csrf: roles[5],
+            userAuthorityAttributes: roles[6],
             nonce: props.req.headers.rid,
         };
     }
@@ -179,6 +181,9 @@ export default class SettingPage extends React.Component {
                                                 .userLink
                                         }
                                         category={'role'}
+                                        userAuthorityAttributes={
+                                            this.props.userAuthorityAttributes
+                                        }
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>

@@ -18,6 +18,7 @@ import styled from '@emotion/styled';
 import Switch from '../denali/Switch';
 import Input from '../denali/Input';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
+import InputDropdown from '../denali/InputDropdown';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -47,10 +48,16 @@ const SettingInput = styled(Input)`
     margin-top: 5px;
 `;
 
+const StyledInputDropDown = styled(InputDropdown)`
+    margin-top: 5px;
+    display: block;
+`;
+
 export default class SettingRow extends React.Component {
     constructor(props) {
         super(props);
         this.onTimeChange = this.onTimeChange.bind(this);
+        this.onDropDownChange = this.onDropDownChange.bind(this);
         this.toggleSwitchButton = this.toggleSwitchButton.bind(this);
         this.onRadioChange = this.onRadioChange.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
@@ -67,6 +74,11 @@ export default class SettingRow extends React.Component {
 
     onTimeChange(evt) {
         this.props.onValueChange(this.props.name, evt.target.value);
+    }
+
+    onDropDownChange(evt) {
+        let value = evt ? evt.value : '';
+        this.props.onValueChange(this.props.name, value);
     }
 
     onRadioChange(event) {
@@ -104,6 +116,20 @@ export default class SettingRow extends React.Component {
                             onChange={this.onTimeChange}
                             onKeyPress={this.numRestricted}
                             value={this.props.value}
+                        />
+                    </StyledDiv>
+                );
+            case 'dropdown':
+                return (
+                    <StyledDiv>
+                        <StyledInputDropDown
+                            fluid
+                            name={'setting-' + this.props.name}
+                            options={this.props.options}
+                            placeholder={this.props.placeholder}
+                            filterable
+                            onChange={this.onDropDownChange}
+                            defaultSelectedValue={this.props.value}
                         />
                     </StyledDiv>
                 );

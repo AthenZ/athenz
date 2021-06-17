@@ -3922,4 +3922,72 @@ public class ZMSCoreTest {
         jsonString = om.writeValueAsString(domainMeta);
         assertEquals("{\"account\":\"testAccount\"}", jsonString);
     }
+
+    private UserAuthorityAttributeMap getUserAuthorityAttributeMapForTest() {
+        List<String> boolValues = new ArrayList<>();
+        boolValues.add("boolValue1");
+        boolValues.add("boolValue2");
+
+        List<String> dateValues = new ArrayList<>();
+        dateValues.add("dateValue1");
+        dateValues.add("dateValue2");
+
+        UserAuthorityAttributes userAuthorityBoolAttributes = new UserAuthorityAttributes();
+        userAuthorityBoolAttributes.setValues(boolValues);
+        UserAuthorityAttributes userAuthorityDateAttributes = new UserAuthorityAttributes();
+        userAuthorityDateAttributes.setValues(dateValues);
+        Map<String, UserAuthorityAttributes> attributes = new HashMap<>();
+        attributes.put("bool", userAuthorityBoolAttributes);
+        attributes.put("date", userAuthorityDateAttributes);
+
+        UserAuthorityAttributeMap userAuthorityAttributeMap = new UserAuthorityAttributeMap();
+        userAuthorityAttributeMap.setAttributes(attributes);
+        return userAuthorityAttributeMap;
+    }
+
+    @Test
+    public void testUserAuthorityValuesList() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        UserAuthorityAttributeMap userAuthorityAttributeMap = getUserAuthorityAttributeMapForTest();
+        Result result = validator.validate(userAuthorityAttributeMap, "UserAuthorityAttributeMap");
+        assertTrue(result.valid);
+        assertEquals(userAuthorityAttributeMap.getAttributes().get("bool").getValues().get(0), "boolValue1");
+        assertEquals(userAuthorityAttributeMap.getAttributes().get("bool").getValues().get(1), "boolValue2");
+        assertEquals(userAuthorityAttributeMap.getAttributes().get("date").getValues().get(0), "dateValue1");
+        assertEquals(userAuthorityAttributeMap.getAttributes().get("date").getValues().get(1), "dateValue2");
+
+        UserAuthorityAttributeMap userAuthorityAttributeMap2 = getUserAuthorityAttributeMapForTest();
+        assertEquals(userAuthorityAttributeMap, userAuthorityAttributeMap2);
+
+        userAuthorityAttributeMap2.getAttributes().get("bool").getValues().remove("boolValue1");
+        assertFalse(userAuthorityAttributeMap.equals(userAuthorityAttributeMap2));
+        userAuthorityAttributeMap.getAttributes().get("bool").getValues().remove("boolValue1");
+        assertTrue(userAuthorityAttributeMap.equals(userAuthorityAttributeMap2));
+        assertFalse(userAuthorityAttributeMap.equals(null));
+        assertFalse(userAuthorityAttributeMap.equals(new Object()));
+        assertFalse(userAuthorityAttributeMap.equals(new UserAuthorityAttributeMap()));
+        assertFalse(userAuthorityAttributeMap.equals(new UserAuthorityAttributeMap().setAttributes(new HashMap<>())));
+
+        userAuthorityAttributeMap2.getAttributes().put("newType", new UserAuthorityAttributes());
+        assertFalse(userAuthorityAttributeMap.equals(userAuthorityAttributeMap2));
+        userAuthorityAttributeMap.getAttributes().put("newType", new UserAuthorityAttributes());
+        assertTrue(userAuthorityAttributeMap.equals(userAuthorityAttributeMap2));
+
+        userAuthorityAttributeMap2.getAttributes().remove("date");
+        assertFalse(userAuthorityAttributeMap.equals(userAuthorityAttributeMap2));
+        userAuthorityAttributeMap.getAttributes().remove("date");
+        assertTrue(userAuthorityAttributeMap.equals(userAuthorityAttributeMap2));
+
+        UserAuthorityAttributes userAuthoritylAttributes = new UserAuthorityAttributes();
+        assertFalse(userAuthoritylAttributes.equals(null));
+        UserAuthorityAttributes userAuthoritylAttributes2 = new UserAuthorityAttributes();
+        assertTrue(userAuthoritylAttributes.equals(userAuthoritylAttributes2));
+        userAuthoritylAttributes.setValues(new ArrayList<>());
+        assertFalse(userAuthoritylAttributes.equals(userAuthoritylAttributes2));
+        userAuthoritylAttributes2.setValues(new ArrayList<>());
+        assertTrue(userAuthoritylAttributes.equals(userAuthoritylAttributes2));
+    }
+
 }

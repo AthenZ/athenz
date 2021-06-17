@@ -573,6 +573,14 @@ public class ZMSSchema {
         sb.structType("DomainRoleMembership")
             .arrayField("domainRoleMembersList", "DomainRoleMembers", false, "");
 
+        sb.structType("UserAuthorityAttributes")
+            .comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.")
+            .arrayField("values", "String", false, "");
+
+        sb.structType("UserAuthorityAttributeMap")
+            .comment("Map of user authority attributes")
+            .mapField("attributes", "SimpleName", "UserAuthorityAttributes", false, "map of type to attribute values");
+
 
         sb.resource("Domain", "GET", "/domain/{domain}")
             .comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
@@ -2377,6 +2385,19 @@ public class ZMSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("UserAuthorityAttributeMap", "GET", "/authority/user/attribute")
+            .comment("Map of type to attribute values for the user authority")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
 

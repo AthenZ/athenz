@@ -1268,6 +1268,12 @@ obj = {
 ```
 *Types:* [`DomainName <String>`](#domainname-string)
 
+### getDomainTemplateDetailsList(*obj, function(err, json, response) { });
+
+`GET /templatedetails`
+Get a list of Solution templates with meta data details defined in the server
+
+
 ### getUserList(*obj, function(err, json, response) { });
 
 `GET /user`
@@ -1363,6 +1369,12 @@ obj = {
 };
 ```
 *Types:* [`EntityName <String>`](#entityname-string)
+
+### getUserAuthorityAttributeMap(*obj, function(err, json, response) { });
+
+`GET /authority/user/attribute`
+Map of type to attribute values for the user authority
+
 
 
 ## API Types
@@ -1615,19 +1627,47 @@ A comma separated list of authority keywords
 }
 ```
 
-### StringList `<Struct>`
+### TagValue `<String>`
+
+TagValue to contain generic string patterns
+
+
+```
+{
+    "type": "String",
+    "name": "TagValue",
+    "comment": "TagValue to contain generic string patterns",
+    "pattern": "[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*"
+}
+```
+
+### TagCompoundValue `<String>`
+
+A compound value of TagValue
+
+
+```
+{
+    "type": "String",
+    "name": "TagCompoundValue",
+    "comment": "A compound value of TagValue",
+    "pattern": "([a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*\\.)*[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*"
+}
+```
+
+### TagValueList `<Struct>`
 
 ```
 {
     "type": "Struct",
-    "name": "StringList",
+    "name": "TagValueList",
     "fields": [
         {
             "name": "list",
             "type": "Array",
             "optional": false,
-            "comment": "generic list of strings",
-            "items": "CompoundName"
+            "comment": "list of tag values",
+            "items": "TagCompoundValue"
         }
     ],
     "closed": false
@@ -1754,7 +1794,7 @@ Set of metadata attributes that all domains may have and can be changed.
             "type": "Map",
             "optional": true,
             "comment": "key-value pair tags, tag might contain multiple values",
-            "items": "StringList",
+            "items": "TagValueList",
             "keys": "CompoundName"
         },
         {
@@ -2088,7 +2128,7 @@ Set of metadata attributes that all roles may have and can be changed by domain 
             "type": "Map",
             "optional": true,
             "comment": "key-value pair tags, tag might contain multiple values",
-            "items": "StringList",
+            "items": "TagValueList",
             "keys": "CompoundName"
         }
     ],
@@ -4412,5 +4452,51 @@ The representation for a status object
 }
 ```
 
+### UserAuthorityAttributes `<Struct>`
 
-*generated on Sun May 09 2021 14:04:29 GMT+0300 (Israel Daylight Time)*
+Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+
+```
+{
+    "type": "Struct",
+    "name": "UserAuthorityAttributes",
+    "comment": "Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.",
+    "fields": [
+        {
+            "name": "values",
+            "type": "Array",
+            "optional": false,
+            "items": "String"
+        }
+    ],
+    "closed": false
+}
+```
+
+### UserAuthorityAttributeMap `<Struct>`
+
+Map of user authority attributes
+
+
+```
+{
+    "type": "Struct",
+    "name": "UserAuthorityAttributeMap",
+    "comment": "Map of user authority attributes",
+    "fields": [
+        {
+            "name": "attributes",
+            "type": "Map",
+            "optional": false,
+            "comment": "map of type to attribute values",
+            "items": "UserAuthorityAttributes",
+            "keys": "SimpleName"
+        }
+    ],
+    "closed": false
+}
+```
+
+
+*generated on Wed Jun 16 2021 14:07:27 GMT+0300 (Israel Daylight Time)*

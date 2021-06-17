@@ -8364,6 +8364,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
+    public UserAuthorityAttributeMap getUserAuthorityAttributeMap(ResourceContext ctx) {
+        final String caller = ctx.getApiName();
+
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+
+        Map<String, UserAuthorityAttributes> attriuteMap = new HashMap<>();
+        attriuteMap.put("bool", new UserAuthorityAttributes().setValues(new ArrayList<>(userAuthority.booleanAttributesSupported())));
+        attriuteMap.put("date", new UserAuthorityAttributes().setValues(new ArrayList<>(userAuthority.dateAttributesSupported())));
+        UserAuthorityAttributeMap userAuthorityAttributeMap = new UserAuthorityAttributeMap();
+        userAuthorityAttributeMap.setAttributes(attriuteMap);
+        return userAuthorityAttributeMap;
+    }
+
+    @Override
     public void putRoleReview(ResourceContext ctx, String domainName, String roleName, String auditRef, Role role) {
 
         final String caller = ctx.getApiName();

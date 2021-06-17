@@ -1479,6 +1479,18 @@ const Api = (req) => {
                     });
             });
         },
+
+        getAuthorityAttributes() {
+            return new Promise((resolve, reject) => {
+                fetchr.read('authority').end((err, data) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(data);
+                    }
+                });
+            });
+        },
     };
 };
 
