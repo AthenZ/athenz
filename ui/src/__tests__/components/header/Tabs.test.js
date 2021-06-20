@@ -37,6 +37,7 @@ describe('Tabs', () => {
         fireEvent.click(tab[2]);
         fireEvent.click(tab[3]);
         fireEvent.click(tab[4]);
+        fireEvent.click(tab[5]);
         expect(tabs).toMatchSnapshot();
     });
 });

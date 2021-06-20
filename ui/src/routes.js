@@ -45,6 +45,7 @@ module.exports = routes()
     .add('group-roles', '/domain/:domain/group/:group/roles')
     .add('group-review', '/domain/:domain/group/:group/review')
     .add('microsegmentation', '/domain/:domain/microsegmentation')
+    .add('domain-settings', '/domain/:domain/domain-settings')
     .add(
         'dynamic-instance',
         '/domain/:domain/service/:service/instance/dynamic'
