@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Tag Page should render 1`] = `
+exports[`DomainSettingsPage should render 1`] = `
 .emotion-0 {
   height: 60px;
   position: relative;
@@ -668,7 +668,258 @@ exports[`Tag Page should render 1`] = `
   font-weight: '';
 }
 
-.emotion-75 {
+.emotion-73 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: #f5f8fe;
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(8, 1fr);
+  margin-top: 0;
+  min-width: 80px;
+  position: relative;
+}
+
+.emotion-73.vertical {
+  background: #f5f8fe;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  height: 100%;
+  min-width: 300px;
+  overflow-y: scroll;
+  padding: 12px 0px 40px 0px;
+  width: 300px;
+}
+
+.emotion-74 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #f5f8fe;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  padding: 8px 20px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-74:hover {
+  color: #3570f4;
+}
+
+.emotion-74.active {
+  background: #fff;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-74.active:hover {
+  color: #303030;
+}
+
+.emotion-74.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-74.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-74.vertical.active:hover {
+  color: #303030;
+}
+
+.emotion-82 {
+  margin: 20px;
+}
+
+.emotion-84 {
+  width: 100%;
+  border-spacing: 0 20px;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-86 {
+  box-sizing: border-box;
+  margin-top: 10px;
+  box-shadow: 0 1px 4px #d9d9d9;
+  border: 1px solid #fff;
+  -webkit-border-image: none;
+  border-image: none;
+  -webkit-border-image: initial;
+  border-image: initial;
+  height: 50px;
+}
+
+.emotion-88 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-92 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-94 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-94 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-94.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-94 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-94 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-94 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-94 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-94 input.focused,
+.emotion-94 input:active,
+.emotion-94 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-94 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-94 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-94.error input,
+.emotion-94.error input.focused,
+.emotion-94.error input:active,
+.emotion-94.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-94.error .message {
+  color: #d01111;
+}
+
+.emotion-95 {
+  margin-top: 5px;
+}
+
+.emotion-151 {
+  padding-bottom: 20px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+}
+
+.emotion-153 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -694,142 +945,25 @@ exports[`Tag Page should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-75:first-of-type {
+.emotion-153:first-of-type {
   margin-left: 0;
 }
 
-.emotion-75:disabled {
+.emotion-153:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-75:disabled {
+.emotion-153:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-75:hover:not(:disabled) {
+.emotion-153:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-76 {
-  -webkit-align-items: stretch;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
-  background: #f5f8fe;
-  border-radius: 2px;
-  box-sizing: border-box;
-  display: inline-grid;
-  grid-template-columns: repeat(8, 1fr);
-  margin-top: 0;
-  min-width: 80px;
-  position: relative;
-}
-
-.emotion-76.vertical {
-  background: #f5f8fe;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  height: 100%;
-  min-width: 300px;
-  overflow-y: scroll;
-  padding: 12px 0px 40px 0px;
-  width: 300px;
-}
-
-.emotion-77 {
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  background: #f5f8fe;
-  color: #3697f2;
-  cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  -webkit-justify-content: center;
-  justify-content: center;
-  padding: 8px 20px;
-  white-space: nowrap;
-  z-index: 1;
-}
-
-.emotion-77:hover {
-  color: #3570f4;
-}
-
-.emotion-77.active {
-  background: #fff;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
-  color: #303030;
-  cursor: initial;
-}
-
-.emotion-77.active:hover {
-  color: #303030;
-}
-
-.emotion-77.vertical {
-  background: #f5f8fe;
-  border-left: solid 4px #f5f8fe;
-  height: 24px;
-  -webkit-box-pack: start;
-  -ms-flex-pack: start;
-  -webkit-justify-content: flex-start;
-  justify-content: flex-start;
-  padding: 12px 0px 12px 26px;
-  text-align: left;
-}
-
-.emotion-77.vertical.active {
-  background: #fff;
-  border-left: solid 4px #3697f2;
-  color: #303030;
-}
-
-.emotion-77.vertical.active:hover {
-  color: #303030;
-}
-
-.emotion-85 {
-  margin: 20px;
-}
-
-.emotion-87 {
-  padding-bottom: 20px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  float: right;
-}
-
-.emotion-90 {
+.emotion-155 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -855,13 +989,13 @@ exports[`Tag Page should render 1`] = `
   width: 20px;
 }
 
-.emotion-92 {
+.emotion-157 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-93 {
+.emotion-158 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -876,7 +1010,7 @@ exports[`Tag Page should render 1`] = `
   width: 350px;
 }
 
-.emotion-95 {
+.emotion-160 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -895,28 +1029,28 @@ exports[`Tag Page should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-97 {
+.emotion-162 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-99 {
+.emotion-164 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-101 {
+.emotion-166 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-105 {
+.emotion-170 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-107 {
+.emotion-172 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -924,19 +1058,19 @@ exports[`Tag Page should render 1`] = `
   display: flex;
 }
 
-.emotion-109 {
+.emotion-174 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-111 {
+.emotion-176 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
 }
 
 <div
-  data-testid="tags"
+  data-testid="domain-settings"
 >
   <div
     class="emotion-0 emotion-1"
@@ -1070,7 +1204,7 @@ exports[`Tag Page should render 1`] = `
             <div
               class="emotion-28 emotion-29"
             >
-              home.test
+              dom
             </div>
             <div
               class="emotion-30 emotion-31"
@@ -1085,7 +1219,7 @@ exports[`Tag Page should render 1`] = `
                   <div
                     class="emotion-36 emotion-37"
                   >
-                    2020-01-24 18:14 UTC
+                    2020-02-12 21:44 UTC
                   </div>
                   <div
                     class="emotion-38 emotion-39"
@@ -1113,7 +1247,7 @@ exports[`Tag Page should render 1`] = `
                   <div
                     class="emotion-36 emotion-37"
                   >
-                    athenz
+                    N/A
                   </div>
                   <div
                     class="emotion-38 emotion-39"
@@ -1136,7 +1270,7 @@ exports[`Tag Page should render 1`] = `
                         id="switch-auditDomainDetails"
                         name="auditDomainDetails"
                         type="checkbox"
-                        value="false"
+                        value=""
                       />
                       <label
                         for="switch-auditDomainDetails"
@@ -1155,7 +1289,7 @@ exports[`Tag Page should render 1`] = `
                   <div
                     class="emotion-36 emotion-37"
                   >
-                    1231243134
+                    N/A
                   </div>
                   <div
                     class="emotion-38 emotion-39"
@@ -1182,88 +1316,290 @@ exports[`Tag Page should render 1`] = `
                     BUSINESS SERVICE
                   </div>
                 </div>
-                <div
-                  class="emotion-34 emotion-35"
-                >
-                  <button
-                    class="emotion-75 denali-button"
-                  >
-                    Onboard to AWS
-                  </button>
-                </div>
               </div>
             </div>
             <div
-              class="emotion-76 denali-tab-group"
+              class="emotion-73 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-74 denali-tab"
                 data-active="false"
               >
                 Roles
               </div>
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-74 denali-tab"
                 data-active="false"
               >
                 Groups
               </div>
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-74 denali-tab"
                 data-active="false"
               >
                 Services
               </div>
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-74 denali-tab"
                 data-active="false"
               >
                 Policies
               </div>
               <div
-                class="emotion-77 denali-tab active"
-                data-active="true"
+                class="emotion-74 denali-tab"
+                data-active="false"
               >
                 Tags
               </div>
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-74 denali-tab"
                 data-active="false"
               >
                 Templates
               </div>
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-74 denali-tab"
                 data-active="false"
               >
                 History
               </div>
               <div
-                class="emotion-77 denali-tab"
-                data-active="false"
+                class="emotion-74 denali-tab active"
+                data-active="true"
               >
                 Settings
               </div>
             </div>
           </div>
           <div
-            class="emotion-85 emotion-86"
-            data-testid="tag-list"
+            class="emotion-82 emotion-83"
           >
+            <table
+              class="emotion-84 emotion-85"
+              data-testid="setting-table"
+            >
+              <tbody>
+                <tr
+                  class="emotion-86 emotion-87"
+                  data-testid="setting-row"
+                >
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    User Expiry (Days)
+                  </td>
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    <div
+                      class="emotion-92 emotion-93"
+                    >
+                      <div
+                        class="emotion-94 denali-input animated emotion-95 emotion-96"
+                        data-testid="input-wrapper"
+                      >
+                        <input
+                          autocomplete="off"
+                          data-testid="input-node"
+                          id="setting-memberExpiryDays"
+                          pattern="[0-9]*"
+                          placeholder="Days"
+                          value=""
+                        />
+                        <div
+                          class="message"
+                          data-testid="message"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    All user members in the domain will have specified max expiry days
+                  </td>
+                </tr>
+                <tr
+                  class="emotion-86 emotion-87"
+                  data-testid="setting-row"
+                >
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    Group Expiry (Days)
+                  </td>
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    <div
+                      class="emotion-92 emotion-93"
+                    >
+                      <div
+                        class="emotion-94 denali-input animated emotion-95 emotion-96"
+                        data-testid="input-wrapper"
+                      >
+                        <input
+                          autocomplete="off"
+                          data-testid="input-node"
+                          id="setting-groupExpiryDays"
+                          pattern="[0-9]*"
+                          placeholder="Days"
+                          value=""
+                        />
+                        <div
+                          class="message"
+                          data-testid="message"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    All group members in the domain will have specified max expiry days
+                  </td>
+                </tr>
+                <tr
+                  class="emotion-86 emotion-87"
+                  data-testid="setting-row"
+                >
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    Service Expiry (Days)
+                  </td>
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    <div
+                      class="emotion-92 emotion-93"
+                    >
+                      <div
+                        class="emotion-94 denali-input animated emotion-95 emotion-96"
+                        data-testid="input-wrapper"
+                      >
+                        <input
+                          autocomplete="off"
+                          data-testid="input-node"
+                          id="setting-serviceExpiryDays"
+                          pattern="[0-9]*"
+                          placeholder="Days"
+                          value=""
+                        />
+                        <div
+                          class="message"
+                          data-testid="message"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    All services in the domain will have specified max expiry days
+                  </td>
+                </tr>
+                <tr
+                  class="emotion-86 emotion-87"
+                  data-testid="setting-row"
+                >
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    Token Expiry (Mins)
+                  </td>
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    <div
+                      class="emotion-92 emotion-93"
+                    >
+                      <div
+                        class="emotion-94 denali-input animated emotion-95 emotion-96"
+                        data-testid="input-wrapper"
+                      >
+                        <input
+                          autocomplete="off"
+                          data-testid="input-node"
+                          id="setting-tokenExpiryMins"
+                          pattern="[0-9]*"
+                          placeholder="Mins"
+                          value=""
+                        />
+                        <div
+                          class="message"
+                          data-testid="message"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    Tokens issued for this domain will have specified max timeout in mins
+                  </td>
+                </tr>
+                <tr
+                  class="emotion-86 emotion-87"
+                  data-testid="setting-row"
+                >
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    Role Certificate Expiry (Mins)
+                  </td>
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    <div
+                      class="emotion-92 emotion-93"
+                    >
+                      <div
+                        class="emotion-94 denali-input animated emotion-95 emotion-96"
+                        data-testid="input-wrapper"
+                      >
+                        <input
+                          autocomplete="off"
+                          data-testid="input-node"
+                          id="setting-roleCertExpiryMins"
+                          pattern="[0-9]*"
+                          placeholder="Mins"
+                          value=""
+                        />
+                        <div
+                          class="message"
+                          data-testid="message"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-88 emotion-89"
+                  >
+                    Role Certs issued for this domain will have specified max timeout in mins
+                  </td>
+                </tr>
+              </tbody>
+            </table>
             <div
-              class="emotion-87 emotion-88"
+              class="emotion-151 emotion-152"
             >
               <div>
                 <button
-                  class="emotion-75 denali-button"
+                  class="emotion-153 denali-button"
+                  disabled=""
                 >
-                  Add Tag
+                  Submit
                 </button>
                 
+                <button
+                  class="emotion-153 denali-button"
+                >
+                  Reset
+                </button>
               </div>
             </div>
-            Click on Add Tag to create a new tag
           </div>
         </div>
       </div>
@@ -1271,11 +1607,11 @@ exports[`Tag Page should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-90 emotion-91"
+          class="emotion-155 emotion-156"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-92"
+            class="emotion-157"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1290,45 +1626,45 @@ exports[`Tag Page should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-93 emotion-94"
+          class="emotion-158 emotion-159"
         >
           <div
-            class="emotion-95 emotion-96"
+            class="emotion-160 emotion-161"
           >
             <div
-              class="emotion-97 emotion-98"
+              class="emotion-162 emotion-163"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-164 emotion-165"
               >
                 Create
               </a>
               <span
-                class="emotion-101 emotion-102"
+                class="emotion-166 emotion-167"
               >
                  | 
               </span>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-164 emotion-165"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-105 emotion-106"
+            class="emotion-170 emotion-171"
           >
             <div
-              class="emotion-107 emotion-108"
+              class="emotion-172 emotion-173"
             >
               <div
-                class="emotion-109 emotion-110"
+                class="emotion-174 emotion-175"
               >
                 <svg
-                  class="emotion-111"
+                  class="emotion-176"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1349,19 +1685,19 @@ exports[`Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-164 emotion-165"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-107 emotion-108"
+              class="emotion-172 emotion-173"
             >
               <div
-                class="emotion-109 emotion-110"
+                class="emotion-174 emotion-175"
               >
                 <svg
-                  class="emotion-111"
+                  class="emotion-176"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1382,7 +1718,7 @@ exports[`Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-164 emotion-165"
               >
                 athens.ci
               </a>

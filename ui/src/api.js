@@ -321,6 +321,21 @@ const Api = (req) => {
                             }
                         });
                 });
+            } else if (category === 'domain') {
+                return new Promise((resolve, reject) => {
+                    fetchr
+                        .read('domain')
+                        .params({
+                            domain: collectionName,
+                        })
+                        .end((err, data) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data);
+                            }
+                        });
+                });
             }
         },
 

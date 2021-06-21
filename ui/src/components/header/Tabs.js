@@ -51,6 +51,10 @@ class Tabs extends React.Component {
             label: 'History',
             name: 'history',
         },
+        {
+            label: 'Settings',
+            name: 'domain-settings',
+        },
     ];
 
     tabClicked(tab) {
@@ -109,6 +113,13 @@ class Tabs extends React.Component {
                 this.props.router.push(
                     `/domain/${domain}/microsegmentation`,
                     `/domain/${domain}/microsegmentation`,
+                    { getInitialProps: true }
+                );
+                break;
+            case 'domain-settings':
+                this.props.router.push(
+                    `/domain/${domain}/domain-settings`,
+                    `/domain/${domain}/domain-settings`,
                     { getInitialProps: true }
                 );
                 break;
