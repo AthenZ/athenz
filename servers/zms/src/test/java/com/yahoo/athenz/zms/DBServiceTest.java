@@ -4393,7 +4393,8 @@ public class DBServiceTest {
                 .setAccount("acct")
                 .setYpmId(1234)
                 .setCertDnsDomain("athenz.cloud")
-                .setAzureSubscription("azure");
+                .setAzureSubscription("azure")
+                .setBusinessService("123:business service");
         zms.dbService.updateSystemMetaFields(domain, "account", true, meta);
         assertEquals(domain.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain, "productid", true, meta);
@@ -4402,6 +4403,8 @@ public class DBServiceTest {
         assertEquals(domain.getCertDnsDomain(), "athenz.cloud");
         zms.dbService.updateSystemMetaFields(domain, "azuresubscription", true, meta);
         assertEquals(domain.getAzureSubscription(), "azure");
+        zms.dbService.updateSystemMetaFields(domain, "businessservice", true, meta);
+        assertEquals(domain.getBusinessService(), "123:business service");
         try {
             zms.dbService.updateSystemMetaFields(domain, "unknown", true, meta);
             fail();
@@ -4416,7 +4419,8 @@ public class DBServiceTest {
                 .setAccount("acct")
                 .setYpmId(1234)
                 .setCertDnsDomain("athenz.cloud")
-                .setAzureSubscription("azure");
+                .setAzureSubscription("azure")
+                .setBusinessService("123:business service");
         zms.dbService.updateSystemMetaFields(domain1, "account", false, meta1);
         assertEquals(domain1.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain1, "productid", false, meta1);
@@ -4425,6 +4429,8 @@ public class DBServiceTest {
         assertEquals(domain1.getCertDnsDomain(), "athenz.cloud");
         zms.dbService.updateSystemMetaFields(domain1, "azuresubscription", false, meta1);
         assertEquals(domain1.getAzureSubscription(), "azure");
+        zms.dbService.updateSystemMetaFields(domain1, "businessservice", false, meta1);
+        assertEquals(domain1.getBusinessService(), "123:business service");
 
         // setting from set values should be all rejected
 
@@ -4432,12 +4438,14 @@ public class DBServiceTest {
                 .setAccount("acct")
                 .setYpmId(1234)
                 .setCertDnsDomain("athenz.cloud")
-                .setAzureSubscription("azure");
+                .setAzureSubscription("azure")
+                .setBusinessService("123:business service");
         DomainMeta meta2 = new DomainMeta()
                 .setAccount("acct-new")
                 .setYpmId(1235)
                 .setCertDnsDomain("athenz.cloud.new")
-                .setAzureSubscription("azure.new");
+                .setAzureSubscription("azure.new")
+                .setBusinessService("1234:business service2");
 
         // setting from the old value to new value with
         // no delete flag should be rejected
@@ -4470,18 +4478,27 @@ public class DBServiceTest {
             assertTrue(ex.getMessage().contains("reset system meta attribute"));
         }
 
+        try {
+            zms.dbService.updateSystemMetaFields(domain2, "businessservice", false, meta2);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("reset system meta attribute"));
+        }
+
         // setting from set value to the same value should be allowed
 
         Domain domain3 = new Domain()
                 .setAccount("acct")
                 .setYpmId(1234)
                 .setCertDnsDomain("athenz.cloud")
-                .setAzureSubscription("azure");
+                .setAzureSubscription("azure")
+                .setBusinessService("123:business service");
         DomainMeta meta3 = new DomainMeta()
                 .setAccount("acct")
                 .setYpmId(1234)
                 .setCertDnsDomain("athenz.cloud")
-                .setAzureSubscription("azure");
+                .setAzureSubscription("azure")
+                .setBusinessService("123:business service");
         zms.dbService.updateSystemMetaFields(domain3, "account", false, meta3);
         assertEquals(domain3.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain3, "productid", false, meta3);
@@ -4490,6 +4507,8 @@ public class DBServiceTest {
         assertEquals(domain3.getCertDnsDomain(), "athenz.cloud");
         zms.dbService.updateSystemMetaFields(domain3, "azuresubscription", false, meta3);
         assertEquals(domain3.getAzureSubscription(), "azure");
+        zms.dbService.updateSystemMetaFields(domain3, "businessservice", false, meta3);
+        assertEquals(domain3.getBusinessService(), "123:business service");
     }
 
     @Test

@@ -1966,6 +1966,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     changedAttrs.set(DomainMetaStore.META_ATTR_PRODUCT_ID);
                 }
                 break;
+            case ZMSConsts.SYSTEM_META_BUSINESS_SERVICE:
+                if (ZMSUtils.metaValueChanged(domain.getBusinessService(), meta.getBusinessService())) {
+                    if (!domainMetaStore.isValidBusinessService(domain.getName(), meta.getBusinessService())) {
+                        throw ZMSUtils.requestError("invalid business service for domain", caller);
+                    }
+                    changedAttrs.set(DomainMetaStore.META_ATTR_BUSINESS_SERVICE);
+                }
+                break;
         }
 
         return changedAttrs;
@@ -5373,6 +5381,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         return null;
                     }
                     signedDomain.getDomain().setYpmId(ypmId);
+                    break;
+                case ZMSConsts.SYSTEM_META_BUSINESS_SERVICE:
+                    final String businessService = domain.getBusinessService();
+                    if (businessService == null) {
+                        return null;
+                    }
+                    signedDomain.getDomain().setBusinessService(businessService);
                     break;
                 case META_ATTR_ALL:
                     DomainData domainData = signedDomain.getDomain();

@@ -2194,6 +2194,7 @@ public class ZMSImplTest {
         assertFalse(resDom3.getAuditEnabled());
         assertNull(resDom3.getAccount());
         assertNull(resDom3.getAzureSubscription());
+        assertNull(resDom3.getBusinessService());
         assertEquals(Integer.valueOf(0), resDom3.getYpmId());
 
         meta.setAccount("aws");
@@ -2203,6 +2204,7 @@ public class ZMSImplTest {
         assertEquals(resDom3.getOrg(), "neworg");
         assertEquals(resDom3.getAccount(), "aws");
         assertNull(resDom3.getAzureSubscription());
+        assertNull(resDom3.getBusinessService());
 
         meta.setAzureSubscription("azure");
         zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "azuresubscription", auditRef, meta);
@@ -2211,6 +2213,16 @@ public class ZMSImplTest {
         assertEquals(resDom3.getOrg(), "neworg");
         assertEquals(resDom3.getAccount(), "aws");
         assertEquals(resDom3.getAzureSubscription(), "azure");
+        assertNull(resDom3.getBusinessService());
+
+        meta.setBusinessService("123:business service");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "businessservice", auditRef, meta);
+        resDom3 = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(resDom3);
+        assertEquals(resDom3.getOrg(), "neworg");
+        assertEquals(resDom3.getAccount(), "aws");
+        assertEquals(resDom3.getAzureSubscription(), "azure");
+        assertEquals(resDom3.getBusinessService(), "123:business service");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -17840,13 +17852,14 @@ public class ZMSImplTest {
 
         ZMSImpl zmsImpl = zmsInit();
         Domain domainMeta = new Domain().setName("dom1").setYpmId(123).setModified(Timestamp.fromCurrentTime())
-                .setAccount("1234").setAuditEnabled(true).setOrg("org").setAzureSubscription("4567");
+                .setAccount("1234").setAuditEnabled(true).setOrg("org").setAzureSubscription("4567").setBusinessService("123:business service");
         SignedDomain domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, null);
         assertNull(domain.getDomain().getAccount());
         assertNull(domain.getDomain().getYpmId());
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());
         assertNull(domain.getDomain().getAzureSubscription());
+        assertNull(domain.getDomain().getBusinessService());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "unknown");
         assertNull(domain.getDomain().getAccount());
@@ -17854,6 +17867,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());
         assertNull(domain.getDomain().getAzureSubscription());
+        assertNull(domain.getDomain().getBusinessService());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
         assertEquals(domain.getDomain().getAccount(), "1234");
@@ -17861,6 +17875,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());
         assertNull(domain.getDomain().getAzureSubscription());
+        assertNull(domain.getDomain().getBusinessService());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "ypmid");
         assertNull(domain.getDomain().getAccount());
@@ -17868,6 +17883,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());
         assertNull(domain.getDomain().getAzureSubscription());
+        assertNull(domain.getDomain().getBusinessService());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "azuresubscription");
         assertEquals(domain.getDomain().getAzureSubscription(), "4567");
@@ -17875,6 +17891,15 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getYpmId());
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());
+        assertNull(domain.getDomain().getBusinessService());
+
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "businessservice");
+        assertEquals(domain.getDomain().getBusinessService(), "123:business service");
+        assertNull(domain.getDomain().getAccount());
+        assertNull(domain.getDomain().getYpmId());
+        assertNull(domain.getDomain().getOrg());
+        assertNull(domain.getDomain().getAuditEnabled());
+        assertNull(domain.getDomain().getAzureSubscription());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "all");
         assertEquals(domain.getDomain().getAccount(), "1234");
@@ -17882,6 +17907,7 @@ public class ZMSImplTest {
         assertEquals(domain.getDomain().getYpmId().intValue(), 123);
         assertEquals(domain.getDomain().getOrg(), "org");
         assertTrue(domain.getDomain().getAuditEnabled());
+        assertEquals(domain.getDomain().getBusinessService(), "123:business service");
 
         domainMeta.setAccount(null);
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
@@ -17889,6 +17915,10 @@ public class ZMSImplTest {
 
         domainMeta.setAzureSubscription(null);
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "azuresubscription");
+        assertNull(domain);
+
+        domainMeta.setBusinessService(null);
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "businessservice");
         assertNull(domain);
 
         domainMeta.setAccount("1234");

@@ -284,6 +284,8 @@ public final class ZMSConsts {
     public static final String SYSTEM_META_LAST_MOD_TIME      = "modified";
     public static final String SYSTEM_META_PROVIDER_ENDPOINT  = "providerendpoint";
     public static final String SYSTEM_META_AZURE_SUBSCRIPTION = "azuresubscription";
+    public static final String SYSTEM_META_BUSINESS_SERVICE   = "businessservice";
+
 
     // HTTP operation types used in metrics
     public static final String HTTP_GET     = "GET";
