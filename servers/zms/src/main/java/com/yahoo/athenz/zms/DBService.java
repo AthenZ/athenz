@@ -3256,6 +3256,9 @@ public class DBService implements RolesProvider {
             case ZMSConsts.SYSTEM_META_ENABLED:
                 domain.setEnabled(meta.getEnabled());
                 break;
+            case ZMSConsts.SYSTEM_META_BUSINESS_SERVICE:
+                domain.setBusinessService(meta.getBusinessService());
+                break;
             default:
                 throw ZMSUtils.requestError("unknown system meta attribute: " + attribute, caller);
         }
