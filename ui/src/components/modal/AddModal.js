@@ -20,7 +20,7 @@ import Modal from '../denali/Modal';
 import Color from '../denali/Color';
 
 const MessageDiv = styled.div`
-    text-align: center;
+    text-align: left;
     font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
     padding-bottom: 15px;
 `;

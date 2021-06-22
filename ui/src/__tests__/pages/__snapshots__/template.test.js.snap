@@ -810,6 +810,12 @@ exports[`Template Page should render 1`] = `
 }
 
 .emotion-87 {
+  font: 600 15px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  margin-bottom: 20px;
+  margin-top: 40px;
+}
+
+.emotion-89 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -817,7 +823,7 @@ exports[`Template Page should render 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-89 {
+.emotion-91 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -830,7 +836,7 @@ exports[`Template Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-93 {
+.emotion-95 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -843,7 +849,7 @@ exports[`Template Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-101 {
+.emotion-117 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -869,13 +875,13 @@ exports[`Template Page should render 1`] = `
   width: 20px;
 }
 
-.emotion-103 {
+.emotion-119 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-104 {
+.emotion-120 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -890,7 +896,7 @@ exports[`Template Page should render 1`] = `
   width: 350px;
 }
 
-.emotion-106 {
+.emotion-122 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -909,28 +915,28 @@ exports[`Template Page should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-108 {
+.emotion-124 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-110 {
+.emotion-126 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-112 {
+.emotion-128 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-116 {
+.emotion-132 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-118 {
+.emotion-134 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -938,12 +944,12 @@ exports[`Template Page should render 1`] = `
   display: flex;
 }
 
-.emotion-120 {
+.emotion-136 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-122 {
+.emotion-138 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1265,38 +1271,83 @@ exports[`Template Page should render 1`] = `
             class="emotion-85 emotion-86"
             data-testid="template-list"
           >
-            <table
+            <div
               class="emotion-87 emotion-88"
+            >
+              Domain Templates
+            </div>
+            <table
+              class="emotion-89 emotion-90"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-89 emotion-90"
+                    class="emotion-91 emotion-92"
                   >
                     TEMPLATE
                   </th>
                   <th
-                    class="emotion-89 emotion-90"
+                    class="emotion-91 emotion-92"
                   >
                     INFO
                   </th>
                   <th
-                    class="emotion-93 emotion-90"
+                    class="emotion-95 emotion-92"
                   >
                     CURRENT VERSION
                   </th>
                   <th
-                    class="emotion-93 emotion-90"
+                    class="emotion-95 emotion-92"
                   >
                     LATEST VERSION
                   </th>
                   <th
-                    class="emotion-93 emotion-90"
+                    class="emotion-95 emotion-92"
                   >
                     UPDATED DATE
                   </th>
                   <th
-                    class="emotion-93 emotion-90"
+                    class="emotion-95 emotion-92"
+                  >
+                    UPDATE VERSION
+                  </th>
+                </tr>
+              </thead>
+              <tbody />
+              <div
+                class="emotion-87 emotion-88"
+              >
+                Server Templates
+              </div>
+              <thead>
+                <tr>
+                  <th
+                    class="emotion-91 emotion-92"
+                  >
+                    TEMPLATE
+                  </th>
+                  <th
+                    class="emotion-91 emotion-92"
+                  >
+                    INFO
+                  </th>
+                  <th
+                    class="emotion-95 emotion-92"
+                  >
+                    CURRENT VERSION
+                  </th>
+                  <th
+                    class="emotion-95 emotion-92"
+                  >
+                    LATEST VERSION
+                  </th>
+                  <th
+                    class="emotion-95 emotion-92"
+                  >
+                    UPDATED DATE
+                  </th>
+                  <th
+                    class="emotion-95 emotion-92"
                   >
                     UPDATE VERSION
                   </th>
@@ -1311,11 +1362,11 @@ exports[`Template Page should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-101 emotion-102"
+          class="emotion-117 emotion-118"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-103"
+            class="emotion-119"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1330,45 +1381,45 @@ exports[`Template Page should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-104 emotion-105"
+          class="emotion-120 emotion-121"
         >
           <div
-            class="emotion-106 emotion-107"
+            class="emotion-122 emotion-123"
           >
             <div
-              class="emotion-108 emotion-109"
+              class="emotion-124 emotion-125"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-110 emotion-111"
+                class="emotion-126 emotion-127"
               >
                 Create
               </a>
               <span
-                class="emotion-112 emotion-113"
+                class="emotion-128 emotion-129"
               >
                  | 
               </span>
               <a
-                class="emotion-110 emotion-111"
+                class="emotion-126 emotion-127"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-116 emotion-117"
+            class="emotion-132 emotion-133"
           >
             <div
-              class="emotion-118 emotion-119"
+              class="emotion-134 emotion-135"
             >
               <div
-                class="emotion-120 emotion-121"
+                class="emotion-136 emotion-137"
               >
                 <svg
-                  class="emotion-122"
+                  class="emotion-138"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1389,19 +1440,19 @@ exports[`Template Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-110 emotion-111"
+                class="emotion-126 emotion-127"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-118 emotion-119"
+              class="emotion-134 emotion-135"
             >
               <div
-                class="emotion-120 emotion-121"
+                class="emotion-136 emotion-137"
               >
                 <svg
-                  class="emotion-122"
+                  class="emotion-138"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1422,7 +1473,7 @@ exports[`Template Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-110 emotion-111"
+                class="emotion-126 emotion-127"
               >
                 athens.ci
               </a>

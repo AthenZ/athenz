@@ -79,6 +79,7 @@ export default class TemplateRow extends React.Component {
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                 });
+                this.props.showError(RequestUtils.xhrErrorCheckHelper(err));
             });
     }
 
@@ -106,7 +107,10 @@ export default class TemplateRow extends React.Component {
         const currentVersion = this.props.currentVersion;
         const latestVersion = this.props.latestVersion;
         const keywordsToReplace = this.props.keywordsToReplace;
-
+        let buttonText = 'Update';
+        if (currentVersion == 'N/A') {
+            buttonText = 'Onboard';
+        }
         let row = [];
         const templateName = this.props.templateName;
 
@@ -121,6 +125,11 @@ export default class TemplateRow extends React.Component {
                 keywords={keywordsToReplace}
                 templateName={templateName}
                 reloadTemplatePage={this.reloadTemplates}
+                title={
+                    this.props.currentVersion
+                        ? 'Update Template'
+                        : 'Onboard Template'
+                }
             />
         ) : (
             ''
@@ -155,7 +164,10 @@ export default class TemplateRow extends React.Component {
                 <TdStyled color={color} align={center}>
                     <Button
                         secondary={
-                            currentVersion == latestVersion ? true : false
+                            currentVersion == 'N/A' ||
+                            currentVersion == latestVersion
+                                ? true
+                                : false
                         }
                         onClick={
                             !keywordsToReplace
@@ -165,7 +177,7 @@ export default class TemplateRow extends React.Component {
                         size={'small'}
                         type={'submit'}
                     >
-                        Update
+                        {buttonText}
                     </Button>
                     {applyTemplate}
                 </TdStyled>

@@ -50,6 +50,7 @@ describe('TemplateList', () => {
             left ={left}
             center = {center}
             list={toReturn}
+            serverTemplateDetails={toReturn}
             api = {api}
         />);
         const templatelist = getByTestId('template-list');

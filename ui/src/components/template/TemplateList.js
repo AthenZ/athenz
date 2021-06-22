@@ -46,25 +46,79 @@ const TableHeadStyled = styled.th`
     word-break: break-all;
 `;
 
+const TitleDiv = styled.div`
+    font: 600 15px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
+    margin-bottom: 20px;
+    margin-top: 40px;
+`;
+
 export default class TemplateList extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
         this.onCancelUpdateTemplate = this.onCancelUpdateTemplate.bind(this);
         this.reloadTemplates = this.reloadTemplates.bind(this);
+        this.showError = this.showError.bind(this);
         this.closeModal = this.closeModal.bind(this);
+        let serverTemplateListCopy = [];
+        if (props.serverTemplateDetails) {
+            serverTemplateListCopy = props.serverTemplateDetails.map((x) => x);
+
+            if (props.domainTemplateDetails) {
+                let domainTemplatesArray = props.domainTemplateDetails.map(
+                    (template) => {
+                        return template.templateName;
+                    }
+                );
+
+                let domainTemplatesSet = new Set(domainTemplatesArray);
+                serverTemplateListCopy = serverTemplateListCopy.filter(
+                    (template) => !domainTemplatesSet.has(template.templateName)
+                );
+            }
+        }
+
         this.state = {
             list: props.domainTemplateDetails || [],
+            serverTemplateDetails: serverTemplateListCopy || [],
             successMessage: '',
+            errorMessage: '',
+            showError: false,
+            showSuccess: false,
         };
+    }
+
+    showError(errorMessage) {
+        this.setState({
+            showError: true,
+            errorMessage: errorMessage,
+        });
     }
 
     reloadTemplates(successMessage) {
         this.props.api
             .getDomainTemplateDetailsList(this.props.domain)
             .then((data) => {
+                let serverTemplateListCopy = [];
+                if (this.props.serverTemplateDetails) {
+                    serverTemplateListCopy =
+                        this.props.serverTemplateDetails.map((x) => x);
+                    if (data) {
+                        let domainTemplatesArray = data.map((template) => {
+                            return template.templateName;
+                        });
+
+                        let domainTemplatesSet = new Set(domainTemplatesArray);
+                        serverTemplateListCopy = serverTemplateListCopy.filter(
+                            (template) =>
+                                !domainTemplatesSet.has(template.templateName)
+                        );
+                    }
+                }
+
                 this.setState({
                     list: data,
+                    serverTemplateDetails: serverTemplateListCopy || [],
                     showSuccess: true,
                     successMessage,
                 });
@@ -78,9 +132,7 @@ export default class TemplateList extends React.Component {
                 );
             })
             .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+                this.showError(RequestUtils.xhrErrorCheckHelper(err));
             });
     }
 
@@ -91,7 +143,10 @@ export default class TemplateList extends React.Component {
     }
 
     closeModal() {
-        this.setState({ successService: null });
+        this.setState({
+            showError: false,
+            errorMessage: '',
+        });
     }
 
     onCancelUpdateTemplate() {
@@ -129,12 +184,47 @@ export default class TemplateList extends React.Component {
                     domain={this.props.domain}
                     data={this.state.list}
                     onsubmit={this.reloadTemplates}
+                    showError={this.showError}
                 />
             );
             return toReturn;
         });
+        const serverTemplateRows = this.state.serverTemplateDetails.map(
+            (item, i) => {
+                let onClickUpdateTemplate =
+                    this.onClickUpdateTemplate.bind(this);
+                const templateName = item.templateName;
+                const templateDesc = item.description;
+                let color = '';
+                if (i % 2 === 0) {
+                    color = colors.row;
+                }
+                let toReturn = [];
+                toReturn.push(
+                    <TemplateRow
+                        templateName={templateName}
+                        templateDesc={templateDesc}
+                        timestamp={item.timestamp}
+                        color={color}
+                        api={this.api}
+                        currentVersion={'N/A'}
+                        latestVersion={item.latestVersion}
+                        keywordsToReplace={item.keywordsToReplace}
+                        _csrf={this.props._csrf}
+                        key={templateName}
+                        onClickUpdateTemplate={onClickUpdateTemplate}
+                        domain={this.props.domain}
+                        data={this.state.serverTemplateDetails}
+                        onsubmit={this.reloadTemplates}
+                        showError={this.showError}
+                    />
+                );
+                return toReturn;
+            }
+        );
         return (
             <TemplatesSectionDiv data-testid='template-list'>
+                <TitleDiv>Domain Templates</TitleDiv>
                 <TemplateTable>
                     <thead>
                         <tr>
@@ -157,6 +247,28 @@ export default class TemplateList extends React.Component {
                         </tr>
                     </thead>
                     <tbody>{rows}</tbody>
+                    <TitleDiv>Server Templates</TitleDiv>
+                    <thead>
+                        <tr>
+                            <TableHeadStyled align={left}>
+                                TEMPLATE
+                            </TableHeadStyled>
+                            <TableHeadStyled align={left}>INFO</TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                CURRENT VERSION
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                LATEST VERSION
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                UPDATED DATE
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                UPDATE VERSION
+                            </TableHeadStyled>
+                        </tr>
+                    </thead>
+                    <tbody>{serverTemplateRows}</tbody>
                 </TemplateTable>
                 {this.state.showSuccess ? (
                     <Alert
@@ -164,6 +276,14 @@ export default class TemplateList extends React.Component {
                         title={this.state.successMessage}
                         onClose={this.closeModal}
                         type='success'
+                    />
+                ) : null}
+                {this.state.showError ? (
+                    <Alert
+                        isOpen={this.state.showError}
+                        title={this.state.errorMessage}
+                        onClose={this.closeModal}
+                        type='danger'
                     />
                 ) : null}
             </TemplatesSectionDiv>

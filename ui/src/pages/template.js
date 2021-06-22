@@ -91,11 +91,12 @@ export default class TemplatePage extends React.Component {
             api.getFeatureFlag(),
             api.getMeta(bServicesParams),
             api.getMeta(bServicesParamsAll),
+            api.getServerTemplateDetailsList(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
         });
         let businessServiceOptions = [];
         if (domains[10] && domains[10].validValues) {
@@ -145,6 +146,7 @@ export default class TemplatePage extends React.Component {
             pending: domains[5],
             pageConfig: domains[6],
             domainTemplateDetails: domains[8],
+            serverTemplateDetails: domains[12],
             nonce: props.req.headers.rid,
             featureFlag: domains[9],
             validBusinessServices: businessServiceOptions,
@@ -167,6 +169,7 @@ export default class TemplatePage extends React.Component {
             reload,
             domainDetails,
             domainTemplateDetails,
+            serverTemplateDetails,
             services,
             _csrf,
         } = this.props;
@@ -222,6 +225,9 @@ export default class TemplatePage extends React.Component {
                                         domain={domain}
                                         domainTemplateDetails={
                                             this.props.domainTemplateDetails
+                                        }
+                                        serverTemplateDetails={
+                                            this.props.serverTemplateDetails
                                         }
                                         _csrf={this.props._csrf}
                                         pageConfig={this.props.pageConfig}

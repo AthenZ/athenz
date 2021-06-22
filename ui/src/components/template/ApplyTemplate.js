@@ -189,7 +189,7 @@ export default class ApplyTemplate extends React.Component {
                 isOpen={this.props.showApplyTemplate}
                 cancel={this.props.onCancel}
                 submit={this.onSubmit}
-                title={'Update Template'}
+                title={this.props.title}
                 errorMessage={this.state.errorMessage}
                 sections={rows}
                 header={true}
