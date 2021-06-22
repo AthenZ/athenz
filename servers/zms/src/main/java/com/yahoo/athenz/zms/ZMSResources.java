@@ -2219,6 +2219,167 @@ public class ZMSResources {
     }
 
     @PUT
+    @Path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/conditions")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add the specified conditions to the given assertion")
+    public AssertionConditions putAssertionConditions(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
+        @Parameter(description = "assertion id", required = true) @PathParam("assertionId") Long assertionId,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Assertion conditions object to be added to the given assertion", required = true) AssertionConditions assertionConditions) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putAssertionConditions");
+            context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
+            return this.delegate.putAssertionConditions(context, domainName, policyName, assertionId, auditRef, assertionConditions);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putAssertionConditions");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/condition")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add the specified condition to the existing assertion conditions of an assertion")
+    public AssertionCondition putAssertionCondition(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
+        @Parameter(description = "assertion id", required = true) @PathParam("assertionId") Long assertionId,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Assertion conditions object to be added to the given assertion", required = true) AssertionCondition assertionCondition) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putAssertionCondition");
+            context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
+            return this.delegate.putAssertionCondition(context, domainName, policyName, assertionId, auditRef, assertionCondition);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putAssertionCondition");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/conditions")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete all assertion conditions for specified assertion id. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteAssertionConditions(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
+        @Parameter(description = "assertion id", required = true) @PathParam("assertionId") Long assertionId,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteAssertionConditions");
+            context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
+            this.delegate.deleteAssertionConditions(context, domainName, policyName, assertionId, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteAssertionConditions");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/condition/{conditionId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete the assertion condition(s) for specified assertion id and condition id. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteAssertionCondition(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
+        @Parameter(description = "assertion id", required = true) @PathParam("assertionId") Long assertionId,
+        @Parameter(description = "condition id", required = true) @PathParam("conditionId") Integer conditionId,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "deleteAssertionCondition");
+            context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
+            this.delegate.deleteAssertionCondition(context, domainName, policyName, assertionId, conditionId, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteAssertionCondition");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
     @Path("/domain/{domain}/service/{service}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -3072,13 +3233,14 @@ public class ZMSResources {
         @Parameter(description = "valid values are \"true\" or \"false\"", required = false) @QueryParam("metaonly") String metaOnly,
         @Parameter(description = "domain meta attribute to filter/return, valid values \"account\", \"ypmId\", or \"all\"", required = false) @QueryParam("metaattr") String metaAttr,
         @Parameter(description = "for system principals only - request data from master data store and not read replicas if any are configured", required = false) @QueryParam("master") Boolean master,
+        @Parameter(description = "for specific purpose only. If this flag is passed, assertion id and assertion conditions will be included in the response assertions if available", required = false) @QueryParam("conditions") Boolean conditions,
         @Parameter(description = "Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time", required = true) @HeaderParam("If-None-Match") String matchingTag) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getSignedDomains");
             context.authenticate();
-            return this.delegate.getSignedDomains(context, domain, metaOnly, metaAttr, master, matchingTag);
+            return this.delegate.getSignedDomains(context, domain, metaOnly, metaAttr, master, conditions, matchingTag);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

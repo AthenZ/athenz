@@ -492,15 +492,45 @@ public class ZMSCoreTest {
 
         a2.setId(null);
         assertFalse(a2.equals(a));
+
+        a2.setId(0L);
         a2.setEffect(null);
         assertFalse(a2.equals(a));
+
+        a2.setEffect(AssertionEffect.ALLOW);
         a2.setAction(null);
         assertFalse(a2.equals(a));
+
+        a2.setAction("test-action");
         a2.setResource(null);
         assertFalse(a2.equals(a));
+
         a2.setRole(null);
+        a2.setResource("test.resource.*");
         assertFalse(a2.equals(a));
         assertFalse(a.equals(new String()));
+
+        a2.setRole("test.role");
+
+        Map<String, AssertionConditionData> m1 = new HashMap<>();
+        AssertionConditionData cd1 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("value1");
+        m1.put("instances", cd1);
+        AssertionCondition c1 = new AssertionCondition().setConditionsMap(m1);
+        List<AssertionCondition> c1List = Collections.singletonList(c1);
+        AssertionConditions assertionConditions1 = new AssertionConditions().setConditionsList(c1List);
+        a.setConditions(assertionConditions1);
+        assertFalse(a2.equals(a));
+
+        Map<String, AssertionConditionData> m2 = new HashMap<>();
+        AssertionConditionData cd2 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("value1");
+        m2.put("instances", cd2);
+        AssertionCondition c2 = new AssertionCondition().setConditionsMap(m2);
+        List<AssertionCondition> c2List = Collections.singletonList(c2);
+        AssertionConditions assertionConditions2 = new AssertionConditions().setConditionsList(c2List);
+        a2.setConditions(assertionConditions2);
+        assertEquals(a, a2);
+
+        assertEquals(c1, a.getConditions().getConditionsList().get(0));
     }
 
     @Test

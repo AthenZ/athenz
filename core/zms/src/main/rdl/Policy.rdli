@@ -142,3 +142,80 @@ resource Assertion DELETE "/domain/{domainName}/policy/{policyName}/assertion/{a
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+// Add the specified conditions to the given assertion
+resource AssertionConditions PUT "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/conditions" {
+    DomainName domainName; //name of the domain
+    EntityName policyName; //name of the policy
+    Int64 assertionId; //assertion id
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    AssertionConditions assertionConditions; //Assertion conditions object to be added to the given assertion
+    authorize ("update", "{domainName}:policy.{policyName}");
+    expected OK;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Add the specified condition to the existing assertion conditions of an assertion
+resource AssertionCondition PUT "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/condition" {
+    DomainName domainName; //name of the domain
+    EntityName policyName; //name of the policy
+    Int64 assertionId; //assertion id
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    AssertionCondition assertionCondition; //Assertion conditions object to be added to the given assertion
+    authorize ("update", "{domainName}:policy.{policyName}");
+    expected OK;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Delete all assertion conditions for specified assertion id. Upon successful completion of this delete
+//request, the server will return NO_CONTENT status code without any data (no object will be returned).
+resource AssertionConditions DELETE "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/conditions" {
+    DomainName domainName; //name of the domain
+    EntityName policyName; //name of the policy
+    Int64 assertionId; //assertion id
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("update", "{domainName}:policy.{policyName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Delete the assertion condition(s) for specified assertion id and condition id. Upon successful completion of this delete
+//request, the server will return NO_CONTENT status code without any data (no object will be returned).
+resource AssertionCondition DELETE "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/condition/{conditionId}" {
+    DomainName domainName; //name of the domain
+    EntityName policyName; //name of the policy
+    Int64 assertionId; //assertion id
+    Int32 conditionId; //condition id
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("update", "{domainName}:policy.{policyName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

@@ -71,6 +71,10 @@ public interface ZMSHandler {
     Assertion getAssertion(ResourceContext context, String domainName, String policyName, Long assertionId);
     Assertion putAssertion(ResourceContext context, String domainName, String policyName, String auditRef, Assertion assertion);
     void deleteAssertion(ResourceContext context, String domainName, String policyName, Long assertionId, String auditRef);
+    AssertionConditions putAssertionConditions(ResourceContext context, String domainName, String policyName, Long assertionId, String auditRef, AssertionConditions assertionConditions);
+    AssertionCondition putAssertionCondition(ResourceContext context, String domainName, String policyName, Long assertionId, String auditRef, AssertionCondition assertionCondition);
+    void deleteAssertionConditions(ResourceContext context, String domainName, String policyName, Long assertionId, String auditRef);
+    void deleteAssertionCondition(ResourceContext context, String domainName, String policyName, Long assertionId, Integer conditionId, String auditRef);
     void putServiceIdentity(ResourceContext context, String domain, String service, String auditRef, ServiceIdentity detail);
     ServiceIdentity getServiceIdentity(ResourceContext context, String domain, String service);
     void deleteServiceIdentity(ResourceContext context, String domain, String service, String auditRef);
@@ -93,7 +97,7 @@ public interface ZMSHandler {
     Access getAccess(ResourceContext context, String action, String resource, String domain, String checkPrincipal);
     Access getAccessExt(ResourceContext context, String action, String resource, String domain, String checkPrincipal);
     ResourceAccessList getResourceAccessList(ResourceContext context, String principal, String action);
-    Response getSignedDomains(ResourceContext context, String domain, String metaOnly, String metaAttr, Boolean master, String matchingTag);
+    Response getSignedDomains(ResourceContext context, String domain, String metaOnly, String metaAttr, Boolean master, Boolean conditions, String matchingTag);
     JWSDomain getJWSDomain(ResourceContext context, String name);
     UserToken getUserToken(ResourceContext context, String userName, String serviceNames, Boolean header);
     UserToken optionsUserToken(ResourceContext context, String userName, String serviceNames);

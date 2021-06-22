@@ -4531,6 +4531,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteAssertion(ctx, domainName, policyName, assertionId, auditRef, caller);
     }
 
+    @Override
+    public AssertionConditions putAssertionConditions(ResourceContext context, String domainName, String policyName, Long assertionId, String auditRef, AssertionConditions assertionConditions) {
+        return null;
+    }
+
+    @Override
+    public AssertionCondition putAssertionCondition(ResourceContext context, String domainName, String policyName, Long assertionId, String auditRef, AssertionCondition assertionCondition) {
+        return null;
+    }
+
+    @Override
+    public void deleteAssertionConditions(ResourceContext context, String domainName, String policyName, Long assertionId, String auditRef) {
+
+    }
+
+    @Override
+    public void deleteAssertionCondition(ResourceContext context, String domainName, String policyName, Long assertionId, Integer conditionId, String auditRef) {
+
+    }
+
     void validatePolicyAssertions(List<Assertion> assertions, String caller) {
 
         if (assertions == null) {
@@ -5497,7 +5517,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public Response getSignedDomains(ResourceContext ctx, String domainName, String metaOnly,
-            String metaAttr, Boolean master, String matchingTag) {
+            String metaAttr, Boolean master, Boolean conditions, String matchingTag) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);

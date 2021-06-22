@@ -1428,6 +1428,103 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public AssertionConditions putAssertionConditions(String domainName, String policyName, Long assertionId, String auditRef, AssertionConditions assertionConditions) {
+        WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/conditions")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName)
+            .resolveTemplate("assertionId", assertionId);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(assertionConditions, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(AssertionConditions.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public AssertionCondition putAssertionCondition(String domainName, String policyName, Long assertionId, String auditRef, AssertionCondition assertionCondition) {
+        WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/condition")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName)
+            .resolveTemplate("assertionId", assertionId);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(assertionCondition, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(AssertionCondition.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public AssertionConditions deleteAssertionConditions(String domainName, String policyName, Long assertionId, String auditRef) {
+        WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/conditions")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName)
+            .resolveTemplate("assertionId", assertionId);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.delete();
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public AssertionCondition deleteAssertionCondition(String domainName, String policyName, Long assertionId, Integer conditionId, String auditRef) {
+        WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/condition/{conditionId}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName)
+            .resolveTemplate("assertionId", assertionId)
+            .resolveTemplate("conditionId", conditionId);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.delete();
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public ServiceIdentity putServiceIdentity(String domain, String service, String auditRef, ServiceIdentity detail) {
         WebTarget target = base.path("/domain/{domain}/service/{service}")
             .resolveTemplate("domain", domain)
@@ -1953,7 +2050,7 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public SignedDomains getSignedDomains(String domain, String metaOnly, String metaAttr, Boolean master, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
+    public SignedDomains getSignedDomains(String domain, String metaOnly, String metaAttr, Boolean master, Boolean conditions, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
         WebTarget target = base.path("/sys/modified_domains");
         if (domain != null) {
             target = target.queryParam("domain", domain);
@@ -1966,6 +2063,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (master != null) {
             target = target.queryParam("master", master);
+        }
+        if (conditions != null) {
+            target = target.queryParam("conditions", conditions);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
