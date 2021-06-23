@@ -25,6 +25,9 @@ public class Assertion {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean caseSensitive;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public AssertionConditions conditions;
 
     public Assertion setRole(String role) {
         this.role = role;
@@ -68,6 +71,13 @@ public class Assertion {
     public Boolean getCaseSensitive() {
         return caseSensitive;
     }
+    public Assertion setConditions(AssertionConditions conditions) {
+        this.conditions = conditions;
+        return this;
+    }
+    public AssertionConditions getConditions() {
+        return conditions;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -92,6 +102,9 @@ public class Assertion {
                 return false;
             }
             if (caseSensitive == null ? a.caseSensitive != null : !caseSensitive.equals(a.caseSensitive)) {
+                return false;
+            }
+            if (conditions == null ? a.conditions != null : !conditions.equals(a.conditions)) {
                 return false;
             }
         }

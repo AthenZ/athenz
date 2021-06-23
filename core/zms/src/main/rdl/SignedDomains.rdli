@@ -54,11 +54,12 @@ type SignedDomains Struct {
 //timestamp as the value of the ETag header. The client will need to use this
 //value during its next call to request the changes since the previous request.
 // When metaonly set to true, dont add roles, policies or services, dont sign
-resource SignedDomains GET "/sys/modified_domains?domain={domain}&metaonly={metaOnly}&metaattr={metaAttr}&master={master}" {
+resource SignedDomains GET "/sys/modified_domains?domain={domain}&metaonly={metaOnly}&metaattr={metaAttr}&master={master}&conditions={conditions}" {
     DomainName domain (optional); //filter the domain list only to the specified name
     String metaOnly (optional); // valid values are "true" or "false"
     SimpleName metaAttr (optional); // domain meta attribute to filter/return, valid values "account", "ypmId", or "all"
     Bool master (optional); // for system principals only - request data from master data store and not read replicas if any are configured
+    Bool conditions (optional); // for specific purpose only. If this flag is passed, assertion id and assertion conditions will be included in the response assertions if available
     String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time
     String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
     authenticate;

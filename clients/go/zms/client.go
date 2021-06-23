@@ -2216,6 +2216,144 @@ func (client ZMSClient) DeleteAssertion(domainName DomainName, policyName Entity
 	}
 }
 
+func (client ZMSClient) PutAssertionConditions(domainName DomainName, policyName EntityName, assertionId int64, auditRef string, assertionConditions *AssertionConditions) (*AssertionConditions, error) {
+	var data *AssertionConditions
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy/" + fmt.Sprint(policyName) + "/assertion/" + fmt.Sprint(assertionId) + "/conditions"
+	contentBytes, err := json.Marshal(assertionConditions)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) PutAssertionCondition(domainName DomainName, policyName EntityName, assertionId int64, auditRef string, assertionCondition *AssertionCondition) (*AssertionCondition, error) {
+	var data *AssertionCondition
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy/" + fmt.Sprint(policyName) + "/assertion/" + fmt.Sprint(assertionId) + "/condition"
+	contentBytes, err := json.Marshal(assertionCondition)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) DeleteAssertionConditions(domainName DomainName, policyName EntityName, assertionId int64, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy/" + fmt.Sprint(policyName) + "/assertion/" + fmt.Sprint(assertionId) + "/conditions"
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) DeleteAssertionCondition(domainName DomainName, policyName EntityName, assertionId int64, conditionId int32, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy/" + fmt.Sprint(policyName) + "/assertion/" + fmt.Sprint(assertionId) + "/condition/" + fmt.Sprint(conditionId)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client ZMSClient) PutServiceIdentity(domain DomainName, service SimpleName, auditRef string, detail *ServiceIdentity) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
@@ -2932,12 +3070,12 @@ func (client ZMSClient) GetResourceAccessList(principal ResourceName, action Act
 	}
 }
 
-func (client ZMSClient) GetSignedDomains(domain DomainName, metaOnly string, metaAttr SimpleName, master *bool, matchingTag string) (*SignedDomains, string, error) {
+func (client ZMSClient) GetSignedDomains(domain DomainName, metaOnly string, metaAttr SimpleName, master *bool, conditions *bool, matchingTag string) (*SignedDomains, string, error) {
 	var data *SignedDomains
 	headers := map[string]string{
 		"If-None-Match": matchingTag,
 	}
-	url := client.URL + "/sys/modified_domains" + encodeParams(encodeStringParam("domain", string(domain), ""), encodeStringParam("metaonly", string(metaOnly), ""), encodeStringParam("metaattr", string(metaAttr), ""), encodeOptionalBoolParam("master", master))
+	url := client.URL + "/sys/modified_domains" + encodeParams(encodeStringParam("domain", string(domain), ""), encodeStringParam("metaonly", string(metaOnly), ""), encodeStringParam("metaattr", string(metaAttr), ""), encodeOptionalBoolParam("master", master), encodeOptionalBoolParam("conditions", conditions))
 	resp, err := client.httpGet(url, headers)
 	if err != nil {
 		return nil, "", err

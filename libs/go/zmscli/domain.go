@@ -355,7 +355,8 @@ func (cli Zms) ListDomains(limit *int32, skip string, prefix string, depth *int3
 func (cli Zms) GetSignedDomains(dn string, matchingTag string) (*string, error) {
 	var buf bytes.Buffer
 	master := true
-	res, etag, err := cli.Zms.GetSignedDomains(zms.DomainName(dn), "false", "", &master, matchingTag)
+	conditions := true
+	res, etag, err := cli.Zms.GetSignedDomains(zms.DomainName(dn), "false", "", &master, &conditions, matchingTag)
 	if err != nil {
 		return nil, err
 	}
@@ -396,7 +397,8 @@ func (cli Zms) ShowDomain(dn string) (*string, error) {
 
 	// now retrieve the full domain in one call
 	master := true
-	res, _, err := cli.Zms.GetSignedDomains(zms.DomainName(dn), "false", "", &master, "")
+	conditions := true
+	res, _, err := cli.Zms.GetSignedDomains(zms.DomainName(dn), "false", "", &master, &conditions, "")
 	if err != nil {
 		return nil, err
 	}
