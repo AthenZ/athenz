@@ -2024,7 +2024,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         Map<String, List<String>> respHdrs = new HashMap<>();
         SignedDomains signedDomain1 = Mockito.mock(SignedDomains.class);
-        Mockito.when(c.getSignedDomains("dom1", "meta1", null, true, "tag1", respHdrs))
+        Mockito.when(c.getSignedDomains("dom1", "meta1", null, true, false,"tag1", respHdrs))
                 .thenReturn(signedDomain1)
                 .thenReturn(signedDomain1)
                 .thenReturn(signedDomain1)
@@ -3936,6 +3936,127 @@ public class ZMSClientTest {
         }
         try {
             client.getGroups(domainName, true);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+    }
+
+    @Test
+    public void testPutAssertionConditions() {
+        final String domainName = "put-assertion-conditions";
+        final String policyName = "put-assertion-conditions.pol";
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        AssertionCondition ac = new AssertionCondition().setId(1);
+        AssertionConditions ac1 = new AssertionConditions().setConditionsList(Collections.singletonList(ac));
+        Mockito.when(c.putAssertionConditions(anyString(), anyString(), anyLong(), anyString(), any(AssertionConditions.class)))
+                .thenReturn(ac1)
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ResourceException(401));
+
+        assertEquals(client.putAssertionConditions(domainName, policyName, 1L, AUDIT_REF, ac1), ac1);
+
+        try {
+            client.putAssertionConditions(domainName, policyName, 1L, AUDIT_REF, ac1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        try {
+            client.putAssertionConditions(domainName, policyName, 1L, AUDIT_REF, ac1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+    }
+
+    @Test
+    public void testPutAssertionCondition() {
+        final String domainName = "put-assertion-condition";
+        final String policyName = "put-assertion-condition.pol";
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        AssertionCondition ac = new AssertionCondition().setId(1);
+        Mockito.when(c.putAssertionCondition(anyString(), anyString(), anyLong(), anyString(), any(AssertionCondition.class)))
+                .thenReturn(ac)
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ResourceException(401));
+
+        assertEquals(client.putAssertionCondition(domainName, policyName, 1L, AUDIT_REF, ac), ac);
+
+        try {
+            client.putAssertionCondition(domainName, policyName, 1L, AUDIT_REF, ac);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        try {
+            client.putAssertionCondition(domainName, policyName, 1L, AUDIT_REF, ac);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+    }
+
+    @Test
+    public void testDeleteAssertionConditions() {
+        final String domainName = "delete-assertion-conditions";
+        final String policyName = "delete-assertion-conditions.pol";
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Mockito.when(c.deleteAssertionConditions(anyString(), anyString(), anyLong(), anyString()))
+                .thenReturn(null)
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ResourceException(401));
+
+        try {
+            client.deleteAssertionConditions(domainName, policyName, 1L, AUDIT_REF);
+        } catch(ResourceException re){
+            fail();
+        }
+        try {
+            client.deleteAssertionConditions(domainName, policyName, 1L, AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        try {
+            client.deleteAssertionConditions(domainName, policyName, 1L, AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+    }
+
+    @Test
+    public void testDeleteAssertionCondition() {
+        final String domainName = "delete-assertion-condition";
+        final String policyName = "delete-assertion-condition.pol";
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Mockito.when(c.deleteAssertionCondition(anyString(), anyString(), anyLong(), anyInt(), anyString()))
+                .thenReturn(null)
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ResourceException(401));
+
+        try {
+            client.deleteAssertionCondition(domainName, policyName, 1L, 1, AUDIT_REF);
+        } catch(ResourceException re){
+            fail();
+        }
+        try {
+            client.deleteAssertionCondition(domainName, policyName, 1L, 1, AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        try {
+            client.deleteAssertionCondition(domainName, policyName, 1L, 1, AUDIT_REF);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 401);
