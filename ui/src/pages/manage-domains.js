@@ -213,6 +213,9 @@ export default class ManageDomainsPage extends React.Component {
                                         <TitleDiv>Manage My Domains</TitleDiv>
                                     </PageHeaderDiv>
                                     <ManageDomains
+                                        successMessage={
+                                            this.state.successMessage
+                                        }
                                         domains={this.state.manageDomains}
                                         _csrf={this.props._csrf}
                                         api={this.api}
@@ -224,16 +227,6 @@ export default class ManageDomainsPage extends React.Component {
                                         validBusinessServicesAll={
                                             this.props.validBusinessServicesAll
                                         }
-                                    />
-                                    <Alert
-                                        isOpen={this.state.showSuccess}
-                                        title={this.state.successMessage}
-                                        onClose={() => {
-                                            this.setState({
-                                                showSuccess: false,
-                                            });
-                                        }}
-                                        type='success'
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>
