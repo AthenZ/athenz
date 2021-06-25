@@ -130,7 +130,8 @@ public class KeyRefresher {
                     if (haveFilesBeenChanged(trustStore.getFilePath(), lastTrustManagerChecksum)) {
                         trustManagerProxy.setTrustManager(trustStore.getTrustManagers());
                         if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("KeyRefresher detected changes. Reloaded Trust Managers");
+                            LOGGER.debug("KeyRefresher detected changes. Reloaded Trust Managers. Thread: " +
+                                    scanForFileChangesThread.getName());
                         }
                     }
                     //we want to check both files (public + private) and update both checksums
@@ -140,7 +141,8 @@ public class KeyRefresher {
                         
                         keyManagerProxy.setKeyManager(Utils.getKeyManagers(athenzPublicCert, athenzPrivateKey));
                         if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("KeyRefresher detected changes. Reloaded Key managers");
+                            LOGGER.debug("KeyRefresher detected changes. Reloaded Key managers. Thread: " +
+                                    scanForFileChangesThread.getName());
                         }
                         //Signal key change event
                         if (keyRefresherListener != null) {
@@ -160,6 +162,7 @@ public class KeyRefresher {
                         Thread.sleep(retryFrequency);
                     }
                 } catch (InterruptedException ignored) {
+                    LOGGER.error(ignored.getMessage());
                 }
             }
         });
