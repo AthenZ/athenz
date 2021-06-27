@@ -5,6 +5,7 @@ package zmscli
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -66,10 +67,24 @@ func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool, pending boo
 	if err != nil {
 		return nil, err
 	}
-	var buf bytes.Buffer
-	buf.WriteString("role:\n")
-	cli.dumpRole(&buf, *role, auditLog, indentLevel1Dash, indentLevel1DashLvl)
-	return cli.switchOverFormats(role, buf.String())
+
+	oldYamlConverter := func(res interface{}) (*string, error) {
+		jsonbody, err := json.Marshal(res)
+		if err != nil {
+			return nil, err
+		}
+		role := zms.Role{}
+		if err := json.Unmarshal(jsonbody, &role); err != nil {
+			return nil, err
+		}
+
+		var buf bytes.Buffer
+		buf.WriteString("role:\n")
+		cli.dumpRole(&buf, role, auditLog, indentLevel1Dash, indentLevel1DashLvl)
+		return cli.switchOverFormats(role, buf.String())
+	}
+
+	return cli.dumpByFormat(role, oldYamlConverter)
 }
 
 func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, error) {

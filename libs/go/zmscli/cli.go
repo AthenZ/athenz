@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -23,7 +24,9 @@ import (
 const (
 	// JSONOutputFormat is the JSON output format for commands.
 	JSONOutputFormat = "json"
-	// DefaultOutputFormat is the default YAML output format for commands.
+	// YAMLOutputFormat is the YAML output format for commands.
+	YAMLOutputFormat = "yamlNew"
+	// DefaultOutputFormat is the default (old) YAML output format for commands.
 	DefaultOutputFormat = "yaml"
 	// ErrInvalidOutputFormat is the error message for unsupported output formats.
 	ErrInvalidOutputFormat = "unsupported output format \"%s\""
@@ -58,6 +61,30 @@ func (cli Zms) buildJSONOutput(res interface{}) (*string, error) {
 	}
 	output := string(jsonOutput)
 	return &output, nil
+}
+
+func (cli Zms) buildYAMLOutput(res interface{}) (*string, error) {
+	yamlOutput, err := yaml.Marshal(res)
+	if err != nil {
+		return nil, fmt.Errorf("failed to produce YAML output: %v", err)
+	}
+	output := string(yamlOutput)
+	return &output, nil
+}
+
+type YamlConverter func(res interface{}) (*string, error)
+
+func (cli Zms) dumpByFormat(jsonResponse interface{}, manualYamlConverter YamlConverter) (*string, error) {
+	switch cli.OutputFormat {
+	case JSONOutputFormat:
+		return cli.buildJSONOutput(jsonResponse)
+	case YAMLOutputFormat:
+		return cli.buildYAMLOutput(jsonResponse)
+	case DefaultOutputFormat:
+		return manualYamlConverter(jsonResponse)
+	default:
+		return nil, fmt.Errorf(ErrInvalidOutputFormat, cli.OutputFormat)
+	}
 }
 
 func (cli Zms) switchOverFormats(res interface{}, msg ...string) (*string, error) {

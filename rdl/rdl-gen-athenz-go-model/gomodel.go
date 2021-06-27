@@ -510,7 +510,7 @@ func (gen *modelGenerator) emitUnion(t *rdl.Type) {
 	for _, v := range ut.Variants {
 		uV := capitalize(string(v))
 		vType := goType(gen.registry, v, true, "", "", gen.precise, true)
-		tag := fmt.Sprintf("`json:\"%s,omitempty\"`", v)
+		tag := fmt.Sprintf("`json:\"%s,omitempty\" yaml:\",omitempty\"`", v)
 		s := leftJustified(uV, maxKeyLen)
 		gen.emit(fmt.Sprintf("\t%s %s %s\n", s, leftJustified(vType, maxVarLen), tag))
 	}
@@ -999,6 +999,7 @@ func (gen *modelGenerator) emitStructFields(fields []*rdl.StructFieldDef, name r
 				ftype = ftype + " "
 			}
 			option := ""
+			yamlOption := ""
 			optional := ""
 			if f.Optional {
 				// if the type specified is plain string
@@ -1008,6 +1009,7 @@ func (gen *modelGenerator) emitStructFields(fields []*rdl.StructFieldDef, name r
 				if strings.ToLower(string(f.Type)) != "string" {
 					option = ",omitempty"
 				}
+				yamlOption = " yaml:\",omitempty\""
 				optional = " rdl:\"optional\""
 			} else if f.Default != nil {
 				defaultVal := fmt.Sprintf("%v", f.Default)
@@ -1017,13 +1019,14 @@ func (gen *modelGenerator) emitStructFields(fields []*rdl.StructFieldDef, name r
 				if v.Interface() == reflect.Zero(v.Type()).Interface() {
 					//if f.Default.IsZero() {
 					option = ",omitempty"
+					yamlOption = " yaml:\",omitempty\""
 				}
 			}
 			jsonName := string(f.Name)
 			if ext, ok := f.Annotations["x_json_name"]; ok {
 				jsonName = ext
 			}
-			fanno := "`json:\"" + jsonName + option + "\"" + optional + "`"
+			fanno := "`json:\"" + jsonName + option + "\"" + optional + yamlOption + "`"
 			if f.Comment != "" {
 				gen.emit("\n" + genutil.FormatBlock(f.Comment, 0, 72, "\t// "))
 			}

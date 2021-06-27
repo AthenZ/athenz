@@ -1,0 +1,7 @@
+modified: "2021-06-20T17:05:35.706Z"
+name: home.olevi.test:role.admin
+roleMembers:
+- approved: true
+  auditRef: UpdateddomainMeta using Athenz UI
+  expiration: "2021-07-20T17:05:35.653Z"
+  memberName: user.olevi
