@@ -138,6 +138,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_GROUP = "Group";
     private static final String TYPE_GROUP_SYSTEM_META = "GroupSystemMeta";
     private static final String TYPE_GROUP_META = "GroupMeta";
+    private static final String TYPE_ASSERTION_CONDITIONS = "AssertionConditions";
+    private static final String TYPE_ASSERTION_CONDITION = "AssertionCondition";
 
     private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
 
@@ -520,6 +522,36 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
                 if (domainMeta.getSignAlgorithm() != null) {
                     domainMeta.setSignAlgorithm(domainMeta.getSignAlgorithm().toLowerCase());
+                }
+            }
+        },
+        ASSERTION_CONDITIONS {
+            @Override
+            void convertToLowerCase(Object obj) {
+                AssertionConditions assertionConditions = (AssertionConditions) obj;
+                // lower case key and value, assertion condition operator is an ENUM, hence left unchanged
+                assertionConditions.setConditionsList(assertionConditions.getConditionsList().stream()
+                        .map(c -> new AssertionCondition()
+                                .setConditionsMap(c.getConditionsMap().entrySet().stream()
+                                        .collect(Collectors.toMap(
+                                                e -> e.getKey().toLowerCase(),
+                                                e -> e.getValue().setValue(e.getValue().getValue().toLowerCase())
+                                        ))))
+                        .collect(Collectors.toList())
+                );
+            }
+        },
+        ASSERTION_CONDITION {
+            @Override
+            void convertToLowerCase(Object obj) {
+                AssertionCondition assertionCondition = (AssertionCondition) obj;
+                // lower case key and value, assertion condition operator is an ENUM, hence left unchanged
+                if (assertionCondition.getConditionsMap() != null) {
+                    assertionCondition.setConditionsMap(assertionCondition.getConditionsMap().entrySet().stream()
+                            .collect(Collectors.toMap(
+                                    e -> e.getKey().toLowerCase(),
+                                    e -> e.getValue().setValue(e.getValue().getValue().toLowerCase())
+                            )));
                 }
             }
         };
@@ -4543,26 +4575,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteAssertion(ctx, domainName, policyName, assertionId, auditRef, caller);
     }
 
-    @Override
-    public AssertionConditions putAssertionConditions(ResourceContext context, String domainName, String policyName, Long assertionId, String auditRef, AssertionConditions assertionConditions) {
-        return null;
-    }
-
-    @Override
-    public AssertionCondition putAssertionCondition(ResourceContext context, String domainName, String policyName, Long assertionId, String auditRef, AssertionCondition assertionCondition) {
-        return null;
-    }
-
-    @Override
-    public void deleteAssertionConditions(ResourceContext context, String domainName, String policyName, Long assertionId, String auditRef) {
-
-    }
-
-    @Override
-    public void deleteAssertionCondition(ResourceContext context, String domainName, String policyName, Long assertionId, Integer conditionId, String auditRef) {
-
-    }
-
     void validatePolicyAssertions(List<Assertion> assertions, String caller) {
 
         if (assertions == null) {
@@ -5436,7 +5448,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return signedDomain;
     }
 
-    SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly, boolean masterCopy) {
+    SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly, boolean masterCopy, boolean includeConditions) {
 
         // check if we're asked to only return the meta data which
         // we already have - name and last modified time, so we can
@@ -5447,12 +5459,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (setMetaDataOnly) {
             signedDomain = retrieveSignedDomainMeta(domain, metaAttr);
         } else {
-            signedDomain = retrieveSignedDomainData(domain.getName(), domain.getModified().millis(), masterCopy);
+            signedDomain = retrieveSignedDomainData(domain.getName(), domain.getModified().millis(), masterCopy, includeConditions);
         }
         return signedDomain;
     }
 
-    SignedDomain retrieveSignedDomainData(final String domainName, long modifiedTime, boolean masterCopy) {
+    SignedDomain retrieveSignedDomainData(final String domainName, long modifiedTime, boolean masterCopy, boolean includeConditions) {
 
         // generate our signed domain object
 
@@ -5518,7 +5530,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // server's private key to get signed policy object
 
         DomainPolicies domainPolicies = new DomainPolicies().setDomain(domainName);
-        domainPolicies.setPolicies(getPolicyListWithoutAssertionId(athenzDomain.getPolicies()));
+        domainPolicies.setPolicies(getDomainPolicyList(athenzDomain.getPolicies(), includeConditions));
         SignedPolicies signedPolicies = new SignedPolicies();
         signedPolicies.setContents(domainPolicies);
         domainData.setPolicies(signedPolicies);
@@ -5558,6 +5570,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         boolean setMetaDataOnly = ZMSUtils.parseBoolean(metaOnly, false);
+        boolean includeConditions = Boolean.TRUE == conditions;
         long timestamp = getModTimestamp(matchingTag);
 
         // if this is one of our system principals then we're going to
@@ -5601,7 +5614,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
                 // generate our signed domain object
 
-                SignedDomain signedDomain = retrieveSignedDomain(domain, metaAttr, setMetaDataOnly, masterCopy);
+                SignedDomain signedDomain = retrieveSignedDomain(domain, metaAttr, setMetaDataOnly, masterCopy, includeConditions);
 
                 if (signedDomain != null) {
                     sdList.add(signedDomain);
@@ -5648,7 +5661,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
                 // generate our signed domain object
 
-                SignedDomain signedDomain = retrieveSignedDomain(dmod, metaAttr, setMetaDataOnly, masterCopy);
+                SignedDomain signedDomain = retrieveSignedDomain(dmod, metaAttr, setMetaDataOnly, masterCopy, includeConditions);
 
                 // it's possible that our domain was deleted by another
                 // thread while we were processing this request so
@@ -5711,7 +5724,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("retrieveJWSDomain: retrieving domain {}", domainName);
         }
 
-        AthenzDomain athenzDomain = getAthenzDomain(domainName, true, false);
+        AthenzDomain athenzDomain = getAthenzDomain(domainName, true);
         if (athenzDomain == null) {
             return null;
         }
@@ -5747,7 +5760,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // name and all policies.
 
         DomainPolicies domainPolicies = new DomainPolicies().setDomain(domainName);
-        domainPolicies.setPolicies(getPolicyListWithoutAssertionId(athenzDomain.getPolicies()));
+        domainPolicies.setPolicies(getDomainPolicyList(athenzDomain.getPolicies(), false));
         SignedPolicies signedPolicies = new SignedPolicies();
         signedPolicies.setContents(domainPolicies);
         domainData.setPolicies(signedPolicies);
@@ -5797,7 +5810,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return jwsDomain;
     }
 
-    List<Policy> getPolicyListWithoutAssertionId(List<Policy> policies) {
+    List<Policy> getDomainPolicyList(List<Policy> policies, boolean includeConditions) {
 
         if (policies == null) {
             return null;
@@ -5816,10 +5829,28 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             if (policy.getAssertions() != null) {
                 List<Assertion> assertions = new ArrayList<>();
                 for (Assertion assertion : policy.getAssertions()) {
-                    Assertion newAssertion = new Assertion()
-                            .setAction(assertion.getAction())
-                            .setResource(assertion.getResource())
-                            .setRole(assertion.getRole());
+                    Assertion newAssertion = new Assertion();
+                    if (includeConditions) {
+                        newAssertion.setId(assertion.getId());
+                        if (assertion.getConditions() != null) {
+                            AssertionConditions assertionConditionsCopy = new AssertionConditions();
+                            assertionConditionsCopy.setConditionsList(assertion.getConditions().getConditionsList().stream()
+                                    .map(c -> new AssertionCondition().setId(c.getId())
+                                            .setConditionsMap(c.getConditionsMap().entrySet().stream()
+                                                    .collect(Collectors.toMap(
+                                                            Map.Entry::getKey,
+                                                            e -> new AssertionConditionData().setValue(e.getValue().getValue())
+                                                                    .setOperator(e.getValue().getOperator())
+                                                            )
+
+                                                    ))
+                                    ).collect(Collectors.toList()));
+                            newAssertion.setConditions(assertionConditionsCopy);
+                        }
+                    }
+                    newAssertion.setAction(assertion.getAction())
+                    .setResource(assertion.getResource())
+                    .setRole(assertion.getRole());
                     if (assertion.getEffect() != null) {
                         newAssertion.setEffect(assertion.getEffect());
                     } else {
@@ -9407,6 +9438,182 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
             }
         }
+    }
+
+    @Override
+// all AssertionCondition objects part of AssertionConditions will share the same condition id. Since a logical condition can have
+// multiple assertion conditions which are realized using AND operation. e.g. AssertionConditions has a list of AssertionCondition
+// containing 3 conditions, A=1, B=2, C=3 then all these will go in to DB against the same condition id and will be evaluated as
+// (A=1 AND B=2 AND C=3)
+// If an assertion is required to have multiple of such tuples, this api call needs to be repeated for each.
+    public AssertionConditions putAssertionConditions(ResourceContext ctx, String domainName, String policyName, Long assertionId, String auditRef, AssertionConditions assertionConditions) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_COMPOUND_NAME, caller);
+        validate(assertionConditions, TYPE_ASSERTION_CONDITIONS, caller);
+
+        // we are not going to allow any user to update
+        // the admin policy since that is required
+        // for standard domain operations */
+
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError("putAssertionConditions: admin policy cannot have conditions", caller);
+        }
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        policyName = policyName.toLowerCase();
+        AthenzObject.ASSERTION_CONDITIONS.convertToLowerCase(assertionConditions);
+
+        // validate to make sure we have expected values for assertion fields
+
+        validateAssertionConditions(assertionConditions, caller);
+
+        dbService.executePutAssertionConditions(ctx, domainName, policyName, assertionId, assertionConditions, auditRef, caller);
+        return assertionConditions;
+    }
+
+    @Override
+    public AssertionCondition putAssertionCondition(ResourceContext ctx, String domainName, String policyName, Long assertionId, String auditRef, AssertionCondition assertionCondition) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_COMPOUND_NAME, caller);
+        validate(assertionCondition, TYPE_ASSERTION_CONDITION, caller);
+
+        // we are not going to allow any user to update
+        // the admin policy since that is required
+        // for standard domain operations */
+
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError("deleteAssertionCondition: admin policy cannot be modified", caller);
+        }
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        policyName = policyName.toLowerCase();
+        AthenzObject.ASSERTION_CONDITION.convertToLowerCase(assertionCondition);
+
+        // validate to make sure we have expected values for assertion fields
+
+        validateAssertionCondition(assertionCondition, caller);
+
+        dbService.executePutAssertionCondition(ctx, domainName, policyName, assertionId, assertionCondition, auditRef, caller);
+        return assertionCondition;
+    }
+
+    @Override
+    public void deleteAssertionConditions(ResourceContext ctx, String domainName, String policyName, Long assertionId, String auditRef) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_ENTITY_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        policyName = policyName.toLowerCase();
+
+        // we are not going to allow any user to update
+        // the admin policy since that is required
+        // for standard domain operations */
+
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError("deleteAssertionConditions: admin policy cannot be modified", caller);
+        }
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        dbService.executeDeleteAssertionConditions(ctx, domainName, policyName, assertionId, auditRef, caller);
+    }
+
+    @Override
+    public void deleteAssertionCondition(ResourceContext ctx, String domainName, String policyName, Long assertionId, Integer conditionId, String auditRef) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_ENTITY_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        policyName = policyName.toLowerCase();
+
+        // we are not going to allow any user to update
+        // the admin policy since that is required
+        // for standard domain operations */
+
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError("deleteAssertionCondition: admin policy cannot be modified", caller);
+        }
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        dbService.executeDeleteAssertionCondition(ctx, domainName, policyName, assertionId, conditionId, auditRef, caller);
+    }
+
+    void validateAssertionConditions(AssertionConditions assertionConditions, String caller) {
+        // TODO
+    }
+
+    void validateAssertionCondition(AssertionCondition assertionCondition, String caller) {
+        // TODO
     }
 
     void validateUserAuthorityDateAttribute(final String authorityExpiration, final String caller) {

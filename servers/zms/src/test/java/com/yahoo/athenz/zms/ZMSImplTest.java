@@ -49,6 +49,8 @@ import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 import org.mockito.*;
 import org.testng.Assert;
 import org.testng.annotations.*;
@@ -6481,6 +6483,11 @@ public class ZMSImplTest {
         meta = createDomainMetaObject("Tenant Domain2", null, false, false, "12346", null);
         zms.putDomainSystemMeta(mockDomRsrcCtx, "signeddom2", "account", auditRef, meta);
 
+        Role role = createRoleObject("signeddom1", "role1", null, "user.john", "user.jane");
+        Policy pol = createPolicyObject("signeddom1", "pol1", "role1", "action1", "signeddom1:resource1", AssertionEffect.ALLOW);
+        zms.putRole(mockDomRsrcCtx, "signeddom1", "role1", auditRef, role);
+        zms.putPolicy(mockDomRsrcCtx, "signeddom1", "pol1", auditRef, pol);
+
         DomainList domList = zms.getDomainList(mockDomRsrcCtx, null, null, null, null,
                 null, null, null, null, null, null, null, null, null);
         List<String> domNames = domList.getNames();
@@ -6659,8 +6666,46 @@ public class ZMSImplTest {
         assertNotNull(eTag2);
         assertEquals(eTag, eTag2);
 
+        //test with conditions
+        Policy policyResp = zms.getPolicy(mockDomRsrcCtx, "signeddom1", "pol1");
+        AssertionConditions acs = new AssertionConditions().setConditionsList(new ArrayList<>());
+        acs.getConditionsList().add(createAssertionConditionObject(1, "instances", "host1,host2,host3"));
+        zms.putAssertionConditions(mockDomRsrcCtx, "signeddom1", "pol1", policyResp.getAssertions().get(0).getId(), auditRef, acs);
+
+        response = zms.getSignedDomains(rsrcCtx, null, "false", null, true, true,null);
+        sdoms = (SignedDomains) response.getEntity();
+        assertNotNull(sdoms);
+
+        list = sdoms.getDomains();
+        assertNotNull(list);
+        assertEquals(list.size(), numDoms);
+        AssertionCondition conditionResp = createAssertionConditionObject(1, "instances", "host1,host2,host3");
+
+        AssertionConditions conditionsResp;
+        for (SignedDomain sDomain : list) {
+            if ("signeddom1".equals(sDomain.getDomain().getName())) {
+                DomainPolicies dompols = sDomain.getDomain().getPolicies().getContents();
+                assertNotNull(dompols);
+                for (Policy polResp : dompols.getPolicies()) {
+                    if (("signeddom1:policy.pol1").equals(polResp.getName())) {
+                        conditionsResp = polResp.getAssertions().get(0).getConditions();
+                        assertNotNull(conditionsResp);
+                        MatcherAssert.assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
+                    }
+                }
+
+            }
+        }
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "SignedDom1", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "SignedDom2", auditRef);
+    }
+
+    private AssertionCondition createAssertionConditionObject(int conditionId, String key, String value) {
+        Map<String, AssertionConditionData> map = new HashMap<>();
+        AssertionConditionData cd = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue(value);
+        map.put(key, cd);
+        AssertionCondition ac = new AssertionCondition().setId(conditionId).setConditionsMap(map);
+        return ac;
     }
 
     @Test
@@ -16417,10 +16462,10 @@ public class ZMSImplTest {
     @Test
     public void testGetPolicyListWithoutAssertionId() {
 
-        assertNull(zms.getPolicyListWithoutAssertionId(null));
+        assertNull(zms.getDomainPolicyList(null, false));
 
         List<Policy> emptyList = new ArrayList<>();
-        List<Policy> result = zms.getPolicyListWithoutAssertionId(emptyList);
+        List<Policy> result = zms.getDomainPolicyList(emptyList, false);
         assertTrue(result.isEmpty());
 
         final String domainName = "assertion-test";
@@ -16438,7 +16483,7 @@ public class ZMSImplTest {
         List<Policy> policyList = new ArrayList<>();
         policyList.add(policy);
 
-        result = zms.getPolicyListWithoutAssertionId(policyList);
+        result = zms.getDomainPolicyList(policyList, false);
         assertEquals(result.size(), 1);
         Assertion testAssertion = result.get(0).getAssertions().get(0);
         assertNull(testAssertion.getId());
@@ -17933,7 +17978,7 @@ public class ZMSImplTest {
     public void testRetrieveSignedDomainDataNotFound() {
 
         ZMSImpl zmsImpl = zmsInit();
-        SignedDomain domain = zmsImpl.retrieveSignedDomainData("unknown", 1234, true);
+        SignedDomain domain = zmsImpl.retrieveSignedDomainData("unknown", 1234, true, false);
         assertNull(domain);
 
         // now signed domains with unknown domain name
@@ -18139,7 +18184,7 @@ public class ZMSImplTest {
 
         // get the domain which would return from cache
 
-        SignedDomain signedDomain = zms.retrieveSignedDomainData("signeddom1disabled", 0, false);
+        SignedDomain signedDomain = zms.retrieveSignedDomainData("signeddom1disabled", 0, false, false);
         assertFalse(signedDomain.getDomain().getEnabled());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "signeddom1disabled", auditRef);
@@ -18159,7 +18204,7 @@ public class ZMSImplTest {
 
         // get the domain which would return from cache
 
-        SignedDomain signedDomain = zms.retrieveSignedDomainData(domainName, 0, false);
+        SignedDomain signedDomain = zms.retrieveSignedDomainData(domainName, 0, false, false);
         assertTrue(signedDomain.getDomain().getAuditEnabled());
         assertEquals(Integer.valueOf(10), signedDomain.getDomain().getTokenExpiryMins());
         assertEquals(Integer.valueOf(20), signedDomain.getDomain().getRoleCertExpiryMins());
@@ -26503,5 +26548,296 @@ public class ZMSImplTest {
         assertEquals(attributes.getAttributes().get("date").getValues().get(0), "dateAttr1");
 
         zms.userAuthority = savedAuthority;
+    }
+
+    @Test
+    public void testPutAssertionConditions() {
+        String domainName = "put-assertion-conditions";
+        String roleName = "role1";
+        String polName = "pol1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role = createRoleObject(domainName, roleName, null, "user.john", "user.jane");
+        Policy pol = createPolicyObject(domainName, polName, roleName, "action1", domainName + ":resource1", AssertionEffect.ALLOW);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
+        zms.putPolicy(mockDomRsrcCtx, domainName, polName, auditRef, pol);
+
+        Policy policyResp = zms.getPolicy(mockDomRsrcCtx, domainName, polName);
+        AssertionConditions acs = new AssertionConditions().setConditionsList(new ArrayList<>());
+        AssertionCondition ac1 = createAssertionConditionObject(1, "instances", "HOST1,host2,Host3");
+        ac1.getConditionsMap().put("enforcementState", new AssertionConditionData().setValue("ENFORCE")
+                .setOperator(AssertionConditionOperator.EQUALS));
+        acs.getConditionsList().add(ac1);
+
+        AssertionCondition ac2 = createAssertionConditionObject(2, "instances", "HOST21,host22");
+        ac2.getConditionsMap().put("enforcementState", new AssertionConditionData().setValue("REPORT")
+                .setOperator(AssertionConditionOperator.EQUALS));
+        acs.getConditionsList().add(ac2);
+
+        zms.putAssertionConditions(mockDomRsrcCtx, domainName, polName, policyResp.getAssertions().get(0).getId(), auditRef, acs);
+
+        Response response = zms.getSignedDomains(mockDomRsrcCtx, domainName, "false", null, true, true,null);
+        SignedDomains sdoms = (SignedDomains) response.getEntity();
+        AssertionConditions conditionsResp;
+        AssertionCondition conditionResp = new AssertionCondition().setId(1).setConditionsMap(new HashMap<>());
+        // zms is going to lowercase data
+        conditionResp.getConditionsMap().put("instances", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+        .setValue("host1,host2,host3"));
+        conditionResp.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("enforce"));
+
+        AssertionCondition conditionResp2 = new AssertionCondition().setId(2).setConditionsMap(new HashMap<>());
+        // zms is going to lowercase data
+        conditionResp2.getConditionsMap().put("instances", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("host21,host22"));
+        conditionResp2.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("report"));
+
+        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+            if ((domainName + ":policy." + polName).equals(policy.getName())) {
+                conditionsResp = policy.getAssertions().get(0).getConditions();
+                assertNotNull(conditionsResp);
+                MatcherAssert.assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp, conditionResp2));
+            }
+        }
+        zms.readOnlyMode = true;
+        try {
+            zms.putAssertionConditions(mockDomRsrcCtx, domainName, polName, policyResp.getAssertions().get(0).getId(), auditRef, acs);
+            fail();
+        } catch(ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
+        }
+        zms.readOnlyMode = false;
+        try {
+            zms.putAssertionConditions(mockDomRsrcCtx, domainName, "admin", policyResp.getAssertions().get(0).getId(), auditRef, acs);
+            fail();
+        } catch(ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
+        }
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutAssertionCondition() {
+        String domainName = "put-assertion-condition";
+        String roleName = "role1";
+        String polName = "pol1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role = createRoleObject(domainName, roleName, null, "user.john", "user.jane");
+        Policy pol = createPolicyObject(domainName, polName, roleName, "action1", domainName + ":resource1", AssertionEffect.ALLOW);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
+        zms.putPolicy(mockDomRsrcCtx, domainName, polName, auditRef, pol);
+
+        Policy policyResp = zms.getPolicy(mockDomRsrcCtx, domainName, polName);
+        AssertionCondition ac1 = createAssertionConditionObject(1, "instances", "HOST1,host2,Host3");
+        ac1.setId(null);//insert does not need id
+        ac1.getConditionsMap().put("enforcementState", new AssertionConditionData().setValue("ENFORCE")
+                .setOperator(AssertionConditionOperator.EQUALS));
+
+        zms.putAssertionCondition(mockDomRsrcCtx, domainName, polName, policyResp.getAssertions().get(0).getId(), auditRef, ac1);
+
+        Response response = zms.getSignedDomains(mockDomRsrcCtx, domainName, "false", null, true, true,null);
+        SignedDomains sdoms = (SignedDomains) response.getEntity();
+        AssertionConditions conditionsResp;
+        AssertionCondition conditionResp = new AssertionCondition().setId(1).setConditionsMap(new HashMap<>());
+        // zms is going to lowercase data
+        conditionResp.getConditionsMap().put("instances", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("host1,host2,host3"));
+        conditionResp.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("enforce"));
+
+        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+            if ((domainName + ":policy." + polName).equals(policy.getName())) {
+                conditionsResp = policy.getAssertions().get(0).getConditions();
+                assertNotNull(conditionsResp);
+                MatcherAssert.assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
+            }
+        }
+        // update condition
+        ac1.setId(1).setConditionsMap(new HashMap<>());
+        ac1.getConditionsMap().put("newkey", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("MYVAL"));
+        ac1.getConditionsMap().put("enforcementState", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("report"));
+        zms.putAssertionCondition(mockDomRsrcCtx, domainName, polName, policyResp.getAssertions().get(0).getId(), auditRef, ac1);
+
+        response = zms.getSignedDomains(mockDomRsrcCtx, domainName, "false", null, true, true,null);
+        sdoms = (SignedDomains) response.getEntity();
+
+        conditionResp = new AssertionCondition().setId(1).setConditionsMap(new HashMap<>());
+        // zms is going to lowercase data
+        conditionResp.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("report"));
+        conditionResp.getConditionsMap().put("newkey", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("myval"));
+
+        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+            if ((domainName + ":policy." + polName).equals(policy.getName())) {
+                conditionsResp = policy.getAssertions().get(0).getConditions();
+                assertNotNull(conditionsResp);
+                MatcherAssert.assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
+            }
+        }
+        zms.readOnlyMode = true;
+        try {
+            zms.putAssertionCondition(mockDomRsrcCtx, domainName, polName, policyResp.getAssertions().get(0).getId(), auditRef, ac1);
+            fail();
+        } catch(ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
+        }
+        zms.readOnlyMode = false;
+        try {
+            zms.putAssertionCondition(mockDomRsrcCtx, domainName, "admin", policyResp.getAssertions().get(0).getId(), auditRef, ac1);
+            fail();
+        } catch(ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
+        }
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeleteAssertionConditions() {
+        String domainName = "delete-assertion-conditions";
+        String roleName = "role1";
+        String polName = "pol1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role = createRoleObject(domainName, roleName, null, "user.john", "user.jane");
+        Policy pol = createPolicyObject(domainName, polName, roleName, "action1", domainName + ":resource1", AssertionEffect.ALLOW);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
+        zms.putPolicy(mockDomRsrcCtx, domainName, polName, auditRef, pol);
+
+        Policy policyResp = zms.getPolicy(mockDomRsrcCtx, domainName, polName);
+        AssertionConditions acs = new AssertionConditions().setConditionsList(new ArrayList<>());
+        AssertionCondition ac1 = createAssertionConditionObject(1, "instances", "HOST1,host2,Host3");
+        ac1.getConditionsMap().put("enforcementState", new AssertionConditionData().setValue("ENFORCE")
+                .setOperator(AssertionConditionOperator.EQUALS));
+        acs.getConditionsList().add(ac1);
+
+        AssertionCondition ac2 = createAssertionConditionObject(2, "instances", "HOST21,host22");
+        ac2.getConditionsMap().put("enforcementState", new AssertionConditionData().setValue("REPORT")
+                .setOperator(AssertionConditionOperator.EQUALS));
+        acs.getConditionsList().add(ac2);
+
+        zms.putAssertionConditions(mockDomRsrcCtx, domainName, polName, policyResp.getAssertions().get(0).getId(), auditRef, acs);
+
+        Response response = zms.getSignedDomains(mockDomRsrcCtx, domainName, "false", null, true, true,null);
+        SignedDomains sdoms = (SignedDomains) response.getEntity();
+        AssertionConditions conditionsResp;
+        AssertionCondition conditionResp = new AssertionCondition().setId(1).setConditionsMap(new HashMap<>());
+        // zms is going to lowercase data
+        conditionResp.getConditionsMap().put("instances", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("host1,host2,host3"));
+        conditionResp.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("enforce"));
+
+        // make sure assertion conditions are present first
+        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+            if ((domainName + ":policy." + polName).equals(policy.getName())) {
+                conditionsResp = policy.getAssertions().get(0).getConditions();
+                assertNotNull(conditionsResp);
+                MatcherAssert.assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
+            }
+        }
+        // now delete all condition
+        zms.deleteAssertionConditions(mockDomRsrcCtx, domainName, polName, policyResp.getAssertions().get(0).getId(), auditRef);
+
+        response = zms.getSignedDomains(mockDomRsrcCtx, domainName, "false", null, true, true,null);
+        sdoms = (SignedDomains) response.getEntity();
+        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+            if ((domainName + ":policy." + polName).equals(policy.getName())) {
+                assertNull(policy.getAssertions().get(0).getConditions());
+            }
+        }
+        zms.readOnlyMode = true;
+        try {
+            zms.deleteAssertionConditions(mockDomRsrcCtx, domainName, polName, policyResp.getAssertions().get(0).getId(), auditRef);
+            fail();
+        } catch(ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
+        }
+        zms.readOnlyMode = false;
+        try {
+            zms.deleteAssertionConditions(mockDomRsrcCtx, domainName, "admin", policyResp.getAssertions().get(0).getId(), auditRef);
+            fail();
+        } catch(ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
+        }
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeleteAssertionCondition() {
+        String domainName = "delete-assertion-condition";
+        String roleName = "role1";
+        String polName = "pol1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role = createRoleObject(domainName, roleName, null, "user.john", "user.jane");
+        Policy pol = createPolicyObject(domainName, polName, roleName, "action1", domainName + ":resource1", AssertionEffect.ALLOW);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, role);
+        zms.putPolicy(mockDomRsrcCtx, domainName, polName, auditRef, pol);
+
+        Policy policyResp = zms.getPolicy(mockDomRsrcCtx, domainName, polName);
+        AssertionCondition ac1 = createAssertionConditionObject(1, "instances", "HOST1,host2,Host3");
+        ac1.setId(null);//insert does not need id
+        ac1.getConditionsMap().put("enforcementState", new AssertionConditionData().setValue("ENFORCE")
+                .setOperator(AssertionConditionOperator.EQUALS));
+
+        zms.putAssertionCondition(mockDomRsrcCtx, domainName, polName, policyResp.getAssertions().get(0).getId(), auditRef, ac1);
+
+        Response response = zms.getSignedDomains(mockDomRsrcCtx, domainName, "false", null, true, true,null);
+        SignedDomains sdoms = (SignedDomains) response.getEntity();
+        AssertionConditions conditionsResp;
+        AssertionCondition conditionResp = new AssertionCondition().setId(1).setConditionsMap(new HashMap<>());
+        // zms is going to lowercase data
+        conditionResp.getConditionsMap().put("instances", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("host1,host2,host3"));
+        conditionResp.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("enforce"));
+
+        // make sure assertion conditions are present first
+        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+            if ((domainName + ":policy." + polName).equals(policy.getName())) {
+                conditionsResp = policy.getAssertions().get(0).getConditions();
+                assertNotNull(conditionsResp);
+                MatcherAssert.assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
+            }
+        }
+
+        // now delete all condition
+        zms.deleteAssertionCondition(mockDomRsrcCtx, domainName, polName, policyResp.getAssertions().get(0).getId(), 1, auditRef);
+
+        response = zms.getSignedDomains(mockDomRsrcCtx, domainName, "false", null, true, true,null);
+        sdoms = (SignedDomains) response.getEntity();
+        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+            if ((domainName + ":policy." + polName).equals(policy.getName())) {
+                assertNull(policy.getAssertions().get(0).getConditions());
+            }
+        }
+        zms.readOnlyMode = true;
+        try {
+            zms.deleteAssertionCondition(mockDomRsrcCtx, domainName, polName, policyResp.getAssertions().get(0).getId(), 1, auditRef);
+            fail();
+        } catch(ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
+        }
+        zms.readOnlyMode = false;
+        try {
+            zms.deleteAssertionCondition(mockDomRsrcCtx, domainName, "admin", policyResp.getAssertions().get(0).getId(), 1, auditRef);
+            fail();
+        } catch(ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
+        }
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 }
