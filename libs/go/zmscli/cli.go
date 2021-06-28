@@ -25,9 +25,9 @@ const (
 	// JSONOutputFormat is the JSON output format for commands.
 	JSONOutputFormat = "json"
 	// YAMLOutputFormat is the YAML output format for commands.
-	YAMLOutputFormat = "yamlNew"
+	YAMLOutputFormat = "yaml"
 	// DefaultOutputFormat is the default (old) YAML output format for commands.
-	DefaultOutputFormat = "yaml"
+	DefaultOutputFormat = "manualYaml"
 	// ErrInvalidOutputFormat is the error message for unsupported output formats.
 	ErrInvalidOutputFormat = "unsupported output format \"%s\""
 )
@@ -47,6 +47,11 @@ type Zms struct {
 	ProductIdSupport bool
 	Debug            bool
 	AddSelf          bool
+}
+
+type SuccessMessage struct {
+	Status int
+	Message string
 }
 
 // StandardJSONMessage is the standard template for single-line string messages.

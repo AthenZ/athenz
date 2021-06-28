@@ -246,7 +246,13 @@ func (cli Zms) AddMembers(dn string, rn string, members []string) (*string, erro
 	} else {
 		s = "[Added to " + rn + ": " + strings.Join(ms, ",") + "]"
 	}
-	return cli.switchOverFormats(s)
+
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) AddDueDateMember(dn string, rn string, member string, expiration *rdl.Timestamp, reviewDate *rdl.Timestamp) (*string, error) {

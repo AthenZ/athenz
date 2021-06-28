@@ -56,7 +56,7 @@ func TestDumpByFormatJson(t *testing.T) {
 
 func TestDumpByFormatYaml(t *testing.T) {
 	cli := Zms{
-		OutputFormat: "yamlNew",
+		OutputFormat: "yaml",
 	}
 	roleData := loadTestData(t, "role_test.json")
 	expectedBytes, _ := ioutil.ReadFile("testdata/expected_role_yaml.yaml")
@@ -70,7 +70,7 @@ func TestDumpByFormatYaml(t *testing.T) {
 
 func TestDumpByFormatOldYaml(t *testing.T) {
 	cli := Zms{
-		OutputFormat: "yaml",
+		OutputFormat: "manualYaml",
 	}
 	roleData := loadTestData(t, "role_test.json")
 	expectedBytes, _ := ioutil.ReadFile("testdata/expected_role_yaml_old.yaml")
