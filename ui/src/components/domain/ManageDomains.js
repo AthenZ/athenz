@@ -23,6 +23,7 @@ import Color from '../denali/Color';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import BusinessServiceModal from '../modal/BusinessServiceModal';
+import { css, keyframes } from '@emotion/react';
 
 const ManageDomainSectionDiv = styled.div`
     margin: 20px;
@@ -79,6 +80,23 @@ const StyledAnchor = styled.a`
     text-decoration: none;
     cursor: pointer;
     font-weight: '';
+`;
+
+const TrStyled = styled.tr`
+    ${(props) =>
+        props.isSuccess === true &&
+        css`
+            animation: ${colorTransition} 3s ease;
+        `}
+`;
+
+const colorTransition = keyframes`
+        0% {
+            background-color: rgba(21, 192, 70, 0.20);
+        }
+        100% {
+            background-color: transparent;
+        }
 `;
 
 export default class ManageDomains extends React.Component {
@@ -217,7 +235,7 @@ export default class ManageDomains extends React.Component {
             });
     }
 
-    updateMeta(meta, domainName, csrf, successMessage) {
+    updateMeta(meta, domainName, csrf) {
         let auditMsg = this.state.auditRef;
         if (auditMsg === '') {
             auditMsg = 'Updated ' + domainName + ' Meta using Athenz UI';
@@ -243,7 +261,7 @@ export default class ManageDomains extends React.Component {
                     businessServiceName: '',
                     businessServiceDomainName: '',
                 });
-                this.props.loadDomains(successMessage);
+                this.props.loadDomains(domainName);
             })
             .catch((err) => {
                 this.setState({
@@ -281,13 +299,7 @@ export default class ManageDomains extends React.Component {
         let businessServiceName = this.state.businessServiceName;
         let domainMeta = {};
         domainMeta.businessService = businessServiceName;
-        let successMessage = `Successfully set business service for domain ${domainName}`;
-        this.updateMeta(
-            domainMeta,
-            domainName,
-            this.props._csrf,
-            successMessage
-        );
+        this.updateMeta(domainMeta, domainName, this.props._csrf);
     }
 
     render() {
@@ -296,6 +308,8 @@ export default class ManageDomains extends React.Component {
         const rows = this.props.domains
             ? this.props.domains.map((item, i) => {
                   const domainType = this.ascertainDomainType(item.domain.name);
+                  let isSuccess =
+                      item.domain.name === this.props.successMessage;
                   let deletable = false;
                   let auditEnabled = !!item.domain.auditEnabled;
                   let deleteItem = this.onClickDelete.bind(
@@ -328,7 +342,7 @@ export default class ManageDomains extends React.Component {
                           : 'add';
                   }
                   return (
-                      <tr key={item.domain.name}>
+                      <TrStyled key={item.domain.name} isSuccess={isSuccess}>
                           <TDStyled color={color} align={left}>
                               {item.domain.name}
                           </TDStyled>
@@ -377,7 +391,7 @@ export default class ManageDomains extends React.Component {
                                   />
                               ) : null}
                           </TDStyled>
-                      </tr>
+                      </TrStyled>
                   );
               })
             : '';
