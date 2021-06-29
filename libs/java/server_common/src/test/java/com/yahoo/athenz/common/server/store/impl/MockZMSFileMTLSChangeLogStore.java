@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_USER_DOMAIN;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -72,12 +74,12 @@ public class MockZMSFileMTLSChangeLogStore extends ZMSFileMTLSChangeLogStore {
     }
     
     public void setSignedDomains(SignedDomains signedDomains) {
-        when(zms.getSignedDomains(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+        when(zms.getSignedDomains(any(), any(), any(), anyBoolean(), anyBoolean(), any(), any()))
                 .thenReturn(signedDomains);
     }
 
     public void setSignedDomainsExc() {
-        when(zms.getSignedDomains(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+        when(zms.getSignedDomains(any(), any(), any(), anyBoolean(), anyBoolean(), any(), any()))
                 .thenThrow(new ZMSClientException(500, "Invalid request"));
     }
 

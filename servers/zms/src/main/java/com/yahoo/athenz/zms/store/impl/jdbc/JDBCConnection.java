@@ -528,6 +528,22 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_LOOKUP_DOMAIN_BY_TAG_KEY_VAL = "SELECT d.name FROM domain d "
         + "JOIN domain_tags dt ON dt.domain_id = d.domain_id WHERE dt.key=? AND dt.value=?";
 
+    private static final String SQL_GET_ASSERTION_CONDITIONS = "SELECT assertion_condition.condition_id, "
+            + "assertion_condition.key, assertion_condition.operator, assertion_condition.value "
+            + "FROM assertion_condition WHERE assertion_condition.assertion_id=? ORDER BY assertion_condition.condition_id;";
+    private static final String SQL_GET_ASSERTION_CONDITION = "SELECT assertion_condition.key, assertion_condition.operator, assertion_condition.value, condition_id "
+            + "FROM assertion_condition WHERE assertion_id=? AND condition_id=? ORDER BY condition_id;";
+    private static final String SQL_COUNT_ASSERTION_CONDITIONS = "SELECT count(1) FROM assertion_condition WHERE assertion_id=?;";
+    private static final String SQL_INSERT_ASSERTION_CONDITION = "INSERT INTO assertion_condition (assertion_id,condition_id,`key`,operator,`value`) VALUES (?,?,?,?,?);";
+    private static final String SQL_DELETE_ASSERTION_CONDITION = "DELETE FROM assertion_condition WHERE assertion_id=? AND condition_id=?;";
+    private static final String SQL_DELETE_ASSERTION_CONDITIONS = "DELETE FROM assertion_condition WHERE assertion_id=?;";
+    private static final String SQL_GET_NEXT_CONDITION_ID = "SELECT IFNULL(MAX(condition_id)+1, 1) FROM assertion_condition WHERE assertion_id=?;";
+    private static final String SQL_GET_DOMAIN_POLICY_ASSERTIONS_CONDITIONS = "SELECT assertion.assertion_id, "
+            + "assertion_condition.condition_id, assertion_condition.key, assertion_condition.operator, assertion_condition.value "
+            + "FROM assertion_condition JOIN assertion ON assertion_condition.assertion_id=assertion.assertion_id "
+            + "JOIN policy ON policy.policy_id=assertion.policy_id "
+            + "WHERE policy.domain_id=? ORDER BY assertion.assertion_id, assertion_condition.condition_id;";
+
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
     private static final String CACHE_GROUP     = "g:";
@@ -656,6 +672,14 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         ps.setQueryTimeout(queryTimeout);
         return ps.executeQuery();
+    }
+
+    int[] executeBatch(PreparedStatement ps, String caller) throws SQLException {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{}: {}", caller, ps.toString());
+        }
+        ps.setQueryTimeout(queryTimeout);
+        return ps.executeBatch();
     }
 
     Domain saveDomainSettings(String domainName, ResultSet rs, boolean fetchTags) throws SQLException {
@@ -3563,6 +3587,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         final String caller = "getAthenzDomain";
         Map<String, Policy> policyMap = new HashMap<>();
+        Map<Long, Assertion> assertionsMap = new HashMap<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_POLICIES)) {
             ps.setInt(1, domainId);
             try (ResultSet rs = executeQuery(ps, caller)) {
@@ -3596,8 +3621,55 @@ public class JDBCConnection implements ObjectStoreConnection {
                     assertion.setResource(rs.getString(ZMSConsts.DB_COLUMN_RESOURCE));
                     assertion.setAction(rs.getString(ZMSConsts.DB_COLUMN_ACTION));
                     assertion.setEffect(AssertionEffect.valueOf(rs.getString(ZMSConsts.DB_COLUMN_EFFECT)));
-                    assertion.setId((long) rs.getInt(ZMSConsts.DB_COLUMN_ASSERT_ID));
+                    assertion.setId(rs.getLong(ZMSConsts.DB_COLUMN_ASSERT_ID));
+
                     assertions.add(assertion);
+                    assertionsMap.put(assertion.getId(), assertion);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        // assertion conditions fetch
+        Long assertionId;
+        int conditionId;
+        Assertion assertion;
+        Map<String, AssertionCondition> assertionConditionMap = new HashMap<>();
+        AssertionCondition assertionCondition;
+        Map<String, AssertionConditionData> assertionConditionDataMap;
+        AssertionConditionData assertionConditionData;
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_POLICY_ASSERTIONS_CONDITIONS)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    assertionId = rs.getLong(ZMSConsts.DB_COLUMN_ASSERT_ID);
+                    assertion = assertionsMap.get(assertionId);
+                    if (assertion == null) {
+                        continue;
+                    }
+                    AssertionConditions assertionConditions = assertion.getConditions();
+                    if (assertionConditions == null) {
+                        assertionConditions = new AssertionConditions();
+                        List<AssertionCondition> assertionConditionList = new ArrayList<>();
+                        assertionConditions.setConditionsList(assertionConditionList);
+                        assertion.setConditions(assertionConditions);
+                    }
+                    conditionId = rs.getInt(ZMSConsts.DB_COLUMN_CONDITION_ID);
+                    assertionCondition = assertionConditionMap.get(assertionId + ":" + conditionId);
+                    if (assertionCondition == null) {
+                        assertionCondition = new AssertionCondition();
+                        assertionConditionDataMap = new HashMap<>();
+                        assertionCondition.setConditionsMap(assertionConditionDataMap);
+                        assertionCondition.setId(conditionId);
+                        assertionConditionMap.put(assertionId + ":" + conditionId, assertionCondition);
+                        assertionConditions.getConditionsList().add(assertionCondition);
+                    }
+                    assertionConditionData = new AssertionConditionData();
+                    if (rs.getString(ZMSConsts.DB_COLUMN_OPERATOR) != null) {
+                        assertionConditionData.setOperator(AssertionConditionOperator.fromString(rs.getString(ZMSConsts.DB_COLUMN_OPERATOR)));
+                    }
+                    assertionConditionData.setValue(rs.getString(ZMSConsts.DB_COLUMN_VALUE));
+                    assertionCondition.getConditionsMap().put(rs.getString(ZMSConsts.DB_COLUMN_KEY), assertionConditionData);
                 }
             }
         } catch (SQLException ex) {
@@ -6090,4 +6162,173 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         return res;
     }
+
+    @Override
+    public int countAssertionConditions(long assertionId) {
+
+        final String caller = "countAssertionConditions";
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_COUNT_ASSERTION_CONDITIONS)) {
+            ps.setLong(1, assertionId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+
+    @Override
+    public List<AssertionCondition> getAssertionConditions(long assertionId) {
+        final String caller = "getAssertionConditions";
+        List<AssertionCondition> assertionConditions = new ArrayList<>();
+        Map<Integer, AssertionCondition> assertionConditionMap = new HashMap<>();
+        int conditionId;
+        AssertionCondition assertionCondition;
+        Map<String, AssertionConditionData> assertionConditionDataMap;
+        AssertionConditionData assertionConditionData;
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_ASSERTION_CONDITIONS)) {
+            ps.setLong(1, assertionId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    conditionId = rs.getInt(ZMSConsts.DB_COLUMN_CONDITION_ID);
+                    assertionCondition = assertionConditionMap.get(conditionId);
+                    if (assertionCondition == null) {
+                        assertionCondition = new AssertionCondition();
+                        assertionConditionDataMap = new HashMap<>();
+                        assertionCondition.setConditionsMap(assertionConditionDataMap);
+                        assertionCondition.setId(conditionId);
+                        assertionConditionMap.put(conditionId, assertionCondition);
+                        assertionConditions.add(assertionCondition);
+                    }
+                    assertionConditionData = new AssertionConditionData();
+                    if (rs.getString(ZMSConsts.DB_COLUMN_OPERATOR) != null) {
+                        assertionConditionData.setOperator(AssertionConditionOperator.fromString(rs.getString(ZMSConsts.DB_COLUMN_OPERATOR)));
+                    }
+                    assertionConditionData.setValue(rs.getString(ZMSConsts.DB_COLUMN_VALUE));
+                    assertionCondition.getConditionsMap().put(rs.getString(ZMSConsts.DB_COLUMN_KEY), assertionConditionData);
+
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return assertionConditions;
+    }
+
+    @Override
+    public AssertionCondition getAssertionCondition(long assertionId, int conditionId) {
+        final String caller = "getAssertionCondition";
+        AssertionCondition assertionCondition = null;
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_ASSERTION_CONDITION)) {
+            ps.setLong(1, assertionId);
+            ps.setInt(2, conditionId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    if (assertionCondition == null) {
+                        assertionCondition = new AssertionCondition();
+                        assertionCondition.setId(rs.getInt(ZMSConsts.DB_COLUMN_CONDITION_ID));
+                        Map<String, AssertionConditionData> conditionDataMap = new HashMap<>();
+                        assertionCondition.setConditionsMap(conditionDataMap);
+                    }
+                    AssertionConditionData conditionData = new AssertionConditionData();
+                    if (rs.getString(ZMSConsts.DB_COLUMN_OPERATOR) != null) {
+                        conditionData.setOperator(AssertionConditionOperator.fromString(rs.getString(ZMSConsts.DB_COLUMN_OPERATOR)));
+                    }
+                    conditionData.setValue(rs.getString(ZMSConsts.DB_COLUMN_VALUE));
+                    assertionCondition.getConditionsMap().put(rs.getString(ZMSConsts.DB_COLUMN_KEY), conditionData);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return assertionCondition;
+    }
+
+    @Override
+    public boolean insertAssertionConditions(long assertionId, AssertionConditions assertionConditions) {
+        final String caller = "insertAssertionConditions";
+        boolean result = true;
+        for (AssertionCondition assertionCondition : assertionConditions.getConditionsList()) {
+            // get condition id for each AssertionCondition object in the list
+            // all keys in the conditionMap of AssertionCondition object share same condition id
+            assertionCondition.setId(getNextConditionId(assertionId, caller));
+            result = result && insertSingleAssertionCondition(assertionId, assertionCondition, caller);
+        }
+        return result;
+    }
+
+    @Override
+    public boolean deleteAssertionConditions(long assertionId) {
+        final String caller = "deleteAssertionConditions";
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_ASSERTION_CONDITIONS)) {
+            ps.setLong(1, assertionId);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return affectedRows > 0;
+    }
+
+    @Override
+    public boolean insertAssertionCondition(long assertionId, AssertionCondition assertionCondition) {
+        final String caller = "insertAssertionCondition";
+        return insertSingleAssertionCondition(assertionId, assertionCondition, caller);
+    }
+
+    @Override
+    public int getNextConditionId(long assertionId, String caller) {
+        int nextConditionId = 1;
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_NEXT_CONDITION_ID)) {
+            ps.setLong(1, assertionId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    nextConditionId = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return nextConditionId;
+    }
+
+    private boolean insertSingleAssertionCondition(long assertionId, AssertionCondition assertionCondition, String caller) {
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_ASSERTION_CONDITION)) {
+            // loop over all the keys in the given condition map
+            for (String key : assertionCondition.getConditionsMap().keySet()) {
+                ps.setLong(1, assertionId);
+                ps.setInt(2, assertionCondition.getId());
+                ps.setString(3, key);
+                ps.setString(4, assertionCondition.getConditionsMap().get(key).getOperator().name());
+                ps.setString(5, assertionCondition.getConditionsMap().get(key).getValue());
+
+                ps.addBatch();
+            }
+            affectedRows = Arrays.stream(executeBatch(ps, caller)).sum();
+
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return affectedRows > 0;
+    }
+
+    @Override
+    public boolean deleteAssertionCondition(long assertionId, int conditionId) {
+        final String caller = "deleteAssertionCondition";
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_ASSERTION_CONDITION)) {
+            ps.setLong(1, assertionId);
+            ps.setInt(2, conditionId);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return affectedRows > 0;
+    }
+
 }

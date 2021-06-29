@@ -130,11 +130,11 @@ func init() {
 	sb.AddType(tAssertionConditionKey.Build())
 
 	tAssertionConditionValuePattern := rdl.NewStringTypeBuilder("AssertionConditionValuePattern")
-	tAssertionConditionValuePattern.Pattern("[a-zA-Z][a-zA-Z0-9_\\.\\*-]+")
+	tAssertionConditionValuePattern.Pattern("[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]+")
 	sb.AddType(tAssertionConditionValuePattern.Build())
 
 	tAssertionConditionValue := rdl.NewStringTypeBuilder("AssertionConditionValue")
-	tAssertionConditionValue.Pattern("([a-zA-Z][a-zA-Z0-9_\\.\\*-]+,)*[a-zA-Z][a-zA-Z0-9_\\.\\*-]+")
+	tAssertionConditionValue.Pattern("([a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]+,)*[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]+")
 	sb.AddType(tAssertionConditionValue.Build())
 
 	tDomainMeta := rdl.NewStructTypeBuilder("Struct", "DomainMeta")

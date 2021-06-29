@@ -194,13 +194,18 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateDomainTemplate(String domainName, String templateName, TemplateMetaData templateMetaData);
 
     boolean updatePrincipal(String principal, int newState);
-
     List<String> getPrincipals(int queriedState);
 
     boolean insertRoleTags(String roleName, String domainName, Map<String, TagValueList> roleTags);
-
     boolean deleteRoleTags(String roleName, String domainName, Set<String> tagKeys);
-
     Map<String, TagValueList> getRoleTags(String domainName, String roleName);
 
+    int countAssertionConditions(long assertionId);
+    int getNextConditionId(long assertionId, String caller);
+    List<AssertionCondition> getAssertionConditions(long assertionId);
+    AssertionCondition getAssertionCondition(long assertionId, int conditionId);
+    boolean insertAssertionConditions(long assertionId, AssertionConditions assertionConditions);
+    boolean deleteAssertionConditions(long assertionId);
+    boolean insertAssertionCondition(long assertionId, AssertionCondition assertionCondition);
+    boolean deleteAssertionCondition(long assertionId, int conditionId);
 }

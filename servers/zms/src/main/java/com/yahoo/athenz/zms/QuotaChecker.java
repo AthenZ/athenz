@@ -25,7 +25,8 @@ class QuotaChecker {
 
     private final Quota defaultQuota;
     private boolean quotaCheckEnabled;
-    
+    int assertionConditionsQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_ASSERTION_CONDITIONS, "10"));
+
     public QuotaChecker() {
         
         // first check if the quota check is enabled or not
@@ -376,6 +377,47 @@ class QuotaChecker {
         if (quota.getEntity() < objectCount) {
             throw ZMSUtils.quotaLimitError("entity quota exceeded - limit: "
                     + quota.getEntity() + " actual: " + objectCount, caller);
+        }
+    }
+    void checkAssertionConditionsQuota(ObjectStoreConnection con, long assertionId, AssertionConditions assertionConditions,
+                                       String caller) {
+
+        // if quota check is disabled we have nothing to do
+        if (!quotaCheckEnabled) {
+            return;
+        }
+
+        // if our assertionConditions is null then there is no quota check
+        if (assertionConditions == null || assertionConditions.getConditionsList() == null ||
+                assertionConditions.getConditionsList().isEmpty()) {
+            return;
+        }
+
+        // we're going to check if we'll be allowed to create given assertionConditions
+        int newCount = assertionConditions.getConditionsList().stream().map(c -> c.getConditionsMap().size()).reduce(0, Integer::sum);
+        countAssertionConditions(con, assertionId, newCount, caller);
+    }
+
+    void checkAssertionConditionQuota(ObjectStoreConnection con, long assertionId, AssertionCondition assertionCondition,
+                                      String caller) {
+
+        // if quota check is disabled we have nothing to do
+        if (!quotaCheckEnabled) {
+            return;
+        }
+        if (assertionCondition == null) {
+            return;
+        }
+        countAssertionConditions(con, assertionId, assertionCondition.getConditionsMap().size(), caller);
+
+    }
+
+    void countAssertionConditions(ObjectStoreConnection con, long assertionId, int newCount, String caller) {
+        // we're going to check if we'll be allowed to create given assertionConditions
+        int objectCount = con.countAssertionConditions(assertionId) + newCount;
+        if (assertionConditionsQuota < objectCount) {
+            throw ZMSUtils.quotaLimitError("assertion conditions quota exceeded - limit: "
+                    + assertionConditionsQuota + " actual: " + objectCount, caller);
         }
     }
 }

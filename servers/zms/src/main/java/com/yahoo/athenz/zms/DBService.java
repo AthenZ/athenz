@@ -4606,6 +4606,37 @@ public class DBService implements RolesProvider {
                 .append("\"}");
     }
 
+    void auditLogAssertionConditions(StringBuilder auditDetails, List<AssertionCondition> assertionConditions, String label)  {
+        auditDetails.append("{\"").append(label).append("\": [");
+        boolean firstEntry = true;
+        for (AssertionCondition value : assertionConditions) {
+            firstEntry = auditLogAssertionCondition(auditDetails, value, firstEntry);
+        }
+        auditDetails.append("]}");
+    }
+
+    boolean auditLogAssertionCondition(StringBuilder auditDetails, AssertionCondition assertionCondition, boolean firstEntry) {
+
+        firstEntry = auditLogSeparator(auditDetails, firstEntry);
+        auditDetails.append("{\"conditionId\": ").append(assertionCondition.getId())
+                .append(", \"conditionsMap\": {");
+        boolean innerFirstEntry = true;
+        for (String key : assertionCondition.getConditionsMap().keySet()) {
+            innerFirstEntry = auditLogAssertionConditionData(auditDetails, assertionCondition.getConditionsMap().get(key), key, innerFirstEntry);
+        }
+        auditDetails.append("}}");
+        return firstEntry;
+    }
+
+    boolean auditLogAssertionConditionData(StringBuilder auditDetails, AssertionConditionData assertionConditionData, String conditionKey, boolean firstEntry) {
+        firstEntry = auditLogSeparator(auditDetails, firstEntry);
+        auditDetails.append("\"").append(conditionKey)
+                .append("\": {\"operator\": \"").append(assertionConditionData.getOperator().name())
+                .append("\", \"value\": \"").append(assertionConditionData.getValue())
+                .append("\"}");
+        return firstEntry;
+    }
+
     void executePutQuota(ResourceContext ctx, String domainName, Quota quota,
             String auditRef, String caller) {
 
@@ -6854,6 +6885,252 @@ public class DBService implements RolesProvider {
                         }
                         throw ex;
                     }
+                }
+            }
+        }
+    }
+
+    void executePutAssertionConditions(ResourceContext ctx, String domainName, String policyName, long assertionId,
+                                       AssertionConditions assertionConditions, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
+
+                // now we need verify our quota check
+
+                quotaCheck.checkAssertionConditionsQuota(con, assertionId, assertionConditions, caller);
+
+                // process our insert assertion condition.
+
+                if (!con.insertAssertionConditions(assertionId, assertionConditions)) {
+                    throw ZMSUtils.requestError(String.format("%s: unable to insert assertion conditions for policy=%s assertionId=%d", caller, policyName, assertionId), caller);
+                }
+
+                // update our policy and domain time-stamps, and invalidate local cache entry
+
+                saveChanges(con, domainName);
+                con.updatePolicyModTimestamp(domainName, policyName);
+
+                // audit log the request
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditDetails.append("{\"policy\": \"").append(policyName)
+                        .append("\", \"assertionId\": ").append(assertionId)
+                        .append(", ");
+                auditLogAssertionConditions(auditDetails, assertionConditions.getConditionsList(), "new-assertion-conditions");
+                auditDetails.append("}");
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        policyName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+
+                // otherwise check if we need to retry or return failure
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    void executePutAssertionCondition(ResourceContext ctx, String domainName, String policyName, long assertionId,
+                                      AssertionCondition assertionCondition, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
+
+                // process our insert assertion condition.
+
+                if (assertionCondition.getId() == null) {
+
+                    // now we need verify our quota check
+                    quotaCheck.checkAssertionConditionQuota(con, assertionId, assertionCondition, caller);
+
+                    // no condition id in the request. so we are going to generate the next condition id for
+                    // the given assertion id and then use it to insert given keys
+                    assertionCondition.setId(con.getNextConditionId(assertionId, caller));
+                    if (!con.insertAssertionCondition(assertionId, assertionCondition)) {
+                        throw ZMSUtils.requestError(String.format("%s: unable to insert new assertion condition for policy=%s assertionId=%d", caller, policyName, assertionId), caller);
+                    }
+                } else {
+
+                    // existing assertion condition keys found with given condition id. so delete existing keys from DB for the given condition id
+                    if (!con.deleteAssertionCondition(assertionId, assertionCondition.getId())) {
+                        throw ZMSUtils.notFoundError(String.format("%s: unable to delete assertion condition during putAssertionCondition for policy=%s assertionId=%d conditionId=%d"
+                                , caller, policyName, assertionId, assertionCondition.getId()), caller);
+                    }
+                    // now we need verify our quota check after deleting the old entries
+                    quotaCheck.checkAssertionConditionQuota(con, assertionId, assertionCondition, caller);
+
+                    // now insert the new keys against existing condition id
+                    if (!con.insertAssertionCondition(assertionId, assertionCondition)) {
+                        throw ZMSUtils.requestError(String.format("%s: unable to insert assertion condition for policy=%s assertionId=%d", caller, policyName, assertionId), caller);
+                    }
+                }
+
+                // update our policy and domain time-stamps, and invalidate local cache entry
+
+                saveChanges(con, domainName);
+                con.updatePolicyModTimestamp(domainName, policyName);
+
+                // audit log the request
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditDetails.append("{\"policy\": \"").append(policyName)
+                        .append("\", \"assertionId\": ").append(assertionId)
+                        .append(", \"new-assertion-condition\": ");
+                auditLogAssertionCondition(auditDetails, assertionCondition, true);
+                auditDetails.append("}");
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        policyName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+
+                // otherwise check if we need to retry or return failure
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    public void executeDeleteAssertionConditions(ResourceContext ctx, String domainName, String policyName, Long assertionId, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
+
+                // fetch the assertion for our audit log
+
+                List<AssertionCondition> assertionConditions = con.getAssertionConditions(assertionId);
+                if (assertionConditions == null) {
+                    throw ZMSUtils.notFoundError(String.format("%s: unable to read assertion conditions for policy=%s assertionId=%d", caller,
+                            policyName, assertionId), caller);
+                }
+
+                // process our delete assertion conditions. since this is a "single"
+                // operation, we are not using any transactions.
+
+                if (!con.deleteAssertionConditions(assertionId)) {
+                    throw ZMSUtils.notFoundError(String.format("%s: unable to delete assertion conditions for policy=%s assertionId=%d", caller,
+                            policyName, assertionId), caller);
+                }
+
+                // update our policy and domain time-stamps, and invalidate local cache entry
+
+                con.updatePolicyModTimestamp(domainName, policyName);
+                con.updateDomainModTimestamp(domainName);
+                cacheStore.invalidate(domainName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditDetails.append("{\"policy\": \"").append(policyName)
+                        .append("\", \"assertionId\": ").append(assertionId)
+                        .append(", ");
+                auditLogAssertionConditions(auditDetails, assertionConditions, "deleted-assertion-conditions");
+                auditDetails.append("}");
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                        policyName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+
+                // otherwise check if we need to retry or return failure
+
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    public void executeDeleteAssertionCondition(ResourceContext ctx, String domainName, String policyName, Long assertionId, Integer conditionId, String auditRef, String caller) {
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
+
+                // fetch the assertion for our audit log
+
+                AssertionCondition assertionCondition = con.getAssertionCondition(assertionId, conditionId);
+                if (assertionCondition == null) {
+                    throw ZMSUtils.notFoundError(String.format("%s: unable to read assertion condition for policy=%s assertionId=%d conditionId=%d"
+                            , caller, policyName, assertionId, conditionId), caller);
+                }
+
+                // process our delete assertion condition. since this is a "single"
+                // operation, we are not using any transactions.
+
+                if (!con.deleteAssertionCondition(assertionId, conditionId)) {
+                    throw ZMSUtils.notFoundError(String.format("%s: unable to delete assertion condition for policy=%s assertionId=%d conditionId=%d"
+                            , caller, policyName, assertionId, conditionId), caller);
+                }
+
+                // update our policy and domain time-stamps, and invalidate local cache entry
+
+                con.updatePolicyModTimestamp(domainName, policyName);
+                con.updateDomainModTimestamp(domainName);
+                cacheStore.invalidate(domainName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditDetails.append("{\"policy\": \"").append(policyName)
+                        .append("\", \"assertionId\": ").append(assertionId)
+                        .append(", \"deleted-assertion-condition\": ");
+                auditLogAssertionCondition(auditDetails, assertionCondition, true);
+                auditDetails.append("}");
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                        policyName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+
+                // otherwise check if we need to retry or return failure
+
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
                 }
             }
         }

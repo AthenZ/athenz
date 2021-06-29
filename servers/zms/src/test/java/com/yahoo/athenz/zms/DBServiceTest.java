@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -10447,5 +10448,282 @@ public class DBServiceTest {
         zms.dbService.auditLogPolicy(auditDetails, policy, "delete-assertions");
         assertEquals(auditDetails.toString(), "{\"name\": \"policy1\", \"modified\": \"null\", " +
                 "\"delete-assertions\": [{\"role\": \"reader\", \"action\": \"update\", \"effect\": \"ALLOW\", \"resource\": \"table\"}]}");
+    }
+
+    @Test
+    public void testExecutePutAssertionConditions() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        String domain = "assertion-conditions-dom";
+        String policy = "assertion-conditions-pol";
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Domain dom = new Domain().setName(domain);
+        Mockito.when(mockObjStore.getConnection(false, true))
+                .thenReturn(conn);
+        Mockito.when(conn.getDomain(anyString())).thenReturn(dom);
+
+        Map<String, AssertionConditionData> m1 = new HashMap<>();
+        AssertionConditionData cd11 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("host1");
+        m1.put("instances", cd11);
+        AssertionConditionData cd12 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("ENFORCE");
+        m1.put("enforcementState", cd12);
+        AssertionCondition c1 = new AssertionCondition().setId(1).setConditionsMap(m1);
+
+        Map<String, AssertionConditionData> m2 = new HashMap<>();
+        AssertionConditionData cd21 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("host2");
+        m2.put("instances", cd21);
+        AssertionConditionData cd22 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("REPORT");
+        m2.put("enforcementState", cd22);
+        AssertionCondition c2 = new AssertionCondition().setId(2).setConditionsMap(m2);
+
+        AssertionConditions ac1 = new AssertionConditions().setConditionsList(new ArrayList<>());
+        ac1.getConditionsList().add(c1);
+        ac1.getConditionsList().add(c2);
+
+        Mockito.when(conn.insertAssertionConditions(1, ac1))
+                .thenReturn(true).thenReturn(false)
+                .thenThrow(new ResourceException(ResourceException.CONFLICT));
+
+        int savedRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executePutAssertionConditions(mockDomRsrcCtx, domain, policy,
+                    1L, ac1, auditRef, "PutAssertionConditions");
+        }catch (ResourceException ignored){
+            fail();
+        }
+
+        try {
+            zms.dbService.executePutAssertionConditions(mockDomRsrcCtx, domain, policy,
+                    1L, ac1, auditRef, "PutAssertionConditions");
+            fail();
+        }catch (ResourceException re){
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+
+        try {
+            zms.dbService.executePutAssertionConditions(mockDomRsrcCtx, domain, policy,
+                    1L, ac1, auditRef, "PutAssertionConditions");
+            fail();
+        }catch (ResourceException re){
+            assertEquals(re.getCode(), ResourceException.CONFLICT);
+        }
+
+        zms.dbService.defaultRetryCount = savedRetryCount;
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testExecutePutAssertionCondition() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        String domain = "assertion-condition-dom";
+        String policy = "assertion-condition-pol";
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Domain dom = new Domain().setName(domain);
+        Mockito.when(mockObjStore.getConnection(false, true))
+                .thenReturn(conn);
+        Mockito.when(conn.getDomain(anyString())).thenReturn(dom);
+        Mockito.when(conn.getNextConditionId(anyLong(), anyString())).thenReturn(1);
+
+        Map<String, AssertionConditionData> m1 = new HashMap<>();
+        AssertionConditionData cd11 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("host1");
+        m1.put("instances", cd11);
+        AssertionConditionData cd12 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("ENFORCE");
+        m1.put("enforcementState", cd12);
+        AssertionCondition c1 = new AssertionCondition().setConditionsMap(m1);
+
+        Mockito.when(conn.insertAssertionCondition( 1, c1))
+                .thenReturn(true) // no condition id in DB. insert works
+                .thenReturn(false) // no condition id in DB. insert fails
+                .thenReturn(true) // condition id in DB. insert works
+                .thenReturn(false); // condition id in DB. insert fails
+
+        // no condition id in the request. insertion is successful
+        try {
+            zms.dbService.executePutAssertionCondition(mockDomRsrcCtx, domain, policy,
+                    1L, c1, auditRef, "PutAssertionCondition");
+        }catch (ResourceException ignored){
+            fail();
+        }
+
+        // no condition id in the request. insertion failed
+        c1.setId(null);
+        try {
+            zms.dbService.executePutAssertionCondition(mockDomRsrcCtx, domain, policy,
+                    1L, c1, auditRef, "PutAssertionCondition");
+            fail();
+        }catch (ResourceException re){
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // condition id found in request
+        Mockito.when(conn.deleteAssertionCondition(1, 1))
+                .thenReturn(true) //delete works
+                .thenReturn(false) // delete fails
+                .thenReturn(true)
+                .thenThrow(new ResourceException(ResourceException.CONFLICT));
+
+        c1.setId(1);
+        try {
+            zms.dbService.executePutAssertionCondition(mockDomRsrcCtx, domain, policy,
+                    1L, c1, auditRef, "PutAssertionCondition");
+        }catch (ResourceException ignored){
+            fail();
+        }
+        c1.setId(1);
+        try {
+            zms.dbService.executePutAssertionCondition(mockDomRsrcCtx, domain, policy,
+                    1L, c1, auditRef, "PutAssertionCondition");
+            fail();
+        }catch (ResourceException re){
+            assertEquals(re.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        try {
+            zms.dbService.executePutAssertionCondition(mockDomRsrcCtx, domain, policy,
+                    1L, c1, auditRef, "PutAssertionCondition");
+            fail();
+        }catch (ResourceException re){
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        // retry test
+        int savedRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executePutAssertionCondition(mockDomRsrcCtx, domain, policy,
+                    1L, c1, auditRef, "PutAssertionCondition");
+            fail();
+        }catch (ResourceException re){
+            assertEquals(re.getCode(), ResourceException.CONFLICT);
+        }
+
+        zms.dbService.defaultRetryCount = savedRetryCount;
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testExecuteDeleteAssertionConditions() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        String domain = "assertion-condition-dom";
+        String policy = "assertion-condition-pol";
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Domain dom = new Domain().setName(domain);
+        Mockito.when(mockObjStore.getConnection(true, true))
+                .thenReturn(conn);
+        Mockito.when(conn.getDomain(anyString())).thenReturn(dom);
+        List<AssertionCondition> acList = new ArrayList<>();
+        Mockito.when(conn.getAssertionConditions(anyLong()))
+                .thenReturn(acList).thenReturn(acList).thenReturn(null).thenReturn(acList);
+        Mockito.when(conn.deleteAssertionConditions(anyLong()))
+                .thenReturn(true).thenReturn(false)
+                .thenThrow(new ResourceException(ResourceException.CONFLICT));
+
+        int savedRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        //happy path
+        try {
+            zms.dbService.executeDeleteAssertionConditions(mockDomRsrcCtx, domain, policy,
+                    1L, auditRef, "DeleteAssertionConditions");
+        }catch (ResourceException ignored){
+            fail();
+        }
+        //db call failed
+        try {
+            zms.dbService.executeDeleteAssertionConditions(mockDomRsrcCtx, domain, policy,
+                    1L, auditRef, "DeleteAssertionConditions");
+            fail();
+        }catch (ResourceException re){
+            assertEquals(re.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        // null assertion condition from db
+        try {
+            zms.dbService.executeDeleteAssertionConditions(mockDomRsrcCtx, domain, policy,
+                    1L, auditRef, "DeleteAssertionConditions");
+            fail();
+        }catch (ResourceException re){
+            assertEquals(re.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        try {
+            zms.dbService.executeDeleteAssertionConditions(mockDomRsrcCtx, domain, policy,
+                    1L, auditRef, "DeleteAssertionConditions");
+            fail();
+        }catch (ResourceException re){
+            assertEquals(re.getCode(), ResourceException.CONFLICT);
+        }
+
+        zms.dbService.defaultRetryCount = savedRetryCount;
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testExecuteDeleteAssertionCondition() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        String domain = "assertion-condition-dom";
+        String policy = "assertion-condition-pol";
+        ObjectStore savedStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Domain dom = new Domain().setName(domain);
+        Mockito.when(mockObjStore.getConnection(true, true))
+                .thenReturn(conn);
+        Mockito.when(conn.getDomain(anyString())).thenReturn(dom);
+        AssertionCondition ac = new AssertionCondition();
+        ac.setConditionsMap(new HashMap<>());
+        Mockito.when(conn.getAssertionCondition(anyLong(), anyInt()))
+                .thenReturn(ac).thenReturn(ac).thenReturn(null).thenReturn(ac);
+        Mockito.when(conn.deleteAssertionCondition(anyLong(), anyInt()))
+                .thenReturn(true).thenReturn(false)
+                .thenThrow(new ResourceException(ResourceException.CONFLICT));
+
+        int savedRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        //happy path
+        try {
+            zms.dbService.executeDeleteAssertionCondition(mockDomRsrcCtx, domain, policy,
+                    1L, 1, auditRef, "DeleteAssertionCondition");
+        }catch (ResourceException ignored){
+            fail();
+        }
+        //db call failed
+        try {
+            zms.dbService.executeDeleteAssertionCondition(mockDomRsrcCtx, domain, policy,
+                    1L, 1, auditRef, "DeleteAssertionCondition");
+            fail();
+        }catch (ResourceException re){
+            assertEquals(re.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        // null assertion condition from db
+        try {
+            zms.dbService.executeDeleteAssertionCondition(mockDomRsrcCtx, domain, policy,
+                    1L, 1, auditRef, "DeleteAssertionCondition");
+            fail();
+        }catch (ResourceException re){
+            assertEquals(re.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        try {
+            zms.dbService.executeDeleteAssertionCondition(mockDomRsrcCtx, domain, policy,
+                    1L, 1, auditRef, "DeleteAssertionCondition");
+            fail();
+        }catch (ResourceException re){
+            assertEquals(re.getCode(), ResourceException.CONFLICT);
+        }
+
+        zms.dbService.defaultRetryCount = savedRetryCount;
+        zms.dbService.store = savedStore;
     }
 }

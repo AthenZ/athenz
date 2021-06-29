@@ -16,6 +16,8 @@
 
 package com.yahoo.athenz.zms;
 
+import com.yahoo.rdl.Schema;
+import com.yahoo.rdl.Validator;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
@@ -52,5 +54,11 @@ public class AssertionConditionsTest {
         assertNotEquals(ac2, ac1);
         assertNotEquals(ac1, null);
         assertNotEquals(ac1, "xyz");
+
+        ac2.setConditionsList(null);
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+        Validator.Result resultC1 = validator.validate(ac2, "AssertionConditions");
+        assertFalse(resultC1.valid);
     }
 }

@@ -51,12 +51,16 @@ public class AssertionConditionDataTest {
         resultC1 = validator.validate(cd1, "AssertionConditionData");
         assertFalse(resultC1.valid);
 
-        cd1.setValue("09rr1,rrs1");
+        cd1.setValue("*.avd");
         resultC1 = validator.validate(cd1, "AssertionConditionData");
-        assertFalse(resultC1.valid);
+        assertTrue(resultC1.valid);
 
         cd1.setValue("abc.athenz.io");
         resultC1 = validator.validate(cd1, "AssertionConditionData");
         assertTrue(resultC1.valid);
+
+        AssertionConditionData cd3 = new AssertionConditionData();
+        resultC1 = validator.validate(cd3, "AssertionConditionData");
+        assertFalse(resultC1.valid);
     }
 }
