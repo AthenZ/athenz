@@ -66,5 +66,16 @@ public class AssertionConditionTest {
         resultC1 = validator.validate(c1, "AssertionCondition");
         assertFalse(resultC1.valid);
 
+        c1.setConditionsMap(new HashMap<>());
+        resultC1 = validator.validate(c1, "AssertionCondition");
+        assertTrue(resultC1.valid);
+
+        c1.getConditionsMap().put("abc", new AssertionConditionData());
+        resultC1 = validator.validate(c1, "AssertionCondition");
+        assertFalse(resultC1.valid);
+
+        c1.setConditionsMap(null);
+        resultC1 = validator.validate(c1, "AssertionCondition");
+        assertFalse(resultC1.valid);
     }
 }

@@ -22,6 +22,8 @@ import com.yahoo.athenz.common.server.util.FilesHelper;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -34,8 +36,7 @@ import java.io.PrintWriter;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
-import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_FILE_NAME;
+import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static org.testng.Assert.*;
 
 public class ZMSFileChangeLogStoreCommonTest {
@@ -108,8 +109,7 @@ public class ZMSFileChangeLogStoreCommonTest {
         domains.add(domain);
         SignedDomains domainList = new SignedDomains().setDomains(domains);
 
-        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null)).thenReturn(domainList);
-
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, true, false, null, null)).thenReturn(domainList);
         List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
         assertEquals(returnList.size(), 1);
         assertEquals(returnList.get(0).getDomain().getName(), "athenz");
@@ -144,7 +144,7 @@ public class ZMSFileChangeLogStoreCommonTest {
         domains.add(domain);
         SignedDomains domainList = new SignedDomains().setDomains(domains);
 
-        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null))
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, true, false,  null, null))
                 .thenThrow(new ZMSClientException(429, "too many requests"))
                 .thenReturn(domainList);
 
@@ -173,9 +173,8 @@ public class ZMSFileChangeLogStoreCommonTest {
         List<SignedDomain> mockDomains = new ArrayList<>();
         mockDomains.add(domain1);
         SignedDomains mockDomainList = new SignedDomains().setDomains(mockDomains);
-
-        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null)).thenReturn(mockDomainList);
-        Mockito.when(zmsClient.getSignedDomains("sports", null, null, null)).thenReturn(null);
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, true, false, null, null)).thenReturn(mockDomainList);
+        Mockito.when(zmsClient.getSignedDomains("sports", null, null, true, false, null, null)).thenReturn(null);
 
         List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
         assertEquals(returnList.size(), 1);
@@ -356,5 +355,36 @@ public class ZMSFileChangeLogStoreCommonTest {
         }
 
         assertEquals(cstore.retrieveLastModificationTime(), "12345");
+    }
+
+    @Test
+    public void testSignedDomainsWithConditions() {
+        ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+
+        DomainData d1 = new DomainData().setName("no-conditions");
+        SignedDomain sd1 = new SignedDomain().setDomain(d1);
+        SignedDomains sds1 = new SignedDomains().setDomains(Collections.singletonList(sd1));
+
+        DomainData d2 = new DomainData().setName("conditions");
+        SignedDomain sd2 = new SignedDomain().setDomain(d2);
+        SignedDomains sds2 = new SignedDomains().setDomains(new ArrayList<>());
+        sds2.getDomains().add(sd1);
+        sds2.getDomains().add(sd2);
+
+        Mockito.when(zmsClient.getSignedDomains(null, "true", null, true, false, null, null))
+                .thenReturn(sds1);
+        Mockito.when(zmsClient.getSignedDomains(null, "true", null, true, true, null, null))
+                .thenReturn(sds2);
+
+        SignedDomains sds1Resp = fstore.getServerDomainModifiedList(zmsClient);
+        MatcherAssert.assertThat(sds1Resp.getDomains(), Matchers.contains(sd1));
+
+        System.setProperty(PROP_GET_CONDITIONS_IN_SIGNED_DOMAINS, "true");
+        ZMSFileChangeLogStoreCommon fstore2 = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        SignedDomains sds2Resp = fstore2.getServerDomainModifiedList(zmsClient);
+        MatcherAssert.assertThat(sds2Resp.getDomains(), Matchers.contains(sd1, sd2));
+
+        System.clearProperty(PROP_GET_CONDITIONS_IN_SIGNED_DOMAINS);
     }
 }

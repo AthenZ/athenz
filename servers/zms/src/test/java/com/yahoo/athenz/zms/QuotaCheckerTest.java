@@ -738,7 +738,7 @@ public class QuotaCheckerTest {
     public void testCheckAssertionConditionsQuota() {
         QuotaChecker quotaCheck = new QuotaChecker();
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(con.countAssertionConditions(1)).thenReturn(8).thenReturn(10);
+        Mockito.when(con.countAssertionConditions(1)).thenReturn(8).thenReturn(8).thenReturn(10);
         AssertionConditions assertionConditions = new AssertionConditions();
         assertionConditions.setConditionsList(new ArrayList<>());
         AssertionCondition ac1 = new AssertionCondition().setId(1);
@@ -754,38 +754,47 @@ public class QuotaCheckerTest {
         assertionConditions.getConditionsList().add(ac2);
         try {
             // 8 conditions in DB
-            quotaCheck.checkAssertionConditionsQuota(con, "dom1", 1, assertionConditions, "test");
+            quotaCheck.checkAssertionConditionsQuota(con, 1, assertionConditions, "test");
         } catch (ResourceException ignored) {
             fail();
         }
+        // condition objects are still 2 but total num of conditions will be 3
+        m2.put("key3", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("value3"));
+        try {
+            // 8 conditions in DB
+            quotaCheck.checkAssertionConditionsQuota(con, 1, assertionConditions, "test");
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.TOO_MANY_REQUESTS);
+        }
+
         try {
             // 10 conditions in DB
-            quotaCheck.checkAssertionConditionsQuota(con, "dom1", 1, assertionConditions, "test");
+            quotaCheck.checkAssertionConditionsQuota(con,1, assertionConditions, "test");
             fail();
         } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.TOO_MANY_REQUESTS);
         }
         quotaCheck.setQuotaCheckEnabled(false);
         try {
-            quotaCheck.checkAssertionConditionsQuota(con, "dom1", 1, assertionConditions, "test");
+            quotaCheck.checkAssertionConditionsQuota(con, 1, assertionConditions, "test");
         } catch (ResourceException ignored) {
             fail();
         }
         quotaCheck.setQuotaCheckEnabled(true);
         try {
-            quotaCheck.checkAssertionConditionsQuota(con, "dom1", 1, null, "test");
+            quotaCheck.checkAssertionConditionsQuota(con, 1, null, "test");
         } catch (ResourceException ignored) {
             fail();
         }
         assertionConditions.setConditionsList(null);
         try {
-            quotaCheck.checkAssertionConditionsQuota(con, "dom1", 1, assertionConditions, "test");
+            quotaCheck.checkAssertionConditionsQuota(con, 1, assertionConditions, "test");
         } catch (ResourceException ignored) {
             fail();
         }
         assertionConditions.setConditionsList(new ArrayList<>());
         try {
-            quotaCheck.checkAssertionConditionsQuota(con, "dom1", 1, assertionConditions, "test");
+            quotaCheck.checkAssertionConditionsQuota(con, 1, assertionConditions, "test");
         } catch (ResourceException ignored) {
             fail();
         }
@@ -795,34 +804,53 @@ public class QuotaCheckerTest {
     public void testCheckAssertionConditionQuota() {
         QuotaChecker quotaCheck = new QuotaChecker();
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(con.countAssertionConditions(1)).thenReturn(9).thenReturn(10).thenReturn(5);
+        Mockito.when(con.countAssertionConditions(1)).thenReturn(9).thenReturn(9).thenReturn(9).thenReturn(10).thenReturn(5);
         AssertionCondition ac1 = new AssertionCondition().setId(1);
         Map<String, AssertionConditionData> m1 = new HashMap<>();
         m1.put("key1", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("value1"));
         ac1.setConditionsMap(m1);
 
         try {
-            // 8 conditions in DB
-            quotaCheck.checkAssertionConditionQuota(con, "dom1", 1, ac1, "test");
+            // 9 conditions in DB
+            quotaCheck.checkAssertionConditionQuota(con, 1, ac1, "test");
         } catch (ResourceException ignored) {
             fail();
         }
+
+        m1.put("key2", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("value2"));
+        try {
+            // 9 conditions in DB
+            quotaCheck.checkAssertionConditionQuota(con, 1, ac1, "test");
+            fail();
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.TOO_MANY_REQUESTS);
+        }
+
+        m1.put("key3", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("value3"));
+        try {
+            // 9 conditions in DB
+            quotaCheck.checkAssertionConditionQuota(con, 1, ac1, "test");
+            fail();
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), ResourceException.TOO_MANY_REQUESTS);
+        }
+
         try {
             // 10 conditions in DB
-            quotaCheck.checkAssertionConditionQuota(con, "dom1", 1, ac1, "test");
+            quotaCheck.checkAssertionConditionQuota(con,  1, ac1, "test");
             fail();
         } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.TOO_MANY_REQUESTS);
         }
         quotaCheck.setQuotaCheckEnabled(false);
         try {
-            quotaCheck.checkAssertionConditionQuota(con, "dom1", 1, ac1, "test");
+            quotaCheck.checkAssertionConditionQuota(con,  1, ac1, "test");
         } catch (ResourceException ignored) {
             fail();
         }
         quotaCheck.setQuotaCheckEnabled(true);
         try {
-            quotaCheck.checkAssertionConditionQuota(con, "dom1", 1, null, "test");
+            quotaCheck.checkAssertionConditionQuota(con,  1, null, "test");
         } catch (ResourceException ignored) {
             fail();
         }
@@ -830,7 +858,7 @@ public class QuotaCheckerTest {
         QuotaChecker q2 = new QuotaChecker();
         try {
             // 5 conditions in DB but limit is set to 5
-            q2.checkAssertionConditionQuota(con, "dom1", 1, ac1, "test");
+            q2.checkAssertionConditionQuota(con,  1, ac1, "test");
             fail();
         } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.TOO_MANY_REQUESTS);

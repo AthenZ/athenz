@@ -379,7 +379,7 @@ class QuotaChecker {
                     + quota.getEntity() + " actual: " + objectCount, caller);
         }
     }
-    void checkAssertionConditionsQuota(ObjectStoreConnection con, String domainName, long assertionId, AssertionConditions assertionConditions,
+    void checkAssertionConditionsQuota(ObjectStoreConnection con, long assertionId, AssertionConditions assertionConditions,
                                        String caller) {
 
         // if quota check is disabled we have nothing to do
@@ -394,10 +394,11 @@ class QuotaChecker {
         }
 
         // we're going to check if we'll be allowed to create given assertionConditions
-        countAssertionConditions(con, assertionId, assertionConditions.getConditionsList().size(), caller);
+        int newCount = assertionConditions.getConditionsList().stream().map(c -> c.getConditionsMap().size()).reduce(0, Integer::sum);
+        countAssertionConditions(con, assertionId, newCount, caller);
     }
 
-    void checkAssertionConditionQuota(ObjectStoreConnection con, String domainName, long assertionId, AssertionCondition assertionCondition,
+    void checkAssertionConditionQuota(ObjectStoreConnection con, long assertionId, AssertionCondition assertionCondition,
                                       String caller) {
 
         // if quota check is disabled we have nothing to do
@@ -407,7 +408,7 @@ class QuotaChecker {
         if (assertionCondition == null) {
             return;
         }
-        countAssertionConditions(con, assertionId, 1, caller);
+        countAssertionConditions(con, assertionId, assertionCondition.getConditionsMap().size(), caller);
 
     }
 

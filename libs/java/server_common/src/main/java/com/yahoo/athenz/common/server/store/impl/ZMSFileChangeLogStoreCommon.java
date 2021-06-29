@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_GET_CONDITIONS_IN_SIGNED_DOMAINS;
+
 public class ZMSFileChangeLogStoreCommon {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZMSFileChangeLogStoreCommon.class);
@@ -46,6 +48,8 @@ public class ZMSFileChangeLogStoreCommon {
     private static final String VALUE_TRUE         = "true";
     private static final String LAST_MOD_FNAME     = ".lastModTime";
     private static final String ATTR_LAST_MOD_TIME = "lastModTime";
+
+    boolean requestConditions;
 
     public ZMSFileChangeLogStoreCommon(final String rootDirectory) {
 
@@ -91,6 +95,8 @@ public class ZMSFileChangeLogStoreCommon {
                 delete(domain);
             }
         }
+
+        requestConditions = Boolean.parseBoolean(System.getProperty(PROP_GET_CONDITIONS_IN_SIGNED_DOMAINS, "false"));
     }
 
     public boolean supportsFullRefresh() {
@@ -103,7 +109,7 @@ public class ZMSFileChangeLogStoreCommon {
 
     public SignedDomain getServerSignedDomain(ZMSClient zmsClient, final String domainName) {
 
-        SignedDomains signedDomains = zmsClient.getSignedDomains(domainName, null, null, null);
+        SignedDomains signedDomains = makeSignedDomainsCall(zmsClient, domainName, null, null, null);
 
         if (signedDomains == null) {
             LOGGER.error("No data was returned from ZMS for domain {}", domainName);
@@ -213,7 +219,7 @@ public class ZMSFileChangeLogStoreCommon {
     }
 
     public SignedDomains getServerDomainModifiedList(ZMSClient zmsClient) {
-        return zmsClient.getSignedDomains(null, VALUE_TRUE, null, null);
+        return makeSignedDomainsCall(zmsClient, null, VALUE_TRUE, null, null);
     }
 
     public String retrieveLastModificationTime() {
@@ -274,8 +280,8 @@ public class ZMSFileChangeLogStoreCommon {
 
             while (true) {
                 try {
-                    SignedDomains singleDomain = zmsClient.getSignedDomains(domainName,
-                            null, null, null);
+
+                    SignedDomains singleDomain = makeSignedDomainsCall(zmsClient, domainName, null, null, null);
 
                     if (singleDomain != null && !singleDomain.getDomains().isEmpty()) {
                         domains.addAll(singleDomain.getDomains());
@@ -311,8 +317,7 @@ public class ZMSFileChangeLogStoreCommon {
         // meta data only so we'll only get the list of domains
 
         Map<String, List<String>> responseHeaders = new HashMap<>();
-        SignedDomains domainList = zmsClient.getSignedDomains(null, VALUE_TRUE,
-                lastModTime, responseHeaders);
+        SignedDomains domainList = makeSignedDomainsCall(zmsClient, null, VALUE_TRUE, lastModTime, responseHeaders);
 
         // retrieve the tag value for the request
 
@@ -344,5 +349,9 @@ public class ZMSFileChangeLogStoreCommon {
     static void error(String msg) {
         LOGGER.error(msg);
         throw new RuntimeException("ZMSFileChangeLogStore: " + msg);
+    }
+
+    private SignedDomains makeSignedDomainsCall(ZMSClient zmsClient, String domainName, String metaOnly, String matchingTag, Map<String, List<String>> responseHeaders) {
+        return zmsClient.getSignedDomains(domainName, metaOnly, null, true, requestConditions, matchingTag, responseHeaders);
     }
 }

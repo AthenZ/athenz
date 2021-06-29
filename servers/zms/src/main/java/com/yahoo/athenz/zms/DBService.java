@@ -6907,7 +6907,7 @@ public class DBService implements RolesProvider {
 
                 // now we need verify our quota check
 
-                quotaCheck.checkAssertionConditionsQuota(con, domainName, assertionId, assertionConditions, caller);
+                quotaCheck.checkAssertionConditionsQuota(con, assertionId, assertionConditions, caller);
 
                 // process our insert assertion condition.
 
@@ -6958,13 +6958,13 @@ public class DBService implements RolesProvider {
 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
 
-                // now we need verify our quota check
-
-                quotaCheck.checkAssertionConditionQuota(con, domainName, assertionId, assertionCondition, caller);
-
                 // process our insert assertion condition.
 
                 if (assertionCondition.getId() == null) {
+
+                    // now we need verify our quota check
+                    quotaCheck.checkAssertionConditionQuota(con, assertionId, assertionCondition, caller);
+
                     // no condition id in the request. so we are going to generate the next condition id for
                     // the given assertion id and then use it to insert given keys
                     assertionCondition.setId(con.getNextConditionId(assertionId, caller));
@@ -6978,6 +6978,9 @@ public class DBService implements RolesProvider {
                         throw ZMSUtils.notFoundError(String.format("%s: unable to delete assertion condition during putAssertionCondition for policy=%s assertionId=%d conditionId=%d"
                                 , caller, policyName, assertionId, assertionCondition.getId()), caller);
                     }
+                    // now we need verify our quota check after deleting the old entries
+                    quotaCheck.checkAssertionConditionQuota(con, assertionId, assertionCondition, caller);
+
                     // now insert the new keys against existing condition id
                     if (!con.insertAssertionCondition(assertionId, assertionCondition)) {
                         throw ZMSUtils.requestError(String.format("%s: unable to insert assertion condition for policy=%s assertionId=%d", caller, policyName, assertionId), caller);

@@ -32,13 +32,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
 import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_FILE_NAME;
+import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
 
 public class ZMSFileMTLSChangeLogStoreTest {
@@ -286,10 +284,10 @@ public class ZMSFileMTLSChangeLogStoreTest {
         // now let's set the tag header
 
         cstore.setTagHeader(Timestamp.fromCurrentTime().toString());
-        SignedDomains retDoamins = store.getUpdatedSignedDomains(str);
-        assertNotNull(retDoamins);
-        assertEquals(retDoamins.getDomains().size(), 1);
-        assertEquals(retDoamins.getDomains().get(0).getDomain().getName(), "athenz");
+        SignedDomains retDomains = store.getUpdatedSignedDomains(str);
+        assertNotNull(retDomains);
+        assertEquals(retDomains.getDomains().size(), 1);
+        assertEquals(retDomains.getDomains().get(0).getDomain().getName(), "athenz");
 
         // now set the signed domains to be null
 
@@ -311,7 +309,7 @@ public class ZMSFileMTLSChangeLogStoreTest {
         domains.add(domain);
         SignedDomains domainList = new SignedDomains().setDomains(domains);
 
-        Mockito.when(zmsClient.getSignedDomains(null, "true", null, null)).thenReturn(domainList);
+        Mockito.when(zmsClient.getSignedDomains(null, "true", null, true, false,  null, null)).thenReturn(domainList);
 
         SignedDomains returnList = fstore.getServerDomainModifiedList();
         assertEquals(returnList.getDomains().size(), 1);
@@ -325,7 +323,7 @@ public class ZMSFileMTLSChangeLogStoreTest {
         ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
         fstore.setZMSClient(zmsClient);
 
-        Mockito.when(zmsClient.getSignedDomains(null, "true", null, null)).thenReturn(null);
+        Mockito.when(zmsClient.getSignedDomains(null, "true", null, true, false,  null, null)).thenReturn(null);
 
         assertNull(fstore.getServerDomainModifiedList());
     }
@@ -337,7 +335,7 @@ public class ZMSFileMTLSChangeLogStoreTest {
         ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
         fstore.setZMSClient(zmsClient);
 
-        Mockito.when(zmsClient.getSignedDomains(null, "true", null, null))
+        Mockito.when(zmsClient.getSignedDomains(null, "true", null, true, false,  null, null))
                 .thenThrow(new ZMSClientException(500, "invalid server error:"));
 
         SignedDomains returnList = fstore.getServerDomainModifiedList();
@@ -357,7 +355,7 @@ public class ZMSFileMTLSChangeLogStoreTest {
         domains.add(domain);
         SignedDomains domainList = new SignedDomains().setDomains(domains);
 
-        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null)).thenReturn(domainList);
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, true, false,  null, null)).thenReturn(domainList);
 
         SignedDomain signedDomain = fstore.getServerSignedDomain("athenz");
         assertNotNull(signedDomain);
@@ -387,7 +385,7 @@ public class ZMSFileMTLSChangeLogStoreTest {
 
         SignedDomains domainList = new SignedDomains().setDomains(domains);
 
-        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null)).thenReturn(domainList);
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, true, false,  null, null)).thenReturn(domainList);
 
         assertNull(fstore.getServerSignedDomain("athenz"));
     }
@@ -399,7 +397,7 @@ public class ZMSFileMTLSChangeLogStoreTest {
         ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
         fstore.setZMSClient(zmsClient);
 
-        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null))
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, true, false,  null, null))
             .thenThrow(new ZMSClientException(500, "invalid server error:"));
 
         assertNull(fstore.getServerSignedDomain("athenz"));

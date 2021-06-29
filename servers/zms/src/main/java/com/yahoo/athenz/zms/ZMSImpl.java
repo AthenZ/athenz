@@ -529,16 +529,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             @Override
             void convertToLowerCase(Object obj) {
                 AssertionConditions assertionConditions = (AssertionConditions) obj;
-                // lower case key and value, assertion condition operator is an ENUM, hence left unchanged
-                assertionConditions.setConditionsList(assertionConditions.getConditionsList().stream()
-                        .map(c -> new AssertionCondition()
-                                .setConditionsMap(c.getConditionsMap().entrySet().stream()
-                                        .collect(Collectors.toMap(
-                                                e -> e.getKey().toLowerCase(),
-                                                e -> e.getValue().setValue(e.getValue().getValue().toLowerCase())
-                                        ))))
-                        .collect(Collectors.toList())
-                );
+                    for (AssertionCondition assertionCondition : assertionConditions.getConditionsList()) {
+                        ASSERTION_CONDITION.convertToLowerCase(assertionCondition);
+                    }
             }
         },
         ASSERTION_CONDITION {
@@ -546,13 +539,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             void convertToLowerCase(Object obj) {
                 AssertionCondition assertionCondition = (AssertionCondition) obj;
                 // lower case key and value, assertion condition operator is an ENUM, hence left unchanged
-                if (assertionCondition.getConditionsMap() != null) {
-                    assertionCondition.setConditionsMap(assertionCondition.getConditionsMap().entrySet().stream()
-                            .collect(Collectors.toMap(
-                                    e -> e.getKey().toLowerCase(),
-                                    e -> e.getValue().setValue(e.getValue().getValue().toLowerCase())
-                            )));
+                Map<String, AssertionConditionData> lowerCasedMap = new HashMap<>();
+                for (Map.Entry<String, AssertionConditionData> assertionConditionDataEntry : assertionCondition.getConditionsMap().entrySet()) {
+                    assertionConditionDataEntry.getValue().setValue(assertionConditionDataEntry.getValue().getValue().toLowerCase());
+                    lowerCasedMap.put(assertionConditionDataEntry.getKey().toLowerCase(), assertionConditionDataEntry.getValue());
                 }
+                assertionCondition.setConditionsMap(lowerCasedMap);
             }
         };
 
@@ -5724,7 +5716,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("retrieveJWSDomain: retrieving domain {}", domainName);
         }
 
-        AthenzDomain athenzDomain = getAthenzDomain(domainName, true);
+        AthenzDomain athenzDomain = getAthenzDomain(domainName, true, false);
         if (athenzDomain == null) {
             return null;
         }
