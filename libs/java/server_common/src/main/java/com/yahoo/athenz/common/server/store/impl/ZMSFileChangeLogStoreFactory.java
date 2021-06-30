@@ -25,11 +25,11 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.security.PrivateKey;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_DATA_STORE_SUBDIR;
+
 public class ZMSFileChangeLogStoreFactory implements ChangeLogStoreFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZMSFileChangeLogStoreFactory.class);
-
-    private static final String ZTS_DATA_STORE = "zts_store";
 
     // private/x.509 cert path settings
 
@@ -59,7 +59,7 @@ public class ZMSFileChangeLogStoreFactory implements ChangeLogStoreFactory {
         // if we have mtls settings configured then we should use those
         // for our client otherwise we'll fall back to our private key access
 
-        final String rootDirectory = ztsHomeDir + File.separator + ZTS_DATA_STORE;
+        final String rootDirectory = ztsHomeDir + File.separator + System.getProperty(PROP_DATA_STORE_SUBDIR, "zts_store");
         ChangeLogStore store = mtlsClientChangeLogStore(rootDirectory);
         if (store == null) {
             LOGGER.info("mtls client change log store not available");

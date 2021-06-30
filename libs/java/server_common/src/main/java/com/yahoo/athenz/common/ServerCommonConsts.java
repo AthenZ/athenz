@@ -38,6 +38,7 @@ public final class ServerCommonConsts {
     public static final String PROP_ATHENZ_CONF             = "athenz.athenz_conf";
     public static final String ZTS_PROP_FILE_NAME           = "athenz.zts.prop_file";
     public static final String PROP_GET_CONDITIONS_IN_SIGNED_DOMAINS = "athenz.server_common.get_conditions_in_signed_domains";
+    public static final String PROP_DATA_STORE_SUBDIR = "athenz.server_common.data_store_subdir";
 
     public static final String REQUEST_PRINCIPAL    = "com.yahoo.athenz.auth.principal";
     public static final String REQUEST_AUTHORITY_ID = "com.yahoo.athenz.auth.authority_id";
