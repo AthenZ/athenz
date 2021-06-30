@@ -16,11 +16,16 @@
 package com.yahoo.athenz.common.server.store.impl;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_DATA_STORE_SUBDIR;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.util.Objects;
 
@@ -143,5 +148,21 @@ public class ZMSFileChangeLogStoreFactoryTest {
         System.clearProperty("athenz.common.server.clog.zts_server_key_path");
         System.clearProperty("athenz.common.server.clog.zts_server_trust_store_password_name");
         System.clearProperty(PROP_ATHENZ_CONF);
+    }
+
+    @Test
+    public void testCreateStoreDiffLocation() throws IOException {
+
+        File privKeyFile = new File("src/test/resources/unit_test_zts_private.pem");
+        String privKey = Crypto.encodedFile(privKeyFile);
+        PrivateKey pkey = Crypto.loadPrivateKey(Crypto.ybase64DecodeString(privKey));
+        System.setProperty(PROP_DATA_STORE_SUBDIR, "custom_loc");
+        ZMSFileChangeLogStoreFactory factory = new ZMSFileChangeLogStoreFactory();
+        ChangeLogStore store = factory.create(ZTS_DATA_STORE_PATH, pkey, "0");
+        assertNotNull(store);
+        Path path = Paths.get(ZTS_DATA_STORE_PATH + File.separator + "custom_loc");
+        assertTrue(Files.exists(path));
+        Files.delete(path);
+        System.clearProperty(PROP_DATA_STORE_SUBDIR);
     }
 }
