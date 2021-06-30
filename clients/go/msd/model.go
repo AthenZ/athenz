@@ -931,6 +931,11 @@ type Workload struct {
 	// certificate expiry time (ex: getNotAfter)
 	//
 	CertExpiryTime rdl.Timestamp `json:"certExpiryTime"`
+
+	//
+	// certificate issue time (ex: getNotBefore)
+	//
+	CertIssueTime rdl.Timestamp `json:"certIssueTime"`
 }
 
 //
@@ -1025,6 +1030,56 @@ func (self *Workload) Validate() error {
 	if self.CertExpiryTime.IsZero() {
 		return fmt.Errorf("Workload: Missing required field: certExpiryTime")
 	}
+	if self.CertIssueTime.IsZero() {
+		return fmt.Errorf("Workload: Missing required field: certIssueTime")
+	}
+	return nil
+}
+
+//
+// WorkloadOptions -
+//
+type WorkloadOptions struct {
+
+	//
+	// boolean flag to signal a change in IP state
+	//
+	IpChanged bool `json:"ipChanged"`
+}
+
+//
+// NewWorkloadOptions - creates an initialized WorkloadOptions instance, returns a pointer to it
+//
+func NewWorkloadOptions(init ...*WorkloadOptions) *WorkloadOptions {
+	var o *WorkloadOptions
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(WorkloadOptions)
+	}
+	return o
+}
+
+type rawWorkloadOptions WorkloadOptions
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a WorkloadOptions
+//
+func (self *WorkloadOptions) UnmarshalJSON(b []byte) error {
+	var m rawWorkloadOptions
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := WorkloadOptions(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *WorkloadOptions) Validate() error {
 	return nil
 }
 

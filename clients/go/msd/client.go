@@ -392,3 +392,34 @@ func (client MSDClient) GetWorkloadsByIP(ip string, matchingTag string) (*Worklo
 		return nil, "", errobj
 	}
 }
+
+func (client MSDClient) PutWorkload(domainName DomainName, serviceName EntityName, options *WorkloadOptions) error {
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workload"
+	contentBytes, err := json.Marshal(options)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, nil, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}

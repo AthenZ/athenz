@@ -31,8 +31,15 @@ public class WorkloadTest {
     public void testWorkloadFields() {
         Workload wl1 = new Workload();
         List<String> ipAddresses = Collections.singletonList("10.20.30.40");
-        wl1.setDomainName("athenz").setServiceName("api").setIpAddresses(ipAddresses).setProvider("kubernetes").setUuid("1234-rsaq-422dcz")
-                .setUpdateTime(Timestamp.fromMillis(123456789123L)).setHostname("testhost-1").setCertExpiryTime(Timestamp.fromMillis(123456789123L));
+        wl1.setDomainName("athenz")
+                .setServiceName("api")
+                .setIpAddresses(ipAddresses)
+                .setProvider("kubernetes")
+                .setUuid("1234-rsaq-422dcz")
+                .setHostname("testhost-1")
+                .setUpdateTime(Timestamp.fromMillis(123456789123L))
+                .setCertIssueTime(Timestamp.fromMillis(123456789120L))
+                .setCertExpiryTime(Timestamp.fromMillis(123456789123L));
 
         assertNotNull(wl1);
         assertEquals(wl1.getDomainName(), "athenz");
@@ -42,12 +49,20 @@ public class WorkloadTest {
         assertEquals(wl1.getUuid(), "1234-rsaq-422dcz");
         assertEquals(wl1.getUpdateTime(), Timestamp.fromMillis(123456789123L));
         assertEquals(wl1.getHostname(), "testhost-1");
+        assertEquals(wl1.getCertIssueTime(), Timestamp.fromMillis(123456789120L));
         assertEquals(wl1.getCertExpiryTime(), Timestamp.fromMillis(123456789123L));
         assertEquals(wl1, wl1);
 
         Workload wl2 = new Workload();
-        wl2.setDomainName("athenz").setServiceName("api").setIpAddresses(ipAddresses).setProvider("kubernetes").setUuid("1234-rsaq-422dcz")
-                .setUpdateTime(Timestamp.fromMillis(123456789123L)).setHostname("testhost-1").setCertExpiryTime(Timestamp.fromMillis(123456789123L));
+        wl2.setDomainName("athenz")
+                .setServiceName("api")
+                .setIpAddresses(ipAddresses)
+                .setProvider("kubernetes")
+                .setUuid("1234-rsaq-422dcz")
+                .setHostname("testhost-1")
+                .setUpdateTime(Timestamp.fromMillis(123456789123L))
+                .setCertIssueTime(Timestamp.fromMillis(123456789120L))
+                .setCertExpiryTime(Timestamp.fromMillis(123456789123L));
 
         assertEquals(wl1, wl2);
 
@@ -95,8 +110,14 @@ public class WorkloadTest {
         assertNotEquals(wl1, wl2);
         wl2.setCertExpiryTime(null);
         assertNotEquals(wl1, wl2);
-
         wl2.setCertExpiryTime(Timestamp.fromMillis(123456789123L));
+
+        wl2.setCertIssueTime(Timestamp.fromMillis(123456789000L));
+        assertNotEquals(wl1, wl2);
+        wl2.setCertIssueTime(null);
+        assertNotEquals(wl1, wl2);
+        wl2.setCertIssueTime(Timestamp.fromMillis(123456789120L));
+
         assertEquals(wl1, wl2);
 
         assertNotEquals(wl1, null);

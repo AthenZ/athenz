@@ -33,3 +33,20 @@ resource Workloads GET "/workloads/{ip}" (name=getWorkloadsByIP) {
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+// Api for doing a PUT on Workload for a domain/service
+// Workload details are obtained from the service certificate
+resource WorkloadOptions PUT "/domain/{domainName}/service/{serviceName}/workload" (name=putWorkload) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    WorkloadOptions options; // workload store to be inserted
+    authenticate;
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
