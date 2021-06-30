@@ -20,7 +20,6 @@ import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
 import RuleTable from './RuleTable';
 import AddSegmentation from './AddSegmentation';
-// import AddSegmentation from './AddSegmentation';
 
 const MembersSectionDiv = styled.div`
     margin: 20px;
@@ -87,7 +86,6 @@ export default class RulesList extends React.Component {
     render() {
         const { domain } = this.props;
         let addSegmentationButton = '';
-
         let addSegmentation = this.state.showAddSegmentation ? (
             <AddSegmentation
                 api={this.api}
@@ -96,7 +94,7 @@ export default class RulesList extends React.Component {
                 onCancel={this.toggleAddSegmentation}
                 _csrf={this.props._csrf}
                 showAddSegment={this.state.showAddSegmentation}
-                justificationRequired={false}
+                justificationRequired={this.props.isDomainAuditEnabled}
             />
         ) : (
             ''
@@ -129,6 +127,7 @@ export default class RulesList extends React.Component {
                         onSubmit={this.reloadData}
                         data={this.state.segmentationData.inbound}
                         caption='Inbound'
+                        justificationRequired={this.props.isDomainAuditEnabled}
                     />
                 ) : null}
                 <br />
@@ -141,6 +140,7 @@ export default class RulesList extends React.Component {
                         onSubmit={this.reloadData}
                         data={this.state.segmentationData.outbound}
                         caption='Outbound'
+                        justificationRequired={this.props.isDomainAuditEnabled}
                     />
                 ) : null}
                 {!showInbound && !showInbound ? (

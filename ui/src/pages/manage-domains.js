@@ -22,7 +22,6 @@ import Head from 'next/head';
 
 import ManageDomains from '../components/domain/ManageDomains';
 import RequestUtils from '../components/utils/RequestUtils';
-import Alert from '../components/denali/Alert';
 import { MODAL_TIME_OUT } from '../components/constants/constants';
 import Error from './_error';
 import createCache from '@emotion/cache';

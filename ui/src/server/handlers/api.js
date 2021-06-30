@@ -62,6 +62,67 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'assertionConditions',
+    create(req, resource, params, body, config, callback) {
+        let assertionConditions = [];
+        let assertionConditionData = {
+            operator: 'EQUALS',
+            value: '',
+        };
+
+        var assertionCondition;
+
+        for (var i = 0; i < params.assertionConditions.length; i++) {
+            let condition = {};
+            assertionCondition = {
+                conditionsMap: {},
+            };
+            Object.keys(params.assertionConditions[i]).forEach((key) => {
+                let copyAssertionConditionData = JSON.parse(
+                    JSON.stringify(assertionConditionData)
+                );
+                copyAssertionConditionData['value'] =
+                    params.assertionConditions[i][key];
+                if (copyAssertionConditionData['value'] === '') {
+                    copyAssertionConditionData['value'] = 'ALL';
+                }
+                condition[key] = copyAssertionConditionData;
+            });
+            assertionCondition['conditionsMap'] = condition;
+            assertionConditions.push(assertionCondition);
+        }
+        let finalData = {
+            conditionsList: assertionConditions,
+        };
+        params.assertionConditions = finalData;
+
+        req.clients.zms.putAssertionConditions(
+            params,
+            responseHandler.bind({
+                caller: 'putAssertionConditions',
+                callback,
+                req,
+            })
+        );
+    },
+});
+
+Fetchr.registerService({
+    name: 'assertionCondition',
+
+    delete(req, resource, params, config, callback) {
+        req.clients.zms.deleteAssertionCondition(
+            params,
+            responseHandler.bind({
+                caller: 'deleteAssertionCondition',
+                callback,
+                req,
+            })
+        );
+    },
+});
+
+Fetchr.registerService({
     name: 'domain',
     read(req, resource, params, config, callback) {
         req.clients.zms.getDomain(
@@ -657,6 +718,67 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'assertionId',
+    read(req, resource, params, config, callback) {
+        new Promise((resolve, reject) => {
+            req.clients.zms.getPolicy(
+                {
+                    policyName: params.policyName,
+                    domainName: params.domainName,
+                },
+                (err, data) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    if (data) {
+                        resolve(data);
+                    }
+                }
+            );
+        })
+            .then((policyData) => {
+                let flag = 0;
+                policyData.assertions.forEach((assertion) => {
+                    if (
+                        assertion.role ===
+                            params.domainName + ':role.' + params.roleName &&
+                        assertion.resource ===
+                            params.domainName + ':' + params.resource &&
+                        assertion.action === params.action &&
+                        assertion.effect === params.effect
+                    ) {
+                        flag = 1;
+                        callback(null, assertion.id);
+                    }
+                });
+
+                if (!flag) {
+                    let error = {
+                        status: 404,
+                        message: {
+                            message:
+                                'Failed to get assertion for policy' +
+                                params.policyName +
+                                '.',
+                        },
+                    };
+                    callback(errorHandler.fetcherError(error));
+                }
+            })
+            .catch((err) => {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error from ZMS while calling getPolicy API for microsegmentation: ${JSON.stringify(
+                        err
+                    )}`
+                );
+                callback(errorHandler.fetcherError(err));
+            });
+    },
+});
+
+Fetchr.registerService({
     name: 'process-pending',
     create(req, resource, params, body, config, callback) {
         if (params.category === 'group') {
@@ -1086,7 +1208,6 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'add-service-host',
     update(req, resource, params, body, config, callback) {
-        console.log('servier params...', params);
         req.clients.zms.putServiceIdentity(
             params,
             responseHandler.bind({ caller: 'add-service-host', callback, req })
@@ -1815,6 +1936,32 @@ Fetchr.registerService({
                                         tempData['source_port'] = tempPort[1];
                                         tempData['destination_port'] =
                                             tempPort[2];
+                                        if (assertionItem.conditions) {
+                                            tempData['conditionsList'] = [];
+
+                                            assertionItem.conditions[
+                                                'conditionsList'
+                                            ].forEach((condition) => {
+                                                let tempCondition = {};
+                                                Object.keys(
+                                                    condition['conditionsMap']
+                                                ).forEach((key) => {
+                                                    tempCondition[key] =
+                                                        condition[
+                                                            'conditionsMap'
+                                                        ][key]['value'];
+                                                });
+                                                tempCondition['id'] =
+                                                    condition['id'];
+                                                tempCondition['assertionId'] =
+                                                    assertionItem['id'];
+                                                tempCondition['policyName'] =
+                                                    item.name;
+                                                tempData['conditionsList'].push(
+                                                    tempCondition
+                                                );
+                                            });
+                                        }
                                         let index = 0;
                                         if (item.name.includes('inbound')) {
                                             category = 'inbound';

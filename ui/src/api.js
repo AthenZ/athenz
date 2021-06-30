@@ -938,6 +938,35 @@ const Api = (req) => {
             });
         },
 
+        getAssertionId(
+            domainName,
+            policyName,
+            roleName,
+            resource,
+            action,
+            effect
+        ) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('assertionId')
+                    .params({
+                        domainName,
+                        policyName,
+                        roleName,
+                        resource,
+                        action,
+                        effect,
+                    })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         getProvider(domainName, serviceName) {
             return new Promise((resolve, reject) => {
                 fetchr
@@ -1126,7 +1155,48 @@ const Api = (req) => {
             });
         },
 
-        deleteAssertion(domainName, policyName, assertionId, _csrf) {
+        addAssertionConditions(
+            domainName,
+            policyName,
+            assertionId,
+            assertionConditions,
+            auditRef,
+            _csrf
+        ) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                var params = {
+                    domainName,
+                    assertionId,
+                    assertionConditions,
+                    policyName,
+                    auditRef,
+                };
+                fetchr
+                    .create('assertionConditions')
+                    .params(params)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        deleteAssertionCondition(
+            domainName,
+            policyName,
+            assertionId,
+            conditionId,
+            auditRef,
+            _csrf
+        ) {
             return new Promise((resolve, reject) => {
                 fetchr.updateOptions({
                     context: {
@@ -1138,6 +1208,36 @@ const Api = (req) => {
                     domainName,
                     policyName,
                     assertionId,
+                    conditionId,
+                    auditRef,
+                };
+
+                fetchr
+                    .delete('assertionCondition')
+                    .params(params)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        deleteAssertion(domainName, policyName, assertionId, auditRef, _csrf) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+
+                let params = {
+                    domainName,
+                    policyName,
+                    assertionId,
+                    auditRef,
                 };
 
                 fetchr

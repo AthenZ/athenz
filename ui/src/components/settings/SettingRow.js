@@ -17,7 +17,6 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Switch from '../denali/Switch';
 import Input from '../denali/Input';
-import RadioButtonGroup from '../denali/RadioButtonGroup';
 import InputDropdown from '../denali/InputDropdown';
 
 const TDStyled = styled.td`

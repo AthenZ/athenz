@@ -31,6 +31,8 @@ import {
     SEGMENTATION_PROTOCOL,
 } from '../constants/constants';
 import NameUtils from '../utils/NameUtils';
+import RadioButtonGroup from '../denali/RadioButtonGroup';
+import Modal from '../denali/Modal';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -47,16 +49,33 @@ const StyledInputLabel = styled(InputLabel)`
     width: 20%;
 `;
 
+const StyledInputLabelHost = styled(InputLabel)`
+    float: left;
+    font-size: 14px;
+    font-weight: 700;
+    padding-top: 12px;
+    width: 8%;
+`;
+
 const StyledButtonGroup = styled(ButtonGroup)`
     height: 40px;
     width: 200px;
 `;
 
 const StyledInput = styled(Input)`
-    width: 400px;
+    width: 750px;
+`;
+
+const StyledInputHost = styled(Input)`
+    width: 415px;
 `;
 
 const AddCircleDiv = styled.div`
+    margin-top: 5px;
+    margin-left: 10px;
+`;
+
+const RemoveCircleDiv = styled.div`
     margin-top: 5px;
     margin-left: 10px;
 `;
@@ -75,9 +94,14 @@ const StyledIncludedMembersDiv = styled.div`
 `;
 
 const SectionsDiv = styled.div`
-    width: 780px;
+    width: 1000px;
     text-align: left;
     background-color: ${colors.white};
+`;
+
+const StyledRadioButtonGroup = styled(RadioButtonGroup)`
+    padding-top: 18px;
+    width: 26%;
 `;
 
 export default class AddSegmentation extends React.Component {
@@ -92,7 +116,12 @@ export default class AddSegmentation extends React.Component {
         this.protocolChanged = this.protocolChanged.bind(this);
         this.handlePolicy = this.handlePolicy.bind(this);
         this.handleMembers = this.handleMembers.bind(this);
+        this.validatePort = this.validatePort.bind(this);
         this.inputChanged = this.inputChanged.bind(this);
+        this.addFields = this.addFields.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleAddClick = this.handleAddClick.bind(this);
+        this.handleRemoveClick = this.handleRemoveClick.bind(this);
         this.state = {
             category: 'inbound',
             isCategory: true,
@@ -114,6 +143,8 @@ export default class AddSegmentation extends React.Component {
             resource: '',
             destinationServiceList: [],
             identifier: '',
+            justification: '',
+            PESList: [{ enforcementState: 'report', instances: '' }],
         };
     }
 
@@ -154,27 +185,21 @@ export default class AddSegmentation extends React.Component {
         });
     }
 
-    getJustification() {
-        if (this.props.justificationRequired) {
-            return (
-                <SectionDiv>
-                    <StyledInputLabel>Justification</StyledInputLabel>
-                    <ContentDiv>
-                        <StyledInput
-                            id='justification'
-                            name='justification'
-                            value={this.state.justification}
-                            onChange={this.inputChanged.bind(
-                                this,
-                                'justification'
-                            )}
-                            autoComplete={'off'}
-                            placeholder='Enter justification here'
-                        />
-                    </ContentDiv>
-                </SectionDiv>
-            );
-        }
+    addFields() {
+        return this.state.values.map((el, i) => (
+            <div key={i}>
+                <input
+                    type='text'
+                    value={el || ''}
+                    onChange={this.handleChange.bind(this, i)}
+                />
+                <input
+                    type='button'
+                    value='remove'
+                    onClick={this.removeClick.bind(this, i)}
+                />
+            </div>
+        ));
     }
 
     addMember() {
@@ -243,13 +268,32 @@ export default class AddSegmentation extends React.Component {
                             roleName,
                             resource,
                             action,
-                            this.state.effect,
+                            'ALLOW',
                             this.props._csrf
                         )
                         .then((data) => {
-                            if (!this.state.errorMessage) {
-                                this.props.onSubmit();
-                            }
+                            this.api
+                                .addAssertionConditions(
+                                    this.props.domain,
+                                    policyName,
+                                    data.id,
+                                    this.state.PESList,
+                                    this.state.justification
+                                        ? this.state.justification
+                                        : 'Micro-segmentaion Assertion Condition using Athenz UI',
+                                    this.props._csrf
+                                )
+                                .then((conditionData) => {
+                                    this.props.onSubmit();
+                                })
+                                .catch((err) => {
+                                    this.setState({
+                                        errorMessage:
+                                            RequestUtils.xhrErrorCheckHelper(
+                                                err
+                                            ),
+                                    });
+                                });
                         })
                         .catch((err) => {
                             this.setState({
@@ -268,13 +312,51 @@ export default class AddSegmentation extends React.Component {
                             roleName,
                             resource,
                             action,
-                            this.state.effect,
+                            'ALLOW',
                             this.props._csrf
                         )
-                        .then((data) => {
-                            if (!this.state.errorMessage) {
-                                this.props.onSubmit();
-                            }
+                        .then(() => {
+                            this.api
+                                .getAssertionId(
+                                    this.props.domain,
+                                    policyName,
+                                    roleName,
+                                    resource,
+                                    action,
+                                    'ALLOW'
+                                )
+                                .then((assertionId) => {
+                                    this.api
+                                        .addAssertionConditions(
+                                            this.props.domain,
+                                            policyName,
+                                            assertionId,
+                                            this.state.PESList,
+                                            this.state.justification
+                                                ? this.state.justification
+                                                : 'Micro-segmentaion Assertion Condition using Athenz UI',
+                                            this.props._csrf
+                                        )
+                                        .then((conditionData) => {
+                                            this.props.onSubmit();
+                                        })
+                                        .catch((err) => {
+                                            this.setState({
+                                                errorMessage:
+                                                    RequestUtils.xhrErrorCheckHelper(
+                                                        err
+                                                    ),
+                                            });
+                                        });
+                                })
+                                .catch((err) => {
+                                    this.setState({
+                                        errorMessage:
+                                            RequestUtils.xhrErrorCheckHelper(
+                                                err
+                                            ),
+                                    });
+                                });
                         })
                         .catch((err) => {
                             this.setState({
@@ -304,7 +386,7 @@ export default class AddSegmentation extends React.Component {
                     members.memberName,
                     membership,
                     this.state.justification
-                        ? this.state.justificationsubs
+                        ? this.state.justification
                         : 'added for micro-segmentation',
                     'role',
                     this.props._csrf
@@ -322,6 +404,56 @@ export default class AddSegmentation extends React.Component {
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                 });
             });
+    }
+
+    validatePort(port) {
+        var regex = new RegExp('^[0-9-,]*$');
+        var result = {
+            error: 0,
+            port: port,
+        };
+
+        if (!regex.test(port)) {
+            this.setState({
+                errorMessage: "Port can only contain numbers, '-' and ','",
+            });
+            result.error = 1;
+            return result;
+        }
+
+        let ports = port.split(',');
+        for (var i = 0; i < ports.length; i++) {
+            if (ports[i].indexOf('-') != -1) {
+                let range = ports[i].split('-');
+                let start = parseInt(range[0]);
+                let end = parseInt(range[1]);
+                if (
+                    range.length != 2 ||
+                    start < 1 ||
+                    end < 1024 ||
+                    start > end ||
+                    start > 65535 ||
+                    end > 65535
+                ) {
+                    this.setState({
+                        errorMessage: 'Invalid port: ' + ports[i],
+                    });
+                    result.error = 1;
+                    return result;
+                }
+            } else if (ports[i] > 0 && ports[i] <= 65535) {
+                ports[i] = ports[i] + '-' + ports[i];
+            } else {
+                this.setState({
+                    errorMessage: 'Port has to be in the range of 0-65535',
+                });
+                result.error = 1;
+                return result;
+            }
+        }
+
+        result.port = ports.join(',');
+        return result;
     }
 
     onSubmit() {
@@ -424,6 +556,22 @@ export default class AddSegmentation extends React.Component {
             }
         }
 
+        if (
+            this.props.justificationRequired &&
+            (this.state.justification === undefined ||
+                this.state.justification.trim() === '')
+        ) {
+            this.setState({
+                errorMessage: 'Justification is required to add a member.',
+            });
+            return;
+        }
+
+        let sourcePort = this.validatePort(this.state.sourcePort).port;
+        let destinationPort = this.validatePort(
+            this.state.destinationPort
+        ).port;
+
         //set the policy and assertion values based on ACL category
         var roleName, action, policyName, resource;
 
@@ -440,9 +588,9 @@ export default class AddSegmentation extends React.Component {
                 '-' +
                 'IN' +
                 ':' +
-                this.state.sourcePort +
+                sourcePort +
                 ':' +
-                this.state.destinationPort;
+                destinationPort;
             policyName =
                 'acl.' +
                 this.state.inboundDestinationService +
@@ -462,9 +610,9 @@ export default class AddSegmentation extends React.Component {
                 '-' +
                 'OUT' +
                 ':' +
-                this.state.sourcePort +
+                sourcePort +
                 ':' +
-                this.state.destinationPort;
+                destinationPort;
             policyName =
                 'acl.' +
                 this.state.outboundSourceService +
@@ -482,8 +630,6 @@ export default class AddSegmentation extends React.Component {
                 );
             }) || [];
 
-        let auditRef = 'Micro-segmentaion Role creation';
-
         //Check for the role and if it is missing add it otherwise contniue with policy aseertion update
         this.api
             .getRole(this.props.domain, role.name)
@@ -500,7 +646,9 @@ export default class AddSegmentation extends React.Component {
                             this.props.domain,
                             role.name,
                             role,
-                            auditRef,
+                            this.state.justification
+                                ? this.state.justification
+                                : 'Micro-segmentaion Role creation',
                             this.props._csrf
                         )
                         .then((data) => {
@@ -557,7 +705,60 @@ export default class AddSegmentation extends React.Component {
         }
     }
 
+    handleInputChange(e, index) {
+        const { name, value } = e.target;
+        const list = [...this.state.PESList];
+
+        if (name.includes('enforcementStateRadioButton')) {
+            list[index]['enforcementState'] = value;
+            if (list.length == 2) {
+                if (value === 'report') {
+                    list[1]['enforcementState'] = 'enforce';
+                } else {
+                    list[1]['enforcementState'] = 'report';
+                }
+            }
+        } else {
+            list[index]['instances'] = value;
+        }
+        this.setState({
+            PESList: list,
+        });
+    }
+
+    handleAddClick() {
+        let enforcementState = 'report';
+        if (this.state.PESList[0]['enforcementState'] === 'report') {
+            enforcementState = 'enforce';
+        }
+        this.setState({
+            PESList: [
+                ...this.state.PESList,
+                { enforcementState: enforcementState, instances: '' },
+            ],
+        });
+    }
+
+    handleRemoveClick(index) {
+        const list = [...this.state.PESList];
+        list.splice(index, 1);
+        this.setState({
+            PESList: list,
+        });
+    }
+
     render() {
+        const inputs = [
+            {
+                label: 'Report',
+                value: 'report',
+            },
+            {
+                label: 'Enforce',
+                value: 'enforce',
+            },
+        ];
+
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
                   // dummy place holder so that it can be be used in the form
@@ -628,6 +829,62 @@ export default class AddSegmentation extends React.Component {
                         filterable
                     />
                 </SectionDiv>
+
+                {this.state.PESList.map((x, i) => {
+                    return (
+                        <SectionDiv>
+                            <StyledInputLabel>
+                                Policy Enforcement State
+                            </StyledInputLabel>
+                            <StyledRadioButtonGroup
+                                name={'enforcementStateRadioButton' + i}
+                                inputs={inputs}
+                                selectedValue={x.enforcementState}
+                                onChange={(e) => this.handleInputChange(e, i)}
+                                disabled={i == 1}
+                            />
+
+                            <StyledInputLabelHost>Hosts</StyledInputLabelHost>
+                            <StyledInputHost
+                                placeholder='Comma separated list, Leave blank to apply to all hosts'
+                                value={x.instances}
+                                name={'instances' + i}
+                                onChange={(e) => this.handleInputChange(e, i)}
+                                noanim
+                                error={x.instances.length > 2048}
+                                message={
+                                    x.instances.length > 2048
+                                        ? 'Limit is 2048 characters. Contact #athenz channel on slack'
+                                        : ''
+                                }
+                                fluid
+                            />
+                            {this.state.PESList.length < 2 ? (
+                                <AddCircleDiv>
+                                    <Icon
+                                        icon={'add-circle'}
+                                        isLink
+                                        color={colors.icons}
+                                        size='1.75em'
+                                        onClick={this.handleAddClick}
+                                    />
+                                </AddCircleDiv>
+                            ) : (
+                                <RemoveCircleDiv>
+                                    <Icon
+                                        icon={'minus'}
+                                        isLink
+                                        color={colors.icons}
+                                        size='1.75em'
+                                        onClick={() =>
+                                            this.handleRemoveClick(i)
+                                        }
+                                    />
+                                </RemoveCircleDiv>
+                            )}
+                        </SectionDiv>
+                    );
+                })}
 
                 <SectionDiv>
                     <StyledInputLabel>
@@ -739,6 +996,20 @@ export default class AddSegmentation extends React.Component {
                         filterable
                     />
                 </SectionDiv>
+                {this.props.justificationRequired && (
+                    <SectionDiv>
+                        <StyledInputLabel>Justification</StyledInputLabel>
+                        <ContentDiv>
+                            <StyledInput
+                                value={this.state.justification}
+                                onChange={(event) =>
+                                    this.inputChanged(event, 'justification')
+                                }
+                                placeholder='Enter justification here'
+                            />
+                        </ContentDiv>
+                    </SectionDiv>
+                )}
             </SectionsDiv>
         );
         return (
@@ -750,6 +1021,8 @@ export default class AddSegmentation extends React.Component {
                     title={`Add Micro Segmentation ACL Policy`}
                     errorMessage={this.state.errorMessage}
                     sections={sections}
+                    width={'1050px'}
+                    bodyMaxHeight={'530px'}
                 />
             </div>
         );
