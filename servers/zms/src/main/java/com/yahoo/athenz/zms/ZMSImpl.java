@@ -1407,7 +1407,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setSignAlgorithm(detail.getSignAlgorithm())
                 .setUserAuthorityFilter(detail.getUserAuthorityFilter())
                 .setTags(detail.getTags())
-                .setBusinessService(detail.getBusinessService());
+                .setBusinessService(detail.getBusinessService())
+                .setCertDnsDomain(detail.getCertDnsDomain());
 
         // before processing validate the fields
 
@@ -5496,6 +5497,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setApplicationId(athenzDomain.getDomain().getApplicationId());
         domainData.setSignAlgorithm(athenzDomain.getDomain().getSignAlgorithm());
         domainData.setBusinessService(athenzDomain.getDomain().getBusinessService());
+        domainData.setDescription(athenzDomain.getDomain().getDescription());
+        domainData.setCertDnsDomain(athenzDomain.getDomain().getCertDnsDomain());
+        domainData.setOrg(athenzDomain.getDomain().getOrg());
+        domainData.setUserAuthorityFilter(athenzDomain.getDomain().getUserAuthorityFilter());
         if (athenzDomain.getDomain().getServiceCertExpiryMins() != null) {
             domainData.setServiceCertExpiryMins(athenzDomain.getDomain().getServiceCertExpiryMins());
         }
@@ -5504,6 +5509,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         if (athenzDomain.getDomain().getTokenExpiryMins() != null) {
             domainData.setTokenExpiryMins(athenzDomain.getDomain().getTokenExpiryMins());
+        }
+        if (athenzDomain.getDomain().getMemberExpiryDays() != null) {
+            domainData.setMemberExpiryDays(athenzDomain.getDomain().getMemberExpiryDays());
+        }
+        if (athenzDomain.getDomain().getGroupExpiryDays() != null) {
+            domainData.setGroupExpiryDays(athenzDomain.getDomain().getGroupExpiryDays());
+        }
+        if (athenzDomain.getDomain().getServiceExpiryDays() != null) {
+            domainData.setServiceExpiryDays(athenzDomain.getDomain().getServiceExpiryDays());
         }
 
         // set the domain tags

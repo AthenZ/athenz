@@ -18193,6 +18193,7 @@ public class ZMSImplTest {
     @Test
     public void testReceiveSignedDomainDataAuditExpiryFields() {
 
+        Authority savedAuthority = zms.userAuthority;
         final String domainName = "signed-dom-fields";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
@@ -18200,6 +18201,25 @@ public class ZMSImplTest {
         dom1.setTokenExpiryMins(10);
         dom1.setRoleCertExpiryMins(20);
         dom1.setServiceCertExpiryMins(30);
+        dom1.setDescription("test description");
+        dom1.setCertDnsDomain("test dns domain");
+        dom1.setOrg("org");
+        dom1.setUserAuthorityFilter("OnShore-US");
+        dom1.setMemberExpiryDays(40);
+        dom1.setGroupExpiryDays(50);
+        dom1.setServiceExpiryDays(60);
+
+        Authority authority = Mockito.mock(Authority.class);
+        Mockito.when(authority.getDateAttribute("user.testadminuser", "elevated-clearance")).thenReturn(new Date());
+        Mockito.when(authority.isAttributeSet("user.testadminuser", "OnShore-US")).thenReturn(true);
+        Set<String> attrs = new HashSet<>();
+        attrs.add("OnShore-US");
+        attrs.add("elevated-clearance");
+        Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
+        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        zms.userAuthority = authority;
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         // get the domain which would return from cache
@@ -18209,8 +18229,17 @@ public class ZMSImplTest {
         assertEquals(Integer.valueOf(10), signedDomain.getDomain().getTokenExpiryMins());
         assertEquals(Integer.valueOf(20), signedDomain.getDomain().getRoleCertExpiryMins());
         assertEquals(Integer.valueOf(30), signedDomain.getDomain().getServiceCertExpiryMins());
+        assertEquals("test description", signedDomain.getDomain().getDescription());
+        assertEquals("test dns domain", signedDomain.getDomain().getCertDnsDomain());
+        assertEquals("org", signedDomain.getDomain().getOrg());
+        assertEquals("OnShore-US", signedDomain.getDomain().getUserAuthorityFilter());
+        assertEquals(Integer.valueOf(40), signedDomain.getDomain().getMemberExpiryDays());
+        assertEquals(Integer.valueOf(50), signedDomain.getDomain().getGroupExpiryDays());
+        assertEquals(Integer.valueOf(60), signedDomain.getDomain().getServiceExpiryDays());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.userAuthority = savedAuthority;
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
     }
 
     @Test
