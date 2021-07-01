@@ -169,18 +169,25 @@ func init() {
 	tDomainSignedPolicyData.Field("keyId", "String", false, nil, "the identifier of the key used to generate the signature")
 	sb.AddType(tDomainSignedPolicyData.Build())
 
+	tRoleCertificate := rdl.NewStructTypeBuilder("Struct", "RoleCertificate")
+	tRoleCertificate.Comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
+	tRoleCertificate.Field("x509Certificate", "String", false, nil, "")
+	sb.AddType(tRoleCertificate.Build())
+
+	tRoleCertificateRequest := rdl.NewStructTypeBuilder("Struct", "RoleCertificateRequest")
+	tRoleCertificateRequest.Comment("RoleCertificateRequest - a certificate signing request. By including the optional previous Certificate NotBefore and NotAfter dates would all the server to correctly prioritize this request in case the certificate signer is under heavy load and it can't sign all submitted requests from the Athenz Server.")
+	tRoleCertificateRequest.Field("csr", "String", false, nil, "role certificate singing request")
+	tRoleCertificateRequest.Field("proxyForPrincipal", "EntityName", true, nil, "this request is proxy for this principal")
+	tRoleCertificateRequest.Field("expiryTime", "Int64", false, nil, "request an expiry time for the role certificate")
+	tRoleCertificateRequest.Field("prevCertNotBefore", "Timestamp", true, nil, "previous role certificate not before date")
+	tRoleCertificateRequest.Field("prevCertNotAfter", "Timestamp", true, nil, "previous role certificate not after date")
+	sb.AddType(tRoleCertificateRequest.Build())
+
 	tRoleToken := rdl.NewStructTypeBuilder("Struct", "RoleToken")
 	tRoleToken.Comment("A representation of a signed RoleToken")
 	tRoleToken.Field("token", "String", false, nil, "")
 	tRoleToken.Field("expiryTime", "Int64", false, nil, "")
 	sb.AddType(tRoleToken.Build())
-
-	tRoleCertificateRequest := rdl.NewStructTypeBuilder("Struct", "RoleCertificateRequest")
-	tRoleCertificateRequest.Comment("RoleCertificateRequest - a certificate signing request")
-	tRoleCertificateRequest.Field("csr", "String", false, nil, "")
-	tRoleCertificateRequest.Field("proxyForPrincipal", "EntityName", true, nil, "this request is proxy for this principal")
-	tRoleCertificateRequest.Field("expiryTime", "Int64", false, nil, "")
-	sb.AddType(tRoleCertificateRequest.Build())
 
 	tAccess := rdl.NewStructTypeBuilder("Struct", "Access")
 	tAccess.Comment("Access can be checked and returned as this resource.")
@@ -342,6 +349,8 @@ func init() {
 	tSSHCertRequestMeta.Field("certType", "String", false, nil, "cert type - user or host")
 	tSSHCertRequestMeta.Field("athenzService", "EntityName", true, nil, "ssh host cert request is for this athenz service")
 	tSSHCertRequestMeta.Field("instanceId", "PathElement", true, nil, "ssh host cert request is for this instance id")
+	tSSHCertRequestMeta.Field("prevCertValidFrom", "Timestamp", true, nil, "previous ssh certificate validity from date")
+	tSSHCertRequestMeta.Field("prevCertValidTo", "Timestamp", true, nil, "previous ssh certificate validity to date")
 	sb.AddType(tSSHCertRequestMeta.Build())
 
 	tSSHCertRequest := rdl.NewStructTypeBuilder("Struct", "SSHCertRequest")
@@ -389,11 +398,6 @@ func init() {
 
 	tAccessTokenRequest := rdl.NewAliasTypeBuilder("String", "AccessTokenRequest")
 	sb.AddType(tAccessTokenRequest.Build())
-
-	tRoleCertificate := rdl.NewStructTypeBuilder("Struct", "RoleCertificate")
-	tRoleCertificate.Comment("Copyright 2019 Oath Holdings Inc Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
-	tRoleCertificate.Field("x509Certificate", "String", false, nil, "")
-	sb.AddType(tRoleCertificate.Build())
 
 	tWorkload := rdl.NewStructTypeBuilder("Struct", "Workload")
 	tWorkload.Field("domainName", "DomainName", false, nil, "name of the domain, optional for getWorkloadsByService API call")

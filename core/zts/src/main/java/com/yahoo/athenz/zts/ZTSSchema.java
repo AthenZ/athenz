@@ -144,15 +144,21 @@ public class ZTSSchema {
             .field("signature", "String", false, "signature generated based on the domain policies object")
             .field("keyId", "String", false, "the identifier of the key used to generate the signature");
 
+        sb.structType("RoleCertificate")
+            .comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
+            .field("x509Certificate", "String", false, "");
+
+        sb.structType("RoleCertificateRequest")
+            .comment("RoleCertificateRequest - a certificate signing request. By including the optional previous Certificate NotBefore and NotAfter dates would all the server to correctly prioritize this request in case the certificate signer is under heavy load and it can't sign all submitted requests from the Athenz Server.")
+            .field("csr", "String", false, "role certificate singing request")
+            .field("proxyForPrincipal", "EntityName", true, "this request is proxy for this principal")
+            .field("expiryTime", "Int64", false, "request an expiry time for the role certificate")
+            .field("prevCertNotBefore", "Timestamp", true, "previous role certificate not before date")
+            .field("prevCertNotAfter", "Timestamp", true, "previous role certificate not after date");
+
         sb.structType("RoleToken")
             .comment("A representation of a signed RoleToken")
             .field("token", "String", false, "")
-            .field("expiryTime", "Int64", false, "");
-
-        sb.structType("RoleCertificateRequest")
-            .comment("RoleCertificateRequest - a certificate signing request")
-            .field("csr", "String", false, "")
-            .field("proxyForPrincipal", "EntityName", true, "this request is proxy for this principal")
             .field("expiryTime", "Int64", false, "");
 
         sb.structType("Access")
@@ -294,7 +300,9 @@ public class ZTSSchema {
             .field("sshClientVersion", "String", true, "ssh client version")
             .field("certType", "String", false, "cert type - user or host")
             .field("athenzService", "EntityName", true, "ssh host cert request is for this athenz service")
-            .field("instanceId", "PathElement", true, "ssh host cert request is for this instance id");
+            .field("instanceId", "PathElement", true, "ssh host cert request is for this instance id")
+            .field("prevCertValidFrom", "Timestamp", true, "previous ssh certificate validity from date")
+            .field("prevCertValidTo", "Timestamp", true, "previous ssh certificate validity to date");
 
         sb.structType("SSHCertRequest")
             .field("certRequestData", "SSHCertRequestData", false, "ssh certificate request data")
@@ -334,10 +342,6 @@ public class ZTSSchema {
             .arrayField("keys", "JWK", false, "array of JWKs");
 
     
-
-        sb.structType("RoleCertificate")
-            .comment("Copyright 2019 Oath Holdings Inc Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
-            .field("x509Certificate", "String", false, "");
 
         sb.structType("Workload")
             .field("domainName", "DomainName", false, "name of the domain, optional for getWorkloadsByService API call")

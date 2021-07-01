@@ -17,6 +17,7 @@
 package com.yahoo.athenz.zts;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.testng.annotations.Test;
@@ -25,7 +26,6 @@ import com.yahoo.rdl.Timestamp;
 
 import static org.testng.Assert.*;
 
-@SuppressWarnings({"EqualsWithItself", "EqualsBetweenInconvertibleTypes"})
 public class DomainSignedPolicyDataTest implements Cloneable {
 
     @Test
@@ -46,7 +46,6 @@ public class DomainSignedPolicyDataTest implements Cloneable {
         Assertion a = new Assertion();
         Assertion a2 = new Assertion();
 
-        //// set
         // set assertion
         a.setRole("user.hoge:role.test");
         a.setResource("user.hoge:coffee.blends.*");
@@ -99,7 +98,6 @@ public class DomainSignedPolicyDataTest implements Cloneable {
         dspd2.setSignature("signature");
         dspd2.setSignedPolicyData(spd);
 
-        //// get assertion
         // get assertion
         assertEquals(a.getRole(), "user.hoge:role.test");
         assertEquals(a.getResource(), "user.hoge:coffee.blends.*");
@@ -178,7 +176,130 @@ public class DomainSignedPolicyDataTest implements Cloneable {
         assertNotEquals("", pd);
         assertNotEquals("", spd);
         assertNotEquals("", dspd);
-
     }
 
+    @Test
+    public void testPolicy() {
+
+        Policy data1 = new Policy();
+        data1.setAssertions(Collections.emptyList());
+        data1.setModified(Timestamp.fromMillis(100));
+        data1.setName("name");
+        data1.setCaseSensitive(Boolean.FALSE);
+
+        Policy data2 = new Policy();
+        data2.setAssertions(Collections.emptyList());
+        data2.setModified(Timestamp.fromMillis(100));
+        data2.setName("name");
+        data2.setCaseSensitive(Boolean.FALSE);
+
+        assertEquals(data1, data1);
+        assertEquals(data1, data2);
+
+        // verify getters
+        assertEquals("name", data2.getName());
+        assertEquals(Collections.emptyList(), data2.getAssertions());
+        assertEquals(Timestamp.fromMillis(100), data2.getModified());
+        assertEquals(Boolean.FALSE, data2.getCaseSensitive());
+
+        data2.setName("name2");
+        assertNotEquals(data1, data2);
+        data2.setName(null);
+        assertNotEquals(data1, data2);
+        data2.setName("name");
+
+        data2.setModified(Timestamp.fromMillis(101));
+        assertNotEquals(data1, data2);
+        data2.setModified(null);
+        assertNotEquals(data1, data2);
+        data2.setModified(Timestamp.fromMillis(100));
+
+        data2.setCaseSensitive(Boolean.TRUE);
+        assertNotEquals(data1, data2);
+        data2.setCaseSensitive(null);
+        assertNotEquals(data1, data2);
+        data2.setCaseSensitive(Boolean.FALSE);
+
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(new Assertion());
+
+        data2.setAssertions(assertions);
+        assertNotEquals(data1, data2);
+        data2.setAssertions(null);
+        assertNotEquals(data1, data2);
+        data2.setAssertions(Collections.emptyList());
+
+        assertNotEquals(data1, null);
+        assertNotEquals("data", data2);
+    }
+
+    @Test
+    public void testAssertion() {
+
+        Assertion data1 = new Assertion();
+        data1.setAction("action");
+        data1.setEffect(AssertionEffect.ALLOW);
+        data1.setResource("resource");
+        data1.setId(100L);
+        data1.setRole("role");
+        data1.setCaseSensitive(Boolean.FALSE);
+
+        Assertion data2 = new Assertion();
+        data2.setAction("action");
+        data2.setEffect(AssertionEffect.ALLOW);
+        data2.setResource("resource");
+        data2.setId(100L);
+        data2.setRole("role");
+        data2.setCaseSensitive(Boolean.FALSE);
+
+        assertEquals(data1, data1);
+        assertEquals(data1, data2);
+
+        // verify getters
+        assertEquals("action", data2.getAction());
+        assertEquals("resource", data2.getResource());
+        assertEquals("role", data2.getRole());
+        assertEquals(AssertionEffect.ALLOW, data2.getEffect());
+        assertEquals(100L, (long) data2.getId());
+        assertEquals(Boolean.FALSE, data2.getCaseSensitive());
+
+        data2.setAction("action2");
+        assertNotEquals(data1, data2);
+        data2.setAction(null);
+        assertNotEquals(data1, data2);
+        data2.setAction("action");
+
+        data2.setResource("resource2");
+        assertNotEquals(data1, data2);
+        data2.setResource(null);
+        assertNotEquals(data1, data2);
+        data2.setResource("resource");
+
+        data2.setRole("role2");
+        assertNotEquals(data1, data2);
+        data2.setRole(null);
+        assertNotEquals(data1, data2);
+        data2.setRole("role");
+
+        data2.setCaseSensitive(Boolean.TRUE);
+        assertNotEquals(data1, data2);
+        data2.setCaseSensitive(null);
+        assertNotEquals(data1, data2);
+        data2.setCaseSensitive(Boolean.FALSE);
+
+        data2.setEffect(AssertionEffect.DENY);
+        assertNotEquals(data1, data2);
+        data2.setEffect(null);
+        assertNotEquals(data1, data2);
+        data2.setEffect(AssertionEffect.ALLOW);
+
+        data2.setId(1002L);
+        assertNotEquals(data1, data2);
+        data2.setId(null);
+        assertNotEquals(data1, data2);
+        data2.setId(100L);
+
+        assertNotEquals(data1, null);
+        assertNotEquals("data", data2);
+    }
 }

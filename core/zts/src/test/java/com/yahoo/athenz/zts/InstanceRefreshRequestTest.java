@@ -25,25 +25,43 @@ public class InstanceRefreshRequestTest {
 
     @Test
     public void testInstanceRefreshRequest() {
-        InstanceRefreshRequest i = new InstanceRefreshRequest();
-        InstanceRefreshRequest i2 = new InstanceRefreshRequest();
+        InstanceRefreshRequest i1 = new InstanceRefreshRequest();
+        i1.setCsr("test_csr");
+        i1.setExpiryTime(123456789);
+        i1.setKeyId("v0");
 
-        // set
-        i.setCsr("test_csr");
-        i.setExpiryTime(123456789);
-        i.setKeyId("v0");
+        InstanceRefreshRequest i2 = new InstanceRefreshRequest();
+        i2.setCsr("test_csr");
+        i2.setExpiryTime(123456789);
+        i2.setKeyId("v0");
+
+        // getter
+        assertEquals(i1.getCsr(), "test_csr");
+        assertEquals(i1.getExpiryTime(), (Integer) 123456789);
+        assertEquals(i1.getKeyId(), "v0");
+
+        assertEquals(i1, i1);
+        assertEquals(i2, i1);
+
+        i2.setCsr("csr2");
+        assertNotEquals(i1, i2);
+        i2.setCsr(null);
+        assertNotEquals(i1, i2);
         i2.setCsr("test_csr");
 
-        // getter assertion
-        assertEquals(i.getCsr(), "test_csr");
-        assertEquals(i.getExpiryTime(), (Integer) 123456789);
-        assertEquals(i.getKeyId(), "v0");
+        i2.setKeyId("keyid2");
+        assertNotEquals(i1, i2);
+        i2.setKeyId(null);
+        assertNotEquals(i1, i2);
+        i2.setKeyId("v0");
 
-        assertEquals(i, i);
-        assertNotEquals(i, i2);
-        assertNotEquals(i2, i);
-        //noinspection EqualsBetweenInconvertibleTypes
-        assertNotEquals("", i);
+        i2.setExpiryTime(100);
+        assertNotEquals(i1, i2);
+        i2.setExpiryTime(null);
+        assertNotEquals(i1, i2);
+        i2.setExpiryTime(123456789);
+
+        assertNotEquals("data", i1);
     }
 
 }

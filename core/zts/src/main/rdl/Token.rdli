@@ -2,6 +2,7 @@
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 include "Names.tdl";
+include "RoleCert.tdl";
 
 //A representation of a signed RoleToken
 type RoleToken Struct {
@@ -34,13 +35,6 @@ resource RoleToken GET "/domain/{domainName}/token?role={role}&minExpiryTime={mi
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
     }
-}
-
-// RoleCertificateRequest - a certificate signing request
-type RoleCertificateRequest Struct {
-    String csr;
-    EntityName proxyForPrincipal (optional); //this request is proxy for this principal
-    Int64 expiryTime;
 }
 
 //Return a TLS certificate for the specific role in the namespace that

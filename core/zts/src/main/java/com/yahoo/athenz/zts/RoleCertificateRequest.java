@@ -9,7 +9,10 @@ import com.yahoo.rdl.*;
 
 //
 // RoleCertificateRequest - RoleCertificateRequest - a certificate signing
-// request
+// request. By including the optional previous Certificate NotBefore and
+// NotAfter dates would all the server to correctly prioritize this request in
+// case the certificate signer is under heavy load and it can't sign all
+// submitted requests from the Athenz Server.
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RoleCertificateRequest {
@@ -18,6 +21,12 @@ public class RoleCertificateRequest {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String proxyForPrincipal;
     public long expiryTime;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Timestamp prevCertNotBefore;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Timestamp prevCertNotAfter;
 
     public RoleCertificateRequest setCsr(String csr) {
         this.csr = csr;
@@ -40,6 +49,20 @@ public class RoleCertificateRequest {
     public long getExpiryTime() {
         return expiryTime;
     }
+    public RoleCertificateRequest setPrevCertNotBefore(Timestamp prevCertNotBefore) {
+        this.prevCertNotBefore = prevCertNotBefore;
+        return this;
+    }
+    public Timestamp getPrevCertNotBefore() {
+        return prevCertNotBefore;
+    }
+    public RoleCertificateRequest setPrevCertNotAfter(Timestamp prevCertNotAfter) {
+        this.prevCertNotAfter = prevCertNotAfter;
+        return this;
+    }
+    public Timestamp getPrevCertNotAfter() {
+        return prevCertNotAfter;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -55,6 +78,12 @@ public class RoleCertificateRequest {
                 return false;
             }
             if (expiryTime != a.expiryTime) {
+                return false;
+            }
+            if (prevCertNotBefore == null ? a.prevCertNotBefore != null : !prevCertNotBefore.equals(a.prevCertNotBefore)) {
+                return false;
+            }
+            if (prevCertNotAfter == null ? a.prevCertNotAfter != null : !prevCertNotAfter.equals(a.prevCertNotAfter)) {
                 return false;
             }
         }

@@ -19,6 +19,8 @@ type SSHCertRequestMeta Struct {
     String certType; //cert type - user or host
     EntityName athenzService (optional); //ssh host cert request is for this athenz service
     PathElement instanceId (optional); //ssh host cert request is for this instance id
+    Timestamp prevCertValidFrom (optional); //previous ssh certificate validity from date
+    Timestamp prevCertValidTo (optional); //previous ssh certificate validity to date
 }
 
 type SSHCertRequest Struct {
