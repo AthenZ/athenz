@@ -379,12 +379,9 @@ public class ZMSFileChangeLogStoreCommonTest {
 
         SignedDomains sds1Resp = fstore.getServerDomainModifiedList(zmsClient);
         MatcherAssert.assertThat(sds1Resp.getDomains(), Matchers.contains(sd1));
-
-        System.setProperty(PROP_GET_CONDITIONS_IN_SIGNED_DOMAINS, "true");
         ZMSFileChangeLogStoreCommon fstore2 = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        fstore2.setRequestConditions(true);
         SignedDomains sds2Resp = fstore2.getServerDomainModifiedList(zmsClient);
         MatcherAssert.assertThat(sds2Resp.getDomains(), Matchers.contains(sd1, sd2));
-
-        System.clearProperty(PROP_GET_CONDITIONS_IN_SIGNED_DOMAINS);
     }
 }
