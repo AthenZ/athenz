@@ -23,6 +23,7 @@ import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import ServiceList from './ServiceList';
 import { css, keyframes } from '@emotion/react';
+import EnforcementStateList from './EnforcementStateList';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -71,6 +72,8 @@ export default class RuleRow extends React.Component {
         this.api = this.props.api;
         this.onSubmitDelete = this.onSubmitDelete.bind(this);
         this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
+        this.onClickDeleteCondition = this.onClickDeleteCondition.bind(this);
+        this.saveJustification = this.saveJustification.bind(this);
         this.state = {
             deleteName:
                 this.props.category === 'inbound'
@@ -79,8 +82,16 @@ export default class RuleRow extends React.Component {
             showDelete: false,
             assertionId: this.props.details['assertionIdx'],
             port: '',
+            showDeleteAssertionCondition: false,
+            policyName: '',
+            conditionId: '',
+            justification: '',
         };
         this.localDate = new DateUtils();
+    }
+
+    saveJustification(val) {
+        this.setState({ justification: val });
     }
 
     onClickDelete(name, id, port) {
@@ -92,20 +103,47 @@ export default class RuleRow extends React.Component {
         });
     }
 
+    onClickDeleteCondition(assertionId, conditionId, policyName) {
+        this.setState({
+            showDeleteAssertionCondition: true,
+            policyName: policyName,
+            assertionId: assertionId,
+            conditionId: conditionId,
+        });
+    }
+
     onSubmitDelete(domain) {
+        if (
+            this.props.justificationRequired &&
+            (this.state.justification === undefined ||
+                this.state.justification.trim() === '')
+        ) {
+            this.setState({
+                errorMessage: 'Justification is required to delete ACL Policy.',
+            });
+            return;
+        }
+
         let deletePolicyName =
             'acl.' + this.state.deleteName + '.' + this.props.category;
+        let deleteRoleName =
+            deletePolicyName + '-' + this.props.details['identifier'];
         Promise.all([
             this.api.deleteAssertion(
                 domain,
                 deletePolicyName,
                 this.state.assertionId,
+                this.state.justification
+                    ? this.state.justification
+                    : 'Micro-segmentaion assertion deletion',
                 this.props._csrf
             ),
             this.api.deleteRole(
                 domain,
-                deletePolicyName + '-' + this.state.port,
-                'deleted using Athenz UI',
+                deleteRoleName,
+                this.state.justification
+                    ? this.state.justification
+                    : 'Micro-segmentaion Role deletion',
                 this.props._csrf
             ),
         ])
@@ -137,6 +175,51 @@ export default class RuleRow extends React.Component {
         });
     }
 
+    onSubmitDeleteCondition() {
+        if (
+            this.props.justificationRequired &&
+            (this.state.justification === undefined ||
+                this.state.justification.trim() === '')
+        ) {
+            this.setState({
+                errorMessage:
+                    'Justification is required to delete Policy Enforcement Condition.',
+            });
+            return;
+        }
+
+        this.api
+            .deleteAssertionCondition(
+                this.props.domain,
+                this.state.policyName,
+                this.state.assertionId,
+                this.state.conditionId,
+                this.state.justification
+                    ? this.state.justification
+                    : 'Micro-segmentaion Assertion Condition deletion',
+                this.props._csrf
+            )
+            .then(() => {
+                this.setState({
+                    showDeleteAssertionCondition: false,
+                    errorMessage: null,
+                });
+                this.props.onUpdateSuccess();
+            })
+            .catch((err) => {
+                this.setState({
+                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                });
+            });
+    }
+
+    onClickDeleteConditionCancel() {
+        this.setState({
+            showDeleteAssertionCondition: false,
+            errorMessage: null,
+        });
+    }
+
     render() {
         let rows = [];
         let left = 'left';
@@ -145,7 +228,11 @@ export default class RuleRow extends React.Component {
         let color = this.props.color;
         let key = '';
         let submitDelete = this.onSubmitDelete.bind(this, this.props.domain);
+        let submitDeleteCondition = this.onSubmitDeleteCondition.bind(this);
         let clickDeleteCancel = this.onClickDeleteCancel.bind(this);
+        let clickDeleteConditionCancel =
+            this.onClickDeleteConditionCancel.bind(this);
+        let onClickDeleteCondition = this.onClickDeleteCondition.bind(this);
         let inbound = this.props.category === 'inbound';
         let clickDelete;
         if (inbound) {
@@ -250,6 +337,37 @@ export default class RuleRow extends React.Component {
                     {data['layer']}
                 </TDStyled>
 
+                <GroupTDStyled color={color} align={center}>
+                    <Menu
+                        placement='right'
+                        boundary='scrollParent'
+                        triggerOn='click'
+                        trigger={
+                            <span>
+                                <Icon
+                                    icon={
+                                        this.props.category === 'inbound'
+                                            ? 'network-resource'
+                                            : 'network-role'
+                                    }
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </span>
+                        }
+                    >
+                        <EnforcementStateList
+                            list={data['conditionsList']}
+                            api={this.api}
+                            domain={this.props.domain}
+                            _csrf={this.props._csrf}
+                            deleteCondition={this.onClickDeleteCondition}
+                        />
+                    </Menu>
+                </GroupTDStyled>
+
                 <TDStyled color={color} align={center}>
                     <Menu
                         placement='bottom-start'
@@ -286,6 +404,30 @@ export default class RuleRow extends React.Component {
                         ' rule '
                     }
                     errorMessage={this.state.errorMessage}
+                    showJustification={this.props.justificationRequired}
+                    onJustification={this.saveJustification}
+                />
+            );
+        }
+
+        if (this.state.showDeleteAssertionCondition) {
+            rows.push(
+                <DeleteModal
+                    isOpen={this.state.showDeleteAssertionCondition}
+                    cancel={clickDeleteConditionCancel}
+                    submit={submitDeleteCondition}
+                    key={
+                        this.state.assertionId +
+                        '-' +
+                        this.state.conditionId +
+                        '-delete'
+                    }
+                    message={
+                        'Are you sure you want to permanently delete the Policy Enforcement Condition'
+                    }
+                    errorMessage={this.state.errorMessage}
+                    showJustification={this.props.justificationRequired}
+                    onJustification={this.saveJustification}
                 />
             );
         }

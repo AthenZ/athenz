@@ -164,7 +164,7 @@ export default class MicrosegmentationPage extends React.Component {
             domain,
             reload,
             domainDetails,
-            isDomainAuditEnabled,
+            auditEnabled,
             _csrf,
             segmentationData,
         } = this.props;
@@ -219,9 +219,7 @@ export default class MicrosegmentationPage extends React.Component {
                                         api={this.api}
                                         domain={domain}
                                         _csrf={_csrf}
-                                        isDomainAuditEnabled={
-                                            isDomainAuditEnabled
-                                        }
+                                        isDomainAuditEnabled={auditEnabled}
                                         data={segmentationData}
                                     />
                                 </RolesContentDiv>

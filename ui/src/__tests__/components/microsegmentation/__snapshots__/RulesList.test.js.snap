@@ -147,7 +147,7 @@ exports[`RulesList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-28 {
+.emotion-30 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -155,7 +155,7 @@ exports[`RulesList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-34 {
+.emotion-36 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -165,7 +165,17 @@ exports[`RulesList should render 1`] = `
   text-decoration: dashed underline;
 }
 
-.emotion-41 {
+.emotion-43 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  -webkit-text-decoration: dashed underline;
+  text-decoration: dashed underline;
+}
+
+.emotion-46 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -193,29 +203,6 @@ exports[`RulesList should render 1`] = `
     class="emotion-5 emotion-6"
     data-testid="segmentation-rule-table"
   >
-    <colgroup>
-      <col
-        style="width: 14%;"
-      />
-      <col
-        style="width: 18%;"
-      />
-      <col
-        style="width: 18%;"
-      />
-      <col
-        style="width: 12%;"
-      />
-      <col
-        style="width: 18%;"
-      />
-      <col
-        style="width: 10%;"
-      />
-      <col
-        style="width: 10%;"
-      />
-    </colgroup>
     <thead>
       <caption
         class="emotion-7 emotion-8"
@@ -274,31 +261,36 @@ exports[`RulesList should render 1`] = `
         <th
           class="emotion-24 emotion-17"
         >
+          Enforcement State
+        </th>
+        <th
+          class="emotion-24 emotion-17"
+        >
           Delete
         </th>
       </tr>
     </thead>
     <tbody>
       <tr
-        class="emotion-26 emotion-27"
+        class="emotion-28 emotion-29"
         data-testid="segmentation-row"
       >
         <td
-          class="emotion-28 emotion-29"
+          class="emotion-30 emotion-31"
           color="#3570f40D"
         />
         <td
-          class="emotion-28 emotion-29"
+          class="emotion-30 emotion-31"
           color="#3570f40D"
         />
         <td
-          class="emotion-28 emotion-29"
+          class="emotion-30 emotion-31"
           color="#3570f40D"
         >
           2222
         </td>
         <td
-          class="emotion-34 emotion-35"
+          class="emotion-36 emotion-37"
           color="#3570f40D"
         >
           <span>
@@ -322,19 +314,49 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-28 emotion-29"
+          class="emotion-30 emotion-31"
           color="#3570f40D"
         >
           1111
         </td>
         <td
-          class="emotion-28 emotion-29"
+          class="emotion-30 emotion-31"
           color="#3570f40D"
         >
           tcp
         </td>
         <td
-          class="emotion-41 emotion-29"
+          class="emotion-43 emotion-37"
+          color="#3570f40D"
+        >
+          <span>
+            <svg
+              class="emotion-11"
+              data-testid="icon"
+              height="1.25em"
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                network-resource
+              </title>
+              <path
+                d="M170.667 213.333h388.267l29.867 29.867-55.467 55.467h170.667v-170.667l-55.467 55.467-55.467-55.467h-422.4c-23.564 0-42.667 19.103-42.667 42.667s19.103 42.667 42.667 42.667v0z"
+              />
+              <path
+                d="M588.8 780.8l-29.867 29.867h-388.267c-23.564 0-42.667 19.103-42.667 42.667s19.103 42.667 42.667 42.667v0h422.4l55.467-55.467 55.467 55.467v-170.667h-170.667z"
+              />
+              <path
+                d="M170.667 554.667h256v85.333l128-128-128-128v85.333h-256c-23.564 0-42.667 19.103-42.667 42.667s19.103 42.667 42.667 42.667v0z"
+              />
+              <path
+                d="M768 341.333c-94.257 0-170.667 76.41-170.667 170.667s76.41 170.667 170.667 170.667c94.257 0 170.667-76.41 170.667-170.667v0c0-94.257-76.41-170.667-170.667-170.667v0zM768 597.333c-47.128 0-85.333-38.205-85.333-85.333s38.205-85.333 85.333-85.333c47.128 0 85.333 38.205 85.333 85.333v0c0 47.128-38.205 85.333-85.333 85.333v0z"
+              />
+            </svg>
+          </span>
+        </td>
+        <td
+          class="emotion-46 emotion-31"
           color="#3570f40D"
         >
           <span>
@@ -365,29 +387,6 @@ exports[`RulesList should render 1`] = `
     class="emotion-5 emotion-6"
     data-testid="segmentation-rule-table"
   >
-    <colgroup>
-      <col
-        style="width: 14%;"
-      />
-      <col
-        style="width: 18%;"
-      />
-      <col
-        style="width: 18%;"
-      />
-      <col
-        style="width: 12%;"
-      />
-      <col
-        style="width: 18%;"
-      />
-      <col
-        style="width: 10%;"
-      />
-      <col
-        style="width: 10%;"
-      />
-    </colgroup>
     <thead>
       <caption
         class="emotion-7 emotion-8"
@@ -446,33 +445,38 @@ exports[`RulesList should render 1`] = `
         <th
           class="emotion-24 emotion-17"
         >
+          Enforcement State
+        </th>
+        <th
+          class="emotion-24 emotion-17"
+        >
           Delete
         </th>
       </tr>
     </thead>
     <tbody>
       <tr
-        class="emotion-26 emotion-27"
+        class="emotion-28 emotion-29"
         data-testid="segmentation-row"
       >
         <td
-          class="emotion-28 emotion-29"
+          class="emotion-30 emotion-31"
           color="#3570f40D"
         />
         <td
-          class="emotion-28 emotion-29"
+          class="emotion-30 emotion-31"
           color="#3570f40D"
         >
           serviceE
         </td>
         <td
-          class="emotion-28 emotion-29"
+          class="emotion-30 emotion-31"
           color="#3570f40D"
         >
           3333
         </td>
         <td
-          class="emotion-34 emotion-35"
+          class="emotion-36 emotion-37"
           color="#3570f40D"
         >
           <span>
@@ -496,19 +500,40 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-28 emotion-29"
+          class="emotion-30 emotion-31"
           color="#3570f40D"
         >
           4444
         </td>
         <td
-          class="emotion-28 emotion-29"
+          class="emotion-30 emotion-31"
           color="#3570f40D"
         >
           udp
         </td>
         <td
-          class="emotion-41 emotion-29"
+          class="emotion-43 emotion-37"
+          color="#3570f40D"
+        >
+          <span>
+            <svg
+              class="emotion-11"
+              data-testid="icon"
+              height="1.25em"
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                network-role
+              </title>
+              <path
+                d="M896 512l-128-128v85.333h-347.733c-6.016-26.402-17.927-49.416-34.309-68.476l0.176 0.209 185.6-187.733h196.267v85.333l128-128-128-128v85.333h-230.4l-215.467 215.467-6.4 8.533c-17.75-6.504-38.245-10.39-59.61-10.665l-0.124-0.001c-94.257 0-170.667 76.41-170.667 170.667s76.41 170.667 170.667 170.667v0c21.488-0.277 41.983-4.163 61.025-11.077l-1.292 0.41 6.4 8.533 215.467 217.6h230.4v83.2l128-128-128-128v87.467h-196.267l-185.6-189.867c15.307-19.245 27.062-42.071 33.828-66.951l0.305-1.316h347.733v85.333zM256 597.333c-47.128 0-85.333-38.205-85.333-85.333s38.205-85.333 85.333-85.333c47.128 0 85.333 38.205 85.333 85.333v0c0 47.128-38.205 85.333-85.333 85.333v0z"
+              />
+            </svg>
+          </span>
+        </td>
+        <td
+          class="emotion-46 emotion-31"
           color="#3570f40D"
         >
           <span>

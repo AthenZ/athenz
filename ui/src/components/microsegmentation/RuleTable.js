@@ -110,6 +110,15 @@ export default class RuleTable extends React.Component {
             if (i % 2 === 0) {
                 color = colors.row;
             }
+            let key = '';
+            if (inbound) {
+                key =
+                    item.destination_service +
+                    item.destination_port +
+                    item.identifier;
+            } else {
+                key = item.source_service + item.source_port + item.identifier;
+            }
             return (
                 <RuleRow
                     category={this.props.category}
@@ -118,9 +127,10 @@ export default class RuleTable extends React.Component {
                     idx={i}
                     color={color}
                     api={this.api}
-                    key={item.source_service + item.source_port}
+                    key={key}
                     onUpdateSuccess={this.props.onSubmit}
                     _csrf={this.props._csrf}
+                    justificationRequired={this.props.justificationRequired}
                 />
             );
         });
@@ -153,15 +163,6 @@ export default class RuleTable extends React.Component {
 
         return (
             <StyleTable data-testid='segmentation-rule-table'>
-                <colgroup>
-                    <col style={{ width: 14 + '%' }} />
-                    <col style={{ width: 18 + '%' }} />
-                    <col style={{ width: 18 + '%' }} />
-                    <col style={{ width: 12 + '%' }} />
-                    <col style={{ width: 18 + '%' }} />
-                    <col style={{ width: 10 + '%' }} />
-                    <col style={{ width: 10 + '%' }} />
-                </colgroup>
                 <thead>
                     <TableCaptionStyled>
                         <LeftMarginSpan>
@@ -194,7 +195,9 @@ export default class RuleTable extends React.Component {
                             {inbound ? 'Source Port' : 'Destination Port'}
                         </TableHeadStyled>
                         <TableHeadStyled align={left}>Layer</TableHeadStyled>
-
+                        <TableHeadStyled align={center}>
+                            Enforcement State
+                        </TableHeadStyled>
                         <TableHeadStyled align={center}>Delete</TableHeadStyled>
                     </tr>
                 </thead>

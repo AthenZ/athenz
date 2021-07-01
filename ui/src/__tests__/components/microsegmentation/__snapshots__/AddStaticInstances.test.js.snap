@@ -5,6 +5,8 @@ exports[`AddStaticInstances should render 1`] = `
   text-align: left;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   padding-bottom: 15px;
+  max-height: auto;
+  overflow-y: scroll;
 }
 
 .emotion-2 {
@@ -294,6 +296,7 @@ exports[`AddStaticInstances should render 1`] = `
 <div
   class="emotion-0 emotion-1"
   data-testid="add-modal-message"
+  height="auto"
 >
   <div
     class="emotion-2 emotion-3"
@@ -411,6 +414,8 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   text-align: left;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   padding-bottom: 15px;
+  max-height: auto;
+  overflow-y: scroll;
 }
 
 .emotion-2 {
@@ -700,6 +705,7 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
 <div
   class="emotion-0 emotion-1"
   data-testid="add-modal-message"
+  height="auto"
 >
   <div
     class="emotion-2 emotion-3"
