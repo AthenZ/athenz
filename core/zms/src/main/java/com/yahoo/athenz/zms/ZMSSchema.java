@@ -107,10 +107,10 @@ public class ZMSSchema {
             .pattern("([a-zA-Z][a-zA-Z0-9_-]+\\.)*[a-zA-Z][a-zA-Z0-9_-]+");
 
         sb.stringType("AssertionConditionValuePattern")
-            .pattern("[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]+");
+            .pattern("[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*");
 
         sb.stringType("AssertionConditionValue")
-            .pattern("([a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]+,)*[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]+");
+            .pattern("([a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*,)*[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*");
 
         sb.structType("DomainMeta")
             .comment("Set of metadata attributes that all domains may have and can be changed.")
