@@ -345,7 +345,11 @@ export default class RuleRow extends React.Component {
                         trigger={
                             <span>
                                 <Icon
-                                    icon={this.props.category === 'inbound' ? 'network-resource' : 'network-role'}
+                                    icon={
+                                        this.props.category === 'inbound'
+                                            ? 'network-resource'
+                                            : 'network-role'
+                                    }
                                     color={colors.icons}
                                     isLink
                                     size={'1.25em'}
