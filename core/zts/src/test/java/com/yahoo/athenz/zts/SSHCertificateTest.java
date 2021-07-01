@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts;
 
 import static org.testng.Assert.*;
 
+import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -111,6 +112,8 @@ public class SSHCertificateTest {
         meta2.setCertType("user");
         meta2.setAthenzService("athenz.api");
         meta2.setInstanceId("id");
+        meta2.setPrevCertValidFrom(Timestamp.fromMillis(100));
+        meta2.setPrevCertValidTo(Timestamp.fromMillis(200));
 
         //getters
         assertEquals("req", meta2.getRequestor());
@@ -120,6 +123,8 @@ public class SSHCertificateTest {
         assertEquals("user", meta2.getCertType());
         assertEquals("id", meta2.getInstanceId());
         assertEquals("athenz.api", meta2.getAthenzService());
+        assertEquals(Timestamp.fromMillis(100), meta2.getPrevCertValidFrom());
+        assertEquals(Timestamp.fromMillis(200), meta2.getPrevCertValidTo());
 
         assertNotEquals(meta2, meta1);
 
@@ -131,6 +136,8 @@ public class SSHCertificateTest {
         meta1.setCertType("user");
         meta1.setAthenzService("athenz.api");
         meta1.setInstanceId("id");
+        meta1.setPrevCertValidFrom(Timestamp.fromMillis(100));
+        meta1.setPrevCertValidTo(Timestamp.fromMillis(200));
         assertEquals(meta1, meta2);
 
         // now process each attribute and verify matching
@@ -189,6 +196,20 @@ public class SSHCertificateTest {
         meta1.setInstanceId(null);
         assertNotEquals(meta2, meta1);
         meta1.setInstanceId("id");
+        assertEquals(meta2, meta1);
+
+        meta1.setPrevCertValidFrom(Timestamp.fromMillis(1001));
+        assertNotEquals(meta2, meta1);
+        meta1.setPrevCertValidFrom(null);
+        assertNotEquals(meta2, meta1);
+        meta1.setPrevCertValidFrom(Timestamp.fromMillis(100));
+        assertEquals(meta2, meta1);
+
+        meta1.setPrevCertValidTo(Timestamp.fromMillis(1001));
+        assertNotEquals(meta2, meta1);
+        meta1.setPrevCertValidTo(null);
+        assertNotEquals(meta2, meta1);
+        meta1.setPrevCertValidTo(Timestamp.fromMillis(200));
         assertEquals(meta2, meta1);
 
         assertNotEquals(meta2, null);

@@ -16,11 +16,11 @@
 
 package com.yahoo.athenz.zts;
 
+import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.*;
 
 import static org.testng.Assert.*;
 
-@SuppressWarnings({"EqualsWithItself", "EqualsBetweenInconvertibleTypes"})
 public class RoleCertificateRequestTest {
 
     @Test
@@ -29,39 +29,54 @@ public class RoleCertificateRequestTest {
         RoleCertificateRequest data1 = new RoleCertificateRequest();
         data1.setCsr("csr1");
         data1.setProxyForPrincipal("proxy");
+        data1.setPrevCertNotBefore(Timestamp.fromMillis(100));
+        data1.setPrevCertNotAfter(Timestamp.fromMillis(100));
+        data1.setExpiryTime(200);
 
         RoleCertificateRequest data2 = new RoleCertificateRequest();
         data2.setCsr("csr1");
         data2.setProxyForPrincipal("proxy");
+        data2.setPrevCertNotBefore(Timestamp.fromMillis(100));
+        data2.setPrevCertNotAfter(Timestamp.fromMillis(100));
+        data2.setExpiryTime(200);
 
         assertEquals(data1, data1);
         assertEquals(data1, data2);
 
-        data2.setExpiryTime(101);
-
         // verify getters
         assertEquals("csr1", data2.getCsr());
-        assertEquals(101, data2.getExpiryTime());
+        assertEquals(200, data2.getExpiryTime());
+        assertEquals(Timestamp.fromMillis(100), data2.getPrevCertNotAfter());
+        assertEquals(Timestamp.fromMillis(100), data2.getPrevCertNotBefore());
         assertEquals("proxy", data2.getProxyForPrincipal());
 
-        assertNotEquals(data2, data1);
+        data2.setExpiryTime(101);
+        assertNotEquals(data1, data2);
+        data2.setExpiryTime(200);
 
-        data1.setExpiryTime(101);
-        assertEquals(data2, data1);
+        data2.setCsr("csr2");
+        assertNotEquals(data1, data2);
+        data2.setCsr(null);
+        assertNotEquals(data1, data2);
+        data2.setCsr("csr1");
 
-        data1.setCsr("csr2");
-        assertNotEquals(data2, data1);
+        data2.setProxyForPrincipal("proxy1");
+        assertNotEquals(data1, data2);
+        data2.setProxyForPrincipal(null);
+        assertNotEquals(data1, data2);
+        data2.setProxyForPrincipal("proxy");
 
-        data1.setCsr(null);
-        assertNotEquals(data2, data1);
-        data1.setCsr("csr1");
+        data2.setPrevCertNotBefore(Timestamp.fromMillis(101));
+        assertNotEquals(data1, data2);
+        data2.setPrevCertNotBefore(null);
+        assertNotEquals(data1, data2);
+        data2.setPrevCertNotBefore(Timestamp.fromMillis(100));
 
-        data1.setProxyForPrincipal("proxy1");
-        assertNotEquals(data2, data1);
-
-        data1.setProxyForPrincipal(null);
-        assertNotEquals(data2, data1);
-        data1.setProxyForPrincipal("proxy1");
+        data2.setPrevCertNotAfter(Timestamp.fromMillis(101));
+        assertNotEquals(data1, data2);
+        data2.setPrevCertNotAfter(null);
+        assertNotEquals(data1, data2);
+        data2.setPrevCertNotAfter(Timestamp.fromMillis(100));
 
         assertNotEquals(data1, null);
         assertNotEquals("data", data2);

@@ -1073,36 +1073,37 @@ func (self *DomainSignedPolicyData) Validate() error {
 }
 
 //
-// RoleToken - A representation of a signed RoleToken
+// RoleCertificate - Copyright Athenz Authors Licensed under the terms of the
+// Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a
+// role certificate
 //
-type RoleToken struct {
-	Token      string `json:"token"`
-	ExpiryTime int64  `json:"expiryTime"`
+type RoleCertificate struct {
+	X509Certificate string `json:"x509Certificate"`
 }
 
 //
-// NewRoleToken - creates an initialized RoleToken instance, returns a pointer to it
+// NewRoleCertificate - creates an initialized RoleCertificate instance, returns a pointer to it
 //
-func NewRoleToken(init ...*RoleToken) *RoleToken {
-	var o *RoleToken
+func NewRoleCertificate(init ...*RoleCertificate) *RoleCertificate {
+	var o *RoleCertificate
 	if len(init) == 1 {
 		o = init[0]
 	} else {
-		o = new(RoleToken)
+		o = new(RoleCertificate)
 	}
 	return o
 }
 
-type rawRoleToken RoleToken
+type rawRoleCertificate RoleCertificate
 
 //
-// UnmarshalJSON is defined for proper JSON decoding of a RoleToken
+// UnmarshalJSON is defined for proper JSON decoding of a RoleCertificate
 //
-func (self *RoleToken) UnmarshalJSON(b []byte) error {
-	var m rawRoleToken
+func (self *RoleCertificate) UnmarshalJSON(b []byte) error {
+	var m rawRoleCertificate
 	err := json.Unmarshal(b, &m)
 	if err == nil {
-		o := RoleToken(m)
+		o := RoleCertificate(m)
 		*self = o
 		err = self.Validate()
 	}
@@ -1112,13 +1113,13 @@ func (self *RoleToken) UnmarshalJSON(b []byte) error {
 //
 // Validate - checks for missing required fields, etc
 //
-func (self *RoleToken) Validate() error {
-	if self.Token == "" {
-		return fmt.Errorf("RoleToken.token is missing but is a required field")
+func (self *RoleCertificate) Validate() error {
+	if self.X509Certificate == "" {
+		return fmt.Errorf("RoleCertificate.x509Certificate is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.Token)
+		val := rdl.Validate(ZTSSchema(), "String", self.X509Certificate)
 		if !val.Valid {
-			return fmt.Errorf("RoleToken.token does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("RoleCertificate.x509Certificate does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -1126,16 +1127,37 @@ func (self *RoleToken) Validate() error {
 
 //
 // RoleCertificateRequest - RoleCertificateRequest - a certificate signing
-// request
+// request. By including the optional previous Certificate NotBefore and
+// NotAfter dates would all the server to correctly prioritize this request in
+// case the certificate signer is under heavy load and it can't sign all
+// submitted requests from the Athenz Server.
 //
 type RoleCertificateRequest struct {
+
+	//
+	// role certificate singing request
+	//
 	Csr string `json:"csr"`
 
 	//
 	// this request is proxy for this principal
 	//
 	ProxyForPrincipal EntityName `json:"proxyForPrincipal,omitempty" rdl:"optional"`
-	ExpiryTime        int64      `json:"expiryTime"`
+
+	//
+	// request an expiry time for the role certificate
+	//
+	ExpiryTime int64 `json:"expiryTime"`
+
+	//
+	// previous role certificate not before date
+	//
+	PrevCertNotBefore *rdl.Timestamp `json:"prevCertNotBefore,omitempty" rdl:"optional"`
+
+	//
+	// previous role certificate not after date
+	//
+	PrevCertNotAfter *rdl.Timestamp `json:"prevCertNotAfter,omitempty" rdl:"optional"`
 }
 
 //
@@ -1183,6 +1205,58 @@ func (self *RoleCertificateRequest) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "EntityName", self.ProxyForPrincipal)
 		if !val.Valid {
 			return fmt.Errorf("RoleCertificateRequest.proxyForPrincipal does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// RoleToken - A representation of a signed RoleToken
+//
+type RoleToken struct {
+	Token      string `json:"token"`
+	ExpiryTime int64  `json:"expiryTime"`
+}
+
+//
+// NewRoleToken - creates an initialized RoleToken instance, returns a pointer to it
+//
+func NewRoleToken(init ...*RoleToken) *RoleToken {
+	var o *RoleToken
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(RoleToken)
+	}
+	return o
+}
+
+type rawRoleToken RoleToken
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a RoleToken
+//
+func (self *RoleToken) UnmarshalJSON(b []byte) error {
+	var m rawRoleToken
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := RoleToken(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *RoleToken) Validate() error {
+	if self.Token == "" {
+		return fmt.Errorf("RoleToken.token is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Token)
+		if !val.Valid {
+			return fmt.Errorf("RoleToken.token does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -2613,6 +2687,16 @@ type SSHCertRequestMeta struct {
 	// ssh host cert request is for this instance id
 	//
 	InstanceId PathElement `json:"instanceId,omitempty" rdl:"optional"`
+
+	//
+	// previous ssh certificate validity from date
+	//
+	PrevCertValidFrom *rdl.Timestamp `json:"prevCertValidFrom,omitempty" rdl:"optional"`
+
+	//
+	// previous ssh certificate validity to date
+	//
+	PrevCertValidTo *rdl.Timestamp `json:"prevCertValidTo,omitempty" rdl:"optional"`
 }
 
 //
@@ -3244,59 +3328,6 @@ func (self *JWKList) Validate() error {
 // AccessTokenRequest -
 //
 type AccessTokenRequest string
-
-//
-// RoleCertificate - Copyright 2019 Oath Holdings Inc Licensed under the terms
-// of the Apache version 2.0 license. See LICENSE file for terms.
-// RoleCertificate - a role certificate
-//
-type RoleCertificate struct {
-	X509Certificate string `json:"x509Certificate"`
-}
-
-//
-// NewRoleCertificate - creates an initialized RoleCertificate instance, returns a pointer to it
-//
-func NewRoleCertificate(init ...*RoleCertificate) *RoleCertificate {
-	var o *RoleCertificate
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(RoleCertificate)
-	}
-	return o
-}
-
-type rawRoleCertificate RoleCertificate
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a RoleCertificate
-//
-func (self *RoleCertificate) UnmarshalJSON(b []byte) error {
-	var m rawRoleCertificate
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := RoleCertificate(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *RoleCertificate) Validate() error {
-	if self.X509Certificate == "" {
-		return fmt.Errorf("RoleCertificate.x509Certificate is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.X509Certificate)
-		if !val.Valid {
-			return fmt.Errorf("RoleCertificate.x509Certificate does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
 
 //
 // Workload -

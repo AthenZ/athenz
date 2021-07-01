@@ -1,0 +1,19 @@
+// Copyright Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+// RoleCertificate - a role certificate
+type RoleCertificate Struct {
+    String x509Certificate;
+}
+
+// RoleCertificateRequest - a certificate signing request. By including the optional
+// previous Certificate NotBefore and NotAfter dates would all the server to correctly
+// prioritize this request in case the certificate signer is under heavy load and
+// it can't sign all submitted requests from the Athenz Server.
+type RoleCertificateRequest Struct {
+    String csr; //role certificate singing request
+    EntityName proxyForPrincipal (optional); //this request is proxy for this principal
+    Int64 expiryTime; //request an expiry time for the role certificate
+    Timestamp prevCertNotBefore (optional); //previous role certificate not before date
+    Timestamp prevCertNotAfter (optional); //previous role certificate not after date
+}

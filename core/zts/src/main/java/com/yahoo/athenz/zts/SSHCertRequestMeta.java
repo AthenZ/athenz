@@ -27,6 +27,12 @@ public class SSHCertRequestMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String instanceId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Timestamp prevCertValidFrom;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Timestamp prevCertValidTo;
 
     public SSHCertRequestMeta setRequestor(String requestor) {
         this.requestor = requestor;
@@ -77,6 +83,20 @@ public class SSHCertRequestMeta {
     public String getInstanceId() {
         return instanceId;
     }
+    public SSHCertRequestMeta setPrevCertValidFrom(Timestamp prevCertValidFrom) {
+        this.prevCertValidFrom = prevCertValidFrom;
+        return this;
+    }
+    public Timestamp getPrevCertValidFrom() {
+        return prevCertValidFrom;
+    }
+    public SSHCertRequestMeta setPrevCertValidTo(Timestamp prevCertValidTo) {
+        this.prevCertValidTo = prevCertValidTo;
+        return this;
+    }
+    public Timestamp getPrevCertValidTo() {
+        return prevCertValidTo;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -104,6 +124,12 @@ public class SSHCertRequestMeta {
                 return false;
             }
             if (instanceId == null ? a.instanceId != null : !instanceId.equals(a.instanceId)) {
+                return false;
+            }
+            if (prevCertValidFrom == null ? a.prevCertValidFrom != null : !prevCertValidFrom.equals(a.prevCertValidFrom)) {
+                return false;
+            }
+            if (prevCertValidTo == null ? a.prevCertValidTo != null : !prevCertValidTo.equals(a.prevCertValidTo)) {
                 return false;
             }
         }

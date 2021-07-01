@@ -18,19 +18,19 @@ package com.yahoo.athenz.zts;
 
 import static org.testng.Assert.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 
 import org.testng.annotations.Test;
 
-@SuppressWarnings("EqualsWithItself")
 public class InstanceIdentityTest {
 
     @Test
     public void testInstanceIdentity() {
-        InstanceIdentity i = new InstanceIdentity();
+        InstanceIdentity i1 = new InstanceIdentity();
         InstanceIdentity i2 = new InstanceIdentity();
 
-        HashMap<String, String> attr = new HashMap<String, String>() {
+        HashMap<String, String> attrs = new HashMap<String, String>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -41,41 +41,94 @@ public class InstanceIdentityTest {
         };
 
         // set
-        i.setName("sample");
-        i.setX509Certificate("sample_cert");
-        i.setX509CertificateSigner("sample_certbundle");
-        i.setSshCertificate("sample_sshcert");
-        i.setServiceToken("sample_token");
+        i1.setName("sample");
+        i1.setX509Certificate("sample_cert");
+        i1.setX509CertificateSigner("sample_certbundle");
+        i1.setSshCertificate("sample_sshcert");
+        i1.setServiceToken("sample_token");
+        i1.setSshCertificateSigner("sample_ssh_signer");
+        i1.setAttributes(attrs);
+        i1.setProvider("provider");
+        i1.setInstanceId("instanceid");
+
         i2.setName("sample");
         i2.setX509Certificate("sample_cert");
         i2.setX509CertificateSigner("sample_certbundle");
         i2.setSshCertificate("sample_sshcert");
         i2.setServiceToken("sample_token");
-        i.setAttributes(attr);
+        i2.setSshCertificateSigner("sample_ssh_signer");
+        i2.setAttributes(attrs);
+        i2.setProvider("provider");
+        i2.setInstanceId("instanceid");
 
         // getter assertion
-        assertEquals(i.getName(), "sample");
-        assertEquals(i.getX509Certificate(), "sample_cert");
-        assertEquals(i.getX509CertificateSigner(), "sample_certbundle");
-        assertEquals(i.getSshCertificate(), "sample_sshcert");
-        assertEquals(i.getServiceToken(), "sample_token");
-        assertEquals(i.getAttributes(), attr);
+        assertEquals(i1.getName(), "sample");
+        assertEquals(i1.getX509Certificate(), "sample_cert");
+        assertEquals(i1.getX509CertificateSigner(), "sample_certbundle");
+        assertEquals(i1.getSshCertificate(), "sample_sshcert");
+        assertEquals(i1.getServiceToken(), "sample_token");
+        assertEquals(i1.getAttributes(), attrs);
+        assertEquals(i1.getSshCertificateSigner(), "sample_ssh_signer");
+        assertEquals(i1.getProvider(), "provider");
+        assertEquals(i1.getInstanceId(), "instanceid");
 
-        assertEquals(i, i);
+        assertEquals(i1, i1);
+        assertEquals(i2, i1);
 
-        assertNotEquals(i2, i);
-        i2.setServiceToken(null);
-        assertNotEquals(i2, i);
-        i2.setSshCertificate(null);
-        assertNotEquals(i2, i);
-        i2.setX509CertificateSigner(null);
-        assertNotEquals(i2, i);
-        i2.setX509CertificateSigner(null);
-        assertNotEquals(i2, i);
+        i2.setName("sample1");
+        assertNotEquals(i1, i2);
         i2.setName(null);
-        assertNotEquals(i2, i);
+        assertNotEquals(i1, i2);
+        i2.setName("sample");
 
-        //noinspection EqualsBetweenInconvertibleTypes
-        assertNotEquals("", i);
+        i2.setProvider("provider2");
+        assertNotEquals(i1, i2);
+        i2.setProvider(null);
+        assertNotEquals(i1, i2);
+        i2.setProvider("provider");
+
+        i2.setInstanceId("id2");
+        assertNotEquals(i1, i2);
+        i2.setInstanceId(null);
+        assertNotEquals(i1, i2);
+        i2.setInstanceId("instanceid");
+
+        i2.setX509Certificate("cert2");
+        assertNotEquals(i1, i2);
+        i2.setX509Certificate(null);
+        assertNotEquals(i1, i2);
+        i2.setX509Certificate("sample_cert");
+
+        i2.setX509CertificateSigner("signer2");
+        assertNotEquals(i1, i2);
+        i2.setX509CertificateSigner(null);
+        assertNotEquals(i1, i2);
+        i2.setX509CertificateSigner("sample_certbundle");
+
+        i2.setSshCertificate("ssh2");
+        assertNotEquals(i1, i2);
+        i2.setSshCertificate(null);
+        assertNotEquals(i1, i2);
+        i2.setSshCertificate("sample_sshcert");
+
+        i2.setSshCertificateSigner("signer2");
+        assertNotEquals(i1, i2);
+        i2.setSshCertificateSigner(null);
+        assertNotEquals(i1, i2);
+        i2.setSshCertificateSigner("sample_ssh_signer");
+
+        i2.setServiceToken("token2");
+        assertNotEquals(i1, i2);
+        i2.setServiceToken(null);
+        assertNotEquals(i1, i2);
+        i2.setServiceToken("sample_token");
+
+        i2.setAttributes(Collections.emptyMap());
+        assertNotEquals(i1, i2);
+        i2.setAttributes(null);
+        assertNotEquals(i1, i2);
+        i2.setAttributes(attrs);
+
+        assertNotEquals("", i1);
     }
 }

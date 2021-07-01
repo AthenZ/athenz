@@ -18,19 +18,19 @@ package com.yahoo.athenz.zts;
 
 import static org.testng.Assert.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 
 import org.testng.annotations.Test;
 
-@SuppressWarnings({"EqualsWithItself", "EqualsBetweenInconvertibleTypes"})
 public class IdentityTest {
 
     @Test
     public void testIdentity() {
-        Identity i = new Identity();
+        Identity i1 = new Identity();
         Identity i2 = new Identity();
 
-        HashMap<String, String> attr = new HashMap<String, String>() {
+        HashMap<String, String> attrs = new HashMap<String, String>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -41,40 +41,76 @@ public class IdentityTest {
         };
 
         // set
-        i.setName("sample");
-        i.setCertificate("sample_cert");
-        i.setCaCertBundle("sample_certbundle");
-        i.setSshCertificate("sample_sshcert");
-        i.setServiceToken("sample_token");
+        i1.setName("sample");
+        i1.setCertificate("sample_cert");
+        i1.setCaCertBundle("sample_certbundle");
+        i1.setSshCertificate("sample_sshcert");
+        i1.setServiceToken("sample_token");
+        i1.setAttributes(attrs);
+        i1.setSshCertificateSigner("signer");
+
         i2.setName("sample");
         i2.setCertificate("sample_cert");
         i2.setCaCertBundle("sample_certbundle");
         i2.setSshCertificate("sample_sshcert");
         i2.setServiceToken("sample_token");
-        i.setAttributes(attr);
+        i2.setAttributes(attrs);
+        i2.setSshCertificateSigner("signer");
 
         // getter assertion
-        assertEquals(i.getName(), "sample");
-        assertEquals(i.getCertificate(), "sample_cert");
-        assertEquals(i.getCaCertBundle(), "sample_certbundle");
-        assertEquals(i.getSshCertificate(), "sample_sshcert");
-        assertEquals(i.getServiceToken(), "sample_token");
-        assertEquals(i.getAttributes(), attr);
+        assertEquals(i1.getName(), "sample");
+        assertEquals(i1.getCertificate(), "sample_cert");
+        assertEquals(i1.getCaCertBundle(), "sample_certbundle");
+        assertEquals(i1.getSshCertificate(), "sample_sshcert");
+        assertEquals(i1.getServiceToken(), "sample_token");
+        assertEquals(i1.getAttributes(), attrs);
+        assertEquals(i1.getSshCertificateSigner(), "signer");
 
-        assertEquals(i, i);
+        assertEquals(i1, i1);
+        assertEquals(i2, i1);
 
-        assertNotEquals(i2, i);
-        i2.setServiceToken(null);
-        assertNotEquals(i2, i);
-        i2.setSshCertificate(null);
-        assertNotEquals(i2, i);
-        i2.setCaCertBundle(null);
-        assertNotEquals(i2, i);
-        i2.setCertificate(null);
-        assertNotEquals(i2, i);
+        i2.setName("sample1");
+        assertNotEquals(i1, i2);
         i2.setName(null);
-        assertNotEquals(i2, i);
+        assertNotEquals(i1, i2);
+        i2.setName("sample");
 
-        assertNotEquals("", i);
+        i2.setCertificate("cert2");
+        assertNotEquals(i1, i2);
+        i2.setCertificate(null);
+        assertNotEquals(i1, i2);
+        i2.setCertificate("sample_cert");
+
+        i2.setCaCertBundle("cert_bundle2");
+        assertNotEquals(i1, i2);
+        i2.setCaCertBundle(null);
+        assertNotEquals(i1, i2);
+        i2.setCaCertBundle("sample_certbundle");
+
+        i2.setSshCertificate("ssh2");
+        assertNotEquals(i1, i2);
+        i2.setSshCertificate(null);
+        assertNotEquals(i1, i2);
+        i2.setSshCertificate("sample_sshcert");
+
+        i2.setSshCertificateSigner("signer2");
+        assertNotEquals(i1, i2);
+        i2.setSshCertificateSigner(null);
+        assertNotEquals(i1, i2);
+        i2.setSshCertificateSigner("signer");
+
+        i2.setServiceToken("token2");
+        assertNotEquals(i1, i2);
+        i2.setServiceToken(null);
+        assertNotEquals(i1, i2);
+        i2.setServiceToken("sample_token");
+
+        i2.setAttributes(Collections.emptyMap());
+        assertNotEquals(i1, i2);
+        i2.setAttributes(null);
+        assertNotEquals(i1, i2);
+        i2.setAttributes(attrs);
+
+        assertNotEquals("", i1);
     }
 }
