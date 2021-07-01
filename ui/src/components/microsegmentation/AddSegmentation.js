@@ -430,7 +430,7 @@ export default class AddSegmentation extends React.Component {
                 if (
                     range.length != 2 ||
                     start < 1 ||
-                    end < 1024 ||
+                    end < 1 ||
                     start > end ||
                     start > 65535 ||
                     end > 65535
@@ -445,7 +445,7 @@ export default class AddSegmentation extends React.Component {
                 ports[i] = ports[i] + '-' + ports[i];
             } else {
                 this.setState({
-                    errorMessage: 'Port has to be in the range of 0-65535',
+                    errorMessage: 'Port has to be in the range of 1-65535',
                 });
                 result.error = 1;
                 return result;

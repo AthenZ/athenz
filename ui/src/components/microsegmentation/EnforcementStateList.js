@@ -124,7 +124,7 @@ class EnforcementStateList extends React.Component {
                                     </span>
                                 }
                             >
-                                <MenuDiv>Delete Enforcement State</MenuDiv>
+                                <MenuDiv>Delete Enforcement Condition</MenuDiv>
                             </Menu>
                         </StyledTd>
                     </StyledTr>

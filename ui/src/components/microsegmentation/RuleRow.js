@@ -183,7 +183,7 @@ export default class RuleRow extends React.Component {
         ) {
             this.setState({
                 errorMessage:
-                    'Justification is required to delete Policy Enforcement Rule.',
+                    'Justification is required to delete Policy Enforcement Condition.',
             });
             return;
         }
@@ -423,7 +423,7 @@ export default class RuleRow extends React.Component {
                         '-delete'
                     }
                     message={
-                        'Are you sure you want to permanently delete the Policy Enforcement Rule'
+                        'Are you sure you want to permanently delete the Policy Enforcement Condition'
                     }
                     errorMessage={this.state.errorMessage}
                     showJustification={this.props.justificationRequired}

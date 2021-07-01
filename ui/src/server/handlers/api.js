@@ -84,7 +84,7 @@ Fetchr.registerService({
                 copyAssertionConditionData['value'] =
                     params.assertionConditions[i][key];
                 if (copyAssertionConditionData['value'] === '') {
-                    copyAssertionConditionData['value'] = 'ALL';
+                    copyAssertionConditionData['value'] = '*';
                 }
                 condition[key] = copyAssertionConditionData;
             });
