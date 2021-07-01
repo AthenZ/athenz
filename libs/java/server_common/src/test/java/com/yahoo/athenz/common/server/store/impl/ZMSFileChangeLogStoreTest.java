@@ -406,4 +406,13 @@ public class ZMSFileChangeLogStoreTest {
         fstore.setDomainList(null);
         assertNull(fstore.getServerDomainList());
     }
+
+    @Test
+    public void testRequestConditionsSet() {
+        MockZMSFileChangeLogStore fstore = new MockZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        MockZMSFileChangeLogStoreCommon storeCommon = new MockZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        fstore.setChangeLogStoreCommon(storeCommon);
+        fstore.setRequestConditions(true);
+        assertTrue(storeCommon.requestConditions);
+    }
 }

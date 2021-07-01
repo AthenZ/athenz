@@ -99,4 +99,11 @@ public interface ChangeLogStore {
      * @return true if store supports full refresh, false otherwise
      */
     boolean supportsFullRefresh();
+
+    /**
+     * Allow requesting conditions from ZMS.
+     * Default implementation does not take any action.
+     */
+    default void setRequestConditions(boolean requestConditions) {
+    }
 }

@@ -468,4 +468,14 @@ public class ZMSFileMTLSChangeLogStoreTest {
         fstore.setDomainList(null);
         assertNull(fstore.getServerDomainList());
     }
+
+    @Test
+    public void testRequestConditionsSet() throws InterruptedException, IOException, KeyRefresherException {
+        MockZMSFileMTLSChangeLogStore fstore = new MockZMSFileMTLSChangeLogStore(FSTORE_PATH, keyPath, certPath,
+                trustStorePath, trustStorePassword);
+        MockZMSFileChangeLogStoreCommon storeCommon = new MockZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        fstore.setChangeLogStoreCommon(storeCommon);
+        fstore.setRequestConditions(true);
+        assertTrue(storeCommon.requestConditions);
+    }
 }
