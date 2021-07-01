@@ -9,12 +9,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/ardielle/ardielle-go/rdl"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"reflect"
 	"strings"
 	"syscall"
 	"time"
@@ -194,7 +196,7 @@ func main() {
 	pHomeDomain := flag.String("h", "home", "Home domain name as configured in Athenz systems")
 	pSocks := flag.String("s", defaultSocksProxy(), "The SOCKS5 proxy to route requests through, i.e. 127.0.0.1:1080")
 	pSkipVerify := flag.Bool("k", false, "Disable peer verification of SSL certificates")
-	pOutputFormat := flag.String("o", "yaml", "Output format - json or yaml")
+	pOutputFormat := flag.String("o", "manualYaml", "Output format - json or yaml")
 	pDebug := flag.Bool("debug", defaultDebug(), "debug mode (for authentication, mainly)")
 	pAuditRef := flag.String("a", "", "Audit Reference Token if auditing is enabled for the domain")
 	pExcludeHeader := flag.Bool("x", false, "Exclude header in user-token output")
@@ -324,6 +326,12 @@ func main() {
 
 	msg, err := cli.EvalCommand(args)
 	if err != nil {
+		if reflect.ValueOf(err).Kind() != reflect.Struct {
+			err = rdl.ResourceError{
+				Code:    400,
+				Message: err.Error(),
+			}
+		}
 		switch cli.OutputFormat {
 			case zmscli.JSONOutputFormat:
 				jsonOutput, errJson := json.MarshalIndent(err, "", "    ")

@@ -5,6 +5,7 @@ package zmscli
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -45,6 +46,74 @@ func (cli Zms) DeleteDomain(dn string) (*string, error) {
 }
 
 func (cli Zms) ImportDomain(dn string, filename string, admins []string) (*string, error) {
+
+	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
+		return cli.ImportDomainNew(dn, filename, admins)
+	} else {
+		return cli.ImportDomainOld(dn, filename, admins)
+	}
+}
+
+func (cli Zms) ImportDomainNew(dn string, filename string, admins []string) (*string, error) {
+	validatedAdmins := cli.validatedUsers(admins, true)
+	var signedDomain zms.DomainData
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	if cli.OutputFormat == YAMLOutputFormat {
+		err = yaml.Unmarshal(data, &signedDomain)
+	} else {
+		err = json.Unmarshal(data, &signedDomain)
+	}
+
+	if dn != string(signedDomain.Name) {
+		return nil, fmt.Errorf("Domain name mismatch. Expected " + dn + ", encountered " + string(signedDomain.Name))
+	}
+	if (signedDomain.YpmId == nil && cli.ProductIdSupport && strings.LastIndex(dn, ".") < 0) {
+		return nil, fmt.Errorf("top level domains require an integer number specified for the Product ID")
+	}
+	_, err = cli.AddDomain(dn, signedDomain.YpmId, true, admins)
+	if err != nil {
+		return nil, err
+	}
+
+	auditEnabled := false
+	if signedDomain.AuditEnabled != nil && *signedDomain.AuditEnabled {
+		auditEnabled = *signedDomain.AuditEnabled
+	}
+
+	err = cli.SetCompleteDomainMeta(dn, signedDomain.Description, string(signedDomain.Org), auditEnabled, signedDomain.ApplicationId, signedDomain.BusinessService)
+	if err != nil {
+		return nil, err
+	}
+
+	err = cli.importRoles(dn, signedDomain.Roles, validatedAdmins, false)
+	if err != nil {
+		return nil, err
+	}
+
+	err = cli.importPolicies(dn, signedDomain.Policies.Contents.Policies, false)
+	if err != nil {
+		return nil, err
+	}
+
+	err = cli.importServices(dn, signedDomain.Services)
+	if err != nil {
+		return nil, err
+	}
+
+	s := "[imported domain '" + dn + "' successfully]"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) ImportDomainOld(dn string, filename string, admins []string) (*string, error) {
 	validatedAdmins := cli.validatedUsers(admins, true)
 	var spec map[string]interface{}
 	data, err := ioutil.ReadFile(filename)
@@ -101,17 +170,17 @@ func (cli Zms) ImportDomain(dn string, filename string, admins []string) (*strin
 		return nil, err
 	}
 	lstRoles := dnSpec["roles"].([]interface{})
-	err = cli.importRoles(dn, lstRoles, validatedAdmins, false)
+	err = cli.importRolesOld(dn, lstRoles, validatedAdmins, false)
 	if err != nil {
 		return nil, err
 	}
 	lstPolicies := dnSpec["policies"].([]interface{})
-	err = cli.importPolicies(dn, lstPolicies, false)
+	err = cli.importPoliciesOld(dn, lstPolicies, false)
 	if err != nil {
 		return nil, err
 	}
 	if lstServices, ok := dnSpec["services"].([]interface{}); ok {
-		err = cli.importServices(dn, lstServices)
+		err = cli.importServicesOld(dn, lstServices)
 		if err != nil {
 			return nil, err
 		}
@@ -165,19 +234,19 @@ func (cli Zms) UpdateDomain(dn string, filename string) (*string, error) {
 		return nil, err
 	}
 	if lstRoles, ok := dnSpec["roles"].([]interface{}); ok {
-		err = cli.importRoles(dn, lstRoles, nil, true)
+		err = cli.importRolesOld(dn, lstRoles, nil, true)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if lstPolicies, ok := dnSpec["policies"].([]interface{}); ok {
-		err = cli.importPolicies(dn, lstPolicies, true)
+		err = cli.importPoliciesOld(dn, lstPolicies, true)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if lstServices, ok := dnSpec["services"].([]interface{}); ok {
-		err = cli.importServices(dn, lstServices)
+		err = cli.importServicesOld(dn, lstServices)
 		if err != nil {
 			return nil, err
 		}
@@ -192,15 +261,10 @@ func (cli Zms) ExportDomain(dn string, filename string) (*string, error) {
 	data, err := cli.showDomain(dn)
 	cli.Verbose = verbose
 	if err == nil && data != nil {
-		s := *data
-		msg, err := cli.switchOverFormats(*data)
-		if err == nil {
-			s = *msg
-		}
 		if filename == "-" {
-			fmt.Println(s)
+			fmt.Println(*data)
 		} else {
-			err = ioutil.WriteFile(filename, []byte(s), 0644)
+			err = ioutil.WriteFile(filename, []byte(*data), 0644)
 		}
 	}
 	return nil, err
@@ -242,7 +306,11 @@ func (cli Zms) AddDomain(dn string, productID *int32, addSelf bool, admins []str
 	if err != nil {
 		return nil, err
 	}
-	return cli.switchOverFormats(*s)
+	message := SuccessMessage{
+		Status:  200,
+		Message: *s,
+	}
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) createDomain(dn string, productID *int32, admins []string) (*string, error) {
@@ -422,8 +490,7 @@ func (cli Zms) CheckDomain(dn string) (*string, error) {
 	return cli.switchOverFormats(domainDataCheck, s)
 }
 
-func (cli Zms) showDomain(dn string) (*string, error) {
-
+func (cli Zms) showDomainOld(dn string) (*string, error) {
 	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
 	if err != nil {
 		return nil, err
@@ -445,6 +512,29 @@ func (cli Zms) showDomain(dn string) (*string, error) {
 
 	s := buf.String()
 	return cli.switchOverFormats(domain, s)
+}
+
+func (cli Zms) showDomainNew(dn string) (*string, error) {
+	conditions := true
+	domains, _, err := cli.Zms.GetSignedDomains(zms.DomainName(dn), "false", "all", &conditions, &conditions, "")
+	if err != nil {
+		return nil, err
+	}
+
+	if domains == nil || len(domains.Domains) != 1 {
+		return nil, fmt.Errorf("Domain with name " + dn + " wasn't found")
+	}
+
+	return cli.dumpByFormat(domains.Domains[0].Domain, nil)
+}
+
+func (cli Zms) showDomain(dn string) (*string, error) {
+
+	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
+		return cli.showDomainNew(dn)
+	} else {
+		return cli.showDomainOld(dn)
+	}
 }
 
 func (cli Zms) showDomainTags(dn string) (string, error) {
