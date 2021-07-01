@@ -83,5 +83,5 @@ type TagValueList Struct {
 type AssertionConditionKeyPattern String (pattern="[a-zA-Z][a-zA-Z0-9_-]+");
 type AssertionConditionKey String (pattern="({AssertionConditionKeyPattern}\\.)*{AssertionConditionKeyPattern}");
 
-type AssertionConditionValuePattern String (pattern="[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]+");
+type AssertionConditionValuePattern String (pattern="[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*");
 type AssertionConditionValue String (pattern="({AssertionConditionValuePattern},)*{AssertionConditionValuePattern}");

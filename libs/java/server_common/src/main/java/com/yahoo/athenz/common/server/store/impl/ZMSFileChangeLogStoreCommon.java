@@ -32,8 +32,6 @@ import java.io.IOException;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.PROP_GET_CONDITIONS_IN_SIGNED_DOMAINS;
-
 public class ZMSFileChangeLogStoreCommon {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZMSFileChangeLogStoreCommon.class);
@@ -95,8 +93,10 @@ public class ZMSFileChangeLogStoreCommon {
                 delete(domain);
             }
         }
+    }
 
-        requestConditions = Boolean.parseBoolean(System.getProperty(PROP_GET_CONDITIONS_IN_SIGNED_DOMAINS, "false"));
+    public void setRequestConditions(final boolean requestConditions) {
+        this.requestConditions = requestConditions;
     }
 
     public boolean supportsFullRefresh() {

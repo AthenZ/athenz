@@ -158,4 +158,9 @@ public class ZMSFileMTLSChangeLogStore implements ChangeLogStore {
     void setChangeLogStoreCommon(ZMSFileChangeLogStoreCommon changeLogStoreCommon) {
         this.changeLogStoreCommon = changeLogStoreCommon;
     }
+
+    @Override
+    public void setRequestConditions(final boolean requestConditions) {
+        changeLogStoreCommon.setRequestConditions(requestConditions);
+    }
 }
