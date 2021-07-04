@@ -69,12 +69,19 @@ func (cli Zms) buildJSONOutput(res interface{}) (*string, error) {
 }
 
 func (cli Zms) buildYAMLOutput(res interface{}) (*string, error) {
+	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
 	yamlOutput, err := yaml.Marshal(res)
 	if err != nil {
 		return nil, fmt.Errorf("failed to produce YAML output: %v", err)
 	}
 	output := string(yamlOutput)
 	return &output, nil
+	} else {
+		// For manual yaml, we just return the message as text. We should remove
+		// it once we removed the "manual yaml" option
+		message := res.(SuccessMessage).Message
+		return &message, nil
+	}
 }
 
 type YamlConverter func(res interface{}) (*string, error)
@@ -223,7 +230,12 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				cli.Domain = ""
 				s = "[not using any domain]"
 			}
-			return cli.switchOverFormats(s)
+			message := SuccessMessage{
+				Status:  200,
+				Message: s,
+			}
+
+			return cli.dumpByFormat(message, cli.buildYAMLOutput)
 		case "show-domain":
 			if argc == 1 {
 				//override the default domain, this command can show any of them
@@ -330,6 +342,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.ShowServerTemplate(args[0])
 			}
+			return nil, fmt.Errorf("no template specified")
 		case "show-resource":
 			if argc == 2 {
 				return cli.ShowResourceAccess(args[0], args[1])

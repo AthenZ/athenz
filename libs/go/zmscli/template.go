@@ -12,29 +12,39 @@ import (
 )
 
 func (cli Zms) ListServerTemplates() (*string, error) {
-	var buf bytes.Buffer
 	templates, err := cli.Zms.GetServerTemplateList()
 	if err != nil {
 		return nil, err
 	}
-	buf.WriteString("templates:\n")
-	for _, name := range templates.TemplateNames {
-		buf.WriteString(indentLevel1Dash + string(name) + "\n")
+
+	oldYamlConverter := func(res interface{}) (*string, error) {
+		var buf bytes.Buffer
+		buf.WriteString("templates:\n")
+		for _, name := range templates.TemplateNames {
+			buf.WriteString(indentLevel1Dash + string(name) + "\n")
+		}
+		return cli.switchOverFormats(templates, buf.String())
 	}
-	return cli.switchOverFormats(templates, buf.String())
+
+	return cli.dumpByFormat(templates, oldYamlConverter)
 }
 
 func (cli Zms) ListDomainTemplates(dn string) (*string, error) {
-	var buf bytes.Buffer
 	templates, err := cli.Zms.GetDomainTemplateList(zms.DomainName(dn))
 	if err != nil {
 		return nil, err
 	}
-	buf.WriteString("templates:\n")
-	for _, name := range templates.TemplateNames {
-		buf.WriteString(indentLevel1Dash + string(name) + "\n")
+
+	oldYamlConverter := func(res interface{}) (*string, error) {
+		var buf bytes.Buffer
+		buf.WriteString("templates:\n")
+		for _, name := range templates.TemplateNames {
+			buf.WriteString(indentLevel1Dash + string(name) + "\n")
+		}
+		return cli.switchOverFormats(templates, buf.String())
 	}
-	return cli.switchOverFormats(templates, buf.String())
+
+	return cli.dumpByFormat(templates, oldYamlConverter)
 }
 
 func (cli Zms) ShowServerTemplate(templateName string) (*string, error) {
@@ -42,24 +52,29 @@ func (cli Zms) ShowServerTemplate(templateName string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var buf bytes.Buffer
-	buf.WriteString("template:\n")
-	cli.dumpMetadata(&buf, template.Metadata, indentLevel2Dash, templateName)
-	buf.WriteString(indentLevel1 + "roles:\n")
-	for _, role := range template.Roles {
-		cli.dumpRole(&buf, *role, false, indentLevel2Dash, indentLevel2DashLvl)
-	}
-	buf.WriteString(indentLevel1 + "policies:\n")
-	for _, policy := range template.Policies {
-		cli.dumpPolicy(&buf, *policy, indentLevel2Dash, indentLevel2DashLvl)
-	}
-	if len(template.Services) > 0 {
-		buf.WriteString(indentLevel1 + "services:\n")
-		for _, service := range template.Services {
-			cli.dumpService(&buf, *service, indentLevel2Dash, indentLevel2DashLvl)
+
+	oldYamlConverter := func(res interface{}) (*string, error) {
+		var buf bytes.Buffer
+		buf.WriteString("template:\n")
+		cli.dumpMetadata(&buf, template.Metadata, indentLevel2Dash, templateName)
+		buf.WriteString(indentLevel1 + "roles:\n")
+		for _, role := range template.Roles {
+			cli.dumpRole(&buf, *role, false, indentLevel2Dash, indentLevel2DashLvl)
 		}
+		buf.WriteString(indentLevel1 + "policies:\n")
+		for _, policy := range template.Policies {
+			cli.dumpPolicy(&buf, *policy, indentLevel2Dash, indentLevel2DashLvl)
+		}
+		if len(template.Services) > 0 {
+			buf.WriteString(indentLevel1 + "services:\n")
+			for _, service := range template.Services {
+				cli.dumpService(&buf, *service, indentLevel2Dash, indentLevel2DashLvl)
+			}
+		}
+		return cli.switchOverFormats(template, buf.String())
 	}
-	return cli.switchOverFormats(template, buf.String())
+
+	return cli.dumpByFormat(template, oldYamlConverter)
 }
 
 func (cli Zms) SetDomainTemplate(dn string, templateArgs []string) (*string, error) {
@@ -91,7 +106,12 @@ func (cli Zms) SetDomainTemplate(dn string, templateArgs []string) (*string, err
 		return nil, err
 	}
 	s := "[Template(s) successfully applied to domain]"
-	return cli.switchOverFormats(s)
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) DeleteDomainTemplate(dn string, template string) (*string, error) {
@@ -100,5 +120,10 @@ func (cli Zms) DeleteDomainTemplate(dn string, template string) (*string, error)
 		return nil, err
 	}
 	s := "[Deleted template: " + template + "]"
-	return cli.switchOverFormats(s)
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
