@@ -1307,13 +1307,13 @@ exports[`ServicePage should render 1`] = `
                 class="emotion-77 denali-tab"
                 data-active="false"
               >
-                History
+                Settings
               </div>
               <div
                 class="emotion-77 denali-tab"
                 data-active="false"
               >
-                Settings
+                History
               </div>
             </div>
           </div>

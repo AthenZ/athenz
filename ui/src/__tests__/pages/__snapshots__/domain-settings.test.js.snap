@@ -1359,16 +1359,16 @@ exports[`DomainSettingsPage should render 1`] = `
                 Templates
               </div>
               <div
-                class="emotion-74 denali-tab"
-                data-active="false"
-              >
-                History
-              </div>
-              <div
                 class="emotion-74 denali-tab active"
                 data-active="true"
               >
                 Settings
+              </div>
+              <div
+                class="emotion-74 denali-tab"
+                data-active="false"
+              >
+                History
               </div>
             </div>
           </div>
