@@ -28,7 +28,7 @@
   <description>Athenz ZTS Server</description>
 
   <properties>
-    <code.coverage.min>0.9827</code.coverage.min>
+    <code.coverage.min>0.9830</code.coverage.min>
   </properties>
 
   <dependencyManagement>

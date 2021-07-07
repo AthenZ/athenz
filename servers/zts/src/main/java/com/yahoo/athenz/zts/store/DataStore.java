@@ -778,12 +778,18 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             LOGGER.info("Processing domain: {}", domainName);
         }
         
-        /* if the domain is disabled we're going to skip
-         * processing this domain and just assume success */
+        // if the domain is disabled we're going to skip
+        // processing this domain. however, we must invalidate
+        // our cache and save the updated data with disabled
+        // flag before assuming success
         
         if (domainData.getEnabled() == Boolean.FALSE) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Skipping disabled domain domain: {}", domainName);
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Skipping disabled domain: {}", domainName);
+            }
+            deleteDomainFromCache(domainName);
+            if (saveInStore) {
+                changeLogStore.saveLocalDomain(domainName, signedDomain);
             }
             return true;
         }

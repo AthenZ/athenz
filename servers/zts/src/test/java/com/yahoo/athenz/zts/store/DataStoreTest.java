@@ -4432,4 +4432,32 @@ public class DataStoreTest {
 
         store.processGroupDeletedMembers(null, null);
     }
+
+    @Test
+    public void testDisabledDomain() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+        store.loadAthenzPublicKeys();
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather");
+        store.processDomain(signedDomain, true);
+
+        Set<String> accessibleRoles = new HashSet<>();
+        DataCache data = store.getDataCache("coretech");
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 1);
+        assertTrue(accessibleRoles.contains("writers"));
+
+        // now mark the domain as disabled and verify no roles are returned
+
+        signedDomain.getDomain().setEnabled(false);
+        store.processDomain(signedDomain, true);
+
+        accessibleRoles = new HashSet<>();
+        data = store.getDataCache("coretech");
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        assertTrue(accessibleRoles.isEmpty());
+    }
 }
