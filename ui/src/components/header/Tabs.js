@@ -48,12 +48,12 @@ class Tabs extends React.Component {
             name: 'templates',
         },
         {
-            label: 'History',
-            name: 'history',
-        },
-        {
             label: 'Settings',
             name: 'domain-settings',
+        },
+        {
+            label: 'History',
+            name: 'history',
         },
     ];
 
