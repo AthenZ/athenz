@@ -17,7 +17,12 @@ func (cli Zms) DeleteTenancy(dn string, provider string) (*string, error) {
 		return nil, err
 	}
 	s := "[Successfully deleted tenant " + dn + " from provider " + provider + "]\n"
-	return cli.switchOverFormats(s)
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) AddTenancy(dn string, provider string, createAdminRole bool) (*string, error) {
@@ -32,7 +37,12 @@ func (cli Zms) AddTenancy(dn string, provider string, createAdminRole bool) (*st
 		return nil, err
 	}
 	s := "[Successfully added tenant " + dn + " to provider " + provider + "]\n"
-	return cli.switchOverFormats(s)
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) AddTenant(provDomain string, provService string, tenantDomain string) (*string, error) {
@@ -46,7 +56,12 @@ func (cli Zms) AddTenant(provDomain string, provService string, tenantDomain str
 		return nil, err
 	}
 	s := "[Successfully added tenant " + tenantDomain + " to provider " + provDomain + "." + provService + "]\n"
-	return cli.switchOverFormats(s)
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) DeleteTenant(provDomain string, provService string, tenantDomain string) (*string, error) {
@@ -55,7 +70,12 @@ func (cli Zms) DeleteTenant(provDomain string, provService string, tenantDomain 
 		return nil, err
 	}
 	s := "[Successfully deleted tenant " + tenantDomain + " from provider " + provDomain + "." + provService + "]\n"
-	return cli.switchOverFormats(s)
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) ShowTenantResourceGroupRoles(provDomain string, provService string, tenantDomain string, resourceGroup string) (*string, error) {
@@ -63,10 +83,15 @@ func (cli Zms) ShowTenantResourceGroupRoles(provDomain string, provService strin
 	if err != nil {
 		return nil, err
 	}
-	var buf bytes.Buffer
-	buf.WriteString("resource-group:\n")
-	cli.dumpTenantResourceGroupRoles(&buf, tenantRoles, indentLevel1Dash, indentLevel1DashLvl)
-	return cli.switchOverFormats(tenantRoles, buf.String())
+
+	oldYamlConverter := func(res interface{}) (*string, error) {
+		var buf bytes.Buffer
+		buf.WriteString("resource-group:\n")
+		cli.dumpTenantResourceGroupRoles(&buf, tenantRoles, indentLevel1Dash, indentLevel1DashLvl)
+		return cli.switchOverFormats(tenantRoles, buf.String())
+	}
+
+	return cli.dumpByFormat(tenantRoles, oldYamlConverter)
 }
 
 func (cli Zms) DeleteTenantResourceGroupRoles(provDomain string, provService string, tenantDomain string, resourceGroup string) (*string, error) {
@@ -75,7 +100,12 @@ func (cli Zms) DeleteTenantResourceGroupRoles(provDomain string, provService str
 		return nil, err
 	}
 	s := "[Successfully deleted resource group " + resourceGroup + " roles for tenant: " + tenantDomain + "]\n"
-	return cli.switchOverFormats(s)
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) AddTenantResourceGroupRoles(provDomain string, provService string, tenantDomain string, resourceGroup string, roleActions []string) (*string, error) {
@@ -109,7 +139,7 @@ func (cli Zms) AddTenantResourceGroupRoles(provDomain string, provService string
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.ShowTenantResourceGroupRoles(provDomain, provService, tenantDomain, resourceGroup)
 	}
-	return cli.switchOverFormats(*output)
+	return output, err
 }
 
 func (cli Zms) ShowProviderResourceGroupRoles(tenantDomain string, providerDomain string, providerService string, resourceGroup string) (*string, error) {
@@ -117,10 +147,15 @@ func (cli Zms) ShowProviderResourceGroupRoles(tenantDomain string, providerDomai
 	if err != nil {
 		return nil, err
 	}
-	var buf bytes.Buffer
-	buf.WriteString("resource-group:\n")
-	cli.dumpProviderResourceGroupRoles(&buf, providerRoles, indentLevel1Dash, indentLevel1DashLvl)
-	return cli.switchOverFormats(providerRoles, buf.String())
+
+	oldYamlConverter := func(res interface{}) (*string, error) {
+		var buf bytes.Buffer
+		buf.WriteString("resource-group:\n")
+		cli.dumpProviderResourceGroupRoles(&buf, providerRoles, indentLevel1Dash, indentLevel1DashLvl)
+		return cli.switchOverFormats(providerRoles, buf.String())
+	}
+
+	return cli.dumpByFormat(providerRoles, oldYamlConverter)
 }
 
 func (cli Zms) DeleteProviderResourceGroupRoles(tenantDomain string, providerDomain string, providerService string, resourceGroup string) (*string, error) {
@@ -129,7 +164,12 @@ func (cli Zms) DeleteProviderResourceGroupRoles(tenantDomain string, providerDom
 		return nil, err
 	}
 	s := "[Successfully deleted resource group " + resourceGroup + " roles for tenant: " + tenantDomain + "]\n"
-	return cli.switchOverFormats(s)
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) AddProviderResourceGroupRoles(tenantDomain string, providerDomain string, providerService string, resourceGroup string, createAdminRole bool, roleActions []string) (*string, error) {
@@ -165,5 +205,5 @@ func (cli Zms) AddProviderResourceGroupRoles(tenantDomain string, providerDomain
 		time.Sleep(500 * time.Millisecond)
 		output, err = cli.ShowProviderResourceGroupRoles(tenantDomain, providerDomain, providerService, resourceGroup)
 	}
-	return cli.switchOverFormats(*output)
+	return output, err
 }

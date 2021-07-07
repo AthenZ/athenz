@@ -395,14 +395,17 @@ func (gen *clientGenerator) emitClient() error {
 		fType := GoType(gen.registry, f.Type, optional, f.Items, f.Keys, gen.precise, true, "")
 		fName := capitalize(string(f.Name))
 		option := ""
+		yamlOption := ""
 		if optional {
 			option = ",omitempty"
+			yamlOption = " yaml:\",omitempty\""
+
 		}
 		jsonName := string(f.Name)
 		if ext, ok := f.Annotations["x_json_name"]; ok {
 			jsonName = ext
 		}
-		fAnno := "`json:\"" + jsonName + option + "\"`"
+		fAnno := "`json:\"" + jsonName + option + "\"" + yamlOption + "`"
 		return fmt.Sprintf("%s %s%s", fName, fType, fAnno)
 	}
 	funcMap := template.FuncMap{

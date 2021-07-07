@@ -334,7 +334,7 @@ type TransportPolicyCondition struct {
 	// Acts as restrictions. If present, this transport policy should be
 	// restricted to only mentioned instances.
 	//
-	Instances []string `json:"instances,omitempty" rdl:"optional"`
+	Instances []string `json:"instances,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 //

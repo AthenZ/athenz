@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -23,8 +24,10 @@ import (
 const (
 	// JSONOutputFormat is the JSON output format for commands.
 	JSONOutputFormat = "json"
-	// DefaultOutputFormat is the default YAML output format for commands.
-	DefaultOutputFormat = "yaml"
+	// YAMLOutputFormat is the YAML output format for commands.
+	YAMLOutputFormat = "yaml"
+	// DefaultOutputFormat is the default (old) YAML output format for commands.
+	DefaultOutputFormat = "manualYaml"
 	// ErrInvalidOutputFormat is the error message for unsupported output formats.
 	ErrInvalidOutputFormat = "unsupported output format \"%s\""
 )
@@ -46,6 +49,11 @@ type Zms struct {
 	AddSelf          bool
 }
 
+type SuccessMessage struct {
+	Status int
+	Message string
+}
+
 // StandardJSONMessage is the standard template for single-line string messages.
 type StandardJSONMessage struct {
 	Message string `json:"message,required"`
@@ -58,6 +66,37 @@ func (cli Zms) buildJSONOutput(res interface{}) (*string, error) {
 	}
 	output := string(jsonOutput)
 	return &output, nil
+}
+
+func (cli Zms) buildYAMLOutput(res interface{}) (*string, error) {
+	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
+	yamlOutput, err := yaml.Marshal(res)
+	if err != nil {
+		return nil, fmt.Errorf("failed to produce YAML output: %v", err)
+	}
+	output := string(yamlOutput)
+	return &output, nil
+	} else {
+		// For manual yaml, we just return the message as text. We should remove
+		// it once we removed the "manual yaml" option
+		message := res.(SuccessMessage).Message
+		return &message, nil
+	}
+}
+
+type YamlConverter func(res interface{}) (*string, error)
+
+func (cli Zms) dumpByFormat(jsonResponse interface{}, manualYamlConverter YamlConverter) (*string, error) {
+	switch cli.OutputFormat {
+	case JSONOutputFormat:
+		return cli.buildJSONOutput(jsonResponse)
+	case YAMLOutputFormat:
+		return cli.buildYAMLOutput(jsonResponse)
+	case DefaultOutputFormat:
+		return manualYamlConverter(jsonResponse)
+	default:
+		return nil, fmt.Errorf(ErrInvalidOutputFormat, cli.OutputFormat)
+	}
 }
 
 func (cli Zms) switchOverFormats(res interface{}, msg ...string) (*string, error) {
@@ -191,7 +230,12 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				cli.Domain = ""
 				s = "[not using any domain]"
 			}
-			return cli.switchOverFormats(s)
+			message := SuccessMessage{
+				Status:  200,
+				Message: s,
+			}
+
+			return cli.dumpByFormat(message, cli.buildYAMLOutput)
 		case "show-domain":
 			if argc == 1 {
 				//override the default domain, this command can show any of them
@@ -298,6 +342,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.ShowServerTemplate(args[0])
 			}
+			return nil, fmt.Errorf("no template specified")
 		case "show-resource":
 			if argc == 2 {
 				return cli.ShowResourceAccess(args[0], args[1])
