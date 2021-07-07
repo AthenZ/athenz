@@ -36,7 +36,8 @@ func (cli Zms) ListPolicies(dn string) (*string, error) {
 		var buf bytes.Buffer
 		buf.WriteString("policies:\n")
 		cli.dumpObjectList(&buf, policies, dn, "policy")
-		return cli.switchOverFormats(policies, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(policies, oldYamlConverter)
@@ -52,7 +53,8 @@ func (cli Zms) ShowPolicy(dn string, name string) (*string, error) {
 		var buf bytes.Buffer
 		buf.WriteString("policy:\n")
 		cli.dumpPolicy(&buf, *policy, indentLevel1Dash, indentLevel1DashLvl)
-		return cli.switchOverFormats(policy, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(policy, oldYamlConverter)

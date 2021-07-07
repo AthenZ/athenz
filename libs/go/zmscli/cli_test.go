@@ -106,7 +106,8 @@ func TestDumpByFormatOldYaml(t *testing.T) {
 		var buf bytes.Buffer
 		buf.WriteString("role:\n")
 		cli.dumpRole(&buf, role, auditLog, indentLevel1Dash, indentLevel1DashLvl)
-		return cli.switchOverFormats(role, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	value, _ := cli.dumpByFormat(roleData, oldYamlConverter)

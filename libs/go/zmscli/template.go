@@ -23,7 +23,8 @@ func (cli Zms) ListServerTemplates() (*string, error) {
 		for _, name := range templates.TemplateNames {
 			buf.WriteString(indentLevel1Dash + string(name) + "\n")
 		}
-		return cli.switchOverFormats(templates, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(templates, oldYamlConverter)
@@ -41,7 +42,8 @@ func (cli Zms) ListDomainTemplates(dn string) (*string, error) {
 		for _, name := range templates.TemplateNames {
 			buf.WriteString(indentLevel1Dash + string(name) + "\n")
 		}
-		return cli.switchOverFormats(templates, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(templates, oldYamlConverter)
@@ -71,7 +73,8 @@ func (cli Zms) ShowServerTemplate(templateName string) (*string, error) {
 				cli.dumpService(&buf, *service, indentLevel2Dash, indentLevel2DashLvl)
 			}
 		}
-		return cli.switchOverFormats(template, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(template, oldYamlConverter)

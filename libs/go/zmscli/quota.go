@@ -36,7 +36,7 @@ func (cli Zms) GetQuota(dn string) (*string, error) {
 		var buf bytes.Buffer
 		cli.dumpQuota(&buf, quota)
 		s := buf.String()
-		return cli.switchOverFormats(quota, s)
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(quota, oldYamlConverter)

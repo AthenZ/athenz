@@ -24,7 +24,8 @@ func (cli Zms) ListUsers(domainName string) (*string, error) {
 		for _, item := range users.Names {
 			buf.WriteString("    - " + string(item) + "\n")
 		}
-		return cli.switchOverFormats(users, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(users, oldYamlConverter)

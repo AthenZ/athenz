@@ -42,7 +42,8 @@ func (cli Zms) ListRoles(dn string) (*string, error) {
 		var buf bytes.Buffer
 		buf.WriteString("roles:\n")
 		cli.dumpObjectList(&buf, roles, dn, "role")
-		return cli.switchOverFormats(roles, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(roles, oldYamlConverter)
@@ -77,7 +78,8 @@ func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool, pending boo
 		var buf bytes.Buffer
 		buf.WriteString("role:\n")
 		cli.dumpRole(&buf, *role, auditLog, indentLevel1Dash, indentLevel1DashLvl)
-		return cli.switchOverFormats(*role, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(role, oldYamlConverter)
@@ -315,7 +317,8 @@ func (cli Zms) CheckMembers(dn string, rn string, members []string) (*string, er
 		for _, m := range membership {
 			cli.dumpRoleMembership(&buf, *m)
 		}
-		return cli.switchOverFormats(membership, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(membership, oldYamlConverter)
@@ -333,7 +336,8 @@ func (cli Zms) CheckActiveMember(dn string, rn string, mbr string) (*string, err
 	oldYamlConverter := func(res interface{}) (*string, error) {
 		var buf bytes.Buffer
 		cli.dumpRoleMembership(&buf, *member)
-		return cli.switchOverFormats(member, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(member, oldYamlConverter)
@@ -363,7 +367,8 @@ func (cli Zms) ListDomainRoleMembers(dn string) (*string, error) {
 		var buf bytes.Buffer
 		buf.WriteString("role members:\n")
 		cli.dumpDomainRoleMembers(&buf, roleMembers, false)
-		return cli.switchOverFormats(roleMembers, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(roleMembers, oldYamlConverter)
@@ -378,7 +383,8 @@ func (cli Zms) ShowRolesPrincipal(principal string, dn string) (*string, error) 
 	oldYamlConverter := func(res interface{}) (*string, error) {
 		var buf bytes.Buffer
 		cli.dumpRolesPrincipal(&buf, domainRoleMember)
-		return cli.switchOverFormats(domainRoleMember, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(domainRoleMember, oldYamlConverter)
@@ -597,7 +603,8 @@ func (cli Zms) ShowRoles(dn string, tagKey string, tagValue string) (*string, er
 	} else {
 		var buf bytes.Buffer
 		cli.dumpRoles(&buf, dn, tagKey, tagValue)
-		return cli.switchOverFormats(buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 }
 
