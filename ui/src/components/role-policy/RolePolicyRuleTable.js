@@ -20,7 +20,11 @@ import { colors } from '../denali/styles';
 import AddAssertionForRole from './AddAssertionForRole';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
-import { DISPLAY_SPACE, MODAL_TIME_OUT } from '../constants/constants';
+import {
+    DELETE_AUDIT_REFERENCE,
+    DISPLAY_SPACE,
+    MODAL_TIME_OUT,
+} from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
 import NameUtils from '../utils/NameUtils';
 import { css, keyframes } from '@emotion/react';
@@ -177,6 +181,7 @@ export default class RolePolicyRuleTable extends React.Component {
                 this.props.domain,
                 this.props.name,
                 this.state.deleteAssertionId,
+                DELETE_AUDIT_REFERENCE,
                 this.props._csrf
             )
             .then(() => {
