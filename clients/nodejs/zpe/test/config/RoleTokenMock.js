@@ -14,13 +14,13 @@
 'use strict';
 
 class RoleTokenMock {
-  constructor(expiryTime) {
-    this._expiryTime = expiryTime;
-  }
+    constructor(expiryTime) {
+        this._expiryTime = expiryTime;
+    }
 
-  getExpiryTime() {
-    return Math.floor(Date.now() / 1000) + this._expiryTime;
-  }
+    getExpiryTime() {
+        return Math.floor(Date.now() / 1000) + this._expiryTime;
+    }
 }
 
 module.exports = RoleTokenMock;

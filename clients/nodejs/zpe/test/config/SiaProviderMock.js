@@ -16,24 +16,24 @@
 var identityMock = require('./IdentityMock');
 
 class SiaProviderMock {
-  constructor(domain, service) {
-    this._domain = null;
-    this._service = null;
+    constructor(domain, service) {
+        this._domain = null;
+        this._service = null;
 
-    if(domain) {
-      this._domain = domain.toString().toLowerCase();
+        if (domain) {
+            this._domain = domain.toString().toLowerCase();
+        }
+        if (service) {
+            this._service = service.toString().toLowerCase();
+        }
     }
-    if(service) {
-      this._service = service.toString().toLowerCase();
-    }
-  }
 
-  getIdentity(domain, service) {
-    if (domain !== this._domain || service !== this._service) {
-      return null;
+    getIdentity(domain, service) {
+        if (domain !== this._domain || service !== this._service) {
+            return null;
+        }
+        return new identityMock(this._domain, this._service);
     }
-    return new identityMock(this._domain, this._service);
-  }
 }
 
 module.exports = SiaProviderMock;

@@ -11,10 +11,8 @@ NPM := $(shell command -v npm 2> /dev/null)
 
 ifdef NPM
 
-all:
-	npm install
-	$(PWD)/node_modules/grunt-cli/bin/grunt
-
+.PHONY: build lint test
+all: build lint test
 else
 
 all:
@@ -22,5 +20,17 @@ all:
 
 endif
 
+build:
+	@echo "Make: Build"
+	npm install
+
+lint:
+	@echo "Make: lint"
+	npm run ci-lint
+
+test:
+	@echo "Make: unit tests"
+	npm run test
+
 clean:
-	rm -rf build node_modules artifacts
+	rm -rf node_modules artifacts

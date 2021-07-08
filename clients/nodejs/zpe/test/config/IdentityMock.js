@@ -14,38 +14,38 @@
 'use strict';
 
 class IdentityMock {
-  constructor(domain, name) {
-    this._domain = domain;
-    this._name = name;
+    constructor(domain, name) {
+        this._domain = domain;
+        this._name = name;
 
-    this._creds = null;
-    if(domain && name) {
-      this._creds = 'v=S1;d=' + domain + ';n=' + name + ';';
+        this._creds = null;
+        if (domain && name) {
+            this._creds = 'v=S1;d=' + domain + ';n=' + name + ';';
+        }
     }
-  }
 
-  getDomain() {
-    return this._domain;
-  }
-
-  getName() {
-    return this._name;
-  }
-
-  getCredentials() {
-      return this._creds;
-  }
-
-  getAuthority() {
-    if (!this._domain){
-      return null;
+    getDomain() {
+        return this._domain;
     }
-    return this;
-  }
 
-  getHeader() {
-    return 'Athenz-Principal-Auth';
-  }
+    getName() {
+        return this._name;
+    }
+
+    getCredentials() {
+        return this._creds;
+    }
+
+    getAuthority() {
+        if (!this._domain) {
+            return null;
+        }
+        return this;
+    }
+
+    getHeader() {
+        return 'Athenz-Principal-Auth';
+    }
 }
 
 module.exports = IdentityMock;

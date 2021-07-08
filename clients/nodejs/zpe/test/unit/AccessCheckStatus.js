@@ -27,11 +27,11 @@ var rdlMock = require('../config/RdlMock');
 var sandbox;
 
 var params = {
-  zts: 'zts.athenz.com',
-  domainName: null,
-  serviceName: null,
-  siaProvider: null,
-  identity: null
+    zts: 'zts.athenz.com',
+    domainName: null,
+    serviceName: null,
+    siaProvider: null,
+    identity: null,
 };
 
 var domainName = 'athenz.user';
@@ -41,23 +41,22 @@ var siaMock = new siaProviderMock(domainName, serviceName);
 var ideMock = new identityMock(domainName, serviceName);
 
 var siaParams = {
-  domainName: domainName,
-  serviceName: serviceName,
-  siaProvider: siaMock,
-  identity: null
+    domainName: domainName,
+    serviceName: serviceName,
+    siaProvider: siaMock,
+    identity: null,
 };
 
 var cacheKey = 'cacheKeyRoleToken';
 
-describe('AccessCheckStatus', function() {
-  beforeEach(function() {
-    sandbox = sinon.sandbox.create();
-  });
+describe('AccessCheckStatus', function () {
+    beforeEach(function () {
+        sandbox = sinon.sandbox.create();
+    });
 
-  afterEach(function() {
-    sandbox.restore();
-  });
+    afterEach(function () {
+        sandbox.restore();
+    });
 
-  it('should test AccessCheckStatus', function() {
-  });
+    it('should test AccessCheckStatus', function () {});
 });

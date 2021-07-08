@@ -14,13 +14,13 @@
 'use strict';
 
 class PrincipalAuthorityMock {
-  static getPublicKey(domain, service, keyId) {
-    if (!domain || !service || !keyId) {
-      return null;
-    }
+    static getPublicKey(domain, service, keyId) {
+        if (!domain || !service || !keyId) {
+            return null;
+        }
 
-    return domain + '.' + service + '.' + keyId;
-  }
+        return domain + '.' + service + '.' + keyId;
+    }
 }
 
 module.exports = PrincipalAuthorityMock;
