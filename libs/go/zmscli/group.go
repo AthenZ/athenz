@@ -37,7 +37,8 @@ func (cli Zms) ListGroups(dn string) (*string, error) {
 		var buf bytes.Buffer
 		buf.WriteString("groups:\n")
 		cli.dumpObjectList(&buf, groups, dn, "group")
-		return cli.switchOverFormats(groups, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(groups, oldYamlConverter)
@@ -65,7 +66,8 @@ func (cli Zms) ShowGroup(dn string, gn string, auditLog, pending bool) (*string,
 		var buf bytes.Buffer
 		buf.WriteString("group:\n")
 		cli.dumpGroup(&buf, *group, auditLog, indentLevel1Dash, indentLevel1DashLvl)
-		return cli.switchOverFormats(group, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(group, oldYamlConverter)
@@ -228,7 +230,8 @@ func (cli Zms) CheckGroupMembers(dn string, group string, members []string) (*st
 		for _, member := range groupMembership {
 			cli.dumpGroupMembership(&buf, *member)
 		}
-		return cli.switchOverFormats(groupMembership, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(groupMembership, oldYamlConverter)
@@ -246,7 +249,8 @@ func (cli Zms) CheckActiveGroupMember(dn string, group string, mbr string) (*str
 	oldYamlConverter := func(res interface{}) (*string, error) {
 		var buf bytes.Buffer
 		cli.dumpGroupMembership(&buf, *member)
-		return cli.switchOverFormats(member, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(member, oldYamlConverter)
@@ -261,7 +265,8 @@ func (cli Zms) ShowGroupsPrincipal(principal string, dn string) (*string, error)
 	oldYamlConverter := func(res interface{}) (*string, error) {
 		var buf bytes.Buffer
 		cli.dumpGroupsPrincipal(&buf, domainGroupMember)
-		return cli.switchOverFormats(domainGroupMember, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(domainGroupMember, oldYamlConverter)
@@ -438,7 +443,8 @@ func (cli Zms) ListPendingDomainGroupMembers(principal string) (*string, error) 
 		for _, domainGroupMembers := range domainMembership.DomainGroupMembersList {
 			cli.dumpDomainGroupMembers(&buf, domainGroupMembers, true)
 		}
-		return cli.switchOverFormats(domainMembership, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(domainMembership, oldYamlConverter)

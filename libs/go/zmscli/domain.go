@@ -49,6 +49,23 @@ func (cli Zms) DeleteDomain(dn string) (*string, error) {
 	return nil, err
 }
 
+func (cli Zms) SetDomainState(dn string, enabled bool) (*string, error) {
+	meta := zms.DomainMeta{
+		Enabled: &enabled,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "enabled", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) ImportDomain(dn string, filename string, admins []string) (*string, error) {
 
 	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
@@ -200,7 +217,7 @@ func (cli Zms) ImportDomainOld(dn string, filename string, admins []string) (*st
 		}
 	}
 	s := "[imported domain '" + dn + "' successfully]"
-	return cli.switchOverFormats(s)
+	return &s, nil
 }
 
 func (cli Zms) UpdateDomain(dn string, filename string) (*string, error) {
@@ -274,7 +291,7 @@ func (cli Zms) UpdateDomainOld(dn string, filename string) (*string, error) {
 		}
 	}
 	s := "[updated domain '" + dn + "' successfully]"
-	return cli.switchOverFormats(s)
+	return &s, nil
 }
 
 func (cli Zms) ExportDomain(dn string, filename string) (*string, error) {
@@ -407,7 +424,8 @@ func (cli Zms) dumpDomainListByFormat(res *zms.DomainList) (*string, error) {
 		for _, name := range domainList.Names {
 			buf.WriteString(indentLevel1Dash + string(name) + "\n")
 		}
-		return cli.switchOverFormats(res, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(res, oldYamlConverter)
@@ -460,7 +478,8 @@ func (cli Zms) GetSignedDomains(dn string, matchingTag string) (*string, error) 
 		for _, domain := range signedDomains.Domains {
 			cli.dumpSignedDomain(&buf, domain, false)
 		}
-		return cli.switchOverFormats(res, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(signedDomains, oldYamlConverter)
@@ -481,7 +500,8 @@ func (cli Zms) ShowOverdueReview(dn string) (*string, error) {
 		}
 
 		cli.dumpDomainRoleMembers(&buf, domainRoleMembers, true)
-		return cli.switchOverFormats(domainRoleMembers, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(domainRoleMembers, oldYamlConverter)
@@ -506,9 +526,9 @@ func (cli Zms) ShowDomain(dn string) (*string, error) {
 		// make sure we have a domain and it must be only one
 		if res != nil && len(signedDomains.Domains) == 1 {
 			cli.dumpSignedDomain(&buf, signedDomains.Domains[0], true)
-			return cli.switchOverFormats(signedDomains.Domains[0].Domain, buf.String())
 		}
-		return cli.switchOverFormats(domain, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(signedDomains, oldYamlConverter)
@@ -525,7 +545,7 @@ func (cli Zms) CheckDomain(dn string) (*string, error) {
 		buf.WriteString("checked data:\n")
 		cli.dumpDataCheck(&buf, *domainDataCheck)
 		s := buf.String()
-		return cli.switchOverFormats(*domainDataCheck, s)
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(domainDataCheck, oldYamlConverter)
@@ -552,7 +572,7 @@ func (cli Zms) showDomainOld(dn string) (*string, error) {
 	cli.dumpEntities(&buf, dn, names)
 
 	s := buf.String()
-	return cli.switchOverFormats(domain, s)
+	return &s, nil
 }
 
 func (cli Zms) showDomainNew(dn string) (*string, error) {
@@ -587,9 +607,8 @@ func (cli Zms) showDomainTags(dn string) (string, error) {
 	oldYamlConverter := func(res interface{}) (*string, error) {
 		var buf bytes.Buffer
 		cli.dumpTags(&buf, false, "", indentLevel1, domain.Tags)
-		dumpDomainTags, err2 := cli.switchOverFormats(domain.Tags, buf.String())
-		s := "domain " + *dumpDomainTags
-		return &s, err2
+		s := buf.String()
+		return &s, nil
 	}
 
 	tagsDump, err := cli.dumpByFormat(domain.Tags, oldYamlConverter)
@@ -1059,7 +1078,8 @@ func (cli Zms) ListPendingDomainRoleMembers(principal string) (*string, error) {
 		for _, domainRoleMembers := range domainMembership.DomainRoleMembersList {
 			cli.dumpDomainRoleMembers(&buf, domainRoleMembers, true)
 		}
-		return cli.switchOverFormats(domainMembership, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(domainMembership, oldYamlConverter)

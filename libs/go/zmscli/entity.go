@@ -22,7 +22,8 @@ func (cli Zms) ShowEntity(dn string, en string) (*string, error) {
 		var buf bytes.Buffer
 		buf.WriteString("entity:\n")
 		cli.dumpEntity(&buf, *entity, indentLevel1Dash, indentLevel1DashLvl)
-		return cli.switchOverFormats(entity, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(entity, oldYamlConverter)
@@ -91,11 +92,9 @@ func (cli Zms) ListEntities(dn string) (*string, error) {
 		var buf bytes.Buffer
 		buf.WriteString("entities:\n")
 		cli.dumpObjectList(&buf, entities, dn, "entity")
-		return cli.switchOverFormats(entities, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(entities, oldYamlConverter)
-
-
-
 }

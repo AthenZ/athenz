@@ -99,27 +99,6 @@ func (cli Zms) dumpByFormat(jsonResponse interface{}, manualYamlConverter YamlCo
 	}
 }
 
-func (cli Zms) switchOverFormats(res interface{}, msg ...string) (*string, error) {
-	var op string
-	if msg == nil {
-		op = res.(string)
-	}
-	switch cli.OutputFormat {
-	case JSONOutputFormat:
-		if msg == nil {
-			return cli.buildJSONOutput(&StandardJSONMessage{Message: op})
-		}
-		return cli.buildJSONOutput(res)
-	case DefaultOutputFormat:
-		if msg == nil {
-			return &op, nil
-		}
-		return &msg[0], nil
-	default:
-		return nil, fmt.Errorf(ErrInvalidOutputFormat, cli.OutputFormat)
-	}
-}
-
 func (cli *Zms) SetClient(tr *http.Transport, authHeader, ntoken *string) {
 	cli.Zms = zms.NewClient(cli.ZmsUrl, tr)
 	cli.Zms.AddCredentials(*authHeader, *ntoken)
@@ -243,6 +222,24 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			}
 			if dn != "" {
 				return cli.ShowDomain(dn)
+			}
+			return nil, fmt.Errorf("no domain specified")
+		case "disable-domain":
+			if argc == 1 {
+				//override the default domain, this command can show any of them
+				dn = args[0]
+			}
+			if dn != "" {
+				return cli.SetDomainState(dn, false)
+			}
+			return nil, fmt.Errorf("no domain specified")
+		case "enable-domain":
+			if argc == 1 {
+				//override the default domain, this command can show any of them
+				dn = args[0]
+			}
+			if dn != "" {
+				return cli.SetDomainState(dn, true)
 			}
 			return nil, fmt.Errorf("no domain specified")
 		case "check-domain":
@@ -1091,6 +1088,26 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   show-domain coretech.hosted\n")
 		buf.WriteString("   " + domainExample + " show-domain\n")
+	case "disable-domain":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] disable-domain domain\n")
+		buf.WriteString("   [-o json] " + domainParam + " disable-domain\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   domain : disable this domain\n")
+		buf.WriteString("          : this argument is required unless -d <domain> is specified\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   disable-domain coretech.hosted\n")
+		buf.WriteString("   " + domainExample + " disable-domain\n")
+	case "enable-domain":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] enable-domain domain\n")
+		buf.WriteString("   [-o json] " + domainParam + " enable-domain\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   domain : enable this domain\n")
+		buf.WriteString("          : this argument is required unless -d <domain> is specified\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   enable-domain coretech.hosted\n")
+		buf.WriteString("   " + domainExample + " enable-domain\n")
 	case "lookup-domain-by-account", "lookup-domain-by-aws-account":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] lookup-domain-by-aws-account account-id\n")
@@ -2784,11 +2801,13 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-default-admins domain admin [admin ...]\n")
 	buf.WriteString("   list-user [domain]\n")
 	buf.WriteString("   delete-user user\n")
+	buf.WriteString("   disable-domain [domain]\n")
+	buf.WriteString("   enable-domain [domain]\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Other commands:\n")
 	buf.WriteString("   get-user-token [authorized_service]\n")
-	buf.WriteString("   version\n")
 	buf.WriteString("   list-pending-members\n")
+	buf.WriteString("   version\n")
 	buf.WriteString("\n")
 	return buf.String()
 }

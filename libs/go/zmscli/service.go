@@ -42,7 +42,8 @@ func (cli Zms) ListServices(dn string) (*string, error) {
 			buf.WriteString("services:\n")
 			cli.dumpObjectList(&buf, services, dn, "service")
 		}
-		return cli.switchOverFormats(services, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(lst, oldYamlConverter)
@@ -58,7 +59,8 @@ func (cli Zms) ShowService(dn string, sn string) (*string, error) {
 		var buf bytes.Buffer
 		buf.WriteString("service:\n")
 		cli.dumpService(&buf, *service, indentLevel1Dash, indentLevel1DashLvl)
-		return cli.switchOverFormats(service, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(service, oldYamlConverter)
@@ -356,7 +358,8 @@ func (cli Zms) ShowServicePublicKey(dn string, sn string, keyID string) (*string
 		buf.WriteString("public-key:\n")
 		buf.WriteString(indentLevel1 + "keyID: " + pkey.Id + "\n")
 		buf.WriteString(indentLevel1 + "value: " + pkey.Key + "\n")
-		return cli.switchOverFormats(pkey, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(pkey, oldYamlConverter)

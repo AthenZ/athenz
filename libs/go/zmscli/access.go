@@ -103,7 +103,8 @@ func (cli Zms) ShowResourceAccess(principal string, action string) (*string, err
 				cli.dumpAssertion(&buf, assertion, "", indent2)
 			}
 		}
-		return cli.switchOverFormats(rsrcAccessList, buf.String())
+		s := buf.String()
+		return &s, nil
 	}
 
 	return cli.dumpByFormat(rsrcAccessList, oldYamlConverter)
