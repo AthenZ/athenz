@@ -90,3 +90,5 @@ export const STATIC_INSTANCES_RESOURCE_TYPES = [
         value: INSTANCE_RESOURCE_TYPE_IP_ADDRESS,
     },
 ];
+
+export const DELETE_AUDIT_REFERENCE = 'deleted using Athenz UI';

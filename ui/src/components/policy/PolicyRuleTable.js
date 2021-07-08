@@ -20,7 +20,11 @@ import { colors } from '../denali/styles';
 import AddAssertion from './AddAssertion';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
-import { DISPLAY_SPACE, MODAL_TIME_OUT } from '../constants/constants';
+import {
+    DELETE_AUDIT_REFERENCE,
+    DISPLAY_SPACE,
+    MODAL_TIME_OUT,
+} from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
 import { css, keyframes } from '@emotion/react';
 import NameUtils from '../utils/NameUtils';
@@ -182,6 +186,7 @@ export default class PolicyRuleTable extends React.Component {
                 this.props.domain,
                 this.props.name,
                 this.state.deleteAssertionId,
+                DELETE_AUDIT_REFERENCE,
                 this.props._csrf
             )
             .then(() => {
