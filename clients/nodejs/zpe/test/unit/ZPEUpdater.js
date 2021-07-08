@@ -21,15 +21,14 @@ var cache = require('memory-cache');
 
 var sandbox;
 
-describe('ZPEUpdater', function() {
-  beforeEach(function() {
-    sandbox = sinon.sandbox.create();
-  });
+describe('ZPEUpdater', function () {
+    beforeEach(function () {
+        sandbox = sinon.sandbox.create();
+    });
 
-  afterEach(function() {
-    sandbox.restore();
-  });
+    afterEach(function () {
+        sandbox.restore();
+    });
 
-  it('should test ZPEUpdater', function() {
-  });
+    it('should test ZPEUpdater', function () {});
 });

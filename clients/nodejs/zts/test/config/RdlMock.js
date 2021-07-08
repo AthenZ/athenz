@@ -14,17 +14,17 @@
 'use strict';
 
 class rdlMock {
-  constructor(res, flag) {
-    this._res = res;
-    this._flag = flag;
-  }
-
-  getRoleToken(params, cb) {
-    if(!this._flag) {
-      cb(new Error('rdlMock: Error'), null);
+    constructor(res, flag) {
+        this._res = res;
+        this._flag = flag;
     }
-    cb(null, this._res);
-  }
+
+    getRoleToken(params, cb) {
+        if (!this._flag) {
+            cb(new Error('rdlMock: Error'), null);
+        }
+        cb(null, this._res);
+    }
 }
 
 module.exports = rdlMock;

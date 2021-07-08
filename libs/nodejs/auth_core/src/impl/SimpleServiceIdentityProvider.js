@@ -20,83 +20,89 @@ var SimplePrincipal = require('./SimplePrincipal');
 var os = require('os');
 
 class SimpleServiceIdentityProvider {
-  /**
-   * A simple implementation of the ServiceIdentityProvider interface.
-   * The caller specifies the domain and service name along with the
-   * private key for the given service
-   * @param domainName Name of the domain
-   * @param serviceName Name of the service
-   * @param privateKey the private key for the service
-   * @param keyId the registered key id in ZMS for this private key
-   */
-  constructor(domainName, serviceName, privateKey, keyId) {
-    this._Authority = new PrincipalAuthority();
+    /**
+     * A simple implementation of the ServiceIdentityProvider interface.
+     * The caller specifies the domain and service name along with the
+     * private key for the given service
+     * @param domainName Name of the domain
+     * @param serviceName Name of the service
+     * @param privateKey the private key for the service
+     * @param keyId the registered key id in ZMS for this private key
+     */
+    constructor(domainName, serviceName, privateKey, keyId) {
+        this._Authority = new PrincipalAuthority();
 
-    this._domain = domainName.toString().toLowerCase();
-    this._service = serviceName.toString().toLowerCase();
-    this._key = privateKey;
-    this._tokenTimeout = 3600;
-    this._keyId = keyId.toString().toLowerCase();
-    this.setHost(this._getServerHostName());
-  }
-
-  static setConfig(c) {
-    PrincipalAuthority.setConfig(c);
-    PrincipalToken.setConfig(c);
-    SimplePrincipal.setConfig(c);
-  }
-
-  getIdentity(domainName, serviceName) {
-    // all the role members in Athenz are normalized to lower case so we need to make
-    // sure our principal's name and domain are created with lower case as well
-    domainName = domainName.toString().toLowerCase();
-    serviceName = serviceName.toString().toLowerCase();
-
-    // make sure we're handling correct domain and service
-    if (domainName !== this._domain || serviceName !== this._service) {
-      return null;
+        this._domain = domainName.toString().toLowerCase();
+        this._service = serviceName.toString().toLowerCase();
+        this._key = privateKey;
+        this._tokenTimeout = 3600;
+        this._keyId = keyId.toString().toLowerCase();
+        this.setHost(this._getServerHostName());
     }
 
-    var tokenObj = {
-      version: 'S1',
-      domain: domainName,
-      name: serviceName,
-      expirationWindow: this._tokenTimeout,
-      host: this._host,
-      keyId: this._keyId
-    };
-
-    var token = new PrincipalToken(tokenObj);
-    token.sign(this._key);
-
-    var principal = SimplePrincipal.createByUserIdentity(domainName, serviceName, token.getSignedToken(), Math.floor(Date.now() / 1000), this._Authority);
-    principal.setUnsignedCreds(token.getUnsignedToken());
-    return principal;
-  }
-
-  _getServerHostName() {
-    var urlhost = null;
-
-    try {
-      urlhost = os.hostname();
-    } catch (e) {
-      urlhost = 'localhost';
+    static setConfig(c) {
+        PrincipalAuthority.setConfig(c);
+        PrincipalToken.setConfig(c);
+        SimplePrincipal.setConfig(c);
     }
 
-    return urlhost;
-  }
+    getIdentity(domainName, serviceName) {
+        // all the role members in Athenz are normalized to lower case so we need to make
+        // sure our principal's name and domain are created with lower case as well
+        domainName = domainName.toString().toLowerCase();
+        serviceName = serviceName.toString().toLowerCase();
 
-  getHost() {
-    return this._host;
-  }
+        // make sure we're handling correct domain and service
+        if (domainName !== this._domain || serviceName !== this._service) {
+            return null;
+        }
 
-  setHost(host) {
-    this._host = host;
-  }
+        var tokenObj = {
+            version: 'S1',
+            domain: domainName,
+            name: serviceName,
+            expirationWindow: this._tokenTimeout,
+            host: this._host,
+            keyId: this._keyId,
+        };
 
-  setTokenTimeout(tokenTimeout) {
-    this._tokenTimeout = tokenTimeout;
-  }
+        var token = new PrincipalToken(tokenObj);
+        token.sign(this._key);
+
+        var principal = SimplePrincipal.createByUserIdentity(
+            domainName,
+            serviceName,
+            token.getSignedToken(),
+            Math.floor(Date.now() / 1000),
+            this._Authority
+        );
+        principal.setUnsignedCreds(token.getUnsignedToken());
+        return principal;
+    }
+
+    _getServerHostName() {
+        var urlhost = null;
+
+        try {
+            urlhost = os.hostname();
+        } catch (e) {
+            urlhost = 'localhost';
+        }
+
+        return urlhost;
+    }
+
+    getHost() {
+        return this._host;
+    }
+
+    setHost(host) {
+        this._host = host;
+    }
+
+    setTokenTimeout(tokenTimeout) {
+        this._tokenTimeout = tokenTimeout;
+    }
 }
 
 module.exports = SimpleServiceIdentityProvider;

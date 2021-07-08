@@ -14,14 +14,14 @@
 'use strict';
 
 module.exports = {
-  Crypto: require('./src/util/Crypto'),
-  KeyStore: require('./src/impl/KeyStore'),
-  PrincipalAuthority: require('./src/impl/PrincipalAuthority'),
-  PrincipalToken: require('./src/token/PrincipalToken'),
-  RoleAuthority: require('./src/impl/RoleAuthority'),
-  RoleToken: require('./src/token/RoleToken'),
-  SimplePrincipal: require('./src/impl/SimplePrincipal'),
-  SimpleServiceIdentityProvider: require('./src/impl/SimpleServiceIdentityProvider'),
-  Validate: require('./src/util/Validate'),
-  YBase64: require('./src/util/YBase64')
+    Crypto: require('./src/util/Crypto'),
+    KeyStore: require('./src/impl/KeyStore'),
+    PrincipalAuthority: require('./src/impl/PrincipalAuthority'),
+    PrincipalToken: require('./src/token/PrincipalToken'),
+    RoleAuthority: require('./src/impl/RoleAuthority'),
+    RoleToken: require('./src/token/RoleToken'),
+    SimplePrincipal: require('./src/impl/SimplePrincipal'),
+    SimpleServiceIdentityProvider: require('./src/impl/SimpleServiceIdentityProvider'),
+    Validate: require('./src/util/Validate'),
+    YBase64: require('./src/util/YBase64'),
 };
