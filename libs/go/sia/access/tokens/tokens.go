@@ -79,7 +79,7 @@ func ToBeRefreshed(tokenDir string, tokens []config.AccessToken) ([]config.Acces
 	return refresh, errs
 }
 
-//func Fetch(ztsUrl, domain string, svcs []string, tokens []ac.AccessToken) []error {
+// Fetch retrieves the configured set of access tokens from the ZTS Server
 func Fetch(opts *config.TokenOptions) []error {
 	errs := []error{}
 	tlsConfigs, e := loadSvcCerts(opts)
