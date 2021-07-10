@@ -5,10 +5,12 @@
 [![Pipeline Status][status-image]][status-url]
 [![Publish Status][publish-status-image]][status-url]
 [![SourceSpy Dashboard](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/athenzathenz/)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4681/badge)](https://bestpractices.coreinfrastructure.org/projects/4681)
 
 [status-image]: https://cd.screwdriver.cd/pipelines/6606/badge
 [publish-status-image]: https://cd.screwdriver.cd/pipelines/6606/publish/badge
 [status-url]: https://cd.screwdriver.cd/pipelines/6606
+
 
 > Athenz is an open source platform for X.509 certificate based service authentication and fine-grained
 > access control in dynamic infrastructures. It supports provisioning and configuration (centralized
