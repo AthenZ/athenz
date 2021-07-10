@@ -3,6 +3,15 @@ planning to work on. At Verizon Media, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
+# Q3 2021
+
+- Micro Segmentation: Service Identity based ACLs (IP Table update)
+- Extend ZMS CLI to output YAML based on server schema
+- Support multi-version policies with option to specify a specific version as default/active
+- Update ZTS to use its own Athenz X.509 client certificate for the instance provider callbacks
+- Provide a capability to dynamically determine which roles require certificates
+- UI: Allow user to configure some common settings while creating a role
+
 # Q2 2021
 
 - Micro Segmentation: Service Identity based ACLs (IP Table update)
