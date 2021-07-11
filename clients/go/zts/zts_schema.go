@@ -185,6 +185,10 @@ func init() {
 	tRoleCertificateRequest.Field("prevCertNotAfter", "Timestamp", true, nil, "previous role certificate not after date")
 	sb.AddType(tRoleCertificateRequest.Build())
 
+	tRoleAccess := rdl.NewStructTypeBuilder("Struct", "RoleAccess")
+	tRoleAccess.ArrayField("roles", "EntityName", false, "")
+	sb.AddType(tRoleAccess.Build())
+
 	tRoleToken := rdl.NewStructTypeBuilder("Struct", "RoleToken")
 	tRoleToken.Comment("A representation of a signed RoleToken")
 	tRoleToken.Field("token", "String", false, nil, "")
@@ -195,10 +199,6 @@ func init() {
 	tAccess.Comment("Access can be checked and returned as this resource.")
 	tAccess.Field("granted", "Bool", false, nil, "true (allowed) or false (denied)")
 	sb.AddType(tAccess.Build())
-
-	tRoleAccess := rdl.NewStructTypeBuilder("Struct", "RoleAccess")
-	tRoleAccess.ArrayField("roles", "EntityName", false, "")
-	sb.AddType(tRoleAccess.Build())
 
 	tTenantDomains := rdl.NewStructTypeBuilder("Struct", "TenantDomains")
 	tTenantDomains.ArrayField("tenantDomainNames", "DomainName", false, "")
@@ -703,6 +703,18 @@ func init() {
 	mPostRoleCertificateRequestExt.Exception("NOT_FOUND", "ResourceError", "")
 	mPostRoleCertificateRequestExt.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostRoleCertificateRequestExt.Build())
+
+	mGetRolesRequireRoleCert := rdl.NewResourceBuilder("RoleAccess", "GET", "/role/cert")
+	mGetRolesRequireRoleCert.Comment("Fetch all roles that are tagged as requiring role certificates for principal")
+	mGetRolesRequireRoleCert.Name("getRolesRequireRoleCert")
+	mGetRolesRequireRoleCert.Input("principal", "EntityName", false, "principal", "", true, nil, "If not present, will return roles for the user making the call")
+	mGetRolesRequireRoleCert.Auth("", "", true, "")
+	mGetRolesRequireRoleCert.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetRolesRequireRoleCert.Exception("FORBIDDEN", "ResourceError", "")
+	mGetRolesRequireRoleCert.Exception("NOT_FOUND", "ResourceError", "")
+	mGetRolesRequireRoleCert.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetRolesRequireRoleCert.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetRolesRequireRoleCert.Build())
 
 	mGetWorkloadsByService := rdl.NewResourceBuilder("Workloads", "GET", "/domain/{domainName}/service/{serviceName}/workloads")
 	mGetWorkloadsByService.Name("getWorkloadsByService")

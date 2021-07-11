@@ -16,3 +16,16 @@ resource RoleCertificate POST "/rolecert" (name=PostRoleCertificateRequestExt) {
         ResourceError UNAUTHORIZED;
     }
 }
+
+// Fetch all roles that are tagged as requiring role certificates for principal
+resource RoleAccess GET "/role/cert?principal={principal}" (name=getRolesRequireRoleCert) {
+    EntityName principal (optional); //If not present, will return roles for the user making the call
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

@@ -73,10 +73,6 @@ resource Access GET "/access/domain/{domainName}/role/{roleName}/principal/{prin
     }
 }
 
-type RoleAccess Struct {
-    Array<EntityName> roles;
-}
-
 resource RoleAccess GET "/access/domain/{domainName}/principal/{principal}" {
     DomainName domainName; //name of the domain
     EntityName principal; //carry out the role access lookup for this principal

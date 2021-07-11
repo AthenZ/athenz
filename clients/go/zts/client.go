@@ -1080,6 +1080,38 @@ func (client ZTSClient) PostRoleCertificateRequestExt(req *RoleCertificateReques
 	}
 }
 
+func (client ZTSClient) GetRolesRequireRoleCert(principal EntityName) (*RoleAccess, error) {
+	var data *RoleAccess
+	url := client.URL + "/role/cert" + encodeParams(encodeStringParam("principal", string(principal), ""))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client ZTSClient) GetWorkloadsByService(domainName DomainName, serviceName EntityName) (*Workloads, error) {
 	var data *Workloads
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workloads"

@@ -158,6 +158,9 @@ public class ZTSSchema {
             .field("prevCertNotBefore", "Timestamp", true, "previous role certificate not before date")
             .field("prevCertNotAfter", "Timestamp", true, "previous role certificate not after date");
 
+        sb.structType("RoleAccess")
+            .arrayField("roles", "EntityName", false, "");
+
         sb.structType("RoleToken")
             .comment("A representation of a signed RoleToken")
             .field("token", "String", false, "")
@@ -166,9 +169,6 @@ public class ZTSSchema {
         sb.structType("Access")
             .comment("Access can be checked and returned as this resource.")
             .field("granted", "Bool", false, "true (allowed) or false (denied)");
-
-        sb.structType("RoleAccess")
-            .arrayField("roles", "EntityName", false, "");
 
         sb.structType("TenantDomains")
             .arrayField("tenantDomainNames", "DomainName", false, "");
@@ -724,6 +724,23 @@ public class ZTSSchema {
             .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("RoleAccess", "GET", "/role/cert")
+            .comment("Fetch all roles that are tagged as requiring role certificates for principal")
+            .name("getRolesRequireRoleCert")
+            .queryParam("principal", "principal", "EntityName", null, "If not present, will return roles for the user making the call")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

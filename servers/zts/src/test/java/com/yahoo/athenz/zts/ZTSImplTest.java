@@ -11683,6 +11683,16 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testGetRolesRequireRoleCert() {
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        RoleAccess rolesRequireRoleCert = zts.getRolesRequireRoleCert(context, "coretech.api");
+        assertEquals(rolesRequireRoleCert.getRoles(), new ArrayList<>());
+    }
+
+    @Test
     public void getWorkloadsByServiceTest() {
         final String domainName = "workloadsbyservice";
         final String serviceName = "api";

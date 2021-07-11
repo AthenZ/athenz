@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts.store;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_USER_DOMAIN;
+import static com.yahoo.athenz.zts.ZTSConsts.ZTS_ISSUE_ROLE_CERT_TAG;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
@@ -2220,7 +2221,80 @@ public class DataStoreTest {
         assertTrue(dataCache.getMemberRoleSet("user_domain.user")
                 .contains(new MemberRole("coretech:role.readers", 0)));
     }
-    
+
+    @Test
+    public void testProcessDomainRolesWithRequireRole() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        List<Role> roles = new ArrayList<>();
+
+        Role role = new Role();
+        role.setName("coretech:role.admin");
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
+        roles.add(role);
+
+        role = new Role();
+        role.setName("coretech:role.readers");
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
+        // Set tag
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put(ZTS_ISSUE_ROLE_CERT_TAG, new TagValueList().setList(Collections.singletonList("true")));
+        role.setTags(tags);
+        roles.add(role);
+
+        role = new Role();
+        role.setName("coretech:role.different.tag");
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
+        // Set tag
+        tags = new HashMap<>();
+        tags.put("othertag", new TagValueList().setList(Collections.singletonList("true")));
+        role.setTags(tags);
+        roles.add(role);
+
+        role = new Role();
+        role.setName("coretech:role.tag.set.false");
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
+        // Set tag
+        tags = new HashMap<>();
+        tags.put(ZTS_ISSUE_ROLE_CERT_TAG, new TagValueList().setList(Collections.singletonList("false")));
+        role.setTags(tags);
+        roles.add(role);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("coretech");
+        domainData.setRoles(roles);
+
+        DataCache dataCache = new DataCache();
+        dataCache.setDomainData(domainData);
+
+        store.processDomainRoles(domainData, dataCache);
+        assertEquals(dataCache.getMemberRoleSet("user_domain.user").size(), 4);
+
+        assertTrue(dataCache.getMemberRoleSet("user_domain.user")
+                .contains(new MemberRole("coretech:role.admin", 0)));
+        assertTrue(dataCache.getMemberRoleSet("user_domain.user")
+                .contains(new MemberRole("coretech:role.readers", 0)));
+        assertTrue(dataCache.getMemberRoleSet("user_domain.user")
+                .contains(new MemberRole("coretech:role.different.tag", 0)));
+        assertTrue(dataCache.getMemberRoleSet("user_domain.user")
+                .contains(new MemberRole("coretech:role.tag.set.false", 0)));
+
+        List<String> rolesRequireRoleCert = store.getRolesRequireRoleCert("user_domain.user");
+        assertEquals(rolesRequireRoleCert.size(), 1);
+        assertEquals(rolesRequireRoleCert.get(0), "coretech:role.readers");
+    }
+
     @Test
     public void testProcessDomainRolesNullRoles() {
 
