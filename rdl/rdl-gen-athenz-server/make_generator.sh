@@ -28,6 +28,11 @@ if [ -z "${GOPATH}" ]; then
     exit 1;
 fi
 
+if [ ! -d "${GOPATH}/bin" ]; then
+    echo >&2 "$GOPATH/bin directory does not exist. Please create this directory."
+    exit 1;
+fi
+
 go get -u github.com/ardielle/ardielle-go/...
 go build
 cp rdl-gen-athenz-server ${GOPATH}/bin/rdl-gen-athenz-server

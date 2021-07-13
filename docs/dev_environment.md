@@ -28,6 +28,8 @@ written in Java and using embedded Jetty.
 Athenz has been developed and tested with Oracle Java Platform JDK 8.
 However, it should compile and run without any issues with OpenJDK 8 as well.
 
+Make sure you have set the $JAVA_HOME environment variable.
+
 ### Maven
 ---------
 
@@ -45,6 +47,8 @@ the git client is required.
 
 Install go by following the directions at
 [Getting Started - The Go Programming Language](https://golang.org/doc/install).
+
+Make sure you have set the [$GOPATH environment variable](https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable) and that you have `$GOPATH/bin` in your `$PATH`.
 
 ### Node JS
 -----------
