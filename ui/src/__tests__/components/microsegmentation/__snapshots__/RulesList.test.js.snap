@@ -147,7 +147,7 @@ exports[`RulesList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-30 {
+.emotion-32 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -155,7 +155,7 @@ exports[`RulesList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-36 {
+.emotion-38 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -165,7 +165,7 @@ exports[`RulesList should render 1`] = `
   text-decoration: dashed underline;
 }
 
-.emotion-43 {
+.emotion-45 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -175,7 +175,7 @@ exports[`RulesList should render 1`] = `
   text-decoration: dashed underline;
 }
 
-.emotion-46 {
+.emotion-48 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -266,31 +266,36 @@ exports[`RulesList should render 1`] = `
         <th
           class="emotion-24 emotion-17"
         >
+          Edit
+        </th>
+        <th
+          class="emotion-24 emotion-17"
+        >
           Delete
         </th>
       </tr>
     </thead>
     <tbody>
       <tr
-        class="emotion-28 emotion-29"
+        class="emotion-30 emotion-31"
         data-testid="segmentation-row"
       >
         <td
-          class="emotion-30 emotion-31"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         />
         <td
-          class="emotion-30 emotion-31"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         />
         <td
-          class="emotion-30 emotion-31"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           2222
         </td>
         <td
-          class="emotion-36 emotion-37"
+          class="emotion-38 emotion-39"
           color="#3570f40D"
         >
           <span>
@@ -314,19 +319,19 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-30 emotion-31"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           1111
         </td>
         <td
-          class="emotion-30 emotion-31"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           tcp
         </td>
         <td
-          class="emotion-43 emotion-37"
+          class="emotion-45 emotion-39"
           color="#3570f40D"
         >
           <span>
@@ -356,7 +361,29 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-46 emotion-31"
+          class="emotion-48 emotion-33"
+          color="#3570f40D"
+        >
+          <span>
+            <svg
+              class="emotion-11"
+              data-testid="icon"
+              height="1.25em"
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                pencil
+              </title>
+              <path
+                d="M925.867 401.067l-300.8-302.933c-7.434-8.083-18.061-13.13-29.867-13.13s-22.432 5.047-29.84 13.101l-0.026 0.029-467.2 467.2c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c11.712-0.172 22.255-5.037 29.86-12.793l0.007-0.007 467.2-465.067c8.083-7.434 13.13-18.061 13.13-29.867s-5.047-22.432-13.101-29.84l-0.029-0.026zM411.733 853.333h-241.067v-241.067l266.667-264.533 238.933 241.067zM738.133 529.067l-241.067-241.067 98.133-100.267 241.067 243.2z"
+              />
+            </svg>
+          </span>
+        </td>
+        
+        <td
+          class="emotion-48 emotion-33"
           color="#3570f40D"
         >
           <span>
@@ -450,33 +477,38 @@ exports[`RulesList should render 1`] = `
         <th
           class="emotion-24 emotion-17"
         >
+          Edit
+        </th>
+        <th
+          class="emotion-24 emotion-17"
+        >
           Delete
         </th>
       </tr>
     </thead>
     <tbody>
       <tr
-        class="emotion-28 emotion-29"
+        class="emotion-30 emotion-31"
         data-testid="segmentation-row"
       >
         <td
-          class="emotion-30 emotion-31"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         />
         <td
-          class="emotion-30 emotion-31"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           serviceE
         </td>
         <td
-          class="emotion-30 emotion-31"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           3333
         </td>
         <td
-          class="emotion-36 emotion-37"
+          class="emotion-38 emotion-39"
           color="#3570f40D"
         >
           <span>
@@ -500,19 +532,19 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-30 emotion-31"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           4444
         </td>
         <td
-          class="emotion-30 emotion-31"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           udp
         </td>
         <td
-          class="emotion-43 emotion-37"
+          class="emotion-45 emotion-39"
           color="#3570f40D"
         >
           <span>
@@ -533,7 +565,29 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-46 emotion-31"
+          class="emotion-48 emotion-33"
+          color="#3570f40D"
+        >
+          <span>
+            <svg
+              class="emotion-11"
+              data-testid="icon"
+              height="1.25em"
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                pencil
+              </title>
+              <path
+                d="M925.867 401.067l-300.8-302.933c-7.434-8.083-18.061-13.13-29.867-13.13s-22.432 5.047-29.84 13.101l-0.026 0.029-467.2 467.2c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c11.712-0.172 22.255-5.037 29.86-12.793l0.007-0.007 467.2-465.067c8.083-7.434 13.13-18.061 13.13-29.867s-5.047-22.432-13.101-29.84l-0.029-0.026zM411.733 853.333h-241.067v-241.067l266.667-264.533 238.933 241.067zM738.133 529.067l-241.067-241.067 98.133-100.267 241.067 243.2z"
+              />
+            </svg>
+          </span>
+        </td>
+        
+        <td
+          class="emotion-48 emotion-33"
           color="#3570f40D"
         >
           <span>

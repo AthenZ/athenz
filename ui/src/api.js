@@ -1621,6 +1621,39 @@ const Api = (req) => {
                 });
             });
         },
+
+        editMicrosegmentation(
+            domainName,
+            roleChanged,
+            assertionChanged,
+            assertionConditionChanged,
+            data,
+            _csrf
+        ) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                fetchr
+                    .update('microsegmentation')
+                    .params({
+                        domainName,
+                        roleChanged,
+                        assertionChanged,
+                        assertionConditionChanged,
+                        data,
+                    })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
     };
 };
 

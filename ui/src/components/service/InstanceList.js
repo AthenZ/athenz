@@ -63,7 +63,6 @@ export default class InstanceList extends React.Component {
             showAddInstance: false,
             instances: props.instances || [],
             errorMessage: null,
-            searchText: '',
             error: false,
             placeholder: 'Search',
             options: [

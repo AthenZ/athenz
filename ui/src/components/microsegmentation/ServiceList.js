@@ -17,6 +17,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import DateUtils from '../utils/DateUtils';
 import { withRouter } from 'next/router';
+import Menu from '../denali/Menu/Menu';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -62,6 +63,19 @@ const StyledTd = styled.td`
 const StyledLink = styled.a`
     cursor: pointer;
 `;
+
+const StyledInvalidLink = styled.a`
+    color: red;
+`;
+
+const StyledMessageDiv = styled.div`
+    min-width: 200px;
+`;
+
+const StyledMenu = styled(Menu)`
+    min-width: 200px;
+`;
+
 class ServiceList extends React.Component {
     constructor(props) {
         super(props);
@@ -88,14 +102,35 @@ class ServiceList extends React.Component {
             return (
                 <StyledTr key={item + i + new Date().getTime()}>
                     <StyledTd>
-                        <StyledLink
-                            onClick={() => {
-                                this.viewServiceDetails(item);
-                            }}
-                        >
-                            {' '}
-                            {item}{' '}
-                        </StyledLink>
+                        {!item.includes('*') && (
+                            <StyledLink
+                                onClick={() => {
+                                    this.viewServiceDetails(item);
+                                }}
+                            >
+                                {' '}
+                                {item}{' '}
+                            </StyledLink>
+                        )}
+
+                        {item.includes('*') && (
+                            <StyledMenu
+                                placement='right'
+                                trigger={
+                                    <StyledInvalidLink>
+                                        {' '}
+                                        {item}{' '}
+                                    </StyledInvalidLink>
+                                }
+                            >
+                                <StyledMessageDiv>
+                                    <p>
+                                        Service is invalid as it contains
+                                        wildcard characters.
+                                    </p>
+                                </StyledMessageDiv>
+                            </StyledMenu>
+                        )}
                     </StyledTd>
                 </StyledTr>
             );

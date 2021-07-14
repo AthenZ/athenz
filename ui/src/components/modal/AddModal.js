@@ -38,12 +38,16 @@ const ModifiedButton = styled(Button)`
 
 const StyledAddModal = styled(Modal)`
     width: ${(props) => props.width};
+    height: ${(props) => props.height};
 `;
 
 export default class AddModal extends React.Component {
     render() {
         let width = '805px';
         let height = 'auto';
+        let modalHeight = this.props.modalHeight
+            ? this.props.modalHeight
+            : 'auto';
         if (this.props.width) {
             width = this.props.width;
         }
@@ -57,6 +61,7 @@ export default class AddModal extends React.Component {
                 onClose={this.props.cancel}
                 title={this.props.title}
                 width={width}
+                height={modalHeight}
             >
                 {this.props.header != null && this.props.header && (
                     <MessageDiv data-testid='add-modal-message'>

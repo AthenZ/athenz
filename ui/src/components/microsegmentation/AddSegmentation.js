@@ -111,40 +111,67 @@ export default class AddSegmentation extends React.Component {
         this.categoryChanged = this.categoryChanged.bind(this);
         this.addMember = this.addMember.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.onEditSubmit = this.onEditSubmit.bind(this);
         this.loadServices = this.loadServices.bind(this);
         this.changeService = this.changeService.bind(this);
         this.protocolChanged = this.protocolChanged.bind(this);
         this.handlePolicy = this.handlePolicy.bind(this);
-        this.handleMembers = this.handleMembers.bind(this);
         this.validatePort = this.validatePort.bind(this);
         this.inputChanged = this.inputChanged.bind(this);
-        this.addFields = this.addFields.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleAddClick = this.handleAddClick.bind(this);
         this.handleRemoveClick = this.handleRemoveClick.bind(this);
         this.state = {
-            category: 'inbound',
-            isCategory: true,
-            inboundDestinationService: '',
-            outboundDestinationService: '',
-            inboundSourceService: '',
-            outboundSourceService: '',
-            destinationPort: '',
+            category: this.props.editMode
+                ? this.props.data['category']
+                : 'inbound',
+            isCategory: this.props.editMode
+                ? this.props.data['category'] === 'inbound'
+                : true,
+            inboundDestinationService:
+                this.props.editMode && this.props.data['category'] === 'inbound'
+                    ? this.props.data['destination_service']
+                    : '',
+            outboundSourceService:
+                this.props.editMode &&
+                this.props.data['category'] === 'outbound'
+                    ? this.props.data['source_service']
+                    : '',
+            destinationPort: this.props.editMode
+                ? this.props.data['destination_port']
+                : '',
             sourceServiceMembers: '',
             destinationServiceMembers: '',
-            sourcePort: '',
-            protocol: '',
+            sourcePort: this.props.editMode
+                ? this.props.data['source_port']
+                : '',
+            protocol: this.props.editMode ? this.props.data['layer'] : '',
             newMemberName: '',
             memberExpiry: '',
             memberReviewReminder: '',
-            members: [],
+            members: this.props.editMode
+                ? this.props.data['category'] === 'inbound'
+                    ? this.props.data['source_services'].map((str) => ({
+                          memberName: str,
+                          approved: true,
+                      }))
+                    : this.props.data['destination_services'].map((str) => ({
+                          memberName: str,
+                          approved: true,
+                      }))
+                : [],
             protocolValid: true,
             action: '',
             resource: '',
             destinationServiceList: [],
-            identifier: '',
+            identifier: this.props.editMode
+                ? this.props.data['identifier']
+                : '',
             justification: '',
-            PESList: [{ enforcementState: 'report', instances: '' }],
+            PESList: this.props.editMode
+                ? JSON.parse(JSON.stringify(this.props.data['conditionsList']))
+                : [{ enforcementstate: 'report', instances: '', id: 1 }],
+            data: props.data,
         };
     }
 
@@ -153,11 +180,13 @@ export default class AddSegmentation extends React.Component {
     }
 
     categoryChanged(button) {
-        this.setState({
-            category: button.name,
-            isCategory: !this.state.isCategory, //Setting isCategory true for inbound and false for outbound through out the code
-            errorMessage: '',
-        });
+        if (!this.props.editMode) {
+            this.setState({
+                category: button.name,
+                isCategory: !this.state.isCategory, //Setting isCategory true for inbound and false for outbound through out the code
+                errorMessage: '',
+            });
+        }
     }
 
     protocolChanged(chosen) {
@@ -185,23 +214,6 @@ export default class AddSegmentation extends React.Component {
         });
     }
 
-    addFields() {
-        return this.state.values.map((el, i) => (
-            <div key={i}>
-                <input
-                    type='text'
-                    value={el || ''}
-                    onChange={this.handleChange.bind(this, i)}
-                />
-                <input
-                    type='button'
-                    value='remove'
-                    onClick={this.removeClick.bind(this, i)}
-                />
-            </div>
-        ));
-    }
-
     addMember() {
         let sourceServiceName = this.state.isCategory
             ? this.state.sourceServiceMembers
@@ -212,11 +224,12 @@ export default class AddSegmentation extends React.Component {
             return;
         }
         let names = NameUtils.splitNames(sourceServiceName);
-
         for (let i = 0; i < names.length; i++) {
-            members.push({
-                memberName: names[i],
-            });
+            if (!names[i].includes('*')) {
+                members.push({
+                    memberName: names[i],
+                });
+            }
         }
 
         if (this.state.isCategory) {
@@ -230,7 +243,6 @@ export default class AddSegmentation extends React.Component {
         }
         this.setState({
             members,
-            // sourceService: '',
         });
     }
 
@@ -240,12 +252,12 @@ export default class AddSegmentation extends React.Component {
         if (members.length === 1) {
             members = [];
         } else {
-            delete members[idx];
+            members.splice(idx, 1);
         }
         this.setState({ members });
     }
 
-    handlePolicy(policyName, roleName, resource, action) {
+    handlePolicy(policyName, roleName, resource, action, roleCreated) {
         //Validating ACL policy and adding/updating assertion. if get policy threw a 404 then create a new policy
         var foundAssertionMatch = false;
         this.api
@@ -256,7 +268,27 @@ export default class AddSegmentation extends React.Component {
                         foundAssertionMatch = true;
                     }
                 });
-                if (foundAssertionMatch) {
+                if (foundAssertionMatch && roleCreated) {
+                    this.api
+                        .deleteRole(
+                            this.props.domain,
+                            roleName,
+                            'deleted using Microsegmentation UI because of same assertion',
+                            this.props._csrf
+                        )
+                        .then(() => {
+                            this.setState({
+                                errorMessage:
+                                    'Same policy already exists with a different identifier',
+                            });
+                        })
+                        .catch((err) => {
+                            this.setState({
+                                errorMessage:
+                                    RequestUtils.xhrErrorCheckHelper(err),
+                            });
+                        });
+                } else if (foundAssertionMatch) {
                     if (!this.state.errorMessage) {
                         this.props.onSubmit();
                     }
@@ -352,7 +384,7 @@ export default class AddSegmentation extends React.Component {
                                 .catch((err) => {
                                     this.setState({
                                         errorMessage:
-                                            RequestUtils.xhrErrorCheckHelper(
+                                            RequestUtils.fetcherErrorCheckHelper(
                                                 err
                                             ),
                                     });
@@ -361,7 +393,7 @@ export default class AddSegmentation extends React.Component {
                         .catch((err) => {
                             this.setState({
                                 errorMessage:
-                                    RequestUtils.xhrErrorCheckHelper(err),
+                                    RequestUtils.fetcherErrorCheckHelper(err),
                             });
                         });
                 } else {
@@ -369,40 +401,6 @@ export default class AddSegmentation extends React.Component {
                         errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                     });
                 }
-            });
-    }
-
-    handleMembers(role) {
-        let promises = [];
-        role.roleMembers.forEach((members) => {
-            let membership = {
-                memberName: members.memberName, //membership is a must object with atleast members in it.
-                approved: true,
-            };
-            promises.push(
-                this.api.addMember(
-                    this.props.domain,
-                    role.name,
-                    members.memberName,
-                    membership,
-                    this.state.justification
-                        ? this.state.justification
-                        : 'added for micro-segmentation',
-                    'role',
-                    this.props._csrf
-                )
-            );
-        });
-        Promise.all(promises)
-            .then(() => {
-                this.setState({
-                    errorMessage: '',
-                });
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
             });
     }
 
@@ -456,21 +454,7 @@ export default class AddSegmentation extends React.Component {
         return result;
     }
 
-    onSubmit() {
-        this.setState({
-            errorMessage: '',
-        });
-        this.addMember();
-
-        //Input field validation
-
-        if (!this.state.identifier || this.state.identifier === '') {
-            this.setState({
-                errorMessage: 'Identifier is required.',
-            });
-            return;
-        }
-
+    validateFields() {
         if (this.state.isCategory) {
             if (
                 !this.state.inboundDestinationService ||
@@ -479,7 +463,7 @@ export default class AddSegmentation extends React.Component {
                 this.setState({
                     errorMessage: 'Destination service is required.',
                 });
-                return;
+                return 1;
             }
 
             if (
@@ -489,28 +473,49 @@ export default class AddSegmentation extends React.Component {
                 this.setState({
                     errorMessage: 'Destination Port is required.',
                 });
-                return;
+                return 1;
             }
 
-            if (this.state.members <= 0) {
+            if (
+                this.state.sourceServiceMembers.length <= 0 &&
+                this.state.members.length == 0
+            ) {
                 this.setState({
-                    errorMessage: 'Atlease one source service is required.',
+                    errorMessage: 'At least one source service is required.',
                 });
-                return;
+                return 1;
+            }
+
+            for (let member of this.state.members) {
+                if (member.memberName.includes('*')) {
+                    this.setState({
+                        errorMessage:
+                            'Service name cannot contain wildcard (*) characters',
+                    });
+                    return 1;
+                }
+            }
+
+            if (this.state.sourceServiceMembers.includes('*')) {
+                this.setState({
+                    errorMessage:
+                        'Service name cannot contain wildcard (*) characters',
+                });
+                return 1;
             }
 
             if (!this.state.sourcePort || this.state.sourcePort === '') {
                 this.setState({
                     errorMessage: 'Source port is required.',
                 });
-                return;
+                return 1;
             }
 
             if (!this.state.protocol || this.state.protocol === '') {
                 this.setState({
                     errorMessage: 'Protocol is required.',
                 });
-                return;
+                return 1;
             }
         } else {
             if (
@@ -520,22 +525,43 @@ export default class AddSegmentation extends React.Component {
                 this.setState({
                     errorMessage: 'Source service is required.',
                 });
-                return;
+                return 1;
             }
 
             if (!this.state.sourcePort || this.state.sourcePort === '') {
                 this.setState({
                     errorMessage: 'Source port is required.',
                 });
-                return;
+                return 1;
             }
 
-            if (this.state.members <= 0) {
+            if (
+                this.state.destinationServiceMembers.length <= 0 &&
+                this.state.members.length == 0
+            ) {
                 this.setState({
                     errorMessage:
-                        'Atlease one destination service is required.',
+                        'At least one destination service is required.',
                 });
-                return;
+                return 1;
+            }
+
+            for (let member of this.state.members) {
+                if (member.memberName.includes('*')) {
+                    this.setState({
+                        errorMessage:
+                            'Service name cannot contain wildcard (*) characters',
+                    });
+                    return 1;
+                }
+            }
+
+            if (this.state.destinationServiceMembers.includes('*')) {
+                this.setState({
+                    errorMessage:
+                        'Service name cannot contain wildcard (*) characters',
+                });
+                return 1;
             }
 
             if (
@@ -545,14 +571,14 @@ export default class AddSegmentation extends React.Component {
                 this.setState({
                     errorMessage: 'Destination Port is required.',
                 });
-                return;
+                return 1;
             }
 
             if (!this.state.protocol || this.state.protocol === '') {
                 this.setState({
                     errorMessage: 'Protocol is required.',
                 });
-                return;
+                return 1;
             }
         }
 
@@ -564,13 +590,32 @@ export default class AddSegmentation extends React.Component {
             this.setState({
                 errorMessage: 'Justification is required to add a member.',
             });
+            return 1;
+        }
+
+        return 0;
+    }
+
+    onSubmit() {
+        this.setState({
+            errorMessage: '',
+        });
+
+        if (this.validateFields()) {
             return;
         }
 
-        let sourcePort = this.validatePort(this.state.sourcePort).port;
-        let destinationPort = this.validatePort(
-            this.state.destinationPort
-        ).port;
+        this.addMember();
+
+        let source = this.validatePort(this.state.sourcePort);
+        let destination = this.validatePort(this.state.destinationPort);
+
+        if (source.error || destination.error) {
+            return;
+        }
+
+        const sourcePort = source.port;
+        const destinationPort = destination.port;
 
         //set the policy and assertion values based on ACL category
         var roleName, action, policyName, resource;
@@ -641,6 +686,7 @@ export default class AddSegmentation extends React.Component {
             })
             .catch((err) => {
                 if (err && err.statusCode === 404) {
+                    let roleCreated = true;
                     this.api
                         .addRole(
                             this.props.domain,
@@ -656,7 +702,8 @@ export default class AddSegmentation extends React.Component {
                                 policyName,
                                 role.name,
                                 resource,
-                                action
+                                action,
+                                roleCreated
                             );
                         })
                         .catch((err) => {
@@ -667,16 +714,142 @@ export default class AddSegmentation extends React.Component {
                         });
                 } else {
                     this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                        errorMessage: RequestUtils.fetcherErrorCheckHelper(err),
                     });
                 }
             });
+    }
+
+    onEditSubmit() {
+        if (this.validateFields()) {
+            return;
+        }
+
+        this.addMember();
+
+        let source = this.validatePort(this.state.sourcePort);
+        let destination = this.validatePort(this.state.destinationPort);
+
+        if (source.error || destination.error) {
+            return;
+        }
+
+        let roleChanged = false;
+        let assertionChanged = false;
+        let assertionConditionChanged = false;
+
+        let updatedData = JSON.parse(JSON.stringify(this.props.data));
+
+        let originalMembers = [];
+        if (this.props.data['category'] === 'inbound') {
+            originalMembers = this.props.data['source_services'];
+        } else {
+            originalMembers = this.props.data['destination_services'];
+        }
+
+        var originalMembersHash = originalMembers.reduce(function (map, obj) {
+            map[obj] = 1;
+            return map;
+        }, {});
+
+        for (let member of this.state.members) {
+            if (!originalMembersHash[member.memberName]) {
+                roleChanged = true;
+                break;
+            }
+        }
+        if (
+            this.state.members.length !==
+            Object.keys(originalMembersHash).length
+        ) {
+            roleChanged = true;
+        }
+
+        if (roleChanged) {
+            let newMembers = [];
+            for (let member of this.state.members) {
+                newMembers.push(member.memberName);
+            }
+            if (this.props.data['category'] === 'inbound') {
+                updatedData['source_services'] = newMembers;
+            } else {
+                updatedData['destination_services'] = newMembers;
+            }
+        }
+
+        if (
+            this.props.data['destination_port'] !== this.state.destinationPort
+        ) {
+            assertionChanged = true;
+            assertionConditionChanged = true;
+        } else if (this.props.data['source_port'] !== this.state.sourcePort) {
+            assertionChanged = true;
+            assertionConditionChanged = true;
+        } else if (this.props.data['layer'] !== this.state.protocol) {
+            assertionChanged = true;
+            assertionConditionChanged = true;
+        }
+
+        if (assertionChanged) {
+            updatedData['destination_port'] = destination.port;
+            updatedData['source_port'] = source.port;
+            updatedData['layer'] = this.state.protocol;
+            updatedData['conditionsList'] = this.state.PESList;
+        } else {
+            const comparer = (otherArray) => (current) =>
+                otherArray.filter(
+                    (other) =>
+                        other.instances == current.instances &&
+                        other.enforcementstate == current.enforcementstate &&
+                        other.id == current.id
+                ).length == 0;
+
+            let x = this.props.data['conditionsList'].filter(
+                comparer(this.state.PESList)
+            );
+            let y = this.state.PESList.filter(
+                comparer(this.props.data['conditionsList'])
+            );
+
+            if (x.length != 0 || y.length != 0) {
+                assertionConditionChanged = true;
+                updatedData['conditionsList'] = this.state.PESList;
+            }
+        }
+
+        if (roleChanged || assertionChanged || assertionConditionChanged) {
+            this.api
+                .editMicrosegmentation(
+                    this.props.domain,
+                    roleChanged,
+                    assertionChanged,
+                    assertionConditionChanged,
+                    updatedData,
+                    this.props._csrf
+                )
+                .then(() => {
+                    this.props.onSubmit();
+                })
+                .catch((err) => {
+                    this.setState({
+                        errorMessage: RequestUtils.fetcherErrorCheckHelper(err),
+                    });
+                });
+        } else {
+            this.props.onCancel();
+        }
     }
 
     loadServices() {
         this.api
             .getServices(this.props.domain)
             .then((data) => {
+                for (var i = 0; i < data.length; i++) {
+                    let name = NameUtils.getShortName('.', data[i]['name']);
+                    data[i]['name'] = name;
+                    data[i]['value'] = name;
+                    delete data[i]['modified'];
+                }
                 this.setState({
                     destinationServiceList: data,
                 });
@@ -690,17 +863,16 @@ export default class AddSegmentation extends React.Component {
             })
             .catch((err) => {
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: RequestUtils.fetcherErrorCheckHelper(err),
                 });
             });
     }
 
     changeService(chosen, key) {
         if (chosen && chosen.name != null) {
-            var name = chosen.name;
-            var cleanServiceName = name.substring(name.lastIndexOf('.') + 1);
+            const name = chosen.name;
             this.setState({
-                [key]: cleanServiceName,
+                [key]: name,
             });
         }
     }
@@ -710,12 +882,12 @@ export default class AddSegmentation extends React.Component {
         const list = [...this.state.PESList];
 
         if (name.includes('enforcementStateRadioButton')) {
-            list[index]['enforcementState'] = value;
+            list[index]['enforcementstate'] = value;
             if (list.length == 2) {
                 if (value === 'report') {
-                    list[1]['enforcementState'] = 'enforce';
+                    list[1]['enforcementstate'] = 'enforce';
                 } else {
-                    list[1]['enforcementState'] = 'report';
+                    list[1]['enforcementstate'] = 'report';
                 }
             }
         } else {
@@ -727,14 +899,14 @@ export default class AddSegmentation extends React.Component {
     }
 
     handleAddClick() {
-        let enforcementState = 'report';
-        if (this.state.PESList[0]['enforcementState'] === 'report') {
-            enforcementState = 'enforce';
+        let enforcementstate = 'report';
+        if (this.state.PESList[0]['enforcementstate'] === 'report') {
+            enforcementstate = 'enforce';
         }
         this.setState({
             PESList: [
                 ...this.state.PESList,
-                { enforcementState: enforcementState, instances: '' },
+                { enforcementstate: enforcementstate, instances: '', id: 2 },
             ],
         });
     }
@@ -742,6 +914,7 @@ export default class AddSegmentation extends React.Component {
     handleRemoveClick(index) {
         const list = [...this.state.PESList];
         list.splice(index, 1);
+        list[0]['id'] = 1;
         this.setState({
             PESList: list,
         });
@@ -774,13 +947,18 @@ export default class AddSegmentation extends React.Component {
                   );
               })
             : '';
+
         let sections = (
             <SectionsDiv>
                 <SectionDiv>
                     <StyledInputLabel>ACL Category</StyledInputLabel>
                     <StyledButtonGroup
                         buttons={SEGMENTATION_CATEGORIES}
-                        selectedName={this.state.category}
+                        selectedName={
+                            this.props.data
+                                ? this.state.data['category']
+                                : this.state.category
+                        }
                         onClick={this.categoryChanged}
                         noanim
                     />
@@ -795,6 +973,7 @@ export default class AddSegmentation extends React.Component {
                         }
                         noanim
                         fluid
+                        disabled={this.props.editMode}
                     />
                 </SectionDiv>
                 <SectionDiv>
@@ -805,12 +984,14 @@ export default class AddSegmentation extends React.Component {
                     </StyledInputLabel>
                     <InputDropdown
                         name='destinationService'
-                        defaultSelectedValue={
-                            this.state.isCategory
-                                ? this.state.inboundDestinationService
-                                : this.state.outboundSourceService
-                        }
                         options={this.state.destinationServiceList}
+                        value={
+                            this.props.editMode
+                                ? this.state.isCategory
+                                    ? this.state.inboundDestinationService
+                                    : this.state.outboundSourceService
+                                : undefined
+                        }
                         onChange={(item) =>
                             this.changeService(
                                 item,
@@ -824,9 +1005,9 @@ export default class AddSegmentation extends React.Component {
                                 ? 'Enter Destination Service'
                                 : 'Enter Source Service'
                         }
-                        noclear
                         noanim
                         filterable
+                        disabled={this.props.editMode}
                     />
                 </SectionDiv>
 
@@ -839,7 +1020,7 @@ export default class AddSegmentation extends React.Component {
                             <StyledRadioButtonGroup
                                 name={'enforcementStateRadioButton' + i}
                                 inputs={inputs}
-                                selectedValue={x.enforcementState}
+                                selectedValue={x.enforcementstate}
                                 onChange={(e) => this.handleInputChange(e, i)}
                                 disabled={i == 1}
                             />
@@ -991,7 +1172,6 @@ export default class AddSegmentation extends React.Component {
                         options={SEGMENTATION_PROTOCOL}
                         onChange={this.protocolChanged}
                         placeholder='Select Protocol'
-                        noclear
                         noanim
                         filterable
                     />
@@ -1017,12 +1197,19 @@ export default class AddSegmentation extends React.Component {
                 <AddModal
                     isOpen={this.props.showAddSegment}
                     cancel={this.props.onCancel}
-                    submit={this.onSubmit}
-                    title={`Add Micro Segmentation ACL Policy`}
+                    submit={
+                        this.props.editMode ? this.onEditSubmit : this.onSubmit
+                    }
+                    title={
+                        this.props.editMode
+                            ? `Edit Micro Segmentation ACL Policy`
+                            : `Add Micro Segmentation ACL Policy`
+                    }
                     errorMessage={this.state.errorMessage}
                     sections={sections}
                     width={'1050px'}
-                    bodyMaxHeight={'530px'}
+                    bodyMaxHeight={'90%'}
+                    modalHeight={'85vh'}
                 />
             </div>
         );
