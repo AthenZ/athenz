@@ -15,7 +15,7 @@
     
     
       
-        <title>About - Athenz</title>
+        <title>Certificate Signer - Athenz</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#service-authentication" class="md-skip">
+        <a href="#certificate-signer" class="md-skip">
           Skip to content
         </a>
       
@@ -87,7 +87,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              About
+              Certificate Signer
             
           </span>
         </div>
@@ -182,12 +182,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
     
     <label class="md-nav__link" for="nav-1">
       Getting Started
@@ -205,59 +203,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        About
-        <span class="md-nav__icon md-icon"></span>
-      </label>
-    
-    <a href="index.html" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="index.html" class="md-nav__link">
       About
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -1058,10 +1008,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8" checked>
     
     <label class="md-nav__link" for="nav-8">
       Customizing Athenz
@@ -1103,11 +1055,83 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="cert_signer.html" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Certificate Signer
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="cert_signer.html" class="md-nav__link md-nav__link--active">
       Certificate Signer
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cert-signer-interfaces" class="md-nav__link">
+    Cert Signer Interfaces
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provided-implementations" class="md-nav__link">
+    Provided Implementations
+  </a>
+  
+    <nav class="md-nav" aria-label="Provided Implementations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#self-cert-signer" class="md-nav__link">
+    Self Cert Signer
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-cert-signer" class="md-nav__link">
+    Http Cert Signer
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -1314,6 +1338,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1322,23 +1348,43 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
+  <a href="#cert-signer-interfaces" class="md-nav__link">
+    Cert Signer Interfaces
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
+  <a href="#configuration" class="md-nav__link">
+    Configuration
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
+  <a href="#provided-implementations" class="md-nav__link">
+    Provided Implementations
   </a>
+  
+    <nav class="md-nav" aria-label="Provided Implementations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#self-cert-signer" class="md-nav__link">
+    Self Cert Signer
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-cert-signer" class="md-nav__link">
+    Http Cert Signer
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1354,42 +1400,111 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/cert_signer.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                  <h1>About</h1>
-                
-                <p>Athenz is a set of services and libraries supporting service authentication and role-based authorization (RBAC) for provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and Access Tokens. The name "Athenz" is derived from "AuthNZ" (N for authentication and Z for authorization). It provides support for the following three major functional areas.</p>
-<h2 id="service-authentication">Service Authentication<a class="headerlink" href="#service-authentication" title="Permanent link">&para;</a></h2>
-<p>Athenz provides secure identity in the form of short lived X.509 certificate
-and a certificate and IP-based distributed system to handle for every workload or service deployed in private (e.g. Openstack, K8S, Screwdriver)
-on-box enforcement. or public cloud (e.g. AWS EC2, ECS, Fargate, Lambda). Using these X.509 certificates
-clients and services establish secure connections and through mutual TLS authentication verify
-each other's identity. The service identity certificates are valid for 30 days only
-and the service identity agents (SIA) part of those frameworks automatically refresh
-them daily. The term service within Athenz is more generic than a traditional service.
-A service identity could represent a command, job, daemon, workflow, as well as both an
-application client and an application service.</p>
-<p>Since Athenz service authentication is based on
-<a href="https://en.wikipedia.org/wiki/X.509">X.509 certificates</a>, it is
-important that you have a good understanding what X.509 certificates are
-and how they're used to establish secure connections in Internet protocols
-such as <a href="https://en.wikipedia.org/wiki/Transport_Layer_Security">TLS</a>.</p>
-<h2 id="role-based-authorization-rbac">Role-Based Authorization (RBAC)<a class="headerlink" href="#role-based-authorization-rbac" title="Permanent link">&para;</a></h2>
-<p>Once the client is authenticated with its x.509 certificate, the service
-their own role-based access control systems that have no central store  can then check if the given client is authorized to carry out the requested
-and often rely on network ACLs and manual updating. action. Athenz provides fine-grained role-based access control (RBAC) support
-for a centralized management system with support for control-plane access control
-decisions and a decentralized enforcement mechanism suitable for data-plane
-access control decisions. It also provides a delegated management model that
-supports multi-tenant and self-service concepts.</p>
-<h2 id="aws-temporary-credentials-support">AWS Temporary Credentials Support<a class="headerlink" href="#aws-temporary-credentials-support" title="Permanent link">&para;</a></h2>
-<p>When working with AWS, Athenz provides support to access AWS services
-from on-prem services with using AWS temporary credentials rather than
-static credentials. Athenz ZTS server can be used to request AWS temporary
-credentials for configured AWS IAM roles.</p>
+                <h1 id="certificate-signer">Certificate Signer<a class="headerlink" href="#certificate-signer" title="Permanent link">&para;</a></h1>
+<hr />
+<ul>
+<li><a href="#cert-signer-interfaces">Cert Signer Interfaces</a></li>
+<li><a href="#configuration">Configuration</a></li>
+<li><a href="#provided-implementations">Provided Implementations</a><ul>
+<li><a href="#self-cert-signer">Self Cert Signer</a></li>
+<li><a href="#http-cert-signer">HTTP Cert Signer</a></li>
+</ul>
+</li>
+</ul>
+<p>Athenz supports service authentication with X.509 certificates. 
+The services receive X509 certificates from ZTS which requires a cert 
+signer implementation to sign and issue X509 certificates for Athenz Services.
+This feature, commonly referred as Copper Argos, is described in the 
+following <a href="copper_argos.html">section</a>.</p>
+<h2 id="cert-signer-interfaces">Cert Signer Interfaces<a class="headerlink" href="#cert-signer-interfaces" title="Permanent link">&para;</a></h2>
+<hr />
+<p>For ZTS servers to issue X509 certificates, the following two
+interfaces must be implemented:</p>
+<ul>
+<li><a href="https://github.com/AthenZ/athenz/blob/master/libs/java/server_common/src/main/java/com/yahoo/athenz/common/server/cert/CertSignerFactory.java">CertSignerFactory</a>.</li>
+</ul>
+<p>The job of the CertSignerFactory class is to implement a single
+<code>create()</code> method which returns an instance of CertSigner class
+implementation.</p>
+<ul>
+<li><a href="https://github.com/AthenZ/athenz/blob/master/libs/java/server_common/src/main/java/com/yahoo/athenz/common/server/cert/CertSigner.java">CertSigner</a>. </li>
+</ul>
+<p>This class implements six methods listed below:</p>
+<ul>
+<li>generateX509Certificate():
+      This method generates a signed X509 Certificate
+      based on the given request. It takes three parameters <code>csr (Certificate request)</code>,
+      requested key usage <code>keyUsage</code> (null for both server and client,
+      otherwise specified usage type: server or client) and <code>expiryTime</code> 
+      which specifies requested certificate expiration time in minutes
+      and returns a X509 Certificate in PEM format</li>
+<li>getCACertificate(): This method is to retrieve the CA certificate in PEM format that will be
+      returned along with the x509 certificate back to the client.</li>
+<li>generateSSHCertificate(): This method is to generate a SSH Certificate based on the given request.</li>
+<li>getSSHCertificate(): This method is to retrieve the SSH Signer certificate for the given type.</li>
+<li>getMaxCertExpiryTimeMins(): This method is to retrieve the certificate max expiry time supported
+      by the given signer.</li>
+<li>close(): This method is for closing  the certSigner signer object and release all
+      allocated resources</li>
+</ul>
+<p>During server startup, ZTS servers will load the configured cert signer factory
+class and invoke the create method. Then it will use the CertSigner object returned
+to issue X509 certificates to requesting services.</p>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<hr />
+<p>ZTS Servers expect the configured cert signer factory class name in its
+<code>athenz.zts.cert_signer_factory_class</code> system property.</p>
+<p>For example,</p>
+<div class="highlight"><pre><span></span><code>-Dathenz.zts.cert_signer_factory_class=com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory
+</code></pre></div>
+<p>If you're installing and running Athenz services using the binary
+packages provided, you can configure the cert signer factory class
+in the conf/zts_server/zts.properties file for ZTS server:</p>
+<div class="highlight"><pre><span></span><code>athenz.zts.cert_signer_factory_class=com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory
+</code></pre></div>
+<h2 id="provided-implementations">Provided Implementations<a class="headerlink" href="#provided-implementations" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Here is the list of Athenz provided certificate signer implementations with a
+brief description of each one.</p>
+<h3 id="self-cert-signer">Self Cert Signer<a class="headerlink" href="#self-cert-signer" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Class: com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory</p>
+<p>This factory class creates and returns an object of SelfCertSigner class
+<a href="https://github.com/AthenZ/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/SelfCertSigner.java">com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory</a> 
+The private key file name, private key password and the DN for self signer can be configured by
+using the following system properties:</p>
+<ul>
+<li>Key File: athenz.zts.self_signer_private_key_fname</li>
+<li>Key password: athenz.zts.self_signer_private_key_password</li>
+<li>DN: athenz.zts.self_signer_cert_dn</li>
+</ul>
+<p>The key file must be a PEM encoded either RSA or EC private key.</p>
+<h3 id="http-cert-signer">Http Cert Signer<a class="headerlink" href="#http-cert-signer" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Class: com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory</p>
+<p>This factory class creates and returns a object of HttpCertSigner class
+<a href="https://github.com/AthenZ/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/HttpCertSigner.java">com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory</a>
+This signer assumes you have a certificate singing daemon that
+implements POST/GET REST /x509 and /ssh endpoints to sign and
+return x.509 certificates.</p>
+<p>The base uri of signer service and other settings can be configured by
+using the following system properties:</p>
+<ul>
+<li>Base Uri of Cert Signer Service: athenz.zts.certsign_base_uri</li>
+<li>Connect Timeout: athenz.zts.certsign_connect_timeout
+  This setting specifies in seconds the connect timeout. We are setting it to 10.</li>
+<li>Request Timeout: athenz.zts.certsign_request_timeout
+  This setting specifies in seconds the request timeout. We are setting it to 5.</li>
+<li>Retry count: athenz.zts.certsign_retry_count
+  This setting specifies the number of times the request
+  should be retried if it's not completed with the requested
+  timeout value. We are setting it to 3.</li>
+</ul>
                 
               
               
@@ -1408,14 +1523,28 @@ credentials for configured AWS IAM roles.</p>
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
+          <a href="private_key_store.html" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Private Key Store
+              </div>
+            </div>
+          </a>
         
-          <a href="dev_environment.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+        
+          <a href="copper_argos_dev.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Development Environment
+                Service Identity X.509 Certificate Support Requirements - Copper Argos
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

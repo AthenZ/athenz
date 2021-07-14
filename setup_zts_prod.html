@@ -15,7 +15,7 @@
     
     
       
-        <title>About - Athenz</title>
+        <title>ZTS Server - Athenz</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#service-authentication" class="md-skip">
+        <a href="#setup-zts-authorization-token-system-for-production" class="md-skip">
           Skip to content
         </a>
       
@@ -87,7 +87,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              About
+              ZTS Server
             
           </span>
         </div>
@@ -205,59 +205,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        About
-        <span class="md-nav__icon md-icon"></span>
-      </label>
-    
-    <a href="index.html" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="index.html" class="md-nav__link">
       About
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -339,10 +291,12 @@
           
           
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4" checked>
     
     <label class="md-nav__link" for="nav-1-4">
       Production Environment Setup
@@ -372,11 +326,124 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="setup_zts_prod.html" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        ZTS Server
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="setup_zts_prod.html" class="md-nav__link md-nav__link--active">
       ZTS Server
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    Requirements
+  </a>
+  
+    <nav class="md-nav" aria-label="Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jdk-8" class="md-nav__link">
+    JDK 8
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-software" class="md-nav__link">
+    Getting Software
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#privatepublic-key-pair" class="md-nav__link">
+    Private/Public Key Pair
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-x509-certificate" class="md-nav__link">
+    Server X509 Certificate
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-zts-service" class="md-nav__link">
+    Register ZTS Service
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#athenz-ca-x509-certificate-issuing" class="md-nav__link">
+    Athenz CA X.509 Certificate Issuing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate-athenz-configuration-file" class="md-nav__link">
+    Generate Athenz Configuration File
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#startstop-zts-server" class="md-nav__link">
+    Start/Stop ZTS Server
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -1314,6 +1381,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1322,22 +1391,83 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
+  <a href="#requirements" class="md-nav__link">
+    Requirements
+  </a>
+  
+    <nav class="md-nav" aria-label="Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jdk-8" class="md-nav__link">
+    JDK 8
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-software" class="md-nav__link">
+    Getting Software
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
+  <a href="#configuration" class="md-nav__link">
+    Configuration
   </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#privatepublic-key-pair" class="md-nav__link">
+    Private/Public Key Pair
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-x509-certificate" class="md-nav__link">
+    Server X509 Certificate
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-zts-service" class="md-nav__link">
+    Register ZTS Service
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#athenz-ca-x509-certificate-issuing" class="md-nav__link">
+    Athenz CA X.509 Certificate Issuing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate-athenz-configuration-file" class="md-nav__link">
+    Generate Athenz Configuration File
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
+  <a href="#startstop-zts-server" class="md-nav__link">
+    Start/Stop ZTS Server
   </a>
   
 </li>
@@ -1354,42 +1484,123 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/setup_zts_prod.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                  <h1>About</h1>
-                
-                <p>Athenz is a set of services and libraries supporting service authentication and role-based authorization (RBAC) for provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and Access Tokens. The name "Athenz" is derived from "AuthNZ" (N for authentication and Z for authorization). It provides support for the following three major functional areas.</p>
-<h2 id="service-authentication">Service Authentication<a class="headerlink" href="#service-authentication" title="Permanent link">&para;</a></h2>
-<p>Athenz provides secure identity in the form of short lived X.509 certificate
-and a certificate and IP-based distributed system to handle for every workload or service deployed in private (e.g. Openstack, K8S, Screwdriver)
-on-box enforcement. or public cloud (e.g. AWS EC2, ECS, Fargate, Lambda). Using these X.509 certificates
-clients and services establish secure connections and through mutual TLS authentication verify
-each other's identity. The service identity certificates are valid for 30 days only
-and the service identity agents (SIA) part of those frameworks automatically refresh
-them daily. The term service within Athenz is more generic than a traditional service.
-A service identity could represent a command, job, daemon, workflow, as well as both an
-application client and an application service.</p>
-<p>Since Athenz service authentication is based on
-<a href="https://en.wikipedia.org/wiki/X.509">X.509 certificates</a>, it is
-important that you have a good understanding what X.509 certificates are
-and how they're used to establish secure connections in Internet protocols
-such as <a href="https://en.wikipedia.org/wiki/Transport_Layer_Security">TLS</a>.</p>
-<h2 id="role-based-authorization-rbac">Role-Based Authorization (RBAC)<a class="headerlink" href="#role-based-authorization-rbac" title="Permanent link">&para;</a></h2>
-<p>Once the client is authenticated with its x.509 certificate, the service
-their own role-based access control systems that have no central store  can then check if the given client is authorized to carry out the requested
-and often rely on network ACLs and manual updating. action. Athenz provides fine-grained role-based access control (RBAC) support
-for a centralized management system with support for control-plane access control
-decisions and a decentralized enforcement mechanism suitable for data-plane
-access control decisions. It also provides a delegated management model that
-supports multi-tenant and self-service concepts.</p>
-<h2 id="aws-temporary-credentials-support">AWS Temporary Credentials Support<a class="headerlink" href="#aws-temporary-credentials-support" title="Permanent link">&para;</a></h2>
-<p>When working with AWS, Athenz provides support to access AWS services
-from on-prem services with using AWS temporary credentials rather than
-static credentials. Athenz ZTS server can be used to request AWS temporary
-credentials for configured AWS IAM roles.</p>
+                <h1 id="setup-zts-authorization-token-system-for-production">Setup ZTS (authoriZation Token System) for Production<a class="headerlink" href="#setup-zts-authorization-token-system-for-production" title="Permanent link">&para;</a></h1>
+<hr />
+<ul>
+<li><a href="#requirements">Requirements</a><ul>
+<li><a href="#jdk-8">JDK 8</a></li>
+</ul>
+</li>
+<li><a href="#getting-software">Getting Software</a></li>
+<li><a href="#configuration">Configuration</a><ul>
+<li><a href="#privatepublic-key-pair">Private/Public Key Pair</a></li>
+<li><a href="#server-x509-certificate">Server X509 Certificate</a></li>
+<li><a href="#register-zts-service">Register ZTS Service</a></li>
+<li><a href="#generate-athenz-configuration-file">Generate Athenz Configuration File</a></li>
+<li><a href="#athenz-ca-x509-certificate-issuing">Athenz CA X.509 Certificate Issuing</a></li>
+</ul>
+</li>
+<li><a href="#startstop-zts-server">Start/Stop ZTS Server</a></li>
+</ul>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<hr />
+<p>The following tools are required to be installed on hosts
+configured to run ZTS server.</p>
+<h3 id="jdk-8">JDK 8<a class="headerlink" href="#jdk-8" title="Permanent link">&para;</a></h3>
+<hr />
+<p>ZTS Server is written in Java and using embedded Jetty.</p>
+<p><a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">Oracle Java Platform JDK 8</a></p>
+<p>While ZTS has been developed and tested with Oracle Java Platform JDK 8
+it should run successfully with OpenJDK 8 as well.</p>
+<h2 id="getting-software">Getting Software<a class="headerlink" href="#getting-software" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Build the latest ZTS binary release by following the
+<a href="dev_environment.html">development instructions</a>. The binary release
+packages  will be created automatically in the <code>assembly</code> subdirectory.
+Copy the <code>athenz-zts-X.Y-bin.tar.gz</code> to your desired setup directory.</p>
+<div class="highlight"><pre><span></span><code>$ tar xvfz athenz-zts-X.Y-bin.tar.gz
+$ <span class="nb">cd</span> athenz-zts-X.Y
+</code></pre></div>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<hr />
+<p>To run ZTS Server, the system administrator must generate the keys
+and make necessary changes to the configuration settings.</p>
+<h3 id="privatepublic-key-pair">Private/Public Key Pair<a class="headerlink" href="#privatepublic-key-pair" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Generate a unique private/public key pair that ZTS Server will use
+to sign any ZTokens it issues. From the <code>athenz-zts-X.Y</code> directory
+execute the following commands:</p>
+<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> var/zts_server/keys
+$ openssl genrsa -out zts_private.pem <span class="m">2048</span>
+$ openssl rsa -in zts_private.pem -pubout &gt; zts_public.pem
+</code></pre></div>
+<h3 id="server-x509-certificate">Server X509 Certificate<a class="headerlink" href="#server-x509-certificate" title="Permanent link">&para;</a></h3>
+<hr />
+<p>While it is still possible to generate and use a self-signed X509 
+certificate for ZTS Servers, it is recommended to purchase one for
+your production server from a well known certificate authority.
+Having such a certificate installed on your ZTS Servers will no
+longer require to distribute the server's public certificate to
+other hosts (e.g. Hosts running ZPU).</p>
+<p>Follow the instructions provided by the Certificate Authority to
+generate your private key and then the Certificate Request (CSR).
+Once you have received your X509 certificate, we just need to add
+that certificate along with its private key to a keystore for Jetty 
+use. From the <code>athenz-zts-X.Y</code> directory execute the following
+command:</p>
+<div class="highlight"><pre><span></span><code>$ openssl pkcs12 -export -out zts_keystore.pkcs12 -in zts_cert.pem -inkey zts_key.pem
+</code></pre></div>
+<h3 id="register-zts-service">Register ZTS Service<a class="headerlink" href="#register-zts-service" title="Permanent link">&para;</a></h3>
+<hr />
+<p>In order for ZTS to access ZMS domain data, it must identify itself
+as a registered service in ZMS. Using the <code>zms-cli</code> utility, we will
+register a new service in <code>sys.auth</code> domain. Since ZMS Servers should
+be running with a X509 certificate from a well know certificate 
+authority (not a self-signed one) we don't need to reference the CA
+cert like we did for the local/development environment setup.</p>
+<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-zts-X.Y
+$ bin/&lt;platform&gt;/zms-cli -z https://&lt;zms-server&gt;:4443/zms/v1 -d sys.auth add-service zts <span class="m">0</span> var/zts_server/keys zts_public.pem
+</code></pre></div>
+<h3 id="athenz-ca-x509-certificate-issuing">Athenz CA X.509 Certificate Issuing<a class="headerlink" href="#athenz-ca-x509-certificate-issuing" title="Permanent link">&para;</a></h3>
+<hr />
+<p>For authenticating services using X509 certificates, ZTS Servers expect 
+the configured cert signer factory class names in its <code>athenz.zts.cert_signer_factory_class</code> system property.
+We already have below implementation of cert Signer:</p>
+<ul>
+<li>Self Cert Signer <a href="https://github.com/AthenZ/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/SelfCertSigner.java">com.yahoo.athenz.zts.cert.impl.SelfCertSignerFactory</a> 
+  for the dev environment.</li>
+<li>Http Cert Signer <a href="https://github.com/AthenZ/athenz/blob/master/servers/zts/src/main/java/com/yahoo/athenz/zts/cert/impl/HttpCertSigner.java">com.yahoo.athenz.zts.cert.impl.HttpCertSignerFactory</a> 
+  for the production environment.</li>
+</ul>
+<p>You can use HttpCert Signer or have your implementation of Cert Signer.</p>
+<p>Refer <a href="cert_signer.html">Certificate Signer</a> for
+full details how to implement your own certificate signer.</p>
+<h3 id="generate-athenz-configuration-file">Generate Athenz Configuration File<a class="headerlink" href="#generate-athenz-configuration-file" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Generate an Athenz configuration file <code>athenz.conf</code> in <code>athenz-zts-X.Y/conf/zts_server</code>
+directory to include the ZMS Server URL and the registered public keys that the
+athenz client libraries and utilities will use to establish connection and validate any
+data signed by the ZMS Server:</p>
+<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-zts-X.Y
+$ bin/&lt;platform&gt;/athenz-conf -o conf/zts_server/athenz.conf -z https://&lt;zms-server&gt;:4443/ -t https://&lt;zts-server&gt;:8443/
+</code></pre></div>
+<h2 id="startstop-zts-server">Start/Stop ZTS Server<a class="headerlink" href="#startstop-zts-server" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Start the ZTS Server by executing:</p>
+<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-zts-X.Y
+$ bin/zts start
+</code></pre></div>
+<p>Based on the sample configuration file provided, ZTS Server will be listening
+on port 8443.</p>
+<p>Stop the ZTS Server by executing:</p>
+<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-zts-X.Y
+$ bin/zts stop
+</code></pre></div>
                 
               
               
@@ -1408,14 +1619,28 @@ credentials for configured AWS IAM roles.</p>
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
+          <a href="setup_zms_prod.html" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                ZMS Server
+              </div>
+            </div>
+          </a>
         
-          <a href="dev_environment.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+        
+          <a href="setup_ui_prod.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Development Environment
+                UI Server
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

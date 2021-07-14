@@ -15,7 +15,7 @@
     
     
       
-        <title>About - Athenz</title>
+        <title>Principal Authentication - Athenz</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#service-authentication" class="md-skip">
+        <a href="#principal-authentication" class="md-skip">
           Skip to content
         </a>
       
@@ -87,7 +87,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              About
+              Principal Authentication
             
           </span>
         </div>
@@ -182,12 +182,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
     
     <label class="md-nav__link" for="nav-1">
       Getting Started
@@ -205,59 +203,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        About
-        <span class="md-nav__icon md-icon"></span>
-      </label>
-    
-    <a href="index.html" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="index.html" class="md-nav__link">
       About
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -1058,10 +1008,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8" checked>
     
     <label class="md-nav__link" for="nav-8">
       Customizing Athenz
@@ -1079,11 +1031,104 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="principal_authentication.html" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Principal Authentication
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="principal_authentication.html" class="md-nav__link md-nav__link--active">
       Principal Authentication
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#authority-work" class="md-nav__link">
+    Authority Work
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provided-authorities" class="md-nav__link">
+    Provided Authorities
+  </a>
+  
+    <nav class="md-nav" aria-label="Provided Authorities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unix-user-authority" class="md-nav__link">
+    Unix User Authority
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#principal-authority" class="md-nav__link">
+    Principal Authority
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kerberos-authority" class="md-nav__link">
+    Kerberos Authority
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate-authority" class="md-nav__link">
+    Certificate Authority
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ldap-authority" class="md-nav__link">
+    LDAP Authority
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -1314,6 +1359,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1322,23 +1369,64 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
+  <a href="#authority-work" class="md-nav__link">
+    Authority Work
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
+  <a href="#configuration" class="md-nav__link">
+    Configuration
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
+  <a href="#provided-authorities" class="md-nav__link">
+    Provided Authorities
   </a>
+  
+    <nav class="md-nav" aria-label="Provided Authorities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unix-user-authority" class="md-nav__link">
+    Unix User Authority
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#principal-authority" class="md-nav__link">
+    Principal Authority
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kerberos-authority" class="md-nav__link">
+    Kerberos Authority
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate-authority" class="md-nav__link">
+    Certificate Authority
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ldap-authority" class="md-nav__link">
+    LDAP Authority
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1354,42 +1442,153 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/principal_authentication.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                  <h1>About</h1>
-                
-                <p>Athenz is a set of services and libraries supporting service authentication and role-based authorization (RBAC) for provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and Access Tokens. The name "Athenz" is derived from "AuthNZ" (N for authentication and Z for authorization). It provides support for the following three major functional areas.</p>
-<h2 id="service-authentication">Service Authentication<a class="headerlink" href="#service-authentication" title="Permanent link">&para;</a></h2>
-<p>Athenz provides secure identity in the form of short lived X.509 certificate
-and a certificate and IP-based distributed system to handle for every workload or service deployed in private (e.g. Openstack, K8S, Screwdriver)
-on-box enforcement. or public cloud (e.g. AWS EC2, ECS, Fargate, Lambda). Using these X.509 certificates
-clients and services establish secure connections and through mutual TLS authentication verify
-each other's identity. The service identity certificates are valid for 30 days only
-and the service identity agents (SIA) part of those frameworks automatically refresh
-them daily. The term service within Athenz is more generic than a traditional service.
-A service identity could represent a command, job, daemon, workflow, as well as both an
-application client and an application service.</p>
-<p>Since Athenz service authentication is based on
-<a href="https://en.wikipedia.org/wiki/X.509">X.509 certificates</a>, it is
-important that you have a good understanding what X.509 certificates are
-and how they're used to establish secure connections in Internet protocols
-such as <a href="https://en.wikipedia.org/wiki/Transport_Layer_Security">TLS</a>.</p>
-<h2 id="role-based-authorization-rbac">Role-Based Authorization (RBAC)<a class="headerlink" href="#role-based-authorization-rbac" title="Permanent link">&para;</a></h2>
-<p>Once the client is authenticated with its x.509 certificate, the service
-their own role-based access control systems that have no central store  can then check if the given client is authorized to carry out the requested
-and often rely on network ACLs and manual updating. action. Athenz provides fine-grained role-based access control (RBAC) support
-for a centralized management system with support for control-plane access control
-decisions and a decentralized enforcement mechanism suitable for data-plane
-access control decisions. It also provides a delegated management model that
-supports multi-tenant and self-service concepts.</p>
-<h2 id="aws-temporary-credentials-support">AWS Temporary Credentials Support<a class="headerlink" href="#aws-temporary-credentials-support" title="Permanent link">&para;</a></h2>
-<p>When working with AWS, Athenz provides support to access AWS services
-from on-prem services with using AWS temporary credentials rather than
-static credentials. Athenz ZTS server can be used to request AWS temporary
-credentials for configured AWS IAM roles.</p>
+                <h1 id="principal-authentication">Principal Authentication<a class="headerlink" href="#principal-authentication" title="Permanent link">&para;</a></h1>
+<hr />
+<ul>
+<li><a href="#authority-work">Authority Work</a></li>
+<li><a href="#configuration">Configuration</a></li>
+<li><a href="#provided-authorities">Provided Authorities</a><ul>
+<li><a href="#unix-user-authority">Unix User Authority</a></li>
+<li><a href="#principal-authority">Principal Authority</a></li>
+<li><a href="#kerberos-authority">Kerberos Authority</a></li>
+<li><a href="#certificate-authority">Certificate Authority</a></li>
+<li><a href="#role-authority">Role Authority</a></li>
+<li><a href="#LDAP-authority">LDAP Authority</a>     </li>
+</ul>
+</li>
+</ul>
+<p>For a principal (either user or service) to authenticate himself/herself
+in Athenz, the server must have the appropriate authentication authority
+implementation configured. Athenz has implementation of several authorities
+that support variety of authentication methods. The system administrator
+may decide to configure and use one of the provided authorities or
+implement a completely new one to satisfy their requirements.</p>
+<h2 id="authority-work">Authority Work<a class="headerlink" href="#authority-work" title="Permanent link">&para;</a></h2>
+<hr />
+<p>The job of the Authority is authenticate a specific request and, if valid,
+generate and return an object representing the authenticated Principal.
+The Authority interface is defined in the following file:</p>
+<p><a href="https://github.com/AthenZ/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/Authority.java">Authority</a></p>
+<p>The system administrator can configure a list of authorities for
+supporting principal authentication. During startup, the server will
+call the <code>initialize()</code> method for all configured authorities. If
+the authority requires access to any of the service public keys
+registered within Athenz, then it needs to implement the <code>AuthorityKeyStore</code>
+interface as well and provide an implementation of the <code>setKeyStore()</code> method.
+The server implements the <code>KeyStore</code> interface and will automatically call
+the <code>setKeyStore()</code> method to pass its implementation to the authority.</p>
+<p><a href="https://github.com/AthenZ/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/AuthorityKeyStore.java">AuthorityKeyStore</a></p>
+<p>When processing a request the server goes through the list of authorities in their
+configured order and processes until it receives a successful principal
+object. As soon as a successful response is received from the authenticate
+method, the server will stop processing other authorities in the list
+and continue with the authorization check. If no authority returns an
+authenticated principal, the server returns 401 Unauthenticated response
+to the calling client.</p>
+<p>The Authority defines if the authentication details are based on a header
+or certificate: <code>getCredSource()</code>. If the returned value is <code>HEADER</code> then
+the Athenz server will retrieve the header, identified by the value
+returned by the <code>getHeader()</code> method, that the authority is looking
+for and if a value is present, it will call the <code>authenticate()</code>
+method to see if the request contains valid credentials or not.</p>
+<p>The returned principal object contains the Authority object that was
+used for authentication. This allows the Athenz servers, if necessary,
+to decide if further checks and/or restrictions are necessary.</p>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Both ZMS and ZTS Servers expect to find the list of authority classes
+in their respective system properties:</p>
+<ul>
+<li>ZMS: athenz.zms.authority_classes</li>
+<li>ZTS: athenz.zts.authority_classes</li>
+</ul>
+<p>The value of the property must be a comma separated (no spaces) list
+of authority class names. For example,</p>
+<div class="highlight"><pre><span></span><code>-Dathenz.zms.authority_classes=com.yahoo.athenz.auth.impl.PrincipalAuthority,com.yahoo.athenz.auth.impl.UserAuthority
+</code></pre></div>
+<p>If you're installing and running Athenz services using the binary
+packages provided, you can configure the list of authorities in the
+conf/zms_server/zms.properties or conf/zts_server/zts.properties files
+for ZMS and ZTS servers respectively:</p>
+<div class="highlight"><pre><span></span><code>athenz.zms.authority_classes=com.yahoo.athenz.auth.impl.PrincipalAuthority,com.yahoo.athenz.auth.impl.UserAuthority
+
+athenz.zts.authority_classes=com.yahoo.athenz.auth.impl.PrincipalAuthority,com.yahoo.athenz.auth.impl.UserAuthority
+</code></pre></div>
+<h2 id="provided-authorities">Provided Authorities<a class="headerlink" href="#provided-authorities" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Here is the list of Athenz provided authorities with brief description
+of each one.</p>
+<h3 id="unix-user-authority">Unix User Authority<a class="headerlink" href="#unix-user-authority" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Class: com.yahoo.athenz.auth.impl.UserAuthority</p>
+<p>This authority uses the Unix pam <code>login</code> profile to authenticate users.
+The user that the ZMS process runs as must have read access
+to the <code>/etc/shadow</code> file. There are two options available:</p>
+<ul>
+<li>Run the process as root using sudo. This is only recommended for a local
+  development installation.</li>
+<li>Create a special Unix group that has read access to the <code>/etc/shadow</code> file
+  and set the user that the ZMS process will be running as a member of that
+  group.</li>
+</ul>
+<p>User Authority is typically not allowed to carry out any authorized
+operation. It is required that the user first must obtain an X509 certificate
+for his/her identity and use that certificate to carry out the authorized
+request.</p>
+<h3 id="principal-authority">Principal Authority<a class="headerlink" href="#principal-authority" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Class: com.yahoo.athenz.auth.impl.PrincipalAuthority</p>
+<p>This authority uses Athenz generated NTokens. It accepts NTokens, parses
+to extract the signature and the private key details that were used
+to sign this token: domain, service, and key id. Then it requests the
+corresponding public key and verifies the signature.</p>
+<p>Principal Authority is one of primary authorities in Athenz. It is
+used to validate NTokens that were issued by ZTS and service tokens
+generated by SIA Providers.</p>
+<p>By default, when authenticating an NToken, the authority validates
+that the IP address in the NToken matches to the IP address of the request.
+This provides extra security that changes to domain data are not
+carried out by NTokens that possible have been stolen.</p>
+<h3 id="kerberos-authority">Kerberos Authority<a class="headerlink" href="#kerberos-authority" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Class: com.yahoo.athenz.auth.impl.KerberosAuthority</p>
+<p>This authority supports environments with Kerberos servers. This authority
+expects to find the Kerberos Ticket in the <code>Authorization</code> header.
+There are several system properties that must be set for
+proper initialization of this authority:</p>
+<p><code>athenz.auth.kerberos.service_principal</code> - Kerberos service principal
+<code>athenz.auth.kerberos.keytab_location</code> - Kerberos keytab location
+<code>athenz.auth.kerberos.jaas_cfg_section</code> - JAAS configuration section. If
+    using a jaas.conf file then that path is specified by the system
+    property <code>java.security.auth.login.config</code></p>
+<p>For full details check out the implementation of the Kerberos Authority:</p>
+<p><a href="https://github.com/AthenZ/athenz/blob/master/libs/java/auth_core/src/main/java/com/yahoo/athenz/auth/impl/KerberosAuthority.java">Kerberos Authority</a></p>
+<h3 id="certificate-authority">Certificate Authority<a class="headerlink" href="#certificate-authority" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Class: com.yahoo.athenz.auth.impl.CertificateAuthority</p>
+<p>The certificate authority expects that the server has been configured
+with a truststore that only includes the CA cert that it tasked with
+issuing principal certificates. The Authority only looks at the
+CommonName component of the certificate and expects it to include
+the service name in the {domain}.{service} format. For example:</p>
+<div class="highlight"><pre><span></span><code>Certificate Subject DN: c=US;o=Some Athenz Company;cn=sports.fantasy
+</code></pre></div>
+<p>The authenticated principal in this case is service <code>fantasy</code> in domain
+<code>sports</code>.</p>
+<h3 id="ldap-authority">LDAP Authority<a class="headerlink" href="#ldap-authority" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Class: com.yahoo.athenz.auth.impl.LDAPAuthority</p>
+<p>Lightweight Directory Access Protocol (LDAP) authority uses the bind operation 
+to authenticate users. The authentication mechanism used is <code>simple</code> where 
+plain text username and passwords are used. The <code>hostname</code>, <code>port number</code> and <code>base DN</code>
+property of the LDAP server needs to be provided. An example of base dn is: 
+ <div class="highlight"><pre><span></span><code>LDAP Server Base DN: dc=example,dc=com
+</code></pre></div></p>
                 
               
               
@@ -1408,14 +1607,28 @@ credentials for configured AWS IAM roles.</p>
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
+          <a href="local_ui_development.html" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Local UI development
+              </div>
+            </div>
+          </a>
         
-          <a href="dev_environment.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+        
+          <a href="private_key_store.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Development Environment
+                Private Key Store
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

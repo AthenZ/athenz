@@ -15,7 +15,7 @@
     
     
       
-        <title>About - Athenz</title>
+        <title>Quick Guide to obtain identity cert using local docker on EC2 - Athenz</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#service-authentication" class="md-skip">
+        <a href="#overview" class="md-skip">
           Skip to content
         </a>
       
@@ -87,7 +87,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              About
+              Quick Guide to obtain identity cert using local docker on EC2
             
           </span>
         </div>
@@ -182,12 +182,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
     
     <label class="md-nav__link" for="nav-1">
       Getting Started
@@ -205,59 +203,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        About
-        <span class="md-nav__icon md-icon"></span>
-      </label>
-    
-    <a href="index.html" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="index.html" class="md-nav__link">
       About
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -1132,10 +1082,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9" checked>
     
     <label class="md-nav__link" for="nav-9">
       User Guide
@@ -1237,11 +1189,59 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="how_to_sample_identity_from_local_athenz_ec2.html" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Quick Guide to obtain identity cert using local docker on EC2
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="how_to_sample_identity_from_local_athenz_ec2.html" class="md-nav__link md-nav__link--active">
       Quick Guide to obtain identity cert using local docker on EC2
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#steps" class="md-nav__link">
+    Steps
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -1322,22 +1322,22 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
+  <a href="#overview" class="md-nav__link">
+    Overview
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
+  <a href="#steps" class="md-nav__link">
+    Steps
   </a>
   
 </li>
@@ -1354,42 +1354,145 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/how_to_sample_identity_from_local_athenz_ec2.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                  <h1>About</h1>
+                  <h1>Quick Guide to obtain identity cert using local docker on EC2</h1>
                 
-                <p>Athenz is a set of services and libraries supporting service authentication and role-based authorization (RBAC) for provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and Access Tokens. The name "Athenz" is derived from "AuthNZ" (N for authentication and Z for authorization). It provides support for the following three major functional areas.</p>
-<h2 id="service-authentication">Service Authentication<a class="headerlink" href="#service-authentication" title="Permanent link">&para;</a></h2>
-<p>Athenz provides secure identity in the form of short lived X.509 certificate
-and a certificate and IP-based distributed system to handle for every workload or service deployed in private (e.g. Openstack, K8S, Screwdriver)
-on-box enforcement. or public cloud (e.g. AWS EC2, ECS, Fargate, Lambda). Using these X.509 certificates
-clients and services establish secure connections and through mutual TLS authentication verify
-each other's identity. The service identity certificates are valid for 30 days only
-and the service identity agents (SIA) part of those frameworks automatically refresh
-them daily. The term service within Athenz is more generic than a traditional service.
-A service identity could represent a command, job, daemon, workflow, as well as both an
-application client and an application service.</p>
-<p>Since Athenz service authentication is based on
-<a href="https://en.wikipedia.org/wiki/X.509">X.509 certificates</a>, it is
-important that you have a good understanding what X.509 certificates are
-and how they're used to establish secure connections in Internet protocols
-such as <a href="https://en.wikipedia.org/wiki/Transport_Layer_Security">TLS</a>.</p>
-<h2 id="role-based-authorization-rbac">Role-Based Authorization (RBAC)<a class="headerlink" href="#role-based-authorization-rbac" title="Permanent link">&para;</a></h2>
-<p>Once the client is authenticated with its x.509 certificate, the service
-their own role-based access control systems that have no central store  can then check if the given client is authorized to carry out the requested
-and often rely on network ACLs and manual updating. action. Athenz provides fine-grained role-based access control (RBAC) support
-for a centralized management system with support for control-plane access control
-decisions and a decentralized enforcement mechanism suitable for data-plane
-access control decisions. It also provides a delegated management model that
-supports multi-tenant and self-service concepts.</p>
-<h2 id="aws-temporary-credentials-support">AWS Temporary Credentials Support<a class="headerlink" href="#aws-temporary-credentials-support" title="Permanent link">&para;</a></h2>
-<p>When working with AWS, Athenz provides support to access AWS services
-from on-prem services with using AWS temporary credentials rather than
-static credentials. Athenz ZTS server can be used to request AWS temporary
-credentials for configured AWS IAM roles.</p>
+                <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>In this guide, you will be able to create a service in Athenz and obtain a service identity in the form of X.509 certificate from 
+Athenz for an instance running on AWS EC2.</p>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="local_athenz_on_docker_ec2.html">Athenz running locally on EC2 in docker</a></li>
+</ul>
+<h2 id="steps">Steps<a class="headerlink" href="#steps" title="Permanent link">&para;</a></h2>
+<p>As part of local set up, an example domain by the name "athenz" is created and "athenz-admin" user is added as a domain administrator of 
+that domain. Please refer to <a href="data_model.html#domains">concepts</a> to understand more about domains.</p>
+<p>To see the workflow of obtaining a service identity certificate from Athenz, please use following steps -</p>
+<ul>
+<li>
+<p>Login to the ec2-docker instance created <a href="local_athenz_on_docker_ec2.html">Athenz running locally on EC2 in docker</a></p>
+</li>
+<li>
+<p><code>cd</code> to the directory where Athenz is checked out from GitHub</p>
+</li>
+<li>
+<p>Download latest Athenz Utils from <a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-utils">Maven Central</a>
+  (click on the <code>Browse</code> button, choose the latest version directory and then
+  download the <code>athenz-utils-$latestVer-bin.tar.gz</code> file)
+  &amp; add it in the current shell PATH variable.
+  Below <code>$athenzUtilsLocation</code> denotes the path where file is downloaded from Maven Central. </p>
+</li>
+</ul>
+<div class="highlight"><pre><span></span><code>tar -xf <span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>-bin.tar.gz -C <span class="nv">$athenzUtilsLocation</span>
+<span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>/bin/<span class="sb">`</span>uname <span class="p">|</span> tr <span class="s1">&#39;[:upper:]&#39;</span> <span class="s1">&#39;[:lower:]&#39;</span><span class="sb">`</span>:<span class="nv">$PATH</span>
+</code></pre></div>
+<ul>
+<li>Create a new service using Athenz management Service client utility. Athenz Management Service (ZMS) is running inside a docker container exposed over local port 4443. 
+  We will be using a different EC2 instance to get the identity for the ec2-demo service.
+<div class="highlight"><pre><span></span><code>zms-cli -z https://127.0.0.1:4443/zms/v1 -cert docker/sample/domain-admin/team_admin_cert.pem <span class="se">\</span>
+  -key docker/sample/domain-admin/team_admin_key.pem -c docker/sample/CAs/athenz_ca.pem -d athenz add-service ec2-demo
+</code></pre></div></li>
+</ul>
+<p>Now to obtain a service identity certificate, first domain admin needs to authorize a provider. 
+Athenz uses a generalized model for service providers to launch other service identities in an authorized way through a callback-based verification model.
+For more details please refer to <a href="copper_argos.html">copper argos</a>
+Athenz code comes bundled with AWS EC2 instance provider which verifies instance metadata in the request before issuing identity certificate.</p>
+<ul>
+<li>Domain administrators have a full control over which provider they can authorize to launch their domains' services. 
+  Run following command to authorize the EC2 provider to issue identity certificates for the service created previously</li>
+</ul>
+<div class="highlight"><pre><span></span><code>zms-cli -z https://127.0.0.1:4443/zms/v1 -cert docker/sample/domain-admin/team_admin_cert.pem -key docker/sample/domain-admin/team_admin_key.pem <span class="se">\</span>
+      -c docker/sample/CAs/athenz_ca.pem -d athenz set-domain-template aws_instance_launch_provider <span class="nv">service</span><span class="o">=</span>ec2-demo
+</code></pre></div>
+<ul>
+<li>For verification purposes, we also need to tell Athenz which AWS account is associated with the incoming instance's Athenz domain.
+  Replace the AWS account id you are running this demo, in the command below. This should be done with Athenz system administrator credentials.</li>
+</ul>
+<div class="highlight"><pre><span></span><code>zms-cli -z https://127.0.0.1:4443/zms/v1 -cert docker/sample/domain-admin/domain_admin_cert.pem -key docker/sample/domain-admin/domain_admin_key.pem <span class="se">\</span>
+      -c docker/sample/CAs/athenz_ca.pem -d athenz set-aws-account <span class="m">111111111111</span>
+</code></pre></div>
+<ul>
+<li>
+<p>Create a new role ( e.g ec2-identity-demo ) which will be used as instance profile role for a new EC2 instance for which we will get identity from Athenz. You can re-purpose the policy
+  created for EC2 docker instance for this.</p>
+</li>
+<li>
+<p>Create another role by name "athenz.ec2-demo" which is in the form of <domain>.<service> where athenz is the name of the domain and ec2-demo is the service.
+  This role wouldnt have any permissions set attached to it, but it will define a trust relationship with the EC2 instance profile role created above, so that
+  EC2 instance profile can assume this role.
+  The trust relationship policy json should look like below. Replace the AWS account id you are running this demo, in the policy json.</p>
+</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="o">{</span>
+  <span class="s2">&quot;Version&quot;</span>: <span class="s2">&quot;2012-10-17&quot;</span>,
+  <span class="s2">&quot;Statement&quot;</span>: <span class="o">[</span>
+    <span class="o">{</span>
+      <span class="s2">&quot;Effect&quot;</span>: <span class="s2">&quot;Allow&quot;</span>,
+      <span class="s2">&quot;Principal&quot;</span>: <span class="o">{</span>
+        <span class="s2">&quot;Service&quot;</span>: <span class="s2">&quot;ec2.amazonaws.com&quot;</span>
+      <span class="o">}</span>,
+      <span class="s2">&quot;Action&quot;</span>: <span class="s2">&quot;sts:AssumeRole&quot;</span>
+    <span class="o">}</span>,
+    <span class="o">{</span>
+      <span class="s2">&quot;Effect&quot;</span>: <span class="s2">&quot;Allow&quot;</span>,
+      <span class="s2">&quot;Principal&quot;</span>: <span class="o">{</span>
+        <span class="s2">&quot;AWS&quot;</span>: <span class="s2">&quot;arn:aws:iam::1111111111111:role/ec2-identity-demo&quot;</span>
+      <span class="o">}</span>,
+      <span class="s2">&quot;Action&quot;</span>: <span class="s2">&quot;sts:AssumeRole&quot;</span>
+    <span class="o">}</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>For additional details, refer to <a href="service_x509_credentials_aws.html">AWS EC2 identity set up</a> </p>
+<ul>
+<li>We will be using Athenz's Service Identity Agent Daemon ( siad ) for EC2 to get the identity. Drop a config file <code>/etc/sia/sia_config</code> which will be used by siad
+  with following content -</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+  <span class="nt">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;service&quot;</span><span class="p">:</span> <span class="s2">&quot;aws-demo&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;ssh&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+  <span class="nt">&quot;accounts&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;domain&quot;</span><span class="p">:</span> <span class="s2">&quot;athenz&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;account&quot;</span><span class="p">:</span> <span class="s2">&quot;111111111111&quot;</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Athenz ZTS can issue SSH certificates as well, but for now we will not be using that option. Replace the account id in the config above.</p>
+<ul>
+<li>Make /etc/hosts file entry pointing to the ec2-docker instance Athenz is running on. e.g.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="m">10</span>.0.0.150 athenz-zts-server
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Make sure this ec2 instance can communicate with ec2-docker instance over port 8443 ( Athenz Token Management Service is listening on port 8443 )</p>
+</div>
+<ul>
+<li>
+<p>Get the Athenz CA certificate from ec2-docker instance and store it at /opt/athenz/athenz_ca.pem You will be able to find this file on ec2-docker instance
+  at <code>docker/sample/CAs/athenz_ca.pem</code> inside the git check out directory of Athenz.</p>
+</li>
+<li>
+<p>Download siad binary for Linux and copy it to <code>/usr/local/bin</code></p>
+</li>
+<li>
+<p>Run following command to get the identity certificate </p>
+</li>
+</ul>
+<div class="highlight"><pre><span></span><code>sudo /usr/local/bin/siad -cmd post -zts athenz-zts-server -ztscacert /opt/athenz/athenz_ca.pem -ztsawsdomain aws.athenz.cloud
+</code></pre></div>
+<ul>
+<li>SIAD stores the certificate at <code>/var/lib/sia/certs</code> and corresponding private key at <code>/var/lib/sia/keys</code>. Verify the Common Name ( CN ) in the certificate</li>
+</ul>
+<div class="highlight"><pre><span></span><code>openssl x509 -in /var/lib/sia/certs/athenz.ec2-demo.cert.pem -noout -subject
+</code></pre></div>
                 
               
               
@@ -1408,14 +1511,28 @@ credentials for configured AWS IAM roles.</p>
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
+          <a href="how_to_sample_identity_from_local_athenz.html" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Quick Guide to obtain identity cert using local docker
+              </div>
+            </div>
+          </a>
         
-          <a href="dev_environment.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+        
+          <a href="zms_api.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Development Environment
+                ZMS REST API
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

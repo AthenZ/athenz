@@ -15,7 +15,7 @@
     
     
       
-        <title>About - Athenz</title>
+        <title>Local UI development - Athenz</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#service-authentication" class="md-skip">
+        <a href="#overview" class="md-skip">
           Skip to content
         </a>
       
@@ -87,7 +87,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              About
+              Local UI development
             
           </span>
         </div>
@@ -182,12 +182,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
     
     <label class="md-nav__link" for="nav-1">
       Getting Started
@@ -205,59 +203,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        About
-        <span class="md-nav__icon md-icon"></span>
-      </label>
-    
-    <a href="index.html" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="index.html" class="md-nav__link">
       About
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -886,10 +836,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7" checked>
     
     <label class="md-nav__link" for="nav-7">
       Developer Guide
@@ -991,11 +943,86 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="local_ui_development.html" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Local UI development
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="local_ui_development.html" class="md-nav__link md-nav__link--active">
       Local UI development
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#steps" class="md-nav__link">
+    Steps
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    Troubleshooting
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#clean-old-artifacts" class="md-nav__link">
+    Clean old artifacts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate-not-trusted-error-when-opening-httpslocalhost" class="md-nav__link">
+    Certificate not trusted error when opening https://localhost
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -1322,23 +1349,50 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
+  <a href="#overview" class="md-nav__link">
+    Overview
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
+  <a href="#steps" class="md-nav__link">
+    Steps
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    Troubleshooting
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#clean-old-artifacts" class="md-nav__link">
+    Clean old artifacts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate-not-trusted-error-when-opening-httpslocalhost" class="md-nav__link">
+    Certificate not trusted error when opening https://localhost
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1354,42 +1408,57 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/local_ui_development.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                  <h1>About</h1>
+                  <h1>Local UI development</h1>
                 
-                <p>Athenz is a set of services and libraries supporting service authentication and role-based authorization (RBAC) for provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and Access Tokens. The name "Athenz" is derived from "AuthNZ" (N for authentication and Z for authorization). It provides support for the following three major functional areas.</p>
-<h2 id="service-authentication">Service Authentication<a class="headerlink" href="#service-authentication" title="Permanent link">&para;</a></h2>
-<p>Athenz provides secure identity in the form of short lived X.509 certificate
-and a certificate and IP-based distributed system to handle for every workload or service deployed in private (e.g. Openstack, K8S, Screwdriver)
-on-box enforcement. or public cloud (e.g. AWS EC2, ECS, Fargate, Lambda). Using these X.509 certificates
-clients and services establish secure connections and through mutual TLS authentication verify
-each other's identity. The service identity certificates are valid for 30 days only
-and the service identity agents (SIA) part of those frameworks automatically refresh
-them daily. The term service within Athenz is more generic than a traditional service.
-A service identity could represent a command, job, daemon, workflow, as well as both an
-application client and an application service.</p>
-<p>Since Athenz service authentication is based on
-<a href="https://en.wikipedia.org/wiki/X.509">X.509 certificates</a>, it is
-important that you have a good understanding what X.509 certificates are
-and how they're used to establish secure connections in Internet protocols
-such as <a href="https://en.wikipedia.org/wiki/Transport_Layer_Security">TLS</a>.</p>
-<h2 id="role-based-authorization-rbac">Role-Based Authorization (RBAC)<a class="headerlink" href="#role-based-authorization-rbac" title="Permanent link">&para;</a></h2>
-<p>Once the client is authenticated with its x.509 certificate, the service
-their own role-based access control systems that have no central store  can then check if the given client is authorized to carry out the requested
-and often rely on network ACLs and manual updating. action. Athenz provides fine-grained role-based access control (RBAC) support
-for a centralized management system with support for control-plane access control
-decisions and a decentralized enforcement mechanism suitable for data-plane
-access control decisions. It also provides a delegated management model that
-supports multi-tenant and self-service concepts.</p>
-<h2 id="aws-temporary-credentials-support">AWS Temporary Credentials Support<a class="headerlink" href="#aws-temporary-credentials-support" title="Permanent link">&para;</a></h2>
-<p>When working with AWS, Athenz provides support to access AWS services
-from on-prem services with using AWS temporary credentials rather than
-static credentials. Athenz ZTS server can be used to request AWS temporary
-credentials for configured AWS IAM roles.</p>
+                <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>In this guide, you will be able to start a local ZMS server and do local ui development from your favorite IDE.</p>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<p>Docker, Make toolchain, Node v12.14.0, nodemon v2.0.3</p>
+<h2 id="steps">Steps<a class="headerlink" href="#steps" title="Permanent link">&para;</a></h2>
+<p>Checkout Athenz from GitHub</p>
+<div class="highlight"><pre><span></span><code>git clone https://github.com/AthenZ/athenz
+</code></pre></div>
+<p><code>cd</code> into the docker directory</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span> docker
+</code></pre></div>
+<p>Run following command to download ZMS &amp; ZMS DB docker images, and set it up with meaningful defaults for local development</p>
+<div class="highlight"><pre><span></span><code>make prepare-ui-dev-env
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are using MacOS, then the script prints out a command at the end, which you can execute to add the generated self-signed certificate to your login keychain
+so that you can access Athenz UI in the browser without certificate warning.
+If you don't want to do that, please follow appropriate instructions for your workstation and / or browser so that you can access Athenz UI in the browser.</p>
+</div>
+<p>Now <code>cd</code> into the ui directory &amp; run <code>npm install</code> to download UI dependencies </p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span> ../ui
+npm install
+</code></pre></div>
+<p>Once dependencies are downloaded, start the UI server using following </p>
+<div class="highlight"><pre><span></span><code>sudo nodemon -r dotenv/config app.js
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>sudo</code> is required because UI is using privileged port 443.</p>
+</div>
+<p>If you don't have nodemon installed, you can install it using </p>
+<div class="highlight"><pre><span></span><code>npm install nodemon -g
+</code></pre></div>
+<p>Access the UI at <a href="https://localhost">https://localhost</a>. For your convenience, local set up uses a TestUserAuthority which accepts any username and password as far as it's a same string.
+To look at a pre-created "athenz" domain during start up, login with "athenz-admin" as username and password.</p>
+<p>Now you can keep the UI instance running in the terminal, make changes to the code using your IDE and UI dev server will reload with your changes.</p>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="clean-old-artifacts">Clean old artifacts<a class="headerlink" href="#clean-old-artifacts" title="Permanent link">&para;</a></h3>
+<p>It is possible for build to fail if Athenz was previously built. To clean old artifacts run:
+<code>./stop-local-athenz.sh</code></p>
+<h3 id="certificate-not-trusted-error-when-opening-httpslocalhost">Certificate not trusted error when opening <a href="https://localhost">https://localhost</a><a class="headerlink" href="#certificate-not-trusted-error-when-opening-httpslocalhost" title="Permanent link">&para;</a></h3>
+<p>When you open <a href="https://localhost">https://localhost</a> you might get a certificate error as the self-signed certificate isn't trusted.
+To fix it, please follow the steps in <a href="https://github.com/AthenZ/athenz/blob/master/docs/setup_ui.md#ui-access">Accessing UI</a></p>
                 
               
               
@@ -1408,14 +1477,28 @@ credentials for configured AWS IAM roles.</p>
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
+          <a href="example_java_decentralized_access.html" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Java Client/Servlet Decentralized Example
+              </div>
+            </div>
+          </a>
         
-          <a href="dev_environment.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+        
+          <a href="principal_authentication.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Development Environment
+                Principal Authentication
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

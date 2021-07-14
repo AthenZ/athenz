@@ -15,7 +15,7 @@
     
     
       
-        <title>About - Athenz</title>
+        <title>Principal Groups - Athenz</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#service-authentication" class="md-skip">
+        <a href="#resource-uri" class="md-skip">
           Skip to content
         </a>
       
@@ -87,7 +87,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              About
+              Principal Groups
             
           </span>
         </div>
@@ -182,12 +182,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
     
     <label class="md-nav__link" for="nav-1">
       Getting Started
@@ -205,59 +203,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        About
-        <span class="md-nav__icon md-icon"></span>
-      </label>
-    
-    <a href="index.html" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="index.html" class="md-nav__link">
       About
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -456,10 +406,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" checked>
     
     <label class="md-nav__link" for="nav-2">
       Management
@@ -597,11 +549,86 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="principal_groups.html" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Principal Groups
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="principal_groups.html" class="md-nav__link md-nav__link--active">
       Principal Groups
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#resource-uri" class="md-nav__link">
+    Resource URI
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#group-management" class="md-nav__link">
+    Group Management
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#governance-audit-support" class="md-nav__link">
+    Governance / Audit Support
+  </a>
+  
+    <nav class="md-nav" aria-label="Governance / Audit Support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#audit-enabled-mode" class="md-nav__link">
+    Audit Enabled Mode
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#review-enabled-mode" class="md-nav__link">
+    Review Enabled Mode
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-service-mode" class="md-nav__link">
+    Self Service Mode
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -1322,23 +1349,50 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
+  <a href="#resource-uri" class="md-nav__link">
+    Resource URI
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
+  <a href="#group-management" class="md-nav__link">
+    Group Management
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
+  <a href="#governance-audit-support" class="md-nav__link">
+    Governance / Audit Support
   </a>
+  
+    <nav class="md-nav" aria-label="Governance / Audit Support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#audit-enabled-mode" class="md-nav__link">
+    Audit Enabled Mode
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#review-enabled-mode" class="md-nav__link">
+    Review Enabled Mode
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-service-mode" class="md-nav__link">
+    Self Service Mode
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1354,42 +1408,79 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/principal_groups.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                  <h1>About</h1>
+                  <h1>Principal Groups</h1>
                 
-                <p>Athenz is a set of services and libraries supporting service authentication and role-based authorization (RBAC) for provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and Access Tokens. The name "Athenz" is derived from "AuthNZ" (N for authentication and Z for authorization). It provides support for the following three major functional areas.</p>
-<h2 id="service-authentication">Service Authentication<a class="headerlink" href="#service-authentication" title="Permanent link">&para;</a></h2>
-<p>Athenz provides secure identity in the form of short lived X.509 certificate
-and a certificate and IP-based distributed system to handle for every workload or service deployed in private (e.g. Openstack, K8S, Screwdriver)
-on-box enforcement. or public cloud (e.g. AWS EC2, ECS, Fargate, Lambda). Using these X.509 certificates
-clients and services establish secure connections and through mutual TLS authentication verify
-each other's identity. The service identity certificates are valid for 30 days only
-and the service identity agents (SIA) part of those frameworks automatically refresh
-them daily. The term service within Athenz is more generic than a traditional service.
-A service identity could represent a command, job, daemon, workflow, as well as both an
-application client and an application service.</p>
-<p>Since Athenz service authentication is based on
-<a href="https://en.wikipedia.org/wiki/X.509">X.509 certificates</a>, it is
-important that you have a good understanding what X.509 certificates are
-and how they're used to establish secure connections in Internet protocols
-such as <a href="https://en.wikipedia.org/wiki/Transport_Layer_Security">TLS</a>.</p>
-<h2 id="role-based-authorization-rbac">Role-Based Authorization (RBAC)<a class="headerlink" href="#role-based-authorization-rbac" title="Permanent link">&para;</a></h2>
-<p>Once the client is authenticated with its x.509 certificate, the service
-their own role-based access control systems that have no central store  can then check if the given client is authorized to carry out the requested
-and often rely on network ACLs and manual updating. action. Athenz provides fine-grained role-based access control (RBAC) support
-for a centralized management system with support for control-plane access control
-decisions and a decentralized enforcement mechanism suitable for data-plane
-access control decisions. It also provides a delegated management model that
-supports multi-tenant and self-service concepts.</p>
-<h2 id="aws-temporary-credentials-support">AWS Temporary Credentials Support<a class="headerlink" href="#aws-temporary-credentials-support" title="Permanent link">&para;</a></h2>
-<p>When working with AWS, Athenz provides support to access AWS services
-from on-prem services with using AWS temporary credentials rather than
-static credentials. Athenz ZTS server can be used to request AWS temporary
-credentials for configured AWS IAM roles.</p>
+                <p>To simplify management of principals in roles, the users and services can be included
+in Groups. Then, the Group can be added as a principal to any role
+within Athenz thus granting the members of that group access to the configured
+resources.</p>
+<p>For example, if you need to add your development team members to
+multiple roles in your domain, you can create a group called <code>dev-team</code>, add
+those users into that group and then include the group as a member in the
+corresponding roles. When you need to remove or add a member, then you only
+need to modify the membership of your <code>dev-team</code> group. The groups cannot
+contain other groups.</p>
+<h2 id="resource-uri">Resource URI<a class="headerlink" href="#resource-uri" title="Permanent link">&para;</a></h2>
+<p>The groups are identified in Athenz with the following resource uri:</p>
+<div class="highlight"><pre><span></span><code>&lt;domain&gt;:group.&lt;group-name&gt;
+</code></pre></div>
+<h2 id="group-management">Group Management<a class="headerlink" href="#group-management" title="Permanent link">&para;</a></h2>
+<p>The group name can only include alpha numeric characters including - and _. Currently,
+groups can only be provisioned with <code>zms-cli</code> command line utility:</p>
+<div class="highlight"><pre><span></span><code>zms-cli -d &lt;domain-name&gt; add-group &lt;group-name&gt; &lt;member&gt; [&lt;member&gt; ...]
+</code></pre></div>
+<p>Once provisioned, they can be added to any role as a regular member. For example,
+if I need to create a group called <code>dev-team</code> in my <code>sports</code> domain and add it to
+my <code>readers</code> role in <code>fantasy</code> domain, I would execute the following zms-cli commands:</p>
+<div class="highlight"><pre><span></span><code>zms-cli -d sports add-group dev-team user.hga user.pgote
+zms-cli -d fantasy add-member readers sports:group.dev-team
+</code></pre></div>
+<p>Similar to roles api, groups can be managed by adding and removing members:</p>
+<div class="highlight"><pre><span></span><code>zms-cli -d &lt;domain-name&gt; add-group-member &lt;group-name&gt; &lt;member&gt; [&lt;member&gt; ...]
+zms-cli -d &lt;domain-name&gt; delete-group-member &lt;group-name&gt; &lt;member&gt; [&lt;member&gt; ...]
+</code></pre></div>
+<p>To enforce the least privilege access principle, there are several restrictions placed on groups:</p>
+<ul>
+<li>You cannot use wildcards <code>*</code> when adding members to a group.</li>
+<li>The ZMS Server will verify that all users and services are valid before
+  they can be added to a group.</li>
+<li>Groups are not allowed to be added to admin groups. We strongly recommend limiting
+  the number of users who are identified as domain administrators.</li>
+<li>Groups cannot include other groups (no inheritance). However, a role can include
+  multiple groups as a member, and those groups could be from different domains.</li>
+<li>Groups cannot be references in policies. They can only be added as members of a role.</li>
+<li>Groups cannot be deleted if they're referenced in other roles. The domain
+  administrator must first remove the group as a member (the role might be in a different
+  domain) before deleting it.</li>
+<li>Groups do not support temporary members. If you need to give temporary access to
+  a specific principal, that principal with expiration must be added to the role directly.</li>
+</ul>
+<h2 id="governance-audit-support">Governance / Audit Support<a class="headerlink" href="#governance-audit-support" title="Permanent link">&para;</a></h2>
+<p>Similar to roles, groups support multiple features to satisfy auditing and governance requirements:</p>
+<h3 id="audit-enabled-mode">Audit Enabled Mode<a class="headerlink" href="#audit-enabled-mode" title="Permanent link">&para;</a></h3>
+<p>If the domain is marked as audit enabled, then specific groups within that domain can
+also be set in audit enabled mode thus requiring an explicit approval process for any
+member addition to that group.</p>
+<div class="highlight"><pre><span></span><code>zms-cli -d &lt;domain-name&gt; set-group-audit-enabled &lt;group-name&gt; true
+</code></pre></div>
+<p>Unlike a regular group, when any one of the domain administrators adds a user
+in an audit enabled group, it will be added in pending/inactive state until it is
+approved by one of the organization approvers configured for the domain.</p>
+<h3 id="review-enabled-mode">Review Enabled Mode<a class="headerlink" href="#review-enabled-mode" title="Permanent link">&para;</a></h3>
+<p>The domain administrator can also mark a group as review enabled thus requiring two
+domain administrator approvals before a principal is added to a group.</p>
+<div class="highlight"><pre><span></span><code>zms-cli -d &lt;domain-name&gt; set-group-review-enabled &lt;group-name&gt; true
+</code></pre></div>
+<h3 id="self-service-mode">Self Service Mode<a class="headerlink" href="#self-service-mode" title="Permanent link">&para;</a></h3>
+<p>The users can only add themselves to any self-served groups. Their access is not active
+until one of the domain administrators approves the request.</p>
+<div class="highlight"><pre><span></span><code>zms-cli -d &lt;domain-name&gt; set-group-self-serve &lt;group-name&gt; true
+</code></pre></div>
                 
               
               
@@ -1408,14 +1499,28 @@ credentials for configured AWS IAM roles.</p>
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
+          <a href="athenz_templates.html" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Athenz Templates
+              </div>
+            </div>
+          </a>
         
-          <a href="dev_environment.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+        
+          <a href="service_authentication.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Development Environment
+                Athenz Service Identity X.509 Certificate
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

@@ -15,7 +15,7 @@
     
     
       
-        <title>About - Athenz</title>
+        <title>UI Server - Athenz</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#service-authentication" class="md-skip">
+        <a href="#setup-athenz-ui" class="md-skip">
           Skip to content
         </a>
       
@@ -87,7 +87,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              About
+              UI Server
             
           </span>
         </div>
@@ -205,59 +205,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        About
-        <span class="md-nav__icon md-icon"></span>
-      </label>
-    
-    <a href="index.html" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="index.html" class="md-nav__link">
       About
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -277,10 +229,12 @@
           
           
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3" checked>
     
     <label class="md-nav__link" for="nav-1-3">
       Local/Development Environment Setup
@@ -322,11 +276,90 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="setup_ui.html" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        UI Server
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="setup_ui.html" class="md-nav__link md-nav__link--active">
       UI Server
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    Requirements
+  </a>
+  
+    <nav class="md-nav" aria-label="Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nodejs" class="md-nav__link">
+    Node.js
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-software" class="md-nav__link">
+    Getting Software
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#startstop-ui-server" class="md-nav__link">
+    Start/Stop UI Server
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ui-access" class="md-nav__link">
+    UI Access
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -1314,6 +1347,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1322,22 +1357,49 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
+  <a href="#requirements" class="md-nav__link">
+    Requirements
+  </a>
+  
+    <nav class="md-nav" aria-label="Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nodejs" class="md-nav__link">
+    Node.js
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-software" class="md-nav__link">
+    Getting Software
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
+  <a href="#configuration" class="md-nav__link">
+    Configuration
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
+  <a href="#startstop-ui-server" class="md-nav__link">
+    Start/Stop UI Server
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ui-access" class="md-nav__link">
+    UI Access
   </a>
   
 </li>
@@ -1354,42 +1416,107 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/setup_ui.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                  <h1>About</h1>
-                
-                <p>Athenz is a set of services and libraries supporting service authentication and role-based authorization (RBAC) for provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and Access Tokens. The name "Athenz" is derived from "AuthNZ" (N for authentication and Z for authorization). It provides support for the following three major functional areas.</p>
-<h2 id="service-authentication">Service Authentication<a class="headerlink" href="#service-authentication" title="Permanent link">&para;</a></h2>
-<p>Athenz provides secure identity in the form of short lived X.509 certificate
-and a certificate and IP-based distributed system to handle for every workload or service deployed in private (e.g. Openstack, K8S, Screwdriver)
-on-box enforcement. or public cloud (e.g. AWS EC2, ECS, Fargate, Lambda). Using these X.509 certificates
-clients and services establish secure connections and through mutual TLS authentication verify
-each other's identity. The service identity certificates are valid for 30 days only
-and the service identity agents (SIA) part of those frameworks automatically refresh
-them daily. The term service within Athenz is more generic than a traditional service.
-A service identity could represent a command, job, daemon, workflow, as well as both an
-application client and an application service.</p>
-<p>Since Athenz service authentication is based on
-<a href="https://en.wikipedia.org/wiki/X.509">X.509 certificates</a>, it is
-important that you have a good understanding what X.509 certificates are
-and how they're used to establish secure connections in Internet protocols
-such as <a href="https://en.wikipedia.org/wiki/Transport_Layer_Security">TLS</a>.</p>
-<h2 id="role-based-authorization-rbac">Role-Based Authorization (RBAC)<a class="headerlink" href="#role-based-authorization-rbac" title="Permanent link">&para;</a></h2>
-<p>Once the client is authenticated with its x.509 certificate, the service
-their own role-based access control systems that have no central store  can then check if the given client is authorized to carry out the requested
-and often rely on network ACLs and manual updating. action. Athenz provides fine-grained role-based access control (RBAC) support
-for a centralized management system with support for control-plane access control
-decisions and a decentralized enforcement mechanism suitable for data-plane
-access control decisions. It also provides a delegated management model that
-supports multi-tenant and self-service concepts.</p>
-<h2 id="aws-temporary-credentials-support">AWS Temporary Credentials Support<a class="headerlink" href="#aws-temporary-credentials-support" title="Permanent link">&para;</a></h2>
-<p>When working with AWS, Athenz provides support to access AWS services
-from on-prem services with using AWS temporary credentials rather than
-static credentials. Athenz ZTS server can be used to request AWS temporary
-credentials for configured AWS IAM roles.</p>
+                <h1 id="setup-athenz-ui">Setup Athenz UI<a class="headerlink" href="#setup-athenz-ui" title="Permanent link">&para;</a></h1>
+<hr />
+<ul>
+<li><a href="#requirements">Requirements</a><ul>
+<li><a href="#nodejs">Node.JS</a></li>
+</ul>
+</li>
+<li><a href="#getting-software">Getting Software</a></li>
+<li><a href="#configuration">Configuration</a></li>
+<li><a href="#startstop-ui-server">Start/Stop UI Server</a></li>
+<li><a href="ui-access">UI Access</a></li>
+</ul>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<hr />
+<p>The following tools are required to be installed on hosts
+configured to run UI server.</p>
+<h3 id="nodejs">Node.js<a class="headerlink" href="#nodejs" title="Permanent link">&para;</a></h3>
+<hr />
+<p>UI Server is a Node.js application.</p>
+<p><a href="https://nodejs.org/en/">Node.js JavaScript Runtime</a></p>
+<p>Verify that you have the following versions of <code>node</code> and
+<code>nodemon</code> binaries installed on your system and are included
+in your runtime path:</p>
+<div class="highlight"><pre><span></span><code>$ node --version
+v12.14.0
+$ npm install -g nodemon
+$ nodemon --version
+<span class="m">2</span>.0.3
+</code></pre></div>
+<h2 id="getting-software">Getting Software<a class="headerlink" href="#getting-software" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Build the latest UI binary release by following the
+<a href="dev_environment.html">development instructions</a>. The binary release
+packages  will be created automatically in the <code>assembly</code> subdirectory.
+Copy the <code>athenz-ui-X.Y-bin.tar.gz</code> to your desired setup directory.</p>
+<div class="highlight"><pre><span></span><code>$ tar xvfz athenz-ui-X.Y-bin.tar.gz
+$ <span class="nb">cd</span> athenz-ui-X.Y
+</code></pre></div>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<hr />
+<p>To run UI Server, the system administrator must generate the keys,
+certificates and make necessary changes to the configuration settings.
+For our configuration script we need the ZMS server hostname and a
+copy of the server certificate file since ZMS Server is
+running with a self-signed certificate. From your ZMS Server
+installation, copy the <code>zms_cert.pem</code> file from the
+<code>athenz-zms-X.Y/var/zms_server/certs</code> directory to a local directory on the
+host that will be running the UI Server. For the <code>zms-public-cert-path</code>
+argument below pass the full path of the zms_cert.pem.</p>
+<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-ui-X.Y
+$ bin/setup_dev_ui.sh &lt;zms-hostname&gt; &lt;zms-public-cert-path&gt; &lt;admin-username&gt; &lt;admin-fullname&gt;
+</code></pre></div>
+<p>Running this setup script completes the following tasks:</p>
+<ul>
+<li>Generate a unique public/private key pair that UI Server will use
+  to sign user's authorized service tokens. The UI has already been
+  authorized to be allowed to carry out the users' requested
+  operations.</li>
+<li>Generate a self-signed X509 certificate for UI Server HTTPS support</li>
+<li>Create a new domain called athenz and register the ui service in that domain</li>
+</ul>
+<h2 id="startstop-ui-server">Start/Stop UI Server<a class="headerlink" href="#startstop-ui-server" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Set the following environment variable before starting the UI Server:</p>
+<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-ui-X.Y
+$ <span class="nb">export</span> <span class="nv">UI_SERVER</span><span class="o">=</span>&lt;ui-server-host-name&gt; <span class="nv">ZMS_SERVER</span><span class="o">=</span>&lt;zms-server-host-name&gt; <span class="nv">NODE_ENV</span><span class="o">=</span>production
+$ sudo -E bin/athenz_ui start
+</code></pre></div>
+<p>Based on the sample configuration file provided, Athenz UI Server will be listening
+on port 443.</p>
+<p>To stop the UI server, execute the following commands:</p>
+<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-ui-X.Y
+$ <span class="nb">export</span> <span class="nv">UI_SERVER</span><span class="o">=</span>&lt;ui-server-host-name&gt; <span class="nv">ZMS_SERVER</span><span class="o">=</span>&lt;zms-server-host-name&gt; <span class="nv">NODE_ENV</span><span class="o">=</span>production
+$ sudo -E bin/athenz_ui stop
+</code></pre></div>
+<h2 id="ui-access">UI Access<a class="headerlink" href="#ui-access" title="Permanent link">&para;</a></h2>
+<hr />
+<p>To access Athenz UI in your browser, visit:</p>
+<div class="highlight"><pre><span></span><code>https://&lt;ui-server-host-name&gt;
+</code></pre></div>
+<p>Since the development setup is using self-signed X509 certificates for
+Athenz ZMS and UI servers, the administrator must add exceptions when
+accessing Athenz UI or install the self-signed certificates for those two
+servers into his/her own web browser.</p>
+<p>The administrator must first access the ZMS Server endpoint in the browser to
+accept the exception since the Athenz UI contacts ZMS Server to get an authorized
+token for the user when logging in. The administrator must access:</p>
+<div class="highlight"><pre><span></span><code>https://&lt;zms-server-host-name&gt;:4443/zms/v1/schema
+</code></pre></div>
+<p>first and accept the certificate exception before accessing Athenz UI.</p>
+<p>Alternatively, the administrator may decide to install the self-signed
+certificates for the ZMS and UI servers in their browser. For ZMS Server,
+the self-signed certificate is called <code>zms_cert.pem</code> and this file
+is located in the <code>athenz-zms-X.Y/var/zms_server/certs</code> directory.
+For UI Server, the self-signed certificate is called <code>ui_cert.pem</code> and this file
+is located in the <code>athenz-ui-X.Y/keys</code> directory.</p>
                 
               
               
@@ -1408,14 +1535,28 @@ credentials for configured AWS IAM roles.</p>
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
+          <a href="setup_zts.html" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                ZTS Server
+              </div>
+            </div>
+          </a>
         
-          <a href="dev_environment.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+        
+          <a href="setup_zms_prod.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Development Environment
+                ZMS Server
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

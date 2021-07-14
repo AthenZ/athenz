@@ -1,0 +1,2119 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Athenz User Guide">
+      
+      
+      
+      <link rel="shortcut icon" href="images/favicon.ico">
+      <meta name="generator" content="mkdocs-1.2, mkdocs-material-6.0.2">
+    
+    
+      
+        <title>Java Client/Servlet Centralized Example - Athenz</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.38780c08.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.3f72e892.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+      
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#java-clientservlet-example-centralized-access-control" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="." title="Athenz" class="md-header-nav__button md-logo" aria-label="Athenz">
+      
+  <img src="images/athenz-icon.png" alt="logo">
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Athenz
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Java Client/Servlet Centralized Example
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/AthenZ/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="Athenz" class="md-nav__button md-logo" aria-label="Athenz">
+      
+  <img src="images/athenz-icon.png" alt="logo">
+
+    </a>
+    Athenz
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/AthenZ/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
+    
+    <label class="md-nav__link" for="nav-1">
+      Getting Started
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <label class="md-nav__title" for="nav-1">
+        <span class="md-nav__icon md-icon"></span>
+        Getting Started
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="index.html" class="md-nav__link">
+      About
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="dev_environment.html" class="md-nav__link">
+      Development Environment
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3">
+    
+    <label class="md-nav__link" for="nav-1-3">
+      Local/Development Environment Setup
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Local/Development Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-3">
+        <span class="md-nav__icon md-icon"></span>
+        Local/Development Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zms.html" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zts.html" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_ui.html" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4">
+    
+    <label class="md-nav__link" for="nav-1-4">
+      Production Environment Setup
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Production Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-4">
+        <span class="md-nav__icon md-icon"></span>
+        Production Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zms_prod.html" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zts_prod.html" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_ui_prod.html" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-5" type="checkbox" id="nav-1-5">
+    
+    <label class="md-nav__link" for="nav-1-5">
+      Service Identity Registration
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Service Identity Registration" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-5">
+        <span class="md-nav__icon md-icon"></span>
+        Service Identity Registration
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials.html" class="md-nav__link">
+      Using X.509 Certificates
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="reg_service_guide.html" class="md-nav__link">
+      Using Public/Private Key Pairs
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Management
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Management" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon"></span>
+        Management
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="role_delegation.html" class="md-nav__link">
+      Role Delegation
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="token_expiration.html" class="md-nav__link">
+      Access token Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="role_cert_expiration.html" class="md-nav__link">
+      Role Certificate Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="review_enabled_roles.html" class="md-nav__link">
+      Review Enabled Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="email_notifications.html" class="md-nav__link">
+      Email Notifications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="events_monitoring.html" class="md-nav__link">
+      Events Monitoring
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="member_expiration.html" class="md-nav__link">
+      Role Member Auto Expiry and Notification Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="member_soft_expiration.html" class="md-nav__link">
+      Role Member Review Reminder Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="self_serve_roles.html" class="md-nav__link">
+      Self-Served Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="athenz_templates.html" class="md-nav__link">
+      Athenz Templates
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="principal_groups.html" class="md-nav__link">
+      Principal Groups
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Authentication
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Authentication" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon"></span>
+        Authentication
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_authentication.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS EC2 instances
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws_ecs.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS ECS containers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws_fargate.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS Fargate tasks
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws_eks.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS EKS pods
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws_lambda.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS Lambda functions
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zts_access_token_guide.html" class="md-nav__link">
+      Obtaining OAuth2 Access Tokens from ZTS
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      AWS Setup
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="AWS Setup" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        <span class="md-nav__icon md-icon"></span>
+        AWS Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="aws_temp_creds.html" class="md-nav__link">
+      AWS Temp Credentials
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="aws_athenz_setup.html" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Architecture
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Architecture" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        <span class="md-nav__icon md-icon"></span>
+        Architecture
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="data_model.html" class="md-nav__link">
+      Data Model
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="system_view.html" class="md-nav__link">
+      System View
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="auth_flow.html" class="md-nav__link">
+      Authorization Flow
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Features
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Features" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon"></span>
+        Features
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="copper_argos.html" class="md-nav__link">
+      Service Identity X.509 Certificates - Copper Argos
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="capabilities.html" class="md-nav__link">
+      Athenz Capabilities
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7" checked>
+    
+    <label class="md-nav__link" for="nav-7">
+      Developer Guide
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon"></span>
+        Developer Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="cent_authz_flow.html" class="md-nav__link">
+      Centralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="decent_authz_flow.html" class="md-nav__link">
+      Decentralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="client_side_x509_credentials.html" class="md-nav__link">
+      Client Side Service Identity Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="server_side_x509_credentials.html" class="md-nav__link">
+      Server Side Service Identity Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Java Client/Servlet Centralized Example
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="example_java_centralized_access.html" class="md-nav__link md-nav__link--active">
+      Java Client/Servlet Centralized Example
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#required-components" class="md-nav__link">
+    Required Components
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-definition" class="md-nav__link">
+    Service Definition
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource-definition" class="md-nav__link">
+    Resource Definition
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#athenz-management-setup" class="md-nav__link">
+    Athenz Management Setup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#obtaining-x509-certificate" class="md-nav__link">
+    Obtaining X509 Certificate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-changes" class="md-nav__link">
+    Code Changes
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Changes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting-an-ssl-context-to-be-used-in-http-clients" class="md-nav__link">
+    Getting an SSL Context to be used in Http Clients
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting an SSL Context to be used in Http Clients">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#client-project-dependency-update" class="md-nav__link">
+    Client Project Dependency Update
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-http-client-utility" class="md-nav__link">
+    Build Http Client Utility
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#servlet-changes" class="md-nav__link">
+    Servlet Changes
+  </a>
+  
+    <nav class="md-nav" aria-label="Servlet Changes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#servlet-project-dependency-update" class="md-nav__link">
+    Servlet Project Dependency Update
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-tls-client-certificate-authentication" class="md-nav__link">
+    Enable TLS Client Certificate Authentication
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authorization-checks" class="md-nav__link">
+    Authorization Checks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-servlet" class="md-nav__link">
+    Build Servlet
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-example-servlet" class="md-nav__link">
+    Deploying Example Servlet
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-cases" class="md-nav__link">
+    Test Cases
+  </a>
+  
+    <nav class="md-nav" aria-label="Test Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#invalid-access-without-cert" class="md-nav__link">
+    Invalid Access Without Cert
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#movie-editor-access" class="md-nav__link">
+    Movie Editor Access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tvshow-editor-access" class="md-nav__link">
+    TvShow Editor Access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#site-editor-access" class="md-nav__link">
+    Site Editor Access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-test-cases" class="md-nav__link">
+    Other Test Cases
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="example_go_centralized_access.html" class="md-nav__link">
+      Go Client/Server Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="example_java_decentralized_access.html" class="md-nav__link">
+      Java Client/Servlet Decentralized Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="local_ui_development.html" class="md-nav__link">
+      Local UI development
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7-9" type="checkbox" id="nav-7-9">
+    
+    <label class="md-nav__link" for="nav-7-9">
+      API
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="API" data-md-level="2">
+      <label class="md-nav__title" for="nav-7-9">
+        <span class="md-nav__icon md-icon"></span>
+        API
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="api/index.html?server=zms" class="md-nav__link">
+      ZMS
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="api/index.html?server=zts" class="md-nav__link">
+      ZTS
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      Customizing Athenz
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Customizing Athenz" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        <span class="md-nav__icon md-icon"></span>
+        Customizing Athenz
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="principal_authentication.html" class="md-nav__link">
+      Principal Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="private_key_store.html" class="md-nav__link">
+      Private Key Store
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="cert_signer.html" class="md-nav__link">
+      Certificate Signer
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="copper_argos_dev.html" class="md-nav__link">
+      Service Identity X.509 Certificate Support Requirements - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+    
+    <label class="md-nav__link" for="nav-9">
+      User Guide
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-9">
+        <span class="md-nav__icon md-icon"></span>
+        User Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zms_client.html" class="md-nav__link">
+      ZMS Client Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zpu.html" class="md-nav__link">
+      ZPU Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zts_rolecert.html" class="md-nav__link">
+      ZTS Role Certificate Client Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zts_accesstoken.html" class="md-nav__link">
+      ZTS OAuth2 Access Token Client
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="reg_service_guide.html" class="md-nav__link">
+      Registering ZMS Service Identity
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="local_athenz_on_docker.html" class="md-nav__link">
+      Using Athenz on local docker
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="how_to_sample_identity_from_local_athenz.html" class="md-nav__link">
+      Quick Guide to obtain identity cert using local docker
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="how_to_sample_identity_from_local_athenz_ec2.html" class="md-nav__link">
+      Quick Guide to obtain identity cert using local docker on EC2
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+    
+    <label class="md-nav__link" for="nav-10">
+      References
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="References" data-md-level="1">
+      <label class="md-nav__title" for="nav-10">
+        <span class="md-nav__icon md-icon"></span>
+        References
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zms_api.html" class="md-nav__link">
+      ZMS REST API
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zts_api.html" class="md-nav__link">
+      ZTS REST API
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#required-components" class="md-nav__link">
+    Required Components
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-definition" class="md-nav__link">
+    Service Definition
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resource-definition" class="md-nav__link">
+    Resource Definition
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#athenz-management-setup" class="md-nav__link">
+    Athenz Management Setup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#obtaining-x509-certificate" class="md-nav__link">
+    Obtaining X509 Certificate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-changes" class="md-nav__link">
+    Code Changes
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Changes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting-an-ssl-context-to-be-used-in-http-clients" class="md-nav__link">
+    Getting an SSL Context to be used in Http Clients
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting an SSL Context to be used in Http Clients">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#client-project-dependency-update" class="md-nav__link">
+    Client Project Dependency Update
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-http-client-utility" class="md-nav__link">
+    Build Http Client Utility
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#servlet-changes" class="md-nav__link">
+    Servlet Changes
+  </a>
+  
+    <nav class="md-nav" aria-label="Servlet Changes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#servlet-project-dependency-update" class="md-nav__link">
+    Servlet Project Dependency Update
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-tls-client-certificate-authentication" class="md-nav__link">
+    Enable TLS Client Certificate Authentication
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authorization-checks" class="md-nav__link">
+    Authorization Checks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-servlet" class="md-nav__link">
+    Build Servlet
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-example-servlet" class="md-nav__link">
+    Deploying Example Servlet
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-cases" class="md-nav__link">
+    Test Cases
+  </a>
+  
+    <nav class="md-nav" aria-label="Test Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#invalid-access-without-cert" class="md-nav__link">
+    Invalid Access Without Cert
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#movie-editor-access" class="md-nav__link">
+    Movie Editor Access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tvshow-editor-access" class="md-nav__link">
+    TvShow Editor Access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#site-editor-access" class="md-nav__link">
+    Site Editor Access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-test-cases" class="md-nav__link">
+    Other Test Cases
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/example_java_centralized_access.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="java-clientservlet-example-centralized-access-control">Java Client/Servlet Example - Centralized Access Control<a class="headerlink" href="#java-clientservlet-example-centralized-access-control" title="Permanent link">&para;</a></h1>
+<hr />
+<ul>
+<li><a href="#required-components">Required Components</a></li>
+<li><a href="#service-definition">Service Definition</a></li>
+<li><a href="#resource-definition">Resource Definition</a></li>
+<li><a href="#athenz-management-setup">Athenz Management Setup</a></li>
+<li><a href="#code-changes">Code Changes</a><ul>
+<li><a href="#getting-an-ssl-context-to-be-used-in-http-clients">Getting an SSL Context to be used in Http Clients</a><ul>
+<li><a href="#client-project-dependency-update">Client Project Dependency Update</a></li>
+<li><a href="#build-http-client-utility">Build Http Client Utility</a></li>
+</ul>
+</li>
+<li><a href="#servlet-changes">Servlet Changes</a><ul>
+<li><a href="#servlet-project-dependency-update">Servlet Project Dependency Update</a></li>
+<li><a href="#enable-tls-client-certificate-authentication">Enable TLS Client Certificate Authentication</a></li>
+<li><a href="#authorization-checks">Authorization Checks</a></li>
+<li><a href="#build-servlet">Build Servlet</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#deploying-example-servlet">Deploying Example Servlet</a></li>
+<li><a href="#test-cases">Test Cases</a><ul>
+<li><a href="#invalid-access-without-servicetoken">Invalid Access Without ServiceToken</a></li>
+<li><a href="#movie-editor-access">Movie Editor Access</a></li>
+<li><a href="#tvshow-editor-access">TvShow Editor Access</a></li>
+<li><a href="#site-editor-access">Site Editor Access</a></li>
+<li><a href="#other-test-cases">Other Test Cases</a></li>
+</ul>
+</li>
+</ul>
+<p>In the centralized access control model, the service as a principal
+requests an X509 certificate from SIA Provider and then presents it to the
+target service which would perform an identical check with ZMS to confirm
+access.</p>
+<p><img alt="Authenticated Service as Principal" src="images/centralized_authz_for_services.png" /></p>
+<p>The required steps to setup the environment for provider and tenant
+services to support centralized access control are as follows:</p>
+<ul>
+<li>System administrator creates the provider and tenant domains.</li>
+<li>Tenant Domain administrator generates a public/private key pair
+  and registers a service in its domain.</li>
+<li>Provider Domain administrator creates a role and policy that
+  grants access to the given role with configured action and resource.</li>
+<li>Provider Domain administrator adds the Tenant Service to the
+  role to grant access.</li>
+<li>Tenant Domain administrator installs the private key on the host
+  that will be running the client/tenant service.</li>
+</ul>
+<h2 id="required-components">Required Components<a class="headerlink" href="#required-components" title="Permanent link">&para;</a></h2>
+<hr />
+<p>To support centralized access control in your applications,
+you only need to install and configure the Athenz ZMS
+server along with the Athenz UI. Please follow these guides
+to make sure you have both of those components up and
+running in your environment:</p>
+<ul>
+<li><a href="setup_zms.html">ZMS Server</a></li>
+<li><a href="setup_ui.html">UI Server</a></li>
+</ul>
+<p>To build the client and servlet components of this example,
+you need to download and install Oracle JDK 8, Apache Maven and Git client
+if you don't already have these available on your box:</p>
+<ul>
+<li><a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">Oracle Java Platform JDK 8</a></li>
+<li><a href="http://maven.apache.org/download.cgi">Apache Maven</a></li>
+<li><a href="https://git-scm.com/downloads">Git client</a></li>
+</ul>
+<h2 id="service-definition">Service Definition<a class="headerlink" href="#service-definition" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Let's first define our service that needs to be Athenz protected.
+We have a simple recommendation service that returns either a movie
+or tv show for the caller. It has two endpoints:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">GET /rec/v1/movie</span>
+<span class="err">GET /rec/v1/tvshow</span>
+</code></pre></div>
+
+<p>So in this first release we just want to protect access to these
+endpoints. The traffic is very low - we only expect a couple of
+requests an hour so we have decided to use Athenz' centralized
+authorization model.</p>
+<h2 id="resource-definition">Resource Definition<a class="headerlink" href="#resource-definition" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Defining resources and actions the principals are authorized
+to execute is one of the most important tasks
+in the authorization process. Based on our endpoints, it's expected
+that we'll have 2 general resources:</p>
+<div class="codehilite"><pre><span></span><code>movie
+tvshow
+</code></pre></div>
+
+<p>The resources are referenced in their own domain namespace. So those
+are valid if your domain is specifically created to support this
+recommendation service only. But's lets assume we might add rental
+support later, so we need to make sure the policies are based on
+service specific resources. So we'll define our resources as:</p>
+<div class="codehilite"><pre><span></span><code>rec.movie
+rec.tvshow
+</code></pre></div>
+
+<p>Support action for these resources would be <code>read</code>. We can extend
+our authorization policies later on if we need to introduce other
+actions - such as <code>write</code> or <code>list</code> as we add more functionality into
+our service.</p>
+<h2 id="athenz-management-setup">Athenz Management Setup<a class="headerlink" href="#athenz-management-setup" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Once we have defined what our resources and actions are, we can
+create their respective client and server (also commonly referred
+as tenant and provider) roles and policies in Athenz. Go to
+Athenz UI and login with your account which should have system
+administrator access. Follow the instructions in the following
+guide to setup the required access control:</p>
+<ul>
+<li><a href="example_service_athenz_setup.html">Access Control Setup</a></li>
+</ul>
+<h2 id="obtaining-x509-certificate">Obtaining X509 Certificate<a class="headerlink" href="#obtaining-x509-certificate" title="Permanent link">&para;</a></h2>
+<hr />
+<p>The service should obtain an X509 certificate that will be used for authentication
+with Athenz.
+Follow the steps in the Authentication section to receive a certificate depending on the environment:
+<a href="service_x509_credentials_aws.html">Athenz Service Identity X.509 Certificate for AWS EC2 instances</a>
+<a href="service_x509_credentials_aws_ecs.html">Athenz Service Identity X.509 Certificate for AWS ECS containers</a>
+<a href="service_x509_credentials_aws_fargate.html">Athenz Service Identity X.509 Certificate for AWS Fargate tasks</a>
+<a href="service_x509_credentials_aws_eks.html">Athenz Service Identity X.509 Certificate for AWS EKS pods</a>
+<a href="service_x509_credentials_aws_lambda.html">Athenz Service Identity X.509 Certificate for AWS Lambda functions</a></p>
+<h2 id="code-changes">Code Changes<a class="headerlink" href="#code-changes" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Both the client and servlet implementors need to make changes
+in their respective code bases to support centralized authorization
+checks. The client needs to make sure to submit its service
+ certificate as part of its request, while the servlet needs to
+carry out the authorization check based on that service
+identity to determine if it request should be processed or not.</p>
+<h3 id="getting-an-ssl-context-to-be-used-in-http-clients">Getting an SSL Context to be used in Http Clients<a class="headerlink" href="#getting-an-ssl-context-to-be-used-in-http-clients" title="Permanent link">&para;</a></h3>
+<hr />
+<p>The full client source code is available from:
+<a href="https://github.com/AthenZ/athenz/tree/master/libs/java/cert_refresher/examples/tls-support/src/main/java/com/yahoo/athenz/example/http/tls/client/HttpTLSClient.java">https://github.com/AthenZ/athenz/tree/master/libs/java/cert_refresher/examples/tls-support/src/main/java/com/yahoo/athenz/example/http/tls/client/HttpTLSClient.java</a></p>
+<h4 id="client-project-dependency-update">Client Project Dependency Update<a class="headerlink" href="#client-project-dependency-update" title="Permanent link">&para;</a></h4>
+<hr />
+<p>First you need to update your Java project <code>pom.xml</code> file to indicate
+the dependency on the Athenz Cert Refresher Library. Checkout the
+<a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-cert-refresher">Maven Central Athenz Cert Refresher Package</a>
+to make sure you're using the latest release version:</p>
+<div class="highlight"><pre><span></span><code>&lt;dependency&gt;
+    &lt;groupId&gt;com.yahoo.athenz&lt;/groupId&gt;
+    &lt;artifactId&gt;athenz-cert-refresher&lt;/artifactId&gt;
+    &lt;version&gt;VERSION-NUMBER&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre></div>
+<h4 id="build-http-client-utility">Build Http Client Utility<a class="headerlink" href="#build-http-client-utility" title="Permanent link">&para;</a></h4>
+<hr />
+<p>Checkout and build the client component:</p>
+<div class="highlight"><pre><span></span><code>$ git clone https://github.com/AthenZ/athenz.git
+$ <span class="nb">cd</span> libs/java/cert_refresher/examples/tls-support/src/main/java/com/yahoo/athenz/example/http/tls/client/
+$ mvn clean package
+</code></pre></div>
+<p>Verify that the client is built successfully:</p>
+<div class="highlight"><pre><span></span><code>$ java -cp target/example-http-tls-java-client-1.0.jar HttpExampleClient
+Missing required options: k, c, t, p, u
+usage: http-example-client
+ -k,--keyid &lt;arg&gt;               key identifier
+ -c,--cert &lt;arg&gt;                certficate path
+ -t,--trustStorePath &lt;arg&gt;      CA TrustStore path
+ -p,--trustStorePassword &lt;arg&gt;  CA TrustStore password
+ -u,--url &lt;arg&gt;                 request url
+</code></pre></div>
+<h3 id="servlet-changes">Servlet Changes<a class="headerlink" href="#servlet-changes" title="Permanent link">&para;</a></h3>
+<hr />
+<p>The full servlet source code is available from:</p>
+<p><a href="https://github.com/AthenZ/athenz/tree/master/examples/java/centralized-use-case/servlet">https://github.com/AthenZ/athenz/tree/master/examples/java/centralized-use-case/servlet</a></p>
+<h4 id="servlet-project-dependency-update">Servlet Project Dependency Update<a class="headerlink" href="#servlet-project-dependency-update" title="Permanent link">&para;</a></h4>
+<hr />
+<p>First you need to update your Java project <code>pom.xml</code> file to indicate
+the dependency on the Athenz ZMS Java Client Library and the Athenz Cert Refresher Libarry.
+Checkout <a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-zms-java-client">Maven Central  ZMS Client Package Page</a> and <a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-cert-refresher">Maven Central Athenz Cert Refresher Package</a>
+to make sure you're using the latest release version:</p>
+<div class="highlight"><pre><span></span><code>&lt;dependency&gt;
+    &lt;groupId&gt;com.yahoo.athenz&lt;/groupId&gt;
+    &lt;artifactId&gt;athenz-zms-java-client&lt;/artifactId&gt;
+    &lt;version&gt;VERSION-NUMBER&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.yahoo.athenz&lt;/groupId&gt;
+    &lt;artifactId&gt;athenz-cert-refresher&lt;/artifactId&gt;
+    &lt;version&gt;VERSION-NUMBER&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre></div>
+<h4 id="enable-tls-client-certificate-authentication">Enable TLS Client Certificate Authentication<a class="headerlink" href="#enable-tls-client-certificate-authentication" title="Permanent link">&para;</a></h4>
+<hr />
+<p>To enable TLS Client Certificate Authentication, follow the steps in
+<a href="server_side_x509_credentials.html">Server Side Service Identity Authentication</a></p>
+<h4 id="authorization-checks">Authorization Checks<a class="headerlink" href="#authorization-checks" title="Permanent link">&para;</a></h4>
+<hr />
+<p>Before any authorization calls, we're going to check to make sure
+our request contains the Athenz X509 certificate:</p>
+<div class="highlight"><pre><span></span><code>    <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">ATHENZ_HEADER</span> <span class="o">=</span> <span class="s">&quot;Athenz-Principal-Auth&quot;</span><span class="p">;</span>
+
+    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">doGet</span><span class="p">(</span><span class="n">HttpServletRequest</span> <span class="n">request</span><span class="p">,</span>
+            <span class="n">HttpServletResponse</span> <span class="n">response</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">ServletException</span><span class="p">,</span> <span class="n">IOException</span> <span class="p">{</span>
+
+        <span class="c1">// retrieve and verify that our request contains an Athenz</span>
+        <span class="c1">// service authentication certificate</span>
+
+        <span class="n">X509Certificate</span><span class="o">[]</span> <span class="n">certs</span> <span class="o">=</span> <span class="p">(</span><span class="n">X509Certificate</span><span class="o">[]</span><span class="p">)</span> <span class="n">request</span><span class="p">.</span><span class="na">getAttribute</span><span class="p">(</span><span class="n">JAVAX_CERT_ATTR</span><span class="p">);</span>
+
+        <span class="c1">// Assuming only one certificate sent in the request</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">certs</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">||</span> <span class="n">certs</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span> <span class="o">==</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">response</span><span class="p">.</span><span class="na">sendError</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s">&quot;Forbidden - No Athenz X509 certificate provided in request&quot;</span><span class="p">);</span>
+            <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="p">...</span>
+    <span class="p">}</span>
+</code></pre></div>
+<p>Next, the most important part is to determine the resource and action
+based on the given http request.</p>
+<div class="highlight"><pre><span></span><code>    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">doGet</span><span class="p">(</span><span class="n">HttpServletRequest</span> <span class="n">request</span><span class="p">,</span>
+            <span class="n">HttpServletResponse</span> <span class="n">response</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">ServletException</span><span class="p">,</span> <span class="n">IOException</span> <span class="p">{</span>
+
+        <span class="p">...</span>
+
+        <span class="k">switch</span> <span class="p">(</span><span class="n">reqUri</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="s">&quot;/movie&quot;</span><span class="p">:</span>
+                <span class="n">responseText</span> <span class="o">=</span> <span class="s">&quot;Name: Slap Shot; Director: George Roy Hill&quot;</span><span class="p">;</span>
+                <span class="n">athenzResource</span> <span class="o">=</span> <span class="s">&quot;rec.movie&quot;</span><span class="p">;</span>
+                <span class="n">athenzAction</span> <span class="o">=</span> <span class="s">&quot;read&quot;</span><span class="p">;</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="s">&quot;/tvshow&quot;</span><span class="p">:</span>
+                <span class="n">responseText</span> <span class="o">=</span> <span class="s">&quot;Name: Middle; Channel: ABC&quot;</span><span class="p">;</span>
+                <span class="n">athenzResource</span> <span class="o">=</span> <span class="s">&quot;rec.tvshow&quot;</span><span class="p">;</span>
+                <span class="n">athenzAction</span> <span class="o">=</span> <span class="s">&quot;read&quot;</span><span class="p">;</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">default</span><span class="p">:</span>
+                <span class="n">response</span><span class="p">.</span><span class="na">sendError</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="s">&quot;Unknown endpoint&quot;</span><span class="p">);</span>
+                <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="p">...</span>
+    <span class="p">}</span>
+</code></pre></div>
+<p>Once we have those two values determined, then all that is left
+is to contact ZMS for the authorization check.</p>
+<div class="highlight"><pre><span></span><code>    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">doGet</span><span class="p">(</span><span class="n">HttpServletRequest</span> <span class="n">request</span><span class="p">,</span>
+            <span class="n">HttpServletResponse</span> <span class="n">response</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">ServletException</span><span class="p">,</span> <span class="n">IOException</span> <span class="p">{</span>
+
+        <span class="p">...</span>
+
+        <span class="c1">// carry out the authorization check with the expected resource</span>
+        <span class="c1">// and action values</span>
+
+        <span class="n">String</span> <span class="n">principalName</span> <span class="o">=</span> <span class="n">x509cert</span><span class="p">.</span><span class="na">getSubjectX500Principal</span><span class="p">().</span><span class="na">getName</span><span class="p">();</span>
+        <span class="n">Access</span> <span class="n">access</span> <span class="o">=</span> <span class="n">zmsClient</span><span class="p">.</span><span class="na">getAccess</span><span class="p">(</span><span class="n">athenzAction</span><span class="p">,</span> <span class="n">athenzResource</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="n">principalName</span><span class="p">);</span>
+        <span class="kt">boolean</span> <span class="n">authorized</span> <span class="o">=</span> <span class="n">access</span><span class="p">.</span><span class="na">getGranted</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">authorized</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">response</span><span class="p">.</span><span class="na">sendError</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s">&quot;Forbidden - Athenz Authorization Rejected&quot;</span><span class="p">);</span>
+            <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="p">...</span>
+    <span class="p">}</span>
+</code></pre></div>
+<h4 id="build-servlet">Build Servlet<a class="headerlink" href="#build-servlet" title="Permanent link">&para;</a></h4>
+<hr />
+<p>Checkout and build the servlet component:</p>
+<div class="highlight"><pre><span></span><code>$ git clone https://github.com/AthenZ/athenz.git
+$ <span class="nb">cd</span> examples/java/centralized-use-case/servlet/
+$ mvn clean package
+</code></pre></div>
+<h2 id="deploying-example-servlet">Deploying Example Servlet<a class="headerlink" href="#deploying-example-servlet" title="Permanent link">&para;</a></h2>
+<hr />
+<ul>
+<li>Download and install latest <a href="http://www.eclipse.org/jetty/download.html">Jetty 9.3.x container</a></li>
+<li>Copy the <code>athenz-control.war</code> from the <code>servlet/target</code> directory to the Jetty
+distribution's <code>webapps</code> directory</li>
+<li>Configure ZMS Server's URL in the expected environment variable:
+<div class="highlight"><pre><span></span><code><span class="nb">export</span> <span class="nv">ZMS_SERVER_URL</span><span class="o">=</span>https://&lt;zms-server-hostname&gt;:4443/zms/v1
+</code></pre></div></li>
+<li>Configure Valid Issuers file path in the expected environment variable:
+<div class="highlight"><pre><span></span><code><span class="nb">export</span> <span class="nv">ATHENZ_ISSUERS_FILEPATH</span><span class="o">=</span>&lt;Path to valid issuers file&gt;
+</code></pre></div></li>
+<li>
+<p>Configure environment variables for our web app cert, key and truststore:
+<div class="highlight"><pre><span></span><code><span class="nb">export</span> <span class="nv">REC_SERVLET_ATHENZ_KEY_PATH</span><span class="o">=</span>&lt;Path to key&gt;
+<span class="nb">export</span> <span class="nv">REC_SERVLET_ATHENZ_CERT_PATH</span><span class="o">=</span>&lt;Path to cert&gt;
+<span class="nb">export</span> <span class="nv">REC_SERVLET_ATHENZ_TRUSTSTORE_PATH</span><span class="o">=</span>&lt;Path to truststore&gt;
+<span class="nb">export</span> <span class="nv">REC_SERVLET_ATHENZ_TRUSTSTORE_PASSWORD</span><span class="o">=</span>&lt;truststore password&gt;
+</code></pre></div></p>
+</li>
+<li>
+<p>If the ZMS Server is running with a self-signed certificate,
+we need to generate a truststore for the java http client to use
+when communicating with the ZMS Server. From your ZMS Server installation,
+copy the <code>zms_cert.pem</code> file from the <code>athenz-zms-X.Y/var/zms_server/certs</code>
+directory to the jetty's <code>etc</code> subdirectory and execute the following
+commands:
+<div class="highlight"><pre><span></span><code>$ keytool -importcert -noprompt -alias zms -keystore zms_truststore.jks -file zms_cert.pem -storepass athenz
+$ <span class="nb">export</span> <span class="nv">JAVA_OPTIONS</span><span class="o">=</span>-Djavax.net.ssl.trustStore<span class="o">=</span>&lt;full-path-to-jetty-basedir&gt;/etc/zms_truststore.jks
+</code></pre></div></p>
+</li>
+<li>Start the Jetty server by running the following command from
+Jetty's distribution base directory:
+<div class="highlight"><pre><span></span><code>bin/jetty.sh start
+</code></pre></div></li>
+</ul>
+<h2 id="test-cases">Test Cases<a class="headerlink" href="#test-cases" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Run the following test cases to verify authorization access
+for specific services. We're running jetty server on the local
+box so we're using localhost as the hostname.</p>
+<ul>
+<li>Copy the <code>example-http-tls-java-client-1.0.jar</code> file from the client/target
+directory to the directory that includes the private keys for the test
+services we created in the section <a href="#athenz-management-setup">Athenz Management Setup</a>
+above.</li>
+</ul>
+<h3 id="invalid-access-without-cert">Invalid Access Without Cert<a class="headerlink" href="#invalid-access-without-cert" title="Permanent link">&para;</a></h3>
+<hr />
+<p>For this test case we'll just use the curl client directly:</p>
+<div class="highlight"><pre><span></span><code>$ curl http://localhost:8080/athenz-control/rec/v1/movie
+&lt;html&gt;
+...
+&lt;title&gt;Error <span class="m">403</span> Forbidden - No Athenz X509 certificate provided <span class="k">in</span> request&lt;/title&gt;
+...
+&lt;/html&gt;
+</code></pre></div>
+<h3 id="movie-editor-access">Movie Editor Access<a class="headerlink" href="#movie-editor-access" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Movie service can successfully access /rec/v1/movie endpoint:</p>
+<div class="highlight"><pre><span></span><code>$ java -cp ./example-http-tls-java-client-1.0.jar HttpTLSClient -d editors -s movie -p ./movie_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
+
+Successful response:
+Name: Slap Shot<span class="p">;</span> Director: George Roy Hill
+</code></pre></div>
+<p>Movie service does not have access to /rec/v1/tvshow endpoint:</p>
+<div class="highlight"><pre><span></span><code>$ java -cp ./example-http-tls-java-client-1.0.jar HttpTLSClient -d editors -s movie -p ./movie_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
+
+Request was forbidden - not authorized
+</code></pre></div>
+<h3 id="tvshow-editor-access">TvShow Editor Access<a class="headerlink" href="#tvshow-editor-access" title="Permanent link">&para;</a></h3>
+<hr />
+<p>TvShow service can successfully access /rec/v1/tvshow endpoint:</p>
+<div class="highlight"><pre><span></span><code>$ java -cp ./example-http-tls-java-client-1.0.jar HttpTLSClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
+
+Successful response:
+Name: Middle<span class="p">;</span> Channel: ABC
+</code></pre></div>
+<p>TvShow service does not have access to /rec/v1/movie endpoint:</p>
+<div class="highlight"><pre><span></span><code>$ java -cp ./example-http-tls-java-client-1.0.jar HttpTLSClient -d editors -s tvshow -p ./tvshow_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
+
+Request was forbidden - not authorized
+</code></pre></div>
+<h3 id="site-editor-access">Site Editor Access<a class="headerlink" href="#site-editor-access" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Site service has access to both /rec/v1/tvshow and /rec/v1/movie endpoints:</p>
+<div class="highlight"><pre><span></span><code>$ java -cp ./example-http-tls-java-client-1.0.jar HttpTLSClient -d editors -s site -p ./site_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/movie
+
+Successful response:
+Name: Slap Shot<span class="p">;</span> Director: George Roy Hill
+
+$ java -cp ./example-http-tls-java-client-1.0.jar HttpTLSClient -d editors -s site -p ./site_private.pem -k v0 -u http://localhost:8080/athenz-control/rec/v1/tvshow
+
+Successful response:
+Name: Middle<span class="p">;</span> Channel: ABC
+</code></pre></div>
+<h3 id="other-test-cases">Other Test Cases<a class="headerlink" href="#other-test-cases" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Now you can modify the <code>movie_editos, tvshow_editors, and site_editors</code> roles
+in the <code>recommend</code> domain to add and remove the defined services and then
+run the corresponding test cases to verify your access change.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="server_side_x509_credentials.html" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Server Side Service Identity Authentication
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="example_go_centralized_access.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Go Client/Server Example
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="assets/javascripts/vendor.77e55a48.min.js"></script>
+      <script src="assets/javascripts/bundle.9554a270.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      
+      <script>
+        app = initialize({
+          base: ".",
+          features: [],
+          search: Object.assign({
+            worker: "assets/javascripts/worker/search.4ac00218.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>

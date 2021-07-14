@@ -15,7 +15,7 @@
     
     
       
-        <title>About - Athenz</title>
+        <title>Centralized Authorization Flow - Athenz</title>
       
     
     
@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#service-authentication" class="md-skip">
+        <a href="#subsystems" class="md-skip">
           Skip to content
         </a>
       
@@ -87,7 +87,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              About
+              Centralized Authorization Flow
             
           </span>
         </div>
@@ -182,12 +182,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
     
     <label class="md-nav__link" for="nav-1">
       Getting Started
@@ -205,59 +203,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        About
-        <span class="md-nav__icon md-icon"></span>
-      </label>
-    
-    <a href="index.html" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="index.html" class="md-nav__link">
       About
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -886,10 +836,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7" checked>
     
     <label class="md-nav__link" for="nav-7">
       Developer Guide
@@ -907,11 +859,85 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="cent_authz_flow.html" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Centralized Authorization Flow
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="cent_authz_flow.html" class="md-nav__link md-nav__link--active">
       Centralized Authorization Flow
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#subsystems" class="md-nav__link">
+    Subsystems
+  </a>
+  
+    <nav class="md-nav" aria-label="Subsystems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zms-authz-management-system" class="md-nav__link">
+    ZMS (AuthZ Management System)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sia-service-identity-agent" class="md-nav__link">
+    SIA (Service Identity Agent)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#centralized-access-control" class="md-nav__link">
+    Centralized Access Control
+  </a>
+  
+    <nav class="md-nav" aria-label="Centralized Access Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#principals" class="md-nav__link">
+    Principals
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -1322,23 +1348,49 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#service-authentication" class="md-nav__link">
-    Service Authentication
+  <a href="#subsystems" class="md-nav__link">
+    Subsystems
   </a>
+  
+    <nav class="md-nav" aria-label="Subsystems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zms-authz-management-system" class="md-nav__link">
+    ZMS (AuthZ Management System)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sia-service-identity-agent" class="md-nav__link">
+    SIA (Service Identity Agent)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#role-based-authorization-rbac" class="md-nav__link">
-    Role-Based Authorization (RBAC)
+  <a href="#centralized-access-control" class="md-nav__link">
+    Centralized Access Control
+  </a>
+  
+    <nav class="md-nav" aria-label="Centralized Access Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#principals" class="md-nav__link">
+    Principals
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#aws-temporary-credentials-support" class="md-nav__link">
-    AWS Temporary Credentials Support
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1354,42 +1406,63 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/cent_authz_flow.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                  <h1>About</h1>
+                  <h1>Centralized Authorization Flow</h1>
                 
-                <p>Athenz is a set of services and libraries supporting service authentication and role-based authorization (RBAC) for provisioning and configuration (centralized authorization) use cases as well as serving/runtime (decentralized authorization) use cases. Athenz authorization system utilizes x.509 certificates and Access Tokens. The name "Athenz" is derived from "AuthNZ" (N for authentication and Z for authorization). It provides support for the following three major functional areas.</p>
-<h2 id="service-authentication">Service Authentication<a class="headerlink" href="#service-authentication" title="Permanent link">&para;</a></h2>
-<p>Athenz provides secure identity in the form of short lived X.509 certificate
-and a certificate and IP-based distributed system to handle for every workload or service deployed in private (e.g. Openstack, K8S, Screwdriver)
-on-box enforcement. or public cloud (e.g. AWS EC2, ECS, Fargate, Lambda). Using these X.509 certificates
-clients and services establish secure connections and through mutual TLS authentication verify
-each other's identity. The service identity certificates are valid for 30 days only
-and the service identity agents (SIA) part of those frameworks automatically refresh
-them daily. The term service within Athenz is more generic than a traditional service.
-A service identity could represent a command, job, daemon, workflow, as well as both an
-application client and an application service.</p>
-<p>Since Athenz service authentication is based on
-<a href="https://en.wikipedia.org/wiki/X.509">X.509 certificates</a>, it is
-important that you have a good understanding what X.509 certificates are
-and how they're used to establish secure connections in Internet protocols
-such as <a href="https://en.wikipedia.org/wiki/Transport_Layer_Security">TLS</a>.</p>
-<h2 id="role-based-authorization-rbac">Role-Based Authorization (RBAC)<a class="headerlink" href="#role-based-authorization-rbac" title="Permanent link">&para;</a></h2>
-<p>Once the client is authenticated with its x.509 certificate, the service
-their own role-based access control systems that have no central store  can then check if the given client is authorized to carry out the requested
-and often rely on network ACLs and manual updating. action. Athenz provides fine-grained role-based access control (RBAC) support
-for a centralized management system with support for control-plane access control
-decisions and a decentralized enforcement mechanism suitable for data-plane
-access control decisions. It also provides a delegated management model that
-supports multi-tenant and self-service concepts.</p>
-<h2 id="aws-temporary-credentials-support">AWS Temporary Credentials Support<a class="headerlink" href="#aws-temporary-credentials-support" title="Permanent link">&para;</a></h2>
-<p>When working with AWS, Athenz provides support to access AWS services
-from on-prem services with using AWS temporary credentials rather than
-static credentials. Athenz ZTS server can be used to request AWS temporary
-credentials for configured AWS IAM roles.</p>
+                <p>In this section, we're going to examine the centralized authorization flow.</p>
+<h2 id="subsystems">Subsystems<a class="headerlink" href="#subsystems" title="Permanent link">&para;</a></h2>
+<p>Before we go into the details of the authorization flow, it's important
+to understand the subsystems involved. The authorization (AuthZ) system
+shown in the figure below consists of several logical subsystems, which
+we will elaborate on in the following section.</p>
+<h3 id="zms-authz-management-system">ZMS (AuthZ Management System)<a class="headerlink" href="#zms-authz-management-system" title="Permanent link">&para;</a></h3>
+<p>ZMS is where domains, roles, and policies are defined. This is Athenz's
+centralized authorization system and is likely part of a larger
+management system.
+In addition to allowing CRUD operations on the basic entities, ZMS
+provides an API to replicate the entities, per domain, to
+ZTS. It also can directly support the access
+check, both for internal management system checks, as well as a simple
+centralized deployment.</p>
+<p>ZMS is the source of truth for domains, roles, and policies for
+centralized authorization. ZMS supports a centralized call to check if a
+principal has access to a resource. Because ZMS supports service
+identities, ZMS can authenticate services.</p>
+<p>For centralized authorization, ZMS may be the only Athenz subsystem that
+you need to interact with.</p>
+<h3 id="sia-service-identity-agent">SIA (Service Identity Agent)<a class="headerlink" href="#sia-service-identity-agent" title="Permanent link">&para;</a></h3>
+<p>SIA is required for authenticating existing unmanaged services. Any service that launches other
+services should integrate SIA (or an equivalent system). To confirm a
+service's identity, SIA communicates with ZTS.</p>
+<h2 id="centralized-access-control">Centralized Access Control<a class="headerlink" href="#centralized-access-control" title="Permanent link">&para;</a></h2>
+<p>A traditional centralized mechanism works as expected for services that
+are not dealing with the decentralized authorization: the server with
+resources can simply ask the ZMS directly about access, passing its
+credentials (X.509 Cert) and resource/action information for a
+given principal to get a simple boolean answer. In this model, the
+Athenz Management Service is the only component that needs to be
+deployed and managed within your environment.</p>
+<p>This does not scale well enough for data-plane access, since a central
+service must be consulted, but requires no local installation of other
+components and related storage and synchronization logic, so it is suitable
+for human interaction and control-plane provisioning uses where the number
+of requests processed by the server is small and the latency for authorization
+checks is not important.</p>
+<h3 id="principals">Principals<a class="headerlink" href="#principals" title="Permanent link">&para;</a></h3>
+<p>In Athenz, actors that can assume a role are called principals.
+Principals can be users or services, and users can be those looking for
+resources from a service or use the ZMS management console. </p>
+<p>The user or service must be configured with Athenz CA certificates and 
+require mutual client authentication to accept and validate the service's X.509 certificate.
+Once validated, it can extract the CN field from the certificate would be the service's
+identity. Finally, just like the user case, it which would perform an identical
+check with ZMS to confirm access passing the action, resource and service
+name to ZMS.</p>
+<p><img alt="Authenticated Service as Principal" src="images/centralized_authz_for_services.png" /></p>
                 
               
               
@@ -1408,14 +1481,28 @@ credentials for configured AWS IAM roles.</p>
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
+          <a href="capabilities.html" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Athenz Capabilities
+              </div>
+            </div>
+          </a>
         
-          <a href="dev_environment.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+        
+          <a href="decent_authz_flow.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Development Environment
+                Decentralized Authorization Flow
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">

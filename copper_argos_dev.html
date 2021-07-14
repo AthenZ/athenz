@@ -1,0 +1,2117 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Athenz User Guide">
+      
+      
+      
+      <link rel="shortcut icon" href="images/favicon.ico">
+      <meta name="generator" content="mkdocs-1.2, mkdocs-material-6.0.2">
+    
+    
+      
+        <title>Service Identity X.509 Certificate Support Requirements - Copper Argos - Athenz</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.38780c08.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.3f72e892.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+      
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#copper-argos-athenz-service-identity-x509-certificates-development" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="." title="Athenz" class="md-header-nav__button md-logo" aria-label="Athenz">
+      
+  <img src="images/athenz-icon.png" alt="logo">
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Athenz
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Service Identity X.509 Certificate Support Requirements - Copper Argos
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/AthenZ/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="Athenz" class="md-nav__button md-logo" aria-label="Athenz">
+      
+  <img src="images/athenz-icon.png" alt="logo">
+
+    </a>
+    Athenz
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/AthenZ/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
+    
+    <label class="md-nav__link" for="nav-1">
+      Getting Started
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <label class="md-nav__title" for="nav-1">
+        <span class="md-nav__icon md-icon"></span>
+        Getting Started
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="index.html" class="md-nav__link">
+      About
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="dev_environment.html" class="md-nav__link">
+      Development Environment
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3">
+    
+    <label class="md-nav__link" for="nav-1-3">
+      Local/Development Environment Setup
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Local/Development Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-3">
+        <span class="md-nav__icon md-icon"></span>
+        Local/Development Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zms.html" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zts.html" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_ui.html" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4">
+    
+    <label class="md-nav__link" for="nav-1-4">
+      Production Environment Setup
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Production Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-4">
+        <span class="md-nav__icon md-icon"></span>
+        Production Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zms_prod.html" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zts_prod.html" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_ui_prod.html" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-5" type="checkbox" id="nav-1-5">
+    
+    <label class="md-nav__link" for="nav-1-5">
+      Service Identity Registration
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Service Identity Registration" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-5">
+        <span class="md-nav__icon md-icon"></span>
+        Service Identity Registration
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials.html" class="md-nav__link">
+      Using X.509 Certificates
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="reg_service_guide.html" class="md-nav__link">
+      Using Public/Private Key Pairs
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Management
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Management" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon"></span>
+        Management
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="role_delegation.html" class="md-nav__link">
+      Role Delegation
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="token_expiration.html" class="md-nav__link">
+      Access token Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="role_cert_expiration.html" class="md-nav__link">
+      Role Certificate Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="review_enabled_roles.html" class="md-nav__link">
+      Review Enabled Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="email_notifications.html" class="md-nav__link">
+      Email Notifications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="events_monitoring.html" class="md-nav__link">
+      Events Monitoring
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="member_expiration.html" class="md-nav__link">
+      Role Member Auto Expiry and Notification Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="member_soft_expiration.html" class="md-nav__link">
+      Role Member Review Reminder Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="self_serve_roles.html" class="md-nav__link">
+      Self-Served Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="athenz_templates.html" class="md-nav__link">
+      Athenz Templates
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="principal_groups.html" class="md-nav__link">
+      Principal Groups
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Authentication
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Authentication" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon"></span>
+        Authentication
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_authentication.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS EC2 instances
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws_ecs.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS ECS containers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws_fargate.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS Fargate tasks
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws_eks.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS EKS pods
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws_lambda.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS Lambda functions
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zts_access_token_guide.html" class="md-nav__link">
+      Obtaining OAuth2 Access Tokens from ZTS
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      AWS Setup
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="AWS Setup" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        <span class="md-nav__icon md-icon"></span>
+        AWS Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="aws_temp_creds.html" class="md-nav__link">
+      AWS Temp Credentials
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="aws_athenz_setup.html" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Architecture
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Architecture" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        <span class="md-nav__icon md-icon"></span>
+        Architecture
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="data_model.html" class="md-nav__link">
+      Data Model
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="system_view.html" class="md-nav__link">
+      System View
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="auth_flow.html" class="md-nav__link">
+      Authorization Flow
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Features
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Features" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon"></span>
+        Features
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="copper_argos.html" class="md-nav__link">
+      Service Identity X.509 Certificates - Copper Argos
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="capabilities.html" class="md-nav__link">
+      Athenz Capabilities
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      Developer Guide
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon"></span>
+        Developer Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="cent_authz_flow.html" class="md-nav__link">
+      Centralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="decent_authz_flow.html" class="md-nav__link">
+      Decentralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="client_side_x509_credentials.html" class="md-nav__link">
+      Client Side Service Identity Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="server_side_x509_credentials.html" class="md-nav__link">
+      Server Side Service Identity Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="example_java_centralized_access.html" class="md-nav__link">
+      Java Client/Servlet Centralized Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="example_go_centralized_access.html" class="md-nav__link">
+      Go Client/Server Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="example_java_decentralized_access.html" class="md-nav__link">
+      Java Client/Servlet Decentralized Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="local_ui_development.html" class="md-nav__link">
+      Local UI development
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7-9" type="checkbox" id="nav-7-9">
+    
+    <label class="md-nav__link" for="nav-7-9">
+      API
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="API" data-md-level="2">
+      <label class="md-nav__title" for="nav-7-9">
+        <span class="md-nav__icon md-icon"></span>
+        API
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="api/index.html?server=zms" class="md-nav__link">
+      ZMS
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="api/index.html?server=zts" class="md-nav__link">
+      ZTS
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8" checked>
+    
+    <label class="md-nav__link" for="nav-8">
+      Customizing Athenz
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Customizing Athenz" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        <span class="md-nav__icon md-icon"></span>
+        Customizing Athenz
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="principal_authentication.html" class="md-nav__link">
+      Principal Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="private_key_store.html" class="md-nav__link">
+      Private Key Store
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="cert_signer.html" class="md-nav__link">
+      Certificate Signer
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Service Identity X.509 Certificate Support Requirements - Copper Argos
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="copper_argos_dev.html" class="md-nav__link md-nav__link--active">
+      Service Identity X.509 Certificate Support Requirements - Copper Argos
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-copper-argos" class="md-nav__link">
+    What is Copper Argos
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-service-registration" class="md-nav__link">
+    Provider Service Registration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tenant-service-launch-authorization" class="md-nav__link">
+    Tenant Service Launch Authorization
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instance-register-request" class="md-nav__link">
+    Instance Register Request
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instance-refresh-request" class="md-nav__link">
+    Instance Refresh Request
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instance-revocation-request" class="md-nav__link">
+    Instance Revocation Request
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#athenz-rdl" class="md-nav__link">
+    Athenz RDL
+  </a>
+  
+    <nav class="md-nav" aria-label="Athenz RDL">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#instance-register-request_1" class="md-nav__link">
+    Instance Register Request
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instance-identity-response" class="md-nav__link">
+    Instance Identity Response
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instance-refresh-request_1" class="md-nav__link">
+    Instance Refresh Request
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instance-revoke-request" class="md-nav__link">
+    Instance Revoke Request
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instance-provider-rdl" class="md-nav__link">
+    Instance Provider RDL
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authorization-policies" class="md-nav__link">
+    Authorization Policies
+  </a>
+  
+    <nav class="md-nav" aria-label="Authorization Policies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-providers" class="md-nav__link">
+    System Providers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-authorized-dns-suffix" class="md-nav__link">
+    Provider Authorized DNS Suffix
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-authorized-providers" class="md-nav__link">
+    Service Authorized Providers
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample-implementation-and-setup-tasks" class="md-nav__link">
+    Sample Implementation and Setup Tasks
+  </a>
+  
+    <nav class="md-nav" aria-label="Sample Implementation and Setup Tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#athenz-system-setup" class="md-nav__link">
+    Athenz System Setup
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-service-implementation-and-registration" class="md-nav__link">
+    Provider Service Implementation and Registration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#athenz-authorized-provider-registration" class="md-nav__link">
+    Athenz Authorized Provider Registration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tenant-service-registration" class="md-nav__link">
+    Tenant Service Registration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-client-implementation" class="md-nav__link">
+    Provider Client Implementation
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+    
+    <label class="md-nav__link" for="nav-9">
+      User Guide
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-9">
+        <span class="md-nav__icon md-icon"></span>
+        User Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zms_client.html" class="md-nav__link">
+      ZMS Client Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zpu.html" class="md-nav__link">
+      ZPU Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zts_rolecert.html" class="md-nav__link">
+      ZTS Role Certificate Client Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zts_accesstoken.html" class="md-nav__link">
+      ZTS OAuth2 Access Token Client
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="reg_service_guide.html" class="md-nav__link">
+      Registering ZMS Service Identity
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="local_athenz_on_docker.html" class="md-nav__link">
+      Using Athenz on local docker
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="how_to_sample_identity_from_local_athenz.html" class="md-nav__link">
+      Quick Guide to obtain identity cert using local docker
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="how_to_sample_identity_from_local_athenz_ec2.html" class="md-nav__link">
+      Quick Guide to obtain identity cert using local docker on EC2
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+    
+    <label class="md-nav__link" for="nav-10">
+      References
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="References" data-md-level="1">
+      <label class="md-nav__title" for="nav-10">
+        <span class="md-nav__icon md-icon"></span>
+        References
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zms_api.html" class="md-nav__link">
+      ZMS REST API
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zts_api.html" class="md-nav__link">
+      ZTS REST API
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-copper-argos" class="md-nav__link">
+    What is Copper Argos
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-service-registration" class="md-nav__link">
+    Provider Service Registration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tenant-service-launch-authorization" class="md-nav__link">
+    Tenant Service Launch Authorization
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instance-register-request" class="md-nav__link">
+    Instance Register Request
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instance-refresh-request" class="md-nav__link">
+    Instance Refresh Request
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instance-revocation-request" class="md-nav__link">
+    Instance Revocation Request
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#athenz-rdl" class="md-nav__link">
+    Athenz RDL
+  </a>
+  
+    <nav class="md-nav" aria-label="Athenz RDL">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#instance-register-request_1" class="md-nav__link">
+    Instance Register Request
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instance-identity-response" class="md-nav__link">
+    Instance Identity Response
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instance-refresh-request_1" class="md-nav__link">
+    Instance Refresh Request
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instance-revoke-request" class="md-nav__link">
+    Instance Revoke Request
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instance-provider-rdl" class="md-nav__link">
+    Instance Provider RDL
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authorization-policies" class="md-nav__link">
+    Authorization Policies
+  </a>
+  
+    <nav class="md-nav" aria-label="Authorization Policies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-providers" class="md-nav__link">
+    System Providers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-authorized-dns-suffix" class="md-nav__link">
+    Provider Authorized DNS Suffix
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-authorized-providers" class="md-nav__link">
+    Service Authorized Providers
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample-implementation-and-setup-tasks" class="md-nav__link">
+    Sample Implementation and Setup Tasks
+  </a>
+  
+    <nav class="md-nav" aria-label="Sample Implementation and Setup Tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#athenz-system-setup" class="md-nav__link">
+    Athenz System Setup
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-service-implementation-and-registration" class="md-nav__link">
+    Provider Service Implementation and Registration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#athenz-authorized-provider-registration" class="md-nav__link">
+    Athenz Authorized Provider Registration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tenant-service-registration" class="md-nav__link">
+    Tenant Service Registration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-client-implementation" class="md-nav__link">
+    Provider Client Implementation
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/copper_argos_dev.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="copper-argos-athenz-service-identity-x509-certificates-development">Copper Argos: Athenz Service Identity X.509 Certificates Development<a class="headerlink" href="#copper-argos-athenz-service-identity-x509-certificates-development" title="Permanent link">&para;</a></h1>
+<hr />
+<ul>
+<li><a href="#what-is-copper-argos">What is Copper Argos</a></li>
+<li><a href="#provider-service-registration">Provider Service Registration</a></li>
+<li><a href="#tenant-service-launch-authorization">Tenant Service Launch Authorization</a></li>
+<li><a href="#instance-register-request">Instance Register Request</a></li>
+<li><a href="#instance-refresh-request">Instance Refresh Request</a></li>
+<li><a href="#instance-revocation-request">Instance Revocation Request</a></li>
+<li><a href="#athenz-rdl">Athenz RDL</a></li>
+<li><a href="#instance-register-request">Instance Register Request</a></li>
+<li><a href="#instance-identity-response">Instance Identity Response</a></li>
+<li><a href="#instance-refresh-request">Instance Refresh Request</a></li>
+<li><a href="#instance-revoke-request">Instance Revoke Request</a></li>
+<li><a href="#instance-provider-rdl">Instance Provider RDL</a></li>
+<li><a href="#authorization-policies">Authorization Policies</a></li>
+<li><a href="#system-providers">System Providers</a></li>
+<li><a href="#provider-authorized-dns-suffix">Provider Authorized DNS Suffix</a></li>
+<li><a href="#service-authorized-providers">Service Authorized Providers</a></li>
+<li><a href="#sample-implementation-and-setup-tasks">Sample Implementation and Setup Tasks</a></li>
+<li><a href="#athenz-system-setup">Athenz System Setup</a></li>
+<li><a href="#provider-service-implementation-and-registration">Provider Service Implementation and Registration</a></li>
+<li><a href="#athenz-authorized-provider-registration">Athenz Authorized Provider Registration</a></li>
+<li><a href="#tenant-service-registration">Tenant Service Registration</a></li>
+<li><a href="#provider-client-implementation">Provider Client Implementation</a></li>
+</ul>
+<h2 id="what-is-copper-argos">What is Copper Argos<a class="headerlink" href="#what-is-copper-argos" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Copper Argos extends Athenz with generalized model for service providers to launch other identities in an authorized way through a callback-based verification model. With this model each provider is responsible for their instance document verification service instead of embedding that logic inside ZTS.</p>
+<h2 id="provider-service-registration">Provider Service Registration<a class="headerlink" href="#provider-service-registration" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Each provider is a registered service identity object in Athenz. As such, the provider domain administrator will create the service identity object in their domain and provide the following attributes using zms-cil utility or the REST API. (Athenz UI does not expose optional service attributes since they’re not commonly used).
+* Provider Endpoint - A REST API endpoint that implements Provider RDL and ZTS will contact to validate the instance document (ServiceIdentity already has the providerEndpoint attribute)</p>
+<p>Domain administrator will then need to follow up with the Athenz Team to authorize Provider Service as an Instance Launcher Service in Athenz. The Provider will also specify the DNS suffix that will be used by its tenants.
+There will be a policy in sys.auth domain that grants <code>launch</code> action to <code>instance</code> resource to the <code>providers</code> role.
+Once approved, the Athenz System admin will add the provider service identity to the <code>providers</code> role in the sys.auth domain either using zms-cli or Athenz UI.
+There will be policy granting access to the specified Provider SAN dnsName attribute suffix to the list service provider.</p>
+<p>Requirements for Provider Service:
+* It must retrieve a TLS certificate for its service from Athenz and use that as its Service Certificate.
+* When ZTS Contacts Provider Service to validate an instance document, it will require TLS authentication and verify that the certificate the service used for authentication was issued for the expected provider service by ZTS itself.
+* ZTS issues TLS certificates valid for 30 days only, so the Provider Service Admin must have the capability to periodically refresh its certificate by requesting a new one from ZTS Server (e.g. daily) and dynamically update its service to use the refreshed certificates.</p>
+<p><img alt="Athenz Provider Service Registration" src="images/dev_provider_service_registration.png" /></p>
+<h2 id="tenant-service-launch-authorization">Tenant Service Launch Authorization<a class="headerlink" href="#tenant-service-launch-authorization" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Before a tenant service can be launched by a specific provider and issued a TLS certificate for, the tenant domain administrator must authorize a specific provider service to launch its services.</p>
+<p>This will require that a role and policy to be created in the tenant’s domain. For example, if weather.api service wants to authorize athenz.aws provider to launch its services, it will need to create the following policy and role in their domain:
+* Policy: grant launch to aws-provider on weather:service.api
+* Role: aws-provider role member: athenz.aws.us-west-2</p>
+<p>The change can be carried out with using zms-cli or Athenz UI.</p>
+<h2 id="instance-register-request">Instance Register Request<a class="headerlink" href="#instance-register-request" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Once the service admin creates the appropriate role and policy in its domain authorizing the provider service to bootstrap its instance, it can submit the launch request to the provider service.</p>
+<p><img alt="Athenz Service Identity Bootstrap" src="images/dev_service_identity_register.png" /></p>
+<p>The steps of the bootstrap process pertaining Athenz integration would include:</p>
+<ol>
+<li>As part of the launch request, the admin will specify the Athenz domain and service that should be assigned to the instance.</li>
+<li>The provider service will generate an instance identity document, sign it with its private key and securely transfer this document along with its signature onto to the bootstrapped host.</li>
+<li>As part of the bootstrap process or possible as part of the image, the Service Identity Agent (SIA) will also be installed on the host.</li>
+<li>SIA will generate a public/private key pair on the host, generate a CSR using the newly generated private key. The CSR requirements are as follows:</li>
+<li>The Subject CN in the CSR must be the Athenz service identity name (e.g. weather.api - api service in weather domain)</li>
+<li>The CSR must include a SAN dnsName attribute with the format: <code>&lt;service-with-domain&gt;.&lt;provider-dnsname-suffix&gt;</code>. The provider-dnsname-suffix must match the value registered for the provider service. The <code>&lt;service-with-domain&gt;</code> part is left up to to the provider to define what format they want to use (e.g. <code>&lt;service&gt;.&lt;domain&gt;</code> or <code>&lt;service&gt;.&lt;domain-with-dashes&gt;</code>). ZTS server will pass these hostnames to the provider as entries in the attribute field for validation.</li>
+<li>The provider must specify a unique identifier for the instance within the provider’s namespace (this could be combination of multiple strings - e.g. instance-id.pod-id.cluster-id) and this information must be included in the CSR as another SAN dnsName attribute with the format: <code>&lt;provider-unique-instance-id&gt;.instanceid.athenz.&lt;provider-dnsname-suffix&gt;</code>. The ZTS server will use this information along with the issued TLS Certificate Serial number to revoke specific instances if they’re compromised.</li>
+<li>SIA will generate an InstanceRegisterInformation object that will include attestation data (this would include the instance identity document, its signature and other attributes that will be necessary for the provider to validate and confirm the instance register request from ZTS) received from the provider and submit the post request to ZTS Server.</li>
+<li>ZTS Server will carry out the following authorization and verification checks before contacting provider service:</li>
+<li>The provider service in the info object has been authorized in Athenz to launch services (policy exists in sys.auth domain).</li>
+<li>Service specified in the info object (domain.service) has authorized provider service in the info object to launch itself (policy exists in the service’s own domain).</li>
+<li>The provider service is registered in Athenz, has a providerEndpoint (verified as internal ip address) and providerDnsNameSuffix attributes defined.</li>
+<li>The cn in the CSR matches to the specific domain and service names.</li>
+<li>The CSR must include only 2 dnsName attributes with the expected format:<ul>
+<li><code>&lt;service-with-domain&gt;.&lt;provider-dnsname-suffix&gt;</code></li>
+<li><code>&lt;provider-unique-instance-id&gt;.instanceid.athenz.&lt;provider-dnsname-suffix&gt;</code></li>
+</ul>
+</li>
+<li>ZTS Server will contact Provider service at its configured endpoint and verify that the TLS certificate used for authentication by the provider service matches to the service name and was issued by ZTS server itself.</li>
+<li>ZTS Server will generate an InstanceConfirmation object and submit the post request to the Provider Service. In the InstanceConfirmation object, ZTS server will include the following entries in the optional attributes map:</li>
+<li>sanDNS: comma separated list of dnsNames attributes in the CSR - there will only be 2 as defined in 6(e) above</li>
+<li>sanIP - comma separated list of IP addresses in the CSR if any were specified</li>
+<li>clientIP - the IP address of the client</li>
+<li>cloudAccount - domain’s account id if one is configured</li>
+<li>The Provider Service will be responsible for:</li>
+<li>Validating Signature</li>
+<li>Validating the instance id</li>
+<li>Validating the bootup time is within acceptable time period (e..g 5 mins)</li>
+<li>Validating hostnames included in the CSR</li>
+<li>Validating IP addresses (if available) included in the CSR</li>
+<li>Once ZTS service receives a successful response from the Provider Service, it will submit the CSR to Certsignd to generate a X.509 Certificate</li>
+<li>ZTS Server will retrieve the Serial number from the Certificate and register the certificate along with instanceid and provider service name in its certificate database. This will be used to monitor refresh certificate operations and, in case of a compromise, revoke specific instances from the capability to refresh their own certificates.</li>
+</ol>
+<h2 id="instance-refresh-request">Instance Refresh Request<a class="headerlink" href="#instance-refresh-request" title="Permanent link">&para;</a></h2>
+<hr />
+<p>During instance refresh request, ZTS Server again contacts provider service for verification of the instance. This is necessary in case the credentials have been compromised and the original instance is no longer running and will allow the provider to verify that the instance is indeed still running. ZTS will also verify that the connection is using the previous TLS certificate issued for the service and provider and the authorization policies are still in place. The steps would include:</p>
+<ol>
+<li>SIA will generate a public/private key pair on the host, generate a CSR using the newly generated private key. The CSR requirements are as follows:</li>
+<li>The Subject CN in the CSR must be the Athenz service identity name (e.g. weather.api - api service in weather domain)</li>
+<li>The CSR must include a SAN dnsName attribute with the format: <code>&lt;service-with-domain&gt;.&lt;provider-dnsname-suffix&gt;</code> that was used in the original register request.</li>
+<li>The provider must specify a unique identifier for the instance within the provider namespace (this could be combination of multiple strings - e.g. instance-id.pod-id.cluster-id) and this information must be included in the CSR as another SAN dnsName attribute with the format: <code>&lt;provider-unique-instance-id&gt;.instanceid.athenz.&lt;provider-dnsname-suffix&gt;</code>. The ZTS server will use this information along with the issued TLS Certificate Serial number to revoke specific instances if they’re compromised.</li>
+<li>SIA will generate an InstanceRefreshInformation object including attestation data and submit the post request to ZTS Server. It will be required to use the TLS certificate that was issued to that instance previously by ZTS Server.</li>
+<li>ZTS Server will carry out the following authorization and verification checks before contacting provider service:</li>
+<li>The provider service in the info object has been authorized in Athenz to launch services (policy exists in sys.auth domain).</li>
+<li>Service specified in the info object (domain.service) has authorized provider service in the info object to launch itself (policy exists in the service’s own domain).</li>
+<li>The cn in the CSR matches to the specific domain and service names.</li>
+<li>The TLS certificate SIA used to contact ZTS server must be for the same service.</li>
+<li>The TLS certificate SIA used to contact ZTS server must have the same provider and the 2 dnsName attributes as the CSR.</li>
+<li>ZTS Server will extract the instanceid from CSR and verify that the instance has not been revoked and the serial number matches to the registered entry in the certificate database.</li>
+<li>ZTS Server will contact Provider service at its configured endpoint and verify that the TLS certificate used for authentication by the provider service matches to the service name and was issued by ZTS server itself.</li>
+<li>ZTS Server will generate an InstanceConfirmation object and submit the post request to the Provider Service. In the InstanceConfirmation object, ZTS server will include the attestation data presented by instance.</li>
+<li>The Provider Service will be responsible for:</li>
+<li>Validating attestation data</li>
+<li>Validating hostnames included in the CSR</li>
+<li>Validating IP addresses (if available) included in the CSR</li>
+<li>Once ZTS service receives a successful response from the Provider Service, it will submit the CSR to Certsignd to generate a X.509 Certificate</li>
+<li>ZTS Server will retrieve the Serial number from the new Certificate and update the certificate database with the new serial number.</li>
+</ol>
+<h2 id="instance-revocation-request">Instance Revocation Request<a class="headerlink" href="#instance-revocation-request" title="Permanent link">&para;</a></h2>
+<hr />
+<p>If necessary, the domain administrators must be able to revoke specific instances from having the capability to refresh their certificate. The steps would be:</p>
+<ol>
+<li>Domain Admin will issue a HTTP DELETE /instance/… request to ZTS Server.</li>
+<li>ZTS Server will authorize the request and update the serial number for the requested instance id in the certificate database to -1. This operation will revoke the instance from refreshing its certificates.</li>
+</ol>
+<h2 id="athenz-rdl">Athenz RDL<a class="headerlink" href="#athenz-rdl" title="Permanent link">&para;</a></h2>
+<hr />
+<h3 id="instance-register-request_1">Instance Register Request<a class="headerlink" href="#instance-register-request_1" title="Permanent link">&para;</a></h3>
+<hr />
+<p>InstanceRegisterInformation is the information a provider-hosted booting instance must provide to Athenz to authenticate:</p>
+<div class="highlight"><pre><span></span><code>type InstanceRegisterInformation
+ Struct {
+    ServiceName provider;  //the provider service name (i.e. &quot;aws.us-west-2&quot;)
+    DomainName domain;     //the domain of the instance
+    SimpleName service;    //the service this instance is supposed to run
+    String attestationData;//signed identity document containing attributes 
+                           //like IP address, instance-id, account#, signature, etc
+    String csr;            //the Certificate Signing Request for the expected
+                           //X.509 certificate in the response
+    String ssh (optional); //if present, return an SSH host certificate.
+                           //Format is JSON.
+    Bool token (optional); // if true, return a service token signed by
+                           //ZTS for this service
+}
+
+resource InstanceIdentity POST &quot;/instance&quot; {
+    InstanceRegisterInformation info;
+    String location (header=&quot;Location&quot;, out); //return location for subsequent operations
+    expected CREATED;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError INTERNAL_SERVER_ERROR;
+    }
+}
+</code></pre></div>
+<h3 id="instance-identity-response">Instance Identity Response<a class="headerlink" href="#instance-identity-response" title="Permanent link">&para;</a></h3>
+<hr />
+<p>InstanceIdentity is returned on successful attestation. includes the certifictates, tokens, and any additional provider-specific derived attributes.</p>
+<div class="highlight"><pre><span></span><code>type InstanceIdentity Struct {
+    ServiceName provider;                     //the provider service name (i.e. &quot;aws.us-west-2&quot;)
+    ServiceName name;                         //name of the identity, fully qualified, e.g weather.api
+    PathElement instanceId;                   //unique instance id within provider’s namespace
+    String x509Certificate (optional);        //an X.509 certificate usable for
+                                              //both client and server in TLS connections
+    String x509CertificateSigner (optional);  //the CA certificate chain to
+                                              //verify all generated X.509 certs
+    String sshCertificate (optional);         //the SSH certificate, signed by
+                                              //the CA (user or host)
+    String sshCertificateSigner (optional);   //the SSH CA&#39;s public key
+                                              //for the sshCertificate (user or host)
+    SignedToken serviceToken (optional);      //service token instead of TLS certificate
+    Map&lt;String,String&gt; attributes (optional); //other config-like attributes
+                                              //determined at boot time
+}
+</code></pre></div>
+<h3 id="instance-refresh-request_1">Instance Refresh Request<a class="headerlink" href="#instance-refresh-request_1" title="Permanent link">&para;</a></h3>
+<hr />
+<p>InstanceRefreshInformation is the information a provider-hosted booting instance must provide to Athenz to refresh the TLS certificate it was issued initially. The request must be done using the previously issued client TLS certificate.</p>
+<div class="highlight"><pre><span></span><code>type InstanceRefreshInformation Struct {
+    String attestationData (optional); //identity attestation data including 
+                                       //document with its signature containing attributes like IP
+                                       //address, instance-id, account#, etc.
+    String csr (optional);             //the Certificate Signing Request for the expected
+                                       //X.509 certificate in the response
+    String ssh (optional);             //if present, return an SSH host certificate.
+                                       //Format is JSON.
+    Bool token (optional);             // if true, return a service token signed by
+                                       //ZTS for this service
+}
+
+resource InstanceIdentity POST &quot;/instance/{provider}/{domain}/{service}/{instanceId}&quot; {
+    ServiceName provider;            //the provider service name (i.e. &quot;aws.us-west-2&quot;)
+    DomainName domain;               //the domain of the instance
+    SimpleName service;              //the service this instance is supposed to run
+    PathElement instanceId;          //the instance id that’s unique within this provider
+    InstanceRefreshInformation info; //the refresh request
+    authenticate;                    //only TLS Certificate authentication is allowed
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError INTERNAL_SERVER_ERROR;
+    }
+}
+</code></pre></div>
+<h3 id="instance-revoke-request">Instance Revoke Request<a class="headerlink" href="#instance-revoke-request" title="Permanent link">&para;</a></h3>
+<hr />
+<div class="highlight"><pre><span></span><code>resource InstanceIdentity DELETE &quot;/instance/{provider}/{domain}/{service}/{instanceId}&quot; {
+    ServiceName provider;   //the provider service name (i.e. &quot;aws.us-west-2&quot;)
+    DomainName domain;      //the domain of the instance
+    SimpleName service;     //the service this instance is supposed to run
+    PathElement instanceId; //the instance id that’s unique within this provider
+    authorize(“delete”, {domain}:instance.{instanceId}; 
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError INTERNAL_SERVER_ERROR;
+    }
+}
+</code></pre></div>
+<h2 id="instance-provider-rdl">Instance Provider RDL<a class="headerlink" href="#instance-provider-rdl" title="Permanent link">&para;</a></h2>
+<hr />
+<p>This is the RDL that any provider that is authorized to create instances through Athenz must implement. This interface must be available over HTTPS only.</p>
+<div class="highlight"><pre><span></span><code>type InstanceConfirmation Struct {
+ServiceName provider;                         //the provider service name
+    DomainName domain;                        //the domain of the instance
+    SimpleName service;                       //the service this instance is supposed to run
+    String attestationData;                   //signed identity document containing attributes
+                                              //like IP address, instance-id, account#, signature, etc.
+    Map&lt;String,String&gt; attributes (optional); //additional non-signed attributes that assist
+                                              //in attestation. I.e. &quot;instanceId”, keyId&quot;, &quot;accessKey&quot;, etc
+}
+</code></pre></div>
+<p>Confirm instance identity information and return appropriate response to ZTS Server. On return from the confirmation, the resulting InstanceConfirmation may have additional useful attributes added, for example attributes taken from the identity document like "account" number or a canonical value like "network" that gets identified differently with different providers.</p>
+<div class="highlight"><pre><span></span><code>resource InstanceConfirmation POST &quot;/instance&quot; {
+    InstanceConfirmation confirmation;
+    authenticate;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+resource InstanceConfirmation POST &quot;/refresh&quot; (name=PostRefreshConfirmation) {
+    InstanceConfirmation confirmation;
+    Authenticate;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}
+</code></pre></div>
+<h2 id="authorization-policies">Authorization Policies<a class="headerlink" href="#authorization-policies" title="Permanent link">&para;</a></h2>
+<hr />
+<h3 id="system-providers">System Providers<a class="headerlink" href="#system-providers" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Athenz will maintain list of authorized provider services in sys.auth domain. If necessary, we can configure specific policies to grant additional users access over the roles/policies used to configure the list of provider.</p>
+<div class="highlight"><pre><span></span><code>Domain: sys.auth
+Role: providers
+    Members: &lt;provider-name(s)&gt; (e.g. openstack.cluster1)
+Policy: providers
+Assertion: grant launch to providers on sys.auth:instance
+</code></pre></div>
+<h3 id="provider-authorized-dns-suffix">Provider Authorized DNS Suffix<a class="headerlink" href="#provider-authorized-dns-suffix" title="Permanent link">&para;</a></h3>
+<hr />
+<p>When generating a CSR to request a TLS certificate for a service, the sia agent must know what DNS Suffix is the provider authorized to use so it can include the dnsName attribute in the CSR in the expected form (e.g. <code>&lt;service&gt;.&lt;domain-with-dashes&gt;.&lt;provider-dns-suffix&gt;</code>). ZTS must validate that the provider is authorized to launch a service with that DNS suffix. For now, this information will be authorized against a policy in special sys.auth domain.</p>
+<div class="highlight"><pre><span></span><code>Domain: sys.auth
+Role: provider.&lt;provider-name&gt; (e.g. provider.openstack.cluster1)
+    Members: &lt;provider-name(s)&gt; (e.g. openstack.cluster1)
+Policy: provider.&lt;provider-name&gt;
+    Assertion: grant launch to provider.&lt;provider-name&gt; on sys.auth:dns.&lt;provider-suffix&gt;
+</code></pre></div>
+<h3 id="service-authorized-providers">Service Authorized Providers<a class="headerlink" href="#service-authorized-providers" title="Permanent link">&para;</a></h3>
+<hr />
+<p>Each service will have a role/policy in their own domain that they control whether or not authorize specific providers to launch their services. For example, service weather.api wants to authorize AWS services to launch its services:</p>
+<div class="highlight"><pre><span></span><code>Domain: weather.api
+Role: api_providers
+    Members: athenz.aws
+Policy: api_providers
+    Assertion: grant launch to “api_providers” on “weather:service.api”
+</code></pre></div>
+<h2 id="sample-implementation-and-setup-tasks">Sample Implementation and Setup Tasks<a class="headerlink" href="#sample-implementation-and-setup-tasks" title="Permanent link">&para;</a></h2>
+<hr />
+<h3 id="athenz-system-setup">Athenz System Setup<a class="headerlink" href="#athenz-system-setup" title="Permanent link">&para;</a></h3>
+<hr />
+<ul>
+<li>Create the provider’s role:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>$ zms-cli -d sys.auth add-group-role providers
+</code></pre></div>
+<ul>
+<li>Create the provider’s policy:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>$ zms-cli -d sys.auth add-policy providers grant launch to providers on instance
+</code></pre></div>
+<h3 id="provider-service-implementation-and-registration">Provider Service Implementation and Registration<a class="headerlink" href="#provider-service-implementation-and-registration" title="Permanent link">&para;</a></h3>
+<hr />
+<ul>
+<li>Implement provider service that implements Instance Provider RDL.</li>
+<li>
+<p>Register the provider service in Athenz in the provider’s domain. For example, we’ll be registering a provider service called openstack.cluster1.</p>
+</li>
+<li>
+<p>Generate private/public key pair for the service.</p>
+</li>
+</ul>
+<div class="highlight"><pre><span></span><code>$ openssl genrsa -out service_private.key 2048
+$ openssl rsa -in service_private.key -pubout &gt; service_public.key
+</code></pre></div>
+<ul>
+<li>Create the service identity in Athenz with public key id: v0</li>
+</ul>
+<div class="highlight"><pre><span></span><code>$ zms-cli -d openstack add-service cluster1 v0 ./service_public.key
+</code></pre></div>
+<ul>
+<li>Determine the https endpoint for your service that ZTS will contact to verify instance information. For example, <a href="https://provider-cluster1.openstack.athenz.com:4443/hostsigner/v1">https://provider-cluster1.openstack.athenz.com:4443/hostsigner/v1</a> and set the endpoint for the service:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>$ zms-cli -d openstack set-service-endpoint cluster1 https://provider-cluster1.openstack.athenz.com:4443/hostsigner/v1
+</code></pre></div>
+<ul>
+<li>Obtain a TLS certificate from ZTS Server for the service to run with. If your service is Jetty based, then the private key and certificate must be added to a keystore using the openssl utility. The certificate is valid for 30 days, so you must setup a cron job that periodically retrieves an updated certificates and your service is refreshed to use to the new certificate.</li>
+</ul>
+<div class="highlight"><pre><span></span><code>$ zts-svccert -domain openstack -service cluster1 -private-key ./service_private.key -key-version v0 -zts https://&lt;zts-hostname&gt;:4443/zts/v1 -dns-domain athenz.com
+</code></pre></div>
+<ul>
+<li>Determine the dns suffix for your provider service and submit a request to the Athenz system administrators to register the provider service with its dns suffix as an authorized provider service in Athenz</li>
+</ul>
+<h3 id="athenz-authorized-provider-registration">Athenz Authorized Provider Registration<a class="headerlink" href="#athenz-authorized-provider-registration" title="Permanent link">&para;</a></h3>
+<hr />
+<ul>
+<li>Verify the dns suffix requested for the provider and, if valid, register the service in Athenz</li>
+<li>Add the service to the providers role:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>$ zms-cli -d sys.auth add-member providers openstack.cluster1
+</code></pre></div>
+<ul>
+<li>Register the dns suffix for the provider service. For example, cluster1.ostk.athenz.cloud</li>
+</ul>
+<div class="highlight"><pre><span></span><code>$ zms-cli -d sys.auth add-group-role provider.openstack.providers openstack.cluster1
+$ zms-cli -d sys.auth add-policy provider.openstack.providers grant launch to provider.openstack.providers on dns.cluster1.ostk.athenz.cloud
+</code></pre></div>
+<h3 id="tenant-service-registration">Tenant Service Registration<a class="headerlink" href="#tenant-service-registration" title="Permanent link">&para;</a></h3>
+<hr />
+<ul>
+<li>Authorize provider service to launch its instances. For example, weater domain wants to authorize its service api to be launched by openstack.cluster1 provider.</li>
+</ul>
+<div class="highlight"><pre><span></span><code>$ zms-cli -d weather add-group-role openstack_providers openstack.cluster1
+$ zms-cli -d weather add-policy openstack_providers grant launch to openstack_providers on weather:service.api
+</code></pre></div>
+<h3 id="provider-client-implementation">Provider Client Implementation<a class="headerlink" href="#provider-client-implementation" title="Permanent link">&para;</a></h3>
+<hr />
+<ul>
+<li>Provider must implement a client that will communicate with ZTS and execute Instance Register and Instance Refresh requests.</li>
+<li>When bootstrapping the the tenant instance, the Provider service must pass to the client the following details:</li>
+<li>the provider service name (e.g. openstack.cluster1)</li>
+<li>its dns suffix (e.g. cluster1.ostk.athenz.cloud)</li>
+<li>signed instance identity document</li>
+<li>The client will generate a CSR based on the details it received from its provider service, include the CSR in the InstanceRegisterInformation object and post it to ZTS.</li>
+<li>The client will be responsible for storing the certificate used from ZTS on the local host and use it for its subsequent requests to ZTS to refresh the certificate.</li>
+</ul>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="cert_signer.html" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Certificate Signer
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="zms_client.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                ZMS Client Utility
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="assets/javascripts/vendor.77e55a48.min.js"></script>
+      <script src="assets/javascripts/bundle.9554a270.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      
+      <script>
+        app = initialize({
+          base: ".",
+          features: [],
+          search: Object.assign({
+            worker: "assets/javascripts/worker/search.4ac00218.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>

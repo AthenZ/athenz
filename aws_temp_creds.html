@@ -1,0 +1,2130 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Athenz User Guide">
+      
+      
+      
+      <link rel="shortcut icon" href="images/favicon.ico">
+      <meta name="generator" content="mkdocs-1.2, mkdocs-material-6.0.2">
+    
+    
+      
+        <title>AWS Temp Credentials - Athenz</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.38780c08.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.3f72e892.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+      
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#connection-details" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="." title="Athenz" class="md-header-nav__button md-logo" aria-label="Athenz">
+      
+  <img src="images/athenz-icon.png" alt="logo">
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Athenz
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              AWS Temp Credentials
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/AthenZ/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="Athenz" class="md-nav__button md-logo" aria-label="Athenz">
+      
+  <img src="images/athenz-icon.png" alt="logo">
+
+    </a>
+    Athenz
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/AthenZ/athenz/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
+    
+    <label class="md-nav__link" for="nav-1">
+      Getting Started
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <label class="md-nav__title" for="nav-1">
+        <span class="md-nav__icon md-icon"></span>
+        Getting Started
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="index.html" class="md-nav__link">
+      About
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="dev_environment.html" class="md-nav__link">
+      Development Environment
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3">
+    
+    <label class="md-nav__link" for="nav-1-3">
+      Local/Development Environment Setup
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Local/Development Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-3">
+        <span class="md-nav__icon md-icon"></span>
+        Local/Development Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zms.html" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zts.html" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_ui.html" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4">
+    
+    <label class="md-nav__link" for="nav-1-4">
+      Production Environment Setup
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Production Environment Setup" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-4">
+        <span class="md-nav__icon md-icon"></span>
+        Production Environment Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zms_prod.html" class="md-nav__link">
+      ZMS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zts_prod.html" class="md-nav__link">
+      ZTS Server
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_ui_prod.html" class="md-nav__link">
+      UI Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-5" type="checkbox" id="nav-1-5">
+    
+    <label class="md-nav__link" for="nav-1-5">
+      Service Identity Registration
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Service Identity Registration" data-md-level="2">
+      <label class="md-nav__title" for="nav-1-5">
+        <span class="md-nav__icon md-icon"></span>
+        Service Identity Registration
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials.html" class="md-nav__link">
+      Using X.509 Certificates
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="reg_service_guide.html" class="md-nav__link">
+      Using Public/Private Key Pairs
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Management
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Management" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon"></span>
+        Management
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="role_delegation.html" class="md-nav__link">
+      Role Delegation
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="token_expiration.html" class="md-nav__link">
+      Access token Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="role_cert_expiration.html" class="md-nav__link">
+      Role Certificate Limit Expiry Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="review_enabled_roles.html" class="md-nav__link">
+      Review Enabled Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="email_notifications.html" class="md-nav__link">
+      Email Notifications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="events_monitoring.html" class="md-nav__link">
+      Events Monitoring
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="member_expiration.html" class="md-nav__link">
+      Role Member Auto Expiry and Notification Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="member_soft_expiration.html" class="md-nav__link">
+      Role Member Review Reminder Support
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="self_serve_roles.html" class="md-nav__link">
+      Self-Served Roles
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="athenz_templates.html" class="md-nav__link">
+      Athenz Templates
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="principal_groups.html" class="md-nav__link">
+      Principal Groups
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Authentication
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Authentication" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon"></span>
+        Authentication
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_authentication.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS EC2 instances
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws_ecs.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS ECS containers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws_fargate.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS Fargate tasks
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws_eks.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS EKS pods
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="service_x509_credentials_aws_lambda.html" class="md-nav__link">
+      Athenz Service Identity X.509 Certificate for AWS Lambda functions
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zts_access_token_guide.html" class="md-nav__link">
+      Obtaining OAuth2 Access Tokens from ZTS
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" checked>
+    
+    <label class="md-nav__link" for="nav-4">
+      AWS Setup
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="AWS Setup" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        <span class="md-nav__icon md-icon"></span>
+        AWS Setup
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        AWS Temp Credentials
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="aws_temp_creds.html" class="md-nav__link md-nav__link--active">
+      AWS Temp Credentials
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#connection-details" class="md-nav__link">
+    Connection Details
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#client-x509-certificate-requirements" class="md-nav__link">
+    Client X.509 Certificate Requirements
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aws-account-id-registration" class="md-nav__link">
+    AWS Account ID Registration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aws-configuration-setup" class="md-nav__link">
+    AWS Configuration Setup
+  </a>
+  
+    <nav class="md-nav" aria-label="AWS Configuration Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#expiration-period" class="md-nav__link">
+    Expiration Period
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#external-id-condition" class="md-nav__link">
+    External ID Condition
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#athenz-aws-assume-role-configuration-setup" class="md-nav__link">
+    Athenz AWS Assume Role Configuration Setup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#obtaining-aws-temporary-credentials" class="md-nav__link">
+    Obtaining AWS Temporary Credentials
+  </a>
+  
+    <nav class="md-nav" aria-label="Obtaining AWS Temporary Credentials">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rest-api" class="md-nav__link">
+    REST API
+  </a>
+  
+    <nav class="md-nav" aria-label="REST API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#expiration-period_1" class="md-nav__link">
+    Expiration Period
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#external-id-condition_1" class="md-nav__link">
+    External ID Condition
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#case-sensitivity" class="md-nav__link">
+    Case Sensitivity
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#java" class="md-nav__link">
+    Java
+  </a>
+  
+    <nav class="md-nav" aria-label="Java">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#expiration-period_2" class="md-nav__link">
+    Expiration Period
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#external-id-condition_2" class="md-nav__link">
+    External ID Condition
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#go" class="md-nav__link">
+    Go
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-aws-temporary-credentials" class="md-nav__link">
+    Using AWS Temporary Credentials
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    Troubleshooting
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#athenz-domain-configuration" class="md-nav__link">
+    Athenz Domain Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#athenz-role-configuration" class="md-nav__link">
+    Athenz Role Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-configuration" class="md-nav__link">
+    AWS Configuration
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="aws_athenz_setup.html" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Architecture
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Architecture" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        <span class="md-nav__icon md-icon"></span>
+        Architecture
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="data_model.html" class="md-nav__link">
+      Data Model
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="system_view.html" class="md-nav__link">
+      System View
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="auth_flow.html" class="md-nav__link">
+      Authorization Flow
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Features
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Features" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon"></span>
+        Features
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="copper_argos.html" class="md-nav__link">
+      Service Identity X.509 Certificates - Copper Argos
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="capabilities.html" class="md-nav__link">
+      Athenz Capabilities
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      Developer Guide
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Developer Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon"></span>
+        Developer Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="cent_authz_flow.html" class="md-nav__link">
+      Centralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="decent_authz_flow.html" class="md-nav__link">
+      Decentralized Authorization Flow
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="client_side_x509_credentials.html" class="md-nav__link">
+      Client Side Service Identity Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="server_side_x509_credentials.html" class="md-nav__link">
+      Server Side Service Identity Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="example_java_centralized_access.html" class="md-nav__link">
+      Java Client/Servlet Centralized Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="example_go_centralized_access.html" class="md-nav__link">
+      Go Client/Server Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="example_java_decentralized_access.html" class="md-nav__link">
+      Java Client/Servlet Decentralized Example
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="local_ui_development.html" class="md-nav__link">
+      Local UI development
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7-9" type="checkbox" id="nav-7-9">
+    
+    <label class="md-nav__link" for="nav-7-9">
+      API
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="API" data-md-level="2">
+      <label class="md-nav__title" for="nav-7-9">
+        <span class="md-nav__icon md-icon"></span>
+        API
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="api/index.html?server=zms" class="md-nav__link">
+      ZMS
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="api/index.html?server=zts" class="md-nav__link">
+      ZTS
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      Customizing Athenz
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Customizing Athenz" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        <span class="md-nav__icon md-icon"></span>
+        Customizing Athenz
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="principal_authentication.html" class="md-nav__link">
+      Principal Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="private_key_store.html" class="md-nav__link">
+      Private Key Store
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="cert_signer.html" class="md-nav__link">
+      Certificate Signer
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="copper_argos_dev.html" class="md-nav__link">
+      Service Identity X.509 Certificate Support Requirements - Copper Argos
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+    
+    <label class="md-nav__link" for="nav-9">
+      User Guide
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+      <label class="md-nav__title" for="nav-9">
+        <span class="md-nav__icon md-icon"></span>
+        User Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zms_client.html" class="md-nav__link">
+      ZMS Client Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="setup_zpu.html" class="md-nav__link">
+      ZPU Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zts_rolecert.html" class="md-nav__link">
+      ZTS Role Certificate Client Utility
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zts_accesstoken.html" class="md-nav__link">
+      ZTS OAuth2 Access Token Client
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="reg_service_guide.html" class="md-nav__link">
+      Registering ZMS Service Identity
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="local_athenz_on_docker.html" class="md-nav__link">
+      Using Athenz on local docker
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="how_to_sample_identity_from_local_athenz.html" class="md-nav__link">
+      Quick Guide to obtain identity cert using local docker
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="how_to_sample_identity_from_local_athenz_ec2.html" class="md-nav__link">
+      Quick Guide to obtain identity cert using local docker on EC2
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+    
+    <label class="md-nav__link" for="nav-10">
+      References
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="References" data-md-level="1">
+      <label class="md-nav__title" for="nav-10">
+        <span class="md-nav__icon md-icon"></span>
+        References
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zms_api.html" class="md-nav__link">
+      ZMS REST API
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="zts_api.html" class="md-nav__link">
+      ZTS REST API
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#connection-details" class="md-nav__link">
+    Connection Details
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#client-x509-certificate-requirements" class="md-nav__link">
+    Client X.509 Certificate Requirements
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aws-account-id-registration" class="md-nav__link">
+    AWS Account ID Registration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aws-configuration-setup" class="md-nav__link">
+    AWS Configuration Setup
+  </a>
+  
+    <nav class="md-nav" aria-label="AWS Configuration Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#expiration-period" class="md-nav__link">
+    Expiration Period
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#external-id-condition" class="md-nav__link">
+    External ID Condition
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#athenz-aws-assume-role-configuration-setup" class="md-nav__link">
+    Athenz AWS Assume Role Configuration Setup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#obtaining-aws-temporary-credentials" class="md-nav__link">
+    Obtaining AWS Temporary Credentials
+  </a>
+  
+    <nav class="md-nav" aria-label="Obtaining AWS Temporary Credentials">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rest-api" class="md-nav__link">
+    REST API
+  </a>
+  
+    <nav class="md-nav" aria-label="REST API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#expiration-period_1" class="md-nav__link">
+    Expiration Period
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#external-id-condition_1" class="md-nav__link">
+    External ID Condition
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#case-sensitivity" class="md-nav__link">
+    Case Sensitivity
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#java" class="md-nav__link">
+    Java
+  </a>
+  
+    <nav class="md-nav" aria-label="Java">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#expiration-period_2" class="md-nav__link">
+    Expiration Period
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#external-id-condition_2" class="md-nav__link">
+    External ID Condition
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#go" class="md-nav__link">
+    Go
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-aws-temporary-credentials" class="md-nav__link">
+    Using AWS Temporary Credentials
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    Troubleshooting
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#athenz-domain-configuration" class="md-nav__link">
+    Athenz Domain Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#athenz-role-configuration" class="md-nav__link">
+    Athenz Role Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-configuration" class="md-nav__link">
+    AWS Configuration
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/aws_temp_creds.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  <h1>AWS Temp Credentials</h1>
+                
+                <p>This feature allows any service to obtain temporary session credentials
+for a role defined in AWS IAM to carry out operations against AWS Services.
+For example, your service might need to access its own S3 bucket to
+push some data to AWS. Instead of using an IAM user's credentials to
+access that S3 bucket, the administrator will define a role providing
+access to that S3 bucket and then configure their service to retrieve
+temporary session credentials for that role through ZTS Server.</p>
+<h2 id="connection-details">Connection Details<a class="headerlink" href="#connection-details" title="Permanent link">&para;</a></h2>
+<p>To obtain temporary credentials, the client must contact ZTS Server
+running in AWS.</p>
+<h2 id="client-x509-certificate-requirements">Client X.509 Certificate Requirements<a class="headerlink" href="#client-x509-certificate-requirements" title="Permanent link">&para;</a></h2>
+<p>To contact ZTS running in AWS to obtain temporary credentials, the client
+service must authenticate itself using Athenz issued client X.509 certificates.
+The steps are different depending on where your client service is running.</p>
+<p>Follow <a href="service_x509_credentials.html">these steps</a> to obtain a service x.509
+certificate for your client service.</p>
+<h2 id="aws-account-id-registration">AWS Account ID Registration<a class="headerlink" href="#aws-account-id-registration" title="Permanent link">&para;</a></h2>
+<p>To register an AWS Account with a domain, run the following command:
+<div class="highlight"><pre><span></span><code>zms-cli -d &lt;domain-name&gt; set-aws-account &lt;aws-account-id&gt;
+</code></pre></div></p>
+<h2 id="aws-configuration-setup">AWS Configuration Setup<a class="headerlink" href="#aws-configuration-setup" title="Permanent link">&para;</a></h2>
+<p>To obtain temporary credentials for a given role through ZTS Server, the
+administrator must follow through these steps:</p>
+<p>1. You must already have a role created in AWS IAM that you would like
+to obtain temporary credentials for.</p>
+<p>2. In AWS, setup a trust relationship for your role such that ZTS can
+assume that role. On the IAM Roles page, choose the role that you want
+to modify and click on the Trust Relationships tab. Click on the Edit
+Trust Relationship button and append the following section to the
+current document's Statement element (don't forget to make sure to
+convert the Statement element into an array and add necessary commas):</p>
+<div class="highlight"><pre><span></span><code>    {
+        &quot;Effect&quot;: &quot;Allow&quot;,
+        &quot;Principal&quot;: {
+            &quot;AWS&quot;: &quot;arn:aws:iam::&lt;account-id&gt;:role/athenz-zts-service&quot;
+        },
+        &quot;Action&quot;: &quot;sts:AssumeRole&quot;
+    }
+</code></pre></div>
+<p>If configured correctly, the Trust Relationships tab should show
+athenz-zts-service as one of entries in the Trusted Entities table.</p>
+<p><img alt="AWS IAM Role Trust Relationship Setup" src="images/aws_trust_setup.png" /></p>
+<h3 id="expiration-period">Expiration Period<a class="headerlink" href="#expiration-period" title="Permanent link">&para;</a></h3>
+<p>AWS announced that they have extended the federated api access to AWS resources
+from the default 1 hour to up to <a href="https://aws.amazon.com/blogs/security/enable-federated-api-access-to-your-aws-resources-for-up-to-12-hours-using-iam-roles/">12 hours</a>. To change the expiration
+period for a role, click on the <code>Edit</code> link in the role configuration
+screen in IAM and choose either one of the predefined duration or specify
+a custom one.</p>
+<p><img alt="AWS IAM Role Duration" src="images/aws_trust_setup_duration.png" /></p>
+<p>Once the role is configured with a longer duration period.
+use the ZTS client api as described in the <a href="#obtaining-aws-temporary-credentials">Obtaining AWS Temporary Credentials</a>
+section to specify the requested duration for the temporary credentials.</p>
+<h3 id="external-id-condition">External ID Condition<a class="headerlink" href="#external-id-condition" title="Permanent link">&para;</a></h3>
+<p>By including an external id condition in the AssumeRole policy,
+the account administrator secures its roles to be accessed by
+unauthorized principals in case ZTS has been compromised since
+AWS STS will reject any assume role requests unless the external
+id is specified as part of the request.</p>
+<p>Once an external id has been chosen, the AssumeRole policy configured
+for the role can be updated to include the external id condition. For
+example, to configure an external id <code>hockey</code> for our role we'll
+have the following policy:</p>
+<div class="highlight"><pre><span></span><code>    {
+        &quot;Effect&quot;: &quot;Allow&quot;,
+        &quot;Principal&quot;: {
+            &quot;AWS&quot;: &quot;arn:aws:iam::&lt;account-id&gt;:role/athenz-zts-service&quot;
+        },
+        &quot;Action&quot;: &quot;sts:AssumeRole&quot;,
+        &quot;Condition&quot;: {
+        &quot;StringEquals&quot;: {
+          &quot;sts:ExternalId&quot;: &quot;hockey&quot;
+        }
+      }
+    }
+</code></pre></div>
+<p>If configured correctly, the Trust Relationships tab should show
+athenz-zts-service as one of entries in the Trusted Entities table
+with a condition field specified.</p>
+<p><img alt="AWS IAM Role Trust External ID Setup" src="images/aws_trust_setup_external_id.png" /></p>
+<p>Once the role is configured with an external id condition,
+use the ZTS client api as described in the <a href="#obtaining-aws-temporary-credentials">Obtaining AWS Temporary Credentials</a>
+section to specify the external id for the temporary credentials.</p>
+<p>The external ID must be kept securely. Your application
+will need to fetch the external id and then use it
+in the API call to fetch AWS temporary credentials.</p>
+<h2 id="athenz-aws-assume-role-configuration-setup">Athenz AWS Assume Role Configuration Setup<a class="headerlink" href="#athenz-aws-assume-role-configuration-setup" title="Permanent link">&para;</a></h2>
+<p>1. In ZMS, create a role in your domain with any service identities
+that may request temporary credentials for the AWS role. Go to
+Athenz UI, choose your Athenz domain and
+click on the <code>Add Role</code> link in the top left corner.</p>
+<p><img alt="Athenz Role Setup" src="images/aws_athenz_role_create.png" /></p>
+<p>2. In ZMS, create a policy authorizing your Athenz role members to
+assume the AWS role. When creating the policy the action must be
+<code>assume_aws_role</code>, choose the role as created in the previous step
+and specify the IAM role name as the resource.</p>
+<p><img alt="Athenz Policy Setup" src="images/aws_athenz_policy_create.png" /></p>
+<p>3. Make sure your role contains all the service identities that
+may request temporary credentials for this role.</p>
+<p>4. The changes will propagate from ZMS to ZTS running within AWS within
+2 minutes, and then you can use the ZTS Client library or its REST API to
+request temporary credentials.</p>
+<h2 id="obtaining-aws-temporary-credentials">Obtaining AWS Temporary Credentials<a class="headerlink" href="#obtaining-aws-temporary-credentials" title="Permanent link">&para;</a></h2>
+<p>We're going to look at how to obtain AWS Temporary Credentials with the
+use of the ZTS Client Library in Java and directly with ZTS
+Server's REST API.</p>
+<p>By default the AWS Temporary Credentials returned are valid only for 1 hour.
+If configured, it can be extended upto 12 hours - see <a href="#expiration-period">Expiration period</a>
+section for full details. The client must refresh the credentials before they expire.</p>
+<h3 id="rest-api">REST API<a class="headerlink" href="#rest-api" title="Permanent link">&para;</a></h3>
+<p>To obtain a AWS Temporary Credentials, the application would use the
+following endpoint from ZTS Server running in AWS:</p>
+<div class="highlight"><pre><span></span><code>    GET /zts/v1/domain/{domainName}/role/{awsRoleName}/creds?durationSeconds={durationSeconds}&amp;externalId={externalId}
+    durationSeconds and externalId query arguments are optional.
+</code></pre></div>
+<p>For example, with our setup as described above, <code>sherpa.api</code> is our
+service identity and we have retrieved the X.509 certificate for this
+service. The file locations are as follows:</p>
+<div class="highlight"><pre><span></span><code>    private-key: /var/lib/sia/keys/sherpa.api.key.pem
+    certificate: /var/lib/sia/certs/sherpa.api.cert.pem
+</code></pre></div>
+<p>The following request would retrieve AWS temporary session credentials for the
+<code>sherpa.property</code> domain's aws <strong>IAM role</strong> <code>s3-uploader</code>:</p>
+<div class="highlight"><pre><span></span><code>    curl --key /var/lib/sia/keys/sherpa.api.key.pem --cert /var/lib/sia/certs/sherpa.api.cert.pem https://your.zts/zts/v1/domain/sherpa.property/role/s3-uploader/creds
+</code></pre></div>
+<p>Note that the <code>awsRoleName</code> URL parameter is the name of the <strong>IAM role</strong> you want to assume,
+not the Athenz role created in ZMS.</p>
+<h4 id="expiration-period_1">Expiration Period<a class="headerlink" href="#expiration-period_1" title="Permanent link">&para;</a></h4>
+<p>The following request would retrieve AWS temporary session credentials for the
+<code>sherpa.property</code> domain's aws iam role <code>s3-uploader</code> with duration set to 6
+hours (6 * 60 * 60 = 21600 seconds):</p>
+<div class="highlight"><pre><span></span><code>    curl --key /var/lib/sia/keys/sherpa.api.key.pem --cert /var/lib/sia/certs/sherpa.api.cert.pem https://your.zts/zts/v1/domain/sherpa.property/role/s3-uploader/creds?durationSeconds=21600
+</code></pre></div>
+<h4 id="external-id-condition_1">External ID Condition<a class="headerlink" href="#external-id-condition_1" title="Permanent link">&para;</a></h4>
+<p>If we had configured our AssumeRole policy for the <code>s3-uploader</code> role with an external id of <code>hockey</code>
+then our request would be:</p>
+<div class="highlight"><pre><span></span><code>    curl --key /var/lib/sia/keys/sherpa.api.key.pem --cert /var/lib/sia/certs/sherpa.api.cert.pem https://your.zts/zts/v1/domain/sherpa.property/role/s3-uploader/creds?externalId=hockey
+</code></pre></div>
+<h4 id="case-sensitivity">Case Sensitivity<a class="headerlink" href="#case-sensitivity" title="Permanent link">&para;</a></h4>
+<p>While object names (e.g. in your <code>assume_aws_role</code> policy statement) in Athenz are all normalized to lower case, <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_roles.html#troubleshoot_roles_cant-assume-role">role
+names in IAM are case sensitive</a>.
+When calling ZTS to fetch temporary credentials using AssumeRole, the <code>awsRoleName</code> parameter must match exactly
+(including case) the role name configured in IAM or the request will be denied.</p>
+<h3 id="java">Java<a class="headerlink" href="#java" title="Permanent link">&para;</a></h3>
+<p>First you need to update your Java project <code>pom.xml</code> file to indicate
+the dependency on the Athenz cert refresher and zts java client libraries. Checkout the
+<a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-cert-refresher">Maven Central Athenz Cert Refresher Package</a>
+and <a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-zts-java-client/">Maven Central ZTS Java Client Package</a>
+pages to make sure you're using the latest release version:</p>
+<div class="highlight"><pre><span></span><code>  <span class="nt">&lt;dependencies&gt;</span>
+    <span class="nt">&lt;dependency&gt;</span>
+      <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
+      <span class="nt">&lt;artifactId&gt;</span>athenz-zts-java-client<span class="nt">&lt;/artifactId&gt;</span>
+      <span class="nt">&lt;version&gt;</span>VERSION-NUMBER<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;/dependency&gt;</span>
+    <span class="nt">&lt;dependency&gt;</span>
+      <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
+      <span class="nt">&lt;artifactId&gt;</span>athenz-cert-refresher<span class="nt">&lt;/artifactId&gt;</span>
+      <span class="nt">&lt;version&gt;</span>VERSION-NUMBER<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;/dependency&gt;</span>
+  <span class="nt">&lt;/dependencies&gt;</span>
+</code></pre></div>
+<p>To obtain a AWS Temporary Credentials Provider, the application would use the
+following constructor:</p>
+<div class="highlight"><pre><span></span><code><span class="cm">/**</span>
+<span class="cm"> * Constructs a new AWSCredentialsProvider object with the given SSLContext object,</span>
+<span class="cm"> * ZTS Server Url, Athenz domain name and AWS Role Name to retrieve temporary</span>
+<span class="cm"> * credentials for. The constructor will automatically create and use the ZTS</span>
+<span class="cm"> * client object for retrieving credentials. This object must be closed so</span>
+<span class="cm"> * the ZTS client object is closed as well.</span>
+<span class="cm"> * @param ztsUrl ZTS Server&#39;s URL</span>
+<span class="cm"> * @param sslContext SSLContext that includes service&#39;s private key and x.509 certificate</span>
+<span class="cm"> * for authenticating requests</span>
+<span class="cm"> * @param domainName name of the Athenz domain</span>
+<span class="cm"> * @param roleName is the name of the IAM role</span>
+<span class="cm"> * @param minExpiryTime (optional) specifies that the returned creds must be</span>
+<span class="cm"> *          at least valid (min/lower bound) for specified number of seconds</span>
+<span class="cm"> * @param maxExpiryTime (optional) specifies that the returned creds must be</span>
+<span class="cm"> *          at most valid (max/upper bound) for specified number of seconds.</span>
+<span class="cm"> * @param externalId (optional) external id to satisfy configured assume role condition</span>
+<span class="cm"> */</span>
+<span class="kd">public</span> <span class="nf">AWSCredentialsProviderImpl</span><span class="p">(</span><span class="n">String</span> <span class="n">ztsUrl</span><span class="p">,</span> <span class="n">SSLContext</span> <span class="n">sslContext</span><span class="p">,</span>
+        <span class="n">String</span> <span class="n">domainName</span><span class="p">,</span> <span class="n">String</span> <span class="n">roleName</span><span class="p">,</span> <span class="n">String</span> <span class="n">externalId</span><span class="p">,</span>
+        <span class="n">Integer</span> <span class="n">minExpiryTime</span><span class="p">,</span> <span class="n">Integer</span> <span class="n">maxExpiryTime</span><span class="p">)</span>
+</code></pre></div>
+<p>For example, with our setup as described above, <code>sherpa.api</code> is our
+service identity and we have retrieved the X.509 certificate for this
+service. The file location are as follows:</p>
+<div class="highlight"><pre><span></span><code>    private-key: /var/lib/sia/keys/sherpa.api.key.pem
+    certificate: /var/lib/sia/certs/sherpa.api.cert.pem
+</code></pre></div>
+<p>The ZTS server is running with a public X.509 certificate so
+we're going to use the standard jdk truststore for our connection
+which has a default password of <code>changeit</code>.</p>
+<p>The following request would retrieve AWS temporary session credentials for the
+<code>sherpa.property</code> domain's aws iam role <code>s3-uploader</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.oath.auth.Utils</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">com.yahoo.athenz.zts.AWSCredentialsProviderImpl</span><span class="p">;</span>
+
+<span class="kd">final</span> <span class="n">String</span> <span class="n">ztsUrl</span> <span class="o">=</span> <span class="s">&quot;https://your.zts/zts/v1&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">keyPath</span> <span class="o">=</span> <span class="s">&quot;/var/lib/sia/keys/sherpa.api.key.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">certPath</span> <span class="o">=</span> <span class="s">&quot;/var/lib/sia/certs/sherpa.api.cert.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">trustStorePath</span> <span class="o">=</span> <span class="n">javaHome</span> <span class="o">+</span> <span class="s">&quot;/jre/lib/security/cacerts&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">String</span> <span class="n">trustStorePassword</span> <span class="o">=</span> <span class="s">&quot;changeit&quot;</span><span class="p">;</span>
+
+<span class="k">try</span> <span class="p">{</span>
+    <span class="c1">// Create our SSL Context object based on our private key and</span>
+    <span class="c1">// certificate and jdk truststore</span>
+
+    <span class="n">KeyRefresher</span> <span class="n">keyRefresher</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span> <span class="n">trustStorePassword</span><span class="p">,</span>
+        <span class="n">certPath</span><span class="p">,</span> <span class="n">keyPath</span><span class="p">);</span>
+    <span class="c1">// Default refresh period is every hour.</span>
+    <span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span>
+    <span class="c1">// Can be adjusted to use other values in milliseconds.</span>
+    <span class="c1">// keyRefresher.startup(900000);</span>
+    <span class="n">SSLContext</span> <span class="n">sslContext</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span>
+        <span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span>
+
+    <span class="c1">// obtain temporary credential provider for our domain and role</span>
+    <span class="c1">// without external id and default period of 1 hour</span>
+
+    <span class="n">AWSCredentialsProviderImpl</span> <span class="n">awsCredProvider</span> <span class="o">=</span> <span class="k">new</span> <span class="n">AWSCredentialsProviderImpl</span><span class="p">(</span><span class="n">ztsUrl</span><span class="p">,</span>
+        <span class="n">sslContext</span><span class="p">,</span> <span class="s">&quot;sherpa.property&quot;</span><span class="p">,</span> <span class="s">&quot;s3-uploader&quot;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
+
+    <span class="c1">// retrieve and display aws temporary creds. Typically you just pass</span>
+    <span class="c1">// the AWSCredentialsProvider object to any AWS api that requires it.</span>
+    <span class="c1">// for example, when creating an AWS S3 client</span>
+    <span class="c1">//      AmazonS3 s3client = AmazonS3ClientBuilder.standard()</span>
+    <span class="c1">//          .withCredentials(awsCredProvider)</span>
+    <span class="c1">//          .withRegion(getRegion())</span>
+    <span class="c1">//          .build();</span>
+
+    <span class="k">try</span> <span class="p">{</span>
+        <span class="n">AWSCredentials</span> <span class="n">awsCreds</span> <span class="o">=</span> <span class="n">awsCredProvider</span><span class="p">.</span><span class="na">getCredentials</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">awsCreds</span> <span class="o">==</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Error: AWS Credentials are not available&quot;</span><span class="p">);</span>
+            <span class="c1">// handle failure</span>
+        <span class="p">}</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;AWS Temporary Credentials:\n&quot;</span><span class="p">);</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;\tAccess Key Id : &quot;</span> <span class="o">+</span> <span class="n">awsCreds</span><span class="p">.</span><span class="na">getAWSAccessKeyId</span><span class="p">());</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;\tSecret Key    : &quot;</span> <span class="o">+</span> <span class="n">awsCreds</span><span class="p">.</span><span class="na">getAWSSecretKey</span><span class="p">());</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">ZTSClientException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Unable to retrieve AWS credentials: &quot;</span> <span class="o">+</span> <span class="n">ex</span><span class="p">.</span><span class="na">getMessage</span><span class="p">());</span>
+        <span class="c1">// handle failure</span>
+    <span class="p">}</span>
+
+    <span class="c1">// once we&#39;re done with our api and we no longer need our</span>
+    <span class="c1">// provider we need to make sure to close it</span>
+
+    <span class="n">awsCredProvider</span><span class="p">.</span><span class="na">close</span><span class="p">();</span>
+
+<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// handle failure</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>** Important **</p>
+<p>During the shutdown of the application, <code>ZTSClient.cancelPrefetch()</code>
+must be called to stop the timer thread that automatically fetches
+and refreshes any cached tokens in the ZTS Client.</p>
+<h4 id="expiration-period_2">Expiration Period<a class="headerlink" href="#expiration-period_2" title="Permanent link">&para;</a></h4>
+<p>The following request would retrieve AWS temporary session credentials for the
+<code>sherpa.property</code> domain's aws iam role <code>s3-uploader</code> with duration set to 6
+hours (6 * 60 * 60 = 21600 seconds) and a minimum timeout of 15 minutes. This
+indicates that the client will cache the token for 5 hours and 45 minutes.</p>
+<div class="highlight"><pre><span></span><code>    <span class="c1">// obtain temporary credential provider for our domain and role</span>
+    <span class="n">AWSCredentialsProviderImpl</span> <span class="n">awsCredProvider</span> <span class="o">=</span> <span class="k">new</span> <span class="n">AWSCredentialsProviderImpl</span><span class="p">(</span><span class="n">ztsUrl</span><span class="p">,</span>
+        <span class="n">sslContext</span><span class="p">,</span> <span class="s">&quot;sherpa.property&quot;</span><span class="p">,</span> <span class="s">&quot;s3-uploader&quot;</span><span class="p">,</span> <span class="mi">900</span><span class="p">,</span> <span class="mi">21600</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
+</code></pre></div>
+<h4 id="external-id-condition_2">External ID Condition<a class="headerlink" href="#external-id-condition_2" title="Permanent link">&para;</a></h4>
+<p>If we had configured our AssumeRole policy for the <code>s3-uploader</code> role with an external id of <code>hockey</code>
+then our request would be:</p>
+<div class="highlight"><pre><span></span><code>    // obtain temporary credential provider for our domain and role
+
+    externalId = retrieveExternalIDFromYkeykey(); // would return &quot;hockey&quot;
+    AWSCredentialsProviderImpl awsCredProvider = new AWSCredentialsProviderImpl(ztsUrl,
+        sslContext, &quot;sherpa.property&quot;, &quot;s3-uploader&quot;, null, null, externalId);
+</code></pre></div>
+<h3 id="go">Go<a class="headerlink" href="#go" title="Permanent link">&para;</a></h3>
+<p>To obtain a AWS Temporary Credentials, the application would use the
+Athenz ZTS Go Client.</p>
+<p>For example, with our setup as described above, <code>sherpa.api</code> is our
+service identity and we have retrieved the X.509 certificate for this
+service. The file location are as follows:</p>
+<div class="highlight"><pre><span></span><code>    private-key: /var/lib/sia/keys/sherpa.api.key.pem
+    certificate: /var/lib/sia/certs/sherpa.api.cert.pem
+</code></pre></div>
+<p>First you need to update your Go project to indicate
+the dependency on the Athenz zts go client libraries:</p>
+<div class="highlight"><pre><span></span><code>import (
+    &quot;github.com/AthenZ/athenz/clients/go/zts&quot;
+    &quot;github.com/AthenZ/athenz/libs/go/athenzutils&quot;
+)
+</code></pre></div>
+<p>The ZTS server is running with a public X.509 certificate so
+we're not going to specify CA certificates for our request:</p>
+<div class="highlight"><pre><span></span><code>    ztsUrl := &quot;https://your.zts/zts/v1&quot;
+    key := &quot;/var/lib/sia/keys/sherpa.api.key.pem&quot;
+    cert := &quot;/var/lib/sia/certs/sherpa.api.cert.pem&quot;
+
+    ztsClient, err := athenzutils.ZtsClient(ztsUrl, key, cert, &quot;&quot;, false)
+    if err != nil {
+        log.Fatalf(&quot;Fatal: Error creating zts client: %v&quot;, err)
+    }
+
+    domain := &quot;sherpa.property&quot;
+    role := &quot;s3-uploader&quot;
+    externalId := &quot;hockey&quot;
+
+    awsCreds, err := ztsClient.GetAWSTemporaryCredentials(zts.DomainName(domain), zts.AWSArnRoleName(role), nil, externalId)
+    if err != nil {
+        log.Fatalf(&quot;Fatal: Error fetching AWS Credentials: %v\n&quot;, err)
+    }
+
+    fmt.Println(&quot;[default]&quot;)
+    fmt.Printf(&quot;aws_access_key_id=%s\n&quot;, awsCreds.AccessKeyId)
+    fmt.Printf(&quot;aws_secret_access_key=%s\n&quot;, awsCreds.SecretAccessKey)
+    fmt.Printf(&quot;aws_session_token=%s\n&quot;, awsCreds.SessionToken)
+</code></pre></div>
+<h2 id="using-aws-temporary-credentials">Using AWS Temporary Credentials<a class="headerlink" href="#using-aws-temporary-credentials" title="Permanent link">&para;</a></h2>
+<p>If you want to use the AWS temporary credentials with aws command
+line utilities, they can be set as environment variables or be added
+to the <code>~/.aws/credentials</code> file for a given profile.</p>
+<p>The settings must include all three components returned by the api:</p>
+<ul>
+<li>access key id</li>
+<li>secret access key</li>
+<li>session token</li>
+</ul>
+<p>The following example shows the use of environment variables with
+temporary credentials:</p>
+<div class="highlight"><pre><span></span><code>$ export AWS_ACCESS_KEY_ID={YOUR_ACCESS_KEY_ID}
+$ export AWS_SECRET_ACCESS_KEY={YOUR_SECRET_ACCESS_KEY}
+$ export AWS_SESSION_TOKEN={YOUR_SESSION_TOKEN}
+$ aws ec2 describe-instances --region us-west-1
+</code></pre></div>
+<p>The following example shows the use of the aws credentials file
+using default profile:</p>
+<div class="highlight"><pre><span></span><code>$ cat ~/.aws/credentials
+
+[default]
+aws_access_key_id={YOUR_ACCESS_KEY_ID}
+aws_secret_access_key={YOUR_SECRET_ACCESS_KEY}
+aws_session_token={YOUR_SESSION_TOKEN}
+</code></pre></div>
+<p>Checkout <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html">Using Temporary Security Credentials to Request Access to AWS Resources</a> for full details how to use temporary credentials in AWS.</p>
+<p>** Important **</p>
+<p>When passing the role name that you're trying to assume in the aws-builder-creds utility as the value to the <code>-r</code> argument, it must be the AWS IAM Role name and not the role name in your Athenz domain.</p>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<p>ZTS Server returns a unique error message indicating what part of the configuration is causing the failure to fetch AWS temporary credentials.</p>
+<h3 id="athenz-domain-configuration">Athenz Domain Configuration<a class="headerlink" href="#athenz-domain-configuration" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Athenz Configuration Error: unable to retrieve AWS account for: &lt;domainName&gt;
+</code></pre></div>
+<p>The domain, identified in the <code>&lt;domainName&gt;</code> field, does not have AWS account id configured. Follow the steps in the <code>AWS Account ID Registration</code> section to register your AWS account id for your domain.</p>
+<h3 id="athenz-role-configuration">Athenz Role Configuration<a class="headerlink" href="#athenz-role-configuration" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Athenz Configuration Error: Forbidden (assume_aws_role on &lt;resource-name&gt; for &lt;principal&gt;)
+</code></pre></div>
+<p>This error indicates that the principal, identified in the <code>&lt;principal&gt;</code> field, requesting the temporary credentials is not authorized. There are two common issues that generate this error message:</p>
+<ol>
+<li>
+<p>The caller is using the athenz role name as the value for the role name parameter (-r in the aws-builder-creds utility). The value for this parameter must be the AWS IAM role name and not the Athenz role name.</p>
+</li>
+<li>
+<p>Make sure the <code>&lt;principal&gt;</code> is included as a member in the role that you had setup in the <code>Athenz AWS Assume Role Configuration Setup</code> section in this document.</p>
+</li>
+</ol>
+<h3 id="aws-configuration">AWS Configuration<a class="headerlink" href="#aws-configuration" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>AWS Configuration Error: unable to assume role &lt;roleName&gt; in domain &lt;domainName&gt; for principal &lt;principal&gt; error: &lt;aws-error-message&gt;
+</code></pre></div>
+<p>This error indicates that AWS STS refused to issue temporary credentials to the Athenz ZTS service. This usually indicates that either the role name specified in the request is incorrect (you must specify the IAM Role name you're trying to assume and not the Athenz Role Name) or the role in IAM does not have the trust relationship setup for ZTS service as described in the <code>AWS Configuration Setup</code> section in this document.</p>
+<p>If you have configured a non-default duration or an external id for your role make sure you're passing the
+correct values in the API. AWS STS will reject the assume role request if the external id is not passed
+or a duration value is passed that is longer than the configured period.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="zts_access_token_guide.html" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Obtaining OAuth2 Access Tokens from ZTS
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="aws_athenz_setup.html" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Introduction
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="assets/javascripts/vendor.77e55a48.min.js"></script>
+      <script src="assets/javascripts/bundle.9554a270.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      
+      <script>
+        app = initialize({
+          base: ".",
+          features: [],
+          search: Object.assign({
+            worker: "assets/javascripts/worker/search.4ac00218.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
