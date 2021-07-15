@@ -143,7 +143,7 @@ export default class RulesList extends React.Component {
                         justificationRequired={this.props.isDomainAuditEnabled}
                     />
                 ) : null}
-                {!showInbound && !showInbound ? (
+                {!showInbound && !showOutbound ? (
                     <div>
                         Use the Add ACL Policy button to add inbound and
                         outbound rules.

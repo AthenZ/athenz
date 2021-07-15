@@ -79,7 +79,7 @@ exports[`RuleTable should render rule table 1`] = `
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-27 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -87,7 +87,7 @@ exports[`RuleTable should render rule table 1`] = `
   word-break: break-all;
 }
 
-.emotion-31 {
+.emotion-33 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -97,7 +97,7 @@ exports[`RuleTable should render rule table 1`] = `
   text-decoration: dashed underline;
 }
 
-.emotion-38 {
+.emotion-40 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -107,7 +107,7 @@ exports[`RuleTable should render rule table 1`] = `
   text-decoration: dashed underline;
 }
 
-.emotion-41 {
+.emotion-43 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -182,31 +182,36 @@ exports[`RuleTable should render rule table 1`] = `
       <th
         class="emotion-19 emotion-12"
       >
+        Edit
+      </th>
+      <th
+        class="emotion-19 emotion-12"
+      >
         Delete
       </th>
     </tr>
   </thead>
   <tbody>
     <tr
-      class="emotion-23 emotion-24"
+      class="emotion-25 emotion-26"
       data-testid="segmentation-row"
     >
       <td
-        class="emotion-25 emotion-26"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       />
       <td
-        class="emotion-25 emotion-26"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       />
       <td
-        class="emotion-25 emotion-26"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       >
         2222
       </td>
       <td
-        class="emotion-31 emotion-32"
+        class="emotion-33 emotion-34"
         color="#3570f40D"
       >
         <span>
@@ -230,19 +235,19 @@ exports[`RuleTable should render rule table 1`] = `
         </span>
       </td>
       <td
-        class="emotion-25 emotion-26"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       >
         1111
       </td>
       <td
-        class="emotion-25 emotion-26"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       >
         tcp
       </td>
       <td
-        class="emotion-38 emotion-32"
+        class="emotion-40 emotion-34"
         color="#3570f40D"
       >
         <span>
@@ -272,7 +277,29 @@ exports[`RuleTable should render rule table 1`] = `
         </span>
       </td>
       <td
-        class="emotion-41 emotion-26"
+        class="emotion-43 emotion-28"
+        color="#3570f40D"
+      >
+        <span>
+          <svg
+            class="emotion-6"
+            data-testid="icon"
+            height="1.25em"
+            viewBox="0 0 1024 1024"
+            width="1.25em"
+          >
+            <title>
+              pencil
+            </title>
+            <path
+              d="M925.867 401.067l-300.8-302.933c-7.434-8.083-18.061-13.13-29.867-13.13s-22.432 5.047-29.84 13.101l-0.026 0.029-467.2 467.2c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c11.712-0.172 22.255-5.037 29.86-12.793l0.007-0.007 467.2-465.067c8.083-7.434 13.13-18.061 13.13-29.867s-5.047-22.432-13.101-29.84l-0.029-0.026zM411.733 853.333h-241.067v-241.067l266.667-264.533 238.933 241.067zM738.133 529.067l-241.067-241.067 98.133-100.267 241.067 243.2z"
+            />
+          </svg>
+        </span>
+      </td>
+      
+      <td
+        class="emotion-43 emotion-28"
         color="#3570f40D"
       >
         <span>

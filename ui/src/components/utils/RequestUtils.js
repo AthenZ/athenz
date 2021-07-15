@@ -37,6 +37,17 @@ class RequestUtils {
         }
         return message;
     }
+    static fetcherErrorCheckHelper(err) {
+        let message;
+        if (err && err.statusCode === 0) {
+            message = 'Session expired. Please refresh the page.';
+        } else if (err.output && err.ouput.message) {
+            message = `Status: ${err.statusCode}. Message: ${err.output.message}`;
+        } else {
+            message = `Status: ${err.statusCode}. Message: ${err.body.message}`;
+        }
+        return message;
+    }
 }
 
 export default RequestUtils;

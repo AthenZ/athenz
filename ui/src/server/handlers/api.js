@@ -2072,6 +2072,260 @@ Fetchr.registerService({
             });
         }
     },
+
+    update(req, resource, params, body, config, callback) {
+        let roleName = '';
+        let policyName = '';
+        let resourceName = '';
+        let action = '';
+        let promises = [];
+        let tempMembers = [];
+        let finalData;
+        let auditRef = 'Updated using MicroSegmentation UI';
+
+        if (params.data['category'] === 'inbound') {
+            roleName =
+                'acl.' +
+                params.data['destination_service'] +
+                '.inbound-' +
+                params.data['identifier'];
+            policyName =
+                'acl.' + params.data['destination_service'] + '.inbound';
+            resourceName =
+                params.domainName + ':' + params.data['destination_service'];
+            tempMembers = params.data['source_services'];
+            action =
+                params.data['layer'] +
+                '-IN:' +
+                params.data['source_port'] +
+                ':' +
+                params.data['destination_port'];
+        } else {
+            roleName =
+                'acl.' +
+                params.data['source_service'] +
+                '.outbound-' +
+                params.data['identifier'];
+            policyName = 'acl.' + params.data['source_service'] + '.outbound';
+            resourceName =
+                params.domainName + ':' + params.data['source_service'];
+            tempMembers = params.data['destination_services'];
+            action =
+                params.data['layer'] +
+                '-OUT:' +
+                params.data['source_port'] +
+                ':' +
+                params.data['destination_port'];
+        }
+
+        if (params.assertionChanged || params.assertionConditionChanged) {
+            let assertionConditions = [];
+            let assertionConditionData = {
+                operator: 'EQUALS',
+                value: '',
+            };
+
+            var assertionCondition;
+
+            for (var i = 0; i < params.data['conditionsList'].length; i++) {
+                let condition = {};
+                assertionCondition = {
+                    conditionsMap: {},
+                };
+                Object.keys(params.data['conditionsList'][i]).forEach((key) => {
+                    if (key === 'enforcementstate' || key === 'instances') {
+                        let copyAssertionConditionData = JSON.parse(
+                            JSON.stringify(assertionConditionData)
+                        );
+                        copyAssertionConditionData['value'] =
+                            params.data['conditionsList'][i][key];
+                        if (copyAssertionConditionData['value'] === '') {
+                            copyAssertionConditionData['value'] = '*';
+                        }
+                        condition[key] = copyAssertionConditionData;
+                    }
+                });
+                assertionCondition['conditionsMap'] = condition;
+                assertionConditions.push(assertionCondition);
+            }
+            finalData = {
+                conditionsList: assertionConditions,
+            };
+        }
+
+        if (params.roleChanged) {
+            let role = {
+                name: roleName,
+                members: tempMembers,
+            };
+
+            promises.push(
+                new Promise((resolve, reject) => {
+                    req.clients.zms.putRole(
+                        {
+                            domainName: params.domainName,
+                            roleName,
+                            role,
+                            auditRef,
+                        },
+                        (err, json) => {
+                            if (err) {
+                                return reject(err);
+                            } else {
+                                return resolve();
+                            }
+                        }
+                    );
+                })
+            );
+        }
+
+        if (params.assertionChanged) {
+            let assertion = {
+                role: params.domainName + ':role.' + roleName,
+                resource: resourceName,
+                effect: 'ALLOW',
+                action: action,
+                caseSensitive: true,
+            };
+            promises.push(
+                new Promise((resolve, reject) => {
+                    req.clients.zms.getPolicy(
+                        {
+                            domainName: params.domainName,
+                            policyName,
+                        },
+                        (err, data) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                let foundAssertionMatch = false;
+                                data.assertions.forEach((element) => {
+                                    if (
+                                        element.action.localeCompare(action) ===
+                                        0
+                                    ) {
+                                        foundAssertionMatch = true;
+                                    }
+                                });
+                                if (foundAssertionMatch) {
+                                    let err = {
+                                        status: '500',
+                                        message: {
+                                            message:
+                                                'Policy with the assertion already exists',
+                                        },
+                                    };
+                                    return reject(err);
+                                }
+                                return resolve(data);
+                            }
+                        }
+                    );
+                })
+                    .then((data) => {
+                        return new Promise((resolve, reject) => {
+                            req.clients.zms.putAssertion(
+                                {
+                                    domainName: params.domainName,
+                                    policyName,
+                                    assertion,
+                                },
+                                (err, data) => {
+                                    if (err) {
+                                        reject(err);
+                                    } else {
+                                        return resolve(data);
+                                    }
+                                }
+                            );
+                        });
+                    })
+                    .then((data) => {
+                        return new Promise((resolve, reject) => {
+                            req.clients.zms.putAssertionConditions(
+                                {
+                                    domainName: params.domainName,
+                                    policyName,
+                                    assertionId: data.id,
+                                    assertionConditions: finalData,
+                                },
+                                (err, data) => {
+                                    if (err) {
+                                        reject(err);
+                                    } else {
+                                        resolve(data);
+                                    }
+                                }
+                            );
+                        });
+                    })
+                    .then((assertionConditionData) => {
+                        return new Promise((resolve, reject) => {
+                            req.clients.zms.deleteAssertion(
+                                {
+                                    domainName: params.domainName,
+                                    policyName,
+                                    assertionId: params.data['assertionIdx'],
+                                },
+                                (err, data) => {
+                                    if (err) {
+                                        reject(err);
+                                    } else {
+                                        resolve(data);
+                                    }
+                                }
+                            );
+                        });
+                    })
+            );
+        } else if (params.assertionConditionChanged) {
+            promises.push(
+                new Promise((resolve, reject) => {
+                    req.clients.zms.deleteAssertionConditions(
+                        {
+                            domainName: params.domainName,
+                            policyName,
+                            assertionId: params.data['assertionIdx'],
+                        },
+                        (err, data) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                return resolve(data);
+                            }
+                        }
+                    );
+                }).then(() => {
+                    return new Promise((resolve, reject) => {
+                        req.clients.zms.putAssertionConditions(
+                            {
+                                domainName: params.domainName,
+                                policyName,
+                                assertionId: params.data['assertionIdx'],
+                                assertionConditions: finalData,
+                            },
+                            (err, data) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve(data);
+                                }
+                            }
+                        );
+                    });
+                })
+            );
+        }
+
+        Promise.all(promises)
+            .then((data) => {
+                return callback(null, data);
+            })
+            .catch((err) => {
+                return callback(errorHandler.fetcherError(err));
+            });
+    },
 });
 
 Fetchr.registerService({

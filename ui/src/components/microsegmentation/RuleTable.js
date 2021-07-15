@@ -198,6 +198,7 @@ export default class RuleTable extends React.Component {
                         <TableHeadStyled align={center}>
                             Enforcement State
                         </TableHeadStyled>
+                        <TableHeadStyled align={center}>Edit</TableHeadStyled>
                         <TableHeadStyled align={center}>Delete</TableHeadStyled>
                     </tr>
                 </thead>

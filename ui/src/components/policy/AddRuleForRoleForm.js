@@ -17,7 +17,6 @@ import React from 'react';
 import styled from '@emotion/styled';
 import InputLabel from '../denali/InputLabel';
 import Input from '../denali/Input';
-import InputDropdown from '../denali/InputDropdown';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
 import { colors } from '../denali/styles';
 import RequestUtils from '../utils/RequestUtils';

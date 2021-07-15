@@ -24,6 +24,7 @@ import RequestUtils from '../utils/RequestUtils';
 import ServiceList from './ServiceList';
 import { css, keyframes } from '@emotion/react';
 import EnforcementStateList from './EnforcementStateList';
+import AddSegmentation from './AddSegmentation';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -73,6 +74,9 @@ export default class RuleRow extends React.Component {
         this.onSubmitDelete = this.onSubmitDelete.bind(this);
         this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
         this.onClickDeleteCondition = this.onClickDeleteCondition.bind(this);
+        this.onClickEditCancel = this.onClickEditCancel.bind(this);
+        this.onClickEditSubmit = this.onClickEditSubmit.bind(this);
+        this.onClickEdit = this.onClickEdit.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
         this.state = {
             deleteName:
@@ -86,6 +90,7 @@ export default class RuleRow extends React.Component {
             policyName: '',
             conditionId: '',
             justification: '',
+            showEditSegmentation: false,
         };
         this.localDate = new DateUtils();
     }
@@ -110,6 +115,25 @@ export default class RuleRow extends React.Component {
             assertionId: assertionId,
             conditionId: conditionId,
         });
+    }
+
+    onClickEdit() {
+        this.setState({
+            showEditSegmentation: true,
+        });
+    }
+
+    onClickEditCancel() {
+        this.setState({
+            showEditSegmentation: false,
+        });
+    }
+
+    onClickEditSubmit() {
+        this.setState({
+            showEditSegmentation: false,
+        });
+        this.props.onUpdateSuccess();
     }
 
     onSubmitDelete(domain) {
@@ -232,7 +256,6 @@ export default class RuleRow extends React.Component {
         let clickDeleteCancel = this.onClickDeleteCancel.bind(this);
         let clickDeleteConditionCancel =
             this.onClickDeleteConditionCancel.bind(this);
-        let onClickDeleteCondition = this.onClickDeleteCondition.bind(this);
         let inbound = this.props.category === 'inbound';
         let clickDelete;
         if (inbound) {
@@ -260,6 +283,24 @@ export default class RuleRow extends React.Component {
                 data.source_port
             );
         }
+
+        let editData = this.props.details;
+        editData['category'] = this.props.category;
+        let addSegmentation = this.state.showEditSegmentation ? (
+            <AddSegmentation
+                api={this.api}
+                domain={this.props.domain}
+                onSubmit={this.onClickEditSubmit}
+                onCancel={this.onClickEditCancel}
+                _csrf={this.props._csrf}
+                showAddSegment={this.state.showEditSegmentation}
+                justificationRequired={this.props.justificationRequired}
+                editMode={true}
+                data={editData}
+            />
+        ) : (
+            ''
+        );
 
         rows.push(
             <TrStyled key={key} data-testid='segmentation-row'>
@@ -367,7 +408,26 @@ export default class RuleRow extends React.Component {
                         />
                     </Menu>
                 </GroupTDStyled>
-
+                <TDStyled color={color} align={center}>
+                    <Menu
+                        placement='bottom-start'
+                        trigger={
+                            <span>
+                                <Icon
+                                    icon={'pencil'}
+                                    onClick={this.onClickEdit}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </span>
+                        }
+                    >
+                        <MenuDiv>Edit Rule</MenuDiv>
+                    </Menu>
+                </TDStyled>
+                {addSegmentation}
                 <TDStyled color={color} align={center}>
                     <Menu
                         placement='bottom-start'
