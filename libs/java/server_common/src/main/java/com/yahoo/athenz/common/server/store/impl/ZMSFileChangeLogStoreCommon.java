@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ZMSFileChangeLogStoreCommon {
 
@@ -278,7 +279,11 @@ public class ZMSFileChangeLogStoreCommon {
                 LOGGER.debug("getSignedDomainList: fetching domain {}", domainName);
             }
 
-            while (true) {
+            // we're going to retry up to 100 times in case of rate limiting
+            // from ZMS Server. If not able to retrieve after so many times
+            // we'll pick up the change again during our full sync time
+
+            for (int count = 1; count < 101; count++) {
                 try {
 
                     SignedDomains singleDomain = makeSignedDomainsCall(zmsClient, domainName, null, null, null);
@@ -291,24 +296,36 @@ public class ZMSFileChangeLogStoreCommon {
 
                 } catch (ZMSClientException ex) {
 
-                    LOGGER.error("Error fetching domain {} from ZMS: {}", domainName,
-                            ex.getMessage());
+                    LOGGER.error("Error fetching domain {} from ZMS: {}", domainName, ex.getMessage());
 
                     // if we get a rate limiting failure, we're going to sleep
-                    // for a second and retry our operation again
+                    // for some period and retry our operation again
 
                     if (ex.getCode() != ZMSClientException.TOO_MANY_REQUESTS) {
                         break;
                     }
 
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(randomSleepForRetry(count));
                     } catch (InterruptedException ignored) {
                     }
                 }
             }
         }
         return domains;
+    }
+
+    /**
+     * For the first three tries we're going to sleep given number of seconds
+     * After the 4th try we'll just pick a random number of seconds between
+     * 4 and 10 - this will randomize the sleep between zts instances so that
+     * all of them do not sleep exact same number of seconds and end up
+     * being rate limited over and over again.
+     * @param count number of retries
+     * @return number of seconds to sleep
+     */
+    long randomSleepForRetry(int count) {
+        return count < 4 ? 1000L * count : ThreadLocalRandom.current().nextInt(4, 11) * 1000L;
     }
 
     public SignedDomains getUpdatedSignedDomains(ZMSClient zmsClient, StringBuilder lastModTimeBuffer) {
