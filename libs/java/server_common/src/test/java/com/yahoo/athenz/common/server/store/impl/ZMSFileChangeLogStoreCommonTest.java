@@ -384,4 +384,23 @@ public class ZMSFileChangeLogStoreCommonTest {
         SignedDomains sds2Resp = fstore2.getServerDomainModifiedList(zmsClient);
         MatcherAssert.assertThat(sds2Resp.getDomains(), Matchers.contains(sd1, sd2));
     }
+
+    @Test
+    public void testRandomSleepForRetry() {
+
+        ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        assertEquals(1000, fstore.randomSleepForRetry(1));
+        assertEquals(2000, fstore.randomSleepForRetry(2));
+        assertEquals(3000, fstore.randomSleepForRetry(3));
+        long timeout = fstore.randomSleepForRetry(4);
+        assertTrue(timeout >= 4000 && timeout <= 10000);
+        timeout = fstore.randomSleepForRetry(5);
+        assertTrue(timeout >= 4000 && timeout <= 10000);
+        timeout = fstore.randomSleepForRetry(50);
+        assertTrue(timeout >= 4000 && timeout <= 10000);
+        timeout = fstore.randomSleepForRetry(100);
+        assertTrue(timeout >= 4000 && timeout <= 10000);
+        timeout = fstore.randomSleepForRetry(1000);
+        assertTrue(timeout >= 4000 && timeout <= 10000);
+    }
 }
