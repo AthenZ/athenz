@@ -64,9 +64,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
     private static final String SQL_LIST_DOMAIN = "SELECT * FROM domain;";
-    private static final String SQL_LIST_DOMAIN_PREFIX = "SELECT name, modified FROM domain WHERE name>=? AND name<?;";
+    private static final String SQL_LIST_DOMAIN_PREFIX = "SELECT name, modified, enabled FROM domain WHERE name>=? AND name<?;";
     private static final String SQL_LIST_DOMAIN_MODIFIED = "SELECT * FROM domain WHERE modified>?;";
-    private static final String SQL_LIST_DOMAIN_PREFIX_MODIFIED = "SELECT name, modified FROM domain "
+    private static final String SQL_LIST_DOMAIN_PREFIX_MODIFIED = "SELECT name, modified, enabled FROM domain "
             + "WHERE name>=? AND name<? AND modified>?;";
     private static final String SQL_LIST_DOMAIN_ROLE_NAME_MEMBER = "SELECT domain.name FROM domain "
             + "JOIN role ON role.domain_id=domain.domain_id "

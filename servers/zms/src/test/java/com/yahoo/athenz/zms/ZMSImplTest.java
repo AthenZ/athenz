@@ -23,7 +23,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +34,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.util.Base64URL;
 import com.wix.mysql.EmbeddedMysql;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
@@ -6704,8 +6711,7 @@ public class ZMSImplTest {
         Map<String, AssertionConditionData> map = new HashMap<>();
         AssertionConditionData cd = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue(value);
         map.put(key, cd);
-        AssertionCondition ac = new AssertionCondition().setId(conditionId).setConditionsMap(map);
-        return ac;
+        return new AssertionCondition().setId(conditionId).setConditionsMap(map);
     }
 
     @Test
@@ -17978,7 +17984,8 @@ public class ZMSImplTest {
     public void testRetrieveSignedDomainDataNotFound() {
 
         ZMSImpl zmsImpl = zmsInit();
-        SignedDomain domain = zmsImpl.retrieveSignedDomainData("unknown", 1234, true, false);
+        Domain dom = new Domain().setName("unknown").setModified(Timestamp.fromMillis(1234));
+        SignedDomain domain = zmsImpl.retrieveSignedDomainData(dom, true, false);
         assertNull(domain);
 
         // now signed domains with unknown domain name
@@ -18184,7 +18191,8 @@ public class ZMSImplTest {
 
         // get the domain which would return from cache
 
-        SignedDomain signedDomain = zms.retrieveSignedDomainData("signeddom1disabled", 0, false, false);
+        Domain dom = new Domain().setName("signeddom1disabled").setModified(Timestamp.fromMillis(0));
+        SignedDomain signedDomain = zms.retrieveSignedDomainData(dom, false, false);
         assertFalse(signedDomain.getDomain().getEnabled());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "signeddom1disabled", auditRef);
@@ -18224,7 +18232,8 @@ public class ZMSImplTest {
 
         // get the domain which would return from cache
 
-        SignedDomain signedDomain = zms.retrieveSignedDomainData(domainName, 0, false, false);
+        Domain dom = new Domain().setName(domainName).setModified(Timestamp.fromMillis(0));
+        SignedDomain signedDomain = zms.retrieveSignedDomainData(dom, false, false);
         assertTrue(signedDomain.getDomain().getAuditEnabled());
         assertEquals(Integer.valueOf(10), signedDomain.getDomain().getTokenExpiryMins());
         assertEquals(Integer.valueOf(20), signedDomain.getDomain().getRoleCertExpiryMins());
@@ -21356,7 +21365,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testGetJWSDomain() throws JsonProcessingException {
+    public void testGetJWSDomain() throws JsonProcessingException, ParseException, JOSEException {
 
         final String domainName = "jws-domain";
 
@@ -25999,7 +26008,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testGetSignedDomainWithTags() throws JsonProcessingException {
+    public void testGetSignedDomainWithTags() throws JsonProcessingException, ParseException, JOSEException {
 
         final String domainName = "jws-domain-tags";
 
@@ -26049,27 +26058,16 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
-    private DomainData getDomainData(JWSDomain jwsDomain) throws JsonProcessingException {
+    private DomainData getDomainData(JWSDomain jwsDomain) throws ParseException, JOSEException, JsonProcessingException {
         assertNotNull(jwsDomain);
 
-        final Base64.Decoder decoder = Base64.getUrlDecoder();
+        JWSObject jwsObject = new JWSObject(Base64URL.from(jwsDomain.getProtectedHeader()),
+                Base64URL.from(jwsDomain.getPayload()), Base64URL.from(jwsDomain.getSignature()));
 
-        final String payload = jwsDomain.getPayload();
-        final String protectedHeader = jwsDomain.getProtectedHeader();
+        JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) Crypto.extractPublicKey(zms.privateKey.getKey()));
+        assertTrue(jwsObject.verify(verifier));
 
-        assertEquals(new String(decoder.decode(protectedHeader.getBytes(StandardCharsets.UTF_8))), "{\"alg\":\"RS256\"}");
-
-        final String data = protectedHeader + "." + payload;
-        final byte[] sig = decoder.decode(jwsDomain.getSignature().getBytes(StandardCharsets.UTF_8));
-
-        // verify the signature
-
-        assertTrue(Crypto.verify(data.getBytes(StandardCharsets.UTF_8),
-                Crypto.extractPublicKey(zms.privateKey.getKey()), sig, Crypto.SHA256));
-
-        final String jsonDomain = new String(decoder.decode(payload));
-
-        return zms.jsonMapper.readValue(jsonDomain, DomainData.class);
+        return zms.jsonMapper.readValue(jwsObject.getPayload().toString(), DomainData.class);
     }
 
     private Map<String, TagValueList> simpleDomainTag() {

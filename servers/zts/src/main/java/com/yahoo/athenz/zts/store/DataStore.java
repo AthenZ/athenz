@@ -915,16 +915,15 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             return;
         }
 
-        /* go through each domain in the list. if it doesn't exist
-         * in the local list we need to update it. if it exists
-         * but with an older last modified time, then we need
-         * to update it. */
+        // go through each domain in the list. if it doesn't exist
+        // in the local list we need to update it. if it exists
+        // but with an older last modified time, then we need
+        // to update it unless the domain is disabled
 
         for (SignedDomain zmsDomain : signedDomains.getDomains()) {
 
             final DomainData domainData = zmsDomain.getDomain();
-            DomainData localDomain = getDomainData(domainData.getName());
-            if (localDomain == null || localDomain.getModified().millis() < domainData.getModified().millis()) {
+            if (processDomainCheck(getDomainData(domainData.getName()), domainData)) {
 
                 SignedDomain signedDomain = changeLogStore.getServerSignedDomain(domainData.getName());
 
@@ -935,6 +934,23 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                 processDomain(signedDomain, true);
             }
         }
+    }
+
+    boolean processDomainCheck(final DomainData localDomainData, final DomainData zmsDomainData) {
+
+        // we're going to handle three cases for processing the domain
+
+        // 1. the domain is not in our cache but it is enabled in zms
+
+        if (localDomainData == null) {
+            return zmsDomainData.getEnabled() != Boolean.FALSE;
+        }
+
+        // the domain is in our cache
+        //    2. it's disabled in zms so we need process and clean up our cache
+        //    3. the zms domain modification timestamp is later than local copy
+
+        return zmsDomainData.getEnabled() == Boolean.FALSE || localDomainData.getModified().millis() < zmsDomainData.getModified().millis();
     }
 
     // Internal
