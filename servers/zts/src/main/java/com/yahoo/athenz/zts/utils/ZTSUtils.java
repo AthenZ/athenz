@@ -20,6 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import com.oath.auth.KeyRefresher;
+import com.oath.auth.Utils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
@@ -56,12 +58,16 @@ public class ZTSUtils {
     public static final String ZTS_CERT_DNS_SUFFIX =
             System.getProperty(ZTSConsts.ZTS_PROP_CERT_DNS_SUFFIX, ZTSConsts.ZTS_CERT_DNS_SUFFIX);
 
-    private static final String ATHENZ_PROP_KEYSTORE_PASSWORD      = "athenz.ssl_key_store_password";
-    private static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD    = "athenz.ssl_trust_store_password";
-    private static final String ATHENZ_PROP_KEYSTORE_PATH          = "athenz.ssl_key_store";
-    private static final String ATHENZ_PROP_KEYSTORE_TYPE          = "athenz.ssl_key_store_type";
-    private static final String ATHENZ_PROP_TRUSTSTORE_PATH        = "athenz.ssl_trust_store";
-    private static final String ATHENZ_PROP_TRUSTSTORE_TYPE        = "athenz.ssl_trust_store_type";
+    private static final String ATHENZ_PROP_KEYSTORE_PASSWORD                   = "athenz.ssl_key_store_password";
+    private static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD                 = "athenz.ssl_trust_store_password";
+    private static final String ATHENZ_PROP_KEYSTORE_PATH                       = "athenz.ssl_key_store";
+    private static final String ATHENZ_PROP_KEYSTORE_TYPE                       = "athenz.ssl_key_store_type";
+    private static final String ATHENZ_PROP_TRUSTSTORE_PATH                     = "athenz.ssl_trust_store";
+    private static final String ATHENZ_PROP_TRUSTSTORE_TYPE                     = "athenz.ssl_trust_store_type";
+    private static final String ATHENZ_PROP_PUBLIC_CERT_PATH_FOR_SSL            = "athenz.ssl_client_public_cert_path";
+    private static final String ATHENZ_PROP_PRIVATE_KEY_PATH_FOR_SSL            = "athenz.ssl_client_private_key_path";
+    private static final String ATHENZ_PROP_USE_FILE_CERT_AND_KEY_FOR_SSL       = "athenz.ssl_client_use_file_cert_and_key";
+    private static final String ATHENZ_DEFAULT_USE_FILE_CERT_AND_KEY_FOR_SSL    = "false";
 
     private static final String ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME   = "athenz.ssl_key_store_password_appname";
     private static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME = "athenz.ssl_trust_store_password_appname";
@@ -305,7 +311,53 @@ public class ZTSUtils {
     }
 
     public static SSLContext createServerClientSSLContext(PrivateKeyStore privateKeyStore) {
+        if (Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_USE_FILE_CERT_AND_KEY_FOR_SSL, ATHENZ_DEFAULT_USE_FILE_CERT_AND_KEY_FOR_SSL))) {
+            return getSslContextUsingKeyCertFiles(privateKeyStore);
+        } else {
+            return getSslContextUsingKeyStores(privateKeyStore);
+        }
+    }
 
+    private static SSLContext getSslContextUsingKeyCertFiles(PrivateKeyStore privateKeyStore) {
+        final String trustStorePath = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PATH);
+        if (trustStorePath == null) {
+            LOGGER.error("Unable to create client ssl context: no truststore path specified");
+            return null;
+        }
+        final String certPath = System.getProperty(ATHENZ_PROP_PUBLIC_CERT_PATH_FOR_SSL);
+        if (certPath == null) {
+            LOGGER.error("Unable to create client ssl context: no local ssl cert path specified");
+            return null;
+        }
+        if (!new File(certPath).exists()) {
+            LOGGER.error("Unable to create client ssl context: ssl cert not found in {}", certPath);
+            return null;
+        }
+        final String keyPath = System.getProperty(ATHENZ_PROP_PRIVATE_KEY_PATH_FOR_SSL);
+        if (keyPath == null) {
+            LOGGER.error("Unable to create client ssl context: no local ssl key path specified");
+            return null;
+        }
+        if (!new File(keyPath).exists()) {
+            LOGGER.error("Unable to create client ssl context: ssl key not found in {}", keyPath);
+            return null;
+        }
+
+        final String trustStorePassword = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PASSWORD);
+        final String trustStorePasswordAppName = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME);
+        final String password = getApplicationSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
+        char[] passwordChars = getPasswordChars(password);
+        try {
+            KeyRefresher keyRefresher = Utils.generateKeyRefresher(trustStorePath, passwordChars, certPath, keyPath);
+            keyRefresher.startup();
+            return Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(), keyRefresher.getTrustManagerProxy());
+        } catch (Exception ex) {
+            LOGGER.error("Unable to create client ssl context. Error: {}", ex.getMessage());
+            return null;
+        }
+    }
+
+    private static SSLContext getSslContextUsingKeyStores(PrivateKeyStore privateKeyStore) {
         final String keyStorePath = System.getProperty(ATHENZ_PROP_KEYSTORE_PATH);
         if (keyStorePath == null) {
             LOGGER.error("Unable to create client ssl context: no keystore path specified");
