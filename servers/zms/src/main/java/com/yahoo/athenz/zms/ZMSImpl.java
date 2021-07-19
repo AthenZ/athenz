@@ -5377,17 +5377,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return timestamp;
     }
 
-    SignedDomain createSignedDomain(String domainName, long modifiedTime) {
+    SignedDomain createSignedDomain(String domainName, long modifiedTime, Boolean enabled) {
         SignedDomain signedDomain = new SignedDomain();
         DomainData domainData = new DomainData().setName(domainName);
         signedDomain.setDomain(domainData);
         domainData.setModified(Timestamp.fromMillis(modifiedTime));
+        domainData.setEnabled(enabled);
         return signedDomain;
     }
 
     SignedDomain retrieveSignedDomainMeta(final Domain domain, final String metaAttr) {
 
-        SignedDomain signedDomain = createSignedDomain(domain.getName(), domain.getModified().millis());
+        SignedDomain signedDomain = createSignedDomain(domain.getName(), domain.getModified().millis(),
+                domain.getEnabled());
         if (metaAttr != null) {
             switch (metaAttr) {
                 case ZMSConsts.SYSTEM_META_ACCOUNT:
@@ -5452,16 +5454,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (setMetaDataOnly) {
             signedDomain = retrieveSignedDomainMeta(domain, metaAttr);
         } else {
-            signedDomain = retrieveSignedDomainData(domain.getName(), domain.getModified().millis(), masterCopy, includeConditions);
+            signedDomain = retrieveSignedDomainData(domain, masterCopy, includeConditions);
         }
         return signedDomain;
     }
 
-    SignedDomain retrieveSignedDomainData(final String domainName, long modifiedTime, boolean masterCopy, boolean includeConditions) {
+    SignedDomain retrieveSignedDomainData(Domain domain, boolean masterCopy, boolean includeConditions) {
 
         // generate our signed domain object
 
-        SignedDomain signedDomain = createSignedDomain(domainName, modifiedTime);
+        final String domainName = domain.getName();
+        SignedDomain signedDomain = createSignedDomain(domainName, domain.getModified().millis(),
+                domain.getEnabled());
 
         // get the policies, roles, and service identities to create the
         // DomainData
@@ -5790,12 +5794,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             final byte[] jsonDomain = jsonMapper.writeValueAsBytes(domainData);
             final byte[] encodedDomain = encoder.encode(jsonDomain);
 
-            // generate our protected header - just includes the algorithm
+            // generate our protected header - just includes the key id + algorithm
 
-            final String protectedHeader = "{\"alg\":\"" + privateKey.getAlgorithm() + "\"}";
+            final String protectedHeader = "{\"kid\":\"" + privateKey.getId() + "\",\"alg\":\"" + privateKey.getAlgorithm() + "\"}";
             final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
 
-            // combine protectedheader . payload and sign the result
+            // combine protectedHeader . payload and sign the result
 
             final byte[] signature = encoder.encode(Crypto.sign(
                     Bytes.concat(encodedHeader, PERIOD, encodedDomain), privateKey.getKey(), Crypto.SHA256));

@@ -4460,4 +4460,32 @@ public class DataStoreTest {
         store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
         assertTrue(accessibleRoles.isEmpty());
     }
+
+    @Test
+    public void testProcessDomainCheck() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        DomainData domainData = new DomainData();
+        assertTrue(store.processDomainCheck(null, domainData));
+
+        domainData.setEnabled(Boolean.TRUE);
+        assertTrue(store.processDomainCheck(null, domainData));
+
+        domainData.setEnabled(false);
+        assertFalse(store.processDomainCheck(null, domainData));
+
+        DomainData localData = new DomainData();
+        assertTrue(store.processDomainCheck(localData, domainData));
+
+        domainData.setEnabled(true);
+        localData.setModified(Timestamp.fromMillis(100));
+        domainData.setModified(Timestamp.fromMillis(200));
+        assertTrue(store.processDomainCheck(localData, domainData));
+
+        localData.setModified(Timestamp.fromMillis(201));
+        assertFalse(store.processDomainCheck(localData, domainData));
+    }
 }
