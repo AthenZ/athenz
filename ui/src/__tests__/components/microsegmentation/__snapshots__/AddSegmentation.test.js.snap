@@ -736,7 +736,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
       <label
         class="emotion-6 denali-input-label emotion-7 emotion-31"
       >
-        Destination Port
+        Destination Port(s)
       </label>
       <div
         class="emotion-54 emotion-55"
@@ -819,7 +819,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
       <label
         class="emotion-6 denali-input-label emotion-7 emotion-31"
       >
-        Source Port
+        Source Port(s)
       </label>
       <div
         class="emotion-54 emotion-55"
@@ -835,7 +835,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
               autocomplete="off"
               data-testid="input-node"
               placeholder="eg: 1024-65535"
-              value=""
+              value="1024-65535"
             />
             <div
               class="message"
