@@ -144,7 +144,7 @@ export default class AddSegmentation extends React.Component {
             destinationServiceMembers: '',
             sourcePort: this.props.editMode
                 ? this.props.data['source_port']
-                : '',
+                : '1024-65535',
             protocol: this.props.editMode ? this.props.data['layer'] : '',
             newMemberName: '',
             memberExpiry: '',
@@ -434,7 +434,10 @@ export default class AddSegmentation extends React.Component {
                     end > 65535
                 ) {
                     this.setState({
-                        errorMessage: 'Invalid port: ' + ports[i],
+                        errorMessage:
+                            'Invalid port: ' +
+                            ports[i] +
+                            '. Valid range of port numbers: 1-65535',
                     });
                     result.error = 1;
                     return result;
@@ -443,7 +446,10 @@ export default class AddSegmentation extends React.Component {
                 ports[i] = ports[i] + '-' + ports[i];
             } else {
                 this.setState({
-                    errorMessage: 'Port has to be in the range of 1-65535',
+                    errorMessage:
+                        'Invalid port: ' +
+                        ports[i] +
+                        'Valid range of port numbers: 1-65535',
                 });
                 result.error = 1;
                 return result;
@@ -1070,8 +1076,8 @@ export default class AddSegmentation extends React.Component {
                 <SectionDiv>
                     <StyledInputLabel>
                         {this.state.isCategory
-                            ? 'Destination Port'
-                            : 'Source Port'}
+                            ? 'Destination Port(s)'
+                            : 'Source Port(s)'}
                     </StyledInputLabel>
                     <ContentDiv>
                         <StyledInput
@@ -1138,8 +1144,8 @@ export default class AddSegmentation extends React.Component {
                 <SectionDiv>
                     <StyledInputLabel>
                         {this.state.isCategory
-                            ? 'Source Port'
-                            : 'Destination Port'}
+                            ? 'Source Port(s)'
+                            : 'Destination Port(s)'}
                     </StyledInputLabel>
                     <ContentDiv>
                         <AddMemberDiv>

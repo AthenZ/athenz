@@ -1349,7 +1349,7 @@ public class DBService implements RolesProvider {
                 if (isTrustRole(originalRole)) {
                     con.rollbackChanges();
                     throw ZMSUtils.requestError(caller + ": " + roleName +
-                            "is a delegated role", caller);
+                            " is a delegated role", caller);
                 }
 
                 // now we need verify our quota check
