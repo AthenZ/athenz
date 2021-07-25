@@ -26,6 +26,7 @@ export default class AddPolicyToRole extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.state = {
             showModal: !!this.props.showAddPolicy,
+            case: false,
         };
     }
 
@@ -59,6 +60,7 @@ export default class AddPolicyToRole extends React.Component {
                 this.state.resource,
                 this.state.action,
                 this.state.effect,
+                this.state.case,
                 this.props._csrf
             )
             .then((data) => {

@@ -310,6 +310,7 @@ export default class AddSegmentation extends React.Component {
                             resource,
                             action,
                             'ALLOW',
+                            true,
                             this.props._csrf
                         )
                         .then((data) => {
@@ -354,6 +355,7 @@ export default class AddSegmentation extends React.Component {
                             resource,
                             action,
                             'ALLOW',
+                            true,
                             this.props._csrf
                         )
                         .then(() => {

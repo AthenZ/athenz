@@ -930,7 +930,7 @@ describe('Fetchr Client API Test', () => {
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.addPolicy('dummyDom', 'dummyPol', 'dummyRole', 'dummyResource', 'get', 'allow', '1234');
+            result = await api.addPolicy('dummyDom', 'dummyPol', 'dummyRole', 'dummyResource', 'get', 'allow', true, '1234');
             expect(result).toEqual(DATA);
         });
         it('addPolicy test error', async () => {
@@ -942,7 +942,7 @@ describe('Fetchr Client API Test', () => {
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.addPolicy('dummyDom', 'dummyPol', 'dummyRole', 'dummyResource', 'get', 'allow', '1234').catch((err) => {
+            await api.addPolicy('dummyDom', 'dummyPol', 'dummyRole', 'dummyResource', 'get', 'allow', true, '1234').catch((err) => {
                 expect(err).not.toBeNull();
             });
         });
@@ -1014,7 +1014,7 @@ describe('Fetchr Client API Test', () => {
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.addAssertion('dummyDom', 'dummyPol', 'dummyRole', 'dummyResource', 'get', 'allow', '1234');
+            result = await api.addAssertion('dummyDom', 'dummyPol', 'dummyRole', 'dummyResource', 'get', 'allow', true, '1234');
             expect(result).toEqual(DATA);
         });
         it('addAssertion test error', async () => {
@@ -1026,7 +1026,7 @@ describe('Fetchr Client API Test', () => {
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.addAssertion('dummyDom', 'dummyPol', 'dummyRole', 'dummyResource', 'get', 'allow', '1234').catch((err) => {
+            await api.addAssertion('dummyDom', 'dummyPol', 'dummyRole', 'dummyResource', 'get', 'allow', true, '1234').catch((err) => {
                 expect(err).not.toBeNull();
             });
         });

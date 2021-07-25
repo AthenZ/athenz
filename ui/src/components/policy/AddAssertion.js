@@ -44,7 +44,9 @@ export default class AddAssertion extends React.Component {
         this.api = this.props.api;
         this.onChange = this.onChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
-        this.state = {};
+        this.state = {
+            case: false,
+        };
     }
 
     onChange(key, value) {
@@ -80,6 +82,7 @@ export default class AddAssertion extends React.Component {
                 this.state.resource,
                 this.state.action,
                 this.state.effect,
+                this.state.case,
                 this.props._csrf
             )
             .then((data) => {
@@ -102,6 +105,7 @@ export default class AddAssertion extends React.Component {
                     api={this.api}
                     onChange={this.onChange}
                     domain={this.props.domain}
+                    id={this.props.name}
                 />
                 {this.state.errorMessage && (
                     <ErrorDiv>

@@ -21,6 +21,7 @@ import InputDropdown from '../denali/InputDropdown';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
 import { colors } from '../denali/styles';
 import Color from '../denali/Color';
+import CheckBox from '../denali/CheckBox';
 
 const SectionsDiv = styled.div`
     width: 100%;
@@ -82,6 +83,7 @@ export default class AddRuleFormForRole extends React.Component {
             name: '',
             action: '',
             resource: '',
+            case: false,
         };
     }
 
@@ -91,14 +93,20 @@ export default class AddRuleFormForRole extends React.Component {
     }
 
     inputChanged(key, evt) {
-        this.setState({ [key]: evt.target.value });
-        this.props.onChange(key, evt.target.value);
+        if (key == 'case') {
+            this.setState({ [key]: evt.target.checked });
+            this.props.onChange(key, evt.target.checked);
+        } else {
+            this.setState({ [key]: evt.target.value });
+            this.props.onChange(key, evt.target.value);
+        }
     }
 
     render() {
         let policyNameChanged = this.inputChanged.bind(this, 'name');
         let resourceChanged = this.inputChanged.bind(this, 'resource');
         let actionChanged = this.inputChanged.bind(this, 'action');
+        let caseChanged = this.inputChanged.bind(this, 'case');
         let policy = ``;
         let id = this.props.id;
         if (this.props.isPolicy) {
@@ -153,7 +161,7 @@ export default class AddRuleFormForRole extends React.Component {
                             name={'rule-action' + id}
                             value={this.state.action}
                             onChange={actionChanged}
-                            placeholder={'Rule Action (Case Sensitive)'}
+                            placeholder={'Rule Action'}
                         />
                     </ContentDiv>
                 </SectionDiv>
@@ -167,7 +175,19 @@ export default class AddRuleFormForRole extends React.Component {
                             name={'rule-resource' + id}
                             value={this.state.resource}
                             onChange={resourceChanged}
-                            placeholder={'Rule Resource (Case Sensitive)'}
+                            placeholder={'Rule Resource'}
+                        />
+                    </ContentDiv>
+                </SectionDiv>
+                <SectionDiv>
+                    <ContentDiv>
+                        <CheckBox
+                            checked={this.state.case}
+                            name={'checkbox-case-sensitive' + id}
+                            id={'checkbox-case-sensitive' + id}
+                            key={'checkbox-case-sensitive' + id}
+                            label='Case Sensitive Action and Resource'
+                            onChange={caseChanged}
                         />
                     </ContentDiv>
                 </SectionDiv>

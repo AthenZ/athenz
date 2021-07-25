@@ -259,11 +259,123 @@ exports[`AddAssertionForRole should render 1`] = `
   width: 500px;
 }
 
-.emotion-36 {
+.emotion-40 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0;
+  position: relative;
+  vertical-align: middle;
+}
+
+.emotion-40>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-40>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-40>input[type='checkbox']+label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-40>input[type='checkbox']:hover+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-40>input[type='checkbox']:focus+label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-40>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-40>input[type='checkbox']:checked+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-40>input[type='checkbox']:disabled+label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-40>input[type='checkbox']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+}
+
+.emotion-40>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+  background: #3697f2;
+}
+
+.emotion-40>input[type='checkbox'][data-partial='true']+label:after {
+  border: solid #3697f2;
+  border-width: 2px 0 0 0;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  height: 16px;
+  line-height: 16px;
+  left: 4px;
+  opacity: 1;
+  position: absolute;
+  top: 7px;
+  width: 8px;
+}
+
+.emotion-40>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: block;
+  height: 9px;
+  line-height: 16px;
+  left: 6px;
+  opacity: 1;
+  position: absolute;
+  top: 3px;
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+  width: 4.5px;
+}
+
+.emotion-41 {
   margin-left: 155px;
 }
 
-.emotion-38 {
+.emotion-43 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -292,17 +404,17 @@ exports[`AddAssertionForRole should render 1`] = `
   color: #fff;
 }
 
-.emotion-38:first-of-type {
+.emotion-43:first-of-type {
   margin-left: 0;
 }
 
-.emotion-38:disabled {
+.emotion-43:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-38:hover:not(:disabled) {
+.emotion-43:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
                   #3570f4,
@@ -310,12 +422,12 @@ exports[`AddAssertionForRole should render 1`] = `
               );
 }
 
-.emotion-39 {
+.emotion-44 {
   min-width: 8.5em;
   min-height: 1em;
 }
 
-.emotion-41 {
+.emotion-46 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -341,21 +453,21 @@ exports[`AddAssertionForRole should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-41:first-of-type {
+.emotion-46:first-of-type {
   margin-left: 0;
 }
 
-.emotion-41:disabled {
+.emotion-46:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-41:disabled {
+.emotion-46:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-41:hover:not(:disabled) {
+.emotion-46:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
@@ -442,7 +554,7 @@ exports[`AddAssertionForRole should render 1`] = `
             data-testid="input-node"
             id="rule-actionundefined"
             name="rule-actionundefined"
-            placeholder="Rule Action (Case Sensitive)"
+            placeholder="Rule Action"
             value=""
           />
           <div
@@ -473,7 +585,7 @@ exports[`AddAssertionForRole should render 1`] = `
             data-testid="input-node"
             id="rule-resourceundefined"
             name="rule-resourceundefined"
-            placeholder="Rule Resource (Case Sensitive)"
+            placeholder="Rule Resource"
             value=""
           />
           <div
@@ -483,17 +595,41 @@ exports[`AddAssertionForRole should render 1`] = `
         </div>
       </div>
     </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-9 emotion-10"
+      >
+        <div
+          class="emotion-40 denali-checkbox"
+          data-testid="checkbox-wrapper"
+        >
+          <input
+            data-partial="false"
+            id="checkbox-case-sensitiveundefined"
+            name="checkbox-case-sensitiveundefined"
+            type="checkbox"
+          />
+          <label
+            for="checkbox-case-sensitiveundefined"
+          >
+            Case Sensitive Action and Resource
+          </label>
+        </div>
+      </div>
+    </div>
   </div>
   <div
-    class="emotion-36 emotion-37"
+    class="emotion-41 emotion-42"
   >
     <button
-      class="emotion-38 denali-button emotion-39 emotion-40"
+      class="emotion-43 denali-button emotion-44 emotion-45"
     >
       Submit
     </button>
     <button
-      class="emotion-41 denali-button emotion-39 emotion-40"
+      class="emotion-46 denali-button emotion-44 emotion-45"
     >
       Cancel
     </button>
@@ -760,11 +896,123 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   width: 500px;
 }
 
-.emotion-36 {
+.emotion-40 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0;
+  position: relative;
+  vertical-align: middle;
+}
+
+.emotion-40>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-40>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-40>input[type='checkbox']+label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-40>input[type='checkbox']:hover+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-40>input[type='checkbox']:focus+label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-40>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-40>input[type='checkbox']:checked+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-40>input[type='checkbox']:disabled+label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-40>input[type='checkbox']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+}
+
+.emotion-40>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+  background: #3697f2;
+}
+
+.emotion-40>input[type='checkbox'][data-partial='true']+label:after {
+  border: solid #3697f2;
+  border-width: 2px 0 0 0;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  height: 16px;
+  line-height: 16px;
+  left: 4px;
+  opacity: 1;
+  position: absolute;
+  top: 7px;
+  width: 8px;
+}
+
+.emotion-40>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: block;
+  height: 9px;
+  line-height: 16px;
+  left: 6px;
+  opacity: 1;
+  position: absolute;
+  top: 3px;
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+  width: 4.5px;
+}
+
+.emotion-41 {
   margin-left: 155px;
 }
 
-.emotion-38 {
+.emotion-43 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -793,17 +1041,17 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   color: #fff;
 }
 
-.emotion-38:first-of-type {
+.emotion-43:first-of-type {
   margin-left: 0;
 }
 
-.emotion-38:disabled {
+.emotion-43:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-38:hover:not(:disabled) {
+.emotion-43:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
                   #3570f4,
@@ -811,12 +1059,12 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
               );
 }
 
-.emotion-39 {
+.emotion-44 {
   min-width: 8.5em;
   min-height: 1em;
 }
 
-.emotion-41 {
+.emotion-46 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -842,21 +1090,21 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   color: #3697f2;
 }
 
-.emotion-41:first-of-type {
+.emotion-46:first-of-type {
   margin-left: 0;
 }
 
-.emotion-41:disabled {
+.emotion-46:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-41:disabled {
+.emotion-46:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-41:hover:not(:disabled) {
+.emotion-46:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
@@ -943,7 +1191,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
             data-testid="input-node"
             id="rule-actionundefined"
             name="rule-actionundefined"
-            placeholder="Rule Action (Case Sensitive)"
+            placeholder="Rule Action"
             value=""
           />
           <div
@@ -974,7 +1222,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
             data-testid="input-node"
             id="rule-resourceundefined"
             name="rule-resourceundefined"
-            placeholder="Rule Resource (Case Sensitive)"
+            placeholder="Rule Resource"
             value=""
           />
           <div
@@ -984,17 +1232,41 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
         </div>
       </div>
     </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-9 emotion-10"
+      >
+        <div
+          class="emotion-40 denali-checkbox"
+          data-testid="checkbox-wrapper"
+        >
+          <input
+            data-partial="false"
+            id="checkbox-case-sensitiveundefined"
+            name="checkbox-case-sensitiveundefined"
+            type="checkbox"
+          />
+          <label
+            for="checkbox-case-sensitiveundefined"
+          >
+            Case Sensitive Action and Resource
+          </label>
+        </div>
+      </div>
+    </div>
   </div>
   <div
-    class="emotion-36 emotion-37"
+    class="emotion-41 emotion-42"
   >
     <button
-      class="emotion-38 denali-button emotion-39 emotion-40"
+      class="emotion-43 denali-button emotion-44 emotion-45"
     >
       Submit
     </button>
     <button
-      class="emotion-41 denali-button emotion-39 emotion-40"
+      class="emotion-46 denali-button emotion-44 emotion-45"
     >
       Cancel
     </button>
