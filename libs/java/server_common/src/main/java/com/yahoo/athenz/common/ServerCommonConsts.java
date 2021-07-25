@@ -46,7 +46,4 @@ public final class ServerCommonConsts {
 
     // for tests
     public static final String ZTS_PROP_AWS_PUBLIC_CERT = "athenz.zts.aws_public_cert";
-
-    private ServerCommonConsts() {
-    }
 }

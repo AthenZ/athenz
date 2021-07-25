@@ -45,5 +45,11 @@ public class WorkloadRecordTest {
         assertEquals(wr.getCreationTime(), date);
         assertEquals(wr.getUpdateTime(), date);
         assertEquals(wr.getCertExpiryTime(), date);
+
+        wr.setCreationTime(null);
+        wr.setUpdateTime(null);
+        wr.setCertExpiryTime(null);
+
+        assertEquals(wr.toString(), "WorkloadRecord{service='athenz.api', provider='aws', instanceId='afve-24dq2d', ip='10.0.0.1', creationTime=null, updateTime=null, hostname='test-host1', certExpiryTime=null}");
     }
 }
