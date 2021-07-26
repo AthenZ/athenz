@@ -123,4 +123,24 @@ public class MSDRDLGeneratedClient {
 
     }
 
+    public WorkloadOptions putWorkload(String domainName, String serviceName, WorkloadOptions options) {
+        WebTarget target = base.path("/domain/{domainName}/service/{serviceName}/workload")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("serviceName", serviceName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(options, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
 }

@@ -20,6 +20,7 @@ public class Workload {
     public String provider;
     public Timestamp updateTime;
     public Timestamp certExpiryTime;
+    public Timestamp certIssueTime;
 
     public Workload setDomainName(String domainName) {
         this.domainName = domainName;
@@ -77,6 +78,13 @@ public class Workload {
     public Timestamp getCertExpiryTime() {
         return certExpiryTime;
     }
+    public Workload setCertIssueTime(Timestamp certIssueTime) {
+        this.certIssueTime = certIssueTime;
+        return this;
+    }
+    public Timestamp getCertIssueTime() {
+        return certIssueTime;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -107,6 +115,9 @@ public class Workload {
                 return false;
             }
             if (certExpiryTime == null ? a.certExpiryTime != null : !certExpiryTime.equals(a.certExpiryTime)) {
+                return false;
+            }
+            if (certIssueTime == null ? a.certIssueTime != null : !certIssueTime.equals(a.certIssueTime)) {
                 return false;
             }
         }

@@ -14,9 +14,14 @@ type Workload Struct {
     String provider; // infrastructure provider e.g. k8s, AWS, Azure, openstack etc.
     Timestamp updateTime; // most recent update timestamp in the backend
     Timestamp certExpiryTime; // certificate expiry time (ex: getNotAfter)
+    Timestamp certIssueTime; // certificate issue time (ex: getNotBefore)
+}
+
+type WorkloadOptions Struct {
+    Bool ipChanged; // boolean flag to signal a change in IP state
 }
 
 // list of workloads
 type Workloads Struct {
-	Array<Workload> workloadList; // list of workloads
+    Array<Workload> workloadList; // list of workloads
 }

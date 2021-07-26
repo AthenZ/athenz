@@ -159,7 +159,12 @@ func init() {
 	tWorkload.Field("provider", "String", false, nil, "infrastructure provider e.g. k8s, AWS, Azure, openstack etc.")
 	tWorkload.Field("updateTime", "Timestamp", false, nil, "most recent update timestamp in the backend")
 	tWorkload.Field("certExpiryTime", "Timestamp", false, nil, "certificate expiry time (ex: getNotAfter)")
+	tWorkload.Field("certIssueTime", "Timestamp", false, nil, "certificate issue time (ex: getNotBefore)")
 	sb.AddType(tWorkload.Build())
+
+	tWorkloadOptions := rdl.NewStructTypeBuilder("Struct", "WorkloadOptions")
+	tWorkloadOptions.Field("ipChanged", "Bool", false, nil, "boolean flag to signal a change in IP state")
+	sb.AddType(tWorkloadOptions.Build())
 
 	tWorkloads := rdl.NewStructTypeBuilder("Struct", "Workloads")
 	tWorkloads.Comment("list of workloads")
@@ -204,6 +209,21 @@ func init() {
 	mGetWorkloadsByIP.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetWorkloadsByIP.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetWorkloadsByIP.Build())
+
+	mPutWorkload := rdl.NewResourceBuilder("WorkloadOptions", "PUT", "/domain/{domainName}/service/{serviceName}/workload")
+	mPutWorkload.Comment("Api for doing a PUT on Workload for a domain/service Workload details are obtained from the service certificate")
+	mPutWorkload.Name("putWorkload")
+	mPutWorkload.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
+	mPutWorkload.Input("serviceName", "EntityName", true, "", "", false, nil, "name of the service")
+	mPutWorkload.Input("options", "WorkloadOptions", false, "", "", false, nil, "workload store to be inserted")
+	mPutWorkload.Auth("", "", true, "")
+	mPutWorkload.Expected("NO_CONTENT")
+	mPutWorkload.Exception("BAD_REQUEST", "ResourceError", "")
+	mPutWorkload.Exception("FORBIDDEN", "ResourceError", "")
+	mPutWorkload.Exception("NOT_FOUND", "ResourceError", "")
+	mPutWorkload.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mPutWorkload.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mPutWorkload.Build())
 
 	var err error
 	schema, err = sb.BuildParanoid()

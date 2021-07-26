@@ -135,7 +135,11 @@ public class MSDSchema {
             .field("hostname", "String", false, "hostname associated with the workload")
             .field("provider", "String", false, "infrastructure provider e.g. k8s, AWS, Azure, openstack etc.")
             .field("updateTime", "Timestamp", false, "most recent update timestamp in the backend")
-            .field("certExpiryTime", "Timestamp", false, "certificate expiry time (ex: getNotAfter)");
+            .field("certExpiryTime", "Timestamp", false, "certificate expiry time (ex: getNotAfter)")
+            .field("certIssueTime", "Timestamp", false, "certificate issue time (ex: getNotBefore)");
+
+        sb.structType("WorkloadOptions")
+            .field("ipChanged", "Bool", false, "boolean flag to signal a change in IP state");
 
         sb.structType("Workloads")
             .comment("list of workloads")
@@ -185,6 +189,25 @@ public class MSDSchema {
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)
             .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("WorkloadOptions", "PUT", "/domain/{domainName}/service/{serviceName}/workload")
+            .comment("Api for doing a PUT on Workload for a domain/service Workload details are obtained from the service certificate")
+            .name("putWorkload")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .input("options", "WorkloadOptions", "workload store to be inserted")
+            .auth("", "", true)
+            .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
