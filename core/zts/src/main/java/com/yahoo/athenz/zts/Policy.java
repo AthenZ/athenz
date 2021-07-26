@@ -21,6 +21,12 @@ public class Policy {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean caseSensitive;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String version;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean active;
 
     public Policy setName(String name) {
         this.name = name;
@@ -50,6 +56,20 @@ public class Policy {
     public Boolean getCaseSensitive() {
         return caseSensitive;
     }
+    public Policy setVersion(String version) {
+        this.version = version;
+        return this;
+    }
+    public String getVersion() {
+        return version;
+    }
+    public Policy setActive(Boolean active) {
+        this.active = active;
+        return this;
+    }
+    public Boolean getActive() {
+        return active;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -68,6 +88,12 @@ public class Policy {
                 return false;
             }
             if (caseSensitive == null ? a.caseSensitive != null : !caseSensitive.equals(a.caseSensitive)) {
+                return false;
+            }
+            if (version == null ? a.version != null : !version.equals(a.version)) {
+                return false;
+            }
+            if (active == null ? a.active != null : !active.equals(a.active)) {
                 return false;
             }
         }

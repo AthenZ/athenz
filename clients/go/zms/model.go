@@ -2449,6 +2449,16 @@ type Policy struct {
 	// If true, we should store action and resource in their original case
 	//
 	CaseSensitive *bool `json:"caseSensitive,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// optional version string, defaults to 0
+	//
+	Version SimpleName `json:"version,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// if multi-version policy then indicates active version
+	//
+	Active *bool `json:"active,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 //
@@ -2504,6 +2514,12 @@ func (self *Policy) Validate() error {
 	}
 	if self.Assertions == nil {
 		return fmt.Errorf("Policy: Missing required field: assertions")
+	}
+	if self.Version != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.Version)
+		if !val.Valid {
+			return fmt.Errorf("Policy.version does not contain a valid SimpleName (%v)", val.Error)
+		}
 	}
 	return nil
 }
