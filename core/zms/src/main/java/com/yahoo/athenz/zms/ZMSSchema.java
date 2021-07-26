@@ -283,7 +283,9 @@ public class ZMSSchema {
             .field("name", "ResourceName", false, "name of the policy")
             .field("modified", "Timestamp", true, "last modification timestamp of this policy")
             .arrayField("assertions", "Assertion", false, "list of defined assertions for this policy")
-            .field("caseSensitive", "Bool", true, "If true, we should store action and resource in their original case");
+            .field("caseSensitive", "Bool", true, "If true, we should store action and resource in their original case")
+            .field("version", "SimpleName", true, "optional version string, defaults to 0")
+            .field("active", "Bool", true, "if multi-version policy then indicates active version");
 
         sb.structType("Policies")
             .comment("The representation of list of policy objects")

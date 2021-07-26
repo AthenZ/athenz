@@ -45,6 +45,8 @@ type Policy Struct {
     Timestamp modified (optional); //last modification timestamp of this policy
     Array<Assertion> assertions; //list of defined assertions for this policy
     Bool caseSensitive (optional); // If true, we should store action and resource in their original case
+    SimpleName version (optional); // optional version string, defaults to 0
+    Bool active (optional); // if multi-version policy then indicates active version
 }
 
 //The representation of list of policy objects

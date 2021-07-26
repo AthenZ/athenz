@@ -146,6 +146,8 @@ func init() {
 	tPolicy.Field("modified", "Timestamp", true, nil, "last modification timestamp of this policy")
 	tPolicy.ArrayField("assertions", "Assertion", false, "list of defined assertions for this policy")
 	tPolicy.Field("caseSensitive", "Bool", true, nil, "If true, we should store action and resource in their original case")
+	tPolicy.Field("version", "SimpleName", true, nil, "optional version string, defaults to 0")
+	tPolicy.Field("active", "Bool", true, nil, "if multi-version policy then indicates active version")
 	sb.AddType(tPolicy.Build())
 
 	tPolicyData := rdl.NewStructTypeBuilder("Struct", "PolicyData")
