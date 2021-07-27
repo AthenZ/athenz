@@ -42,11 +42,11 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
     private final RoleReviewPrincipalNotificationToMetricConverter roleReviewPrincipalNotificationToMetricConverter;
     private final RoleReviewDomainNotificationToMetricConverter roleReviewDomainNotificationToMetricConverter;
 
-    public RoleMemberReviewNotificationTask(DBService dbService, String userDomainPrefix) {
+    public RoleMemberReviewNotificationTask(DBService dbService, String userDomainPrefix, NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
         this.dbService = dbService;
         this.roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbService, userDomainPrefix);
-        this.roleReviewDomainNotificationToEmailConverter = new RoleReviewDomainNotificationToEmailConverter();
-        this.roleReviewPrincipalNotificationToEmailConverter = new RoleReviewPrincipalNotificationToEmailConverter();
+        this.roleReviewDomainNotificationToEmailConverter = new RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon);
+        this.roleReviewPrincipalNotificationToEmailConverter = new RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon);
         this.roleReviewDomainNotificationToMetricConverter = new RoleReviewDomainNotificationToMetricConverter();
         this.roleReviewPrincipalNotificationToMetricConverter = new RoleReviewPrincipalNotificationToMetricConverter();
     }
@@ -93,8 +93,8 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailPrincipalReviewBody;
 
-        public RoleReviewPrincipalNotificationToEmailConverter() {
-            notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        public RoleReviewPrincipalNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
             emailPrincipalReviewBody =  notificationToEmailConverterCommon.readContentFromFile(
                     getClass().getClassLoader(),
                     EMAIL_TEMPLATE_PRINCIPAL_REVIEW);
@@ -129,8 +129,8 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailDomainMemberReviewBody;
 
-        public RoleReviewDomainNotificationToEmailConverter() {
-            notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        public RoleReviewDomainNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
             emailDomainMemberReviewBody = notificationToEmailConverterCommon.readContentFromFile(
                     getClass().getClassLoader(),
                     EMAIL_TEMPLATE_DOMAIN_MEMBER_REVIEW);

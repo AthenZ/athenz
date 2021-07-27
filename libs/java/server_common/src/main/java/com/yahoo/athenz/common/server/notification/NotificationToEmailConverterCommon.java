@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import com.yahoo.athenz.auth.Authority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,7 @@ public class NotificationToEmailConverterCommon {
     private static final String PROP_NOTIFICATION_ATHENZ_UI_URL = "athenz.notification_athenz_ui_url";
     private static final String PROP_NOTIFICATION_SUPPORT_TEXT = "athenz.notification_support_text";
     private static final String PROP_NOTIFICATION_SUPPORT_URL = "athenz.notification_support_url";
+    private static final String PROP_NOTIFICATION_USER_AUTHORITY = "athenz.notification_user_authority";
     private static final String EMAIL_TEMPLATE_CSS = "emails/base.css";
 
     private static final String HTML_STYLE_TAG_START = "<style>";
@@ -50,16 +52,17 @@ public class NotificationToEmailConverterCommon {
     // can be moved to constructor which can take Locale as input parameter and return appropriate resource bundle
     private static final ResourceBundle RB = ResourceBundle.getBundle("messages/ServerCommon");
 
-    private String userDomainPrefix;
-    private String emailDomainTo;
-    private String workflowUrl;
-    private String athenzUIUrl;
-    private String supportText;
-    private String supportUrl;
-    private String emailBaseCSS;
+    private final String userDomainPrefix;
+    private final String emailDomainTo;
+    private final String workflowUrl;
+    private final String athenzUIUrl;
+    private final String supportText;
+    private final String supportUrl;
+    private final String emailBaseCSS;
+    private final Authority notificationUserAuthority;
 
 
-    public NotificationToEmailConverterCommon() {
+    public NotificationToEmailConverterCommon(Authority notificationUserAuthority) {
         String userDomain = System.getProperty(PROP_USER_DOMAIN, USER_DOMAIN_DEFAULT);
         userDomainPrefix = userDomain + "\\.";
         emailDomainTo = System.getProperty(PROP_NOTIFICATION_EMAIL_DOMAIN_TO);
@@ -70,6 +73,26 @@ public class NotificationToEmailConverterCommon {
 
         emailBaseCSS = readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_CSS);
 
+        // If a notificationUserAuthority is configured load it.
+        final String configuredNotificationAuthority = System.getProperty(PROP_NOTIFICATION_USER_AUTHORITY);
+        if (configuredNotificationAuthority != null) {
+            this.notificationUserAuthority = loadNotificationUserAuthority(configuredNotificationAuthority);
+        } else {
+            this.notificationUserAuthority = notificationUserAuthority;
+        }
+    }
+
+    private Authority loadNotificationUserAuthority(String className) {
+        LOGGER.debug("Loading Notification user authority {}...", className);
+
+        Authority authority;
+        try {
+            authority = (Authority) Class.forName(className).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOGGER.error("Invalid Notification user Authority class: {} error: {}", className, e.getMessage());
+            return null;
+        }
+        return authority;
     }
 
     public String readContentFromFile(ClassLoader classLoader, String fileName) {
@@ -149,8 +172,15 @@ public class NotificationToEmailConverterCommon {
 
     public Set<String> getFullyQualifiedEmailAddresses(Set<String> recipients) {
         return recipients.stream()
-                .map(s -> s.replaceAll(userDomainPrefix, ""))
-                .map(r -> r + AT + emailDomainTo)
+                .map(userName -> {
+                    if (notificationUserAuthority != null) {
+                        String email = notificationUserAuthority.getUserEmail(userName);
+                        if (email != null) {
+                            return email;
+                        }
+                    }
+                    return userName.replaceAll(userDomainPrefix, "") + AT + emailDomainTo;
+                })
                 .collect(Collectors.toSet());
     }
 

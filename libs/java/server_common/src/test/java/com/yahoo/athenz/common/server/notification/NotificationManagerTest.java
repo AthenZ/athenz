@@ -92,9 +92,9 @@ public class NotificationManagerTest {
         notificationTasks.add(notificationTask2);
 
         if (notificationServiceFactories == null) {
-            return new NotificationManager(notificationTasks);
+            return new NotificationManager(notificationTasks, null);
         }
-        return new NotificationManager(notificationServiceFactories, notificationTasks);
+        return new NotificationManager(notificationServiceFactories, notificationTasks, null);
     }
 
     @Test
@@ -115,7 +115,7 @@ public class NotificationManagerTest {
 
         // Test with two factories
         System.setProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS, emailNotificationFactory + ", " + metricNotificationFactory);
-        NotificationManager notificationManager = new NotificationManager(notificationTasks);
+        NotificationManager notificationManager = new NotificationManager(notificationTasks, null);
         assertEquals(notificationManager.getLoadedNotificationServices().size(), 2);
         assertEquals(notificationManager.getLoadedNotificationServices().get(0), emailNotificationService);
         assertEquals(notificationManager.getLoadedNotificationServices().get(1), metricNotificationService);
@@ -123,14 +123,14 @@ public class NotificationManagerTest {
 
         // Test with a single factory
         System.setProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS, emailNotificationFactory);
-        notificationManager = new NotificationManager(notificationTasks);
+        notificationManager = new NotificationManager(notificationTasks, null);
         assertEquals(notificationManager.getLoadedNotificationServices().size(), 1);
         assertEquals(notificationManager.getLoadedNotificationServices().get(0), emailNotificationService);
         assertTrue(notificationManager.isNotificationFeatureAvailable());
 
         // Test with no factories
         System.clearProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
-        notificationManager = new NotificationManager(notificationTasks);
+        notificationManager = new NotificationManager(notificationTasks, null);
         assertEquals(notificationManager.getLoadedNotificationServices().size(), 0);
         assertFalse(notificationManager.isNotificationFeatureAvailable());
     }

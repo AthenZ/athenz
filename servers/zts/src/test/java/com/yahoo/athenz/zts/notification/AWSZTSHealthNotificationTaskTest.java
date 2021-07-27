@@ -19,6 +19,7 @@ package com.yahoo.athenz.zts.notification;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationEmail;
 import com.yahoo.athenz.common.server.notification.NotificationMetric;
+import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zts.ZTSClientNotification;
@@ -46,6 +47,7 @@ public class AWSZTSHealthNotificationTaskTest {
     private DataStore dataStore;
     private final String userDomainPrefix = "user.";
     private final String serverName = "testServer";
+    private final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
 
     @BeforeClass
     public void setup() {
@@ -59,7 +61,8 @@ public class AWSZTSHealthNotificationTaskTest {
                 ztsClientNotification,
                 dataStore,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                notificationToEmailConverterCommon);
 
         List<Notification> notifications = awsztsHealthNotificationTask.getNotifications();
         assertEquals(0, notifications.size());
@@ -98,7 +101,8 @@ public class AWSZTSHealthNotificationTaskTest {
                 clientNotification,
                 dataStore,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                notificationToEmailConverterCommon);
 
         List<Notification> notifications = awsztsHealthNotificationTask.getNotifications();
         assertEquals(1, notifications.size());
@@ -117,7 +121,8 @@ public class AWSZTSHealthNotificationTaskTest {
                 ztsClientNotification,
                 dataStore,
                 userDomainPrefix,
-                serverName);
+                serverName,
+                notificationToEmailConverterCommon);
 
         String description = awsztsHealthNotificationTask.getDescription();
         assertEquals("ZTS On AWS Health Notification", description);
@@ -136,7 +141,7 @@ public class AWSZTSHealthNotificationTaskTest {
 
         Notification notification = new Notification();
         notification.setDetails(details);
-        AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter converter = new AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter();
+        AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter converter = new AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -160,7 +165,7 @@ public class AWSZTSHealthNotificationTaskTest {
     @Test
     public void getEmailSubject() {
         Notification notification = new Notification();
-        AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter converter = new AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter();
+        AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter converter = new AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter(notificationToEmailConverterCommon);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         Assert.assertEquals(subject, "AWS ZTS Failure Notification");

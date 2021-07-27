@@ -16,6 +16,9 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.common.server.debug.DebugUserAuthority;
+import com.yahoo.athenz.common.server.notification.impl.NotificationAuthorityForTest;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -40,7 +43,7 @@ public class NotificationToEmailConverterCommonTest {
 
         Set<String> recipients = new HashSet<>(Arrays.asList("entuser.user1", "entuser.user2", "entuser.user3"));
 
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
         Set<String> recipientsResp = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(recipients);
         assertNotNull(recipientsResp);
 
@@ -55,12 +58,65 @@ public class NotificationToEmailConverterCommonTest {
     }
 
     @Test
+    public void testGetFullyQualifiedEmailAddressesUserAuthority() {
+        System.clearProperty("athenz.user_domain");
+        System.setProperty("athenz.user_domain", "entuser");
+        System.setProperty("athenz.notification_email_domain_from", "from.example.com");
+        System.setProperty("athenz.notification_email_domain_to", "example.com");
+
+        Set<String> recipients = new HashSet<>(Arrays.asList("entuser.user1", "entuser.user2", "entuser.user3", "unknown.user"));
+
+        Authority notificationAuthorityForTest = new NotificationAuthorityForTest();
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(notificationAuthorityForTest);
+        Set<String> recipientsResp = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(recipients);
+        assertNotNull(recipientsResp);
+
+        assertEquals(recipientsResp.size(), 4);
+        assertTrue(recipientsResp.contains("entuser.user1@mail.from.authority.com"));
+        assertTrue(recipientsResp.contains("entuser.user2@mail.from.authority.com"));
+        assertTrue(recipientsResp.contains("entuser.user3@mail.from.authority.com"));
+        assertTrue(recipientsResp.contains("unknown.user@example.com"));
+
+        System.clearProperty("athenz.notification_email_domain_from");
+        System.clearProperty("athenz.notification_email_domain_to");
+        System.clearProperty("athenz.user_domain");
+    }
+
+    @Test
+    public void testGetFullyQualifiedEmailAddressesUserAuthorityProp() {
+        System.clearProperty("athenz.user_domain");
+        System.setProperty("athenz.user_domain", "entuser");
+        System.setProperty("athenz.notification_email_domain_from", "from.example.com");
+        System.setProperty("athenz.notification_email_domain_to", "example.com");
+        System.setProperty("athenz.notification_user_authority", "com.yahoo.athenz.common.server.notification.impl.NotificationAuthorityForTest");
+
+        Set<String> recipients = new HashSet<>(Arrays.asList("entuser.user1", "entuser.user2", "entuser.user3", "unknown.user"));
+
+        // Verify when athenz.notification_user_authority is set it will take precedence over passed authority
+        DebugUserAuthority debugUserAuthority = new DebugUserAuthority();
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(debugUserAuthority);
+        Set<String> recipientsResp = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(recipients);
+        assertNotNull(recipientsResp);
+
+        assertEquals(recipientsResp.size(), 4);
+        assertTrue(recipientsResp.contains("entuser.user1@mail.from.authority.com"));
+        assertTrue(recipientsResp.contains("entuser.user2@mail.from.authority.com"));
+        assertTrue(recipientsResp.contains("entuser.user3@mail.from.authority.com"));
+        assertTrue(recipientsResp.contains("unknown.user@example.com"));
+
+        System.clearProperty("athenz.notification_email_domain_from");
+        System.clearProperty("athenz.notification_email_domain_to");
+        System.clearProperty("athenz.user_domain");
+        System.clearProperty("athenz.notification_user_authority");
+    }
+
+    @Test
     public void testGetFullyQualifiedEmailAddressesDefaultUserDomain() {
         System.setProperty("athenz.notification_email_domain_from", "from.test.com");
         System.setProperty("athenz.notification_email_domain_to", "test.com");
 
         Set<String> recipients = new HashSet<>(Arrays.asList("user.user1", "user.user2", "user.user3"));
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
         Set<String> recipientsResp = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(recipients);
         assertNotNull(recipientsResp);
 
@@ -75,13 +131,13 @@ public class NotificationToEmailConverterCommonTest {
 
     @Test
     public void testReadContentFromFile() {
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
         assertTrue(notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), "resources/non-existent").isEmpty());
     }
 
     @Test
     public void testReadContentFromFileNull() throws Exception {
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
 
         BufferedReader reader = mock(BufferedReader.class);
         Mockito.when(reader.readLine()).thenReturn(null);
@@ -90,7 +146,7 @@ public class NotificationToEmailConverterCommonTest {
 
     @Test
     public void testReadContentFromFileException() throws Exception {
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
 
         BufferedReader reader = mock(BufferedReader.class);
         Mockito.when(reader.readLine()).thenThrow(new IOException());
@@ -99,7 +155,7 @@ public class NotificationToEmailConverterCommonTest {
 
     @Test
     public void testgettTbleEntryTemplate() {
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
         int numOfColumns = 1;
         String tableEntryTemplate = notificationToEmailConverterCommon.getTableEntryTemplate(numOfColumns);
         assertEquals(tableEntryTemplate, "<tr><td class=\"cv\">{0}</td></tr>");

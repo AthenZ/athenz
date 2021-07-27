@@ -37,6 +37,7 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
     public void testSendPendingMembershipApprovalReminders() {
 
         DBService dbsvc = Mockito.mock(DBService.class);
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = () -> mockNotificationService;
 
@@ -52,13 +53,13 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
 
         ZMSTestUtils.sleep(1000);
 
-        PendingRoleMembershipApprovalNotificationTask reminder = new PendingRoleMembershipApprovalNotificationTask(dbsvc, 0, "", USER_DOMAIN_PREFIX);
+        PendingRoleMembershipApprovalNotificationTask reminder = new PendingRoleMembershipApprovalNotificationTask(dbsvc, 0, "", USER_DOMAIN_PREFIX, notificationToEmailConverterCommon);
         List<Notification> notifications = reminder.getNotifications();
 
         // Verify contents of notification is as expected
         assertEquals(notifications.size(), 1);
         Notification expectedNotification = new Notification();
-        expectedNotification.setNotificationToEmailConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter());
+        expectedNotification.setNotificationToEmailConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(notificationToEmailConverterCommon));
         expectedNotification.setNotificationToMetricConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter());
         expectedNotification.addRecipient("user.joe");
         assertEquals(notifications.get(0), expectedNotification);
@@ -80,7 +81,8 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
 
         Notification notification = new Notification();
         notification.setDetails(details);
-        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter();
+        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter =
+                new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -100,7 +102,8 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
     @Test
     public void getEmailSubject() {
         Notification notification = new Notification();
-        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter();
+        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter =
+                new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Membership Approval Reminder Notification");

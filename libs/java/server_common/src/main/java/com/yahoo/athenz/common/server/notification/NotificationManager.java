@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import com.yahoo.athenz.auth.Authority;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +35,11 @@ public class NotificationManager {
     private List<NotificationService> notificationServices = new ArrayList<>();
     private ScheduledExecutorService scheduledExecutor;
     private List<NotificationTask> notificationTasks;
+    private final Authority notificationUserAuthority;
 
-    public NotificationManager(List<NotificationTask> notificationTasks) {
+    public NotificationManager(List<NotificationTask> notificationTasks, Authority notificationUserAuthority) {
         this.notificationTasks = notificationTasks;
+        this.notificationUserAuthority = notificationUserAuthority;
         String notificationServiceFactoryClasses = System.getProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
         if (!StringUtil.isEmpty(notificationServiceFactoryClasses)) {
             String[] notificationServiceFactoryClassArray = notificationServiceFactoryClasses.split(",");
@@ -64,8 +67,9 @@ public class NotificationManager {
         }
     }
 
-    public NotificationManager(final List<NotificationServiceFactory> notificationServiceFactories, List<NotificationTask> notificationTasks) {
+    public NotificationManager(final List<NotificationServiceFactory> notificationServiceFactories, List<NotificationTask> notificationTasks, Authority notificationUserAuthority) {
         this.notificationTasks = notificationTasks;
+        this.notificationUserAuthority = notificationUserAuthority;
         notificationServiceFactories.stream().filter(Objects::nonNull).forEach(notificationFactory -> {
             NotificationService notificationService = notificationFactory.create();
             if (notificationService != null) {
@@ -102,6 +106,10 @@ public class NotificationManager {
         List<String> loadedNotificationServices = new ArrayList<>();
         notificationServices.forEach(notificationService -> loadedNotificationServices.add(notificationService.getClass().getName()));
         return loadedNotificationServices;
+    }
+
+    public Authority getNotificationUserAuthority() {
+        return notificationUserAuthority;
     }
 
     class PeriodicNotificationsSender implements Runnable {

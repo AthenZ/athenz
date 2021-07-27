@@ -49,6 +49,7 @@ import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.config.MemberDueDays;
@@ -20325,7 +20326,7 @@ public class ZMSImplTest {
         expextedNotifications.get(0).addDetails("role", "testrole2");
         expextedNotifications.get(0).addDetails("domain", "testdomain1");
         expextedNotifications.get(0).addDetails("member", "user.fury");
-        expextedNotifications.get(0).setNotificationToEmailConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter());
+        expextedNotifications.get(0).setNotificationToEmailConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(new NotificationToEmailConverterCommon(null)));
         expextedNotifications.get(0).setNotificationToMetricConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter());
 
         Mockito.verify(mockNotificationManager,

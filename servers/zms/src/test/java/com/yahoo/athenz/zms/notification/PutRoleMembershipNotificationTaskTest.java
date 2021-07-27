@@ -20,12 +20,10 @@ import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.ZMSTestUtils;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -41,6 +39,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.AssertJUnit.assertEquals;
 
 public class PutRoleMembershipNotificationTaskTest {
+    private final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+
     @Test
     public void testGenerateAndSendPostPutMembershipNotification() {
         DBService dbsvc = Mockito.mock(DBService.class);
@@ -94,7 +94,7 @@ public class PutRoleMembershipNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification();
@@ -104,7 +104,7 @@ public class PutRoleMembershipNotificationTaskTest {
                 .addRecipient("user.orgapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
 
-        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(notificationToEmailConverterCommon);
         notification.setNotificationToEmailConverter(converter);
 
         PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
@@ -150,7 +150,7 @@ public class PutRoleMembershipNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification();
@@ -159,7 +159,7 @@ public class PutRoleMembershipNotificationTaskTest {
                 .addRecipient("user.orgapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
 
-        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(notificationToEmailConverterCommon);
         notification.setNotificationToEmailConverter(converter);
 
         PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
@@ -205,7 +205,7 @@ public class PutRoleMembershipNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification();
@@ -214,7 +214,7 @@ public class PutRoleMembershipNotificationTaskTest {
                 .addRecipient("user.domapprover2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
 
-        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(notificationToEmailConverterCommon);
         notification.setNotificationToEmailConverter(converter);
 
         PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
@@ -260,7 +260,7 @@ public class PutRoleMembershipNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(true);
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification();
@@ -269,7 +269,7 @@ public class PutRoleMembershipNotificationTaskTest {
                 .addRecipient("user.domadmin2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
 
-        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(notificationToEmailConverterCommon);
         notification.setNotificationToEmailConverter(converter);
 
         PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
@@ -335,7 +335,7 @@ public class PutRoleMembershipNotificationTaskTest {
 
         Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(false).setReviewEnabled(true)
                 .setNotifyRoles("athenz:role.approvers,notify");
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification();
@@ -345,7 +345,7 @@ public class PutRoleMembershipNotificationTaskTest {
                 .addRecipient("user.approver2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1");
 
-        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(notificationToEmailConverterCommon);
         notification.setNotificationToEmailConverter(converter);
 
         PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
@@ -369,7 +369,7 @@ public class PutRoleMembershipNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
         notificationManager.shutdown();
         Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(false);
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, null, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, null, dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
         Mockito.verify(mockNotificationService, times(0)).notify(any());
     }
@@ -385,7 +385,7 @@ public class PutRoleMembershipNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
         notificationManager.shutdown();
         Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(false);
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, null, dbsvc, USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, null, dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
         verify(mockNotificationService, never()).notify(any(Notification.class));
     }
@@ -399,7 +399,8 @@ public class PutRoleMembershipNotificationTaskTest {
                 new Role(),
                 new HashMap<>(),
                 dbsvc,
-                USER_DOMAIN_PREFIX);
+                USER_DOMAIN_PREFIX,
+                notificationToEmailConverterCommon);
 
         String description = putMembershipNotificationTask.getDescription();
         assertEquals("Membership Approval Notification", description);
@@ -420,7 +421,7 @@ public class PutRoleMembershipNotificationTaskTest {
 
         Notification notification = new Notification();
         notification.setDetails(details);
-        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -445,7 +446,7 @@ public class PutRoleMembershipNotificationTaskTest {
     @Test
     public void getEmailSubject() {
         Notification notification = new Notification();
-        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter();
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(notificationToEmailConverterCommon);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Membership Approval Notification");

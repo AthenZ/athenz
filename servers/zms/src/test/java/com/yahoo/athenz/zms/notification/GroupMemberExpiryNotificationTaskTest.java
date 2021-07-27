@@ -46,7 +46,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getGroupExpiryMembers(1)).thenThrow(new IllegalArgumentException());
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
-        GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX);
+        GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
         // to make sure we're not creating any notifications, we're going
         // to configure our mock to throw an exception
 
@@ -74,7 +74,7 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         Mockito.when(mockNotificationService.notify(any())).thenThrow(new IllegalArgumentException());
 
-        GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX);
+        GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
         assertEquals(groupMemberExpiryNotificationTask.getNotifications(), new ArrayList<>());
 
         notificationManager.shutdown();
@@ -83,6 +83,7 @@ public class GroupMemberExpiryNotificationTaskTest {
     public void testSendGroupMemberExpiryReminders() {
 
         DBService dbsvc = Mockito.mock(DBService.class);
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = () -> mockNotificationService;
 
@@ -119,7 +120,7 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         Mockito.when(dbsvc.getRolesByDomain("athenz1")).thenReturn(domain.getRoles());
 
-        List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX)
+        List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon)
                 .getNotifications();
 
         // we should get 2 notifications - one for user and one for domain
@@ -130,14 +131,14 @@ public class GroupMemberExpiryNotificationTaskTest {
         expectedFirstNotification.addRecipient("user.joe");
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;group1;1970-01-01T00:00:00.100Z");
         expectedFirstNotification.addDetails("member", "user.joe");
-        expectedFirstNotification.setNotificationToEmailConverter(new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter());
+        expectedFirstNotification.setNotificationToEmailConverter(new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon));
         expectedFirstNotification.setNotificationToMetricConverter(new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter());
 
         Notification expectedSecondNotification = new Notification();
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "user.joe;group1;1970-01-01T00:00:00.100Z");
         expectedSecondNotification.addDetails("domain", "athenz1");
-        expectedSecondNotification.setNotificationToEmailConverter(new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter());
+        expectedSecondNotification.setNotificationToEmailConverter(new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon));
         expectedSecondNotification.setNotificationToMetricConverter(new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter());
 
         assertEquals(notifications.get(0), expectedFirstNotification);
@@ -175,7 +176,7 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         Mockito.when(dbsvc.getAthenzDomain("athenz1", false)).thenReturn(null);
 
-        List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX).getNotifications();
+        List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null)).getNotifications();
 
         // we should get 0 notifications
         assertEquals(notifications, new ArrayList<>());
@@ -183,6 +184,7 @@ public class GroupMemberExpiryNotificationTaskTest {
 
     @Test
     public void testGetEmailBody() {
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
         System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
         System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
         System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
@@ -196,7 +198,7 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         Notification notification = new Notification();
         notification.setDetails(details);
-        GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter converter = new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter();
+        GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter converter = new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -237,7 +239,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         notification.setDetails(details);
         details.put(NOTIFICATION_DETAILS_ROLES_LIST,
                 "athenz1;group1;2020-12-01T12:00:00.000Z|athenz2;group2;2020-12-01T12:00:00.000Z");
-        GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter principalConverter = new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter();
+        GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter principalConverter = new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon);
         NotificationEmail principalNotificationAsEmail = principalConverter.getNotificationAsEmail(notification);
 
         body = principalNotificationAsEmail.getBody();
@@ -261,13 +263,14 @@ public class GroupMemberExpiryNotificationTaskTest {
     @Test
     public void testGetEmailSubject() {
         Notification notification = new Notification();
-        GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter converter = new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter();
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+        GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter converter = new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Domain Group Member Expiration Notification");
 
         notification = new Notification();
-        GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter principalConverter = new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter();
+        GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter principalConverter = new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon);
         notificationAsEmail = principalConverter.getNotificationAsEmail(notification);
         subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Group Member Expiration Notification");

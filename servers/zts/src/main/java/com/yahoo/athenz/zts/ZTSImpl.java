@@ -35,6 +35,7 @@ import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
@@ -121,6 +122,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
     protected AuditLogger auditLogger = null;
+    protected Authority userAuthority = null;
     protected String serverRegion = null;
     protected String userDomain;
     protected String userDomainPrefix;
@@ -312,7 +314,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // create our instance manager and provider
         
-        instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer, hostnameResolver, readOnlyMode);
+        instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer, hostnameResolver, readOnlyMode, userAuthority);
 
         instanceProviderManager = new InstanceProviderManager(dataStore,
                 ZTSUtils.createServerClientSSLContext(privateKeyStore), privateKey, this);
@@ -335,9 +337,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 hostnameResolver,
                 userDomainPrefix,
                 serverHostName,
-                httpsPort);
+                httpsPort,
+                new NotificationToEmailConverterCommon(userAuthority));
 
-        notificationManager = new NotificationManager(ztsNotificationTaskFactory.getNotificationTasks());
+        notificationManager = new NotificationManager(ztsNotificationTaskFactory.getNotificationTasks(), userAuthority);
 
         // Enable notifications for instanceCertManager
         instanceCertManager.enableCertStoreNotifications(notificationManager, dataStore, serverHostName);
@@ -662,13 +665,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             privateKey = privateRSAKey;
         }
     }
-    
+
     void loadAuthorities() {
-        
+
         // get our authorities
-        
+
         final String authListConfig = System.getProperty(ZTSConsts.ZTS_PROP_AUTHORITY_CLASSES,
                 ZTSConsts.ZTS_PRINCIPAL_AUTHORITY_CLASS);
+        final String userAuthorityClass = System.getProperty(ZTSConsts.ZTS_PROP_USER_AUTHORITY_CLASS);
+
         authorities = new AuthorityList();
 
         String[] authorityList = authListConfig.split(",");
@@ -676,6 +681,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             Authority authority = getAuthority(authorityClass);
             if (authority == null) {
                 throw new IllegalArgumentException("Invalid authority");
+            }
+            if (authorityClass.equals(userAuthorityClass)) {
+                userAuthority = authority;
             }
             authority.initialize();
             authorities.add(authority);

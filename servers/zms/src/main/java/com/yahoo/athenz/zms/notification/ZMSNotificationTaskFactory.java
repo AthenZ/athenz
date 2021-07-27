@@ -18,6 +18,7 @@ package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.notification.NotificationTask;
 import com.yahoo.athenz.common.server.notification.NotificationTaskFactory;
+import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.ZMSConsts;
 
@@ -25,12 +26,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ZMSNotificationTaskFactory implements NotificationTaskFactory {
-    private DBService dbService;
-    private String userDomainPrefix;
+    private final DBService dbService;
+    private final String userDomainPrefix;
+    private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
 
-    public ZMSNotificationTaskFactory(DBService dbService, String userDomainPrefix) {
+
+    public ZMSNotificationTaskFactory(DBService dbService, String userDomainPrefix, NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
         this.dbService = dbService;
         this.userDomainPrefix = userDomainPrefix;
+        this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
     }
 
     @Override
@@ -38,11 +42,11 @@ public class ZMSNotificationTaskFactory implements NotificationTaskFactory {
         List<NotificationTask> notificationTasks = new ArrayList<>();
         int pendingRoleMemberLifespan = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_PENDING_ROLE_MEMBER_LIFESPAN, ZMSConsts.ZMS_PENDING_ROLE_MEMBER_LIFESPAN_DEFAULT));
         String monitorIdentity = System.getProperty(ZMSConsts.ZMS_PROP_MONITOR_IDENTITY, ZMSConsts.SYS_AUTH_MONITOR);
-        notificationTasks.add(new PendingRoleMembershipApprovalNotificationTask(dbService, pendingRoleMemberLifespan, monitorIdentity, userDomainPrefix));
-        notificationTasks.add(new PendingGroupMembershipApprovalNotificationTask(dbService, pendingRoleMemberLifespan, monitorIdentity, userDomainPrefix));
-        notificationTasks.add(new RoleMemberExpiryNotificationTask(dbService, userDomainPrefix));
-        notificationTasks.add(new RoleMemberReviewNotificationTask(dbService, userDomainPrefix));
-        notificationTasks.add(new GroupMemberExpiryNotificationTask(dbService, userDomainPrefix));
+        notificationTasks.add(new PendingRoleMembershipApprovalNotificationTask(dbService, pendingRoleMemberLifespan, monitorIdentity, userDomainPrefix, notificationToEmailConverterCommon));
+        notificationTasks.add(new PendingGroupMembershipApprovalNotificationTask(dbService, pendingRoleMemberLifespan, monitorIdentity, userDomainPrefix, notificationToEmailConverterCommon));
+        notificationTasks.add(new RoleMemberExpiryNotificationTask(dbService, userDomainPrefix, notificationToEmailConverterCommon));
+        notificationTasks.add(new RoleMemberReviewNotificationTask(dbService, userDomainPrefix, notificationToEmailConverterCommon));
+        notificationTasks.add(new GroupMemberExpiryNotificationTask(dbService, userDomainPrefix, notificationToEmailConverterCommon));
         return notificationTasks;
     }
 }

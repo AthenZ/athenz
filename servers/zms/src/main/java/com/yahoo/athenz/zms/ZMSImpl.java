@@ -32,6 +32,7 @@ import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 import com.yahoo.athenz.common.server.metastore.DomainMetaStoreFactory;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
@@ -203,6 +204,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected ObjectStore objectStore = null;
     protected ZMSGroupMembersFetcher groupMemberFetcher = null;
     protected DomainMetaStore domainMetaStore = null;
+    protected NotificationToEmailConverterCommon notificationToEmailConverterCommon;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -650,8 +652,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private void setNotificationManager() {
-        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbService, userDomainPrefix);
-        notificationManager = new NotificationManager(zmsNotificationTaskFactory.getNotificationTasks());
+        notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(userAuthority);
+        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbService, userDomainPrefix, notificationToEmailConverterCommon);
+        notificationManager = new NotificationManager(zmsNotificationTaskFactory.getNotificationTasks(), userAuthority);
     }
 
     void loadSystemProperties() {
@@ -4094,7 +4097,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("Sending Membership Approval notification after putMembership");
         }
 
-        List<Notification> notifications = new PutRoleMembershipNotificationTask(domain, org, role, details, dbService, userDomainPrefix).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask(domain, org, role, details, dbService, userDomainPrefix, notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 
@@ -4111,7 +4114,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("Sending Group Membership Approval notification after putGroupMembership");
         }
 
-        List<Notification> notifications = new PutGroupMembershipNotificationTask(domain, org, group, details, dbService, userDomainPrefix).getNotifications();
+        List<Notification> notifications = new PutGroupMembershipNotificationTask(domain, org, group, details, dbService, userDomainPrefix, notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 

@@ -41,14 +41,14 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
     private final PutMembershipNotificationToEmailConverter putMembershipNotificationToEmailConverter;
     private final PutMembershipNotificationToMetricConverter putMembershipNotificationToMetricConverter;
 
-    public PutRoleMembershipNotificationTask(String domain, String org, Role role, Map<String, String> details, DBService dbService, String userDomainPrefix) {
+    public PutRoleMembershipNotificationTask(String domain, String org, Role role, Map<String, String> details, DBService dbService, String userDomainPrefix, NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
         this.domain = domain;
         this.org = org;
         this.role = role;
         this.details = details;
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
-        this.putMembershipNotificationToEmailConverter = new PutMembershipNotificationToEmailConverter();
+        this.putMembershipNotificationToEmailConverter = new PutMembershipNotificationToEmailConverter(notificationToEmailConverterCommon);
         this.putMembershipNotificationToMetricConverter = new PutMembershipNotificationToMetricConverter();
     }
 
@@ -114,8 +114,8 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailMembershipApprovalBody;
 
-        public PutMembershipNotificationToEmailConverter() {
-            notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        public PutMembershipNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
             emailMembershipApprovalBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_NOTIFICATION_APPROVAL);
         }
 

@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts.cert;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.InetAddresses;
+import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.PrivateKeyStore;
@@ -75,9 +76,14 @@ public class InstanceCertManager {
     private boolean responseSendX509SignerCerts;
     private ObjectMapper jsonMapper;
     private Map<String, CertificateAuthorityBundle> certAuthorityBundles = null;
+    private final Authority notificationUserAuthority;
 
     public InstanceCertManager(final PrivateKeyStore keyStore, Authorizer authorizer, HostnameResolver hostnameResolver,
-            boolean readOnlyMode) {
+            boolean readOnlyMode, Authority notificationUserAuthority) {
+
+        // Set notification authority for notifications in certificate store
+
+        this.notificationUserAuthority = notificationUserAuthority;
 
         // set our authorizer object
 
