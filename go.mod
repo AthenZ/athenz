@@ -5,8 +5,9 @@ require (
 	github.com/ardielle/ardielle-go v1.5.2
 	github.com/ardielle/ardielle-tools v1.5.4 // indirect
 	github.com/aws/aws-sdk-go v1.32.6
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dimfeld/httptreemux v5.0.1+incompatible
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/gorilla/mux v1.7.4
 	github.com/jawher/mow.cli v1.2.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
