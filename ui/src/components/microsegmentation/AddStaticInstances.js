@@ -140,7 +140,7 @@ export default class AddStaticInstances extends React.Component {
         var urlParts = window.location.pathname.split('/');
         var serviceName = this.props.service;
         var fullServiceName = this.props.domain + '.' + serviceName;
-        var auditRef = 'adding static ips for micro-segment';
+        var auditRef = 'adding static ips for microsegmentation';
         var hostDetails = [];
         let detail = { name: fullServiceName };
         this.state.members.forEach((member) => {

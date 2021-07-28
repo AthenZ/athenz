@@ -177,7 +177,7 @@ export default class MicrosegmentationPage extends React.Component {
         }
         return (
             <CacheProvider value={this.cache}>
-                <div data-testid='micro-segmentation'>
+                <div data-testid='microsegmentation'>
                     <Head>
                         <title>Athenz</title>
                     </Head>

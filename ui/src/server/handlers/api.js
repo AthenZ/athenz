@@ -1985,7 +1985,7 @@ Fetchr.registerService({
                                             jsonData['outbound'].push(tempData);
                                             index = jsonData['outbound'].length;
                                         }
-                                        //assertion convention for micro-segmentation:
+                                        //assertion convention for microsegmentation:
                                         //GRANT [Action: <transport layer>-IN / <transport layer>-OUT]:[Source Port]:[Destination Port] [Resource:<service-name>] ON <role-name>
                                         // role name will be of the form : <domain>:role.<roleName>
                                         let roleName =

@@ -159,7 +159,7 @@ export default class RuleRow extends React.Component {
                 this.state.assertionId,
                 this.state.justification
                     ? this.state.justification
-                    : 'Micro-segmentaion assertion deletion',
+                    : 'Microsegmentaion assertion deletion',
                 this.props._csrf
             ),
             this.api.deleteRole(
@@ -167,7 +167,7 @@ export default class RuleRow extends React.Component {
                 deleteRoleName,
                 this.state.justification
                     ? this.state.justification
-                    : 'Micro-segmentaion Role deletion',
+                    : 'Microsegmentaion Role deletion',
                 this.props._csrf
             ),
         ])
@@ -220,7 +220,7 @@ export default class RuleRow extends React.Component {
                 this.state.conditionId,
                 this.state.justification
                     ? this.state.justification
-                    : 'Micro-segmentaion Assertion Condition deletion',
+                    : 'Microsegmentaion Assertion Condition deletion',
                 this.props._csrf
             )
             .then(() => {
@@ -244,6 +244,24 @@ export default class RuleRow extends React.Component {
         });
     }
 
+    removeDuplicatePort(port) {
+        let portArray = port.split(',');
+
+        portArray = portArray.map((ports) => {
+            if (ports.indexOf('-') != -1) {
+                let port = ports.split('-');
+                if (port[0] == port[1]) {
+                    return port[0];
+                } else {
+                    return ports;
+                }
+            } else {
+                return ports;
+            }
+        });
+        return portArray.join();
+    }
+
     render() {
         let rows = [];
         let left = 'left';
@@ -258,6 +276,10 @@ export default class RuleRow extends React.Component {
             this.onClickDeleteConditionCancel.bind(this);
         let inbound = this.props.category === 'inbound';
         let clickDelete;
+
+        data.destination_port = this.removeDuplicatePort(data.destination_port);
+        data.source_port = this.removeDuplicatePort(data.source_port);
+
         if (inbound) {
             key =
                 this.props.category +
@@ -284,7 +306,7 @@ export default class RuleRow extends React.Component {
             );
         }
 
-        let editData = this.props.details;
+        let editData = data;
         editData['category'] = this.props.category;
         let addSegmentation = this.state.showEditSegmentation ? (
             <AddSegmentation
