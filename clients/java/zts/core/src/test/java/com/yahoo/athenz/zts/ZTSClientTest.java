@@ -2677,8 +2677,13 @@ public class ZTSClientTest {
         assertNotNull(req);
 
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
-        assertEquals("sports:role.readers", Crypto.extractX509CSRCommonName(certReq));
-        assertEquals("coretech.test@aws.athenz.cloud", Crypto.extractX509CSREmail(certReq));
+        assertEquals(Crypto.extractX509CSRCommonName(certReq), "sports:role.readers");
+        assertEquals(Crypto.extractX509CSREmail(certReq), "coretech.test@aws.athenz.cloud");
+
+        List<String> uris = Crypto.extractX509CSRURIs(certReq);
+        assertEquals(uris.size(), 2);
+        assertEquals(uris.get(0), "spiffe://sports/ra/readers");
+        assertEquals(uris.get(1), "athenz://principal/coretech.test");
     }
 
     @Test
