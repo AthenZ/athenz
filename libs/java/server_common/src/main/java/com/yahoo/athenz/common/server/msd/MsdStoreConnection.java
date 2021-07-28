@@ -39,7 +39,7 @@ public interface MsdStoreConnection {
      * getWorkloadsBySvc looks up all workloads for the requested service in the MSD storage
      * @param domain of the service to look up
      * @param service name of the service to look up
-     * @return a List of WorkloadData
+     * @return a List of Workload
      */
     default public List<Workload> getWorkloadsBySvc(String domain, String service) {
         return new ArrayList<>();
@@ -48,7 +48,7 @@ public interface MsdStoreConnection {
     /**
      * getWorkloadsByIp looks up all workloads for the requested ip in the MSD Storage
      * @param ip to lookup
-     * @return a List of WorkloadData
+     * @return a List of Workload
      */
     default public List<Workload> getWorkloadsByIp(String ip) {
         return new ArrayList<>();

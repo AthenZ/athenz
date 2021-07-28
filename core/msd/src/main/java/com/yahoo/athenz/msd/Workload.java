@@ -4,6 +4,7 @@
 
 package com.yahoo.athenz.msd;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
 
@@ -20,6 +21,8 @@ public class Workload {
     public String provider;
     public Timestamp updateTime;
     public Timestamp certExpiryTime;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp certIssueTime;
 
     public Workload setDomainName(String domainName) {
