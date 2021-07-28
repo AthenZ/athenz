@@ -297,10 +297,12 @@ func (client MSDClient) GetTransportPolicyRules(matchingTag string) (*TransportP
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case 200:
-		err = json.NewDecoder(resp.Body).Decode(&data)
-		if err != nil {
-			return nil, "", err
+	case 200, 304:
+		if 304 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return nil, "", err
+			}
 		}
 		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
 		return data, tag, nil
@@ -333,10 +335,12 @@ func (client MSDClient) GetWorkloadsByService(domainName DomainName, serviceName
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case 200:
-		err = json.NewDecoder(resp.Body).Decode(&data)
-		if err != nil {
-			return nil, "", err
+	case 200, 304:
+		if 304 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return nil, "", err
+			}
 		}
 		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
 		return data, tag, nil
@@ -369,10 +373,12 @@ func (client MSDClient) GetWorkloadsByIP(ip string, matchingTag string) (*Worklo
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case 200:
-		err = json.NewDecoder(resp.Body).Decode(&data)
-		if err != nil {
-			return nil, "", err
+	case 200, 304:
+		if 304 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return nil, "", err
+			}
 		}
 		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
 		return data, tag, nil
