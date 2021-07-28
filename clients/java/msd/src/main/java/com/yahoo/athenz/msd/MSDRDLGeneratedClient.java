@@ -62,8 +62,12 @@ public class MSDRDLGeneratedClient {
         int code = response.getStatus();
         switch (code) {
         case 200:
+        case 304:
             if (headers != null) {
                 headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
+            }
+            if (code == 304) {
+                return null;
             }
             return response.readEntity(TransportPolicyRules.class);
         default:
@@ -88,8 +92,12 @@ public class MSDRDLGeneratedClient {
         int code = response.getStatus();
         switch (code) {
         case 200:
+        case 304:
             if (headers != null) {
                 headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
+            }
+            if (code == 304) {
+                return null;
             }
             return response.readEntity(Workloads.class);
         default:
@@ -113,8 +121,12 @@ public class MSDRDLGeneratedClient {
         int code = response.getStatus();
         switch (code) {
         case 200:
+        case 304:
             if (headers != null) {
                 headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
+            }
+            if (code == 304) {
+                return null;
             }
             return response.readEntity(Workloads.class);
         default:
