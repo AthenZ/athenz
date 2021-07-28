@@ -195,18 +195,18 @@ export default class AddStaticInstances extends React.Component {
         let typeChanged = this.inputChanged.bind(this, 'resourceValue');
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
-                // dummy place holder so that it can be be used in the form
-                item.approved = true;
-                let remove = this.deleteMember.bind(this, idx);
-                return (
-                    <Member
-                        key={idx}
-                        item={item}
-                        onClickRemove={remove}
-                        noanim
-                    />
-                );
-            })
+                  // dummy place holder so that it can be be used in the form
+                  item.approved = true;
+                  let remove = this.deleteMember.bind(this, idx);
+                  return (
+                      <Member
+                          key={idx}
+                          item={item}
+                          onClickRemove={remove}
+                          noanim
+                      />
+                  );
+              })
             : '';
         let sections = (
             <SectionsDiv>

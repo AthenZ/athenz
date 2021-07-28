@@ -19,12 +19,16 @@ import Input from '../denali/Input';
 import InputLabel from '../denali/InputLabel';
 import Member from '../member/Member';
 import styled from '@emotion/styled';
-import {colors} from '../denali/styles';
+import { colors } from '../denali/styles';
 import AddModal from '../modal/AddModal';
 import RequestUtils from '../utils/RequestUtils';
 import InputDropdown from '../denali/InputDropdown';
 import Icon from '../denali/icons/Icon';
-import {MODAL_TIME_OUT, SEGMENTATION_CATEGORIES, SEGMENTATION_PROTOCOL,} from '../constants/constants';
+import {
+    MODAL_TIME_OUT,
+    SEGMENTATION_CATEGORIES,
+    SEGMENTATION_PROTOCOL,
+} from '../constants/constants';
 import NameUtils from '../utils/NameUtils';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
 
@@ -154,13 +158,13 @@ export default class AddSegmentation extends React.Component {
             members: this.props.editMode
                 ? this.props.data['category'] === 'inbound'
                     ? this.props.data['source_services'].map((str) => ({
-                        memberName: str,
-                        approved: true,
-                    }))
+                          memberName: str,
+                          approved: true,
+                      }))
                     : this.props.data['destination_services'].map((str) => ({
-                        memberName: str,
-                        approved: true,
-                    }))
+                          memberName: str,
+                          approved: true,
+                      }))
                 : [],
             protocolValid: true,
             action: '',
@@ -170,9 +174,12 @@ export default class AddSegmentation extends React.Component {
                 ? this.props.data['identifier']
                 : '',
             justification: '',
-            PESList: this.props.editMode && this.props.data['conditionsList']
-                ? JSON.parse(JSON.stringify(this.props.data['conditionsList']))
-                : [{ enforcementstate: 'report', instances: '', id: 1 }],
+            PESList:
+                this.props.editMode && this.props.data['conditionsList']
+                    ? JSON.parse(
+                          JSON.stringify(this.props.data['conditionsList'])
+                      )
+                    : [{ enforcementstate: 'report', instances: '', id: 1 }],
             data: props.data,
         };
     }
@@ -947,18 +954,18 @@ export default class AddSegmentation extends React.Component {
 
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
-                // dummy place holder so that it can be be used in the form
-                item.approved = true;
-                let remove = this.deleteMember.bind(this, idx);
-                return (
-                    <Member
-                        key={idx}
-                        item={item}
-                        onClickRemove={remove}
-                        noanim
-                    />
-                );
-            })
+                  // dummy place holder so that it can be be used in the form
+                  item.approved = true;
+                  let remove = this.deleteMember.bind(this, idx);
+                  return (
+                      <Member
+                          key={idx}
+                          item={item}
+                          onClickRemove={remove}
+                          noanim
+                      />
+                  );
+              })
             : '';
 
         let sections = (
@@ -1001,8 +1008,8 @@ export default class AddSegmentation extends React.Component {
                         value={
                             this.props.editMode
                                 ? this.state.isCategory
-                                ? this.state.inboundDestinationService
-                                : this.state.outboundSourceService
+                                    ? this.state.inboundDestinationService
+                                    : this.state.outboundSourceService
                                 : undefined
                         }
                         onChange={(item) =>
