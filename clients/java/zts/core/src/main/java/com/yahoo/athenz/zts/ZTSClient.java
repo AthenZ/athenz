@@ -158,6 +158,10 @@ public class ZTSClient implements Closeable {
     public static final String ZTS_CLIENT_PKEY_STORE_FACTORY_CLASS              = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
     public static final String ZTS_CLIENT_DEFAULT_CLIENT_SSL_PROTOCOL           = "TLSv1.2";
 
+    public static final String SPIFFE_URI          = "spiffe://";
+    public static final String SPIFFE_COMP_SERVICE = "/sa/";
+    public static final String SPIFFE_COMP_ROLE    = "/ra/";
+
     public static final String ROLE_TOKEN_HEADER = System.getProperty(RoleAuthority.ATHENZ_PROP_ROLE_HEADER,
             RoleAuthority.HTTP_HEADER);
 
@@ -1410,8 +1414,10 @@ public class ZTSClient implements Closeable {
         
         final String domain = principalDomain.toLowerCase();
         final String service = principalService.toLowerCase();
+        final String rnDomain = roleDomainName.toLowerCase();
+        final String rnName = roleName.toLowerCase();
         
-        String dn = "cn=" + roleDomainName.toLowerCase() + AuthorityConsts.ROLE_SEP + roleName.toLowerCase();
+        String dn = "cn=" + rnDomain + AuthorityConsts.ROLE_SEP + rnName;
         if (csrDn != null) {
             dn = dn.concat(",").concat(csrDn);
         }
@@ -1422,10 +1428,16 @@ public class ZTSClient implements Closeable {
         final String hostName = service + '.' + domain.replace('.', '-') + '.' + csrDomain;
         final String email = domain + "." + service + "@" + csrDomain;
         
-        GeneralName[] sanArray = new GeneralName[2];
+        GeneralName[] sanArray = new GeneralName[4];
         sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostName));
         sanArray[1] = new GeneralName(GeneralName.rfc822Name, new DERIA5String(email));
-        
+
+        final String spiffeUri = SPIFFE_URI + rnDomain + SPIFFE_COMP_ROLE + rnName;
+        sanArray[2] = new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(spiffeUri));
+
+        final String principalUri = AuthorityConsts.ZTS_CERT_PRINCIPAL_URI + domain + "." + service;
+        sanArray[3] = new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(principalUri));
+
         String csr;
         try {
             csr = Crypto.generateX509CSR(privateKey, dn, sanArray);
@@ -1510,7 +1522,7 @@ public class ZTSClient implements Closeable {
         final String hostName = service + '.' + domain.replace('.', '-') + '.' + csrDomain;
         sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostName));
 
-        final String spiffeUri = "spiffe://" + domain + "/sa/" + service;
+        final String spiffeUri = SPIFFE_URI + domain + SPIFFE_COMP_SERVICE + service;
         sanArray[1] = new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(spiffeUri));
 
         String csr;
@@ -2385,7 +2397,7 @@ public class ZTSClient implements Closeable {
                 ".instanceid.athenz." + x509CsrDomain;
         sanArray[1] = new GeneralName(GeneralName.dNSName, new DERIA5String(instanceHostBuilder));
 
-        final String spiffeUri = "spiffe://" + info.getDomain() + "/sa/" + info.getService();
+        final String spiffeUri = SPIFFE_URI + info.getDomain() + SPIFFE_COMP_SERVICE + info.getService();
         sanArray[2] = new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(spiffeUri));
 
         // next generate the csr based on our private key and data
