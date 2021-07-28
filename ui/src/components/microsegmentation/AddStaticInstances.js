@@ -140,7 +140,7 @@ export default class AddStaticInstances extends React.Component {
         var urlParts = window.location.pathname.split('/');
         var serviceName = this.props.service;
         var fullServiceName = this.props.domain + '.' + serviceName;
-        var auditRef = 'adding static ips for micro-segment';
+        var auditRef = 'adding static ips for microsegmentation';
         var hostDetails = [];
         let detail = { name: fullServiceName };
         this.state.members.forEach((member) => {
@@ -195,18 +195,18 @@ export default class AddStaticInstances extends React.Component {
         let typeChanged = this.inputChanged.bind(this, 'resourceValue');
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
-                  // dummy place holder so that it can be be used in the form
-                  item.approved = true;
-                  let remove = this.deleteMember.bind(this, idx);
-                  return (
-                      <Member
-                          key={idx}
-                          item={item}
-                          onClickRemove={remove}
-                          noanim
-                      />
-                  );
-              })
+                // dummy place holder so that it can be be used in the form
+                item.approved = true;
+                let remove = this.deleteMember.bind(this, idx);
+                return (
+                    <Member
+                        key={idx}
+                        item={item}
+                        onClickRemove={remove}
+                        noanim
+                    />
+                );
+            })
             : '';
         let sections = (
             <SectionsDiv>

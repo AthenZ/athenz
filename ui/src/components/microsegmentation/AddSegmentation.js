@@ -19,20 +19,14 @@ import Input from '../denali/Input';
 import InputLabel from '../denali/InputLabel';
 import Member from '../member/Member';
 import styled from '@emotion/styled';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
 import AddModal from '../modal/AddModal';
-import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import InputDropdown from '../denali/InputDropdown';
 import Icon from '../denali/icons/Icon';
-import {
-    MODAL_TIME_OUT,
-    SEGMENTATION_CATEGORIES,
-    SEGMENTATION_PROTOCOL,
-} from '../constants/constants';
+import {MODAL_TIME_OUT, SEGMENTATION_CATEGORIES, SEGMENTATION_PROTOCOL,} from '../constants/constants';
 import NameUtils from '../utils/NameUtils';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
-import Modal from '../denali/Modal';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -64,20 +58,24 @@ const StyledButtonGroup = styled(ButtonGroup)`
 
 const StyledInput = styled(Input)`
     width: 750px;
+    padding-top: 12px;
 `;
 
 const StyledInputHost = styled(Input)`
     width: 415px;
+    padding-top: 12px;
 `;
 
 const AddCircleDiv = styled.div`
     margin-top: 5px;
     margin-left: 10px;
+    padding-top: 12px;
 `;
 
 const RemoveCircleDiv = styled.div`
     margin-top: 5px;
     margin-left: 10px;
+    padding-top: 12px;
 `;
 
 const ContentDiv = styled.div`
@@ -102,6 +100,10 @@ const SectionsDiv = styled.div`
 const StyledRadioButtonGroup = styled(RadioButtonGroup)`
     padding-top: 18px;
     width: 26%;
+`;
+
+const StyledInputDropdown = styled(InputDropdown)`
+    padding-top: 12px;
 `;
 
 export default class AddSegmentation extends React.Component {
@@ -152,13 +154,13 @@ export default class AddSegmentation extends React.Component {
             members: this.props.editMode
                 ? this.props.data['category'] === 'inbound'
                     ? this.props.data['source_services'].map((str) => ({
-                          memberName: str,
-                          approved: true,
-                      }))
+                        memberName: str,
+                        approved: true,
+                    }))
                     : this.props.data['destination_services'].map((str) => ({
-                          memberName: str,
-                          approved: true,
-                      }))
+                        memberName: str,
+                        approved: true,
+                    }))
                 : [],
             protocolValid: true,
             action: '',
@@ -168,7 +170,7 @@ export default class AddSegmentation extends React.Component {
                 ? this.props.data['identifier']
                 : '',
             justification: '',
-            PESList: this.props.editMode
+            PESList: this.props.editMode && this.props.data['conditionsList']
                 ? JSON.parse(JSON.stringify(this.props.data['conditionsList']))
                 : [{ enforcementstate: 'report', instances: '', id: 1 }],
             data: props.data,
@@ -312,7 +314,7 @@ export default class AddSegmentation extends React.Component {
                                     this.state.PESList,
                                     this.state.justification
                                         ? this.state.justification
-                                        : 'Micro-segmentaion Assertion Condition using Athenz UI',
+                                        : 'Microsegmentaion Assertion Condition using Athenz UI',
                                     this.props._csrf
                                 )
                                 .then((conditionData) => {
@@ -366,7 +368,7 @@ export default class AddSegmentation extends React.Component {
                                             this.state.PESList,
                                             this.state.justification
                                                 ? this.state.justification
-                                                : 'Micro-segmentaion Assertion Condition using Athenz UI',
+                                                : 'Microsegmentaion Assertion Condition using Athenz UI',
                                             this.props._csrf
                                         )
                                         .then((conditionData) => {
@@ -427,6 +429,8 @@ export default class AddSegmentation extends React.Component {
                 let end = parseInt(range[1]);
                 if (
                     range.length != 2 ||
+                    isNaN(start) ||
+                    isNaN(end) ||
                     start < 1 ||
                     end < 1 ||
                     start > end ||
@@ -442,9 +446,7 @@ export default class AddSegmentation extends React.Component {
                     result.error = 1;
                     return result;
                 }
-            } else if (ports[i] > 0 && ports[i] <= 65535) {
-                ports[i] = ports[i] + '-' + ports[i];
-            } else {
+            } else if (ports[i] < 0 && ports[i] > 65535) {
                 this.setState({
                     errorMessage:
                         'Invalid port: ' +
@@ -700,7 +702,7 @@ export default class AddSegmentation extends React.Component {
                             role,
                             this.state.justification
                                 ? this.state.justification
-                                : 'Micro-segmentaion Role creation',
+                                : 'Microsegmentaion Role creation',
                             this.props._csrf
                         )
                         .then((data) => {
@@ -810,14 +812,19 @@ export default class AddSegmentation extends React.Component {
                         other.id == current.id
                 ).length == 0;
 
-            let x = this.props.data['conditionsList'].filter(
-                comparer(this.state.PESList)
-            );
-            let y = this.state.PESList.filter(
-                comparer(this.props.data['conditionsList'])
-            );
+            if (this.props.data['conditionList']) {
+                let x = this.props.data['conditionsList'].filter(
+                    comparer(this.state.PESList)
+                );
+                let y = this.state.PESList.filter(
+                    comparer(this.props.data['conditionsList'])
+                );
 
-            if (x.length != 0 || y.length != 0) {
+                if (x.length != 0 || y.length != 0) {
+                    assertionConditionChanged = true;
+                    updatedData['conditionsList'] = this.state.PESList;
+                }
+            } else {
                 assertionConditionChanged = true;
                 updatedData['conditionsList'] = this.state.PESList;
             }
@@ -940,18 +947,18 @@ export default class AddSegmentation extends React.Component {
 
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
-                  // dummy place holder so that it can be be used in the form
-                  item.approved = true;
-                  let remove = this.deleteMember.bind(this, idx);
-                  return (
-                      <Member
-                          key={idx}
-                          item={item}
-                          onClickRemove={remove}
-                          noanim
-                      />
-                  );
-              })
+                // dummy place holder so that it can be be used in the form
+                item.approved = true;
+                let remove = this.deleteMember.bind(this, idx);
+                return (
+                    <Member
+                        key={idx}
+                        item={item}
+                        onClickRemove={remove}
+                        noanim
+                    />
+                );
+            })
             : '';
 
         let sections = (
@@ -988,14 +995,14 @@ export default class AddSegmentation extends React.Component {
                             ? 'Destination Service'
                             : 'Source Service'}
                     </StyledInputLabel>
-                    <InputDropdown
+                    <StyledInputDropdown
                         name='destinationService'
                         options={this.state.destinationServiceList}
                         value={
                             this.props.editMode
                                 ? this.state.isCategory
-                                    ? this.state.inboundDestinationService
-                                    : this.state.outboundSourceService
+                                ? this.state.inboundDestinationService
+                                : this.state.outboundSourceService
                                 : undefined
                         }
                         onChange={(item) =>
@@ -1008,8 +1015,8 @@ export default class AddSegmentation extends React.Component {
                         }
                         placeholder={
                             this.state.isCategory
-                                ? 'Enter Destination Service'
-                                : 'Enter Source Service'
+                                ? 'Select Destination Service'
+                                : 'Select Source Service'
                         }
                         noanim
                         filterable
@@ -1172,7 +1179,7 @@ export default class AddSegmentation extends React.Component {
                 </SectionDiv>
                 <SectionDiv>
                     <StyledInputLabel>Protocol</StyledInputLabel>
-                    <InputDropdown
+                    <StyledInputDropdown
                         name='protocol'
                         defaultSelectedValue={this.state.protocol}
                         options={SEGMENTATION_PROTOCOL}
@@ -1208,8 +1215,8 @@ export default class AddSegmentation extends React.Component {
                     }
                     title={
                         this.props.editMode
-                            ? `Edit Micro Segmentation ACL Policy`
-                            : `Add Micro Segmentation ACL Policy`
+                            ? `Edit Microsegmentation ACL Policy`
+                            : `Add Microsegmentation ACL Policy`
                     }
                     errorMessage={this.state.errorMessage}
                     sections={sections}

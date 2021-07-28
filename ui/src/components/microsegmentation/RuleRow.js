@@ -54,8 +54,8 @@ const colorTransition = keyframes`
 
 const TrStyled = styled.tr`
     ${(props) =>
-        props.isSuccess &&
-        css`
+    props.isSuccess &&
+    css`
             animation: ${colorTransition} 3s ease;
         `}
 `;
@@ -159,7 +159,7 @@ export default class RuleRow extends React.Component {
                 this.state.assertionId,
                 this.state.justification
                     ? this.state.justification
-                    : 'Micro-segmentaion assertion deletion',
+                    : 'Microsegmentaion assertion deletion',
                 this.props._csrf
             ),
             this.api.deleteRole(
@@ -167,7 +167,7 @@ export default class RuleRow extends React.Component {
                 deleteRoleName,
                 this.state.justification
                     ? this.state.justification
-                    : 'Micro-segmentaion Role deletion',
+                    : 'Microsegmentaion Role deletion',
                 this.props._csrf
             ),
         ])
@@ -220,7 +220,7 @@ export default class RuleRow extends React.Component {
                 this.state.conditionId,
                 this.state.justification
                     ? this.state.justification
-                    : 'Micro-segmentaion Assertion Condition deletion',
+                    : 'Microsegmentaion Assertion Condition deletion',
                 this.props._csrf
             )
             .then(() => {

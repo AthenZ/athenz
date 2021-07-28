@@ -243,6 +243,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
 
 .emotion-20 {
   width: 750px;
+  padding-top: 12px;
 }
 
 .emotion-27 {
@@ -254,6 +255,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
 }
 
 .emotion-28 {
+  padding-top: 12px;
+}
+
+.emotion-30 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -270,7 +275,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 250px;
 }
 
-.emotion-28 input {
+.emotion-30 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -296,42 +301,42 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 100%;
 }
 
-.emotion-28.animated input {
+.emotion-30.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-28 input::-webkit-input-placeholder {
+.emotion-30 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-28 input::-moz-placeholder {
+.emotion-30 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-28 input:-ms-input-placeholder {
+.emotion-30 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-28 input::placeholder {
+.emotion-30 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-28 input.focused,
-.emotion-28 input:active,
-.emotion-28 input:focus {
+.emotion-30 input.focused,
+.emotion-30 input:active,
+.emotion-30 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-28 input:invalid {
+.emotion-30 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-28 .message {
+.emotion-30 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -339,22 +344,22 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   top: 2.571rem;
 }
 
-.emotion-28.error input,
-.emotion-28.error input.focused,
-.emotion-28.error input:active,
-.emotion-28.error input:focus {
+.emotion-30.error input,
+.emotion-30.error input.focused,
+.emotion-30.error input:active,
+.emotion-30.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-28.error .message {
+.emotion-30.error .message {
   color: #d01111;
 }
 
-.emotion-28 input {
+.emotion-30 input {
   padding-right: 36px;
 }
 
-.emotion-28 .input-icon {
+.emotion-30 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -368,13 +373,13 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   right: 6px;
 }
 
-.emotion-29 {
+.emotion-31 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-35 {
+.emotion-37 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -385,18 +390,18 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   flex-flow: row nowrap;
 }
 
-.emotion-35>* {
+.emotion-37>* {
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
 }
 
-.emotion-36 {
+.emotion-38 {
   padding-top: 18px;
   width: 26%;
 }
 
-.emotion-38 {
+.emotion-40 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -409,7 +414,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   vertical-align: bottom;
 }
 
-.emotion-38>input[type='radio'] {
+.emotion-40>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -418,7 +423,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   visibility: hidden;
 }
 
-.emotion-38>input[type='radio']+label {
+.emotion-40>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -431,7 +436,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   white-space: nowrap;
 }
 
-.emotion-38>input[type='radio']+label:before {
+.emotion-40>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -447,29 +452,29 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 16px;
 }
 
-.emotion-38>input[type='radio']:hover+label:before {
+.emotion-40>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-38>input[type='radio']:focus+label:before {
+.emotion-40>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-38>input[type='radio']:checked+label:before {
+.emotion-40>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-38>input[type='radio']:disabled+label {
+.emotion-40>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-38>input[type='radio']:disabled+label:before {
+.emotion-40>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-38>input[type='radio']:checked+label:after {
+.emotion-40>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -484,7 +489,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 8px;
 }
 
-.emotion-41 {
+.emotion-43 {
   float: left;
   font-size: 14px;
   font-weight: 700;
@@ -492,33 +497,35 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 8%;
 }
 
-.emotion-44 {
-  width: 415px;
-}
-
 .emotion-46 {
-  margin-top: 5px;
-  margin-left: 10px;
+  width: 415px;
+  padding-top: 12px;
 }
 
 .emotion-48 {
+  margin-top: 5px;
+  margin-left: 10px;
+  padding-top: 12px;
+}
+
+.emotion-50 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-54 {
+.emotion-56 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 1px;
 }
 
-.emotion-75 {
+.emotion-77 {
   width: 65%;
 }
 
-.emotion-84 {
+.emotion-86 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -534,10 +541,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
     class="emotion-2 emotion-3"
   >
     <div
-      class="emotion-4 emotion-32"
+      class="emotion-4 emotion-5"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-31"
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
       >
         ACL Category
       </label>
@@ -560,10 +567,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
       </div>
     </div>
     <div
-      class="emotion-4 emotion-32"
+      class="emotion-4 emotion-5"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-31"
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
       >
         Identifier
       </label>
@@ -584,10 +591,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
       </div>
     </div>
     <div
-      class="emotion-4 emotion-32"
+      class="emotion-4 emotion-5"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-31"
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
       >
         Destination Service
       </label>
@@ -595,12 +602,12 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         aria-expanded="false"
         aria-haspopup="listbox"
         aria-labelledby="downshift-2-label"
-        class="emotion-27 denali-input-dropdown"
+        class="emotion-27 denali-input-dropdown emotion-28 emotion-29"
         data-testid="input-dropdown"
         role="combobox"
       >
         <div
-          class="emotion-28 denali-input"
+          class="emotion-30 denali-input"
           data-testid="input-wrapper"
         >
           <input
@@ -611,7 +618,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
             data-testid="input-node"
             id="downshift-2-input"
             name="destinationService"
-            placeholder="Enter Destination Service"
+            placeholder="Select Destination Service"
             spellcheck="false"
             value=""
           />
@@ -620,7 +627,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           >
             
             <svg
-              class="emotion-29"
+              class="emotion-31"
               data-testid="icon"
               height="24px"
               viewBox="0 0 1024 1024"
@@ -642,19 +649,19 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
       </div>
     </div>
     <div
-      class="emotion-4 emotion-32"
+      class="emotion-4 emotion-5"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-31"
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
       >
         Policy Enforcement State
       </label>
       <div
-        class="emotion-35 denali-radiobutton-group emotion-36 emotion-37"
+        class="emotion-37 denali-radiobutton-group emotion-38 emotion-39"
         data-testid="radiobuttongroup"
       >
         <div
-          class="emotion-38 denali-radiobutton"
+          class="emotion-40 denali-radiobutton"
           data-testid="radiobutton-wrapper"
         >
           <input
@@ -671,7 +678,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           </label>
         </div>
         <div
-          class="emotion-38 denali-radiobutton"
+          class="emotion-40 denali-radiobutton"
           data-testid="radiobutton-wrapper"
         >
           <input
@@ -688,12 +695,12 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         </div>
       </div>
       <label
-        class="emotion-6 denali-input-label emotion-41 emotion-30"
+        class="emotion-6 denali-input-label emotion-43 emotion-391"
       >
         Hosts
       </label>
       <div
-        class="emotion-19 denali-input emotion-44 emotion-45"
+        class="emotion-19 denali-input emotion-46 emotion-47"
         data-testid="input-wrapper"
       >
         <input
@@ -709,10 +716,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         />
       </div>
       <div
-        class="emotion-46 emotion-47"
+        class="emotion-48 emotion-49"
       >
         <svg
-          class="emotion-48"
+          class="emotion-50"
           data-testid="icon"
           height="1.75em"
           viewBox="0 0 1024 1024"
@@ -731,15 +738,15 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
       </div>
     </div>
     <div
-      class="emotion-4 emotion-32"
+      class="emotion-4 emotion-5"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-31"
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
       >
         Destination Port(s)
       </label>
       <div
-        class="emotion-54 emotion-55"
+        class="emotion-56 emotion-57"
       >
         <div
           class="emotion-19 denali-input emotion-20 emotion-21"
@@ -759,10 +766,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
       </div>
     </div>
     <div
-      class="emotion-4 emotion-32"
+      class="emotion-4 emotion-5"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-31"
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
       >
         Source Service
       </label>
@@ -782,10 +789,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         />
       </div>
       <div
-        class="emotion-46 emotion-47"
+        class="emotion-48 emotion-49"
       >
         <svg
-          class="emotion-48"
+          class="emotion-50"
           data-testid="icon"
           height="1.75em"
           viewBox="0 0 1024 1024"
@@ -804,28 +811,28 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
       </div>
     </div>
     <div
-      class="emotion-4 emotion-32"
+      class="emotion-4 emotion-5"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-31"
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
       />
       <div
-        class="emotion-75 emotion-76"
+        class="emotion-77 emotion-78"
       />
     </div>
     <div
-      class="emotion-4 emotion-32"
+      class="emotion-4 emotion-5"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-31"
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
       >
         Source Port(s)
       </label>
       <div
-        class="emotion-54 emotion-55"
+        class="emotion-56 emotion-57"
       >
         <div
-          class="emotion-84 emotion-85"
+          class="emotion-86 emotion-87"
         >
           <div
             class="emotion-19 denali-input emotion-20 emotion-21"
@@ -846,10 +853,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
       </div>
     </div>
     <div
-      class="emotion-4 emotion-32"
+      class="emotion-4 emotion-5"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-31"
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
       >
         Protocol
       </label>
@@ -857,12 +864,12 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         aria-expanded="false"
         aria-haspopup="listbox"
         aria-labelledby="downshift-3-label"
-        class="emotion-27 denali-input-dropdown"
+        class="emotion-27 denali-input-dropdown emotion-28 emotion-29"
         data-testid="input-dropdown"
         role="combobox"
       >
         <div
-          class="emotion-28 denali-input"
+          class="emotion-30 denali-input"
           data-testid="input-wrapper"
         >
           <input
@@ -882,7 +889,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           >
             
             <svg
-              class="emotion-29"
+              class="emotion-31"
               data-testid="icon"
               height="24px"
               viewBox="0 0 1024 1024"

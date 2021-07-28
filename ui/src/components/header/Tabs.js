@@ -128,7 +128,7 @@ class Tabs extends React.Component {
 
     render() {
         let microSeg = {
-            label: 'Micro Segmentation',
+            label: 'Microsegmentation',
             name: 'microsegmentation',
         };
 

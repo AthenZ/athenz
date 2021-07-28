@@ -741,9 +741,9 @@ Fetchr.registerService({
                 policyData.assertions.forEach((assertion) => {
                     if (
                         assertion.role ===
-                            params.domainName + ':role.' + params.roleName &&
+                        params.domainName + ':role.' + params.roleName &&
                         assertion.resource ===
-                            params.domainName + ':' + params.resource &&
+                        params.domainName + ':' + params.resource &&
                         assertion.action === params.action &&
                         assertion.effect === params.effect
                     ) {
@@ -1925,91 +1925,91 @@ Fetchr.registerService({
                             let category = '';
 
                             item.assertions &&
-                                item.assertions.forEach(
-                                    (assertionItem, assertionIdx) => {
-                                        let tempData = {};
-                                        let tempProtocol =
-                                            assertionItem.action.split('-');
-                                        tempData['layer'] = tempProtocol[0];
-                                        let tempPort =
-                                            assertionItem.action.split(':');
-                                        tempData['source_port'] = tempPort[1];
-                                        tempData['destination_port'] =
-                                            tempPort[2];
-                                        if (assertionItem.conditions) {
-                                            tempData['conditionsList'] = [];
+                            item.assertions.forEach(
+                                (assertionItem, assertionIdx) => {
+                                    let tempData = {};
+                                    let tempProtocol =
+                                        assertionItem.action.split('-');
+                                    tempData['layer'] = tempProtocol[0];
+                                    let tempPort =
+                                        assertionItem.action.split(':');
+                                    tempData['source_port'] = tempPort[1];
+                                    tempData['destination_port'] =
+                                        tempPort[2];
+                                    if (assertionItem.conditions) {
+                                        tempData['conditionsList'] = [];
 
-                                            assertionItem.conditions[
-                                                'conditionsList'
+                                        assertionItem.conditions[
+                                            'conditionsList'
                                             ].forEach((condition) => {
-                                                let tempCondition = {};
-                                                Object.keys(
-                                                    condition['conditionsMap']
-                                                ).forEach((key) => {
-                                                    tempCondition[key] =
-                                                        condition[
-                                                            'conditionsMap'
+                                            let tempCondition = {};
+                                            Object.keys(
+                                                condition['conditionsMap']
+                                            ).forEach((key) => {
+                                                tempCondition[key] =
+                                                    condition[
+                                                        'conditionsMap'
                                                         ][key]['value'];
-                                                });
-                                                tempCondition['id'] =
-                                                    condition['id'];
-                                                tempCondition['assertionId'] =
-                                                    assertionItem['id'];
-                                                tempCondition['policyName'] =
-                                                    item.name;
-                                                tempData['conditionsList'].push(
-                                                    tempCondition
-                                                );
                                             });
-                                        }
-                                        let index = 0;
-                                        if (item.name.includes('inbound')) {
-                                            category = 'inbound';
-                                            tempData['destination_service'] =
-                                                serviceName;
-                                            tempData['source_services'] = [];
-                                            tempData['assertionIdx'] =
-                                                assertionItem.id;
-                                            jsonData['inbound'].push(tempData);
-                                            index = jsonData['inbound'].length;
-                                        } else if (
-                                            item.name.includes('outbound')
-                                        ) {
-                                            category = 'outbound';
-                                            tempData['source_service'] =
-                                                serviceName;
-                                            tempData['destination_services'] =
-                                                [];
-                                            tempData['assertionIdx'] =
-                                                assertionItem.id;
-                                            jsonData['outbound'].push(tempData);
-                                            index = jsonData['outbound'].length;
-                                        }
-                                        //assertion convention for micro-segmentation:
-                                        //GRANT [Action: <transport layer>-IN / <transport layer>-OUT]:[Source Port]:[Destination Port] [Resource:<service-name>] ON <role-name>
-                                        // role name will be of the form : <domain>:role.<roleName>
-                                        let roleName =
-                                            assertionItem.role.substring(
-                                                params.domainName.length + 6
+                                            tempCondition['id'] =
+                                                condition['id'];
+                                            tempCondition['assertionId'] =
+                                                assertionItem['id'];
+                                            tempCondition['policyName'] =
+                                                item.name;
+                                            tempData['conditionsList'].push(
+                                                tempCondition
                                             );
-                                        promises.push(
-                                            getRole(
-                                                roleName,
-                                                params.domainName,
-                                                category,
-                                                index
-                                            )
-                                        );
-
-                                        promises.push(
-                                            getIdentifier(
-                                                roleName,
-                                                category,
-                                                index
-                                            )
-                                        );
+                                        });
                                     }
-                                );
+                                    let index = 0;
+                                    if (item.name.includes('inbound')) {
+                                        category = 'inbound';
+                                        tempData['destination_service'] =
+                                            serviceName;
+                                        tempData['source_services'] = [];
+                                        tempData['assertionIdx'] =
+                                            assertionItem.id;
+                                        jsonData['inbound'].push(tempData);
+                                        index = jsonData['inbound'].length;
+                                    } else if (
+                                        item.name.includes('outbound')
+                                    ) {
+                                        category = 'outbound';
+                                        tempData['source_service'] =
+                                            serviceName;
+                                        tempData['destination_services'] =
+                                            [];
+                                        tempData['assertionIdx'] =
+                                            assertionItem.id;
+                                        jsonData['outbound'].push(tempData);
+                                        index = jsonData['outbound'].length;
+                                    }
+                                    //assertion convention for microsegmentation:
+                                    //GRANT [Action: <transport layer>-IN / <transport layer>-OUT]:[Source Port]:[Destination Port] [Resource:<service-name>] ON <role-name>
+                                    // role name will be of the form : <domain>:role.<roleName>
+                                    let roleName =
+                                        assertionItem.role.substring(
+                                            params.domainName.length + 6
+                                        );
+                                    promises.push(
+                                        getRole(
+                                            roleName,
+                                            params.domainName,
+                                            category,
+                                            index
+                                        )
+                                    );
+
+                                    promises.push(
+                                        getIdentifier(
+                                            roleName,
+                                            category,
+                                            index
+                                        )
+                                    );
+                                }
+                            );
                         }
                     });
                 } else if (err) {
@@ -2053,11 +2053,11 @@ Fetchr.registerService({
                                     if (category === 'inbound') {
                                         jsonData[category][jsonIndex - 1][
                                             'source_services'
-                                        ].push(roleMember.memberName);
+                                            ].push(roleMember.memberName);
                                     } else if (category === 'outbound') {
                                         jsonData[category][jsonIndex - 1][
                                             'destination_services'
-                                        ].push(roleMember.memberName);
+                                            ].push(roleMember.memberName);
                                     }
                                 });
                                 resolve();
