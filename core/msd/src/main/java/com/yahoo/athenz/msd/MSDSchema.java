@@ -136,7 +136,7 @@ public class MSDSchema {
             .field("provider", "String", false, "infrastructure provider e.g. k8s, AWS, Azure, openstack etc.")
             .field("updateTime", "Timestamp", false, "most recent update timestamp in the backend")
             .field("certExpiryTime", "Timestamp", false, "certificate expiry time (ex: getNotAfter)")
-            .field("certIssueTime", "Timestamp", false, "certificate issue time (ex: getNotBefore)");
+            .field("certIssueTime", "Timestamp", true, "certificate issue time (ex: getNotBefore)");
 
         sb.structType("WorkloadOptions")
             .field("ipChanged", "Bool", false, "boolean flag to signal a change in IP state");
