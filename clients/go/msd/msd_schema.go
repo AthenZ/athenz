@@ -159,7 +159,7 @@ func init() {
 	tWorkload.Field("provider", "String", false, nil, "infrastructure provider e.g. k8s, AWS, Azure, openstack etc.")
 	tWorkload.Field("updateTime", "Timestamp", false, nil, "most recent update timestamp in the backend")
 	tWorkload.Field("certExpiryTime", "Timestamp", false, nil, "certificate expiry time (ex: getNotAfter)")
-	tWorkload.Field("certIssueTime", "Timestamp", false, nil, "certificate issue time (ex: getNotBefore)")
+	tWorkload.Field("certIssueTime", "Timestamp", true, nil, "certificate issue time (ex: getNotBefore)")
 	sb.AddType(tWorkload.Build())
 
 	tWorkloadOptions := rdl.NewStructTypeBuilder("Struct", "WorkloadOptions")
