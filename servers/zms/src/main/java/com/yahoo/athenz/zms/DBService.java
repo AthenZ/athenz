@@ -2623,6 +2623,11 @@ public class DBService implements RolesProvider {
 
         for (Policy policy : domain.getPolicies()) {
 
+            // ignore any inactive/multi-version policies
+            if (policy.getActive() == Boolean.FALSE) {
+                continue;
+            }
+
             List<Assertion> assertions = policy.getAssertions();
             if (assertions == null) {
                 continue;

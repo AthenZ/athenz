@@ -5763,7 +5763,6 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
             .thenReturn("role1").thenReturn("role2") // role names
             .thenReturn("group1") // group name
-            .thenReturn("policy1").thenReturn("policy2") // policy names
             .thenReturn("service1"); // service name
 
         Mockito.when(mockResultSet.getString(1))
@@ -5771,8 +5770,11 @@ public class JDBCConnectionTest {
             .thenReturn("role1").thenReturn("role2") // role names
             .thenReturn("role1").thenReturn( "role2") // roles tags
             .thenReturn("group1") // group name
-            .thenReturn("policy1").thenReturn("policy2") // policy names
             .thenReturn("service1"); // service names
+
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_POLICY_ID))
+            .thenReturn(10001).thenReturn(10002) // policy ids
+            .thenReturn(10001).thenReturn(10002);
 
         Mockito.when(mockResultSet.getString(2))
             .thenReturn("tag-val")  // tag value

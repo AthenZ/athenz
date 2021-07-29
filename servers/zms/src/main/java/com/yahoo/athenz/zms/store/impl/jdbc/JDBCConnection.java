@@ -157,7 +157,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE policy_id=?;";
     private static final String SQL_GET_POLICY_ID = "SELECT policy_id FROM policy WHERE domain_id=? AND name=?;";
     private static final String SQL_DELETE_POLICY = "DELETE FROM policy WHERE domain_id=? AND name=?;";
-    private static final String SQL_LIST_POLICY = "SELECT name FROM policy WHERE domain_id=?";
+    private static final String SQL_LIST_POLICY = "SELECT name FROM policy WHERE domain_id=? AND active=1";
     private static final String SQL_COUNT_POLICY = "SELECT COUNT(*) FROM policy WHERE domain_id=?";
     private static final String SQL_LIST_ASSERTION = "SELECT * FROM assertion WHERE policy_id=?";
     private static final String SQL_COUNT_ASSERTION = "SELECT COUNT(*) FROM assertion WHERE policy_id=?";
@@ -236,7 +236,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.domain_id=? AND role_member.review_reminder < CURRENT_TIME;";
     private static final String SQL_GET_DOMAIN_POLICIES = "SELECT * FROM policy WHERE domain_id=?;";
-    private static final String SQL_GET_DOMAIN_POLICY_ASSERTIONS = "SELECT policy.name, "
+    private static final String SQL_GET_DOMAIN_POLICY_ASSERTIONS = "SELECT policy.policy_id, "
             + "assertion.effect, assertion.action, assertion.role, assertion.resource, "
             + "assertion.assertion_id FROM assertion "
             + "JOIN policy ON policy.policy_id=assertion.policy_id "
@@ -2568,8 +2568,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(2, policyName);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
-                    return new Policy().setName(ResourceUtils.policyResourceName(domainName, policyName))
-                            .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()));
+                    return savePolicySettings(domainName, policyName, rs);
                 }
             }
         } catch (SQLException ex) {
@@ -3586,28 +3585,27 @@ public class JDBCConnection implements ObjectStoreConnection {
     void getAthenzDomainPolicies(String domainName, int domainId, AthenzDomain athenzDomain) {
 
         final String caller = "getAthenzDomain";
-        Map<String, Policy> policyMap = new HashMap<>();
-        Map<Long, Assertion> assertionsMap = new HashMap<>();
+        Map<Integer, Policy> policyMap = new HashMap<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_POLICIES)) {
             ps.setInt(1, domainId);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    String policyName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
-                    Policy policy = new Policy().setName(ResourceUtils.policyResourceName(domainName, policyName))
-                            .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()));
-                    policyMap.put(policyName, policy);
+                    int policyId = rs.getInt(ZMSConsts.DB_COLUMN_POLICY_ID);
+                    final String policyName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
+                    policyMap.put(policyId, savePolicySettings(domainName, policyName, rs));
                 }
             }
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
 
+        Map<Long, Assertion> assertionsMap = new HashMap<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_POLICY_ASSERTIONS)) {
             ps.setInt(1, domainId);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    String policyName = rs.getString(1);
-                    Policy policy = policyMap.get(policyName);
+                    int policyId = rs.getInt(ZMSConsts.DB_COLUMN_POLICY_ID);
+                    Policy policy = policyMap.get(policyId);
                     if (policy == null) {
                         continue;
                     }
@@ -3630,20 +3628,16 @@ public class JDBCConnection implements ObjectStoreConnection {
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
+
         // assertion conditions fetch
-        Long assertionId;
-        int conditionId;
-        Assertion assertion;
+
         Map<String, AssertionCondition> assertionConditionMap = new HashMap<>();
-        AssertionCondition assertionCondition;
-        Map<String, AssertionConditionData> assertionConditionDataMap;
-        AssertionConditionData assertionConditionData;
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_POLICY_ASSERTIONS_CONDITIONS)) {
             ps.setInt(1, domainId);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    assertionId = rs.getLong(ZMSConsts.DB_COLUMN_ASSERT_ID);
-                    assertion = assertionsMap.get(assertionId);
+                    long assertionId = rs.getLong(ZMSConsts.DB_COLUMN_ASSERT_ID);
+                    Assertion assertion = assertionsMap.get(assertionId);
                     if (assertion == null) {
                         continue;
                     }
@@ -3654,17 +3648,17 @@ public class JDBCConnection implements ObjectStoreConnection {
                         assertionConditions.setConditionsList(assertionConditionList);
                         assertion.setConditions(assertionConditions);
                     }
-                    conditionId = rs.getInt(ZMSConsts.DB_COLUMN_CONDITION_ID);
-                    assertionCondition = assertionConditionMap.get(assertionId + ":" + conditionId);
+                    int conditionId = rs.getInt(ZMSConsts.DB_COLUMN_CONDITION_ID);
+                    AssertionCondition assertionCondition = assertionConditionMap.get(assertionId + ":" + conditionId);
                     if (assertionCondition == null) {
                         assertionCondition = new AssertionCondition();
-                        assertionConditionDataMap = new HashMap<>();
+                        Map<String, AssertionConditionData> assertionConditionDataMap = new HashMap<>();
                         assertionCondition.setConditionsMap(assertionConditionDataMap);
                         assertionCondition.setId(conditionId);
                         assertionConditionMap.put(assertionId + ":" + conditionId, assertionCondition);
                         assertionConditions.getConditionsList().add(assertionCondition);
                     }
-                    assertionConditionData = new AssertionConditionData();
+                    AssertionConditionData assertionConditionData = new AssertionConditionData();
                     if (rs.getString(ZMSConsts.DB_COLUMN_OPERATOR) != null) {
                         assertionConditionData.setOperator(AssertionConditionOperator.fromString(rs.getString(ZMSConsts.DB_COLUMN_OPERATOR)));
                     }
@@ -6331,4 +6325,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         return affectedRows > 0;
     }
 
+    Policy savePolicySettings(final String domainName, final String policyName,  ResultSet rs) throws SQLException {
+        return new Policy()
+                .setName(ResourceUtils.policyResourceName(domainName, policyName))
+                .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
+                .setActive(rs.getBoolean(ZMSConsts.DB_COLUMN_ACTIVE))
+                .setVersion(rs.getString(ZMSConsts.DB_COLUMN_VERSION));
+    }
 }
