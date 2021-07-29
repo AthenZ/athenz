@@ -935,7 +935,7 @@ type Workload struct {
 	//
 	// certificate issue time (ex: getNotBefore)
 	//
-	CertIssueTime rdl.Timestamp `json:"certIssueTime"`
+	CertIssueTime *rdl.Timestamp `json:"certIssueTime,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 //
@@ -1029,9 +1029,6 @@ func (self *Workload) Validate() error {
 	}
 	if self.CertExpiryTime.IsZero() {
 		return fmt.Errorf("Workload: Missing required field: certExpiryTime")
-	}
-	if self.CertIssueTime.IsZero() {
-		return fmt.Errorf("Workload: Missing required field: certIssueTime")
 	}
 	return nil
 }
