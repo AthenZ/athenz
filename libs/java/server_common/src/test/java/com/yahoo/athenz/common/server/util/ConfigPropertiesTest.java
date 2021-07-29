@@ -57,17 +57,14 @@ public class ConfigPropertiesTest {
         assertEquals(ConfigProperties.getPortNumber("athenz.port", 4080), 4080);
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testLoadProperties() throws IOException {
-        assertThrows(RuntimeException.class, () -> {
-            ConfigProperties.loadProperties("FailFile.txt");
-        });
+        assertThrows(RuntimeException.class, () -> ConfigProperties.loadProperties("FailFile.txt"));
 
         File currentDirectory = new File(new File(".").getAbsolutePath());
 
-        assertThrows(RuntimeException.class, () -> {
-            ConfigProperties.loadProperties(currentDirectory.getCanonicalPath() + "/src/test/resources/testFileConfigEmpty.properties");
-        });
+        assertThrows(RuntimeException.class, () -> ConfigProperties.loadProperties(currentDirectory.getCanonicalPath() + "/src/test/resources/testFileConfigEmpty.properties"));
 
         ConfigProperties.loadProperties(currentDirectory.getCanonicalPath() + "/src/test/resources/testFileConfig.properties");
     }

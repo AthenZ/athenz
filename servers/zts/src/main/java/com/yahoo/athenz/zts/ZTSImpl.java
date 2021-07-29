@@ -46,6 +46,8 @@ import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
+import com.yahoo.athenz.common.server.util.config.ConfigManager;
+import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.common.utils.X509CertUtils;
@@ -347,7 +349,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     void loadSystemProperties() {
         String propFile = System.getProperty(ZTS_PROP_FILE_NAME,
                 getRootDir() + "/conf/zts_server/zts.properties");
-        ConfigProperties.loadProperties(propFile);
+        new ConfigManager().addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
     }
 
     void loadSystemAuthorizationDetails() {

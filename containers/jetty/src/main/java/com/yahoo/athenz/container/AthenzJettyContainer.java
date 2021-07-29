@@ -28,6 +28,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLoggerFactory;
+import com.yahoo.athenz.common.server.util.config.ConfigManager;
+import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import org.eclipse.jetty.deploy.DeploymentManager;
 import org.eclipse.jetty.deploy.PropertiesConfigurationManager;
 import org.eclipse.jetty.deploy.bindings.DebugListenerBinding;
@@ -609,7 +611,7 @@ public class AthenzJettyContainer {
         System.getProperties().remove("socksProxyHost");
         String propFile = System.getProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME,
                 getRootDir() + "/conf/athenz/athenz.properties");
-        ConfigProperties.loadProperties(propFile);
+        new ConfigManager().addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
         
         try {
             AthenzJettyContainer container = createJettyContainer();

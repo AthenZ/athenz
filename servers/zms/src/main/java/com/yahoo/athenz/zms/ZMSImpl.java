@@ -41,6 +41,8 @@ import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
+import com.yahoo.athenz.common.server.util.config.ConfigManager;
+import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.config.*;
 import com.yahoo.athenz.zms.notification.*;
@@ -657,7 +659,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void loadSystemProperties() {
         String propFile = System.getProperty(ZMSConsts.ZMS_PROP_FILE_NAME,
                 getRootDir() + "/conf/zms_server/zms.properties");
-        ConfigProperties.loadProperties(propFile);
+        new ConfigManager().addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
     }
 
     void setAuthorityKeyStore() {
