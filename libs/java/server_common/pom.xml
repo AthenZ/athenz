@@ -28,8 +28,6 @@
 
   <properties>
     <code.coverage.min>0.9239</code.coverage.min>
-    <!--  Don't fail the build if some javadocs are missing -->
-    <javadoc_options>-Xdoclint:none</javadoc_options>
   </properties>
 
   <dependencies>

@@ -108,8 +108,6 @@
     <sonar.projectKey>AthenzSonar-${project.groupId}:${project.artifactId}</sonar.projectKey>
     <sonar.organization>athenz</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-    <!--  Don't fail the build if some javadocs are missing -->
-    <javadoc_options>-Xdoclint:none</javadoc_options>
   </properties>
 
   <modules>
@@ -232,6 +230,12 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>${maven-javadoc-plugin.version}</version>
+        <configuration>
+          <additionalJOptions>
+            <!--  Don't fail the build if some javadocs are missing -->
+            <additionalJOption>-Xdoclint:none</additionalJOption>
+          </additionalJOptions>
+        </configuration>
         <executions>
           <execution>
             <id>attach-javadocs</id>
