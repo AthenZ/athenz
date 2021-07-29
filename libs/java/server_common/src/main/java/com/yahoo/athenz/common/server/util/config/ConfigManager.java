@@ -16,7 +16,6 @@
 package com.yahoo.athenz.common.server.util.config;
 
 import com.yahoo.athenz.common.server.util.Utils;
-import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfig;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigDuration;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProvider;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderAwsParametersStore;
@@ -69,18 +68,20 @@ import java.util.concurrent.TimeUnit;
  *  then the system-properties are updated (including a deletion of a property),
  *  and change-callbacks are called (see {@link #registerChangeCallback}). <br>
  * <br>
- * Be aware of the DynamicConfig... classes (see base-class {@link DynamicConfig}) that works in tandem
- *  with {@link ConfigManager} to provide dynamically changing and efficient configurations
+ * Be aware of the DynamicConfig... classes (see base-class {@link com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfig})
+ *  that works in tandem with {@link ConfigManager} to provide dynamically changing and efficient configurations
  *  (especially - be aware of the slick {@link DynamicConfigDuration}). <br>
  * <br>
  * <h3>Note about system-properties</h3>
- * By default - this class reflects all configs onto system-properties (using {@link #systemSetProperty} and {@link #systemClearProperty}).
- * Also, {@link #getConfigValue} uses the system-properties as fallback in case a property is not set in the config-sources (using {@link #systemGetProperty}). <br>
+ * By default - this class reflects all configs onto system-properties
+ *  (using {@link #systemSetProperty} and {@link #systemClearProperty}).
+ * Also, {@link #getConfigValue} uses the system-properties as fallback in case a property is
+ *  not set in the config-sources (using {@link #systemGetProperty}). <br>
  * This behaviour can be disabled/changed by overriding these "system..." methods. <br>
  * <br>
  * <h3>Config-Values Translation</h3>
- * All config values (originated from a config-source or from {@link #systemGetProperty}) are "translated" using {@link #translateConfigValue}
- *  (which by default does nothing). <br>
+ * All config values (originated from a config-source or from {@link #systemGetProperty})
+ *  are "translated" using {@link #translateConfigValue} (which by default does nothing). <br>
  * <br>
  */
 public class ConfigManager implements Closeable {
@@ -353,7 +354,9 @@ public class ConfigManager implements Closeable {
     /**
      * Overridable: whenever getting a config-value (either if it originated from a config-source or from {@link #systemGetProperty})
      *  pass the value through this method.
-     * This will affect the result of {@link #getConfigValue} and {@link DynamicConfig#get()} and {@link DynamicConfig.ChangeCallback#configChanged}
+     * This will affect the result of {@link #getConfigValue} and
+     *  {@link com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfig#get()} and
+     *  {@link com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfig.ChangeCallback#configChanged}
      */
     protected String translateConfigValue(@Nonnull String configKey, @Nullable String configValue) {
         return configValue;
