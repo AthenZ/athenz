@@ -243,6 +243,9 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_SYSTEM_DISABLED    = "system_disabled";
     public static final String DB_COLUMN_AZURE_SUBSCRIPTION = "azure_subscription";
     public static final String DB_COLUMN_BUSINESS_SERVICE   = "business_service";
+    public static final String DB_COLUMN_ACTIVE             = "active";
+    public static final String DB_COLUMN_VERSION            = "version";
+    public static final String DB_COLUMN_POLICY_ID          = "policy_id";
 
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";

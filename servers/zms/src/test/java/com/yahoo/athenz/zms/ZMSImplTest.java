@@ -1404,6 +1404,24 @@ public class ZMSImplTest {
         zms.deleteUserDomain(mockDomRsrcCtx, "hga", auditRef);
     }
 
+    @Test
+    public void testCreateUserDomainWithTemplates() {
+
+        UserDomain dom1 = createUserDomainObject("hga", "Test Domain1", "testOrg");
+        DomainTemplateList templates = new DomainTemplateList();
+        List<String> templateNames = new ArrayList<>();
+        templateNames.add("network");
+        templates.setTemplateNames(templateNames);
+        dom1.setTemplates(templates);
+        zms.postUserDomain(mockDomRsrcCtx, "hga", auditRef, dom1);
+
+        Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "user.hga");
+        assertNotNull(resDom2);
+        templates = zms.getDomainTemplateList(mockDomRsrcCtx, "user.hga");
+        assertEquals(templates.getTemplateNames().size(), 1);
+        assertEquals(templates.getTemplateNames().get(0), "network");
+        zms.deleteUserDomain(mockDomRsrcCtx, "hga", auditRef);
+    }
 
     @Test
     public void testCreateUserDomainMismatch() {
@@ -2366,11 +2384,19 @@ public class ZMSImplTest {
                 "user.joe", "user.jane");
         zms.putRole(mockDomRsrcCtx, "RoleListParamDom1", "Role2", auditRef, role2);
 
-        RoleList roleList = zms.getRoleList(mockDomRsrcCtx, "RoleListParamDom1", null, "Role1");
+        RoleList roleList = zms.getRoleList(mockDomRsrcCtx, "RoleListParamDom1", null, "role1");
         assertNotNull(roleList);
 
-        assertFalse(roleList.getNames().contains("Role1".toLowerCase()));
-        assertTrue(roleList.getNames().contains("Role2".toLowerCase()));
+        assertFalse(roleList.getNames().contains("role1"));
+        assertTrue(roleList.getNames().contains("role2"));
+
+        // only one role at a time
+
+        roleList = zms.getRoleList(mockDomRsrcCtx, "RoleListParamDom1", 1, null);
+        assertNotNull(roleList);
+        assertEquals(roleList.getNames().size(), 1);
+        assertEquals(roleList.getNames().get(0), "admin");
+        assertEquals(roleList.getNext(), "admin");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "RoleListParamDom1", auditRef);
     }
@@ -4247,9 +4273,15 @@ public class ZMSImplTest {
         // policy count +1 due to admin policy
         assertEquals(policyList.getNames().size(), 4);
 
-        assertTrue(policyList.getNames().contains("Policy1".toLowerCase()));
-        assertTrue(policyList.getNames().contains("Policy2".toLowerCase()));
-        assertTrue(policyList.getNames().contains("Policy3".toLowerCase()));
+        assertTrue(policyList.getNames().contains("policy1"));
+        assertTrue(policyList.getNames().contains("policy2"));
+        assertTrue(policyList.getNames().contains("policy3"));
+
+        policyList = zms.getPolicyList(mockDomRsrcCtx, "PolicyListDom1", 1, null);
+        assertNotNull(policyList);
+        assertEquals(policyList.getNames().size(), 1);
+        assertEquals(policyList.getNames().get(0), "admin");
+        assertEquals(policyList.getNext(), "admin");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyListDom1", auditRef);
     }
@@ -10861,6 +10893,29 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testEvaluateAccessAssertionAllowNotActive() {
+
+        AthenzDomain domain = new AthenzDomain("coretech");
+        Role role = createRoleObject("coretech", "role1", null, "user.user1", null);
+        domain.getRoles().add(role);
+
+        // we have valid policy that would match however we have the
+        // active flag set to false so the policy will be skipped
+
+        Policy policy = new Policy().setName("coretech:policy.policy1").setActive(false);
+        Assertion assertion = new Assertion();
+        assertion.setAction("read");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("coretech:*");
+        assertion.setRole("coretech:role.role1");
+        policy.setAssertions(new ArrayList<>());
+        policy.getAssertions().add(assertion);
+        domain.getPolicies().add(policy);
+
+        assertEquals(zms.evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null, mockDomRestRsrcCtx.principal()), AccessStatus.DENIED);
+    }
+
+    @Test
     public void testEvaluateAccessMtlsRestricted() {
 
         AthenzDomain domain = new AthenzDomain("coretech");
@@ -13617,10 +13672,23 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", adminUser);
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
+        // first no templates
+
         DomainTemplate templateList = new DomainTemplate();
         List<String> templates = new ArrayList<>();
-        templates.add("test validate");
         templateList.setTemplateNames(templates);
+
+        try {
+            zmsImpl.putDomainTemplate(mockDomRsrcCtx, domainName, auditRef, templateList);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("No templates specified"));
+        }
+
+        // then invalid template
+
+        templates.add("test validate");
         try {
             zmsImpl.putDomainTemplate(mockDomRsrcCtx, domainName, auditRef, templateList);
             fail();
@@ -13871,11 +13939,22 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", adminUser);
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        final String templateName = "test validate";
+        // first no templates
+
         DomainTemplate templateList = new DomainTemplate();
         List<String> templates = new ArrayList<>();
-        templates.add(templateName);
         templateList.setTemplateNames(templates);
+
+        try {
+            zmsImpl.putDomainTemplate(mockDomRsrcCtx, domainName, auditRef, templateList);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("No templates specified"));
+        }
+
+        final String templateName = "test validate";
+        templates.add(templateName);
         try {
             zmsImpl.putDomainTemplateExt(mockDomRsrcCtx, domainName, templateName,
                     auditRef, templateList);
@@ -15570,7 +15649,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testSetupPolicyListWithAssertions() {
+    public void testSetupPolicyListWithAssertionsBothActive() {
 
         final String domainName = "setup-policy-with-assert";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
@@ -15584,7 +15663,7 @@ public class ZMSImplTest {
         zms.putPolicy(mockDomRsrcCtx, domainName, "policy2", auditRef, policy2);
 
         AthenzDomain domain = zms.getAthenzDomain(domainName, false);
-        List<Policy> policies = zms.setupPolicyList(domain, Boolean.TRUE);
+        List<Policy> policies = zms.setupPolicyList(domain, Boolean.TRUE, Boolean.FALSE);
         assertEquals(3, policies.size()); // need to account for admin policy
 
         boolean policy1Check = false;
@@ -15610,6 +15689,47 @@ public class ZMSImplTest {
         assertTrue(policy2Check);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testSetupPolicyListWithAssertionsActiveOnly() {
+
+        final String domainName = "setup-policy-with-assert-active-only";
+
+        Policy policy1 = createPolicyObject(domainName, "policy1").setActive(true);
+        Policy policy2 = createPolicyObject(domainName, "policy2").setActive(false);
+
+        List<Policy> policyList = new ArrayList<>();
+        policyList.add(policy1);
+        policyList.add(policy2);
+
+        AthenzDomain domain = new AthenzDomain(domainName);
+        domain.setPolicies(policyList);
+
+        List<Policy> policies = zms.setupPolicyList(domain, Boolean.TRUE, Boolean.FALSE);
+        assertEquals(1, policies.size());
+        assertEquals(policies.get(0).getName(), "setup-policy-with-assert-active-only:policy.policy1");
+    }
+
+    @Test
+    public void testSetupPolicyListWithAssertionsAllVersions() {
+
+        final String domainName = "setup-policy-with-assert-all-versions";
+
+        Policy policy1 = createPolicyObject(domainName, "policy1").setActive(true);
+        Policy policy2 = createPolicyObject(domainName, "policy2").setActive(false);
+
+        List<Policy> policyList = new ArrayList<>();
+        policyList.add(policy1);
+        policyList.add(policy2);
+
+        AthenzDomain domain = new AthenzDomain(domainName);
+        domain.setPolicies(policyList);
+
+        List<Policy> policies = zms.setupPolicyList(domain, Boolean.TRUE, Boolean.TRUE);
+        assertEquals(2, policies.size());
+        assertEquals(policies.get(0).getName(), "setup-policy-with-assert-all-versions:policy.policy1");
+        assertEquals(policies.get(1).getName(), "setup-policy-with-assert-all-versions:policy.policy2");
     }
 
     @Test
@@ -15683,7 +15803,7 @@ public class ZMSImplTest {
         zms.putPolicy(mockDomRsrcCtx, domainName, "policy2", auditRef, policy2);
 
         AthenzDomain domain = zms.getAthenzDomain(domainName, false);
-        List<Policy> policies = zms.setupPolicyList(domain, Boolean.FALSE);
+        List<Policy> policies = zms.setupPolicyList(domain, Boolean.FALSE, Boolean.FALSE);
         assertEquals(3, policies.size()); // need to account for admin policy
 
         boolean policy1Check = false;
@@ -17426,6 +17546,7 @@ public class ZMSImplTest {
         assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "home.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.hga"), "user.hga");
 
         // domain and username are changed since user/home namespaces are different
         // username impl in authority will replace .'s with -'s
@@ -26427,6 +26548,27 @@ public class ZMSImplTest {
         domain = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(domain);
         assertEquals(domain.getYpmId().intValue(), 101);
+
+        // final business service
+
+        try {
+            meta.setBusinessService("invalid-business-service");
+            zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_BUSINESS_SERVICE, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid business service"));
+        }
+
+        meta.setBusinessService("valid-business-service");
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_BUSINESS_SERVICE, auditRef, meta);
+
+        domain = zms.getDomain(mockDomRsrcCtx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getBusinessService(), "valid-business-service");
+
+        // second time no-op since nothing has changed
+
+        zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, ZMSConsts.SYSTEM_META_BUSINESS_SERVICE, auditRef, meta);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
         zms.domainMetaStore = savedMetaStore;

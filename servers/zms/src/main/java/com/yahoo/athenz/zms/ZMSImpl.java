@@ -814,10 +814,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String headerList = System.getProperty(ZMSConsts.ZMS_PROP_CORS_HEADER_LIST,
                 "*,Accept,Accept-Language,Content-Language,Content-Type");
-        if (headerList != null) {
-            corsRequestHeaderList = Arrays.stream(headerList.split(","))
-                    .map(String::toLowerCase).collect(Collectors.toSet());
-        }
+        corsRequestHeaderList = Arrays.stream(headerList.split(","))
+                .map(String::toLowerCase).collect(Collectors.toSet());
 
         // get the list of valid provider endpoints
 
@@ -2606,7 +2604,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         for (Policy policy : policies) {
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("evaluateAccess: processing policy: {}", policy.getName());
+                LOG.debug("evaluateAccess: processing policy name/version/active: {}/{}/{}",
+                        policy.getName(), policy.getVersion(), policy.getActive());
+            }
+
+            // ignore any inactive/multi-version policies
+
+            if (policy.getActive() == Boolean.FALSE) {
+                continue;
             }
 
             // we are going to process all the assertions defined in this
@@ -4383,27 +4388,40 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return result;
     }
 
-    List<Policy> setupPolicyList(AthenzDomain domain, Boolean assertions) {
+    List<Policy> setupPolicyList(AthenzDomain domain, Boolean assertions, Boolean versions) {
 
         // if we're asked to return the assertions as well then we
         // just need to return the data as is without any modifications
 
         List<Policy> policies;
-        if (assertions == Boolean.TRUE) {
+        if (assertions == Boolean.TRUE && versions == Boolean.TRUE) {
             policies = domain.getPolicies();
         } else {
             policies = new ArrayList<>();
             for (Policy policy : domain.getPolicies()) {
-                Policy newPolicy = new Policy()
-                        .setName(policy.getName())
-                        .setModified(policy.getModified());
-                policies.add(newPolicy);
+
+                // if we're only asked for active versions then skip
+                // any multi-version policies
+
+                if (versions != Boolean.TRUE && policy.getActive() == Boolean.FALSE) {
+                    continue;
+                }
+
+                if (assertions == Boolean.TRUE) {
+                    policies.add(policy);
+                } else {
+                    Policy newPolicy = new Policy()
+                            .setName(policy.getName())
+                            .setModified(policy.getModified());
+                    policies.add(newPolicy);
+                }
             }
         }
 
         return policies;
     }
 
+    @Override
     public Policies getPolicies(ResourceContext ctx, String domainName, Boolean assertions) {
 
         final String caller = ctx.getApiName();
@@ -4426,7 +4444,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("getPolicies: Domain not found: '" + domainName + "'", caller);
         }
 
-        result.setList(setupPolicyList(domain, assertions));
+        result.setList(setupPolicyList(domain, assertions, Boolean.FALSE));
         return result;
     }
 
@@ -4741,6 +4759,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         for (Policy policy : domain.getPolicies()) {
+
+            // ignore any inactive/multi-version policies
+
+            if (policy.getActive() == Boolean.FALSE) {
+                continue;
+            }
+
             if (AuthzHelper.matchDelegatedTrustPolicy(policy, roleName, roleMember, domain.getRoles(), groupMemberFetcher)) {
                 return true;
             }
@@ -5833,6 +5858,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         List<Policy> policyList = new ArrayList<>();
 
         for (Policy policy : policies) {
+
+            // ignore any inactive/multi-version policies
+
+            if (policy.getActive() == Boolean.FALSE) {
+                continue;
+            }
+
             Policy newPolicy = new Policy()
                     .setModified(policy.getModified())
                     .setName(policy.getName());
@@ -6538,6 +6570,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         List<DanglingPolicy> danglingPolicies = new ArrayList<>();
         List<Policy> policies = domain.getPolicies();
         for (Policy policy : policies) {
+
+            // ignore any inactive/multi-version policies
+
+            if (policy.getActive() == Boolean.FALSE) {
+                continue;
+            }
+
             String pname = ZMSUtils.removeDomainPrefix(policy.getName(), domainName, POLICY_PREFIX);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("getDomainDataCheck: processing policy={} in domain={}", pname, domainName);
@@ -6725,6 +6764,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             // Check for assume_role containing the provider in the tenantDomain
             for (Policy policy : tenantDomain.getPolicies()) {
+
+                // ignore any inactive/multi-version policies
+                if (policy.getActive() == Boolean.FALSE) {
+                    continue;
+                }
+
                 List<Assertion> assertions = policy.getAssertions();
                 if (assertions == null) {
                     continue;
@@ -7410,6 +7455,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Policy adminPolicy = null;
         for (Policy policy : domain.getPolicies()) {
+
+            // ignore any inactive/multi-version policies
+            if (policy.getActive() == Boolean.FALSE) {
+                continue;
+            }
+
             if (ADMIN_POLICY_NAME.equals(ZMSUtils.removeDomainPrefix(policy.getName(), domainName, POLICY_PREFIX))) {
                 adminPolicy = policy;
                 break;
