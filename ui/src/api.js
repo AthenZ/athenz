@@ -1023,6 +1023,7 @@ const Api = (req) => {
             resource,
             action,
             effect,
+            caseSensitive,
             _csrf
         ) {
             return new Promise((resolve, reject) => {
@@ -1045,7 +1046,7 @@ const Api = (req) => {
                                 ),
                                 effect,
                                 action: action.trim(),
-                                caseSensitive: true,
+                                caseSensitive: caseSensitive,
                             },
                         ],
                     },
@@ -1120,6 +1121,7 @@ const Api = (req) => {
             resource,
             action,
             effect,
+            caseSensitive,
             _csrf
         ) {
             return new Promise((resolve, reject) => {
@@ -1139,7 +1141,7 @@ const Api = (req) => {
                         ),
                         effect,
                         action: action.trim(),
-                        caseSensitive: true,
+                        caseSensitive: caseSensitive,
                     },
                 };
                 fetchr

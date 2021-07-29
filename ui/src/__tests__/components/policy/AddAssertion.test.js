@@ -72,7 +72,7 @@ describe('AddAssertion', () => {
         const addPolicy = getByTestId('add-assertion');
         expect(addPolicy).toMatchSnapshot();
 
-        fireEvent.change(getByPlaceholderText('Rule Action (Case Sensitive)'), {
+        fireEvent.change(getByPlaceholderText('Rule Action'), {
             target: { value: 'ruleaction' },
         });
         fireEvent.click(getByText('Submit'));
