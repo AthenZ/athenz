@@ -246,25 +246,49 @@ public class DynamicConfigTest {
                     }
                     .addProvider(new ConfigProviderFile())
                     .addConfigSource("prop-file://" + configFile)) {
-            DynamicConfigString dynamicConfig = new DynamicConfigString(configManager, "string-key", "default-value");
-            DynamicConfig.ChangeCallback<String> changeCallback = (newValue, oldValue, _dynamicConfig) -> {
+
+            DynamicConfigTester dynamicConfig = new DynamicConfigTester(configManager, "string-key", "default-value");
+
+            // Add a change-callback that always throw.
+            // This shouldn't prevent the next change-callback to be called.
+            DynamicConfig.ChangeCallback<String> throwingChangeCallback = (newValue, oldValue, _dynamicConfig) -> {
+                throw new RuntimeException("DynamicConfigTest.testDynamic.throwingChangeCallback");
+            };
+            dynamicConfig.registerChangeCallback(throwingChangeCallback);
+
+            // Add a "normal" change-callback.
+            DynamicConfig.ChangeCallback<String> normalChangeCallback = (newValue, oldValue, _dynamicConfig) -> {
                 assertEquals(dynamicConfig, _dynamicConfig);
                 assertEquals("VALUE-1", oldValue);
                 assertEquals("VALUE-2", newValue);
                 dynamicChangedCount++;
             };
-            dynamicConfig.registerChangeCallback(changeCallback);
+            dynamicConfig.registerChangeCallback(normalChangeCallback);
 
             assertEquals("VALUE-1",  dynamicConfig.get());
 
+            // Make a config-change - that cause DynamicConfigTester to throw.
+            writeFile(configFile, "" +
+                    "string-key: THROWING_VALUE\n" +
+                    "duration-key-reload: 10\n");
+
+            long startTime = System.currentTimeMillis();
+            while (! dynamicConfig.didThrow) {
+                if ((System.currentTimeMillis() - startTime) > 2000) {
+                    fail("No refresh for THROWING_VALUE");
+                }
+                Thread.sleep(1);
+            }
+
+            // Make a proper config-change.
             writeFile(configFile, "" +
                     "string-key: value-2\n" +
                     "duration-key-reload: 10\n");
 
-            long startTime = System.currentTimeMillis();
+            startTime = System.currentTimeMillis();
             while (! dynamicConfig.get().equals("VALUE-2")) {
                 if ((System.currentTimeMillis() - startTime) > 2000) {
-                    fail("No refresh");
+                    fail("No refresh for VALUE-2");
                 }
                 Thread.sleep(1);
             }
@@ -280,8 +304,8 @@ public class DynamicConfigTest {
 
             assertEquals("VALUE-2",  dynamicConfig.get());
 
-            assertTrue(dynamicConfig.unregisterChangeCallback(changeCallback));
-            assertFalse(dynamicConfig.unregisterChangeCallback(changeCallback));
+            assertTrue(dynamicConfig.unregisterChangeCallback(normalChangeCallback));
+            assertFalse(dynamicConfig.unregisterChangeCallback(normalChangeCallback));
             assertEquals(1, dynamicChangedCount);
         }
 
@@ -336,6 +360,27 @@ public class DynamicConfigTest {
         }
 
         @SuppressWarnings("unused") boolean deleted = configFile.delete();
+    }
+
+    /** Just like {@link DynamicConfigString} - only throw when value is "THROWING_VALUE" */
+    private static class DynamicConfigTester extends DynamicConfigString {
+
+        final static String THROWING_VALUE = "THROWING_VALUE";
+
+        boolean didThrow = false;
+
+        public DynamicConfigTester(ConfigManager configManager, String configKey, @Nullable String defaultValue) {
+            super(configManager, configKey, defaultValue);
+        }
+
+        @Override
+        protected @Nullable String convertValue(@Nullable String stringValue) {
+            if (THROWING_VALUE.equals(stringValue)) {
+                didThrow = true;
+                throw new RuntimeException("DynamicConfigTest.DynamicConfigTester.convertValue(THROWING_VALUE)");
+            }
+            return super.convertValue(stringValue);
+        }
     }
 
     private void durationSleep(DynamicConfigDuration dynamicConfig, long minSleep, long maxSleep, @Nullable Function<Long, Long> translateSleepTime) throws InterruptedException {

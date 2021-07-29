@@ -102,9 +102,6 @@ public abstract class DynamicConfig<T> implements Closeable {
      */
     protected abstract @Nullable T convertValue(@Nullable String stringValue) throws Exception;
 
-    /** Return a very short description of the type of the value */
-    protected abstract String describeValueType();
-
     /** Config value MIGHT have been changed - adapt */
     private synchronized void resetValue() {
         // Convert value to type T.
@@ -113,7 +110,8 @@ public abstract class DynamicConfig<T> implements Closeable {
         try {
             value = convertValue(stringValue);
         } catch (Exception exception) {
-            LOG.warn("Can't convert value of config {} = {} to {}", Utils.jsonSerializeForLog(configKey), Utils.jsonSerializeForLog(stringValue), describeValueType());
+            LOG.warn("Can't convert value of config {} = {} for class {}", Utils.jsonSerializeForLog(configKey), Utils.jsonSerializeForLog(stringValue), this.getClass());
+            value = this.value;   // keep existing value
         }
         if (value == null) {
             value = defaultValue;

@@ -82,9 +82,4 @@ public class DynamicConfigLong extends DynamicConfig<Long> {
         }
         return value;
     }
-
-    @Override
-    protected String describeValueType() {
-        return "long";
-    }
 }

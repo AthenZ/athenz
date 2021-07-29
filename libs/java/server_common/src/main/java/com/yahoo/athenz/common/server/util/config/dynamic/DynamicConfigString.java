@@ -40,9 +40,4 @@ public class DynamicConfigString extends DynamicConfig<String> {
     protected @Nullable String convertValue(@Nullable String stringValue) {
         return stringValue;
     }
-
-    @Override
-    protected String describeValueType() {
-        return "string";
-    }
 }

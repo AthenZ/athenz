@@ -62,9 +62,4 @@ public class DynamicConfigBoolean extends DynamicConfig<Boolean> {
             return null;
         }
     }
-
-    @Override
-    protected String describeValueType() {
-        return "boolean";
-    }
 }

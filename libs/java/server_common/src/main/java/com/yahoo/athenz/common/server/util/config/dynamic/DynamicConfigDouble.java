@@ -82,9 +82,4 @@ public class DynamicConfigDouble extends DynamicConfig<Double> {
         }
         return value;
     }
-
-    @Override
-    protected String describeValueType() {
-        return "double";
-    }
 }

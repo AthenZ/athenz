@@ -129,9 +129,4 @@ public class DynamicConfigDuration extends DynamicConfigLong {
             unregisterChangeCallback(callback);
         }
     }
-
-    @Override
-    protected String describeValueType() {
-        return "millisecond-duration";
-    }
 }

@@ -82,9 +82,4 @@ public class DynamicConfigFloat extends DynamicConfig<Float> {
         }
         return value;
     }
-
-    @Override
-    protected String describeValueType() {
-        return "float";
-    }
 }

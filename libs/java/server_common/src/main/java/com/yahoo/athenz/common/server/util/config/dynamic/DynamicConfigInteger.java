@@ -82,9 +82,4 @@ public class DynamicConfigInteger extends DynamicConfig<Integer> {
         }
         return value;
     }
-
-    @Override
-    protected String describeValueType() {
-        return "int";
-    }
 }
