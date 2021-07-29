@@ -108,6 +108,8 @@
     <sonar.projectKey>AthenzSonar-${project.groupId}:${project.artifactId}</sonar.projectKey>
     <sonar.organization>athenz</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    <!--  Don't fail the build if some javadocs are missing -->
+    <javadoc_options>-Xdoclint:none</javadoc_options>
   </properties>
 
   <modules>
