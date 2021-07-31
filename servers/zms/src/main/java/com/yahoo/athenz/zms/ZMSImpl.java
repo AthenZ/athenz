@@ -5446,26 +5446,31 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     signedDomain.getDomain().setBusinessService(businessService);
                     break;
                 case META_ATTR_ALL:
-                    DomainData domainData = signedDomain.getDomain();
-                    domainData.setDescription(domain.getDescription());
-                    domainData.setAccount(domain.getAccount());
-                    domainData.setAzureSubscription(domain.getAzureSubscription());
-                    domainData.setYpmId(domain.getYpmId());
-                    domainData.setApplicationId(domain.getApplicationId());
-                    domainData.setMemberExpiryDays(domain.getMemberExpiryDays());
-                    domainData.setServiceExpiryDays(domain.getServiceExpiryDays());
-                    domainData.setGroupExpiryDays(domain.getGroupExpiryDays());
-                    domainData.setRoleCertExpiryMins(domain.getRoleCertExpiryMins());
-                    domainData.setServiceCertExpiryMins(domain.getServiceCertExpiryMins());
-                    domainData.setTokenExpiryMins(domain.getTokenExpiryMins());
-                    domainData.setOrg(domain.getOrg());
-                    domainData.setAuditEnabled(domain.getAuditEnabled());
-                    domainData.setTags(domain.getTags());
-                    domainData.setBusinessService(domain.getBusinessService());
+                    setDomainDataAttributes(signedDomain.getDomain(), domain);
                     break;
             }
         }
         return signedDomain;
+    }
+
+    void setDomainDataAttributes(DomainData domainData, Domain domain) {
+        domainData.setDescription(domain.getDescription());
+        domainData.setAccount(domain.getAccount());
+        domainData.setAzureSubscription(domain.getAzureSubscription());
+        domainData.setYpmId(domain.getYpmId());
+        domainData.setApplicationId(domain.getApplicationId());
+        domainData.setMemberExpiryDays(domain.getMemberExpiryDays());
+        domainData.setServiceExpiryDays(domain.getServiceExpiryDays());
+        domainData.setGroupExpiryDays(domain.getGroupExpiryDays());
+        domainData.setRoleCertExpiryMins(domain.getRoleCertExpiryMins());
+        domainData.setServiceCertExpiryMins(domain.getServiceCertExpiryMins());
+        domainData.setTokenExpiryMins(domain.getTokenExpiryMins());
+        domainData.setOrg(domain.getOrg());
+        domainData.setAuditEnabled(domain.getAuditEnabled());
+        domainData.setTags(domain.getTags());
+        domainData.setBusinessService(domain.getBusinessService());
+        domainData.setSignAlgorithm(domain.getSignAlgorithm());
+        domainData.setCertDnsDomain(domain.getCertDnsDomain());
     }
 
     SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly, boolean masterCopy, boolean includeConditions) {
@@ -5608,7 +5613,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         boolean includeConditions = Boolean.TRUE == conditions;
         long timestamp = getModTimestamp(matchingTag);
 
-        // if this is one of our system principals then we're going to
+        // if this is one of our system principals then we're going
         // to use the master copy instead of read-only replicas
         // unless we're configured to always use read-only replicas
         // for all signed domain operations
@@ -5724,7 +5729,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public JWSDomain getJWSDomain(ResourceContext ctx, String domainName) {
+    public Response getJWSDomain(ResourceContext ctx, String domainName, String matchingTag) {
 
         final String caller = ctx.getApiName();
 
@@ -5739,65 +5744,69 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
-
-        // generate our signed domain object
-
-        JWSDomain jwsDomain = retrieveJWSDomain(domainName);
-        if (jwsDomain == null) {
-            throw ZMSUtils.notFoundError("Unable to retrieve domain=" + domainName, caller);
-        }
-
-        return jwsDomain;
-    }
-
-    JWSDomain retrieveJWSDomain(final String domainName) {
-
-        // get the policies, roles, and service identities to create the
-        // DomainData
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("retrieveJWSDomain: retrieving domain {}", domainName);
-        }
+        long timestamp = getModTimestamp(matchingTag);
 
         AthenzDomain athenzDomain = getAthenzDomain(domainName, true, false);
         if (athenzDomain == null) {
-            return null;
+            throw ZMSUtils.notFoundError("No such domain: " + domainName, caller);
         }
+
+        long domainModTime = athenzDomain.getDomain().getModified().millis();
+        EntityTag eTag = new EntityTag(athenzDomain.getDomain().getModified().toString());
+
+        if (timestamp != 0 && domainModTime <= timestamp) {
+            return Response
+                    .status(ResourceException.NOT_MODIFIED)
+                    .header("ETag", eTag.toString())
+                    .build();
+        }
+
+        // generate our signed domain object and return in response
+
+        return Response
+                .status(ResourceException.OK)
+                .entity(generateJWSDomain(athenzDomain))
+                .header("ETag", eTag.toString())
+                .build();
+    }
+
+    JWSDomain generateJWSDomain(AthenzDomain athenzDomain) {
 
         // set all domain attributes including roles and services
 
         final Domain domain = athenzDomain.getDomain();
+        final String domainName = domain.getName();
 
         DomainData domainData = new DomainData()
                 .setName(domainName)
                 .setModified(domain.getModified())
-                .setEnabled(domain.getEnabled())
-                .setAuditEnabled(domain.getAuditEnabled())
-                .setAccount(domain.getAccount())
-                .setAzureSubscription(domain.getAzureSubscription())
-                .setYpmId(domain.getYpmId())
-                .setApplicationId(domain.getApplicationId())
-                .setSignAlgorithm(domain.getSignAlgorithm())
-                .setServiceCertExpiryMins(domain.getServiceCertExpiryMins())
-                .setRoleCertExpiryMins(domain.getRoleCertExpiryMins())
-                .setTokenExpiryMins(domain.getTokenExpiryMins())
-                .setServiceExpiryDays(domain.getServiceExpiryDays())
-                .setGroupExpiryDays(domain.getGroupExpiryDays())
-                .setDescription(domain.getDescription())
-                .setOrg(domain.getOrg())
-                .setCertDnsDomain(domain.getCertDnsDomain())
-                .setMemberExpiryDays(domain.getMemberExpiryDays())
-                .setTags(domain.getTags())
-                .setRoles(athenzDomain.getRoles())
-                .setServices(athenzDomain.getServices());
+                .setEnabled(domain.getEnabled());
+        setDomainDataAttributes(domainData, domain);
+
+        // set our roles/groups/entities
+
+        domainData.setRoles(athenzDomain.getRoles());
+        domainData.setGroups(athenzDomain.getGroups());
+        domainData.setServices(athenzDomain.getServices());
+        domainData.setEntities(athenzDomain.getEntities());
 
         // generate the domain policy object that includes the domain
-        // name and all policies.
+        // name and all policies. However, for signature, we're going
+        // generate one for the active policies only without any
+        // conditions for backward compatibility reasons
 
         DomainPolicies domainPolicies = new DomainPolicies().setDomain(domainName);
         domainPolicies.setPolicies(getDomainPolicyList(athenzDomain.getPolicies(), false));
+        final String signature = Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey.getKey());
+
+        // reset the policy list to include all policies
+
+        domainPolicies.setPolicies(athenzDomain.getPolicies());
+
         SignedPolicies signedPolicies = new SignedPolicies();
         signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(signature).setKeyId(privateKey.getId());
+
         domainData.setPolicies(signedPolicies);
 
         return signJwsDomain(domainData);

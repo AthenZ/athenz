@@ -534,7 +534,7 @@ public class ZMSSchema {
         sb.structType("SignedPolicies")
             .comment("A signed bulk transfer of policies. The data is signed with server's private key.")
             .field("contents", "DomainPolicies", false, "list of policies defined in a domain")
-            .field("signature", "String", false, "signature generated based on the domain policies object")
+            .field("signature", "String", false, "signature generated based on the domain active policies object")
             .field("keyId", "String", false, "the identifier of the key used to generate the signature");
 
         sb.structType("DomainData", "DomainMeta")
@@ -2278,7 +2278,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("SignedDomains", "GET", "/sys/modified_domains")
-            .comment("Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, dont add roles, policies or services, dont sign")
+            .comment("Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, don't add roles, policies or services, don't sign")
             .queryParam("domain", "domain", "DomainName", null, "filter the domain list only to the specified name")
             .queryParam("metaonly", "metaOnly", "String", null, "valid values are \"true\" or \"false\"")
             .queryParam("metaattr", "metaAttr", "SimpleName", null, "domain meta attribute to filter/return, valid values \"account\", \"ypmId\", or \"all\"")
@@ -2299,6 +2299,8 @@ public class ZMSSchema {
 
         sb.resource("JWSDomain", "GET", "/domain/{name}/signed")
             .pathParam("name", "DomainName", "name of the domain to be retrieved")
+            .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return if the domain was modified since this time")
+            .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)
             .expected("OK")
             .exception("NOT_FOUND", "ResourceError", "")

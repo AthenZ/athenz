@@ -21495,7 +21495,8 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        JWSDomain jwsDomain = zms.getJWSDomain(mockDomRsrcCtx, domainName);
+        Response response = zms.getJWSDomain(mockDomRsrcCtx, domainName, null);
+        JWSDomain jwsDomain = (JWSDomain) response.getEntity();
         DomainData domainData = getDomainData(jwsDomain);
 
         assertNotNull(domainData);
@@ -21503,6 +21504,33 @@ public class ZMSImplTest {
 
         Map<String, String> header = jwsDomain.getHeader();
         assertEquals(header.get("keyid"), "0");
+
+        // now we're going to ask for the same domain with the tag
+        // and make sure we get back 304
+
+        EntityTag tag = response.getEntityTag();
+        response = zms.getJWSDomain(mockDomRsrcCtx, domainName, tag.toString());
+        assertEquals(response.getStatus(), ResourceException.NOT_MODIFIED);
+
+        // pass a timestamp a minute back and make sure we
+        // get back the domain
+
+        Timestamp tstamp = Timestamp.fromMillis(System.currentTimeMillis() - 3600);
+        response = zms.getJWSDomain(mockDomRsrcCtx, domainName, tstamp.toString());
+        jwsDomain = (JWSDomain) response.getEntity();
+        domainData = getDomainData(jwsDomain);
+
+        assertNotNull(domainData);
+        assertEquals(domainData.getName(), "jws-domain");
+
+        // any invalid data is also treated as no etag
+
+        response = zms.getJWSDomain(mockDomRsrcCtx, domainName, "unknown-date");
+        jwsDomain = (JWSDomain) response.getEntity();
+        domainData = getDomainData(jwsDomain);
+
+        assertNotNull(domainData);
+        assertEquals(domainData.getName(), "jws-domain");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -21513,7 +21541,7 @@ public class ZMSImplTest {
         // not found
 
         try {
-            zms.getJWSDomain(mockDomRsrcCtx, "unknown");
+            zms.getJWSDomain(mockDomRsrcCtx, "unknown", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ResourceException.NOT_FOUND, ex.getCode());
@@ -26138,7 +26166,8 @@ public class ZMSImplTest {
         dom1.setTags(simpleDomainTag());
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        JWSDomain jwsDomain = zms.getJWSDomain(mockDomRsrcCtx, domainName);
+        Response response = zms.getJWSDomain(mockDomRsrcCtx, domainName, null);
+        JWSDomain jwsDomain = (JWSDomain) response.getEntity();
         DomainData domainData = getDomainData(jwsDomain);
         assertNotNull(domainData);
         assertEquals(domainData.getName(), domainName);
@@ -26153,7 +26182,7 @@ public class ZMSImplTest {
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx = createResourceContext(sysPrincipal);
 
-        Response response = zms.getSignedDomains(rsrcCtx, domainName, null, null, null, false, null);
+        response = zms.getSignedDomains(rsrcCtx, domainName, null, null, null, false, null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 

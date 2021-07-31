@@ -98,7 +98,7 @@ public interface ZMSHandler {
     Access getAccessExt(ResourceContext context, String action, String resource, String domain, String checkPrincipal);
     ResourceAccessList getResourceAccessList(ResourceContext context, String principal, String action);
     Response getSignedDomains(ResourceContext context, String domain, String metaOnly, String metaAttr, Boolean master, Boolean conditions, String matchingTag);
-    JWSDomain getJWSDomain(ResourceContext context, String name);
+    Response getJWSDomain(ResourceContext context, String name, String matchingTag);
     UserToken getUserToken(ResourceContext context, String userName, String serviceNames, Boolean header);
     UserToken optionsUserToken(ResourceContext context, String userName, String serviceNames);
     ServicePrincipal getServicePrincipal(ResourceContext context);

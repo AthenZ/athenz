@@ -2093,7 +2093,7 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public JWSDomain getJWSDomain(String name) {
+    public JWSDomain getJWSDomain(String name, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
         WebTarget target = base.path("/domain/{name}/signed")
             .resolveTemplate("name", name);
         Invocation.Builder invocationBuilder = target.request("application/json");
@@ -2101,10 +2101,20 @@ public class ZMSRDLGeneratedClient {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
                 credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
+        if (matchingTag != null) {
+            invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
+        }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
         switch (code) {
         case 200:
+        case 304:
+            if (headers != null) {
+                headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
+            }
+            if (code == 304) {
+                return null;
+            }
             return response.readEntity(JWSDomain.class);
         default:
             throw new ResourceException(code, response.readEntity(ResourceError.class));
