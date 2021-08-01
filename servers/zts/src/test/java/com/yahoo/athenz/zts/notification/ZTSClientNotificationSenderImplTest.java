@@ -16,8 +16,10 @@
 
 package com.yahoo.athenz.zts.notification;
 
+import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.zts.ZTSClientNotification;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
@@ -27,10 +29,13 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 public class ZTSClientNotificationSenderImplTest {
+    private final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+
     @Test
     public void testInit() {
         ZTSClientNotificationSenderImpl ztsClientNotificationSender = new ZTSClientNotificationSenderImpl();
         NotificationManager notificationManager = Mockito.mock(NotificationManager.class);
+        Mockito.when(notificationManager.getNotificationUserAuthority()).thenReturn(Mockito.mock(Authority.class));
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
         String serverName = "testServer";
         boolean initResult = ztsClientNotificationSender.init(notificationManager, rolesProvider, serverName);

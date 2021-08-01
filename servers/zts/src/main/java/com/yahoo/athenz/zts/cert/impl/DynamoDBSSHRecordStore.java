@@ -33,9 +33,9 @@ public class DynamoDBSSHRecordStore implements SSHRecordStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBSSHRecordStore.class);
     private static final Logger SSHLOGGER = LoggerFactory.getLogger("SSHCertLogger");
 
-    private DynamoDB dynamoDB;
-    private String tableName;
-    private ZTSClientNotificationSenderImpl ztsClientNotificationSender;
+    private final DynamoDB dynamoDB;
+    private final String tableName;
+    private final ZTSClientNotificationSenderImpl ztsClientNotificationSender;
 
     public DynamoDBSSHRecordStore(AmazonDynamoDB client, final String tableName, ZTSClientNotificationSenderImpl ztsClientNotificationSender) {
         this.dynamoDB = new DynamoDB(client);

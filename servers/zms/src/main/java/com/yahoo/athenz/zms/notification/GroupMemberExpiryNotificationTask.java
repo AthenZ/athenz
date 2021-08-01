@@ -39,12 +39,12 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
     private final GroupExpiryDomainNotificationToMetricConverter groupExpiryDomainNotificationToMetricConverter;
     private final GroupExpiryPrincipalNotificationToToMetricConverter groupExpiryPrincipalNotificationToToMetricConverter;
 
-    public GroupMemberExpiryNotificationTask(DBService dbService, String userDomainPrefix) {
+    public GroupMemberExpiryNotificationTask(DBService dbService, String userDomainPrefix, NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
         this.dbService = dbService;
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
-        this.groupExpiryPrincipalNotificationToEmailConverter = new GroupExpiryPrincipalNotificationToEmailConverter();
-        this.groupExpiryDomainNotificationToEmailConverter = new GroupExpiryDomainNotificationToEmailConverter();
+        this.groupExpiryPrincipalNotificationToEmailConverter = new GroupExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon);
+        this.groupExpiryDomainNotificationToEmailConverter = new GroupExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon);
         this.groupExpiryPrincipalNotificationToToMetricConverter = new GroupExpiryPrincipalNotificationToToMetricConverter();
         this.groupExpiryDomainNotificationToMetricConverter = new GroupExpiryDomainNotificationToMetricConverter();
     }
@@ -201,8 +201,8 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private final String emailPrincipalExpiryBody;
 
-        public GroupExpiryPrincipalNotificationToEmailConverter() {
-            notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        public GroupExpiryPrincipalNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
             emailPrincipalExpiryBody =  notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_PRINCIPAL_EXPIRY);
         }
 
@@ -231,8 +231,8 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private final String emailDomainMemberExpiryBody;
 
-        public GroupExpiryDomainNotificationToEmailConverter() {
-            notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        public GroupExpiryDomainNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
             emailDomainMemberExpiryBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_DOMAIN_MEMBER_EXPIRY);
         }
 

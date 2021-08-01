@@ -42,10 +42,11 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
     public AWSZTSHealthNotificationTask(ZTSClientNotification ztsClientNotification,
                                         RolesProvider rolesProvider,
                                         String userDomainPrefix,
-                                        String serverName) {
+                                        String serverName,
+                                        NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(rolesProvider, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
-        this.awsZTSHealthNotificationToEmailConverter = new AWSZTSHealthNotificationToEmailConverter();
+        this.awsZTSHealthNotificationToEmailConverter = new AWSZTSHealthNotificationToEmailConverter(notificationToEmailConverterCommon);
         this.awsztsHealthNotificationToMetricConverter = new AWSZTSHealthNotificationToMetricConverter();
         this.ztsClientNotification = ztsClientNotification;
         this.serverName = serverName;
@@ -97,8 +98,8 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailAwsZtsHealthBody;
 
-        public AWSZTSHealthNotificationToEmailConverter() {
-            notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        public AWSZTSHealthNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
             emailAwsZtsHealthBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_NOTIFICATION_AWS_ZTS_HEALTH);
         }
 

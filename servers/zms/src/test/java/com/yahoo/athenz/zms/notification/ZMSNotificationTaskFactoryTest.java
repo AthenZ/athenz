@@ -17,6 +17,7 @@
 package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.notification.NotificationTask;
+import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.zms.DBService;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
@@ -31,7 +32,7 @@ public class ZMSNotificationTaskFactoryTest {
     @Test
     public void testNotificationTasksOrdering() {
         DBService dbsvc = Mockito.mock(DBService.class);
-        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc, USER_DOMAIN_PREFIX);
+        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
         List<NotificationTask> notificationTasks = zmsNotificationTaskFactory.getNotificationTasks();
         assertEquals(5, notificationTasks.size());
         assertEquals(notificationTasks.get(0).getDescription(), "pending role membership approvals reminders");

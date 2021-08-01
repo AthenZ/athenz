@@ -62,7 +62,8 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
                                              HostnameResolver hostnameResolver,
                                              String userDomainPrefix,
                                              String serverName,
-                                             int httpsPort) {
+                                             int httpsPort,
+                                             NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
         this.serverName = serverName;
         this.providers = getProvidersList();
         this.instanceCertManager = instanceCertManager;
@@ -71,7 +72,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.hostnameResolver = hostnameResolver;
         final String apiHostName = System.getProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_API_HOSTNAME, serverName);
-        this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter(apiHostName, httpsPort);
+        this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter(apiHostName, httpsPort, notificationToEmailConverterCommon);
         this.certFailedRefreshNotificationToMetricConverter = new CertFailedRefreshNotificationToMetricConverter();
         globStringsMatcher = new GlobStringsMatcher(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
     }
@@ -238,8 +239,8 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         private final int httpsPort;
         private final String athenzGuide;
 
-        public CertFailedRefreshNotificationToEmailConverter(final String serverName, int httpsPort) {
-            notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        public CertFailedRefreshNotificationToEmailConverter(final String serverName, int httpsPort, NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
             emailUnrefreshedCertsBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_UNREFRESHED_CERTS);
             this.serverName = serverName;
             this.httpsPort = httpsPort;

@@ -39,13 +39,13 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
     private final PendingRoleMembershipApprovalNotificationToEmailConverter pendingMembershipApprovalNotificationToEmailConverter;
     private final PendingRoleMembershipApprovalNotificationToMetricConverter pendingRoleMembershipApprovalNotificationToMetricConverter;
 
-    public PendingRoleMembershipApprovalNotificationTask(DBService dbService, int pendingRoleMemberLifespan, String monitorIdentity, String userDomainPrefix) {
+    public PendingRoleMembershipApprovalNotificationTask(DBService dbService, int pendingRoleMemberLifespan, String monitorIdentity, String userDomainPrefix, NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
         this.dbService = dbService;
         this.pendingRoleMemberLifespan = pendingRoleMemberLifespan;
         this.monitorIdentity = monitorIdentity;
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
-        this.pendingMembershipApprovalNotificationToEmailConverter = new PendingRoleMembershipApprovalNotificationToEmailConverter();
+        this.pendingMembershipApprovalNotificationToEmailConverter = new PendingRoleMembershipApprovalNotificationToEmailConverter(notificationToEmailConverterCommon);
         this.pendingRoleMembershipApprovalNotificationToMetricConverter = new PendingRoleMembershipApprovalNotificationToMetricConverter();
     }
 
@@ -72,8 +72,8 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private String emailMembershipApprovalReminderBody;
 
-        public PendingRoleMembershipApprovalNotificationToEmailConverter() {
-            notificationToEmailConverterCommon = new NotificationToEmailConverterCommon();
+        public PendingRoleMembershipApprovalNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
             emailMembershipApprovalReminderBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER);
         }
 

@@ -35,11 +35,11 @@ public class DynamoDBCertRecordStore implements CertRecordStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCertRecordStore.class);
     private static final Logger CERTLOGGER = LoggerFactory.getLogger("X509CertLogger");
 
-    private String tableName;
-    private String currentTimeIndexName;
-    private String hostIndexName;
-    private DynamoDB dynamoDB;
-    private ZTSClientNotificationSenderImpl ztsClientNotificationSender;
+    private final String tableName;
+    private final String currentTimeIndexName;
+    private final String hostIndexName;
+    private final DynamoDB dynamoDB;
+    private final ZTSClientNotificationSenderImpl ztsClientNotificationSender;
 
     public DynamoDBCertRecordStore(AmazonDynamoDB client, final String tableName, final String currentTimeIndexName, String hostIndexName, ZTSClientNotificationSenderImpl ztsClientNotificationSender) {
         this.dynamoDB = new DynamoDB(client);
