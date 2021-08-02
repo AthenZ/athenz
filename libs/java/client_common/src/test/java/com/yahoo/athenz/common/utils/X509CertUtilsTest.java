@@ -48,6 +48,50 @@ public class X509CertUtilsTest {
     }
 
     @Test
+    public void testExtractHostname() throws IOException {
+        Path path = Paths.get("src/test/resources/athenz_hostname.cert.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
+        assertEquals(X509CertUtils.extractHostname(cert), "abc.athenz.com");
+
+        // Ensure null cert argument will result in "" return value
+        assertEquals(X509CertUtils.extractHostname(null), "");
+
+        path = Paths.get("src/test/resources/athenz_no_hostname.cert.pem");
+        pem = new String(Files.readAllBytes(path));
+        cert = Crypto.loadX509Certificate(pem);
+        assertEquals(X509CertUtils.extractHostname(cert), "");
+    }
+
+    @Test
+    public void testExtractProvider() throws IOException {
+        Path path = Paths.get("src/test/resources/athenz_hostname.cert.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
+        assertEquals(X509CertUtils.extractProvider(cert), "openstack.provider");
+
+        // Ensure null cert argument will result in "" return value
+        assertEquals(X509CertUtils.extractProvider(null), "");
+
+        path = Paths.get("src/test/resources/athenz_no_provider.cert.pem");
+        pem = new String(Files.readAllBytes(path));
+        cert = Crypto.loadX509Certificate(pem);
+        assertEquals(X509CertUtils.extractProvider(cert), "");
+
+        path = Paths.get("src/test/resources/athenz_unknown_uri.cert.pem");
+        pem = new String(Files.readAllBytes(path));
+        cert = Crypto.loadX509Certificate(pem);
+        assertEquals(X509CertUtils.extractProvider(cert), "");
+
+        path = Paths.get("src/test/resources/athenz_bad_instanceid.cert.pem");
+        pem = new String(Files.readAllBytes(path));
+        cert = Crypto.loadX509Certificate(pem);
+        assertEquals(X509CertUtils.extractProvider(cert), "");
+    }
+
+    @Test
     public void testExtractRequestInstanceId() throws CertificateParsingException {
 
 

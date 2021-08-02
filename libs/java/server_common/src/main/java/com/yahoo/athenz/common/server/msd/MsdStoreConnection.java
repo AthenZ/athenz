@@ -19,13 +19,14 @@ package com.yahoo.athenz.common.server.msd;
 import com.yahoo.athenz.msd.Workload;
 import com.yahoo.athenz.msd.WorkloadOptions;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Storage interface for storing MicroSegmentation Daemon data
  */
-public interface MsdStoreConnection {
+public interface MsdStoreConnection extends Closeable {
 
     /**
      * putWorkload stores the Wordload value into the underlying storage that can be an RDMS or NoSQL
@@ -52,5 +53,11 @@ public interface MsdStoreConnection {
      */
     default public List<Workload> getWorkloadsByIp(String ip) {
         return new ArrayList<>();
+    }
+
+    /**
+     * Close the connection to the msd store
+     */
+    default public void close() {
     }
 }
