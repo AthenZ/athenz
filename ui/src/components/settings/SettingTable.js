@@ -103,7 +103,12 @@ export default class SettingTable extends React.Component {
             enableSubmit: false,
             boolUserAuthorityAttributes: boolUserAuthorityAttributes,
             dateUserAuthorityAttributes: dateUserAuthorityAttributes,
+            justification: '',
         };
+    }
+
+    saveJustification(val) {
+        this.setState({ justification: val });
     }
 
     setCollectionDetails(collection) {
@@ -179,8 +184,8 @@ export default class SettingTable extends React.Component {
     onSubmitUpdate() {
         if (
             this.props.justificationRequired &&
-            (this.state.deleteJustification === undefined ||
-                this.state.deleteJustification.trim() === '')
+            (this.state.justification === undefined ||
+                this.state.justification.trim() === '')
         ) {
             this.setState({
                 errorMessage: 'Justification is required to update a setting',
@@ -313,7 +318,7 @@ export default class SettingTable extends React.Component {
                     this.props.category +
                     ' '
                 }
-                showJustification={this.state.justificationRequired}
+                showJustification={this.props.justificationRequired}
                 onJustification={this.saveJustification}
                 errorMessage={this.state.errorMessage}
             />
@@ -357,7 +362,6 @@ export default class SettingTable extends React.Component {
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
                     userProfileLink={this.props.userProfileLink}
                 />
             );
@@ -379,7 +383,6 @@ export default class SettingTable extends React.Component {
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
                     userProfileLink={this.props.userProfileLink}
                 />
             );
@@ -401,7 +404,6 @@ export default class SettingTable extends React.Component {
                 api={this.api}
                 onValueChange={this.onValueChange}
                 _csrf={this.props._csrf}
-                justificationRequired={this.props.justificationRequired}
                 userProfileLink={this.props.userProfileLink}
             />
         );
@@ -420,7 +422,6 @@ export default class SettingTable extends React.Component {
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
                     userProfileLink={this.props.userProfileLink}
                 />
             );
@@ -443,7 +444,6 @@ export default class SettingTable extends React.Component {
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
                     userProfileLink={this.props.userProfileLink}
                 />
             );
@@ -462,7 +462,6 @@ export default class SettingTable extends React.Component {
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
                     userProfileLink={this.props.userProfileLink}
                 />
             );
@@ -484,7 +483,6 @@ export default class SettingTable extends React.Component {
                 api={this.api}
                 onValueChange={this.onValueChange}
                 _csrf={this.props._csrf}
-                justificationRequired={this.props.justificationRequired}
                 userProfileLink={this.props.userProfileLink}
             />
         );
@@ -503,7 +501,6 @@ export default class SettingTable extends React.Component {
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
                     userProfileLink={this.props.userProfileLink}
                 />
             );
@@ -526,7 +523,6 @@ export default class SettingTable extends React.Component {
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
                     userProfileLink={this.props.userProfileLink}
                 />
             );
@@ -545,7 +541,6 @@ export default class SettingTable extends React.Component {
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
                     userProfileLink={this.props.userProfileLink}
                 />
             );
@@ -566,7 +561,6 @@ export default class SettingTable extends React.Component {
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
                     userProfileLink={this.props.userProfileLink}
                 />
             );
@@ -586,7 +580,6 @@ export default class SettingTable extends React.Component {
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
                     userProfileLink={this.props.userProfileLink}
                 />
             );
@@ -608,7 +601,6 @@ export default class SettingTable extends React.Component {
                     api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    justificationRequired={this.props.justificationRequired}
                     userProfileLink={this.props.userProfileLink}
                 />
             );

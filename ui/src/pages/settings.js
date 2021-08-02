@@ -114,14 +114,8 @@ export default class SettingPage extends React.Component {
     }
 
     render() {
-        const {
-            domain,
-            reload,
-            roleDetails,
-            role,
-            isDomainAuditEnabled,
-            _csrf,
-        } = this.props;
+        const { domain, reload, roleDetails, role, auditEnabled, _csrf } =
+            this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -173,9 +167,7 @@ export default class SettingPage extends React.Component {
                                         collection={role}
                                         collectionDetails={roleDetails}
                                         _csrf={_csrf}
-                                        isDomainAuditEnabled={
-                                            isDomainAuditEnabled
-                                        }
+                                        justificationRequired={auditEnabled}
                                         userProfileLink={
                                             this.props.headerDetails.userData
                                                 .userLink
