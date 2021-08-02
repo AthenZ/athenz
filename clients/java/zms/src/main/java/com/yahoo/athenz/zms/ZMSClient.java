@@ -543,9 +543,30 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public JWSDomain getJWSDomain(String domain) {
+        return getJWSDomain(domain, null, null);
+    }
+
+    /**
+     * Retrieve the specified singed domain object. The domain
+     * object includes all roles, policies, services and
+     * domain attributes. The domain data is base64url encoded
+     * in the payload field based on JWS RFC 7515
+     * https://tools.ietf.org/html/rfc7515#section-7.2.2
+     *
+     * @param domain          name of the domain to be retrieved
+     * @param matchingTag     (can be null) contains modified timestamp received
+     *                        with last request. If null, then return all domains.
+     * @param responseHeaders contains the "tag" returned for modification
+     *                        time of the domains, map key = "tag", List should
+     *                        contain a single value timestamp String to be used
+     *                        with subsequent call as matchingTag to this API
+     * @return JWSDomain      object
+     * @throws ZMSClientException in case of failure
+     */
+    public JWSDomain getJWSDomain(String domain, String matchingTag, Map<String, List<String>> responseHeaders) {
         updatePrincipal();
         try {
-            return client.getJWSDomain(domain);
+            return client.getJWSDomain(domain, matchingTag, responseHeaders);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

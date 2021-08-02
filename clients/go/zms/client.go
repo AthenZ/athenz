@@ -3108,26 +3108,32 @@ func (client ZMSClient) GetSignedDomains(domain DomainName, metaOnly string, met
 	}
 }
 
-func (client ZMSClient) GetJWSDomain(name DomainName) (*JWSDomain, error) {
+func (client ZMSClient) GetJWSDomain(name DomainName, matchingTag string) (*JWSDomain, string, error) {
 	var data *JWSDomain
+	headers := map[string]string{
+		"If-None-Match": matchingTag,
+	}
 	url := client.URL + "/domain/" + fmt.Sprint(name) + "/signed"
-	resp, err := client.httpGet(url, nil)
+	resp, err := client.httpGet(url, headers)
 	if err != nil {
-		return data, err
+		return nil, "", err
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case 200:
-		err = json.NewDecoder(resp.Body).Decode(&data)
-		if err != nil {
-			return data, err
+	case 200, 304:
+		if 304 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return nil, "", err
+			}
 		}
-		return data, nil
+		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
+		return data, tag, nil
 	default:
 		var errobj rdl.ResourceError
 		contentBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return data, err
+			return nil, "", err
 		}
 		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
@@ -3136,7 +3142,7 @@ func (client ZMSClient) GetJWSDomain(name DomainName) (*JWSDomain, error) {
 		if errobj.Message == "" {
 			errobj.Message = string(contentBytes)
 		}
-		return data, errobj
+		return nil, "", errobj
 	}
 }
 

@@ -623,7 +623,7 @@ func init() {
 	tSignedPolicies := rdl.NewStructTypeBuilder("Struct", "SignedPolicies")
 	tSignedPolicies.Comment("A signed bulk transfer of policies. The data is signed with server's private key.")
 	tSignedPolicies.Field("contents", "DomainPolicies", false, nil, "list of policies defined in a domain")
-	tSignedPolicies.Field("signature", "String", false, nil, "signature generated based on the domain policies object")
+	tSignedPolicies.Field("signature", "String", false, nil, "signature generated based on the domain active policies object")
 	tSignedPolicies.Field("keyId", "String", false, nil, "the identifier of the key used to generate the signature")
 	sb.AddType(tSignedPolicies.Build())
 
@@ -1966,7 +1966,7 @@ func init() {
 	sb.AddResource(mGetResourceAccessList.Build())
 
 	mGetSignedDomains := rdl.NewResourceBuilder("SignedDomains", "GET", "/sys/modified_domains")
-	mGetSignedDomains.Comment("Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, dont add roles, policies or services, dont sign")
+	mGetSignedDomains.Comment("Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, don't add roles, policies or services, don't sign")
 	mGetSignedDomains.Input("domain", "DomainName", false, "domain", "", true, nil, "filter the domain list only to the specified name")
 	mGetSignedDomains.Input("metaOnly", "String", false, "metaonly", "", true, nil, "valid values are \"true\" or \"false\"")
 	mGetSignedDomains.Input("metaAttr", "SimpleName", false, "metaattr", "", true, nil, "domain meta attribute to filter/return, valid values \"account\", \"ypmId\", or \"all\"")
@@ -1983,6 +1983,8 @@ func init() {
 
 	mGetJWSDomain := rdl.NewResourceBuilder("JWSDomain", "GET", "/domain/{name}/signed")
 	mGetJWSDomain.Input("name", "DomainName", true, "", "", false, nil, "name of the domain to be retrieved")
+	mGetJWSDomain.Input("matchingTag", "String", false, "", "If-None-Match", false, nil, "Retrieved from the previous request, this timestamp specifies to the server to return if the domain was modified since this time")
+	mGetJWSDomain.Output("tag", "String", "ETag", false, "The current latest modification timestamp is returned in this header")
 	mGetJWSDomain.Auth("", "", true, "")
 	mGetJWSDomain.Exception("NOT_FOUND", "ResourceError", "")
 	mGetJWSDomain.Exception("TOO_MANY_REQUESTS", "ResourceError", "")

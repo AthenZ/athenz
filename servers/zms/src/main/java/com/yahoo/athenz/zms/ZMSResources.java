@@ -3227,7 +3227,7 @@ public class ZMSResources {
     @GET
     @Path("/sys/modified_domains")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, dont add roles, policies or services, dont sign")
+    @Operation(description = "Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, don't add roles, policies or services, don't sign")
     public Response getSignedDomains(
         @Parameter(description = "filter the domain list only to the specified name", required = false) @QueryParam("domain") String domain,
         @Parameter(description = "valid values are \"true\" or \"false\"", required = false) @QueryParam("metaonly") String metaOnly,
@@ -3265,14 +3265,15 @@ public class ZMSResources {
     @Path("/domain/{name}/signed")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "")
-    public JWSDomain getJWSDomain(
-        @Parameter(description = "name of the domain to be retrieved", required = true) @PathParam("name") String name) {
+    public Response getJWSDomain(
+        @Parameter(description = "name of the domain to be retrieved", required = true) @PathParam("name") String name,
+        @Parameter(description = "Retrieved from the previous request, this timestamp specifies to the server to return if the domain was modified since this time", required = true) @HeaderParam("If-None-Match") String matchingTag) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getJWSDomain");
             context.authenticate();
-            return this.delegate.getJWSDomain(context, name);
+            return this.delegate.getJWSDomain(context, name, matchingTag);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

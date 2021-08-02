@@ -6311,7 +6311,7 @@ type SignedPolicies struct {
 	Contents *DomainPolicies `json:"contents"`
 
 	//
-	// signature generated based on the domain policies object
+	// signature generated based on the domain active policies object
 	//
 	Signature string `json:"signature"`
 
