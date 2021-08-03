@@ -106,14 +106,8 @@ export default class GroupSettings extends React.Component {
     }
 
     render() {
-        const {
-            domain,
-            reload,
-            groupDetails,
-            group,
-            isDomainAuditEnabled,
-            _csrf,
-        } = this.props;
+        const { domain, reload, groupDetails, group, auditEnabled, _csrf } =
+            this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -165,9 +159,7 @@ export default class GroupSettings extends React.Component {
                                         collection={group}
                                         collectionDetails={groupDetails}
                                         _csrf={_csrf}
-                                        isDomainAuditEnabled={
-                                            isDomainAuditEnabled
-                                        }
+                                        justificationRequired={auditEnabled}
                                         userProfileLink={
                                             this.props.headerDetails.userData
                                                 .userLink

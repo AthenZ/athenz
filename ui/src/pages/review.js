@@ -96,7 +96,7 @@ export default class ReviewPage extends React.Component {
             members: roles[3].roleMembers,
             headerDetails: roles[1],
             domainDeails: roles[2],
-            auditEnabled: roles[2].auditEnabled,
+            isDomainAuditEnabled: roles[2].auditEnabled,
             roleDetails: roles[3],
             pending: roles[4],
             _csrf: roles[5],

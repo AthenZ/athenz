@@ -59,12 +59,7 @@ export default class SettingRow extends React.Component {
         this.onDropDownChange = this.onDropDownChange.bind(this);
         this.toggleSwitchButton = this.toggleSwitchButton.bind(this);
         this.onRadioChange = this.onRadioChange.bind(this);
-        this.saveJustification = this.saveJustification.bind(this);
         this.api = props.api;
-    }
-
-    saveJustification(val) {
-        this.setState({ deleteJustification: val });
     }
 
     toggleSwitchButton(evt) {

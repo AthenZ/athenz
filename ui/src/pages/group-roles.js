@@ -111,7 +111,6 @@ export default class GroupRolesPage extends React.Component {
             headerDetails: details[1],
             domainDetails: details[2],
             groupDetails: details[6],
-            auditEnabled: details[2].auditEnabled,
             roles: details[3].memberRoles,
             prefix: details[3].prefix,
             domain: props.query.domain,
@@ -144,15 +143,8 @@ export default class GroupRolesPage extends React.Component {
     };
 
     render() {
-        const {
-            domain,
-            reload,
-            groupDetails,
-            group,
-            isDomainAuditEnabled,
-            prefix,
-            _csrf,
-        } = this.props;
+        const { domain, reload, groupDetails, group, prefix, _csrf } =
+            this.props;
         if (reload) {
             window.location.reload();
             return <div />;

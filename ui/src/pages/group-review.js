@@ -90,7 +90,7 @@ export default class GroupReviewPage extends React.Component {
             members: groups[3].groupMembers,
             headerDetails: groups[1],
             domainDeails: groups[2],
-            auditEnabled: groups[2].auditEnabled,
+            isDomainAuditEnabled: groups[2].auditEnabled,
             groupDetails: groups[3],
             pending: groups[4],
             _csrf: groups[5],
