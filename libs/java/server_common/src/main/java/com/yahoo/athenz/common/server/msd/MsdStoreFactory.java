@@ -16,18 +16,14 @@
 
 package com.yahoo.athenz.common.server.msd;
 
-import org.mockito.Mockito;
-import org.testng.annotations.Test;
+import com.yahoo.athenz.auth.PrivateKeyStore;
 
-import static org.testng.Assert.assertNotNull;
+public interface MsdStoreFactory {
 
-public class MsdStoreConnectionFactoryTest {
-    @Test
-    public void createTest() {
-        MsdStoreConnection mockMsdStoreConnection = Mockito.mock(MsdStoreConnection.class);
-        MsdStoreConnectionFactory factory = () -> mockMsdStoreConnection;
-
-        MsdStoreConnection msdStoreConnection = factory.create();
-        assertNotNull(msdStoreConnection);
-    }
+    /**
+     * Create and return a new MsdStoreConnection instance. The MsdStoreConnection
+     * will be responsible for write/reads for Workloads into the underlying MSD storage
+     * @return MsdStoreConnection instance
+     */
+    MsdStore create(PrivateKeyStore keyStore);
 }

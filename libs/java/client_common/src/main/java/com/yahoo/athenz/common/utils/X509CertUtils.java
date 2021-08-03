@@ -25,8 +25,9 @@ import java.util.List;
 
 public class X509CertUtils {
 
-    static final String ZTS_CERT_INSTANCE_ID_DNS    = ".instanceid.athenz.";
-    static final String ZTS_CERT_INSTANCE_ID_URI    = "athenz://instanceid/";
+    static final String ZTS_CERT_INSTANCE_ID_DNS = ".instanceid.athenz.";
+    static final String ZTS_CERT_INSTANCE_ID_URI = "athenz://instanceid/";
+    static final String ZTS_CERT_HOSTNAME_URI    = "athenz://hostname/";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(X509CertUtils.class);
     private static final ThreadLocal<StringBuilder> TLS_BUILDER = ThreadLocal.withInitial(() -> new StringBuilder(256));
@@ -46,6 +47,32 @@ public class X509CertUtils {
 
         return null;
     }
+
+    /**
+     * extractProvider derives the provider from athenz://instanceid San URI
+     * @param cert X509Certificate
+     * @return provider from San URI, "" if provider is not found.
+     */
+    public static String extractProvider(X509Certificate cert) {
+        if (cert == null) {
+            return "";
+        }
+
+        for (String uri : Crypto.extractX509CertURIs(cert)) {
+            if (!uri.startsWith(ZTS_CERT_INSTANCE_ID_URI)) {
+                continue;
+            }
+            // extract the first field after the prefix, separated by '/'
+            int prefixLen = ZTS_CERT_INSTANCE_ID_URI.length();
+            int idx = uri.indexOf('/', prefixLen);
+            return idx == -1
+                    ? ""
+                    : uri.substring(prefixLen, idx);
+        }
+
+        return "";
+    }
+
 
     public static String extractItemFromURI(final List<String> uriList, final String item) {
 
@@ -68,6 +95,20 @@ public class X509CertUtils {
         }
 
         return null;
+    }
+
+    /**
+     * extractHostname returns the hostname found in the athenz://hostname SanURI entry
+     * @param cert X509Certficate
+     * @return hostname found in SanURI, "" if no hostname is found
+     */
+    public static String extractHostname(X509Certificate cert) {
+        if (cert == null) {
+            return "";
+        }
+
+        String hostname = extractItemFromURI(Crypto.extractX509CertURIs(cert), ZTS_CERT_HOSTNAME_URI);
+        return hostname == null ? "" : hostname;
     }
 
     public static String extractRequestInstanceId(X509Certificate cert) {
