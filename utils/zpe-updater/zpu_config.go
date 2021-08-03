@@ -42,6 +42,7 @@ type ZpuConfiguration struct {
 	CertFile          string
 	CaCertFile        string
 	Proxy             bool
+	CheckZMSSignature bool
 }
 
 type AthenzConf struct {
@@ -58,20 +59,21 @@ type AthenzConf struct {
 }
 
 type ZpuConf struct {
-	Domains       string `json:"domains"`
-	User          string `json:"user"`
-	PolicyDir     string `json:"policyDir"`
-	TempPolicyDir string `json:"tempPolicyDir"`
-	MetricsDir    string `json:"metricsDir"`
-	LogMaxSize    int    `json:"logMaxsize"`
-	LogMaxAge     int    `json:"logMaxage"`
-	LogMaxBackups int    `json:"logMaxbackups"`
-	LogCompress   bool   `json:"logCompress"`
-	PrivateKey    string `json:"privateKeyFile"`
-	CertFile      string `json:"certFile"`
-	CaCertFile    string `json:"caCertFile"`
-	Proxy         bool   `json:"proxy"`
-	ExpiryCheck   int    `json:"expiryCheck"`
+	Domains           string `json:"domains"`
+	User              string `json:"user"`
+	PolicyDir         string `json:"policyDir"`
+	TempPolicyDir     string `json:"tempPolicyDir"`
+	MetricsDir        string `json:"metricsDir"`
+	LogMaxSize        int    `json:"logMaxsize"`
+	LogMaxAge         int    `json:"logMaxage"`
+	LogMaxBackups     int    `json:"logMaxbackups"`
+	LogCompress       bool   `json:"logCompress"`
+	PrivateKey        string `json:"privateKeyFile"`
+	CertFile          string `json:"certFile"`
+	CaCertFile        string `json:"caCertFile"`
+	Proxy             bool   `json:"proxy"`
+	ExpiryCheck       int    `json:"expiryCheck"`
+	CheckZMSSignature bool   `json:"checkZMSSignature"`
 }
 
 func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfiguration, error) {
@@ -92,7 +94,7 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 		}
 		key, err := new(zmssvctoken.YBase64).DecodeString(publicKey.Key)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to decode Zts public Key with id: %v, Error: %v", publicKey.Id, err)
+			return nil, fmt.Errorf("unable to decode Zts public Key with id: %v, Error: %v", publicKey.Id, err)
 		}
 		ztsKeysmap[publicKey.Id] = string(key)
 	}
@@ -103,7 +105,7 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 		}
 		key, err := new(zmssvctoken.YBase64).DecodeString(publicKey.Key)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to decode Zms public Key with id: %v, Error: %v", publicKey.Id, err)
+			return nil, fmt.Errorf("unable to decode Zms public Key with id: %v, Error: %v", publicKey.Id, err)
 		}
 		zmsKeysmap[publicKey.Id] = string(key)
 	}
@@ -113,7 +115,7 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 	if startupDelayString != "" {
 		startupDelay, err = strconv.Atoi(startupDelayString)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to set start up delay, Error: %v", err)
+			return nil, fmt.Errorf("unable to set start up delay, Error: %v", err)
 		}
 	}
 	if startupDelay < 0 {
@@ -172,22 +174,23 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 		CaCertFile:        zpuConf.CaCertFile,
 		CertFile:          zpuConf.CertFile,
 		Proxy:             zpuConf.Proxy,
+		CheckZMSSignature: zpuConf.CheckZMSSignature,
 	}, nil
 }
 
 func ReadAthenzConf(athenzConf string) (*AthenzConf, error) {
 	var aConf *AthenzConf
 	if !util.Exists(athenzConf) {
-		return nil, fmt.Errorf("The Athenz configuration file does not exist at path: %v", athenzConf)
+		return nil, fmt.Errorf("athenz configuration file does not exist at path: %v", athenzConf)
 	}
 
 	data, err := ioutil.ReadFile(athenzConf)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read the Athenz configuration file, Error:%v", err)
+		return nil, fmt.Errorf("failed to read the Athenz configuration file, Error:%v", err)
 	}
 	err = json.Unmarshal(data, &aConf)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse the Athenz configuration file, Error:%v", err)
+		return nil, fmt.Errorf("failed to parse the Athenz configuration file, Error:%v", err)
 	}
 	return aConf, nil
 }
@@ -195,16 +198,16 @@ func ReadAthenzConf(athenzConf string) (*AthenzConf, error) {
 func ReadZpuConf(zpuConf string) (*ZpuConf, error) {
 	var zConf *ZpuConf
 	if !util.Exists(zpuConf) {
-		return nil, fmt.Errorf("The ZPU configuration file does not exist at the given path: %v", zpuConf)
+		return nil, fmt.Errorf("zpu configuration file does not exist at the given path: %v", zpuConf)
 	}
 
 	data, err := ioutil.ReadFile(zpuConf)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read the Zpu configuration file, Error:%v", err)
+		return nil, fmt.Errorf("failed to read the Zpu configuration file, Error:%v", err)
 	}
 	err = json.Unmarshal(data, &zConf)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse the Zpu configuration file, Error:%v", err)
+		return nil, fmt.Errorf("failed to parse the Zpu configuration file, Error:%v", err)
 	}
 	return zConf, nil
 }
