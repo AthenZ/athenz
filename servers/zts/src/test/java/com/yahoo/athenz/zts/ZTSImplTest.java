@@ -1100,6 +1100,12 @@ public class ZTSImplTest {
         domainData.getPolicies().getContents().getPolicies().add(policy);
 
         assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.ALLOWED);
+
+        // we're going to mark the policy as inactive in which case
+        // our access will return denied
+
+        policy.setActive(false);
+        assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.DENIED);
     }
 
     @Test
@@ -1275,6 +1281,54 @@ public class ZTSImplTest {
         assertEquals(policyList.size(), 2);
         assertEquals(policyList.get(0).getName(), "coretech:policy.reader");
         assertEquals(policyList.get(1).getName(), "coretech:policy.writer");
+    }
+
+    @Test
+    public void testGetPolicyListInactive() {
+
+        List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
+        List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
+
+        com.yahoo.athenz.zms.Policy policy = new com.yahoo.athenz.zms.Policy();
+        com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
+        assertion.setResource("coretech:tenant.weather.*");
+        assertion.setAction("read");
+        assertion.setRole("coretech:role.readers");
+        assertions.add(assertion);
+
+        policy.setAssertions(assertions);
+        policy.setName("coretech:policy.reader");
+        policies.add(policy);
+
+        policy = new com.yahoo.athenz.zms.Policy();
+        assertion = new com.yahoo.athenz.zms.Assertion();
+        assertion.setResource("coretech:tenant.weather.*");
+        assertion.setAction("write");
+        assertion.setRole("coretech:role.writers");
+        assertions.add(assertion);
+
+        policy.setAssertions(assertions);
+        policy.setName("coretech:policy.writer");
+        policy.setActive(false);
+        policies.add(policy);
+
+        com.yahoo.athenz.zms.DomainPolicies domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
+        domainPolicies.setDomain("coretech");
+        domainPolicies.setPolicies(policies);
+
+        com.yahoo.athenz.zms.SignedPolicies signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
+        signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
+        signedPolicies.setKeyId("0");
+
+        DomainData domain = new DomainData();
+        domain.setName("coretech");
+        domain.setPolicies(signedPolicies);
+        domain.setModified(Timestamp.fromCurrentTime());
+
+        List<com.yahoo.athenz.zts.Policy> policyList = zts.getPolicyList(domain);
+        assertEquals(policyList.size(), 1);
+        assertEquals(policyList.get(0).getName(), "coretech:policy.reader");
     }
 
     @Test
@@ -2907,6 +2961,15 @@ public class ZTSImplTest {
         assertTrue(authorizer.matchPrincipalInRole(role, "weather:role.role1", "user_domain.user1", "coretechtrust"));
         assertFalse(authorizer.matchPrincipalInRole(role, "weather:role.role1", "user_domain.user1", "coretechtrust2"));
         assertFalse(authorizer.matchPrincipalInRole(role, "weather:role.role1", "user_domain.user3", "coretechtrust"));
+
+        // we're going to mark the policy as inactive in which case
+        // we should not match any principal
+
+        policy.setActive(false);
+        assertFalse(authorizer.matchPrincipalInRole(role, "weather:role.role1", "user_domain.user1", "coretechtrust"));
+        assertFalse(authorizer.matchPrincipalInRole(role, "weather:role.role1", "user_domain.user1", "coretechtrust2"));
+        assertFalse(authorizer.matchPrincipalInRole(role, "weather:role.role1", "user_domain.user3", "coretechtrust"));
+
         store.getCacheStore().invalidate("coretechtrust");
     }
 
@@ -8913,9 +8976,15 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         System.setProperty(ZTSConsts.ZTS_PROP_AUTHORITY_CLASSES, "com.yahoo.athenz.zts.MockAuthority");
+        System.setProperty(ZTSConsts.ZTS_PROP_USER_AUTHORITY_CLASS, "com.yahoo.athenz.zts.MockAuthority");
+
         ztsImpl.loadAuthorities();
         ztsImpl.setAuthorityKeyStore();
+        assertNotNull(ztsImpl.userAuthority);
+        assertEquals(ztsImpl.userAuthority, ztsImpl.authorities.getAuthorities().get(0));
+
         System.clearProperty(ZTSConsts.ZTS_PROP_AUTHORITY_CLASSES);
+        System.clearProperty(ZTSConsts.ZTS_PROP_USER_AUTHORITY_CLASS);
     }
 
     @Test

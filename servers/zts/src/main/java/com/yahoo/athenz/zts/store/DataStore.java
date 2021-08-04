@@ -741,6 +741,13 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             roleMap.put(role.getName(), role);
         }
         for (com.yahoo.athenz.zms.Policy policy : policies) {
+
+            // ignore any inactive/multi-version policies
+
+            if (policy.getActive() == Boolean.FALSE) {
+                continue;
+            }
+
             domainCache.processPolicy(domainData.getName(), policy, roleMap);
         }
     }

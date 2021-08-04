@@ -949,6 +949,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         for (com.yahoo.athenz.zms.Policy zmsPolicy : zmsPolicies) {
+
+            // ignore any inactive/multi-version policies
+
+            if (zmsPolicy.getActive() == Boolean.FALSE) {
+                continue;
+            }
+
             Policy ztsPolicy = new Policy()
                     .setModified(zmsPolicy.getModified())
                     .setName(zmsPolicy.getName());

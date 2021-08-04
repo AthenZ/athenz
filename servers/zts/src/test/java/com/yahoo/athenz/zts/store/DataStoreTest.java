@@ -2292,14 +2292,73 @@ public class DataStoreTest {
         DataCache dataCache = new DataCache();
         dataCache.setDomainData(domainData);
         
-        store.processDomainRoles(domainData, dataCache);
-        assertEquals(dataCache.getMemberRoleSet("user_domain.user").size(), 2);
+        store.processDomainPolicies(domainData, dataCache);
+        assertEquals(dataCache.getMemberRoleSet("user_domain.user").size(), 1);
         assertTrue(dataCache.getMemberRoleSet("user_domain.user")
-                .contains(new MemberRole("coretech:role.admin", 0)));
-        assertTrue(dataCache.getMemberRoleSet("user_domain.user")
-                .contains(new MemberRole("coretech:role.readers", 0)));
+                .contains(new MemberRole("sports:role.readers", 0)));
     }
-    
+
+    @Test
+    public void testProcessDomainPoliciesInactive() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
+
+        com.yahoo.athenz.zms.Policy policy = new com.yahoo.athenz.zms.Policy();
+        policy.setActive(false);
+        com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
+        assertion.setResource("sports:role.readers");
+        assertion.setAction("assume_role");
+        assertion.setRole("coretech:role.readers");
+
+        List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
+        assertions.add(assertion);
+
+        policy.setAssertions(assertions);
+        policies.add(policy);
+
+        List<Role> roles = new ArrayList<>();
+
+        Role role = new Role();
+        role.setName("coretech:role.admin");
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
+        roles.add(role);
+
+        role = new Role();
+        role.setName("coretech:role.readers");
+        members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
+        roles.add(role);
+
+        com.yahoo.athenz.zms.DomainPolicies domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
+        domainPolicies.setDomain("coretech");
+        domainPolicies.setPolicies(policies);
+
+        com.yahoo.athenz.zms.SignedPolicies signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
+        signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), pkey));
+        signedPolicies.setKeyId("0");
+
+        DomainData domainData = new DomainData();
+        domainData.setName("coretech");
+        domainData.setPolicies(signedPolicies);
+        domainData.setRoles(roles);
+
+        DataCache dataCache = new DataCache();
+        dataCache.setDomainData(domainData);
+
+        store.processDomainPolicies(domainData, dataCache);
+
+        // we should not get any members
+
+        assertNull(dataCache.getMemberRoleSet("user_domain.user"));
+    }
+
     @Test
     public void testProcessDomainPoliciesNullPolicies() {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
