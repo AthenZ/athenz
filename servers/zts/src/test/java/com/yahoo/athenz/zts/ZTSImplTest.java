@@ -10925,6 +10925,77 @@ public class ZTSImplTest {
         testGetRoleAccessWithDelegatedRolesWithGroups("role1", "*", true);
     }
 
+    SignedDomain createGroupNewsDomain(final String newsDomainName, final String weatherDomainName, Timestamp expiration) {
+
+        // create the group domain for news
+
+        SignedDomain newsDomain = new SignedDomain();
+        List<Role> roles = new ArrayList<>();
+
+        // create the admin role
+
+        Role role = new Role();
+        role.setName(generateRoleName(newsDomainName, "admin"));
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.adminuser"));
+        role.setRoleMembers(members);
+        roles.add(role);
+
+        // create our groups
+
+        List<Group> groups = new ArrayList<>();
+
+        Group group = new Group().setName(ResourceUtils.groupResourceName(newsDomainName, "group1"));
+        List<GroupMember> groupMembers = new ArrayList<>();
+        GroupMember user1GroupMember = new GroupMember().setMemberName("user_domain.user1").setGroupName(group.getName());
+        if (expiration != null) {
+            user1GroupMember.setExpiration(expiration);
+        }
+        groupMembers.add(user1GroupMember);
+        group.setGroupMembers(groupMembers);
+        groups.add(group);
+
+        // create admin policy
+
+        List<Policy> policies = new ArrayList<>();
+
+        Policy policy = new com.yahoo.athenz.zms.Policy();
+        Assertion assertion = new com.yahoo.athenz.zms.Assertion();
+        assertion.setResource(newsDomainName + ".*");
+        assertion.setAction("*");
+        assertion.setRole(generateRoleName(newsDomainName, "admin"));
+
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(assertion);
+
+        policy.setAssertions(assertions);
+        policy.setName(generatePolicyName(newsDomainName, "admin"));
+        policies.add(policy);
+
+        DomainPolicies domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
+        domainPolicies.setDomain(weatherDomainName);
+        domainPolicies.setPolicies(policies);
+
+        SignedPolicies signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
+        signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
+        signedPolicies.setKeyId("0");
+
+        DomainData domain = new DomainData();
+        domain.setName(newsDomainName);
+        domain.setRoles(roles);
+        domain.setGroups(groups);
+        domain.setServices(new ArrayList<>());
+        domain.setPolicies(signedPolicies);
+        domain.setModified(Timestamp.fromCurrentTime());
+
+        newsDomain.setDomain(domain);
+
+        newsDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), privateKey));
+        newsDomain.setKeyId("0");
+        return newsDomain;
+    }
+
     void testGetRoleAccessWithDelegatedRolesWithGroups(final String roleName, final String assumeRoleName,
             boolean wildCardAssumeDomain) {
 
@@ -11066,71 +11137,9 @@ public class ZTSImplTest {
 
         store.processDomain(sportsDomain, false);
 
-        // create the group domain for news
+        // create and process our new domain in ZTS
 
-        SignedDomain newsDomain = new SignedDomain();
-        roles = new ArrayList<>();
-
-        // create the admin role
-
-        role = new Role();
-        role.setName(generateRoleName(newsDomainName, "admin"));
-        members = new ArrayList<>();
-        members.add(new RoleMember().setMemberName("user_domain.adminuser"));
-        role.setRoleMembers(members);
-        roles.add(role);
-
-        // create our groups
-
-        List<Group> groups = new ArrayList<>();
-
-        Group group = new Group().setName(ResourceUtils.groupResourceName(newsDomainName, "group1"));
-        List<GroupMember> groupMembers = new ArrayList<>();
-        groupMembers.add(new GroupMember().setMemberName("user_domain.user1").setGroupName(group.getName()));
-        group.setGroupMembers(groupMembers);
-        groups.add(group);
-
-        // create admin policy
-
-        policies = new ArrayList<>();
-
-        policy = new com.yahoo.athenz.zms.Policy();
-        assertion = new com.yahoo.athenz.zms.Assertion();
-        assertion.setResource(newsDomainName + ".*");
-        assertion.setAction("*");
-        assertion.setRole(generateRoleName(newsDomainName, "admin"));
-
-        assertions = new ArrayList<>();
-        assertions.add(assertion);
-
-        policy.setAssertions(assertions);
-        policy.setName(generatePolicyName(newsDomainName, "admin"));
-        policies.add(policy);
-
-        domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
-        domainPolicies.setDomain(weatherDomainName);
-        domainPolicies.setPolicies(policies);
-
-        signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
-        signedPolicies.setContents(domainPolicies);
-        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
-        signedPolicies.setKeyId("0");
-
-        domain = new DomainData();
-        domain.setName(newsDomainName);
-        domain.setRoles(roles);
-        domain.setGroups(groups);
-        domain.setServices(services);
-        domain.setPolicies(signedPolicies);
-        domain.setModified(Timestamp.fromCurrentTime());
-
-        newsDomain.setDomain(domain);
-
-        newsDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), privateKey));
-        newsDomain.setKeyId("0");
-
-        // now process the domain in ZTS
-
+        SignedDomain newsDomain = createGroupNewsDomain(newsDomainName, weatherDomainName, null);
         store.processDomain(newsDomain, false);
 
         // now let's carry out our checks - we should get role1 for user1
@@ -11140,6 +11149,58 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         RoleAccess roleAccess = zts.getRoleAccess(context, weatherDomainName, "user_domain.user1");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains(roleName));
+
+        roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user1");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains(roleName));
+
+        // user2 should have same access as user1
+
+        roleAccess = zts.getRoleAccess(context, weatherDomainName, "user_domain.user2");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains(roleName));
+
+        roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user2");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains(roleName));
+
+        // now we're going to expire our user1 group member
+        // and process the domain
+
+        newsDomain = createGroupNewsDomain(newsDomainName, weatherDomainName,
+                Timestamp.fromMillis(System.currentTimeMillis() - 60 * 60 * 1000L));
+        store.processDomain(newsDomain, false);
+
+        // now let's verify our role access again. user1
+        // should not have access in weather domain
+
+        roleAccess = zts.getRoleAccess(context, weatherDomainName, "user_domain.user1");
+        assertEquals(roleAccess.getRoles().size(), 0);
+
+        roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user1");
+        assertEquals(roleAccess.getRoles().size(), 0);
+
+        // user2 should still have access to both roles
+
+        roleAccess = zts.getRoleAccess(context, weatherDomainName, "user_domain.user2");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains(roleName));
+
+        roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user2");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains(roleName));
+
+        // now we're going to reset our expiry for the user into the future
+
+        newsDomain = createGroupNewsDomain(newsDomainName, weatherDomainName,
+                Timestamp.fromMillis(System.currentTimeMillis() + 60 * 60 * 1000L));
+        store.processDomain(newsDomain, false);
+
+        // verify all previous access as expected
+
+        roleAccess = zts.getRoleAccess(context, weatherDomainName, "user_domain.user1");
         assertEquals(roleAccess.getRoles().size(), 1);
         assertTrue(roleAccess.getRoles().contains(roleName));
 
