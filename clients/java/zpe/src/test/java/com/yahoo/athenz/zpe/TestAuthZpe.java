@@ -55,11 +55,8 @@ public class TestAuthZpe {
     private PrivateKey ztsPrivateKeyK1;
     private PrivateKey ztsPrivateKeyK17;
     private PrivateKey ztsPrivateKeyK99;
-    private PrivateKey zmsPrivateKeyK0;
 
-    private final String roleVersion = "Z1";
-    private final long   expirationTime = 100; // 100 seconds
-    private final String salt = "aAkjbbDMhnLX";
+    private final long expirationTime = 100; // 100 seconds
 
     private RoleToken rToken0AnglerPublic = null;
     private RoleToken rToken0AnglerExpirePublic = null;
@@ -79,11 +76,10 @@ public class TestAuthZpe {
     @BeforeClass
     public void beforeClass() throws IOException {
 
+        System.setProperty(ZpeConsts.ZPE_PROP_CHECK_POLICY_ZMS_SIGNATURE, "true");
+
         Path path = Paths.get("./src/test/resources/unit_test_zts_private_k0.pem");
         ztsPrivateKeyK0 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
-
-        path = Paths.get("./src/test/resources/unit_test_zms_private_k0.pem");
-        zmsPrivateKeyK0 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
         
         path = Paths.get("./src/test/resources/unit_test_zts_private_k1.pem");
         ztsPrivateKeyK1 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
@@ -93,6 +89,9 @@ public class TestAuthZpe {
 
         path = Paths.get("./src/test/resources/unit_test_zts_private_k99.pem");
         ztsPrivateKeyK99 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
+
+        path = Paths.get("./src/test/resources/unit_test_zms_private_k0.pem");
+        PrivateKey zmsPrivateKeyK0 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
 
         List<String> roles = new ArrayList<>();
         roles.add("public");
@@ -123,9 +122,9 @@ public class TestAuthZpe {
         // ZPE update-load thread due to possible timing issue.
         // Then rename it with ".pol" suffix afterwards.
         // Issue: file is created, but file is empty because it has not 
-        // been written out yet - thus zpe thinks its a bad file and will
+        // been written out yet - thus zpe thinks it's a bad file and will
         // wait for it to get updated before trying to reload.
-        // Ouch, but the file doesnt get a change in modified timestamp so zpe
+        // Ouch, but the file doesn't get a change in modified timestamp so zpe
         // never reloads.
         
         path = Paths.get("./src/test/resources/angler.pol");
@@ -193,7 +192,7 @@ public class TestAuthZpe {
 
         AuthZpeClient.setTokenAllowedOffset(-100);
 
-        // setup our public keys for access tokens
+        // set up our public keys for access tokens
 
         AuthZpeClient.addAccessTokenSignKeyResolverKey("0", Crypto.extractPublicKey(ztsPrivateKeyK0));
         AuthZpeClient.addAccessTokenSignKeyResolverKey("1", Crypto.extractPublicKey(ztsPrivateKeyK1));
@@ -202,6 +201,10 @@ public class TestAuthZpe {
     }
     
     private RoleToken createRoleToken(String svcDomain, List<String> roles, String keyId, long expiry) {
+
+        final String salt = "aAkjbbDMhnLX";
+        final String roleVersion = "Z1";
+
         RoleToken token = new RoleToken.Builder(roleVersion, svcDomain, roles)
             .salt(salt).expirationWindow(expiry).keyId(keyId).build();
         
@@ -490,7 +493,7 @@ public class TestAuthZpe {
         // the expired roletoken if we add it to the cache and then
         // try to use it again, but the cache clear test case sets
         // the timeout to 1secs so as soon as it's added, within a
-        // second it's removed so we can't wait until it's expired to
+        // second it's removed, so we can't wait until it's expired to
         // test again. so for know we'll just get invalid token
         
         AccessCheckStatus status = AuthZpeClient.allowAccess(rToken0AnglerExpirePublic.getSignedToken(), angResource, action);
@@ -644,7 +647,7 @@ public class TestAuthZpe {
 
     @Test
     public void testCleanupOfToken() {
-        // perform an allowed access check
+        // perform allowed access check
         String action      = "fish";
         String angResource = "angler:stockedpondBigBassLake";
         List<String> roles = new ArrayList<>();
@@ -1381,7 +1384,7 @@ public class TestAuthZpe {
 
         try {
             Thread.sleep(3000);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
         }
 
         // we should now get null since the token is expired

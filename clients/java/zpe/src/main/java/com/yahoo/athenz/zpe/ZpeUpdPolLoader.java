@@ -49,6 +49,7 @@ public class ZpeUpdPolLoader implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(ZpeUpdPolLoader.class);
 
     static boolean skipPolicyDirCheck;
+    static boolean checkPolicyZMSSignature;
     static long sleepTimeMillis = -1;
     static long cleanupTokenInterval = 600000; // 600 secs = 10 minutes
     static long lastRoleTokenCleanup = System.currentTimeMillis();
@@ -57,6 +58,7 @@ public class ZpeUpdPolLoader implements Closeable {
     static {
 
         skipPolicyDirCheck = Boolean.parseBoolean(System.getProperty(ZpeConsts.ZPE_PROP_SKIP_POLICY_DIR_CHECK, "false"));
+        checkPolicyZMSSignature = Boolean.parseBoolean(System.getProperty(ZpeConsts.ZPE_PROP_CHECK_POLICY_ZMS_SIGNATURE, "false"));
 
         String timeoutSecs = System.getProperty(ZpeConsts.ZPE_PROP_MON_TIMEOUT);
         if (timeoutSecs == null) {
@@ -67,10 +69,8 @@ public class ZpeUpdPolLoader implements Closeable {
                 long secs = Long.parseLong(timeoutSecs);
                 sleepTimeMillis = TimeUnit.MILLISECONDS.convert(secs, TimeUnit.SECONDS);
             } catch (NumberFormatException exc) {
-                String errMsg = "start: WARNING: Failed using system property("
-                        + ZpeConsts.ZPE_PROP_MON_TIMEOUT
-                        + ") Got property value=" + timeoutSecs;
-                LOG.warn("{}, exc: {}", errMsg, exc);
+                LOG.warn("start: WARNING: Failed using system property({}) with value={}, exc: {}",
+                        ZpeConsts.ZPE_PROP_MON_TIMEOUT, timeoutSecs, exc);
             }
         }
 
@@ -80,10 +80,8 @@ public class ZpeUpdPolLoader implements Closeable {
                 long secs = Long.parseLong(timeoutSecs);
                 cleanupTokenInterval = TimeUnit.MILLISECONDS.convert(secs, TimeUnit.SECONDS);
             } catch (NumberFormatException exc) {
-                String errMsg = "start: WARNING: Failed using system property("
-                        + ZpeConsts.ZPE_PROP_MON_CLEANUP_TOKENS
-                        + ") Got property value=" + timeoutSecs;
-                LOG.warn("{}, exc: {}", errMsg, exc);
+                LOG.warn("start: WARNING: Failed using system property({}) with value={}, exc: {}",
+                        ZpeConsts.ZPE_PROP_MON_CLEANUP_TOKENS, timeoutSecs, exc);
             }
         }
     }
@@ -374,8 +372,11 @@ public class ZpeUpdPolLoader implements Closeable {
         }
         
         PolicyData policyData = null;
-        if (verified) {
+        if (verified && checkPolicyZMSSignature) {
             // now let's verify that the ZMS signature for our policy file
+            // by default we're skipping this check because with multi-policy
+            // support we'll be returning different versions of the policy
+            // data from ZTS which cannot be signed by ZMS
             policyData = signedPolicyData.getPolicyData();
             signature = signedPolicyData.getZmsSignature();
             keyId = signedPolicyData.getZmsKeyId();
