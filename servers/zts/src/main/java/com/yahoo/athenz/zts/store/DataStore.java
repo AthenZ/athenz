@@ -638,11 +638,23 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                     continue;
                 }
 
-                // otherwise we'll add this member to our new list
+                // we'll add this member to our new list
 
                 groupMembers = new ArrayList<>();
                 groupMembers.add(member);
                 principalGroupCache.put(member.getMemberName(), groupMembers);
+
+            } else if (groupMembers.isEmpty()) {
+
+                // make sure we want to process this user
+
+                if (AuthzHelper.shouldSkipGroupMember(member, currentTime)) {
+                    continue;
+                }
+
+                // we'll add this member to our existing list
+
+                groupMembers.add(member);
 
             } else {
 
