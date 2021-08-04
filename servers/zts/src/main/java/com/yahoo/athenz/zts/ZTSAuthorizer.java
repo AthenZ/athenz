@@ -109,9 +109,16 @@ public class ZTSAuthorizer implements Authorizer {
         List<Role> roles = domain.getDomainData().getRoles();
         
         for (com.yahoo.athenz.zms.Policy policy : policies) {
-            
+
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("evaluateAccess: processing policy: {}", policy.getName());
+                LOGGER.debug("evaluateAccess: processing policy name/version/active: {}/{}/{}",
+                        policy.getName(), policy.getVersion(), policy.getActive());
+            }
+
+            // ignore any inactive/multi-version policies
+
+            if (policy.getActive() == Boolean.FALSE) {
+                continue;
             }
             
             // we are going to process all the assertions defined in this
@@ -248,6 +255,13 @@ public class ZTSAuthorizer implements Authorizer {
         }
         
         for (com.yahoo.athenz.zms.Policy policy : domain.getDomainData().getPolicies().getContents().getPolicies()) {
+
+            // ignore any inactive/multi-version policies
+
+            if (policy.getActive() == Boolean.FALSE) {
+                continue;
+            }
+
             if (AuthzHelper.matchDelegatedTrustPolicy(policy, roleName, roleMember,
                     domain.getDomainData().getRoles(), groupMembersFetcher)) {
                 return true;
