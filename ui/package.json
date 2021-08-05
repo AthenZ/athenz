@@ -86,7 +86,9 @@
         "setimmediate": "^1.0.5",
         "terser": "^5.7.0",
         "uuid": "^8.3.2",
-        "xml-crypto": "^2.1.2"
+        "xml-crypto": "^2.1.2",
+        "tslib": "^2.3.0",
+        "typescript": "^4.3.5"
     },
     "devDependencies": {
         "@babel/core": "^7.13.16",
