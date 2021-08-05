@@ -65,7 +65,8 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
                 roleExpiryDomainNotificationToEmailConverter,
                 new ExpiryRoleMemberDetailStringer(),
                 roleExpiryPrincipalNotificationToMetricConverter,
-                roleExpiryDomainNotificationToMetricConverter);
+                roleExpiryDomainNotificationToMetricConverter,
+                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(0));
     }
 
     static class ExpiryRoleMemberDetailStringer implements RoleMemberNotificationCommon.RoleMemberDetailStringer {

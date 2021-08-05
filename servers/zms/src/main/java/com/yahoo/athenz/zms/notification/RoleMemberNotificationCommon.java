@@ -21,17 +21,17 @@ import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.DomainRoleMember;
 import com.yahoo.athenz.zms.MemberRole;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.ADMIN_ROLE_NAME;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 
 public class RoleMemberNotificationCommon {
     private final NotificationCommon notificationCommon;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RoleMemberNotificationCommon.class);
 
     public RoleMemberNotificationCommon(DBService dbService, String userDomainPrefix) {
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
@@ -43,7 +43,8 @@ public class RoleMemberNotificationCommon {
                                                      NotificationToEmailConverter domainAdminNotificationToEmailConverter,
                                                      RoleMemberDetailStringer roleMemberDetailStringer,
                                                      NotificationToMetricConverter principalNotificationToMetricConverter,
-                                                     NotificationToMetricConverter domainAdminNotificationToMetricConverter) {
+                                                     NotificationToMetricConverter domainAdminNotificationToMetricConverter,
+                                                     DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter) {
         // first we're going to send reminders to all the members indicating to
         // them that they're going to expiry (or nearing review date) and they should follow up with
         // domain admins to extend their membership.
@@ -63,14 +64,16 @@ public class RoleMemberNotificationCommon {
             // the details object that we need to send to the
             // notification agent for processing
 
-            Map<String, String> details = processRoleReminder(domainAdminMap, roleMember, roleMemberDetailStringer);
-            Notification notification = notificationCommon.createNotification(
-                    roleMember.getMemberName(),
-                    details,
-                    principalNotificationToEmailConverter,
-                    principalNotificationToMetricConverter);
-            if (notification != null) {
-                notificationList.add(notification);
+            Map<String, String> details = processRoleReminder(domainAdminMap, roleMember, roleMemberDetailStringer, disableRoleMemberNotificationFilter);
+            if (details.size() > 0) {
+                Notification notification = notificationCommon.createNotification(
+                        roleMember.getMemberName(),
+                        details,
+                        principalNotificationToEmailConverter,
+                        principalNotificationToMetricConverter);
+                if (notification != null) {
+                    notificationList.add(notification);
+                }
             }
         }
 
@@ -93,8 +96,9 @@ public class RoleMemberNotificationCommon {
     }
 
     private Map<String, String> processRoleReminder(Map<String, List<MemberRole>> domainAdminMap,
-                                                   DomainRoleMember member,
-                                                   RoleMemberDetailStringer roleMemberDetailStringer) {
+                                                    DomainRoleMember member,
+                                                    RoleMemberDetailStringer roleMemberDetailStringer,
+                                                    DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter) {
 
         Map<String, String> details = new HashMap<>();
 
@@ -112,25 +116,35 @@ public class RoleMemberNotificationCommon {
 
         StringBuilder memberRolesDetails = new StringBuilder(256);
         for (MemberRole memberRole : memberRoles) {
-
+            EnumSet<DisableRoleMemberNotificationEnum> disabledNotificationState = disableRoleMemberNotificationFilter.getDisabledNotificationState(memberRole);
+            if (disabledNotificationState.containsAll(Arrays.asList(DisableRoleMemberNotificationEnum.ADMIN, DisableRoleMemberNotificationEnum.USER))) {
+                LOGGER.info("Notification disabled for role {}, domain {}", memberRole.getRoleName(), memberRole.getDomainName());
+                continue;
+            }
             final String domainName = memberRole.getDomainName();
 
             // first we're going to update our expiry details string
 
-            if (memberRolesDetails.length() != 0) {
-                memberRolesDetails.append('|');
-            }
+            if (!disabledNotificationState.contains(DisableRoleMemberNotificationEnum.USER)) {
+                if (memberRolesDetails.length() != 0) {
+                    memberRolesDetails.append('|');
+                }
 
-            memberRolesDetails.append(domainName).append(';');
-            memberRolesDetails.append(roleMemberDetailStringer.getDetailString(memberRole));
+                memberRolesDetails.append(domainName).append(';');
+                memberRolesDetails.append(roleMemberDetailStringer.getDetailString(memberRole));
+            }
 
             // next we're going to update our domain admin map
 
-            List<MemberRole> domainRoleMembers = domainAdminMap.computeIfAbsent(domainName, k -> new ArrayList<>());
-            domainRoleMembers.add(memberRole);
+            if (!disabledNotificationState.contains(DisableRoleMemberNotificationEnum.ADMIN)) {
+                List<MemberRole> domainRoleMembers = domainAdminMap.computeIfAbsent(domainName, k -> new ArrayList<>());
+                domainRoleMembers.add(memberRole);
+            }
         }
-        details.put(NOTIFICATION_DETAILS_ROLES_LIST, memberRolesDetails.toString());
-        details.put(NOTIFICATION_DETAILS_MEMBER, member.getMemberName());
+        if (memberRolesDetails.length() > 0) {
+            details.put(NOTIFICATION_DETAILS_ROLES_LIST, memberRolesDetails.toString());
+            details.put(NOTIFICATION_DETAILS_MEMBER, member.getMemberName());
+        }
 
         return details;
     }
@@ -179,6 +193,17 @@ public class RoleMemberNotificationCommon {
          * These details should fit in the notification template (for example, the html of an email body)
          */
         StringBuilder getDetailString(MemberRole memberRole);
+    }
 
+    /**
+     * Decide if notifications should be disabled for user / admin / both / none
+     */
+    public interface DisableRoleMemberNotificationFilter {
+        /**
+         * Gets disabled notifications state for memberRole
+         * @param memberRole - principal / domain / role to check
+         * @return DisableRoleMemberNotificationEnum enum set
+         */
+        EnumSet<DisableRoleMemberNotificationEnum> getDisabledNotificationState(MemberRole memberRole);
     }
 }
