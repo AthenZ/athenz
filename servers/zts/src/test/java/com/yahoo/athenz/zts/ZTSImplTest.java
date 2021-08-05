@@ -10907,25 +10907,30 @@ public class ZTSImplTest {
         // we're going to try several cases with assume roles
         // first the assume role includes the full name without any wildcards
 
-        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "role1", false);
+        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "role1", false, true);
+        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "role1", false, false);
 
         // next we're going to test when the domain name is a wildcard
         // for example, resource: *:role.role1
 
-        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "role1", true);
+        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "role1", true, true);
+        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "role1", true, false);
 
         // next we're going to test when the role name is a wildcard
         // for example, resource: sports:role.*
 
-        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "*", false);
+        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "*", false, true);
+        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "*", false, false);
 
         // finally we're going to test when the role and domain names are a wildcard
         // for example, resource: *:role.*
 
-        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "*", true);
+        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "*", true, true);
+        testGetRoleAccessWithDelegatedRolesWithGroups("role1", "*", true, false);
     }
 
-    SignedDomain createGroupNewsDomain(final String newsDomainName, final String weatherDomainName, Timestamp expiration) {
+    SignedDomain createGroupNewsDomain(final String newsDomainName, final String weatherDomainName,
+                                       boolean multipleUsers, Timestamp expiration) {
 
         // create the group domain for news
 
@@ -10947,11 +10952,16 @@ public class ZTSImplTest {
 
         Group group = new Group().setName(ResourceUtils.groupResourceName(newsDomainName, "group1"));
         List<GroupMember> groupMembers = new ArrayList<>();
+
         GroupMember user1GroupMember = new GroupMember().setMemberName("user_domain.user1").setGroupName(group.getName());
         if (expiration != null) {
             user1GroupMember.setExpiration(expiration);
         }
         groupMembers.add(user1GroupMember);
+
+        if (multipleUsers) {
+            groupMembers.add(new GroupMember().setMemberName("user_domain.user3").setGroupName(group.getName()));
+        }
         group.setGroupMembers(groupMembers);
         groups.add(group);
 
@@ -10997,7 +11007,7 @@ public class ZTSImplTest {
     }
 
     void testGetRoleAccessWithDelegatedRolesWithGroups(final String roleName, final String assumeRoleName,
-            boolean wildCardAssumeDomain) {
+            boolean wildCardAssumeDomain, boolean multipleUsers) {
 
         final String newsDomainName = "news";
         final String sportsDomainName = "sports";
@@ -11139,7 +11149,7 @@ public class ZTSImplTest {
 
         // create and process our new domain in ZTS
 
-        SignedDomain newsDomain = createGroupNewsDomain(newsDomainName, weatherDomainName, null);
+        SignedDomain newsDomain = createGroupNewsDomain(newsDomainName, weatherDomainName, multipleUsers, null);
         store.processDomain(newsDomain, false);
 
         // now let's carry out our checks - we should get role1 for user1
@@ -11166,10 +11176,22 @@ public class ZTSImplTest {
         assertEquals(roleAccess.getRoles().size(), 1);
         assertTrue(roleAccess.getRoles().contains(roleName));
 
+        // user3 should have same access as user1
+
+        if (multipleUsers) {
+            roleAccess = zts.getRoleAccess(context, weatherDomainName, "user_domain.user3");
+            assertEquals(roleAccess.getRoles().size(), 1);
+            assertTrue(roleAccess.getRoles().contains(roleName));
+
+            roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user3");
+            assertEquals(roleAccess.getRoles().size(), 1);
+            assertTrue(roleAccess.getRoles().contains(roleName));
+        }
+
         // now we're going to expire our user1 group member
         // and process the domain
 
-        newsDomain = createGroupNewsDomain(newsDomainName, weatherDomainName,
+        newsDomain = createGroupNewsDomain(newsDomainName, weatherDomainName, multipleUsers,
                 Timestamp.fromMillis(System.currentTimeMillis() - 60 * 60 * 1000L));
         store.processDomain(newsDomain, false);
 
@@ -11192,9 +11214,21 @@ public class ZTSImplTest {
         assertEquals(roleAccess.getRoles().size(), 1);
         assertTrue(roleAccess.getRoles().contains(roleName));
 
+        // user3 should still have access to both roles
+
+        if (multipleUsers) {
+            roleAccess = zts.getRoleAccess(context, weatherDomainName, "user_domain.user3");
+            assertEquals(roleAccess.getRoles().size(), 1);
+            assertTrue(roleAccess.getRoles().contains(roleName));
+
+            roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user3");
+            assertEquals(roleAccess.getRoles().size(), 1);
+            assertTrue(roleAccess.getRoles().contains(roleName));
+        }
+
         // now we're going to reset our expiry for the user into the future
 
-        newsDomain = createGroupNewsDomain(newsDomainName, weatherDomainName,
+        newsDomain = createGroupNewsDomain(newsDomainName, weatherDomainName, multipleUsers,
                 Timestamp.fromMillis(System.currentTimeMillis() + 60 * 60 * 1000L));
         store.processDomain(newsDomain, false);
 
@@ -11217,6 +11251,18 @@ public class ZTSImplTest {
         roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user2");
         assertEquals(roleAccess.getRoles().size(), 1);
         assertTrue(roleAccess.getRoles().contains(roleName));
+
+        // user3 should have same access as user1
+
+        if (multipleUsers) {
+            roleAccess = zts.getRoleAccess(context, weatherDomainName, "user_domain.user3");
+            assertEquals(roleAccess.getRoles().size(), 1);
+            assertTrue(roleAccess.getRoles().contains(roleName));
+
+            roleAccess = zts.getRoleAccess(context, sportsDomainName, "user_domain.user3");
+            assertEquals(roleAccess.getRoles().size(), 1);
+            assertTrue(roleAccess.getRoles().contains(roleName));
+        }
     }
 
     @Test
