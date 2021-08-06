@@ -61,7 +61,7 @@ export default class SettingTable extends React.Component {
         this.updateCollectionMeta = this.updateCollectionMeta.bind(this);
         this.onValueChange = this.onValueChange.bind(this);
         this.setCollectionDetails = this.setCollectionDetails.bind(this);
-
+        this.saveJustification = this.saveJustification.bind(this);
         let originalCollectionDetails = this.setCollectionDetails(
             this.props.collectionDetails
         );
@@ -199,6 +199,7 @@ export default class SettingTable extends React.Component {
         this.setState({
             showSubmit: false,
             errorMessage: null,
+            justification: '',
         });
     }
 
@@ -285,6 +286,7 @@ export default class SettingTable extends React.Component {
                     showSuccess: true,
                     showSubmit: false,
                     enableSubmit: false,
+                    justification: '',
                 });
                 setTimeout(
                     () =>
