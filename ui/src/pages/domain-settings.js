@@ -218,6 +218,9 @@ export default class DomainSettingsPage extends React.Component {
                                             this.props.headerDetails.userData
                                                 .userLink
                                         }
+                                        justificationRequired={
+                                            domainDetails.auditEnabled
+                                        }
                                         category={'domain'}
                                         userAuthorityAttributes={
                                             this.props.userAuthorityAttributes
