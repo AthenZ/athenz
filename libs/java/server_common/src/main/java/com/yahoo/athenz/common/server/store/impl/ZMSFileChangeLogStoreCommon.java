@@ -19,10 +19,7 @@ package com.yahoo.athenz.common.server.store.impl;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.server.util.FilesHelper;
-import com.yahoo.athenz.zms.SignedDomain;
-import com.yahoo.athenz.zms.SignedDomains;
-import com.yahoo.athenz.zms.ZMSClient;
-import com.yahoo.athenz.zms.ZMSClientException;
+import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Struct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +46,7 @@ public class ZMSFileChangeLogStoreCommon {
     private static final String ATTR_LAST_MOD_TIME = "lastModTime";
 
     boolean requestConditions;
+    int maxRateLimitRetryCount = 101;
 
     public ZMSFileChangeLogStoreCommon(final String rootDirectory) {
 
@@ -61,7 +59,7 @@ public class ZMSFileChangeLogStoreCommon {
         jsonMapper = new ObjectMapper();
         jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        // setup our directory for storing domain files
+        // set up our directory for storing domain files
 
         rootDir = new File(rootDirectory);
 
@@ -108,6 +106,10 @@ public class ZMSFileChangeLogStoreCommon {
         return get(domainName, SignedDomain.class);
     }
 
+    public JWSDomain getLocalJWSDomain(final String domainName) {
+        return get(domainName, JWSDomain.class);
+    }
+
     public SignedDomain getServerSignedDomain(ZMSClient zmsClient, final String domainName) {
 
         SignedDomains signedDomains = makeSignedDomainsCall(zmsClient, domainName, null, null, null);
@@ -126,12 +128,20 @@ public class ZMSFileChangeLogStoreCommon {
         return domains.get(0);
     }
 
+    public JWSDomain getServerJWSDomain(ZMSClient zmsClient, final String domainName) {
+        return zmsClient.getJWSDomain(domainName, null, null);
+    }
+
     public void removeLocalDomain(String domainName) {
         delete(domainName);
     }
 
     public void saveLocalDomain(String domainName, SignedDomain signedDomain) {
         put(domainName, jsonValueAsBytes(signedDomain, SignedDomain.class));
+    }
+
+    public void saveLocalDomain(String domainName, JWSDomain jwsDomain) {
+        put(domainName, jsonValueAsBytes(jwsDomain, JWSDomain.class));
     }
 
     void setupFilePermissions(File file, Set<PosixFilePermission> perms) {
@@ -283,13 +293,59 @@ public class ZMSFileChangeLogStoreCommon {
             // from ZMS Server. If not able to retrieve after so many times
             // we'll pick up the change again during our full sync time
 
-            for (int count = 1; count < 101; count++) {
+            for (int count = 1; count < maxRateLimitRetryCount; count++) {
                 try {
 
                     SignedDomains singleDomain = makeSignedDomainsCall(zmsClient, domainName, null, null, null);
 
                     if (singleDomain != null && !singleDomain.getDomains().isEmpty()) {
                         domains.addAll(singleDomain.getDomains());
+                    }
+
+                    break;
+
+                } catch (ZMSClientException ex) {
+
+                    LOGGER.error("Error fetching domain {} from ZMS: {}", domainName, ex.getMessage());
+
+                    // if we get a rate limiting failure, we're going to sleep
+                    // for some period and retry our operation again
+
+                    if (ex.getCode() != ZMSClientException.TOO_MANY_REQUESTS) {
+                        break;
+                    }
+
+                    try {
+                        Thread.sleep(randomSleepForRetry(count));
+                    } catch (InterruptedException ignored) {
+                    }
+                }
+            }
+        }
+        return domains;
+    }
+
+    List<JWSDomain> getJWSDomainList(ZMSClient zmsClient, SignedDomains domainList) {
+
+        List<JWSDomain> domains = new ArrayList<>();
+        for (SignedDomain domain : domainList.getDomains()) {
+
+            final String domainName = domain.getDomain().getName();
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("getJWSDomainList: fetching domain {}", domainName);
+            }
+
+            // we're going to retry up to 100 times in case of rate limiting
+            // from ZMS Server. If not able to retrieve after so many times
+            // we'll pick up the change again during our full sync time
+
+            for (int count = 1; count < maxRateLimitRetryCount; count++) {
+                try {
+
+                    JWSDomain jwsDomain = zmsClient.getJWSDomain(domainName, null, null);
+                    if (jwsDomain != null) {
+                        domains.add(jwsDomain);
                     }
 
                     break;
@@ -328,10 +384,10 @@ public class ZMSFileChangeLogStoreCommon {
         return count < 4 ? 1000L * count : ThreadLocalRandom.current().nextInt(4, 11) * 1000L;
     }
 
-    public SignedDomains getUpdatedSignedDomains(ZMSClient zmsClient, StringBuilder lastModTimeBuffer) {
+    SignedDomains getModifiedDomainList(ZMSClient zmsClient, StringBuilder lastModTimeBuffer) {
 
         // request all the changes from ZMS. In this call we're asking for
-        // meta data only so we'll only get the list of domains
+        // metadata only so we'll only get the list of domains
 
         Map<String, List<String>> responseHeaders = new HashMap<>();
         SignedDomains domainList = makeSignedDomainsCall(zmsClient, null, VALUE_TRUE, lastModTime, responseHeaders);
@@ -348,9 +404,15 @@ public class ZMSFileChangeLogStoreCommon {
         lastModTimeBuffer.setLength(0);
         lastModTimeBuffer.append(newLastModTime);
 
-        // now let's iterate through our list and retrieve one domain
-        // at a time
+        return domainList;
+    }
 
+    public SignedDomains getUpdatedSignedDomains(ZMSClient zmsClient, StringBuilder lastModTimeBuffer) {
+
+        // request all the changes from ZMS. In this call we're asking for
+        // metadata only so we'll only get the list of domains
+
+        SignedDomains domainList = getModifiedDomainList(zmsClient, lastModTimeBuffer);
         if (domainList == null || domainList.getDomains() == null) {
             return null;
         }
@@ -359,8 +421,29 @@ public class ZMSFileChangeLogStoreCommon {
             LOGGER.info("getUpdatedSignedDomains: {} updated domains", domainList.getDomains().size());
         }
 
+        // now let's iterate through our list and retrieve one domain at a time
+
         List<SignedDomain> domains = getSignedDomainList(zmsClient, domainList);
         return new SignedDomains().setDomains(domains);
+    }
+
+    public List<JWSDomain> getUpdatedJWSDomains(ZMSClient zmsClient, StringBuilder lastModTimeBuffer) {
+
+        // request all the changes from ZMS. In this call we're asking for
+        // metadata only so we'll only get the list of domains
+
+        SignedDomains domainList = getModifiedDomainList(zmsClient, lastModTimeBuffer);
+        if (domainList == null || domainList.getDomains() == null) {
+            return null;
+        }
+
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("getUpdatedJWSDomains: {} updated domains", domainList.getDomains().size());
+        }
+
+        // now let's iterate through our list and retrieve one domain at a time
+
+        return getJWSDomainList(zmsClient, domainList);
     }
 
     static void error(String msg) {

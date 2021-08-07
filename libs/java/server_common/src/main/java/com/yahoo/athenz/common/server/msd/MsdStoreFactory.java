@@ -23,6 +23,7 @@ public interface MsdStoreFactory {
     /**
      * Create and return a new MsdStoreConnection instance. The MsdStoreConnection
      * will be responsible for write/reads for Workloads into the underlying MSD storage
+     * @param keyStore private key store object for fetching any secrets if needed
      * @return MsdStoreConnection instance
      */
     MsdStore create(PrivateKeyStore keyStore);

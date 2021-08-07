@@ -16,12 +16,15 @@
 package com.yahoo.athenz.common.server.store.impl;
 
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
+import com.yahoo.athenz.zms.JWSDomain;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 import org.testng.annotations.Test;
 
 import java.util.List;
 import java.util.Set;
+
+import static org.testng.Assert.assertNull;
 
 public class ChangeLogStoreTest {
 
@@ -41,12 +44,10 @@ public class ChangeLogStoreTest {
 
             @Override
             public void removeLocalDomain(String domainName) {
-
             }
 
             @Override
             public void saveLocalDomain(String domainName, SignedDomain signedDomain) {
-
             }
 
             @Override
@@ -79,7 +80,13 @@ public class ChangeLogStoreTest {
             }
         };
 
+        assertNull(store.getLocalJWSDomain("domain"));
+        assertNull(store.getServerJWSDomain("domain"));
+        assertNull(store.getUpdatedJWSDomains(null));
+        store.saveLocalDomain("domain", new JWSDomain());
         store.setRequestConditions(true);
         store.setRequestConditions(false);
+        store.setJWSDomainSupport(true);
+        store.setJWSDomainSupport(false);
     }
 }

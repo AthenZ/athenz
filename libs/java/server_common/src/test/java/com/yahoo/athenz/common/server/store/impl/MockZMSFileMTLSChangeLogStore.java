@@ -16,10 +16,7 @@
 package com.yahoo.athenz.common.server.store.impl;
 
 import com.oath.auth.KeyRefresherException;
-import com.yahoo.athenz.zms.DomainList;
-import com.yahoo.athenz.zms.SignedDomains;
-import com.yahoo.athenz.zms.ZMSClient;
-import com.yahoo.athenz.zms.ZMSClientException;
+import com.yahoo.athenz.zms.*;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -76,6 +73,16 @@ public class MockZMSFileMTLSChangeLogStore extends ZMSFileMTLSChangeLogStore {
     public void setSignedDomains(SignedDomains signedDomains) {
         when(zms.getSignedDomains(any(), any(), any(), anyBoolean(), anyBoolean(), any(), any()))
                 .thenReturn(signedDomains);
+    }
+
+    public void setJWSDomains(SignedDomains signedDomains) {
+        if (signedDomains == null) {
+            when(zms.getJWSDomain(any(), any(), any())).thenReturn(null);
+        } else {
+            for (SignedDomain signedDomain : signedDomains.getDomains()) {
+                when(zms.getJWSDomain(signedDomain.getDomain().getName(), null, null)).thenReturn(new JWSDomain());
+            }
+        }
     }
 
     public void setSignedDomainsExc() {

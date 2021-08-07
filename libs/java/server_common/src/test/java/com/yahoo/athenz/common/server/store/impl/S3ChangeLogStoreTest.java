@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.yahoo.athenz.zms.JWSDomain;
 import com.yahoo.rdl.Timestamp;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.mockito.Mockito;
@@ -86,7 +87,8 @@ public class S3ChangeLogStoreTest {
     public void testNoOpMethods() {
         S3ChangeLogStore store = new S3ChangeLogStore();
         store.removeLocalDomain("iaas.athenz");
-        store.saveLocalDomain("iaas.athenz", null);
+        store.saveLocalDomain("iaas.athenz", new SignedDomain());
+        store.saveLocalDomain("iaas.athenz", new JWSDomain());
     }
     
     @Test
@@ -102,7 +104,7 @@ public class S3ChangeLogStoreTest {
     }
 
     @Test
-    public void testGetLocalDomainList() throws FileNotFoundException {
+    public void testGetLocalSignedDomainList() throws IOException {
 
         MockS3ChangeLogStore store = new MockS3ChangeLogStore(0);
 
@@ -126,12 +128,27 @@ public class S3ChangeLogStoreTest {
 
         List<String> temp = store.getLocalDomainList();
         assertNotNull(temp);
-        store.getLocalSignedDomain("iaas");
+
+        SignedDomain signedDomain = store.getLocalSignedDomain("iaas");
+        assertNotNull(signedDomain);
+
+        is1.close();
+        is2.close();
     }
 
     @Test
-    public void testGetAllSignedDomainsException() throws FileNotFoundException {
+    public void testGetAllSignedDomainsException() throws IOException {
+        testGetAllDomainsException(false);
+    }
+
+    @Test
+    public void testGetAllJWSDomainsException() throws IOException {
+        testGetAllDomainsException(true);
+    }
+
+    public void testGetAllDomainsException(boolean jwsSupport) throws IOException {
         MockS3ChangeLogStore store = new MockS3ChangeLogStore(1);
+        store.setJWSDomainSupport(jwsSupport);
 
         InputStream is1 = new FileInputStream("src/test/resources/iaas.json");
         MockS3ObjectInputStream s3Is1 = new MockS3ObjectInputStream(is1, null);
@@ -151,17 +168,19 @@ public class S3ChangeLogStoreTest {
         tempList.add(s3ObjectSummary);
         when(mockObjectListing.getObjectSummaries()).thenReturn(tempList);
 
-
         List<String> temp = new LinkedList<>();
         temp.add("iaas");
 
         try {
             when(store.executorService.awaitTermination(defaultTimeoutSeconds, TimeUnit.SECONDS)).thenThrow(new InterruptedException());
-            assertFalse(store.getAllSignedDomains(temp));
+            assertFalse(store.getAllDomains(temp));
             assertTrue(store.getLocalDomainList().size() > 0);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        is1.close();
+        is2.close();
     }
 
     @Test
@@ -372,7 +391,7 @@ public class S3ChangeLogStoreTest {
     }
     
     @Test
-    public void testGetLocalDomains() {
+    public void testGetLocalSignedDomains() {
         
         MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
@@ -412,7 +431,7 @@ public class S3ChangeLogStoreTest {
         assertTrue(domains.contains("iaas"));
         assertTrue(domains.contains("iaas.athenz"));
     }
-    
+
     @Test
     public void testGetServerDomains() {
         
@@ -498,7 +517,7 @@ public class S3ChangeLogStoreTest {
     }
     
     @Test
-    public void testGetSignedDomain() throws IOException {
+    public void testGetLocalSignedDomain() throws IOException {
         MockS3ChangeLogStore store = new MockS3ChangeLogStore();
 
         InputStream is1 = new FileInputStream("src/test/resources/iaas.json");
@@ -598,7 +617,7 @@ public class S3ChangeLogStoreTest {
     }
     
     @Test
-    public void testGetUpdatedSignedDomainsWithChange() throws FileNotFoundException {
+    public void testGetUpdatedSignedDomainsWithChange() throws IOException {
         
         MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         
@@ -646,6 +665,7 @@ public class S3ChangeLogStoreTest {
         DomainData domainData = domainList.get(0).getDomain();
         assertNotNull(domainData);
         assertEquals(domainData.getName(), "iaas");
+        is.close();
     }
 
     @Test
@@ -668,7 +688,7 @@ public class S3ChangeLogStoreTest {
     }
 
     @Test
-    public void testAsyncDomainObjectsFetcher() throws Exception {
+    public void testAsyncDomainObjectsFetcher() throws IOException {
 
         MockS3ChangeLogStore store = new MockS3ChangeLogStore();
 
@@ -682,7 +702,7 @@ public class S3ChangeLogStoreTest {
     }
 
     @Test
-    public void testAsyncDomainObjectsFetcherSignedDomains() throws Exception {
+    public void testAsyncDomainObjectsFetcherSignedDomains() throws IOException {
 
         MockS3ChangeLogStore store = new MockS3ChangeLogStore();
 
@@ -695,13 +715,12 @@ public class S3ChangeLogStoreTest {
         for (int i = 0; i < numberOfDomainsToMock; ++i) {
             domainsList.add("domain" + i);
         }
-        store.getAllSignedDomains(domainsList);
+        store.getAllDomains(domainsList);
 
         assertEquals(store.tempSignedDomainMap.size(), numberOfDomainsToMock);
     }
 
-    private AmazonS3 buildMockS3Client(int numOfDomains) {
-        String bucketName = "s3-unit-test-bucket-name";
+    private AmazonS3 buildMockS3Client(int numOfDomains) throws IOException {
         AmazonS3 s3client = Mockito.mock(AmazonS3.class);
 
         ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
@@ -722,6 +741,7 @@ public class S3ChangeLogStoreTest {
             when(domainObject.getObjectContent()).thenReturn(s3ObjectInputStream);
 
             Mockito.when(s3client.getObject(Mockito.anyString(), Mockito.eq(domainName))).thenReturn(domainObject);
+            domainObjectStream.close();
         }
 
         ObjectListing objectListing = mock(ObjectListing.class);
@@ -738,45 +758,278 @@ public class S3ChangeLogStoreTest {
         String modifiedTimeStamp = Timestamp.fromMillis(100 + postFixInt).toString();
         String adminRole = domainName + ":role.admin";
         String policyAdmin = domainName + ":policy.admin";
-        String json =
-                "{\"domain\":{" +
-                        "\"roles\":[" +
-                        "{" +
-                        "\"modified\":" + "\"" + modifiedTimeStamp + "\"," +
-                        "\"name\":" + "\"" + adminRole + "\"," +
-                        "\"members\":[" +
-                        "\"yby.hga\"," +
-                        "\"yby.zms_test_admin\"" +
-                        "]" +
-                        "}" +
-                        "]," +
-                        "\"policies\":{" +
-                        "\"contents\":{" +
-                        "\"domain\":" + "\"" + modifiedTimeStamp + "\"," +
-                        "\"policies\":[" +
-                        "{" +
-                        "\"modified\":" + "\"" + modifiedTimeStamp + "\"," +
-                        "\"assertions\":[" +
-                        "{" +
-                        "\"role\":" + "\"" + adminRole + "\"," +
-                        "\"action\":\"*\"," +
-                        "\"effect\":\"ALLOW\"," +
-                        "\"resource\":\"iaas:*\"" +
-                        "}" +
-                        "]," +
-                        "\"name\":" + "\"" + policyAdmin + "\"" +
-                        "}" +
-                        "]" +
-                        "}," +
-                        "\"keyId\":\"zms.dev.0\"," +
-                        "\"signature\":\"MEUCID0ciS7zBGIEJbUo2aIamnwcA4K_Sx4HtE1LZkPCtZKKAiEA9sAufsEnjODZM8U1p4EOqObJZ9L2Szna_qwsFtinm0U-\"" +
-                        "}," +
-                        "\"modified\":" + "\"" + modifiedTimeStamp + "\"," +
-                        "\"services\":[]," +
-                        "\"name\":" + "\"" + domainName + "\"" +
-                        "}," +
-                        "\"keyId\":\"zms.dev.0\"," +
-                        "\"signature\":\"MEQCIBl9i0P.apXlpPJ7NCl1FMOHCHTPBgazwtHcEflDIIB1AiA3IUSh7CEDRUXM3PkjU8hBT6XNnXQRLT2ywi2Q0ZciMw--\"}";
-        return json;
+        return "{\"domain\":{" +
+                "\"roles\":[" +
+                "{" +
+                "\"modified\":" + "\"" + modifiedTimeStamp + "\"," +
+                "\"name\":" + "\"" + adminRole + "\"," +
+                "\"members\":[" +
+                "\"yby.hga\"," +
+                "\"yby.zms_test_admin\"" +
+                "]" +
+                "}" +
+                "]," +
+                "\"policies\":{" +
+                "\"contents\":{" +
+                "\"domain\":" + "\"" + modifiedTimeStamp + "\"," +
+                "\"policies\":[" +
+                "{" +
+                "\"modified\":" + "\"" + modifiedTimeStamp + "\"," +
+                "\"assertions\":[" +
+                "{" +
+                "\"role\":" + "\"" + adminRole + "\"," +
+                "\"action\":\"*\"," +
+                "\"effect\":\"ALLOW\"," +
+                "\"resource\":\"iaas:*\"" +
+                "}" +
+                "]," +
+                "\"name\":" + "\"" + policyAdmin + "\"" +
+                "}" +
+                "]" +
+                "}," +
+                "\"keyId\":\"zms.dev.0\"," +
+                "\"signature\":\"MEUCID0ciS7zBGIEJbUo2aIamnwcA4K_Sx4HtE1LZkPCtZKKAiEA9sAufsEnjODZM8U1p4EOqObJZ9L2Szna_qwsFtinm0U-\"" +
+                "}," +
+                "\"modified\":" + "\"" + modifiedTimeStamp + "\"," +
+                "\"services\":[]," +
+                "\"name\":" + "\"" + domainName + "\"" +
+                "}," +
+                "\"keyId\":\"zms.dev.0\"," +
+                "\"signature\":\"MEQCIBl9i0P.apXlpPJ7NCl1FMOHCHTPBgazwtHcEflDIIB1AiA3IUSh7CEDRUXM3PkjU8hBT6XNnXQRLT2ywi2Q0ZciMw--\"}";
+    }
+
+    @Test
+    public void testGetLocalJWSDomain() throws IOException {
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+        InputStream is1 = new FileInputStream("src/test/resources/iaas.jws");
+        MockS3ObjectInputStream s3Is1 = new MockS3ObjectInputStream(is1, null);
+
+        InputStream is2 = new FileInputStream("src/test/resources/iaas.json");
+        MockS3ObjectInputStream s3Is2 = new MockS3ObjectInputStream(is2, null);
+
+        S3Object object = mock(S3Object.class);
+        when(object.getObjectContent()).thenReturn(s3Is1).thenReturn(s3Is2);
+
+        // first we'll return null from our s3 client
+
+        store.resetAWSS3Client();
+        JWSDomain jwsDomain = store.getLocalJWSDomain("iaas");
+        assertNull(jwsDomain);
+
+        // next setup our mock aws return object
+
+        when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas")).thenReturn(object);
+        jwsDomain = store.getLocalJWSDomain("iaas");
+        assertNotNull(jwsDomain);
+
+        jwsDomain = store.getLocalJWSDomain("iaas");
+        assertNotNull(jwsDomain);
+
+        is1.close();
+        is2.close();
+    }
+
+    @Test
+    public void testGetUpdatedJWSDomainsNoChanges() {
+
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+        ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
+        S3ObjectSummary objectSummary = new S3ObjectSummary();
+        objectSummary.setKey("iaas");
+        objectSummary.setLastModified(new Date(100));
+        objectList.add(objectSummary);
+        objectSummary = new S3ObjectSummary();
+        objectSummary.setKey("iaas.athenz");
+        objectSummary.setLastModified(new Date(200));
+        objectList.add(objectSummary);
+
+        ObjectListing objectListing = mock(ObjectListing.class);
+        when(objectListing.getObjectSummaries()).thenReturn(objectList);
+        when(objectListing.isTruncated()).thenReturn(false);
+        when(store.awsS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(objectListing);
+
+        // set the last modification time to not return any of the domains
+        store.lastModTime = (new Date(250)).getTime();
+
+        StringBuilder lastModTimeBuffer = new StringBuilder(512);
+        List<JWSDomain> jwsDomains = store.getUpdatedJWSDomains(lastModTimeBuffer);
+        assertTrue(lastModTimeBuffer.length() > 0);
+        assertEquals(jwsDomains.size(), 0);
+    }
+
+    @Test
+    public void testGetUpdatedJWSDomainsWithChange1() throws IOException {
+
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+        ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
+        S3ObjectSummary objectSummary = new S3ObjectSummary();
+        objectSummary.setKey("iaas");
+        objectSummary.setLastModified(new Date(100));
+        objectList.add(objectSummary);
+        objectSummary = new S3ObjectSummary();
+        objectSummary.setKey("iaas.athenz");
+        objectSummary.setLastModified(new Date(200));
+        objectList.add(objectSummary);
+
+        // we'll also include an invalid domain that should be skipped
+
+        objectSummary = new S3ObjectSummary();
+        objectSummary.setKey("unknown");
+        objectSummary.setLastModified(new Date(200));
+        objectList.add(objectSummary);
+
+        ObjectListing objectListing = mock(ObjectListing.class);
+        when(objectListing.getObjectSummaries()).thenReturn(objectList);
+        when(objectListing.isTruncated()).thenReturn(false);
+        when(store.awsS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(objectListing);
+
+        InputStream is = new FileInputStream("src/test/resources/iaas.jws");
+        MockS3ObjectInputStream s3Is = new MockS3ObjectInputStream(is, null);
+
+        S3Object object = mock(S3Object.class);
+        when(object.getObjectContent()).thenReturn(s3Is);
+
+        when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas")).thenReturn(object);
+        when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas.athenz")).thenReturn(object);
+
+        // set the last modification time to return one of the domains
+        store.lastModTime = (new Date(150)).getTime();
+
+        StringBuilder lastModTimeBuffer = new StringBuilder(512);
+        List<JWSDomain> jwsDomains = store.getUpdatedJWSDomains(lastModTimeBuffer);
+        assertTrue(lastModTimeBuffer.length() > 0);
+        assertEquals(jwsDomains.size(), 1);
+        is.close();
+    }
+
+    @Test
+    public void testGetServerJWSDomain() {
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+        assertNull(store.getServerJWSDomain("iaas"));
+    }
+
+    @Test
+    public void testGetJWSDomainException() throws IOException {
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+        InputStream is = new FileInputStream("src/test/resources/iaas.jws");
+        MockS3ObjectInputStream s3Is = new MockS3ObjectInputStream(is, null);
+
+        S3Object object = mock(S3Object.class);
+        when(object.getObjectContent()).thenReturn(s3Is);
+
+        // first call we return null, second call we return success
+
+        when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas"))
+                .thenThrow(new AmazonServiceException("test")).thenReturn(object);
+
+        JWSDomain jwsDomain = store.getLocalJWSDomain("iaas");
+        assertNotNull(jwsDomain);
+
+        is.close();
+    }
+
+    @Test
+    public void testGetJWSDomainNotFound() {
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+        when(store.awsS3Client.getObject(any(GetObjectRequest.class))).thenReturn(null);
+
+        assertNull(store.getJWSDomain(store.awsS3Client, "iaas"));
+    }
+
+    @Test
+    public void testGetJWSDomainClientException() {
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+        when(store.awsS3Client.getObject(any(GetObjectRequest.class))).thenThrow(new AmazonClientException("failed client operation"));
+        assertNull(store.getJWSDomain(store.awsS3Client, "iaas"));
+    }
+
+    @Test
+    public void testGetJWSDomainServiceException() {
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+        when(store.awsS3Client.getObject(any(GetObjectRequest.class))).thenThrow(new AmazonServiceException("failed server operation"));
+        assertNull(store.getJWSDomain(store.awsS3Client, "iaas"));
+    }
+
+    @Test
+    public void testGetLocalJWSDomainList() throws IOException {
+
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore(0);
+        store.setJWSDomainSupport(true);
+
+        InputStream is1 = new FileInputStream("src/test/resources/iaas.jws");
+        MockS3ObjectInputStream s3Is1 = new MockS3ObjectInputStream(is1, null);
+
+        InputStream is2 = new FileInputStream("src/test/resources/iaas.jws");
+        MockS3ObjectInputStream s3Is2 = new MockS3ObjectInputStream(is2, null);
+
+        S3Object object = mock(S3Object.class);
+        when(object.getObjectContent()).thenReturn(s3Is1).thenReturn(s3Is2);
+
+        when(store.awsS3Client.getObject("s3-unit-test-bucket-name", "iaas")).thenReturn(object);
+        ObjectListing mockObjectListing = mock(ObjectListing.class);
+        when(store.awsS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(mockObjectListing);
+        List<S3ObjectSummary> tempList = new ArrayList<>();
+        S3ObjectSummary s3ObjectSummary = mock(S3ObjectSummary.class);
+        when(s3ObjectSummary.getKey()).thenReturn("iaas");
+        tempList.add(s3ObjectSummary);
+        when(mockObjectListing.getObjectSummaries()).thenReturn(tempList);
+
+        List<String> temp = store.getLocalDomainList();
+        assertNotNull(temp);
+        JWSDomain jwsDomain = store.getLocalJWSDomain("iaas");
+        assertNotNull(jwsDomain);
+
+        is1.close();
+        is2.close();
+    }
+
+    @Test
+    public void testGetLocalJWSDomains() {
+
+        MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+        store.setJWSDomainSupport(true);
+
+        ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
+        S3ObjectSummary objectSummary = new S3ObjectSummary();
+        objectSummary.setKey("iaas");
+        objectList.add(objectSummary);
+        objectSummary = new S3ObjectSummary();
+        objectSummary.setKey("iaas.athenz");
+        objectList.add(objectSummary);
+
+        ObjectListing objectListing = mock(ObjectListing.class);
+        when(objectListing.getObjectSummaries()).thenReturn(objectList);
+        when(objectListing.isTruncated()).thenReturn(false);
+        when(store.awsS3Client.listObjects(any(ListObjectsRequest.class))).thenReturn(objectListing);
+
+        // verify that our last mod time is 0 before the call
+
+        assertEquals(store.lastModTime, 0);
+
+        // retrieve the list of domains
+
+        List<String> domains = store.getLocalDomainList();
+
+        assertEquals(domains.size(), 2);
+        assertTrue(domains.contains("iaas"));
+        assertTrue(domains.contains("iaas.athenz"));
+
+        // also verify that last mod time is updated
+
+        assertTrue(store.lastModTime > 0);
+
+        // get the list again
+
+        domains = store.getLocalDomainList();
+
+        assertEquals(domains.size(), 2);
+        assertTrue(domains.contains("iaas"));
+        assertTrue(domains.contains("iaas.athenz"));
     }
 }

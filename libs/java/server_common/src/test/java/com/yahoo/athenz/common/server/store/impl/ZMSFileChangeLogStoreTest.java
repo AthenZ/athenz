@@ -415,4 +415,70 @@ public class ZMSFileChangeLogStoreTest {
         fstore.setRequestConditions(true);
         assertTrue(storeCommon.requestConditions);
     }
+
+    @Test
+    public void testGetUpdatedJWSDomainsNull() {
+        MockZMSFileChangeLogStore store = new MockZMSFileChangeLogStore(FSTORE_PATH, null, "0");
+        store.setSignedDomainsExc();
+        StringBuilder str = new StringBuilder();
+        assertNull(store.getUpdatedJWSDomains(str));
+    }
+
+    @Test
+    public void testGetUpdatedJWSDomainsNullDomains() {
+        MockZMSFileChangeLogStore store = new MockZMSFileChangeLogStore(FSTORE_PATH, null, "0");
+        SignedDomains domains = new SignedDomains();
+        store.setSignedDomains(domains);
+        StringBuilder str = new StringBuilder();
+        assertNull(store.getUpdatedJWSDomains(str));
+    }
+
+    @Test
+    public void testGetServerJWSDomain() {
+        MockZMSFileChangeLogStore fstore = new MockZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+        fstore.setZMSClient(zmsClient);
+
+        JWSDomain jwsDomain = new JWSDomain();
+        Mockito.when(zmsClient.getJWSDomain("athenz", null, null)).thenReturn(jwsDomain);
+
+        JWSDomain jwsDomain1 = fstore.getServerJWSDomain("athenz");
+        assertNotNull(jwsDomain1);
+
+        // invalid domain should return null
+
+        assertNull(fstore.getServerJWSDomain("coretech"));
+    }
+
+    @Test
+    public void testGetServerJWSDomainException() {
+        MockZMSFileChangeLogStore fstore = new MockZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+        fstore.setZMSClient(zmsClient);
+
+        Mockito.when(zmsClient.getJWSDomain("athenz", null, null))
+                .thenThrow(new ZMSClientException(500, "invalid server error:"));
+
+        assertNull(fstore.getServerJWSDomain("athenz"));
+    }
+
+    @Test
+    public void testJWSDomainOperations() {
+        final String domainName = "coretech";
+        JWSDomain jwsDomain = new JWSDomain();
+
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+
+        JWSDomain jwsDomain1 = fstore.getLocalJWSDomain(domainName);
+        assertNull(jwsDomain1);
+
+        fstore.saveLocalDomain(domainName, jwsDomain);
+
+        jwsDomain1 = fstore.getLocalJWSDomain(domainName);
+        assertNotNull(jwsDomain1);
+
+        fstore.removeLocalDomain(domainName);
+        jwsDomain1 = fstore.getLocalJWSDomain(domainName);
+        assertNull(jwsDomain1);
+    }
 }
