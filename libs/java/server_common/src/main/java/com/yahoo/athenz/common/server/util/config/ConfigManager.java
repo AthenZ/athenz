@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Yahoo Inc.
+ * Copyright The Athenz Authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,6 +107,9 @@ public class ConfigManager implements Closeable {
      */
     private long lastReloadGeneration = 0;
 
+    /** Never sleep less than 1 second - a safety mechanism to avoid 100% CPU loop */
+    private static final long MINIMAL_PERIODIC_RELOAD_INTERVAL = 1000L;
+
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 
@@ -127,20 +130,8 @@ public class ConfigManager implements Closeable {
         // Add all standard providers.
         init();
 
-        // Periodically reload configs.
-        DynamicConfigDuration interval = new DynamicConfigDuration(this, reloadConfigKey, reloadDefaultValue, reloadTimeUnit);
-        reloadSourcesThread = new Thread(() -> {
-            while (!isClosed) {
-                try {
-                    interval.sleep(sleepMilliseconds -> Math.max(sleepMilliseconds, 1000L));   // never sleep less than 1 second - a safety mechanism to avoid 100% CPU loop
-                } catch (InterruptedException ignored) {
-                }
-                reloadAllConfigs();
-            }
-        });
-        reloadSourcesThread.setName("ConfigManagerReloader");
-        reloadSourcesThread.setDaemon(true);
-        reloadSourcesThread.start();
+        // Start a thread to periodically reload configs.
+        reloadSourcesThread = periodicallyReloadConfigs(reloadConfigKey, reloadDefaultValue, reloadTimeUnit);
     }
 
     /** Overridable: This is called upon construction and add all standard providers */
@@ -360,6 +351,24 @@ public class ConfigManager implements Closeable {
      */
     protected String translateConfigValue(@Nonnull String configKey, @Nullable String configValue) {
         return configValue;
+    }
+
+    /** Start a thread to periodically reload configs */
+    private Thread periodicallyReloadConfigs(String reloadConfigKey, long reloadDefaultValue, TimeUnit reloadTimeUnit) {
+        DynamicConfigDuration interval = new DynamicConfigDuration(this, reloadConfigKey, reloadDefaultValue, reloadTimeUnit);
+        Thread reloadSourcesThread = new Thread(() -> {
+            while (!isClosed) {
+                try {
+                    interval.sleep(sleepMilliseconds -> Math.max(sleepMilliseconds, MINIMAL_PERIODIC_RELOAD_INTERVAL));
+                } catch (InterruptedException ignored) {
+                }
+                reloadAllConfigs();
+            }
+        });
+        reloadSourcesThread.setName("ConfigManagerReloader");
+        reloadSourcesThread.setDaemon(true);
+        reloadSourcesThread.start();
+        return reloadSourcesThread;
     }
 
     /** Given a list of changes - update System-properties, and call change-callbacks */
