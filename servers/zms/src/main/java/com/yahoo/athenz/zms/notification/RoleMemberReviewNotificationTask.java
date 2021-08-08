@@ -20,14 +20,12 @@ import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.DomainRoleMember;
 import com.yahoo.athenz.zms.MemberRole;
+import com.yahoo.athenz.zms.Role;
 import com.yahoo.rdl.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
@@ -61,13 +59,25 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
             return new ArrayList<>();
         }
 
-        return roleMemberNotificationCommon.getNotificationDetails(
+        List<Notification> notificationDetails = roleMemberNotificationCommon.getNotificationDetails(
                 reviewMembers,
                 roleReviewPrincipalNotificationToEmailConverter,
                 roleReviewDomainNotificationToEmailConverter,
                 new ReviewRoleMemberDetailStringer(),
                 roleReviewPrincipalNotificationToMetricConverter,
-                roleReviewDomainNotificationToMetricConverter);
+                roleReviewDomainNotificationToMetricConverter,
+                new ReviewDisableRoleMemberNotificationFilter());
+        if (notificationDetails != null & notificationDetails.size() > 0) {
+            StringBuilder detailsForLog = new StringBuilder();
+            detailsForLog.append("Notifications details for " + DESCRIPTION + " :\n");
+            for (Notification notification : notificationDetails) {
+                detailsForLog.append(notification + "\n");
+            }
+            LOGGER.info(detailsForLog.toString());
+        } else {
+            LOGGER.info("No notifications details for " + DESCRIPTION);
+        }
+        return notificationDetails;
     }
 
     static class ReviewRoleMemberDetailStringer implements RoleMemberNotificationCommon.RoleMemberDetailStringer {
@@ -78,6 +88,33 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
             detailsRow.append(memberRole.getRoleName()).append(';');
             detailsRow.append(memberRole.getReviewReminder());
             return detailsRow;
+        }
+    }
+
+    class ReviewDisableRoleMemberNotificationFilter implements RoleMemberNotificationCommon.DisableRoleMemberNotificationFilter {
+        private static final String DISABLE_NOTIFICATIONS_TAG = "zms.DisableReminderNotifications";
+
+        @Override
+        public EnumSet<DisableRoleMemberNotificationEnum> getDisabledNotificationState(MemberRole memberRole) {
+            Role role = dbService.getRole(memberRole.getDomainName(), memberRole.getRoleName(), false, false, false);
+
+            if (role != null &&
+                    role.getTags() != null &&
+                    role.getTags().get(DISABLE_NOTIFICATIONS_TAG) != null &&
+                    role.getTags().get(DISABLE_NOTIFICATIONS_TAG).getList() != null &&
+                    role.getTags().get(DISABLE_NOTIFICATIONS_TAG).getList().size() > 0) {
+                String value = role.getTags().get(DISABLE_NOTIFICATIONS_TAG).getList().get(0);
+                try {
+                    int mask = Integer.parseInt(value);
+                    return DisableRoleMemberNotificationEnum.getEnumSet(mask);
+                } catch (NumberFormatException ex) {
+                    LOGGER.warn("Invalid mask value for zms.DisableReminderNotifications in domain {}, role {}: {}",
+                            memberRole.getDomainName(),
+                            memberRole.getRoleName(),
+                            value);
+                }
+            }
+            return DisableRoleMemberNotificationEnum.getEnumSet(0);
         }
     }
 

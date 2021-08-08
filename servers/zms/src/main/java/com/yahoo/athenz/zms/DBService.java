@@ -2496,7 +2496,7 @@ public class DBService implements RolesProvider {
         return group;
     }
 
-    Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
+    public Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getRole(con, domainName, roleName, auditLog, expand, pending);

@@ -30,7 +30,9 @@ import static com.yahoo.athenz.common.server.notification.NotificationServiceCon
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
 public class RoleMemberReviewNotificationTaskTest {
@@ -80,6 +82,7 @@ public class RoleMemberReviewNotificationTaskTest {
 
         notificationManager.shutdown();
     }
+
     @Test
     public void testSendRoleMemberReviewReminders() {
 
@@ -305,6 +308,87 @@ public class RoleMemberReviewNotificationTaskTest {
         detailStringBuilder = stringer.getDetailString(memberRole);
         expectedStringBuilder = "testRoleName;1970-01-01T00:00:00.050Z";
         assertEquals(detailStringBuilder.toString(), expectedStringBuilder);
+    }
+
+    @Test
+    public void testReviewDisableRoleMemberNotificationFilter() {
+        DBService dbsvc = Mockito.mock(DBService.class);
+
+        Role adminRole = new Role().setName("athenz1:role.admin");
+
+        // Role where user review notifications disabled
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put("zms.DisableReminderNotifications", new TagValueList().setList(Arrays.asList("1")));
+        Role noUserNotif = new Role()
+                .setName("athenz1:role.no-user-notif")
+                .setTags(tags);
+
+        // Role where user admin review notifications disabled
+        tags = new HashMap<>();
+        tags.put("zms.DisableReminderNotifications", new TagValueList().setList(Arrays.asList("2")));
+        Role noAdminNotif = new Role()
+                .setName("athenz1:role.no-admin-notif")
+                .setTags(tags);
+
+        // Role where all review notifications disabled
+        tags = new HashMap<>();
+        tags.put("zms.DisableReminderNotifications", new TagValueList().setList(Arrays.asList("3")));
+        Role noNotifs = new Role()
+                .setName("athenz1:role.no-notifs")
+                .setTags(tags);
+
+        // Role with invalid tags - all notifications enabled
+        tags = new HashMap<>();
+        tags.put("zms.DisableReminderNotifications", new TagValueList().setList(Arrays.asList("notANumber")));
+        Role invalid = new Role()
+                .setName("athenz1:role.invalid")
+                .setTags(tags);
+
+        Mockito.when(dbsvc.getRole(eq("athenz1"), eq("admin"), eq(false), eq(false), eq(false))).thenReturn(adminRole);
+        Mockito.when(dbsvc.getRole(eq("athenz1"), eq("no-user-notif"), eq(false), eq(false), eq(false))).thenReturn(noUserNotif);
+        Mockito.when(dbsvc.getRole(eq("athenz1"), eq("no-admin-notif"), eq(false), eq(false), eq(false))).thenReturn(noAdminNotif);
+        Mockito.when(dbsvc.getRole(eq("athenz1"), eq("no-notifs"), eq(false), eq(false), eq(false))).thenReturn(noNotifs);
+        Mockito.when(dbsvc.getRole(eq("athenz1"), eq("invalid"), eq(false), eq(false), eq(false))).thenReturn(invalid);
+
+        MemberRole memberRole = new MemberRole().setRoleName("admin")
+                .setDomainName("athenz1")
+                .setMemberName("user.user1");
+
+        MemberRole memberRoleDisabledUserNotif = new MemberRole().setRoleName("no-user-notif")
+                .setDomainName("athenz1")
+                .setMemberName("user.user2");
+
+        MemberRole memberRoleDisabledAdminNotif = new MemberRole().setRoleName("no-admin-notif")
+                .setDomainName("athenz1")
+                .setMemberName("user.user3");
+
+        MemberRole memberRoleDisabledNotifs = new MemberRole().setRoleName("no-notifs")
+                .setDomainName("athenz1")
+                .setMemberName("user.user4");
+
+        MemberRole memberRoleInvalid = new MemberRole().setRoleName("invalid")
+                .setDomainName("athenz1")
+                .setMemberName("user.user5");
+
+        RoleMemberReviewNotificationTask roleMemberReviewNotificationTask = new RoleMemberReviewNotificationTask(dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon);
+        RoleMemberReviewNotificationTask.ReviewDisableRoleMemberNotificationFilter notificationFilter = roleMemberReviewNotificationTask.new ReviewDisableRoleMemberNotificationFilter();
+        EnumSet<DisableRoleMemberNotificationEnum> disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRole);
+        assertTrue(disabledNotificationState.isEmpty());
+
+        disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledUserNotif);
+        assertEquals(1, disabledNotificationState.size());
+        assertTrue(disabledNotificationState.contains(DisableRoleMemberNotificationEnum.USER));
+
+        disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledAdminNotif);
+        assertEquals(1, disabledNotificationState.size());
+        assertTrue(disabledNotificationState.contains(DisableRoleMemberNotificationEnum.ADMIN));
+
+        disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledNotifs);
+        assertEquals(2, disabledNotificationState.size());
+        assertTrue(disabledNotificationState.containsAll(Arrays.asList(DisableRoleMemberNotificationEnum.ADMIN, DisableRoleMemberNotificationEnum.USER)));
+
+        disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleInvalid);
+        assertTrue(disabledNotificationState.isEmpty());
     }
 
     @Test
