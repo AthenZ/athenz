@@ -1876,6 +1876,36 @@ public class ZTSClientTest {
     }
 
     @Test
+    public void testGetRolesRequireRoleCert() {
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        ZTSClient.cancelPrefetch();
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        RoleAccess roleList = client.getRolesRequireRoleCert("coretech");
+        assertEquals(roleList.getRoles(), Collections.singletonList("role1"));
+
+        try {
+            client.getRolesRequireRoleCert("unknown.service");
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        try {
+            client.getRolesRequireRoleCert("error.service");
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.close();
+    }
+
+    @Test
     public void testGetRoleTokenName() {
 
         Principal principal = SimplePrincipal.create("user_domain", "user",

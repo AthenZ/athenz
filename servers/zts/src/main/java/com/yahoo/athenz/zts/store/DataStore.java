@@ -23,12 +23,7 @@ import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
-import com.yahoo.athenz.zms.DomainData;
-import com.yahoo.athenz.zms.Group;
-import com.yahoo.athenz.zms.GroupMember;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.SignedDomain;
-import com.yahoo.athenz.zms.SignedDomains;
+import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.rdl.*;
@@ -63,6 +58,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.ATHENZ_SYS_DOMAIN;
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
+import static com.yahoo.athenz.zts.ZTSConsts.ZTS_ISSUE_ROLE_CERT_TAG;
 
 public class DataStore implements DataCacheProvider, RolesProvider {
 
@@ -73,6 +69,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
     final Cache<String, PublicKey> zmsPublicKeyCache;
     final Cache<String, List<GroupMember>> groupMemberCache;
     final Cache<String, List<GroupMember>> principalGroupCache;
+    final RequireRoleCertCache requireRoleCertCache;
     final Map<String, List<String>> hostCache;
     final Map<String, String> publicKeyCache;
     final JWKList ztsJWKList;
@@ -115,6 +112,8 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
         groupMemberCache = CacheBuilder.newBuilder().concurrencyLevel(25).build();
         principalGroupCache = CacheBuilder.newBuilder().concurrencyLevel(25).build();
+
+        requireRoleCertCache = new RequireRoleCertCache();
 
         ztsJWKList = new JWKList();
         ztsJWKListStrictRFC = new JWKList();
@@ -546,7 +545,21 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
         for (Role role : roles) {
             domainCache.processRole(role);
+            if (isRoleCertRequired(role)) {
+                requireRoleCertCache.processRoleCache(role);
+            } else {
+                requireRoleCertCache.processRoleCacheDelete(role);
+            }
         }
+    }
+
+    private boolean isRoleCertRequired(Role role) {
+        if (role == null || role.getTags() == null || role.getRoleMembers() == null) {
+            return false;
+        }
+        TagValueList tagValueList = role.getTags().get(ZTS_ISSUE_ROLE_CERT_TAG);
+        return (tagValueList != null && tagValueList.getList() != null &&
+                tagValueList.getList().contains("true"));
     }
 
     void processDomainGroups(DomainData domainData) {
@@ -979,7 +992,10 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
         processDeleteDomainGroups(domainName);
 
-        /* first delete our data from the cache */
+        /* delete requireRoleCertCache associations */
+        cleanRequireRoleCertCache(domainName);
+
+        /* delete our data from the cache */
 
         deleteDomainFromCache(domainName);
 
@@ -987,6 +1003,23 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
         changeLogStore.removeLocalDomain(domainName);
     }
+
+    void cleanRequireRoleCertCache(final String domainName) {
+        // get the current list of roles so we can determine
+        // which roles have been deleted
+
+        DataCache dataCache = getCacheStore().getIfPresent(domainName);
+        if (dataCache == null) {
+            return;
+        }
+
+        List<Role> deletedRoles = dataCache.getDomainData().getRoles();
+
+        for (Role role : deletedRoles) {
+            requireRoleCertCache.processRoleCacheDelete(role);
+        }
+    }
+
 
     void processDeleteDomainGroups(final String domainName) {
 
@@ -1583,6 +1616,10 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         }
 
         return domainData.getRoles();
+    }
+
+    public List<String> getRolesRequireRoleCert(String principal) {
+        return requireRoleCertCache.getRolesRequireRoleCert(principal);
     }
 
     class DataUpdater implements Runnable {

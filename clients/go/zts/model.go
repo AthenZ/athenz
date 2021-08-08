@@ -1227,6 +1227,62 @@ func (self *RoleCertificateRequest) Validate() error {
 }
 
 //
+// RoleAccess -
+//
+type RoleAccess struct {
+	Roles []EntityName `json:"roles"`
+}
+
+//
+// NewRoleAccess - creates an initialized RoleAccess instance, returns a pointer to it
+//
+func NewRoleAccess(init ...*RoleAccess) *RoleAccess {
+	var o *RoleAccess
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(RoleAccess)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *RoleAccess) Init() *RoleAccess {
+	if self.Roles == nil {
+		self.Roles = make([]EntityName, 0)
+	}
+	return self
+}
+
+type rawRoleAccess RoleAccess
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a RoleAccess
+//
+func (self *RoleAccess) UnmarshalJSON(b []byte) error {
+	var m rawRoleAccess
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := RoleAccess(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *RoleAccess) Validate() error {
+	if self.Roles == nil {
+		return fmt.Errorf("RoleAccess: Missing required field: roles")
+	}
+	return nil
+}
+
+//
 // RoleToken - A representation of a signed RoleToken
 //
 type RoleToken struct {
@@ -1322,62 +1378,6 @@ func (self *Access) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 //
 func (self *Access) Validate() error {
-	return nil
-}
-
-//
-// RoleAccess -
-//
-type RoleAccess struct {
-	Roles []EntityName `json:"roles"`
-}
-
-//
-// NewRoleAccess - creates an initialized RoleAccess instance, returns a pointer to it
-//
-func NewRoleAccess(init ...*RoleAccess) *RoleAccess {
-	var o *RoleAccess
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(RoleAccess)
-	}
-	return o.Init()
-}
-
-//
-// Init - sets up the instance according to its default field values, if any
-//
-func (self *RoleAccess) Init() *RoleAccess {
-	if self.Roles == nil {
-		self.Roles = make([]EntityName, 0)
-	}
-	return self
-}
-
-type rawRoleAccess RoleAccess
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a RoleAccess
-//
-func (self *RoleAccess) UnmarshalJSON(b []byte) error {
-	var m rawRoleAccess
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := RoleAccess(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *RoleAccess) Validate() error {
-	if self.Roles == nil {
-		return fmt.Errorf("RoleAccess: Missing required field: roles")
-	}
 	return nil
 }
 

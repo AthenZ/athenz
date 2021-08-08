@@ -36,6 +36,7 @@ public interface ZTSHandler {
     JWKList getJWKList(ResourceContext context, Boolean rfc);
     AccessTokenResponse postAccessTokenRequest(ResourceContext context, String request);
     RoleCertificate postRoleCertificateRequestExt(ResourceContext context, RoleCertificateRequest req);
+    RoleAccess getRolesRequireRoleCert(ResourceContext context, String principal);
     Workloads getWorkloadsByService(ResourceContext context, String domainName, String serviceName);
     Workloads getWorkloadsByIP(ResourceContext context, String ip);
     TransportRules getTransportRules(ResourceContext context, String domainName, String serviceName);
