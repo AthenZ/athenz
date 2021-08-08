@@ -22,9 +22,9 @@ import com.yahoo.athenz.zms.utils.ZMSUtils;
 
 public class MemberDueDays {
 
-    long userDueDateMillis;
-    long serviceDueDateMillis;
-    long groupDueDateMillis;
+    final long userDueDateMillis;
+    final long serviceDueDateMillis;
+    final long groupDueDateMillis;
 
     public enum Type {
         EXPIRY,
