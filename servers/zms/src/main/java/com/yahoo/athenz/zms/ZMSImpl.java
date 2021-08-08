@@ -9459,13 +9459,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("No such domain: " + domainName, caller);
         }
 
+        Group dbGroup = getGroupFromDomain(groupName, domain);
+
         // normalize and remove duplicate members
 
         normalizeGroupMembers(group);
 
         // update group expiry based on our configurations
 
-        MemberDueDays memberExpiryDueDays = new MemberDueDays(domain.getDomain(), group);
+        MemberDueDays memberExpiryDueDays = new MemberDueDays(domain.getDomain(), dbGroup);
         updateGroupMemberExpiration(memberExpiryDueDays, group.getGroupMembers());
 
         // process our request

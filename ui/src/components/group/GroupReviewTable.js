@@ -81,10 +81,12 @@ export default class GroupReviewTable extends React.Component {
         this.api = this.props.api;
         this.submitReview = this.submitReview.bind(this);
         this.onUpdate = this.onUpdate.bind(this);
+        let members = props.members && props.members.map((m) => m.memberName);
         this.state = {
             groupObj: props.groupDetails,
             list: props.members || [],
             submittedReview: false,
+            extendedMembers: new Set(members),
             deletedMembers: new Set(),
         };
     }
@@ -99,6 +101,7 @@ export default class GroupReviewTable extends React.Component {
                 this.setState({
                     groupObj: group,
                     list: group.groupMembers || [],
+                    extendedMembers: new Set(members),
                     deletedMembers: new Set(),
                     submittedReview: false,
                 });
@@ -143,7 +146,10 @@ export default class GroupReviewTable extends React.Component {
                 delete m.memberFullName; // memberFullName is not a valid property on the server
             });
             group.groupMembers = group.groupMembers.filter((m) => {
-                if (this.state.deletedMembers.has(m.memberName)) {
+                if (
+                    this.state.deletedMembers.has(m.memberName) ||
+                    this.state.extendedMembers.has(m.memberName)
+                ) {
                     return m;
                 }
             });
@@ -179,9 +185,15 @@ export default class GroupReviewTable extends React.Component {
         switch (key) {
             case 'delete':
                 this.state.deletedMembers.add(value);
+                this.state.extendedMembers.delete(value);
+                break;
+            case 'extend':
+                this.state.extendedMembers.add(value);
+                this.state.deletedMembers.delete(value);
                 break;
             case 'no-action':
                 this.state.deletedMembers.delete(value);
+                this.state.extendedMembers.delete(value);
                 break;
         }
     }
@@ -249,6 +261,9 @@ export default class GroupReviewTable extends React.Component {
                                 </TableHeadStyled>
                                 <TableHeadStyled align={left} colSpan={2}>
                                     EXPIRATION DATE
+                                </TableHeadStyled>
+                                <TableHeadStyled align={center}>
+                                    EXTEND
                                 </TableHeadStyled>
                                 <TableHeadStyled align={center}>
                                     NO ACTION
