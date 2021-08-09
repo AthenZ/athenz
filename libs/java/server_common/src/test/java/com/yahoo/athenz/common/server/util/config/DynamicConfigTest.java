@@ -15,8 +15,10 @@
  */
 package com.yahoo.athenz.common.server.util.config;
 
+import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfig;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigDouble;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigDuration;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigFloat;
@@ -80,7 +82,9 @@ public class DynamicConfigTest {
                 "duration-key-long: 100000\n" +
                 "duration-key-too-big: 100000000000000000000\n" +
                 "duration-key-invalid-1: x100\n" +
-                "duration-key-invalid-2: 100x\n");
+                "duration-key-invalid-2: 100x\n" +
+                "\n" +
+                "csv-key-ok: aaa,111,1234567890123456789,12.34,bbb\n");
 
         try (ConfigManager configManager = new ConfigManager("duration-key-reload", 10, TimeUnit.MILLISECONDS)
                     .addProvider(new ConfigProviderFile())
@@ -154,6 +158,10 @@ public class DynamicConfigTest {
             DynamicConfigDuration dynamicConfigDurationMissing      = new DynamicConfigDuration( configManager, "duration-key-missing",   123456, TimeUnit.SECONDS);
             DynamicConfigDuration dynamicConfigDurationFixed        = new DynamicConfigDuration(123456, TimeUnit.SECONDS);
 
+            DynamicConfigCsv      dynamicConfigCsvOk                = new DynamicConfigCsv(      configManager, "csv-key-ok",             "default-value-a,default-value-b");
+            DynamicConfigCsv      dynamicConfigCsvMissing           = new DynamicConfigCsv(      configManager, "csv-key-missing",        "default-value-a,default-value-b");
+            DynamicConfigCsv      dynamicConfigCsvFixed             = new DynamicConfigCsv(      "fixed-value-a,fixed-value-b");
+
             assertEquals("string-value",  dynamicConfigStringOk.get());
             assertEquals("default-value", dynamicConfigStringMissing.get());
             assertEquals("default-value", dynamicConfigStringFixed.get());
@@ -221,6 +229,24 @@ public class DynamicConfigTest {
             assertEquals(123456_000L, dynamicConfigDurationInvalid2.getMilliseconds());
             assertEquals(123456_000L, dynamicConfigDurationMissing.getMilliseconds());
             assertEquals(123456_000L, dynamicConfigDurationFixed.getMilliseconds());
+
+            assertEquals("[\"aaa\",\"111\",\"1234567890123456789\",\"12.34\",\"bbb\"]", Utils.jsonSerializeForLog(dynamicConfigCsvOk.getStringsList()));
+            assertEquals("[111.0,1.23456789012345677E18,12.34]",                        Utils.jsonSerializeForLog(dynamicConfigCsvOk.getDoublesList()));
+            assertEquals("[111.0,1.23456794E18,12.34]",                                 Utils.jsonSerializeForLog(dynamicConfigCsvOk.getFloatsList()));
+            assertEquals("[111,1234567890123456789]",                                   Utils.jsonSerializeForLog(dynamicConfigCsvOk.getLongsList()));
+            assertEquals("[111]",                                                       Utils.jsonSerializeForLog(dynamicConfigCsvOk.getIntegersList()));
+            assertEquals("[\"default-value-a\",\"default-value-b\"]",                   Utils.jsonSerializeForLog(dynamicConfigCsvMissing.getStringsList()));
+            assertEquals("[\"fixed-value-a\",\"fixed-value-b\"]",                       Utils.jsonSerializeForLog(dynamicConfigCsvFixed.getStringsList()));
+            assertTrue(dynamicConfigCsvOk.hasItem("aaa"));
+            assertFalse(dynamicConfigCsvOk.hasItem("ccc"));
+            assertTrue(dynamicConfigCsvOk.hasItem(12.34));
+            assertFalse(dynamicConfigCsvOk.hasItem(23.45));
+            assertTrue(dynamicConfigCsvOk.hasItem(12.34f));
+            assertFalse(dynamicConfigCsvOk.hasItem(23.45f));
+            assertTrue(dynamicConfigCsvOk.hasItem(1234567890123456789L));
+            assertFalse(dynamicConfigCsvOk.hasItem(222L));
+            assertTrue(dynamicConfigCsvOk.hasItem(111));
+            assertFalse(dynamicConfigCsvOk.hasItem(222));
         }
 
         @SuppressWarnings("unused") boolean deleted = configFile.delete();
