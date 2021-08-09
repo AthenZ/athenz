@@ -46,6 +46,7 @@ import java.util.Set;
  *     <li> {@link #getLongsList()}
  *     <li> {@link #getIntegersList()}
  * </ul>
+ * Note that the {@link #get()} method returns the comma-seperated-list as-is.
  */
 public class DynamicConfigCsv extends DynamicConfigString {
 
