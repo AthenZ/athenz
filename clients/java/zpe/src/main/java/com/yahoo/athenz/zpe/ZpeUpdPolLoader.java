@@ -372,16 +372,18 @@ public class ZpeUpdPolLoader implements Closeable {
         }
         
         PolicyData policyData = null;
-        if (verified && checkPolicyZMSSignature) {
+        if (verified) {
+
+            policyData = signedPolicyData.getPolicyData();
+            signature = signedPolicyData.getZmsSignature();
+            keyId = signedPolicyData.getZmsKeyId();
+
             // now let's verify that the ZMS signature for our policy file
             // by default we're skipping this check because with multi-policy
             // support we'll be returning different versions of the policy
             // data from ZTS which cannot be signed by ZMS
-            policyData = signedPolicyData.getPolicyData();
-            signature = signedPolicyData.getZmsSignature();
-            keyId = signedPolicyData.getZmsKeyId();
-            
-            if (policyData != null) {
+
+            if (policyData != null && checkPolicyZMSSignature) {
                 java.security.PublicKey pubKey = AuthZpeClient.getZmsPublicKey(keyId);
                 if (pubKey == null) {
                     LOG.error("loadFile: unable to fetch zms public key for id: {}", keyId);

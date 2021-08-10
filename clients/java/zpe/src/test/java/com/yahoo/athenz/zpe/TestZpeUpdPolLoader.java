@@ -69,7 +69,24 @@ public class TestZpeUpdPolLoader {
     }
 
     @Test
-    public void testLoadDb() throws Exception {
+    public void testLoadDBCases() throws Exception {
+
+        // save the current value for the check policy
+
+        boolean savedValue = ZpeUpdPolLoader.checkPolicyZMSSignature;
+
+        // verify both test cases where the zms check signature
+        // is set to true and false
+
+        testLoadDb(true);
+        testLoadDb(false);
+
+        // reset the config value
+
+        ZpeUpdPolLoader.checkPolicyZMSSignature = savedValue;
+    }
+
+    void testLoadDb(boolean checkZMSSignature) throws Exception {
 
         System.out.println("TestZpeUpdPolLoader: testLoadDb: dir=" + TEST_POL_DIR);
 
@@ -80,6 +97,7 @@ public class TestZpeUpdPolLoader {
         }
 
         ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+        ZpeUpdPolLoader.checkPolicyZMSSignature = checkZMSSignature;
 
         java.nio.file.Path badFile  = java.nio.file.Paths.get(TEST_POL_DIR, TEST_POL_FILE);
         java.nio.file.Files.deleteIfExists(badFile);
@@ -106,7 +124,7 @@ public class TestZpeUpdPolLoader {
         loader.close();
         System.out.println("TestZpeUpdPolLoader: testLoadDb: timestamp1=" + lastModMilliSeconds + " timestamp2=" + lastModMilliSeconds2);
     }
-    
+
     @Test
     public void testLoadDBNull() {
         ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
