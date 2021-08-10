@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zpe;
 
+import org.apache.commons.io.FileUtils;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -92,11 +93,17 @@ public class TestZpeUpdPolLoader {
 
         java.nio.file.Path dirPath  = java.nio.file.Paths.get(TEST_POL_DIR);
         try {
+            FileUtils.deleteDirectory(dirPath.toFile());
+        } catch (Exception ignored) {
+        }
+        try {
             java.nio.file.Files.createDirectory(dirPath);
         } catch (java.nio.file.FileAlreadyExistsException ignored) {
         }
 
         ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+        assertEquals(loader.getDomainCount(), 0);
+
         ZpeUpdPolLoader.checkPolicyZMSSignature = checkZMSSignature;
 
         java.nio.file.Path badFile  = java.nio.file.Paths.get(TEST_POL_DIR, TEST_POL_FILE);
@@ -106,6 +113,7 @@ public class TestZpeUpdPolLoader {
         polFile.createNewFile();
         java.io.File [] files = { polFile };
         loader.loadDb(files);
+        assertEquals(loader.getDomainCount(), 0);
 
         long lastModMilliSeconds = polFile.lastModified();
         java.util.Map<String, ZpeUpdPolLoader.ZpeFileStatus> fsmap = loader.getFileStatusMap();
@@ -121,6 +129,7 @@ public class TestZpeUpdPolLoader {
         fsmap = loader.getFileStatusMap();
         fstat = fsmap.get(polFile.getName());
         assertTrue(fstat.validPolFile);
+        assertEquals(loader.getDomainCount(), 1);
         loader.close();
         System.out.println("TestZpeUpdPolLoader: testLoadDb: timestamp1=" + lastModMilliSeconds + " timestamp2=" + lastModMilliSeconds2);
     }
