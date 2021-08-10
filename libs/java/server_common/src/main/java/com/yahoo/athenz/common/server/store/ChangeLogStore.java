@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.common.server.store;
 
+import com.yahoo.athenz.zms.JWSDomain;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 
@@ -35,11 +36,29 @@ public interface ChangeLogStore {
     SignedDomain getLocalSignedDomain(String domainName);
 
     /**
+     * Gets the associated local domain data for the key
+     * @param domainName the name of the domain
+     * @return JWSDomain object of the domain or null if absent
+     */
+    default JWSDomain getLocalJWSDomain(String domainName) {
+        return null;
+    }
+
+    /**
      * Gets the associated server domain data for the key
      * @param domainName the name of the domain
      * @return SignedDomain object of the domain or null if absent
      */
     SignedDomain getServerSignedDomain(String domainName);
+
+    /**
+     * Gets the associated server domain data for the key
+     * @param domainName the name of the domain
+     * @return JWSDomain object of the domain or null if absent
+     */
+    default JWSDomain getServerJWSDomain(String domainName) {
+        return null;
+    }
 
     /**
      * Remove the local domain record from the changelog store
@@ -53,6 +72,14 @@ public interface ChangeLogStore {
      * @param signedDomain the {@code SignedDomain} for the {@code domainName} supplied
      */
     void saveLocalDomain(String domainName, SignedDomain signedDomain);
+
+    /**
+     * Save the local domain record from the changelog store
+     * @param domainName the name of the domain
+     * @param jwsDomain the {@code JWSDomain} for the {@code domainName} supplied
+     */
+    default void saveLocalDomain(String domainName, JWSDomain jwsDomain) {
+    }
 
     /**
      * Returns the names of all domain stored in local repository
@@ -85,6 +112,18 @@ public interface ChangeLogStore {
     SignedDomains getUpdatedSignedDomains(StringBuilder lastModTimeBuffer);
 
     /**
+     * Returns the list of domains modified since the last call
+     * @param lastModTimeBuffer StringBuilder object will be updated to include
+     * the last modification time for the request. If data store
+     * successfully updates the local entries in the cache then
+     * it will call setLastModificationTimestamp with the same value
+     * @return Array of JWSDomain objects
+     */
+    default List<JWSDomain> getUpdatedJWSDomains(StringBuilder lastModTimeBuffer) {
+        return null;
+    }
+
+    /**
      * Notifies the store to update its changelog last modification
      * timestamp. If the value is null then it notifies the stores to
      * reset its changelog and during next retrieveDomainUpdates call
@@ -103,7 +142,16 @@ public interface ChangeLogStore {
     /**
      * Allow requesting conditions from ZMS.
      * Default implementation does not take any action.
+     * @param requestConditions boolean flag to request conditions
      */
     default void setRequestConditions(boolean requestConditions) {
+    }
+
+    /**
+     * Enable JWS Domain support instead of Signed Domains which
+     * use canonical form of json to generate signatures
+     * @param jwsDomainSupport boolean flag to enable support for jws domain objects
+     */
+    default void setJWSDomainSupport(boolean jwsDomainSupport) {
     }
 }

@@ -17,13 +17,13 @@ package com.yahoo.athenz.common.server.store.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.CommonTestUtils;
-import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.util.FilesHelper;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -37,6 +37,8 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.testng.Assert.*;
 
 public class ZMSFileChangeLogStoreCommonTest {
@@ -126,7 +128,7 @@ public class ZMSFileChangeLogStoreCommonTest {
         domains.add(domain);
         SignedDomains domainList = new SignedDomains().setDomains(domains);
 
-        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, null))
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, true, false,  null, null))
                 .thenThrow(new ZMSClientException(401, "invalid credentials"));
 
         List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
@@ -151,6 +153,25 @@ public class ZMSFileChangeLogStoreCommonTest {
         List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
         assertEquals(returnList.size(), 1);
         assertEquals(returnList.get(0).getDomain().getName(), "athenz");
+    }
+
+    @Test
+    public void testGetSignedDomainListRateFailureComplete() {
+        ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        DomainData domData = new DomainData().setName("athenz");
+        SignedDomain domain = new SignedDomain().setDomain(domData);
+        domains.add(domain);
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+
+        Mockito.when(zmsClient.getSignedDomains("athenz", null, null, true, false,  null, null))
+                .thenThrow(new ZMSClientException(429, "too many requests"));
+
+        fstore.maxRateLimitRetryCount = 2;
+        List<SignedDomain> returnList = fstore.getSignedDomainList(zmsClient, domainList);
+        assertEquals(returnList.size(), 0);
     }
 
     @Test
@@ -214,7 +235,7 @@ public class ZMSFileChangeLogStoreCommonTest {
 
         ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
         FilesHelper helper = Mockito.mock(FilesHelper.class);
-        Mockito.when(helper.write(Mockito.any(), Mockito.any()))
+        Mockito.when(helper.write(any(), any()))
                 .thenThrow(new IOException("io exception"));
         fstore.filesHelper = helper;
 
@@ -242,7 +263,7 @@ public class ZMSFileChangeLogStoreCommonTest {
         // update the helper to be our mock
 
         FilesHelper helper = Mockito.mock(FilesHelper.class);
-        Mockito.doThrow(new IOException("io exception")).when(helper).delete(Mockito.any());
+        Mockito.doThrow(new IOException("io exception")).when(helper).delete(any());
         fstore.filesHelper = helper;
 
         try {
@@ -258,7 +279,7 @@ public class ZMSFileChangeLogStoreCommonTest {
 
         ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
         FilesHelper helper = Mockito.mock(FilesHelper.class);
-        Mockito.doThrow(new IOException("io exception")).when(helper).createEmptyFile(Mockito.any());
+        Mockito.doThrow(new IOException("io exception")).when(helper).createEmptyFile(any());
         fstore.filesHelper = helper;
 
         try {
@@ -275,7 +296,7 @@ public class ZMSFileChangeLogStoreCommonTest {
 
         ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
         FilesHelper helper = Mockito.mock(FilesHelper.class);
-        Mockito.when(helper.setPosixFilePermissions(Mockito.any(), Mockito.any()))
+        Mockito.when(helper.setPosixFilePermissions(any(), any()))
                 .thenThrow(new IOException("io exception"));
         fstore.filesHelper = helper;
 
@@ -321,7 +342,7 @@ public class ZMSFileChangeLogStoreCommonTest {
         SignedDomain domain = new SignedDomain().setDomain(domData);
         fstore.saveLocalDomain(domainName, domain);
 
-        // create a new common store with the same path
+        // create a new common store with the same path,
         // and it should delete the domain since there
         // is no last modified time
 
@@ -329,6 +350,25 @@ public class ZMSFileChangeLogStoreCommonTest {
 
         assertNull(fstore2.getLocalSignedDomain("athenz"));
         assertNull(fstore.getLocalSignedDomain("athenz"));
+    }
+
+    @Test
+    public void testJWSDeleteDomainOnInit() {
+
+        final String domainName = "athenz";
+        ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
+        JWSDomain jwsDomain = new JWSDomain();
+        fstore.saveLocalDomain(domainName, jwsDomain);
+
+        // create a new common store with the same path,
+        // and it should delete the domain since there
+        // is no last modified time
+
+        ZMSFileChangeLogStoreCommon fstore2 = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
+        assertNull(fstore2.getLocalJWSDomain("athenz"));
+        assertNull(fstore.getLocalJWSDomain("athenz"));
     }
 
     @Test
@@ -402,5 +442,121 @@ public class ZMSFileChangeLogStoreCommonTest {
         assertTrue(timeout >= 4000 && timeout <= 10000);
         timeout = fstore.randomSleepForRetry(1000);
         assertTrue(timeout >= 4000 && timeout <= 10000);
+    }
+
+    @Test
+    public void testGetJWSDomainList() {
+        ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        DomainData domData = new DomainData().setName("athenz");
+        SignedDomain domain = new SignedDomain().setDomain(domData);
+        domains.add(domain);
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+
+        JWSDomain jwsDomain = new JWSDomain();
+        Mockito.when(zmsClient.getJWSDomain("athenz", null, null)).thenReturn(jwsDomain);
+
+        List<JWSDomain> returnList = fstore.getJWSDomainList(zmsClient, domainList);
+        assertEquals(returnList.size(), 1);
+    }
+
+    @Test
+    public void testGetJWSDomainListNonRateFailure() {
+        ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        DomainData domData = new DomainData().setName("athenz");
+        SignedDomain domain = new SignedDomain().setDomain(domData);
+        domains.add(domain);
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+
+        Mockito.when(zmsClient.getJWSDomain("athenz", null, null))
+                .thenThrow(new ZMSClientException(401, "invalid credentials"));
+
+        List<JWSDomain> returnList = fstore.getJWSDomainList(zmsClient, domainList);
+        assertEquals(returnList.size(), 0);
+    }
+
+    @Test
+    public void testGetJWSDomainListRateFailure() {
+        ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        DomainData domData = new DomainData().setName("athenz");
+        SignedDomain domain = new SignedDomain().setDomain(domData);
+        domains.add(domain);
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+
+        JWSDomain jwsDomain = new JWSDomain();
+        Mockito.when(zmsClient.getJWSDomain("athenz", null, null))
+                .thenThrow(new ZMSClientException(429, "too many requests"))
+                .thenReturn(jwsDomain);
+
+        List<JWSDomain> returnList = fstore.getJWSDomainList(zmsClient, domainList);
+        assertEquals(returnList.size(), 1);
+    }
+
+    @Test
+    public void testGetJWSDomainListRateFailureComplete() {
+        ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        DomainData domData = new DomainData().setName("athenz");
+        SignedDomain domain = new SignedDomain().setDomain(domData);
+        domains.add(domain);
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+
+        Mockito.when(zmsClient.getJWSDomain("athenz", null, null))
+                .thenThrow(new ZMSClientException(429, "too many requests"));
+
+        fstore.maxRateLimitRetryCount = 2;
+        List<JWSDomain> returnList = fstore.getJWSDomainList(zmsClient, domainList);
+        assertEquals(returnList.size(), 0);
+    }
+
+    @Test
+    public void testGetJWSDomainListOneBadDomain() {
+        ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+
+        DomainData domData1 = new DomainData().setName("athenz");
+        SignedDomain domain1 = new SignedDomain().setDomain(domData1);
+
+        DomainData domData2 = new DomainData().setName("sports");
+        SignedDomain domain2 = new SignedDomain().setDomain(domData2);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        domains.add(domain1);
+        domains.add(domain2);
+
+        SignedDomains domainList = new SignedDomains().setDomains(domains);
+
+        JWSDomain jwsDomain = new JWSDomain();
+        Mockito.when(zmsClient.getJWSDomain("athenz", null, null)).thenReturn(jwsDomain);
+        Mockito.when(zmsClient.getJWSDomain("sports", null, null)).thenReturn(null);
+
+        List<JWSDomain> returnList = fstore.getJWSDomainList(zmsClient, domainList);
+        assertEquals(returnList.size(), 1);
+    }
+
+    @Test
+    public void testGetServerJWSDomain() {
+        ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+
+        JWSDomain jwsDomain = new JWSDomain();
+        Mockito.when(zmsClient.getJWSDomain("athenz", null, null))
+                .thenReturn(jwsDomain)
+                .thenReturn(null);
+
+        JWSDomain jwsDomain1 = fstore.getServerJWSDomain(zmsClient, "athenz");
+        assertNotNull(jwsDomain1);
+        jwsDomain1 = fstore.getServerJWSDomain(zmsClient, "athenz");
+        assertNull(jwsDomain1);
     }
 }

@@ -20,10 +20,7 @@ import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
 import com.oath.auth.Utils;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
-import com.yahoo.athenz.zms.SignedDomain;
-import com.yahoo.athenz.zms.SignedDomains;
-import com.yahoo.athenz.zms.ZMSClient;
-import com.yahoo.athenz.zms.ZMSClientException;
+import com.yahoo.athenz.zms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,10 +72,26 @@ public class ZMSFileMTLSChangeLogStore implements ChangeLogStore {
     }
 
     @Override
+    public JWSDomain getLocalJWSDomain(String domainName) {
+        return changeLogStoreCommon.getLocalJWSDomain(domainName);
+    }
+
+    @Override
     public SignedDomain getServerSignedDomain(String domainName) {
 
         try {
             return changeLogStoreCommon.getServerSignedDomain(zmsClient, domainName);
+        } catch (ZMSClientException ex) {
+            LOGGER.error("Error when fetching {} data from ZMS: {}", domainName, ex.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public JWSDomain getServerJWSDomain(String domainName) {
+
+        try {
+            return changeLogStoreCommon.getServerJWSDomain(zmsClient, domainName);
         } catch (ZMSClientException ex) {
             LOGGER.error("Error when fetching {} data from ZMS: {}", domainName, ex.getMessage());
             return null;
@@ -93,6 +106,11 @@ public class ZMSFileMTLSChangeLogStore implements ChangeLogStore {
     @Override
     public void saveLocalDomain(String domainName, SignedDomain signedDomain) {
         changeLogStoreCommon.saveLocalDomain(domainName, signedDomain);
+    }
+
+    @Override
+    public void saveLocalDomain(String domainName, JWSDomain jwsDomain) {
+        changeLogStoreCommon.saveLocalDomain(domainName, jwsDomain);
     }
 
     @Override
@@ -145,6 +163,17 @@ public class ZMSFileMTLSChangeLogStore implements ChangeLogStore {
 
         try {
             return changeLogStoreCommon.getUpdatedSignedDomains(zmsClient, lastModTimeBuffer);
+        } catch (ZMSClientException ex) {
+            LOGGER.error("Error when refreshing data from ZMS: {}", ex.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public List<JWSDomain> getUpdatedJWSDomains(StringBuilder lastModTimeBuffer) {
+
+        try {
+            return changeLogStoreCommon.getUpdatedJWSDomains(zmsClient, lastModTimeBuffer);
         } catch (ZMSClientException ex) {
             LOGGER.error("Error when refreshing data from ZMS: {}", ex.getMessage());
             return null;

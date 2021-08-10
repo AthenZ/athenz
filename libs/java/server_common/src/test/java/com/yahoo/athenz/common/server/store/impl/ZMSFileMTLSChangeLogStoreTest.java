@@ -478,4 +478,109 @@ public class ZMSFileMTLSChangeLogStoreTest {
         fstore.setRequestConditions(true);
         assertTrue(storeCommon.requestConditions);
     }
+
+    @Test
+    public void testGetUpdatedJWSDomainsNull() throws KeyRefresherException, IOException, InterruptedException {
+        MockZMSFileMTLSChangeLogStore fstore = new MockZMSFileMTLSChangeLogStore(FSTORE_PATH, keyPath, certPath,
+                trustStorePath, trustStorePassword);
+        fstore.setSignedDomainsExc();
+        StringBuilder str = new StringBuilder();
+        assertNull(fstore.getUpdatedJWSDomains(str));
+    }
+
+    @Test
+    public void testGetUpdatedJWSDomainsNullDomains() throws KeyRefresherException, IOException, InterruptedException {
+        MockZMSFileMTLSChangeLogStore fstore = new MockZMSFileMTLSChangeLogStore(FSTORE_PATH, keyPath, certPath,
+                trustStorePath, trustStorePassword);
+        SignedDomains domains = new SignedDomains();
+        fstore.setSignedDomains(domains);
+        StringBuilder str = new StringBuilder();
+        assertNull(fstore.getUpdatedJWSDomains(str));
+    }
+
+    @Test
+    public void testGetServerJWSDomain() throws KeyRefresherException, IOException, InterruptedException {
+        MockZMSFileMTLSChangeLogStore fstore = new MockZMSFileMTLSChangeLogStore(FSTORE_PATH, keyPath, certPath,
+                trustStorePath, trustStorePassword);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+        fstore.setZMSClient(zmsClient);
+
+        JWSDomain jwsDomain = new JWSDomain();
+        Mockito.when(zmsClient.getJWSDomain("athenz", null, null)).thenReturn(jwsDomain);
+
+        JWSDomain jwsDomain1 = fstore.getServerJWSDomain("athenz");
+        assertNotNull(jwsDomain1);
+
+        // invalid domain should return null
+
+        assertNull(fstore.getServerJWSDomain("coretech"));
+    }
+
+    @Test
+    public void testGetServerJWSDomainException() throws KeyRefresherException, IOException, InterruptedException {
+        MockZMSFileMTLSChangeLogStore fstore = new MockZMSFileMTLSChangeLogStore(FSTORE_PATH, keyPath, certPath,
+                trustStorePath, trustStorePassword);
+        ZMSClient zmsClient = Mockito.mock(ZMSClient.class);
+        fstore.setZMSClient(zmsClient);
+
+        Mockito.when(zmsClient.getJWSDomain("athenz", null, null))
+                .thenThrow(new ZMSClientException(500, "invalid server error:"));
+
+        assertNull(fstore.getServerJWSDomain("athenz"));
+    }
+
+    @Test
+    public void testJWSDomainOperations() throws KeyRefresherException, IOException, InterruptedException {
+        final String domainName = "coretech";
+        JWSDomain jwsDomain = new JWSDomain();
+
+        ZMSFileMTLSChangeLogStore fstore = new ZMSFileMTLSChangeLogStore(FSTORE_PATH, keyPath, certPath,
+                trustStorePath, trustStorePassword);
+
+        JWSDomain jwsDomain1 = fstore.getLocalJWSDomain(domainName);
+        assertNull(jwsDomain1);
+
+        fstore.saveLocalDomain(domainName, jwsDomain);
+
+        jwsDomain1 = fstore.getLocalJWSDomain(domainName);
+        assertNotNull(jwsDomain1);
+
+        fstore.removeLocalDomain(domainName);
+        jwsDomain1 = fstore.getLocalJWSDomain(domainName);
+        assertNull(jwsDomain1);
+    }
+
+    @Test
+    public void testGetUpdatedJWSDomains() throws InterruptedException, IOException, KeyRefresherException {
+        MockZMSFileMTLSChangeLogStore store = new MockZMSFileMTLSChangeLogStore(FSTORE_PATH, keyPath, certPath,
+                trustStorePath, trustStorePassword);
+        MockZMSFileChangeLogStoreCommon cstore = new MockZMSFileChangeLogStoreCommon(FSTORE_PATH);
+        store.setChangeLogStoreCommon(cstore);
+
+        List<SignedDomain> domains = new ArrayList<>();
+        DomainData domData = new DomainData().setName("athenz");
+        SignedDomain domain = new SignedDomain().setDomain(domData);
+        domains.add(domain);
+        SignedDomains signedDomains = new SignedDomains().setDomains(domains);
+
+        store.setSignedDomains(signedDomains);
+        store.setJWSDomains(signedDomains);
+        StringBuilder str = new StringBuilder();
+
+        assertNull(store.getUpdatedJWSDomains(str));
+
+        // now let's set the tag header
+
+        cstore.setTagHeader(Timestamp.fromCurrentTime().toString());
+        List<JWSDomain> retDomains = store.getUpdatedJWSDomains(str);
+        assertNotNull(retDomains);
+        assertEquals(retDomains.size(), 1);
+
+        // now set the signed domains to be null
+
+        store.setSignedDomains(null);
+        store.setJWSDomains(null);
+        str.setLength(0);
+        assertNull(store.getUpdatedJWSDomains(str));
+    }
 }
