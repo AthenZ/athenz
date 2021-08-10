@@ -62,6 +62,7 @@ public class ZpeUpdater implements ZpeClient {
     }
     
     // @param domain can be null
+    @Override
     public void init(String domain) {
         try {
             synchronized (POLICYLOADER) {
@@ -73,28 +74,38 @@ public class ZpeUpdater implements ZpeClient {
     }
 
     // return current cache of role tokens collected from the remote clients
-    //
+    @Override
     public Map<String, RoleToken> getRoleTokenCacheMap() {
         return ZpeUpdPolLoader.getRoleTokenCacheMap();
     }
 
+    @Override
     public Map<String, AccessToken> getAccessTokenCacheMap() {
         return ZpeUpdPolLoader.getAccessTokenCacheMap();
     }
 
+    @Override
     public Map<String, List<Struct>> getWildcardAllowAssertions(String domain) {
         return POLICYLOADER.getWildcardRoleAllowMap(domain);
     }
 
+    @Override
     public Map<String, List<Struct>> getRoleAllowAssertions(String domain) {
         return POLICYLOADER.getStandardRoleAllowMap(domain);
     }
-    
+
+    @Override
     public Map<String, List<Struct>> getWildcardDenyAssertions(String domain) {
         return POLICYLOADER.getWildcardRoleDenyMap(domain);
     }
 
+    @Override
     public Map<String, List<Struct>> getRoleDenyAssertions(String domain) {
         return POLICYLOADER.getStandardRoleDenyMap(domain);
+    }
+
+    @Override
+    public int getDomainCount() {
+        return POLICYLOADER.getDomainCount();
     }
 }

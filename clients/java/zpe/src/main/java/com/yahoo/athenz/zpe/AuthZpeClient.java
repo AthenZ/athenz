@@ -930,11 +930,17 @@ public class AuthZpeClient {
             return AccessCheckStatus.DENY_INVALID_PARAMETERS;
         }
         resource = resource.toLowerCase();
-        resource = stripDomainPrefix(resource, tokenDomain, null);
 
         // Note: if domain in token doesn't match domain in resource then there
         // will be no match of any resource in the assertions - so deny immediately
+        // special case - when we have a single domain being processed by ZPE
+        // the application will never have generated multiple domain values thus
+        // if the resource contains : for something else, we'll ignore it and don't
+        // assume it's part of the domain separator and thus reject the request.
+        // for multiple domains, if the resource might contain :, it's the responsibility
+        // of the caller to include the "domain-name:" prefix as part of the resource
 
+        resource = stripDomainPrefix(resource, tokenDomain, zpeClt.getDomainCount() == 1 ? resource : null);
         if (resource == null) {
             LOG.error("{} ERROR: Domain mismatch in token({}) and resource so access denied",
                     msgPrefix, tokenDomain);

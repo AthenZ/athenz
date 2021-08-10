@@ -49,5 +49,8 @@ public interface ZpeClient {
     // return the wildcard role assertion map for the specified domain with deny effect
     // key is role name, value is List of assertions for that role
     Map<String, List<com.yahoo.rdl.Struct>> getWildcardDenyAssertions(String domain);
+
+    // return the number of domains available in assertion maps
+    int getDomainCount();
 }
 

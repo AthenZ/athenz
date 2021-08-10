@@ -179,6 +179,16 @@ public class ZpeUpdPolLoader implements Closeable {
         return accessTokenCacheMap;
     }
 
+    /**
+     * All of our maps must contain the same number of objects since we
+     * process and update them at the same time, so we'll just return
+     * the number of entries in our allow role map
+     * @return number of domains processed
+     */
+    public int getDomainCount() {
+        return domWildcardRoleAllowMap.size();
+    }
+
     public void start() throws Exception {
         if (polDirName == null) {
             throw new Exception("ERROR: start: no policy directory name, can't monitor data files");
@@ -372,16 +382,18 @@ public class ZpeUpdPolLoader implements Closeable {
         }
         
         PolicyData policyData = null;
-        if (verified && checkPolicyZMSSignature) {
+        if (verified) {
+
+            policyData = signedPolicyData.getPolicyData();
+            signature = signedPolicyData.getZmsSignature();
+            keyId = signedPolicyData.getZmsKeyId();
+
             // now let's verify that the ZMS signature for our policy file
             // by default we're skipping this check because with multi-policy
             // support we'll be returning different versions of the policy
             // data from ZTS which cannot be signed by ZMS
-            policyData = signedPolicyData.getPolicyData();
-            signature = signedPolicyData.getZmsSignature();
-            keyId = signedPolicyData.getZmsKeyId();
-            
-            if (policyData != null) {
+
+            if (policyData != null && checkPolicyZMSSignature) {
                 java.security.PublicKey pubKey = AuthZpeClient.getZmsPublicKey(keyId);
                 if (pubKey == null) {
                     LOG.error("loadFile: unable to fetch zms public key for id: {}", keyId);
