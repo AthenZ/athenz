@@ -179,6 +179,16 @@ public class ZpeUpdPolLoader implements Closeable {
         return accessTokenCacheMap;
     }
 
+    /**
+     * All of our maps must contain the same number of objects since we
+     * process and update them at the same time, so we'll just return
+     * the number of entries in our allow role map
+     * @return number of domains processed
+     */
+    public int getDomainCount() {
+        return domWildcardRoleAllowMap.size();
+    }
+
     public void start() throws Exception {
         if (polDirName == null) {
             throw new Exception("ERROR: start: no policy directory name, can't monitor data files");
