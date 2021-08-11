@@ -283,7 +283,6 @@
                 <exclude>**/FileObjectStore.class</exclude>
                 <exclude>**/FileWorkloadStore.class</exclude>
                 <exclude>**/*MSDRDLGeneratedClient.class</exclude>
-                <exclude>**/ConfigProviderAwsParametersStore.class</exclude>
               </excludes>
               <rules>
                 <rules>
