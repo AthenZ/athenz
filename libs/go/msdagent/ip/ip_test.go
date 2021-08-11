@@ -5,7 +5,7 @@ import (
 	"net"
 	"testing"
 
-	"go.vzbuilders.com/athens/sia-libs/futil"
+	"github.com/AthenZ/athenz/libs/go/msdagent/fsutil"
 
 	"fmt"
 	"log"
@@ -114,9 +114,9 @@ func TestSkipLocalAndCni(t *testing.T) {
 }
 
 func ifConfigBin() string {
-	if futil.Exists("/usr/sbin/ifconfig") {
+	if fsutil.Exists("/usr/sbin/ifconfig") {
 		return "/usr/sbin/ifconfig"
-	} else if futil.Exists("/sbin/ifconfig") {
+	} else if fsutil.Exists("/sbin/ifconfig") {
 		return "/sbin/ifconfig"
 	} else {
 		return ""
