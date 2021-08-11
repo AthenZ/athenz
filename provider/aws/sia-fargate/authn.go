@@ -21,19 +21,19 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/util"
 	"io"
 	"io/ioutil"
 	"strings"
 
+	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/util"
-
-	"github.com/AthenZ/athenz/clients/go/zts"
+	siautil "github.com/AthenZ/athenz/provider/aws/sia-ec2/util"
 	"github.com/aws/aws-sdk-go/service/sts"
 )
 
@@ -160,7 +160,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		}
 		certFilePem := util.GetRoleCertFileName(opts.CertDir, role.Filename, roleName)
 		spiffe := fmt.Sprintf("spiffe://%s/ra/%s", domainNameRequest, roleNameRequest)
-		csr, err := util.GenerateCSR(key, opts.Domain, opts.Services[0].Name, roleName, "", provider, spiffe, opts.ZTSAWSDomain, true)
+		csr, err := siautil.GenerateCSR(key, opts.Domain, opts.Services[0].Name, roleName, "", provider, spiffe, opts.ZTSAWSDomain, true)
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
@@ -241,7 +241,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 
 	provider := getProviderName(opts.Provider, region)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateCSR(key, opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomain, false)
+	csr, err := siautil.GenerateCSR(key, opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomain, false)
 	if err != nil {
 		return err
 	}
@@ -313,7 +313,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	}
 	provider := getProviderName(opts.Provider, region)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateCSR(key, opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomain, false)
+	csr, err := siautil.GenerateCSR(key, opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomain, false)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
