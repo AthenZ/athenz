@@ -183,7 +183,7 @@ public class InstanceProviderManagerTest {
     public void testGetHttpsProviderInvalidName() {
 
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", true, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null);
         InstanceProvider client = provider.getProvider("coretech", null);
@@ -194,7 +194,7 @@ public class InstanceProviderManagerTest {
     public void testGetHttpsProvider() throws NoSuchAlgorithmException {
 
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", true, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, SSLContext.getDefault(), null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", null);
@@ -206,7 +206,7 @@ public class InstanceProviderManagerTest {
     public void testGetHttpsProviderUnknownProvider() throws NoSuchAlgorithmException {
 
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", true, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, SSLContext.getDefault(), null, null);
         InstanceProvider client = provider.getProvider("coretech.weather2", null);
@@ -217,7 +217,7 @@ public class InstanceProviderManagerTest {
     public void testGetClassProvider() {
 
         SignedDomain signedDomain = createSignedDomainClassEndpoint("coretech", "weather", true, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", new HostnameResolver(){});
@@ -229,7 +229,7 @@ public class InstanceProviderManagerTest {
     public void testGetClassProviderForZTS() {
 
         SignedDomain signedDomain = createSignedDomainClassEndpoint("sys.auth", "zts", true, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         PrivateKey privateKey = Mockito.mock(PrivateKey.class);
         ServerPrivateKey serverPrivateKey = new ServerPrivateKey(privateKey, "0");
@@ -243,7 +243,7 @@ public class InstanceProviderManagerTest {
     public void testGetClassProviderException() {
 
         SignedDomain signedDomain = createSignedDomainClassEndpoint("coretech", "weather", true, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         System.setProperty("athenz.instance.test.class.exception", "true");
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null);
@@ -256,7 +256,7 @@ public class InstanceProviderManagerTest {
     public void testGetProviderClientInvalidDomain() {
 
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", true, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null);
         InstanceProvider client = provider.getProvider("coretech2.weather", null);
@@ -267,7 +267,7 @@ public class InstanceProviderManagerTest {
     public void testGetProviderClientInvalidService() {
 
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", true, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather2", null);
@@ -278,7 +278,7 @@ public class InstanceProviderManagerTest {
     public void testGetProviderClientNoEndpoint() {
 
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", true, false);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", null);
@@ -290,7 +290,7 @@ public class InstanceProviderManagerTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather",
                 true, true, "http://invalid");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", null);
@@ -302,7 +302,7 @@ public class InstanceProviderManagerTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather",
                 true, true, "://test.athenz.com/");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", null);
@@ -313,7 +313,7 @@ public class InstanceProviderManagerTest {
     public void testGetProviderClientNoServices() {
 
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", false, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", null);

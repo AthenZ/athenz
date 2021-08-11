@@ -16,10 +16,7 @@
 package com.yahoo.athenz.zts.store;
 
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
-import com.yahoo.athenz.zms.DomainList;
-import com.yahoo.athenz.zms.SignedDomains;
-import com.yahoo.athenz.zms.ZMSClient;
-import com.yahoo.athenz.zms.ZMSClientException;
+import com.yahoo.athenz.zms.*;
 import org.mockito.Mockito;
 
 import java.security.PrivateKey;
@@ -37,6 +34,7 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
     private final ZMSClient zms;
     private boolean refreshSupport = false;
     private final MockZMSFileChangeLogStoreCommon mockClogStoreCommon;
+    private List<JWSDomain> jwsDomains;
 
     public MockZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
         
@@ -87,6 +85,20 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
                 .thenReturn(signedDomains);
     }
 
+    public void setJWSDomains(List<JWSDomain>  jwsDomains) {
+        this.jwsDomains = jwsDomains;
+    }
+
+    @Override
+    public List<JWSDomain> getUpdatedJWSDomains(StringBuilder lastModTimeBuffer) {
+        if (jwsDomains == null) {
+            lastModTimeBuffer.setLength(0);
+        } else {
+            lastModTimeBuffer.append("etag");
+        }
+        return jwsDomains;
+    }
+
     public void setRefreshSupport(boolean refreshSupport) {
         this.refreshSupport = refreshSupport;
     }
@@ -98,5 +110,9 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
 
     public MockZMSFileChangeLogStoreCommon getClogStoreCommon() {
         return mockClogStoreCommon;
+    }
+
+    public void setJWSDomain(String domainName, JWSDomain jwsDomain) {
+        when(zms.getJWSDomain(domainName, null, null)).thenReturn(jwsDomain);
     }
 }
