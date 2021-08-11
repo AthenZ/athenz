@@ -50,7 +50,14 @@ public class ConfigProviderAwsParametersStore extends ConfigProvider {
         if (!sourceDescription.startsWith(PROVIDER_DESCRIPTION_PREFIX)) {
             return null;
         }
-        return new ConfigSourceAwsParametersStore(sourceDescription, sourceDescription.substring(PROVIDER_DESCRIPTION_PREFIX.length()));
+        return new ConfigSourceAwsParametersStore(
+                sourceDescription,
+                sourceDescription.substring(PROVIDER_DESCRIPTION_PREFIX.length()),
+                buildSsmClient());
+    }
+
+    protected SsmClient buildSsmClient() {
+        return SsmClient.builder().region(Region.of(EC2MetadataUtils.getInstanceInfo().getRegion())).build();
     }
 
     public static class ConfigSourceAwsParametersStore extends ConfigSource {
@@ -59,8 +66,9 @@ public class ConfigProviderAwsParametersStore extends ConfigProvider {
         public final String parameterNamesRedundantPrefix;
         private final SsmClient ssmClient;
 
-        public ConfigSourceAwsParametersStore(String sourceDescription, String path) {
+        public ConfigSourceAwsParametersStore(String sourceDescription, String path, SsmClient ssmClient) {
             super(sourceDescription);
+            this.ssmClient = ssmClient;
 
             // Path must start with "/" - add it if not.
             if (!path.startsWith("/")) {
@@ -73,10 +81,6 @@ public class ConfigProviderAwsParametersStore extends ConfigProvider {
                 path += "/";
             }
             parameterNamesRedundantPrefix = path;
-
-            ssmClient = SsmClient.builder()
-                    .region(Region.of(EC2MetadataUtils.getInstanceInfo().getRegion()))
-                    .build();
         }
 
         /** Get all configuration entries of the source */
@@ -107,7 +111,7 @@ public class ConfigProviderAwsParametersStore extends ConfigProvider {
                     break;
                 } else {
                     LOG.debug("Reading configurations page {} from {}", page, this);
-                    result = ssmClient.getParametersByPath(GetParametersByPathRequest.builder().path(path).nextToken(result.nextToken()).build());
+                    result = ssmClient.getParametersByPath(GetParametersByPathRequest.builder().path(path).recursive(true).nextToken(result.nextToken()).build());
                 }
             }
 

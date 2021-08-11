@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.common.server.util.config;
+package com.yahoo.athenz.common.server.util.config.providers;
 
-import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
+import com.yahoo.athenz.common.server.util.config.ConfigEntry;
 import org.testng.annotations.Test;
 
 import java.io.File;

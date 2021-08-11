@@ -221,7 +221,7 @@ public class ConfigManager implements Closeable {
         List<ChangeLog> changeLogs = new LinkedList<>();
         reloadConfigSource(configSource, higherPrioritySources, -1, changeLogs);
 
-        // Update System-properties, and call change-callbacks.
+        // Log and call change-callbacks.
         digestChangeLogs(changeLogs);
         return this;
     }
@@ -287,7 +287,7 @@ public class ConfigManager implements Closeable {
             }
         });
 
-        // Update System-properties, and call change-callbacks.
+        // Log and call change-callbacks.
         digestChangeLogs(changeLogs);
     }
 
@@ -371,7 +371,7 @@ public class ConfigManager implements Closeable {
         return reloadSourcesThread;
     }
 
-    /** Given a list of changes - update System-properties, and call change-callbacks */
+    /** Given a list of changes - log and call change-callbacks */
     private void digestChangeLogs(List<ChangeLog> changeLogs) {
         if (changeLogs.isEmpty()) {
             return;
