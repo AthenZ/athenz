@@ -2,13 +2,18 @@ package client
 
 import (
 	"crypto/tls"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"regexp"
 
 	"github.com/AthenZ/athenz/libs/go/msdagent/log"
 	"github.com/AthenZ/athenz/libs/go/msdagent/svc"
 
 	"github.com/AthenZ/athenz/clients/go/msd"
 )
+
+const USER_AGENT = "User-Agent"
 
 type MsdClient interface {
 	PutWorkload(domain string, service string, options *msd.WorkloadOptions) error
@@ -19,12 +24,31 @@ type Client struct {
 	Transport *http.Transport
 }
 
+var version = ""
+
 func (c Client) PutWorkload(domain string, service string, options *msd.WorkloadOptions) error {
-	msdClient := msd.NewClient(c.Url, c.Transport)
+	msdClient := clientWithUserAgent(c)
 	return msdClient.PutWorkload(msd.DomainName(domain), msd.EntityName(service), options)
 }
 
-func NewClient(url string, domain string, service string) (*Client, error) {
+func clientWithUserAgent(c Client) msd.MSDClient {
+	msdClient := msd.NewClient(c.Url, c.Transport)
+	osVersion := func() string {
+		b, err := ioutil.ReadFile("/etc/redhat-release")
+		if err != nil {
+			log.Debugf("Failed to read os version")
+			return ""
+		}
+		versionReg, _ := regexp.Compile(`\d+\.\d+`)
+		v := versionReg.FindString(string(b))
+		return fmt.Sprintf("rhel-%s", v)
+	}
+	msdClient.AddCredentials(USER_AGENT, fmt.Sprintf("c:%s %s", version, osVersion()))
+	return msdClient
+}
+
+func NewClient(msdAgentVersion string, url string, domain string, service string) (*Client, error) {
+	version = msdAgentVersion
 	certFile := certFile(service, domain)
 	keyFile := keyFile(service, domain)
 	log.Printf("Creating MsdClient using cert: %s, and key: %s", certFile, keyFile)
