@@ -70,7 +70,7 @@
         "moment": "^2.29.1",
         "moment-timezone": "^0.5.32",
         "multer": "^1.4.2",
-        "next": "^10.0.5",
+        "next": "^11.1.0",
         "next-compose-plugins": "^2.2.1",
         "next-routes": "^1.4.2",
         "passport": "^0.4.1",
