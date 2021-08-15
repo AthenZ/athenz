@@ -82,4 +82,10 @@ public class DynamicConfigFloat extends DynamicConfig<Float> {
         }
         return value;
     }
+
+    @Override
+    public String toString() {
+        Float value = get();
+        return (value == null) ? null : Float.toString(value);
+    }
 }

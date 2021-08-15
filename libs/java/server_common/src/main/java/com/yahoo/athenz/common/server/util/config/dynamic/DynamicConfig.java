@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.common.server.util.config.dynamic;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.common.server.util.config.ConfigManager;
 import org.slf4j.Logger;
@@ -72,6 +73,7 @@ public abstract class DynamicConfig<T> implements Closeable {
     }
 
     /** Get the up-to-date value */
+    @JsonGetter
     public T get() {
         return value;
     }
@@ -84,6 +86,17 @@ public abstract class DynamicConfig<T> implements Closeable {
     /** Undo a call to {@link #registerChangeCallback} */
     public synchronized boolean unregisterChangeCallback(@Nonnull ChangeCallback<T> changeCallback) {
         return changeCallbacks.remove(changeCallback);
+    }
+
+    /** Call all change-callbacks */
+    public synchronized void callChangeCallbacksNow(T oldValue) {
+        for (ChangeCallback<T> callback : changeCallbacks) {
+            try {
+                callback.configChanged(value, oldValue, this);
+            } catch (Exception exception) {
+                LOG.warn("Exception in dynamic-config {} change-callback.    Old value: {}    New value: {}    Exception: ", Utils.jsonSerializeForLog(configKey), Utils.jsonSerializeForLog(oldValue), Utils.jsonSerializeForLog(value), exception);
+            }
+        }
     }
 
     /** Inner value will no longer be updated, and change-callbacks will no longer be called */
@@ -121,13 +134,7 @@ public abstract class DynamicConfig<T> implements Closeable {
         if (((this.value != null) && (value == null)) || ((this.value == null) && (value != null)) || ((this.value != null) && (! this.value.equals(value)))) {
             T oldValue = this.value;
             this.value = value;
-            for (ChangeCallback<T> callback : changeCallbacks) {
-                try {
-                    callback.configChanged(value, oldValue, this);
-                } catch (Exception exception) {
-                    LOG.warn("Exception in dynamic-config {} change-callback.    Old value: {}    New value: {}    Exception: ", Utils.jsonSerializeForLog(configKey), Utils.jsonSerializeForLog(oldValue), Utils.jsonSerializeForLog(value), exception);
-                }
-            }
+            callChangeCallbacksNow(oldValue);
         }
     }
 }

@@ -82,4 +82,10 @@ public class DynamicConfigLong extends DynamicConfig<Long> {
         }
         return value;
     }
+
+    @Override
+    public String toString() {
+        Long value = get();
+        return (value == null) ? null : Long.toString(value);
+    }
 }

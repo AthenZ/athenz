@@ -82,4 +82,10 @@ public class DynamicConfigDouble extends DynamicConfig<Double> {
         }
         return value;
     }
+
+    @Override
+    public String toString() {
+        Double value = get();
+        return (value == null) ? null : Double.toString(value);
+    }
 }

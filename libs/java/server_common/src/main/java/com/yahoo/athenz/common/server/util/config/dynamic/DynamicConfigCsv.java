@@ -64,7 +64,7 @@ public class DynamicConfigCsv extends DynamicConfigString {
     /** Construct a non-dynamic fixed value - that will never change */
     public DynamicConfigCsv(@Nullable String fixedValue) {
         super(fixedValue);
-        convertValue(fixedValue);
+        valueHasChanged(fixedValue, null, null);
     }
 
     /** Construct a dynamic value - that may automatically change */
@@ -73,6 +73,8 @@ public class DynamicConfigCsv extends DynamicConfigString {
             String configKey,
             @Nullable String defaultValue) {
         super(configManager, configKey, defaultValue);
+        registerChangeCallback(this::valueHasChanged);
+        callChangeCallbacksNow(null);   // will call valueHasChanged()
     }
 
     public boolean hasItem(String item) {
@@ -107,8 +109,8 @@ public class DynamicConfigCsv extends DynamicConfigString {
         return integersList;
     }
 
-    @Override
-    protected @Nullable String convertValue(@Nullable String stringValue) {
+    /** Whenever the value changes - reset all sets/lists */
+    private void valueHasChanged(String newValue, String oldValue, DynamicConfig<String> dynamicConfig) {
 
         List<String>  stringsList  = new LinkedList<>();
         Set<String>   stringsSet   = new HashSet<>();
@@ -121,12 +123,8 @@ public class DynamicConfigCsv extends DynamicConfigString {
         List<Integer> integersList = new LinkedList<>();
         Set<Integer>  integersSet  = new HashSet<>();
 
-        if (stringValue == null) {
-            stringValue = defaultValue;
-        }
-
-        if (stringValue != null) {
-            for (String item : stringValue.split(",")) {
+        if (newValue != null) {
+            for (String item : newValue.split(",")) {
                 item = item.trim();
                 if (!item.isEmpty()) {
                     stringsList.add(item);
@@ -177,7 +175,5 @@ public class DynamicConfigCsv extends DynamicConfigString {
         this.longsSet     = ImmutableSet.copyOf(longsSet);
         this.integersList = ImmutableList.copyOf(integersList);
         this.integersSet  = ImmutableSet.copyOf(integersSet);
-
-        return stringValue;
     }
 }

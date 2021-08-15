@@ -393,6 +393,11 @@ public class ConfigManager implements Closeable {
         }
 
         // Call change-callbacks.
+        callChangeCallbacksNow();
+    }
+
+    /** Call all change-callbacks */
+    public synchronized void callChangeCallbacksNow() {
         for (Runnable changeCallback : changeCallbacks) {
             try {
                 changeCallback.run();

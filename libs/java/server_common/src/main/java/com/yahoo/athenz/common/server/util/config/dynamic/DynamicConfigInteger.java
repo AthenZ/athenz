@@ -82,4 +82,10 @@ public class DynamicConfigInteger extends DynamicConfig<Integer> {
         }
         return value;
     }
+
+    @Override
+    public String toString() {
+        Integer value = get();
+        return (value == null) ? null : Integer.toString(value);
+    }
 }

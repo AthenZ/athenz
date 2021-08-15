@@ -162,10 +162,12 @@ public class DynamicConfigTest {
             DynamicConfigCsv      dynamicConfigCsvMissing           = new DynamicConfigCsv(      configManager, "csv-key-missing",        "default-value-a,default-value-b");
             DynamicConfigCsv      dynamicConfigCsvFixed             = new DynamicConfigCsv(      "fixed-value-a,fixed-value-b");
 
+            assertEquals("string-value",  dynamicConfigStringOk.toString());
             assertEquals("string-value",  dynamicConfigStringOk.get());
             assertEquals("default-value", dynamicConfigStringMissing.get());
             assertEquals("default-value", dynamicConfigStringFixed.get());
 
+            assertEquals("100",            dynamicConfigIntegerOk.toString());
             assertEquals(Integer.valueOf(100),    dynamicConfigIntegerOk.get());
             assertEquals(Integer.valueOf(123456), dynamicConfigIntegerOverflow.get());
             assertEquals(Integer.valueOf(123456), dynamicConfigIntegerUnderflow.get());
@@ -175,6 +177,7 @@ public class DynamicConfigTest {
             assertEquals(Integer.valueOf(123456), dynamicConfigIntegerMissing.get());
             assertEquals(Integer.valueOf(123456), dynamicConfigIntegerFixed.get());
 
+            assertEquals("100",          dynamicConfigLongOk.toString());
             assertEquals(Long.valueOf(100L),    dynamicConfigLongOk.get());
             assertEquals(Long.valueOf(123456L), dynamicConfigLongOverflow.get());
             assertEquals(Long.valueOf(123456L), dynamicConfigLongUnderflow.get());
@@ -184,6 +187,7 @@ public class DynamicConfigTest {
             assertEquals(Long.valueOf(123456L), dynamicConfigLongMissing.get());
             assertEquals(Long.valueOf(123456L), dynamicConfigLongFixed.get());
 
+            assertEquals("12.34",        dynamicConfigFloatOk2.toString());
             assertEquals(Float.valueOf(100F),   dynamicConfigFloatOk1.get());
             assertEquals(Float.valueOf(12.34F), dynamicConfigFloatOk2.get());
             assertEquals(Float.valueOf(1.23F),  dynamicConfigFloatOverflow.get());
@@ -193,6 +197,7 @@ public class DynamicConfigTest {
             assertEquals(Float.valueOf(1.23F),  dynamicConfigFloatMissing.get());
             assertEquals(Float.valueOf(1.23F),  dynamicConfigFloatFixed.get());
 
+            assertEquals("12.34",          dynamicConfigDoubleOk2.toString());
             assertEquals(Double.valueOf(100.0),   dynamicConfigDoubleOk1.get());
             assertEquals(Double.valueOf(12.34),   dynamicConfigDoubleOk2.get());
             assertEquals(Double.valueOf(123.456), dynamicConfigDoubleOverflow.get());
@@ -202,6 +207,7 @@ public class DynamicConfigTest {
             assertEquals(Double.valueOf(123.456), dynamicConfigDoubleMissing.get());
             assertEquals(Double.valueOf(123.456), dynamicConfigDoubleFixed.get());
 
+            assertEquals("true", dynamicConfigBooleanTrueTrue.toString());
             assertEquals(Boolean.TRUE,  dynamicConfigBooleanTrueTrue.get());
             assertEquals(Boolean.TRUE,  dynamicConfigBooleanTrueYes.get());
             assertEquals(Boolean.TRUE,  dynamicConfigBooleanTrueOn.get());

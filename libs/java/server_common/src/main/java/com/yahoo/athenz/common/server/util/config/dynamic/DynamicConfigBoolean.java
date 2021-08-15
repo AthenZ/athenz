@@ -62,4 +62,10 @@ public class DynamicConfigBoolean extends DynamicConfig<Boolean> {
             return null;
         }
     }
+
+    @Override
+    public String toString() {
+        Boolean value = get();
+        return (value == null) ? null : Boolean.toString(value);
+    }
 }
