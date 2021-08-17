@@ -142,6 +142,26 @@ exports[`ReviewRow should render 1`] = `
       data-testid="radiobutton-wrapper"
     >
       <input
+        checked=""
+        id="radiobutton-undefined50-extend"
+        name="undefined50"
+        type="radio"
+        value="extend"
+      />
+      <label
+        for="radiobutton-undefined50-extend"
+      />
+    </div>
+  </td>
+  <td
+    class="emotion-6 emotion-3"
+    color="#3570f40D"
+  >
+    <div
+      class="emotion-8 denali-radiobutton"
+      data-testid="radiobutton-wrapper"
+    >
+      <input
         id="radiobutton-undefined50-no-action"
         name="undefined50"
         type="radio"
