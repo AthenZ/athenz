@@ -148,7 +148,7 @@ public class KerberosAuthority implements Authority {
             // qualified class name of a default handler implementation
             LoginContext    loginContext;
             CallbackHandler loginHandler = null;
-            if (loginCallbackHandler != null) {
+            if (loginCallbackHandler != null && !loginCallbackHandler.isEmpty()) {
                 Class cbhandlerClass = Class.forName(loginCallbackHandler);
                 loginHandler = (CallbackHandler) cbhandlerClass.getConstructor(String.class, String.class).newInstance(servicePrincipal, null);
             }
@@ -343,7 +343,7 @@ public class KerberosAuthority implements Authority {
                 } else {
                     ///CLOVER:ON
                     ticketCacheName = System.getProperty(KRB_PROP_LOGIN_TKT_CACHE_NAME);
-                    if (ticketCacheName != null) {
+                    if (ticketCacheName != null && !ticketCacheName.isEmpty()) {
                         options.put("ticketCache", ticketCacheName);
                     }
                 }

@@ -700,12 +700,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         userDomainPrefix = userDomain + ".";
 
         userDomainAlias = System.getProperty(ZMSConsts.ZMS_PROP_USER_DOMAIN_ALIAS);
-        if (userDomainAlias != null) {
+        if (!StringUtil.isEmpty(userDomainAlias)) {
             userDomainAliasPrefix = userDomainAlias + ".";
         }
 
         final String addlUserCheckDomains = System.getProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS);
-        if (addlUserCheckDomains != null && !addlUserCheckDomains.isEmpty()) {
+        if (!StringUtil.isEmpty(addlUserCheckDomains)) {
             String[] checkDomains = addlUserCheckDomains.split(",");
             addlUserCheckDomainSet = new HashSet<>();
             addlUserCheckDomainPrefixList = new ArrayList<>();
@@ -753,7 +753,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // get the list of valid provider endpoints
 
         final String endPoints = System.getProperty(ZMSConsts.ZMS_PROP_PROVIDER_ENDPOINTS);
-        if (endPoints != null) {
+        if (!StringUtil.isEmpty(endPoints)) {
             providerEndpoints = Arrays.asList(endPoints.split(","));
         }
 
@@ -795,7 +795,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // get the list of uris that we want to allow an-authenticated access
 
         final String uriList = System.getProperty(ZMSConsts.ZMS_PROP_NOAUTH_URI_LIST);
-        if (uriList != null) {
+        if (!StringUtil.isEmpty(uriList)) {
             authFreeUriSet = new HashSet<>();
             authFreeUriList = new ArrayList<>();
             String[] list = uriList.split(",");
@@ -811,7 +811,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // get the list of allowed origin values for cors requests
 
         final String originList = System.getProperty(ZMSConsts.ZMS_PROP_CORS_ORIGIN_LIST);
-        if (originList != null) {
+        if (!StringUtil.isEmpty(originList)) {
             corsOriginList = new HashSet<>(Arrays.asList(originList.split(",")));
         }
 
@@ -847,7 +847,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // setup our health check file
 
         final String healthCheckPath = System.getProperty(ZMSConsts.ZMS_PROP_HEALTH_CHECK_PATH);
-        if (healthCheckPath != null && !healthCheckPath.isEmpty()) {
+        if (!StringUtil.isEmpty(healthCheckPath)) {
             healthCheckFile = new File(healthCheckPath);
         }
 
@@ -1006,7 +1006,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String auditRefValidatorClass = System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_VALIDATOR_FACTORY_CLASS);
         AuditReferenceValidatorFactory auditReferenceValidatorFactory;
 
-        if (auditRefValidatorClass != null && !auditRefValidatorClass.isEmpty()) {
+        if (!StringUtil.isEmpty(auditRefValidatorClass)) {
 
             try {
                 auditReferenceValidatorFactory = (AuditReferenceValidatorFactory) Class.forName(auditRefValidatorClass).newInstance();
@@ -1062,7 +1062,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             serverSolutionTemplates = JSON.fromBytes(Files.readAllBytes(path), SolutionTemplates.class);
         } catch (IOException ex) {
-            LOG.error("Unable to parse service templates file {}: {}",
+            LOG.error("Unable to parse solution templates file {}: {}",
                     solutionTemplatesFname, ex.getMessage());
         }
 
@@ -1117,7 +1117,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String statusCheckerFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS);
         StatusCheckerFactory statusCheckerFactory;
 
-        if (statusCheckerFactoryClass != null && !statusCheckerFactoryClass.isEmpty()) {
+        if (!StringUtil.isEmpty(statusCheckerFactoryClass)) {
 
             try {
                 statusCheckerFactory = (StatusCheckerFactory) Class.forName(statusCheckerFactoryClass).newInstance();
@@ -1141,8 +1141,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return;
         }
 
-        String adminUserList = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
-        if (adminUserList == null) {
+        final String adminUserList = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
+        if (StringUtil.isEmpty(adminUserList)) {
             throw ZMSUtils.internalServerError("init: No ZMS admin user specified", caller);
         }
 
@@ -7983,7 +7983,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     static String getServerHostName() {
 
         String serverHostName = System.getProperty(ZMSConsts.ZMS_PROP_HOSTNAME);
-        if (serverHostName == null || serverHostName.isEmpty()) {
+        if (StringUtil.isEmpty(serverHostName)) {
             try {
                 InetAddress localhost = java.net.InetAddress.getLocalHost();
                 serverHostName = localhost.getCanonicalHostName();

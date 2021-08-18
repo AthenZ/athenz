@@ -55,6 +55,7 @@ import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jetty.util.ssl.KeyStoreScanner;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -96,7 +97,7 @@ public class AthenzJettyContainer {
     static String getServerHostName() {
         
         String serverHostName = System.getProperty(AthenzConsts.ATHENZ_PROP_HOSTNAME);
-        if (serverHostName == null || serverHostName.isEmpty()) {
+        if (StringUtil.isEmpty(serverHostName)) {
             try {
                 InetAddress localhost = java.net.InetAddress.getLocalHost();
                 serverHostName = localhost.getCanonicalHostName();
@@ -130,7 +131,7 @@ public class AthenzJettyContainer {
         // our audit logger to keep track of unauthenticated requests
         
         String accessSlf4jLogger = System.getProperty(AthenzConsts.ATHENZ_PROP_ACCESS_SLF4J_LOGGER);
-        if (accessSlf4jLogger != null && !accessSlf4jLogger.isEmpty()) {
+        if (!StringUtil.isEmpty(accessSlf4jLogger)) {
             
             Slf4jRequestLog requestLog = new Slf4jRequestLog();
             requestLog.setLoggerName(accessSlf4jLogger);
@@ -187,8 +188,8 @@ public class AthenzJettyContainer {
         
         // Add response-headers, according to configuration
 
-        String responseHeadersJson = System.getProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON, "");
-        if (!responseHeadersJson.isEmpty()) {
+        final String responseHeadersJson = System.getProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON);
+        if (!StringUtil.isEmpty(responseHeadersJson)) {
             HashMap<String, String> responseHeaders;
             try {
                 responseHeaders = new ObjectMapper().readValue(responseHeadersJson, new TypeReference<HashMap<String, String>>() {
@@ -265,7 +266,7 @@ public class AthenzJettyContainer {
 
         final String checkList = System.getProperty(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_URI_LIST);
 
-        if (checkList != null && !checkList.isEmpty()) {
+        if (!StringUtil.isEmpty(checkList)) {
             String[] checkUriArray = checkList.split(",");
             for (String checkUri : checkUriArray) {
                 servletCtxHandler.addFilter(filterHolder, checkUri.trim(), EnumSet.of(DispatcherType.REQUEST));
@@ -374,33 +375,33 @@ public class AthenzJettyContainer {
         SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setEndpointIdentificationAlgorithm(null);
 
-        if (keyStorePath != null) {
+        if (!StringUtil.isEmpty(keyStorePath)) {
             LOG.info("Using SSL KeyStore path: {}", keyStorePath);
             sslContextFactory.setKeyStorePath(keyStorePath);
         }
-        if (keyStorePassword != null) {
+        if (!StringUtil.isEmpty(keyStorePassword)) {
             //default implementation should just return the same
             sslContextFactory.setKeyStorePassword(this.privateKeyStore.getApplicationSecret(keyStorePasswordAppName, keyStorePassword));
         }
         sslContextFactory.setKeyStoreType(keyStoreType);
 
-        if (keyManagerPassword != null) {
+        if (!StringUtil.isEmpty(keyManagerPassword)) {
             sslContextFactory.setKeyManagerPassword(this.privateKeyStore.getApplicationSecret(keyManagerPasswordAppName, keyManagerPassword));
         }
-        if (trustStorePath != null) {
+        if (!StringUtil.isEmpty(trustStorePath)) {
             LOG.info("Using SSL TrustStore path: {}", trustStorePath);
             sslContextFactory.setTrustStorePath(trustStorePath);
         }
-        if (trustStorePassword != null) {
+        if (!StringUtil.isEmpty(trustStorePassword)) {
             sslContextFactory.setTrustStorePassword(this.privateKeyStore.getApplicationSecret(trustStorePasswordAppName, trustStorePassword));
         }
         sslContextFactory.setTrustStoreType(trustStoreType);
 
-        if (includedCipherSuites != null && !includedCipherSuites.isEmpty()) {
+        if (!StringUtil.isEmpty(includedCipherSuites)) {
             sslContextFactory.setIncludeCipherSuites(includedCipherSuites.split(","));
         }
         
-        if (excludedCipherSuites != null && !excludedCipherSuites.isEmpty()) {
+        if (!StringUtil.isEmpty(excludedCipherSuites)) {
             sslContextFactory.setExcludeCipherSuites(excludedCipherSuites.split(","));
         }
         
@@ -429,7 +430,7 @@ public class AthenzJettyContainer {
         } else {
             connector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
         }
-        if (listenHost != null) {
+        if (!StringUtil.isEmpty(listenHost)) {
             connector.setHost(listenHost);
         }
         connector.setPort(httpPort);
