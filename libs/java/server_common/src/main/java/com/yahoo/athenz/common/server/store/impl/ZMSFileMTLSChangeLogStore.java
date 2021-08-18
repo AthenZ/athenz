@@ -21,6 +21,7 @@ import com.oath.auth.KeyRefresherException;
 import com.oath.auth.Utils;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.zms.*;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,8 @@ public class ZMSFileMTLSChangeLogStore implements ChangeLogStore {
 
         // check to see if we need to override the ZMS url from the config file
 
-        final String zmsUrl = System.getProperty(ZTS_PROP_ZMS_URL_OVERRIDE);
+        final String overrideUrl = System.getProperty(ZTS_PROP_ZMS_URL_OVERRIDE);
+        final String zmsUrl = (StringUtil.isEmpty(overrideUrl)) ? null : overrideUrl;
 
         // setup our mtls client first to make sure our settings are correct
 

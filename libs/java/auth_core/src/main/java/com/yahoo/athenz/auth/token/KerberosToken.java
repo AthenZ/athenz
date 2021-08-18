@@ -68,11 +68,11 @@ public class KerberosToken extends Token {
         PrivilegedExceptionAction<String> privExcAction;
         try {
             byte[] kerberosTicket = Base64.decode(unsignedToken.getBytes(StandardCharsets.UTF_8));
-            if (krbPrivActionClass == null) {
-                privExcAction = new KerberosValidateAction(kerberosTicket);
-            } else {
+            if (krbPrivActionClass != null && !krbPrivActionClass.isEmpty()) {
                 Class privActionClass = Class.forName(krbPrivActionClass);
                 privExcAction = (PrivilegedExceptionAction<String>) privActionClass.getConstructor(byte[].class).newInstance((Object) kerberosTicket);
+            } else {
+                privExcAction = new KerberosValidateAction(kerberosTicket);
             }
             userName = Subject.doAs(serviceSubject, privExcAction);
             int index = userName.indexOf('@');

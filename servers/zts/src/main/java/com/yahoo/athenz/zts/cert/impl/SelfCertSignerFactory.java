@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +49,7 @@ public class SelfCertSignerFactory implements CertSignerFactory {
         final String csrDn = System.getProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_CERT_DN,
                 "cn=Self Signed Athenz CA,o=Athenz,c=US");
 
-        if (pKeyFileName == null) {
+        if (StringUtil.isEmpty(pKeyFileName)) {
             LOGGER.error("No private key path available for Self Cert Signer Factory");
             return null;
         }

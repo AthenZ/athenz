@@ -41,7 +41,7 @@ public class ZMSNotificationTaskFactory implements NotificationTaskFactory {
     public List<NotificationTask> getNotificationTasks() {
         List<NotificationTask> notificationTasks = new ArrayList<>();
         int pendingRoleMemberLifespan = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_PENDING_ROLE_MEMBER_LIFESPAN, ZMSConsts.ZMS_PENDING_ROLE_MEMBER_LIFESPAN_DEFAULT));
-        String monitorIdentity = System.getProperty(ZMSConsts.ZMS_PROP_MONITOR_IDENTITY, ZMSConsts.SYS_AUTH_MONITOR);
+        final String monitorIdentity = System.getProperty(ZMSConsts.ZMS_PROP_MONITOR_IDENTITY, ZMSConsts.SYS_AUTH_MONITOR);
         notificationTasks.add(new PendingRoleMembershipApprovalNotificationTask(dbService, pendingRoleMemberLifespan, monitorIdentity, userDomainPrefix, notificationToEmailConverterCommon));
         notificationTasks.add(new PendingGroupMembershipApprovalNotificationTask(dbService, pendingRoleMemberLifespan, monitorIdentity, userDomainPrefix, notificationToEmailConverterCommon));
         notificationTasks.add(new RoleMemberExpiryNotificationTask(dbService, userDomainPrefix, notificationToEmailConverterCommon));
