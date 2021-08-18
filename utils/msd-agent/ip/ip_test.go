@@ -8,17 +8,8 @@ import (
 	"net"
 	"testing"
 
-	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
-
-	"fmt"
-	"log"
-	"os/exec"
-	"reflect"
-	"sort"
-	"strings"
-
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"log"
 )
 
 func TestGetIps(t *testing.T) {
@@ -33,15 +24,6 @@ func TestGetIps(t *testing.T) {
 	}
 
 	log.Printf("IPs: %+v", ips)
-
-	// Test independently using 'ifconfig -a'
-	ifIps, err := getIpsFromIfConfig(t)
-	log.Printf("IPs from ifconfig function: %+v", ifIps)
-	require.Nil(t, err)
-
-	sort.Strings(ips)
-	sort.Strings(ifIps)
-	a.True(reflect.DeepEqual(ips, ifIps))
 }
 
 func TestSkipLocalAndCni(t *testing.T) {
@@ -114,51 +96,6 @@ func TestSkipLocalAndCni(t *testing.T) {
 		assert.Equalf(t, interfaceStr(tt.Output), interfaceStr(result), "unexpected output, test name: %q, expected: %+v, actual: %+v",
 			tt.Name, tt.Output, result)
 	}
-}
-
-func ifConfigBin() string {
-	if siafile.Exists("/usr/sbin/ifconfig") {
-		return "/usr/sbin/ifconfig"
-	} else if siafile.Exists("/sbin/ifconfig") {
-		return "/sbin/ifconfig"
-	} else {
-		return ""
-	}
-}
-
-func getIpsFromIfConfig(t *testing.T) ([]string, error) {
-	isClassBPrivate := func(ip string) bool {
-		octets := strings.Split(ip, ".")
-		if len(octets) == 1 {
-			return false
-		}
-
-		if octets[0] == "172" && octets[1] >= "16" && octets[1] <= "31" {
-			return true
-		}
-		return false
-	}
-	o, err := exec.Command(ifConfigBin(), "-a").CombinedOutput()
-	require.Nil(t, err, fmt.Sprintf("should be able to run ifconfig, error: %v", err))
-
-	ips := []string{}
-	for _, line := range strings.Split(string(o), "\n") {
-		line := strings.TrimSpace(line)
-		if strings.HasPrefix(line, "inet ") || strings.HasPrefix(line, "inet6 ") {
-			// Process the IP
-			parts := strings.Split(line, " ")
-			if len(parts) > 2 {
-				ip := strings.TrimSpace(strings.TrimPrefix(parts[1], "addr:"))
-				if ip != "" && ip != "127.0.0.1" && ip != "::1" &&
-					!strings.HasPrefix(ip, "fe80::") &&
-					!strings.HasPrefix(ip, "192.168.") && !isClassBPrivate(ip) {
-					ips = append(ips, ip)
-				}
-			}
-		}
-	}
-
-	return ips, err
 }
 
 func interfaceStr(ifaces []net.Interface) string {
