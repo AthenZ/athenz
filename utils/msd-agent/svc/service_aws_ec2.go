@@ -1,7 +1,10 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
 package svc
 
 import (
-	"github.com/AthenZ/athenz/libs/go/msdagent/log"
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
@@ -25,9 +28,26 @@ func (fetcher *EC2Fetcher) Fetch(host MsdHost, accountId string) (ServicesData, 
 	}
 
 	return ServicesData{
-		SrvArr: opts.Services,
+		SrvArr: ec2ToMsdService(opts.Services),
 		Domain: opts.Domain,
 	}, nil
+}
+
+func ec2ToMsdService(services []options.Service) []Service {
+	srv := make([]Service, 0)
+	for _, service := range services {
+		s := Service{
+			Name:     service.Name,
+			Filename: service.Filename,
+			User:     service.User,
+			Group:    service.Group,
+			Uid:      service.Uid,
+			Gid:      service.Gid,
+			FileMode: service.FileMode,
+		}
+		srv = append(srv, s)
+	}
+	return srv
 }
 
 func (fetcher *EC2Fetcher) GetAccountId() (string, error) {

@@ -1,8 +1,10 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
 package svc
 
 import (
-	"github.com/AthenZ/athenz/libs/go/msdagent/log"
-	awsopts "github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/options"
 )
@@ -25,18 +27,16 @@ func (fetcher *AzureVmFetcher) Fetch(host MsdHost, accountId string) (ServicesDa
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}
 
-	srvArr := fromAzureVmSrv(opts.Services)
-
 	return ServicesData{
-		SrvArr: srvArr,
+		SrvArr: azureToMsdService(opts.Services),
 		Domain: opts.Domain,
 	}, nil
 }
 
-func fromAzureVmSrv(services []options.Service) []awsopts.Service {
-	srv := make([]awsopts.Service, 0)
+func azureToMsdService(services []options.Service) []Service {
+	srv := make([]Service, 0)
 	for _, service := range services {
-		s := awsopts.Service{
+		s := Service{
 			Name:     service.Name,
 			User:     service.User,
 			Uid:      service.Uid,

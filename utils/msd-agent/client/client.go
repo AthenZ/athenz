@@ -1,14 +1,16 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
 package client
 
 import (
-	"crypto/tls"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
+	"github.com/AthenZ/athenz/libs/go/tls/config"
+	svc "github.com/AthenZ/athenz/utils/msd-agent/svc"
 	"io/ioutil"
 	"net/http"
 	"regexp"
-
-	"github.com/AthenZ/athenz/libs/go/msdagent/log"
-	"github.com/AthenZ/athenz/libs/go/msdagent/svc"
 
 	"github.com/AthenZ/athenz/clients/go/msd"
 )
@@ -53,7 +55,7 @@ func NewClient(msdAgentVersion string, url string, domain string, service string
 	keyFile := keyFile(service, domain)
 	log.Printf("Creating MsdClient using cert: %s, and key: %s", certFile, keyFile)
 
-	tlsConfig, err := GetTLSConfigFromFiles(certFile, keyFile)
+	tlsConfig, err := config.GetTLSConfigFromFiles(certFile, keyFile)
 	if err != nil {
 		return nil, err
 	}
@@ -73,19 +75,4 @@ func certFile(service string, domain string) string {
 
 func keyFile(service string, domain string) string {
 	return svc.SIA_DIR + "/keys/" + domain + "." + service + ".key.pem"
-}
-
-func GetTLSConfigFromFiles(certFile, keyFile string) (*tls.Config, error) {
-	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-	if err != nil {
-		return nil, log.Errorf("Unable to formulate clientCert from key and cert bytes, error: %v", err)
-	}
-	config := &tls.Config{}
-	config.Certificates = make([]tls.Certificate, 1)
-	config.Certificates[0] = cert
-
-	// Set Renegotiation explicitly
-	config.Renegotiation = tls.RenegotiateOnceAsClient
-
-	return config, err
 }

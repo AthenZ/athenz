@@ -1,3 +1,6 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
 package svc
 
 import (
@@ -5,10 +8,8 @@ import (
 	"net"
 	"path/filepath"
 
-	"github.com/AthenZ/athenz/libs/go/msdagent/log"
-
-	"github.com/AthenZ/athenz/libs/go/msdagent/fsutil"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
+	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
 )
 
 type MsdHost struct {
@@ -16,8 +17,18 @@ type MsdHost struct {
 	SiaConfig    []byte
 }
 
+type Service struct {
+	Name     string
+	Filename string
+	User     string
+	Group    string
+	Uid      int
+	Gid      int
+	FileMode int
+}
+
 type ServicesData struct {
-	SrvArr []options.Service
+	SrvArr []Service
 	Ips    []net.IP
 	Domain string
 }
@@ -79,11 +90,11 @@ func GetAccountId() (string, error) {
 }
 
 func ReadSiaConfig() ([]byte, string) {
-	if !fsutil.Exists(SIA_DIR) {
+	if !siafile.Exists(SIA_DIR) {
 		log.Print("SIA_DIR not exist")
 		return nil, ""
 	}
-	if fsutil.Exists(SIA_CONFIG) {
+	if siafile.Exists(SIA_CONFIG) {
 		bytes, err := ioutil.ReadFile(SIA_CONFIG)
 		if err != nil {
 			return nil, ""
@@ -97,7 +108,7 @@ func ReadSiaConfig() ([]byte, string) {
 
 func ReadHostDocument() ([]byte, string) {
 	docFile := filepath.Join(SIA_DIR, HOST_DOCUMENT)
-	if fsutil.Exists(docFile) {
+	if siafile.Exists(docFile) {
 		docBytes, err := ioutil.ReadFile(docFile)
 		if err == nil {
 			return docBytes, docFile

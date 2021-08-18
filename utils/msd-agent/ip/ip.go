@@ -1,3 +1,6 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
 package ip
 
 import (
@@ -5,19 +8,18 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/AthenZ/athenz/libs/go/msdagent/fsutil"
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
+	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
 
-	"github.com/AthenZ/athenz/libs/go/msdagent/log"
 	"github.com/google/go-cmp/cmp"
 )
 
-// Opts holds options for openstack/non-openstack
 type Opts struct {
 	ExcludeAll  bool
 	ExcludeNets []*net.IPNet
 }
 
-// GetIps returns an array of IPs found on the hostdoc. It skips loop back, link-local, private ips
+// GetIps returns an array of IPs. It skips loop back, link-local, private ips
 func GetIps() ([]net.IP, error) {
 	_, bNetwork, _ := net.ParseCIDR("172.16.0.0/12")
 	_, cNetwork, _ := net.ParseCIDR("192.168.0.0/16")
@@ -32,7 +34,6 @@ func GetIps() ([]net.IP, error) {
 			return true
 		}
 		// skip IPv6 private IP,
-		// Probably will never be used in Oath
 		if strings.HasPrefix(ip.String(), "fd") {
 			return true
 		}
@@ -88,15 +89,15 @@ func skipLocalAndCni(ifaces []net.Interface) []net.Interface {
 
 func IpChanged(ipFile string, ips []net.IP) (bool, error) {
 	prevIps := []net.IP{}
-	err := fsutil.ReadFile(ipFile, &prevIps)
+	err := siafile.ReadFile(ipFile, &prevIps)
 	if err != nil {
 		// try to write anyway for next run
-		_ = fsutil.WriteFile(ips, ipFile)
+		_ = siafile.WriteFile(ips, ipFile)
 		return true, err
 	}
 
 	equalIps := cmp.Equal(prevIps, ips)
-	err = fsutil.WriteFile(ips, ipFile)
+	err = siafile.WriteFile(ips, ipFile)
 
 	log.Debugf("ips are equals: %v, errors: %v", equalIps, err)
 	return equalIps, err

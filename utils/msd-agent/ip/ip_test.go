@@ -1,3 +1,6 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
 package ip
 
 import (
@@ -5,7 +8,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/AthenZ/athenz/libs/go/msdagent/fsutil"
+	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
 
 	"fmt"
 	"log"
@@ -114,9 +117,9 @@ func TestSkipLocalAndCni(t *testing.T) {
 }
 
 func ifConfigBin() string {
-	if fsutil.Exists("/usr/sbin/ifconfig") {
+	if siafile.Exists("/usr/sbin/ifconfig") {
 		return "/usr/sbin/ifconfig"
-	} else if fsutil.Exists("/sbin/ifconfig") {
+	} else if siafile.Exists("/sbin/ifconfig") {
 		return "/sbin/ifconfig"
 	} else {
 		return ""

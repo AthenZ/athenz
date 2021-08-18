@@ -147,6 +147,7 @@
     <module>utils/zts-accesstoken</module>
     <module>utils/zts-rolecert</module>
     <module>utils/zts-svccert</module>
+    <module>utils/msd-agent</module>
     <module>libs/nodejs/auth_core</module>
     <module>clients/nodejs/zts</module>
     <module>clients/nodejs/zpe</module>

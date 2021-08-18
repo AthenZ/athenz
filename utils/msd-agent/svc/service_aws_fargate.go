@@ -1,9 +1,13 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
 package svc
 
 import (
 	"os"
 
-	"github.com/AthenZ/athenz/libs/go/msdagent/log"
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
+
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
 	"github.com/AthenZ/athenz/provider/aws/sia-fargate"
 )
@@ -21,7 +25,7 @@ func (fetcher *FargateFetcher) Fetch(host MsdHost, accountId string) (ServicesDa
 	}
 
 	return ServicesData{
-		SrvArr: opts.Services,
+		SrvArr: ec2ToMsdService(opts.Services),
 		Domain: opts.Domain,
 	}, nil
 }
