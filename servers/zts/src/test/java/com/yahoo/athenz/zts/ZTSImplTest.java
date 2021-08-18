@@ -3514,6 +3514,135 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testGetResourceAccessWithDelegatedGroups() {
+        // we're going to try several cases with assume roles
+        // first the assume role includes the full name without any wildcards
+
+        getResourceAccessWithDelegatedGroups(false, false);
+
+        // next we're going to test when the domain name is a wildcard
+        // for example, resource: *:role.role1
+
+        getResourceAccessWithDelegatedGroups(false, true);
+
+        // next we're going to test when the role name is a wildcard
+        // for example, resource: sports:role.*
+
+        getResourceAccessWithDelegatedGroups(true, false);
+
+        // finally we're going to test when the role and domain names are a wildcard
+        // for example, resource: *:role.*
+
+        getResourceAccessWithDelegatedGroups(true, true);
+    }
+
+    private void getResourceAccessWithDelegatedGroups(boolean wildCardRole, boolean wildCardDomain) {
+
+        final String domainName1 = "access-domain-delegated-group1";
+        final String domainName2 = "access-domain-delegated-group2";
+        final String groupName1 = "group1";
+        final String groupName2 = "group2";
+        final String roleName1 = "role1";
+        final String policyName1 = "policy1";
+
+        List<Role> roles1 = new ArrayList<>();
+        Role role1 = ZTSTestUtils.createRoleObject(domainName1, roleName1, "user.jane", "user.joey");
+        role1.getRoleMembers().add(new RoleMember()
+                .setMemberName(ResourceUtils.groupResourceName(domainName1, groupName1)));
+        role1.getRoleMembers().add(new RoleMember()
+                .setMemberName(ResourceUtils.groupResourceName(domainName1, groupName2))
+                .setExpiration(Timestamp.fromMillis(100000)));
+        roles1.add(role1);
+
+        List<Group> groups1 = new ArrayList<>();
+        Group group1 = ZTSTestUtils.createGroupObject(domainName1, groupName1, "user.john");
+        groups1.add(group1);
+
+        Group group2 = ZTSTestUtils.createGroupObject(domainName1, groupName2, "user.joe");
+        groups1.add(group2);
+
+        List<Policy> policies1 = new ArrayList<>();
+        final String assumeRoleResource = ZTSTestUtils.getAssumeRoleResource(domainName2, roleName1,
+                wildCardRole, wildCardDomain);
+        Policy policy1 = ZTSTestUtils.createPolicyObject(domainName1, policyName1, roleName1,
+                true, "assume_role", assumeRoleResource, AssertionEffect.ALLOW);
+        policies1.add(policy1);
+
+        List<Role> roles2 = new ArrayList<>();
+        Role role2 = ZTSTestUtils.createRoleObject(domainName2, roleName1, domainName1, null);
+        roles2.add(role2);
+
+        List<Policy> policies2 = new ArrayList<>();
+        Policy policy2 = ZTSTestUtils.createPolicyObject(domainName2, policyName1, roleName1,
+                true, "update", domainName2 + ":resource1", AssertionEffect.ALLOW);
+        policies2.add(policy2);
+
+        SignedDomain signedDomain1 = ZTSTestUtils.createSignedDomain(domainName1, roles1, policies1, null,
+                groups1, privateKey);
+        store.processSignedDomain(signedDomain1, false);
+
+        SignedDomain signedDomain2 = ZTSTestUtils.createSignedDomain(domainName2, roles2, policies2, null,
+                null, privateKey);
+        store.processSignedDomain(signedDomain2, false);
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature",
+                0, principalAuthority);
+        ResourceContext context = createResourceContext(principal, null);
+
+        // role1 - jane & joey have regular role access, john (grp1), joe (grp2 but expired).
+
+        ResourceAccess access = zts.getResourceAccess(context, "update", domainName2 + ":resource1", null, "user.jane");
+        assertTrue(access.getGranted());
+
+        access = zts.getResourceAccess(context, "update", domainName2 + ":resource1", null, "user.joey");
+        assertTrue(access.getGranted());
+
+        access = zts.getResourceAccess(context, "update", domainName2 + ":resource1", null, "user.john");
+        assertTrue(access.getGranted());
+
+        access = zts.getResourceAccess(context, "update", domainName2 + ":resource1", null, "user.joe");
+        assertFalse(access.getGranted());
+
+        // role access against the trusted domain
+
+        RoleAccess roleAccess = zts.getRoleAccess(context, domainName2, "user.jane");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, domainName2, "user.joey");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, domainName2, "user.john");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, domainName2, "user.joe");
+        assertTrue(roleAccess.getRoles().isEmpty());
+
+        // role access against the domain itself
+
+        roleAccess = zts.getRoleAccess(context, domainName1, "user.jane");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, domainName1, "user.joey");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, domainName1, "user.john");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, domainName1, "user.joe");
+        assertTrue(roleAccess.getRoles().isEmpty());
+
+        store.getCacheStore().invalidate(domainName1);
+        store.getCacheStore().invalidate(domainName2);
+    }
+
+    @Test
     public void testGetAccess() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);

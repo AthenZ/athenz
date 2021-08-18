@@ -489,4 +489,17 @@ public class ZTSTestUtils {
         workloadRecord.setCertExpiryTime(certExpiryTime);
         return workloadRecord;
     }
+
+    public static String getAssumeRoleResource(final String domainName, final String roleName,
+                                         boolean wildCardRole, boolean wildCardDomain) {
+        if (wildCardRole && wildCardDomain) {
+            return "*:role.*";
+        } else if (wildCardDomain) {
+            return "*:role." + roleName;
+        } else if (wildCardRole) {
+            return domainName + ":role.*";
+        } else {
+            return domainName + ":role." + roleName;
+        }
+    }
 }
