@@ -71,11 +71,11 @@ public class KerberosAuthority implements Authority {
     public KerberosAuthority(String servicePrincipal, String keyTabConfFile, String jaasConfigSection) {
 
         this();
-        if (servicePrincipal != null) {
+        if (servicePrincipal != null && !servicePrincipal.isEmpty()) {
             this.servicePrincipal  = servicePrincipal;
         }
-        if (keyTabConfFile != null) {
-            this.keyTabConfFile    = keyTabConfFile;
+        if (keyTabConfFile != null && !keyTabConfFile.isEmpty()) {
+            this.keyTabConfFile = keyTabConfFile;
         }
         if (jaasConfigSection == null) {
             this.jaasConfigSection = "";
@@ -85,11 +85,16 @@ public class KerberosAuthority implements Authority {
     }
 
     public KerberosAuthority() {
-        servicePrincipal     = System.getProperty(KRB_PROP_SVCPRPL);
-        keyTabConfFile       = System.getProperty(KRB_PROP_KEYTAB);
+        servicePrincipal     = getConfigValue(KRB_PROP_SVCPRPL);
+        keyTabConfFile       = getConfigValue(KRB_PROP_KEYTAB);
         jaasConfigSection    = System.getProperty(KRB_PROP_JAASCFG, "");
-        loginCallbackHandler = System.getProperty(KRB_PROP_LOGIN_CB_CLASS);
+        loginCallbackHandler = getConfigValue(KRB_PROP_LOGIN_CB_CLASS);
         loginWindow          = Long.decode(System.getProperty(KRB_PROP_LOGIN_WINDOW, LOGIN_WINDOW_DEF));
+    }
+
+    String getConfigValue(final String property) {
+        final String value = System.getProperty(property);
+        return (value != null && !value.isEmpty()) ? value : null;
     }
 
     public Exception getInitState() {
