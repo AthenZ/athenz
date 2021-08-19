@@ -52,6 +52,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.asn1.x9.X9ECParameters;
@@ -888,18 +889,36 @@ public class DataStore implements DataCacheProvider, RolesProvider {
     }
 
     void processDomainRoles(DomainData domainData, DataCache domainCache) {
-        
+
         List<Role> roles = domainData.getRoles();
-        if (roles == null) {
-            return;
+        if (roles != null) {
+            for (Role role : roles) {
+                domainCache.processRole(role);
+                if (isRoleCertRequired(role)) {
+                    requireRoleCertCache.processRoleCache(role);
+                } else {
+                    requireRoleCertCache.processRoleCacheDelete(role);
+                }
+            }
         }
 
-        for (Role role : roles) {
-            domainCache.processRole(role);
-            if (isRoleCertRequired(role)) {
-                requireRoleCertCache.processRoleCache(role);
-            } else {
-                requireRoleCertCache.processRoleCacheDelete(role);
+        // Determine which roles have been deleted and should be removed from cache
+        final Set<String> validRoles = (roles != null) ? roles.stream().map(Role::getName).collect(Collectors.toSet()) : new HashSet<>();
+
+        List<Role> deletedRoles = null;
+        DataCache dataCache = getCacheStore().getIfPresent(domainData.getName());
+        if (dataCache != null) {
+            deletedRoles = dataCache.getDomainData().getRoles();
+            if (deletedRoles != null && !validRoles.isEmpty()) {
+                deletedRoles.removeIf(item -> validRoles.contains(item.getName()));
+            }
+        }
+
+        // Process our deleted roles
+
+        if (deletedRoles != null) {
+            for (Role deletedRole : deletedRoles) {
+                requireRoleCertCache.processRoleCacheDelete(deletedRole);
             }
         }
     }

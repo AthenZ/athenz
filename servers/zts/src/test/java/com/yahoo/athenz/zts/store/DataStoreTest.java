@@ -21,6 +21,7 @@ import static com.yahoo.athenz.zts.ZTSConsts.ZTS_ISSUE_ROLE_CERT_TAG;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -2219,8 +2220,6 @@ public class DataStoreTest {
         domainData.setRoles(roles);
         
         DataCache dataCache = new DataCache();
-        dataCache.setDomainData(domainData);
-        
         store.processDomainRoles(domainData, dataCache);
         assertEquals(dataCache.getMemberRoleSet("user_domain.user").size(), 2);
         
@@ -2228,6 +2227,73 @@ public class DataStoreTest {
                 .contains(new MemberRole("coretech:role.admin", 0)));
         assertTrue(dataCache.getMemberRoleSet("user_domain.user")
                 .contains(new MemberRole("coretech:role.readers", 0)));
+    }
+
+    @Test
+    public void testProcessDomainRolesDelete() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        DomainData domainData = getDomainData(true);
+        store.processDomainData(domainData);
+
+        DataCache dataCache = store.getDataCache("coretech");
+        assertEquals(dataCache.getMemberRoleSet("user_domain.user").size(), 2);
+
+        assertTrue(dataCache.getMemberRoleSet("user_domain.user")
+                .contains(new MemberRole("coretech:role.admin", 0)));
+        assertTrue(dataCache.getMemberRoleSet("user_domain.user")
+                .contains(new MemberRole("coretech:role.readers", 0)));
+
+        // Getting getRolesRequireRoleCert will return the tagged role
+        List<String> rolesRequireRoleCert = store.requireRoleCertCache.getRolesRequireRoleCert("user_domain.user");
+        assertEquals(rolesRequireRoleCert.size(), 1);
+        assertEquals(rolesRequireRoleCert.get(0), "coretech:role.readers");
+
+        // Now remove the tagged role and verify cache is updated
+        domainData = getDomainData(false);
+        store.processDomainData(domainData);
+        dataCache = store.getDataCache("coretech");
+        assertEquals(dataCache.getMemberRoleSet("user_domain.user").size(), 1);
+
+        assertTrue(dataCache.getMemberRoleSet("user_domain.user")
+                .contains(new MemberRole("coretech:role.admin", 0)));
+
+        rolesRequireRoleCert = store.requireRoleCertCache.getRolesRequireRoleCert("user_domain.user");
+        assertEquals(rolesRequireRoleCert.size(), 0);
+    }
+
+    private DomainData getDomainData(boolean withRequireRoleCertTagRole) {
+        List<Role> roles = new ArrayList<>();
+
+        Role role1 = new Role();
+        role1.setName("coretech:role.admin");
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role1.setRoleMembers(members);
+        roles.add(role1);
+
+        if (withRequireRoleCertTagRole) {
+            Role role2 = new Role();
+            role2.setName("coretech:role.readers");
+            members = new ArrayList<>();
+            members.add(new RoleMember().setMemberName("user_domain.user"));
+            role2.setRoleMembers(members);
+
+            TagValueList tagValueList = new TagValueList();
+            tagValueList.setList(Arrays.asList("true"));
+            Map<String, TagValueList> tagsIssueRoleCert = new HashMap<>();
+            tagsIssueRoleCert.put("zts.IssueRoleCerts", tagValueList);
+            role2.setTags(tagsIssueRoleCert);
+            roles.add(role2);
+        }
+
+        DomainData domainData = new DomainData();
+        domainData.setName("coretech");
+        domainData.setRoles(roles);
+        return domainData;
     }
 
     @Test
@@ -2284,7 +2350,6 @@ public class DataStoreTest {
         domainData.setRoles(roles);
 
         DataCache dataCache = new DataCache();
-        dataCache.setDomainData(domainData);
 
         store.processDomainRoles(domainData, dataCache);
         assertEquals(dataCache.getMemberRoleSet("user_domain.user").size(), 4);
@@ -2314,7 +2379,6 @@ public class DataStoreTest {
         domainData.setName("coretech");
 
         DataCache dataCache = new DataCache();
-        dataCache.setDomainData(domainData);
         
         store.processDomainRoles(domainData, dataCache);
         assertEquals(dataCache.getMemberCount(), 0);
