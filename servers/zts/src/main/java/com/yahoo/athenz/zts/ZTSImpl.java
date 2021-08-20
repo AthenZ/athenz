@@ -47,6 +47,8 @@ import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
+import com.yahoo.athenz.common.server.util.config.ConfigManager;
+import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.common.utils.X509CertUtils;
@@ -350,7 +352,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     void loadSystemProperties() {
         String propFile = System.getProperty(ZTS_PROP_FILE_NAME,
                 getRootDir() + "/conf/zts_server/zts.properties");
-        ConfigProperties.loadProperties(propFile);
+        new ConfigManager().addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
     }
 
     void loadSystemAuthorizationDetails() {
@@ -2346,16 +2348,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     @Override
     public RoleAccess getRolesRequireRoleCert(ResourceContext ctx, String principal) {
-        final String caller = ctx.getApiName();
 
+        final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
+
         validateRequest(ctx.request(), principalDomain, caller);
-        validate(principal, TYPE_ENTITY_NAME, principalDomain, caller);
+
+        // If principal not specified, get roles for current user
 
         if (StringUtil.isEmpty(principal)) {
-            // If principal not specified, get roles for current user
             principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
         }
+        validate(principal, TYPE_ENTITY_NAME, principalDomain, caller);
+
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZTS Server
@@ -2363,13 +2368,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         principal = principal.toLowerCase();
 
-        List<String> rolesRequireRoleCert = dataStore.getRolesRequireRoleCert(principal);
-        if (rolesRequireRoleCert == null) {
-            rolesRequireRoleCert = new ArrayList<>();
-        }
-
         RoleAccess roleList = new RoleAccess();
-        roleList.setRoles(rolesRequireRoleCert);
+        roleList.setRoles(dataStore.getRolesRequireRoleCert(principal));
         return roleList;
     }
 

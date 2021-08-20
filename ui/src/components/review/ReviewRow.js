@@ -116,16 +116,14 @@ export default class ReviewRow extends React.Component {
                         {reminder}
                     </TDStyled>
                 )}
-                {this.props.category === 'role' && (
-                    <TDStyled color={color} align={center}>
-                        <RadioButton
-                            name={this.props.collection + this.props.idx}
-                            value='extend'
-                            checked={this.state.selectedOption === 'extend'}
-                            onChange={this.onReview}
-                        />
-                    </TDStyled>
-                )}
+                <TDStyled color={color} align={center}>
+                    <RadioButton
+                        name={this.props.collection + this.props.idx}
+                        value='extend'
+                        checked={this.state.selectedOption === 'extend'}
+                        onChange={this.onReview}
+                    />
+                </TDStyled>
                 <TDStyled color={color} align={center}>
                     <RadioButton
                         name={this.props.collection + this.props.idx}

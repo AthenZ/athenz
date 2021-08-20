@@ -6922,8 +6922,9 @@ public class DBService implements RolesProvider {
 
                 // update our policy and domain time-stamps, and invalidate local cache entry
 
-                saveChanges(con, domainName);
                 con.updatePolicyModTimestamp(domainName, policyName);
+                saveChanges(con, domainName);
+
 
                 // audit log the request
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
@@ -6994,8 +6995,9 @@ public class DBService implements RolesProvider {
 
                 // update our policy and domain time-stamps, and invalidate local cache entry
 
-                saveChanges(con, domainName);
                 con.updatePolicyModTimestamp(domainName, policyName);
+                saveChanges(con, domainName);
+
 
                 // audit log the request
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);

@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class RequireRoleCertCache {
@@ -56,7 +55,6 @@ public class RequireRoleCertCache {
         List<RoleMemberCache> updMembers = new ArrayList<>(collectionMembers);
 
         // remove current members from new members
-        Function<RoleMemberCache, String> memberNameGetter = member -> member.getRoleMember().getMemberName();
         removeRoleMembersCache(newMembers, curMembers);
 
         // remove new members from current members
@@ -197,8 +195,8 @@ public class RequireRoleCertCache {
     }
 
     private List<RoleMemberCache> getRoleMembersForCache(Role role) {
-        if (role.getRoleMembers() == null || role.getRoleMembers().size() == 0) {
-            role.setRoleMembers(new ArrayList<>());
+
+        if (role.getRoleMembers() == null || role.getRoleMembers().isEmpty()) {
             return new ArrayList<>();
         }
 

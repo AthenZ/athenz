@@ -98,9 +98,9 @@ public class DynamoDBClientFetcherImpl implements DynamoDBClientFetcher {
             SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                     keyRefresher.getTrustManagerProxy());
 
-            String externalId = System.getProperty(ZTS_PROP_DYNAMODB_EXTERNAL_ID, null);
-            String minExpiryTimeStr = System.getProperty(ZTS_PROP_DYNAMODB_MIN_EXPIRY_TIME, "");
-            String maxExpiryTimeStr = System.getProperty(ZTS_PROP_DYNAMODB_MAX_EXPIRY_TIME, "");
+            final String externalId = System.getProperty(ZTS_PROP_DYNAMODB_EXTERNAL_ID);
+            final String minExpiryTimeStr = System.getProperty(ZTS_PROP_DYNAMODB_MIN_EXPIRY_TIME, "");
+            final String maxExpiryTimeStr = System.getProperty(ZTS_PROP_DYNAMODB_MAX_EXPIRY_TIME, "");
             Integer minExpiryTime = minExpiryTimeStr.isEmpty() ? null : Integer.parseInt(minExpiryTimeStr);
             Integer maxExpiryTime = maxExpiryTimeStr.isEmpty() ? null : Integer.parseInt(maxExpiryTimeStr);
 
@@ -109,7 +109,7 @@ public class DynamoDBClientFetcherImpl implements DynamoDBClientFetcher {
                     sslContext,
                     dynamoDBClientSettings.getDomainName(),
                     dynamoDBClientSettings.getRoleName(),
-                    externalId,
+                    StringUtil.isEmpty(externalId) ? null : externalId,
                     minExpiryTime,
                     maxExpiryTime,
                     ztsClientNotificationSender);

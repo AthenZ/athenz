@@ -271,7 +271,7 @@ public class ZTSTestUtils {
             groups.add(group1);
         }
         SignedDomain signedDomain = ZTSTestUtils.createSignedDomain(domainName1, roles, policies, null, groups, privateKey);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         groups = new ArrayList<>();
         if (group2 != null) {
@@ -293,7 +293,7 @@ public class ZTSTestUtils {
         policies.add(adminPolicy);
 
         signedDomain = ZTSTestUtils.createSignedDomain(domainName2, roles, policies, null, groups, privateKey);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         groups = new ArrayList<>();
         if (group3 != null) {
@@ -328,7 +328,7 @@ public class ZTSTestUtils {
         policies.add(adminPolicy);
 
         signedDomain = ZTSTestUtils.createSignedDomain(domainName3, roles, policies, null, groups, privateKey);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
     }
 
     public static Role createRoleObject(final String domainName, final String roleName, String... members) {
@@ -488,5 +488,18 @@ public class ZTSTestUtils {
         workloadRecord.setProvider(provider);
         workloadRecord.setCertExpiryTime(certExpiryTime);
         return workloadRecord;
+    }
+
+    public static String getAssumeRoleResource(final String domainName, final String roleName,
+                                         boolean wildCardRole, boolean wildCardDomain) {
+        if (wildCardRole && wildCardDomain) {
+            return "*:role.*";
+        } else if (wildCardDomain) {
+            return "*:role." + roleName;
+        } else if (wildCardRole) {
+            return domainName + ":role.*";
+        } else {
+            return domainName + ":role." + roleName;
+        }
     }
 }

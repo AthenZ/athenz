@@ -22,6 +22,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.zms.*;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +55,8 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
 
         // check to see if we need to override the ZMS url from the config file
 
-        zmsUrl = System.getProperty(ZTS_PROP_ZMS_URL_OVERRIDE);
+        final String overrideUrl = System.getProperty(ZTS_PROP_ZMS_URL_OVERRIDE);
+        zmsUrl = (StringUtil.isEmpty(overrideUrl)) ? null : overrideUrl;
 
         // create our common logic object
 

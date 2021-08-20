@@ -979,7 +979,7 @@ public class ZTSImplTest {
     public void testGetPublicKey() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         String pubKey = zts.getPublicKey("coretech", "storage", "0");
         assertEquals(pubKey, ZTS_PEM_CERT0);
@@ -1145,7 +1145,7 @@ public class ZTSImplTest {
     public void testGetHostServices() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -1225,7 +1225,7 @@ public class ZTSImplTest {
     public void testGetHostServicesInvalidHost() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -1372,7 +1372,7 @@ public class ZTSImplTest {
     public void testGetRoleTokenAuthorizedService() {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         signedDomain.domain.setApplicationId("application_id");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         //success
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
@@ -1409,7 +1409,7 @@ public class ZTSImplTest {
     @Test
     public void testGetRoleToken() {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -1464,7 +1464,7 @@ public class ZTSImplTest {
     public void testGetRoleTokenWithRoleAuthority() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, new CertificateAuthority());
@@ -1497,7 +1497,7 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomainExpiration("coretech-disabled",
                 "weather", Boolean.FALSE);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user1;s=signature", 0, null);
@@ -1516,7 +1516,7 @@ public class ZTSImplTest {
     public void testGetRoleTokenExpire() {
 
         SignedDomain signedDomain = createSignedDomainExpiration("coretech-expire", "weather");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user1;s=signature", 0, null);
@@ -1534,7 +1534,7 @@ public class ZTSImplTest {
     public void testGetRoleTokenEmptyArguments() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -1550,7 +1550,7 @@ public class ZTSImplTest {
     public void testGetRoleTokenNoRoleMatch() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "invalidUser",
                 "v=U1;d=user_domain;n=invalidUuser;s=signature", 0, null);
@@ -1569,7 +1569,7 @@ public class ZTSImplTest {
     public void testGetRoleTokenInvalidDomain() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -1588,7 +1588,7 @@ public class ZTSImplTest {
     public void testGetRoleTokenSpecifiedRoleValid() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -1624,7 +1624,7 @@ public class ZTSImplTest {
     public void testGetRoleTokenSpecifiedRoleInValid() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -1643,7 +1643,7 @@ public class ZTSImplTest {
     public void testGetRoleTokenLeastPrivilegedEnabled() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -1663,7 +1663,7 @@ public class ZTSImplTest {
     public void testGetRoleTokenSpecifiedRoleNoMatch() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -1682,10 +1682,10 @@ public class ZTSImplTest {
     public void testGetRoleTokenTrustDomainWildCard() {
 
         SignedDomain signedDomain = createSignedDomainWildCard("weather", "netops");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         signedDomain = createTenantSignedDomainWildCard("netops");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "siteops_user_1",
                 "v=U1;d=user_domain;n=siteops_user_1;s=signature", 0, null);
@@ -1701,10 +1701,10 @@ public class ZTSImplTest {
     public void testGetRoleTokenTrustDomainWildCardGivenRole() {
 
         SignedDomain signedDomain = createSignedDomainWildCard("weather", "netops");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         signedDomain = createTenantSignedDomainWildCard("netops");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "siteops_user_1",
                 "v=U1;d=user_domain;n=siteops_user_1;s=signature", 0, null);
@@ -1719,7 +1719,7 @@ public class ZTSImplTest {
     @Test
     public void testGetRoleAccess() {
         SignedDomain signedDomain = createSignedDomain("roleaccess", "tenantrole", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user", "v=U1;d=user_domain;n=user;s=sig", 0, null);
         ResourceContext context = createResourceContext(principal);
@@ -1756,7 +1756,7 @@ public class ZTSImplTest {
     @Test
     public void testGetRoleTokenUnauthorizedProxy() {
         SignedDomain signedDomain = createSignedDomain("coretech-proxy1", "weather-proxy1", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user", "v=U1;d=user_domain;n=user;s=sig", 0, null);
         ResourceContext context = createResourceContext(principal);
@@ -1784,7 +1784,7 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech-proxy2", "weather-proxy2", "storage",
                 writers, readers, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
@@ -1831,7 +1831,7 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech-proxy3", "weather-proxy3", "storage",
                 writers, readers, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
@@ -1858,7 +1858,7 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech-proxy4", "weather-proxy4", "storage",
                 writers, readers, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
@@ -1887,7 +1887,7 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech-proxy4", "weather-proxy4", "storage",
                 writers, readers, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
@@ -1964,7 +1964,7 @@ public class ZTSImplTest {
     public void testGetPublicKeyEntry() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -1979,7 +1979,7 @@ public class ZTSImplTest {
     public void testGetPublicKeyEntryInvalidKeyId() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2021,7 +2021,7 @@ public class ZTSImplTest {
     public void testGetPublicKeyEntryInvalidService() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2039,7 +2039,7 @@ public class ZTSImplTest {
     public void testGetServiceIdentity() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2058,7 +2058,7 @@ public class ZTSImplTest {
     public void testGetServiceIdentityInvalid() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2083,7 +2083,7 @@ public class ZTSImplTest {
     public void testGetServiceIdentityList() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2099,7 +2099,7 @@ public class ZTSImplTest {
     public void testGetServiceIdentityListInvalidDomain() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2117,7 +2117,7 @@ public class ZTSImplTest {
     public void testGetServiceIdentityListNoServices() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", false);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2450,7 +2450,7 @@ public class ZTSImplTest {
         ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -2476,7 +2476,7 @@ public class ZTSImplTest {
         ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -2504,7 +2504,7 @@ public class ZTSImplTest {
         ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -2532,7 +2532,7 @@ public class ZTSImplTest {
         ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -2569,7 +2569,7 @@ public class ZTSImplTest {
     public void testRetrieveTenantDomainName4CompsValidDomain() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         assertEquals("coretech", zts.retrieveTenantDomainName("storage.tenant.coretech.admin", "storage"));
         assertEquals("coretech", zts.retrieveTenantDomainName("storage.tenant.coretech.admin", null));
@@ -2586,13 +2586,13 @@ public class ZTSImplTest {
     public void testRetrieveTenantDomainName4PlusCompsValidDomainWithResourceGroup() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         assertEquals("coretech", zts.retrieveTenantDomainName("storage.tenant.coretech.resource_group.admin", "storage"));
         assertEquals("coretech", zts.retrieveTenantDomainName("storage.tenant.coretech.resource_group.admin", null));
 
         signedDomain = createSignedDomain("coretech.office.burbank", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.resource_group.admin", "storage"));
         assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.resource_group.admin", null));
@@ -2602,7 +2602,7 @@ public class ZTSImplTest {
     public void testRetrieveTenantDomainName4PlusCompsValidDomainWithOutResourceGroup() {
 
         SignedDomain signedDomain = createSignedDomain("coretech.office.burbank", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.admin", "storage"));
         assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.admin", null));
@@ -2612,7 +2612,7 @@ public class ZTSImplTest {
     public void testRetrieveTenantDomainName4PlusCompsInvalidDomain() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         assertNull(zts.retrieveTenantDomainName("storage.tenant.coretech.office.glendale.admin", "storage"));
         assertNull(zts.retrieveTenantDomainName("storage.tenant.coretech.office.glendale.resource_group.admin", null));
@@ -2622,10 +2622,10 @@ public class ZTSImplTest {
     public void testGetTenantDomainsSingleDomain() {
 
         SignedDomain signedDomain = createSignedDomain("athenz.product", "weather.frontpage", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         signedDomain = createTenantSignedDomain("weather.frontpage", "athenz.product", "storage");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2642,10 +2642,10 @@ public class ZTSImplTest {
     public void testGetTenantDomainsSingleDomainRoleSvcName() {
 
         SignedDomain signedDomain = createSignedDomain("athenz.product", "weather.frontpage", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         signedDomain = createTenantSignedDomain("weather.frontpage", "athenz.product", "storage");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2663,13 +2663,13 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createMultipleSignedDomains("athenz.multiple", "hockey.kings", "hockey.stars",
                 "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         signedDomain = createTenantSignedDomain("hockey.kings", "athenz.multiple", "storage");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         signedDomain = createTenantSignedDomain("hockey.stars", "athenz.multiple", "storage");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2687,10 +2687,10 @@ public class ZTSImplTest {
     public void testGetTenantDomainsInvalidUser() {
 
         SignedDomain signedDomain = createSignedDomain("athenz.product", "weather.frontpage", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         signedDomain = createTenantSignedDomain("weather.frontpage", "athenz.product", "storage");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2705,10 +2705,10 @@ public class ZTSImplTest {
     public void testGetTenantDomainsInvalidDomain() {
 
         SignedDomain signedDomain = createSignedDomain("athenz.product", "weather.frontpage", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         signedDomain = createTenantSignedDomain("weather.frontpage", "athenz.product", "storage");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2751,14 +2751,14 @@ public class ZTSImplTest {
     @Test
     public void testVerifyAWSAssumeRoleNoRoles() {
         SignedDomain signedDomain = createAwsSignedDomain("athenz.product", "1234");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
         assertFalse(zts.verifyAWSAssumeRole("athenz.product", "role", "user_domain.user200"));
     }
 
     @Test
     public void testVerifyAWSAssumeRole() {
         SignedDomain signedDomain = createAwsSignedDomain("athenz.product", "1234");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         // our group includes user100 and user101
         assertTrue(zts.verifyAWSAssumeRole("athenz.product", "athenz.product:aws_role_name", "user_domain.user100"));
@@ -2769,7 +2769,7 @@ public class ZTSImplTest {
     @Test
     public void testVerifyAWSAssumeRoleNoResourceMatch() {
         SignedDomain signedDomain = createAwsSignedDomain("athenz.product", "1234");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         assertFalse(zts.verifyAWSAssumeRole("athenz.product", "athenz.product:aws2_role_name", "user_domain.user100"));
         assertFalse(zts.verifyAWSAssumeRole("athenz.product", "athenz.product:aws2_role_name", "user_domain.user101"));
@@ -2780,7 +2780,7 @@ public class ZTSImplTest {
     public void testGetAWSTemporaryCredentialsNoCloudStore() {
 
         SignedDomain signedDomain = createAwsSignedDomain("athenz.product", "1234");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
@@ -2805,7 +2805,7 @@ public class ZTSImplTest {
         zts.cloudStore = cloudStore;
 
         SignedDomain signedDomain = createAwsSignedDomain("athenz.product", "1234");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         try {
             zts.getAWSTemporaryCredentials(createResourceContext(principal), "athenz.product", "aws_role_name%", null, null);
@@ -2826,7 +2826,7 @@ public class ZTSImplTest {
         zts.cloudStore = cloudStore;
 
         SignedDomain signedDomain = createAwsSignedDomain("athenz.product", "1234");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         try {
             zts.getAWSTemporaryCredentials(createResourceContext(principal), "athenz.product", "aws_role_name", null, null);
@@ -2846,7 +2846,7 @@ public class ZTSImplTest {
         zts.cloudStore = cloudStore;
 
         SignedDomain signedDomain = createAwsSignedDomain("athenz.product", null);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         try {
             zts.getAWSTemporaryCredentials(createResourceContext(principal), "athenz.product", "aws_role_name", null, null);
@@ -2867,7 +2867,7 @@ public class ZTSImplTest {
         zts.cloudStore = cloudStore;
 
         SignedDomain signedDomain = createAwsSignedDomain("athenz.product", "1234");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         AWSTemporaryCredentials creds = zts.getAWSTemporaryCredentials(
                 createResourceContext(principal), "athenz.product", "aws_role_name", null, null);
@@ -2897,7 +2897,7 @@ public class ZTSImplTest {
         zts.cloudStore = cloudStore;
 
         SignedDomain signedDomain = createAwsSignedDomain("athenz.product", "1234");
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         try {
             zts.getAWSTemporaryCredentials(createResourceContext(principal), "athenz.product",
@@ -3514,10 +3514,139 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testGetResourceAccessWithDelegatedGroups() {
+        // we're going to try several cases with assume roles
+        // first the assume role includes the full name without any wildcards
+
+        getResourceAccessWithDelegatedGroups(false, false);
+
+        // next we're going to test when the domain name is a wildcard
+        // for example, resource: *:role.role1
+
+        getResourceAccessWithDelegatedGroups(false, true);
+
+        // next we're going to test when the role name is a wildcard
+        // for example, resource: sports:role.*
+
+        getResourceAccessWithDelegatedGroups(true, false);
+
+        // finally we're going to test when the role and domain names are a wildcard
+        // for example, resource: *:role.*
+
+        getResourceAccessWithDelegatedGroups(true, true);
+    }
+
+    private void getResourceAccessWithDelegatedGroups(boolean wildCardRole, boolean wildCardDomain) {
+
+        final String domainName1 = "access-domain-delegated-group1";
+        final String domainName2 = "access-domain-delegated-group2";
+        final String groupName1 = "group1";
+        final String groupName2 = "group2";
+        final String roleName1 = "role1";
+        final String policyName1 = "policy1";
+
+        List<Role> roles1 = new ArrayList<>();
+        Role role1 = ZTSTestUtils.createRoleObject(domainName1, roleName1, "user.jane", "user.joey");
+        role1.getRoleMembers().add(new RoleMember()
+                .setMemberName(ResourceUtils.groupResourceName(domainName1, groupName1)));
+        role1.getRoleMembers().add(new RoleMember()
+                .setMemberName(ResourceUtils.groupResourceName(domainName1, groupName2))
+                .setExpiration(Timestamp.fromMillis(100000)));
+        roles1.add(role1);
+
+        List<Group> groups1 = new ArrayList<>();
+        Group group1 = ZTSTestUtils.createGroupObject(domainName1, groupName1, "user.john");
+        groups1.add(group1);
+
+        Group group2 = ZTSTestUtils.createGroupObject(domainName1, groupName2, "user.joe");
+        groups1.add(group2);
+
+        List<Policy> policies1 = new ArrayList<>();
+        final String assumeRoleResource = ZTSTestUtils.getAssumeRoleResource(domainName2, roleName1,
+                wildCardRole, wildCardDomain);
+        Policy policy1 = ZTSTestUtils.createPolicyObject(domainName1, policyName1, roleName1,
+                true, "assume_role", assumeRoleResource, AssertionEffect.ALLOW);
+        policies1.add(policy1);
+
+        List<Role> roles2 = new ArrayList<>();
+        Role role2 = ZTSTestUtils.createRoleObject(domainName2, roleName1, domainName1, null);
+        roles2.add(role2);
+
+        List<Policy> policies2 = new ArrayList<>();
+        Policy policy2 = ZTSTestUtils.createPolicyObject(domainName2, policyName1, roleName1,
+                true, "update", domainName2 + ":resource1", AssertionEffect.ALLOW);
+        policies2.add(policy2);
+
+        SignedDomain signedDomain1 = ZTSTestUtils.createSignedDomain(domainName1, roles1, policies1, null,
+                groups1, privateKey);
+        store.processSignedDomain(signedDomain1, false);
+
+        SignedDomain signedDomain2 = ZTSTestUtils.createSignedDomain(domainName2, roles2, policies2, null,
+                null, privateKey);
+        store.processSignedDomain(signedDomain2, false);
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature",
+                0, principalAuthority);
+        ResourceContext context = createResourceContext(principal, null);
+
+        // role1 - jane & joey have regular role access, john (grp1), joe (grp2 but expired).
+
+        ResourceAccess access = zts.getResourceAccess(context, "update", domainName2 + ":resource1", null, "user.jane");
+        assertTrue(access.getGranted());
+
+        access = zts.getResourceAccess(context, "update", domainName2 + ":resource1", null, "user.joey");
+        assertTrue(access.getGranted());
+
+        access = zts.getResourceAccess(context, "update", domainName2 + ":resource1", null, "user.john");
+        assertTrue(access.getGranted());
+
+        access = zts.getResourceAccess(context, "update", domainName2 + ":resource1", null, "user.joe");
+        assertFalse(access.getGranted());
+
+        // role access against the trusted domain
+
+        RoleAccess roleAccess = zts.getRoleAccess(context, domainName2, "user.jane");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, domainName2, "user.joey");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, domainName2, "user.john");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, domainName2, "user.joe");
+        assertTrue(roleAccess.getRoles().isEmpty());
+
+        // role access against the domain itself
+
+        roleAccess = zts.getRoleAccess(context, domainName1, "user.jane");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, domainName1, "user.joey");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, domainName1, "user.john");
+        assertEquals(roleAccess.getRoles().size(), 1);
+        assertTrue(roleAccess.getRoles().contains("role1"));
+
+        roleAccess = zts.getRoleAccess(context, domainName1, "user.joe");
+        assertTrue(roleAccess.getRoles().isEmpty());
+
+        store.getCacheStore().invalidate(domainName1);
+        store.getCacheStore().invalidate(domainName2);
+    }
+
+    @Test
     public void testGetAccess() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -3555,7 +3684,7 @@ public class ZTSImplTest {
     public void testGetAccessInvalidData() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -3880,7 +4009,7 @@ public class ZTSImplTest {
     public void testProcessRoleCertificateRequestFailedValidation() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -3916,7 +4045,7 @@ public class ZTSImplTest {
                 .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -3942,7 +4071,7 @@ public class ZTSImplTest {
                 .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -3996,7 +4125,7 @@ public class ZTSImplTest {
                 .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -4079,7 +4208,7 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
                 readers, true);
 
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -4116,7 +4245,7 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
                 readers, true);
 
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -4158,7 +4287,7 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
                 readers, true);
 
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -4184,7 +4313,7 @@ public class ZTSImplTest {
                 .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -4215,7 +4344,7 @@ public class ZTSImplTest {
                 .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -4258,7 +4387,7 @@ public class ZTSImplTest {
                 .setCsr(ROLE_CERT_DB_REQUEST).setExpiryTime(3600L);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -4281,7 +4410,7 @@ public class ZTSImplTest {
                 .setCsr(ROLE_CERT_DB_REQUEST).setExpiryTime(3600L);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -4468,10 +4597,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -4557,10 +4686,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -4622,10 +4751,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.hostname.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -4684,10 +4813,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.cname.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -4758,10 +4887,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.hostname.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -4823,10 +4952,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -4884,10 +5013,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -4962,10 +5091,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5025,10 +5154,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5083,10 +5212,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5141,10 +5270,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5180,10 +5309,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid_ip.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5236,10 +5365,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5276,10 +5405,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5318,10 +5447,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5374,10 +5503,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5408,10 +5537,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5442,10 +5571,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         InstanceRegisterInformation info = new InstanceRegisterInformation()
                 .setAttestationData("attestationData").setCsr("csr")
@@ -5473,10 +5602,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.mismatch.cn.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5521,10 +5650,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5573,10 +5702,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5627,10 +5756,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5681,10 +5810,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get(csrPath);
         String certCsr = new String(Files.readAllBytes(path));
@@ -5755,10 +5884,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5846,10 +5975,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.cname.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -5945,10 +6074,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         InstanceCertManager instanceCertManager = Mockito.mock(InstanceCertManager.class);
         Mockito.when(instanceCertManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(null);
@@ -5988,10 +6117,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         InstanceCertManager instanceCertManager = Mockito.mock(InstanceCertManager.class);
         Mockito.when(instanceCertManager.getX509CertRecord("athenz.provider", "1001", "athenz.production"))
@@ -6028,10 +6157,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6094,10 +6223,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6175,10 +6304,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6277,10 +6406,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6371,10 +6500,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6438,10 +6567,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6505,10 +6634,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6570,10 +6699,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
         X509CertRecord certRecord = new X509CertRecord();
@@ -6614,10 +6743,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6651,10 +6780,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.mismatch.cn.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6719,10 +6848,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6787,10 +6916,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6850,10 +6979,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6920,10 +7049,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -6990,10 +7119,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -7056,10 +7185,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -7124,10 +7253,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -7194,7 +7323,7 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -7228,10 +7357,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz2", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -7296,7 +7425,7 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         InstanceRefreshInformation info = new InstanceRefreshInformation()
                 .setCsr(null).setSsh("");
@@ -7326,10 +7455,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
@@ -7396,10 +7525,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
@@ -7446,10 +7575,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
@@ -7496,10 +7625,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
@@ -7577,7 +7706,7 @@ public class ZTSImplTest {
         ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -7608,7 +7737,7 @@ public class ZTSImplTest {
         ZTSImpl.serverHostName = "localhost";
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -8776,10 +8905,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         SSHCertificates certs = new SSHCertificates();
 
@@ -8832,10 +8961,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         SSHCertRequestData data = new SSHCertRequestData();
         data.setDestinations(Arrays.asList("dest1", "dest2"));
@@ -9117,7 +9246,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -9186,7 +9315,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user1;s=signature", 0, new CertificateAuthority());
@@ -9229,7 +9358,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "x509-certificate-details", 0, new CertificateAuthority());
@@ -9283,7 +9412,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -9327,7 +9456,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -9351,7 +9480,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -9392,7 +9521,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -9430,7 +9559,7 @@ public class ZTSImplTest {
     public void testPostAccessTokenRequestOpenIdScopeOnly() throws UnsupportedEncodingException {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -9461,7 +9590,7 @@ public class ZTSImplTest {
         AccessTokenRequest.setSupportOpenidScope(false);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -9489,7 +9618,7 @@ public class ZTSImplTest {
     public void testPostAccessTokenRequestInvalidDomain() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -9507,7 +9636,7 @@ public class ZTSImplTest {
     public void testPostAccessTokenRequestNoRoleMatch() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -9525,7 +9654,7 @@ public class ZTSImplTest {
     public void testPostAccessTokenRequestInvalidRequest() {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -9615,7 +9744,7 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech-proxy2", "weather-proxy2", "storage",
                 writers, readers, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
@@ -9668,7 +9797,7 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech-proxy3", "weather-proxy3", "storage",
                 writers, readers, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
@@ -9712,7 +9841,7 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech-proxy4", "weather-proxy4", "storage",
                 writers, readers, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
@@ -9740,7 +9869,7 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech-proxy4", "weather-proxy4", "storage",
                 writers, readers, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
@@ -9779,7 +9908,7 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech-proxy4", "weather-proxy4", "storage",
                 writers, readers, true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
                 "v=U1;d=user_domain;n=proxy-user1;s=sig", 0, null);
@@ -9817,7 +9946,7 @@ public class ZTSImplTest {
                 .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -9863,7 +9992,7 @@ public class ZTSImplTest {
                 .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -9893,7 +10022,7 @@ public class ZTSImplTest {
                 .setProxyForPrincipal("user_domain.user1");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -9982,7 +10111,7 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
                 readers, true);
 
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -10021,7 +10150,7 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
                 readers, true);
 
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -10061,7 +10190,7 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", writers,
                 readers, true);
 
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -10089,7 +10218,7 @@ public class ZTSImplTest {
                 .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(3600L);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         CloudStore cloudStore = new MockCloudStore();
         store.setCloudStore(cloudStore);
@@ -10833,7 +10962,7 @@ public class ZTSImplTest {
         groups.add(group);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true, groups);
-        zts.dataStore.processDomain(signedDomain, false);
+        zts.dataStore.processSignedDomain(signedDomain, false);
 
         List<GroupMember> groupMembers = zts.authorizer.groupMembersFetcher.getGroupMembers("coretech:group.dev-team");
         assertNotNull(groupMembers);
@@ -11073,7 +11202,7 @@ public class ZTSImplTest {
 
         // now process the domain in ZTS
 
-        store.processDomain(weatherDomain, false);
+        store.processSignedDomain(weatherDomain, false);
 
         // now create the sports domain that includes the delegated role
 
@@ -11145,12 +11274,12 @@ public class ZTSImplTest {
         sportsDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), privateKey));
         sportsDomain.setKeyId("0");
 
-        store.processDomain(sportsDomain, false);
+        store.processSignedDomain(sportsDomain, false);
 
         // create and process our new domain in ZTS
 
         SignedDomain newsDomain = createGroupNewsDomain(newsDomainName, weatherDomainName, multipleUsers, null);
-        store.processDomain(newsDomain, false);
+        store.processSignedDomain(newsDomain, false);
 
         // now let's carry out our checks - we should get role1 for user1
         // when asked for both sports and weather domains
@@ -11193,7 +11322,7 @@ public class ZTSImplTest {
 
         newsDomain = createGroupNewsDomain(newsDomainName, weatherDomainName, multipleUsers,
                 Timestamp.fromMillis(System.currentTimeMillis() - 60 * 60 * 1000L));
-        store.processDomain(newsDomain, false);
+        store.processSignedDomain(newsDomain, false);
 
         // now let's verify our role access again. user1
         // should not have access in weather domain
@@ -11230,7 +11359,7 @@ public class ZTSImplTest {
 
         newsDomain = createGroupNewsDomain(newsDomainName, weatherDomainName, multipleUsers,
                 Timestamp.fromMillis(System.currentTimeMillis() + 60 * 60 * 1000L));
-        store.processDomain(newsDomain, false);
+        store.processSignedDomain(newsDomain, false);
 
         // verify all previous access as expected
 
@@ -11277,7 +11406,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -11323,7 +11452,7 @@ public class ZTSImplTest {
         System.clearProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -11411,7 +11540,7 @@ public class ZTSImplTest {
         System.clearProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -11509,7 +11638,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -11607,7 +11736,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processDomain(signedDomain, false);
+        store.processSignedDomain(signedDomain, false);
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -11866,6 +11995,9 @@ public class ZTSImplTest {
 
         RoleAccess rolesRequireRoleCert = zts.getRolesRequireRoleCert(context, "coretech.api");
         assertEquals(rolesRequireRoleCert.getRoles(), new ArrayList<>());
+
+        rolesRequireRoleCert = zts.getRolesRequireRoleCert(context, null);
+        assertEquals(rolesRequireRoleCert.getRoles(), new ArrayList<>());
     }
 
     @Test
@@ -12018,10 +12150,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("sys.auth.zts", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
@@ -12114,10 +12246,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
 
@@ -12155,10 +12287,10 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
-        store.processDomain(providerDomain, false);
+        store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
-        store.processDomain(tenantDomain, false);
+        store.processSignedDomain(tenantDomain, false);
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);

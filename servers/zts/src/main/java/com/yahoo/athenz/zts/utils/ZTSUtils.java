@@ -23,6 +23,7 @@ import java.util.List;
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.Utils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,27 +101,27 @@ public class ZTSUtils {
         boolean wantClientAuth = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_WANT_CLIENT_CERT, "false"));
         
         SslContextFactory sslContextFactory = new SslContextFactory();
-        if (keyStorePath != null) {
+        if (!StringUtil.isEmpty(keyStorePath)) {
             LOGGER.info("createSSLContextObject: using SSL KeyStore path: {}", keyStorePath);
             sslContextFactory.setKeyStorePath(keyStorePath);
         }
         
-        if (keyStorePassword != null) {
+        if (!StringUtil.isEmpty(keyStorePassword)) {
             keyStorePassword = getApplicationSecret(privateKeyStore, keyStorePasswordAppName, keyStorePassword);
             sslContextFactory.setKeyStorePassword(keyStorePassword);
         }
         sslContextFactory.setKeyStoreType(keyStoreType);
 
-        if (keyManagerPassword != null) {
+        if (!StringUtil.isEmpty(keyManagerPassword)) {
             keyManagerPassword = getApplicationSecret(privateKeyStore, keyManagerPasswordAppName, keyManagerPassword);
             sslContextFactory.setKeyManagerPassword(keyManagerPassword);
         }
         
-        if (trustStorePath != null) {
+        if (!StringUtil.isEmpty(trustStorePath)) {
             LOGGER.info("createSSLContextObject: using SSL TrustStore path: {}", trustStorePath);
             sslContextFactory.setTrustStorePath(trustStorePath);
         }
-        if (trustStorePassword != null) {
+        if (!StringUtil.isEmpty(trustStorePassword)) {
             trustStorePassword = getApplicationSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
             sslContextFactory.setTrustStorePassword(trustStorePassword);
         }

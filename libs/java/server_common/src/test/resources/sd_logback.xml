@@ -7,7 +7,9 @@
       <pattern>%-4relative [%thread] %-5level %class - %msg%n</pattern>
     </encoder>
   </appender>
-     
+
+  <logger name="com.yahoo.athenz.common.server.util.config.ConfigManager" level="DEBUG"/>
+
   <root>
     <level value="ERROR" />
     <appender-ref ref="STDOUT" />

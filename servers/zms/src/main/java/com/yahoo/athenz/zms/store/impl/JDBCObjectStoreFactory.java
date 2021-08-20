@@ -24,30 +24,23 @@ import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreFactory;
 import com.yahoo.athenz.zms.store.impl.jdbc.JDBCObjectStore;
+import org.eclipse.jetty.util.StringUtil;
 
 public class JDBCObjectStoreFactory implements ObjectStoreFactory {
 
-    private static final String JDBC               = "jdbc";
-    
+    private static final String JDBC_APP_NAME     = "jdbc";
+    private static final String JDBC_TIME_ZONE    = "SERVER";
+    private static final String JDBC_TLS_VERSIONS = "TLSv1.2,TLSv1.3";
+
     @Override
     public ObjectStore create(PrivateKeyStore keyStore) {
         final String jdbcStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE);
         final String jdbcUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER);
         final String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, "");
-        final String jdbcAppName = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_APP_NAME, JDBC);
+        final String jdbcAppName = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_APP_NAME, JDBC_APP_NAME);
         String jdbcPassword = keyStore.getApplicationSecret(jdbcAppName, password);
         
-        Properties readWriteProperties = new Properties();
-        readWriteProperties.setProperty(ZMSConsts.DB_PROP_USER, jdbcUser);
-        readWriteProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, jdbcPassword);
-        readWriteProperties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
-                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "false"));
-        readWriteProperties.setProperty(ZMSConsts.DB_PROP_USE_SSL,
-                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "false"));
-        readWriteProperties.setProperty(ZMSConsts.DB_PROP_TLS_PROTOCOLS,
-                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_TLS_VERSIONS, "TLSv1.2,TLSv1.3"));
-        readWriteProperties.setProperty(ZMSConsts.DB_PROP_CONN_TIME_ZONE, "SERVER");
-
+        Properties readWriteProperties = getProperties(jdbcUser, jdbcPassword);
         PoolableDataSource readWriteSrc = DataSourceFactory.create(jdbcStore, readWriteProperties);
         
         // now check to see if we also have a read-only jdbc store configured
@@ -56,25 +49,34 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
         
         PoolableDataSource readOnlySrc = null;
         String jdbcReadOnlyStore = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_STORE);
-        if (jdbcReadOnlyStore != null && jdbcReadOnlyStore.startsWith("jdbc")) {
-            final String jdbcReadOnlyUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_USER, jdbcUser);
-            final String readOnlyPassword = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, password);
+        if (jdbcReadOnlyStore != null && jdbcReadOnlyStore.startsWith(JDBC_APP_NAME)) {
+            final String jdbcReadOnlyUser = getDefaultSetting(ZMSConsts.ZMS_PROP_JDBC_RO_USER, jdbcUser);
+            final String readOnlyPassword = getDefaultSetting(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, password);
             final String jdbcReadOnlyPassword = keyStore.getApplicationSecret(jdbcAppName, readOnlyPassword);
             
-            Properties readOnlyProperties = new Properties();
-            readOnlyProperties.setProperty(ZMSConsts.DB_PROP_USER, jdbcReadOnlyUser);
-            readOnlyProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, jdbcReadOnlyPassword);
-            readOnlyProperties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
-                    System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "false"));
-            readOnlyProperties.setProperty(ZMSConsts.DB_PROP_USE_SSL,
-                    System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "false"));
-            readOnlyProperties.setProperty(ZMSConsts.DB_PROP_TLS_PROTOCOLS,
-                    System.getProperty(ZMSConsts.ZMS_PROP_JDBC_TLS_VERSIONS, "TLSv1.2,TLSv1.3"));
-            readOnlyProperties.setProperty(ZMSConsts.DB_PROP_CONN_TIME_ZONE, "SERVER");
-
+            Properties readOnlyProperties = getProperties(jdbcReadOnlyUser, jdbcReadOnlyPassword);
             readOnlySrc = DataSourceFactory.create(jdbcReadOnlyStore, readOnlyProperties);
         }
         
         return new JDBCObjectStore(readWriteSrc, readOnlySrc);
+    }
+
+    String getDefaultSetting(final String propName, final String defaultValue) {
+        final String value = System.getProperty(propName);
+        return (StringUtil.isEmpty(value)) ? defaultValue : value;
+    }
+
+    Properties getProperties(final String dbUser, final String dbPassword) {
+        Properties properties = new Properties();
+        properties.setProperty(ZMSConsts.DB_PROP_USER, dbUser);
+        properties.setProperty(ZMSConsts.DB_PROP_PASSWORD, dbPassword);
+        properties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
+                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "false"));
+        properties.setProperty(ZMSConsts.DB_PROP_USE_SSL,
+                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "false"));
+        properties.setProperty(ZMSConsts.DB_PROP_TLS_PROTOCOLS,
+                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_TLS_VERSIONS, JDBC_TLS_VERSIONS));
+        properties.setProperty(ZMSConsts.DB_PROP_CONN_TIME_ZONE, JDBC_TIME_ZONE);
+        return properties;
     }
 }

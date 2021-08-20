@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Yahoo Inc.
+ * Copyright The Athenz Authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,19 @@ import org.slf4j.LoggerFactory;
 public class ConfigProperties {
  
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigProperties.class);
-    
+
+    /**
+     * @deprecated Use {@link com.yahoo.athenz.common.server.util.config.ConfigManager} <br>
+     *     For example - instead of this:<pre>{@code
+     *              ConfigProperties.loadProperties("config-1.conf");
+     *              ConfigProperties.loadProperties("config-2.conf");
+     *         }</pre>
+     *     Do this:<pre>{@code
+     *              new ConfigManager()
+     *                      .addConfigSource("aws-param-store://config-1.conf")
+     *                      .addConfigSource("aws-param-store://config-2.conf");
+     *         }</pre>
+     */
     public static void loadProperties(String propFile) {
         
         Properties prop = new Properties();
