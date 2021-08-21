@@ -2687,7 +2687,7 @@ public class DataStoreTest {
 
             // generate our protected header - just includes the key id + algorithm
 
-            final String protectedHeader = "{\"kid\":\"" + keyId + "\",\"alg\":\"SHA256\"}";
+            final String protectedHeader = "{\"kid\":\"" + keyId + "\",\"alg\":\"ES256\"}";
             final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
 
             // combine protectedHeader . payload and sign the result

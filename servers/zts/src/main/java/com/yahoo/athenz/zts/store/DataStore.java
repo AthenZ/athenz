@@ -400,7 +400,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             byte[] signature = base64Decoder.decode(jwsDomain.getSignature());
             final String signedData = jwsDomain.getProtectedHeader() + "." + jwsDomain.getPayload();
             result = Crypto.verify(signedData.getBytes(StandardCharsets.UTF_8),
-                    zmsKey, signature, jwsHeader.get("alg"));
+                    zmsKey, signature, Crypto.getDigestAlgorithm(jwsHeader.get("alg")));
         } catch (Exception ex) {
             LOGGER.error("validateJWSDomain: Domain={} signature validation exception", domainName, ex);
         }

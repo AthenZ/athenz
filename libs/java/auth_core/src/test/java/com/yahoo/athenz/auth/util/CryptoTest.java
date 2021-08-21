@@ -1261,4 +1261,15 @@ public class CryptoTest {
         }
     }
 
+    @Test
+    public void testGetDigestAlgorithm() {
+        assertEquals(Crypto.getDigestAlgorithm("ES256"), Crypto.SHA256);
+        assertEquals(Crypto.getDigestAlgorithm("RS256"), Crypto.SHA256);
+        assertEquals(Crypto.getDigestAlgorithm("ES384"), Crypto.SHA384);
+        assertEquals(Crypto.getDigestAlgorithm("RS384"), Crypto.SHA384);
+        assertEquals(Crypto.getDigestAlgorithm("ES512"), Crypto.SHA512);
+        assertEquals(Crypto.getDigestAlgorithm("RS512"), Crypto.SHA512);
+        assertEquals(Crypto.getDigestAlgorithm("SHA1"), null);
+        assertEquals(Crypto.getDigestAlgorithm("MD5"), null);
+    }
 }

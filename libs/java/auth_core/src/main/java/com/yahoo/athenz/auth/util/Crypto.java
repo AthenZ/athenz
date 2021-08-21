@@ -115,6 +115,8 @@ public class Crypto {
 
     public static final String SHA1 = "SHA1";
     public static final String SHA256 = "SHA256";
+    public static final String SHA384 = "SHA384";
+    public static final String SHA512 = "SHA512";
 
     static final String ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER = "athenz.crypto.key_factory_provider";
     static final String ATHENZ_CRYPTO_SIGNATURE_PROVIDER = "athenz.crypto.signature_provider";
@@ -153,6 +155,25 @@ public class Crypto {
 
     private static String getRSAAlgo() {
         return System.getProperty(ATHENZ_CRYPTO_ALGO_RSA, RSA);
+    }
+
+    public static String getDigestAlgorithm(final String algorithm) {
+        String digestAlgorithm = null;
+        switch (algorithm) {
+            case "ES256":
+            case "RS256":
+                digestAlgorithm = SHA256;
+                break;
+            case "ES384":
+            case "RS384":
+                digestAlgorithm = SHA384;
+                break;
+            case "ES512":
+            case "RS512":
+                digestAlgorithm = SHA512;
+                break;
+        }
+        return digestAlgorithm;
     }
 
     /**
