@@ -46,6 +46,8 @@ import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSTestUtils;
 import com.yahoo.rdl.Timestamp;
 import org.bouncycastle.jce.spec.ECParameterSpec;
+import org.mockito.ArgumentMatcher;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -4759,6 +4761,7 @@ public class DataStoreTest {
         // now mark the domain as disabled and verify no roles are returned
 
         signedDomain.getDomain().setEnabled(false);
+        signedDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(signedDomain.getDomain()), pkey));
         store.processSignedDomain(signedDomain, true);
 
         accessibleRoles = new HashSet<>();
@@ -5196,4 +5199,35 @@ public class DataStoreTest {
         assertNull(store.getDomainData("sports"));
     }
 
+    @Test
+    public void testProcessSignedDomainException() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+        store.loadAthenzPublicKeys();
+
+        SignedDomain signedDomain = Mockito.mock(SignedDomain.class);
+        DomainData domainData = new DomainData();
+        domainData.setName("coretech");
+        Mockito.when(signedDomain.getDomain()).thenReturn(domainData)
+                        .thenThrow(new ResourceException(400, "invalid-domain"));
+
+        assertFalse(store.processSignedDomain(signedDomain, true));
+    }
+
+    @Test
+    public void testProcessJWSDomainException() {
+        ChangeLogStore clogStore = Mockito.mock(ChangeLogStore.class);
+        doThrow(new ResourceException(400, "invalid-domain"))
+                .when(clogStore).saveLocalDomain(ArgumentMatchers.any(), (JWSDomain) ArgumentMatchers.any());
+
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+        store.loadAthenzPublicKeys();
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather");
+        signedDomain.getDomain().setEnabled(false);
+        JWSDomain jwsDomain = signJwsDomain(signedDomain.getDomain(), "0");
+
+        assertFalse(store.processJWSDomain(jwsDomain, true));
+    }
 }

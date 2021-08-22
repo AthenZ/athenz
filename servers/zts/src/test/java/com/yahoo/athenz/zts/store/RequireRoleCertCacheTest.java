@@ -441,11 +441,13 @@ public class RequireRoleCertCacheTest {
         requireRoleCertCache.processRoleCache(role);
     }
 
-/*    @Test
+    @Test
     public void testProcessCollectionDeletedMembers() {
-        RequireRoleCertCache requireRoleCertCache = new RequireRoleCertCache();
-        generateRolesForTest(requireRoleCertCache);
 
-        requireRoleCertCache.processCollectionDeletedMembers();
-    }*/
+        RequireRoleCertCache requireRoleCertCache = new RequireRoleCertCache();
+
+        // verify we correctly handle null deleted members
+
+        requireRoleCertCache.processCollectionDeletedMembers("collection-name", null);
+    }
 }
