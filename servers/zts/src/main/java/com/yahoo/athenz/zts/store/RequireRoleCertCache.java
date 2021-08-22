@@ -184,12 +184,10 @@ public class RequireRoleCertCache {
             }
             members.removeIf(item -> item.getRole().equalsIgnoreCase(collectionName));
 
-            if (requireRoleCertPrefixTrie != null && requireRoleCertWildcard != null) {
-                if (memberName.equals("*")) {
-                    requireRoleCertWildcard.remove(collectionName);
-                } else if (memberName.endsWith("*")) {
-                    requireRoleCertPrefixTrie.delete(memberName, collectionName);
-                }
+            if (memberName.equals("*")) {
+                requireRoleCertWildcard.remove(collectionName);
+            } else if (memberName.endsWith("*")) {
+                requireRoleCertPrefixTrie.delete(memberName, collectionName);
             }
         }
     }

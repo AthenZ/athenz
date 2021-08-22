@@ -220,37 +220,43 @@ public class DataStore implements DataCacheProvider, RolesProvider {
     public boolean processSignedDomain(SignedDomain signedDomain, boolean saveInStore) {
 
         DomainData domainData = signedDomain.getDomain();
-        String domainName = domainData.getName();
+        final String domainName = domainData.getName();
 
         LOGGER.info("Processing domain: {}", domainName);
 
-        // if the domain is disabled we're going to skip
-        // processing this domain. however, we must invalidate
-        // our cache and save the updated data with disabled
-        // flag before assuming success
+        try {
+            // before doing anything else let's validate our domain
 
-        if (domainData.getEnabled() == Boolean.FALSE) {
-            LOGGER.info("Skipping disabled domain: {}", domainName);
-            deleteDomainFromCache(domainName);
+            if (!validateSignedDomain(signedDomain)) {
+                return false;
+            }
+
+            // if the domain is disabled we're going to skip
+            // processing this domain. however, we must invalidate
+            // our cache and save the updated data with disabled
+            // flag before assuming success
+
+            if (domainData.getEnabled() == Boolean.FALSE) {
+                LOGGER.info("Skipping disabled domain: {}", domainName);
+                deleteDomainFromCache(domainName);
+                if (saveInStore) {
+                    changeLogStore.saveLocalDomain(domainName, signedDomain);
+                }
+                return true;
+            }
+
+            processDomainData(domainData);
+
             if (saveInStore) {
                 changeLogStore.saveLocalDomain(domainName, signedDomain);
             }
+
             return true;
-        }
 
-        // before doing anything else let's validate our domain
-
-        if (!validateSignedDomain(signedDomain)) {
+        } catch (Exception ex) {
+            LOGGER.error("unable to process signed domain: {}", domainName, ex);
             return false;
         }
-
-        processDomainData(domainData);
-
-        if (saveInStore) {
-            changeLogStore.saveLocalDomain(domainName, signedDomain);
-        }
-
-        return true;
     }
 
     public void processSignedDomainChecks() {
@@ -427,33 +433,39 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         final String domainName = domainData.getName();
         LOGGER.info("Processing domain: {}", domainName);
 
-        // if the domain is disabled we're going to skip
-        // processing this domain. however, we must invalidate
-        // our cache and save the updated data with disabled
-        // flag before assuming success
+        try {
+            // before doing anything else let's validate our domain
 
-        if (domainData.getEnabled() == Boolean.FALSE) {
-            LOGGER.info("Skipping disabled domain: {}", domainName);
-            deleteDomainFromCache(domainName);
+            if (!validateJWSDomain(domainName, jwsDomain)) {
+                return false;
+            }
+
+            // if the domain is disabled we're going to skip
+            // processing this domain. however, we must invalidate
+            // our cache and save the updated data with disabled
+            // flag before assuming success
+
+            if (domainData.getEnabled() == Boolean.FALSE) {
+                LOGGER.info("Skipping disabled domain: {}", domainName);
+                deleteDomainFromCache(domainName);
+                if (saveInStore) {
+                    changeLogStore.saveLocalDomain(domainName, jwsDomain);
+                }
+                return true;
+            }
+
+            processDomainData(domainData);
+
             if (saveInStore) {
                 changeLogStore.saveLocalDomain(domainName, jwsDomain);
             }
+
             return true;
-        }
 
-        /* before doing anything else let's validate our domain */
-
-        if (!validateJWSDomain(domainName, jwsDomain)) {
+        } catch (Exception ex) {
+            LOGGER.error("unable to process jws domain: {}", domainName, ex);
             return false;
         }
-
-        processDomainData(domainData);
-
-        if (saveInStore) {
-            changeLogStore.saveLocalDomain(domainName, jwsDomain);
-        }
-
-        return true;
     }
 
     public void processJWSDomainChecks() {
