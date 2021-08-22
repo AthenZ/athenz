@@ -157,7 +157,7 @@
     <dependency>
       <groupId>org.ehcache</groupId>
       <artifactId>ehcache</artifactId>
-      <version>3.9.4</version>
+      <version>3.9.5</version>
     </dependency>
 
     <!-- Test dependencies -->
@@ -176,7 +176,7 @@
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
       <artifactId>resteasy-client</artifactId>
-      <version>4.6.0.Final</version>
+      <version>${jboss.resteasy.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

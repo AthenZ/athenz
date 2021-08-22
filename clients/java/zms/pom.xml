@@ -149,7 +149,7 @@
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
       <artifactId>resteasy-client</artifactId>
-      <version>4.6.0.Final</version>
+      <version>${jboss.resteasy.version}</version>
       <scope>test</scope>
     </dependency>
 
