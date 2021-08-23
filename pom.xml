@@ -79,19 +79,20 @@
     <jackson.jaxrs.version>2.12.4</jackson.jaxrs.version>
     <rdl.version>1.5.4</rdl.version>
     <bouncycastle.version>1.69</bouncycastle.version>
-    <aws.version>1.12.19</aws.version>
-    <aws2.version>2.16.97</aws2.version>
+    <aws.version>1.12.52</aws.version>
+    <aws2.version>2.17.24</aws2.version>
     <guava.version>30.1.1-jre</guava.version>
-    <logback.version>1.2.3</logback.version>
+    <logback.version>1.2.5</logback.version>
     <javax.version>3.1.0</javax.version>
     <javax.ws.version>2.1.1</javax.ws.version>
-    <mockito.version>3.11.2</mockito.version>
+    <mockito.version>3.12.1</mockito.version>
     <jmockit.version>1.49</jmockit.version>
     <jjwt.version>0.11.2</jjwt.version>
     <jaxb.version>2.3.3</jaxb.version>
-    <mysql.connector.version>8.0.25</mysql.connector.version>
+    <mysql.connector.version>8.0.26</mysql.connector.version>
     <commons.daemon.version>1.2.4</commons.daemon.version>
     <apache.httpclient.version>4.5.13</apache.httpclient.version>
+    <jboss.resteasy.version>4.7.1.Final</jboss.resteasy.version>
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
     <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
     <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
@@ -315,7 +316,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.30</version>
+      <version>1.7.32</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
