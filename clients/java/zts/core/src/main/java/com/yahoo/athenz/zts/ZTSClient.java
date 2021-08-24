@@ -2697,7 +2697,29 @@ public class ZTSClient implements Closeable {
             throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
+    /**
+     * Retrieve the list of all policies (not just names) from the ZTS Server that
+     * is signed and represented as JWS document. It will pass an optional matchingTag
+     * so that ZTS can skip returning signed policies if no changes have taken
+     * place since that tag was issued.
+     * @param domainName name of the domain
+     * @param matchingTag name of the tag issued with last request
+     * @param responseHeaders contains the "tag" returned for modification
+     *   time of the policies, map key = "tag", List should contain a single value
+     * @return list of policies signed by ZTS Server. ZTSClientException will be thrown in case of failure
+     */
+    public JWSPolicyData getJWSPolicyData(String domainName, String matchingTag,
+            Map<String, List<String>> responseHeaders) {
+        try {
+            return ztsClient.getJWSPolicyData(domainName, matchingTag, responseHeaders);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
     /**
      * Verify if the given principal has access to the specified role in the
      * domain or not.

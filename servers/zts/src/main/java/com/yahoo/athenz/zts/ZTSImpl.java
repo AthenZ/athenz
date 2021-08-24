@@ -989,6 +989,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
     }
 
+    @Override
+    public Response getJWSPolicyData(ResourceContext ctx, String domainName, String matchingTag) {
+        return Response.status(ResourceException.NOT_IMPLEMENTED).build();
+    }
+
+    @Override
     public Response getDomainSignedPolicyData(ResourceContext ctx, String domainName, String matchingTag) {
 
         final String caller = ctx.getApiName();

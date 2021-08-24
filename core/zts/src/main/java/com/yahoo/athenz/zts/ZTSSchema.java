@@ -146,6 +146,13 @@ public class ZTSSchema {
             .field("signature", "String", false, "signature generated based on the domain policies object")
             .field("keyId", "String", false, "the identifier of the key used to generate the signature");
 
+        sb.structType("JWSPolicyData")
+            .comment("SignedPolicyData using flattened JWS JSON Serialization syntax. https://tools.ietf.org/html/rfc7515#section-7.2.2")
+            .field("payload", "String", false, "")
+            .field("protected", "String", false, "")
+            .mapField("header", "String", "String", false, "")
+            .field("signature", "String", false, "");
+
         sb.structType("RoleCertificate")
             .comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
             .field("x509Certificate", "String", false, "");
@@ -456,6 +463,18 @@ public class ZTSSchema {
 ;
 
         sb.resource("DomainSignedPolicyData", "GET", "/domain/{domainName}/signed_policy_data")
+            .comment("Get a signed policy enumeration from the service, to transfer to a local store. An ETag is generated for the PolicyList that changes when any item in the list changes. If the If-None-Match header is provided, and it matches the ETag that would be returned, then a NOT_MODIFIED response is returned instead of the list.")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
+            .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+;
+
+        sb.resource("JWSPolicyData", "GET", "/domain/{domainName}/policy/signed")
             .comment("Get a signed policy enumeration from the service, to transfer to a local store. An ETag is generated for the PolicyList that changes when any item in the list changes. If the If-None-Match header is provided, and it matches the ETag that would be returned, then a NOT_MODIFIED response is returned instead of the list.")
             .pathParam("domainName", "DomainName", "name of the domain")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")

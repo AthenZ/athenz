@@ -210,6 +210,35 @@ public class ZTSRDLGeneratedClient {
 
     }
 
+    public JWSPolicyData getJWSPolicyData(String domainName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
+        WebTarget target = base.path("/domain/{domainName}/policy/signed")
+            .resolveTemplate("domainName", domainName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (matchingTag != null) {
+            invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+        case 304:
+            if (headers != null) {
+                headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
+            }
+            if (code == 304) {
+                return null;
+            }
+            return response.readEntity(JWSPolicyData.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public RoleToken getRoleToken(String domainName, String role, Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
         WebTarget target = base.path("/domain/{domainName}/token")
             .resolveTemplate("domainName", domainName);
