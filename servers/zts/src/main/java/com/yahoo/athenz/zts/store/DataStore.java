@@ -38,7 +38,6 @@ import com.yahoo.athenz.zts.cache.MemberRole;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,6 +51,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
@@ -367,49 +367,11 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         return result;
     }
 
-    Map<String, String> parseJWSHeader(JWSDomain jwsDomain) {
-
-        try {
-            byte[] protectedHeader = base64Decoder.decode(jwsDomain.getProtectedHeader());
-            return jsonMapper.readValue(protectedHeader, Map.class);
-        } catch (Exception ex) {
-            LOGGER.error("Unable to parse jws domain protected header", ex);
-        }
-        return null;
-    }
-
     boolean validateJWSDomain(final String domainName, JWSDomain jwsDomain) {
 
-        final Map<String, String> jwsHeader = parseJWSHeader(jwsDomain);
-        if (jwsHeader == null) {
-            metric.increment("domain_validation_failure", domainName);
-            LOGGER.error("validateJWSDomain: Unable to parse JWS header field");
-            return false;
-        }
-
-        final String keyId = jwsHeader.get("kid");
-        if (keyId == null) {
-            metric.increment("domain_validation_failure", domainName);
-            LOGGER.error("validateJWSDomain: missing jws kid header");
-            return false;
-        }
-
-        PublicKey zmsKey = zmsPublicKeyCache.getIfPresent(keyId);
-        if (zmsKey == null) {
-            metric.increment("domain_validation_failure", domainName);
-            LOGGER.error("validateJWSDomain: ZMS Public Key id={} not available", keyId);
-            return false;
-        }
-
-        boolean result = false;
-        try {
-            byte[] signature = base64Decoder.decode(jwsDomain.getSignature());
-            final String signedData = jwsDomain.getProtectedHeader() + "." + jwsDomain.getPayload();
-            result = Crypto.verify(signedData.getBytes(StandardCharsets.UTF_8),
-                    zmsKey, signature, Crypto.getDigestAlgorithm(jwsHeader.get("alg")));
-        } catch (Exception ex) {
-            LOGGER.error("validateJWSDomain: Domain={} signature validation exception", domainName, ex);
-        }
+        Function<String, PublicKey> keyGetter = zmsPublicKeyCache::getIfPresent;
+        boolean result = Crypto.validateJWSDocument(jwsDomain.getProtectedHeader(), jwsDomain.getPayload(),
+                jwsDomain.getSignature(), keyGetter);
 
         if (!result) {
             metric.increment("domain_validation_failure", domainName);

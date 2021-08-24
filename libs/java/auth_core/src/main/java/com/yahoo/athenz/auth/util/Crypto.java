@@ -26,16 +26,13 @@ import java.security.cert.Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 
 import javax.security.auth.x500.X500Principal;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,6 +123,7 @@ public class Crypto {
     public static final String CERT_SPIFFE_URI = "spiffe://";
 
     static final SecureRandom RANDOM;
+    static final ObjectMapper JSON_MAPPER;
     static {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         SecureRandom r;
@@ -139,6 +137,9 @@ public class Crypto {
         RANDOM = r;
         // force seeding.
         RANDOM.nextBytes(new byte[] { 8 });
+
+        JSON_MAPPER = new ObjectMapper();
+        JSON_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     private static String getKeyFactoryProvider() {
@@ -1410,49 +1411,51 @@ public class Crypto {
         return writer.toString();
     }
 
-    public static void main(String[] args) throws CryptoException {
-        if (args.length >= 2) {
-            String op = args[0];
-            if ("sign".equals(op)) {
-                if (args.length == 3) {
-                    String sig = Crypto.sign(args[1], Crypto.loadPrivateKey(new File(args[2])));
-                    System.out.println(sig);
-                    System.exit(0);
-                }
-            } else if ("verify".equals(op)) {
-                if (args.length == 4) {
-                    if (Crypto.verify(args[1], Crypto.loadPublicKey(new File(args[2])), args[3])) {
-                        System.out.println("Verified.");
-                    } else {
-                        System.out.println("NOT VERIFIED");
-                    }
-                    System.exit(0);
-                }
-            } else if ("public".equals(op)) {
-                if (args.length == 2) {
-                    String pub = encodedFile(new File(args[1]));
-                    Crypto.loadPublicKey(ybase64DecodeString(pub)); //throws if something is wrong
-                    System.out.println(pub);
-                    System.exit(0);
-                }
-            } else if ("private".equals(op)) {
-                if (args.length == 2) {
-                    try {
-                        String priv = encodedFile(new File(args[1]));
-                        Crypto.loadPrivateKey(ybase64DecodeString(priv)); //throws if something is wrong
-                        System.out.println(priv);
-                        System.exit(0);
-                    } catch (Exception e) {
-                        System.out.println("*** " + e.getMessage());
-                        System.exit(1);
-                    }
-                }
-            }
+    static Map<String, String> parseJWSProtectedHeader(final String protectedHeader) {
+
+        java.util.Base64.Decoder base64Decoder = java.util.Base64.getUrlDecoder();
+        try {
+            byte[] protectedHeaderBytes = base64Decoder.decode(protectedHeader);
+            return JSON_MAPPER.readValue(protectedHeaderBytes, Map.class);
+        } catch (Exception ex) {
+            LOG.error("Unable to parse jws domain protected header", ex);
         }
-        System.out.println("usage: r Crypto private privateKeyFile");
-        System.out.println("usage: r Crypto public publicKeyFile");
-        System.out.println("usage: r Crypto sign msg privateKeyFile");
-        System.out.println("usage: r Crypto verify msg privateKeyFile signature");
-        System.exit(1);
+        return null;
+    }
+
+    public static boolean validateJWSDocument(final String protectedHeader, final String payload,
+            final String signature, Function<String, PublicKey> publicKeyGetter) {
+
+        final Map<String, String> jwsHeader = parseJWSProtectedHeader(protectedHeader);
+        if (jwsHeader == null) {
+            LOG.error("Unable to parse JWS header field");
+            return false;
+        }
+
+        final String keyId = jwsHeader.get("kid");
+        if (keyId == null) {
+            LOG.error("missing jws kid header");
+            return false;
+        }
+
+        PublicKey publicKey = publicKeyGetter.apply(keyId);
+        if (publicKey == null) {
+            LOG.error("public Key id={} not available", keyId);
+            return false;
+        }
+
+        boolean result = false;
+        java.util.Base64.Decoder base64Decoder = java.util.Base64.getUrlDecoder();
+
+        try {
+            byte[] signatureBytes = base64Decoder.decode(signature);
+            final String signedData = protectedHeader + "." + payload;
+            result = Crypto.verify(signedData.getBytes(StandardCharsets.UTF_8),
+                    publicKey, signatureBytes, getDigestAlgorithm(jwsHeader.get("alg")));
+        } catch (Exception ex) {
+            LOG.error("signature validation exception", ex);
+        }
+
+        return result;
     }
 }
