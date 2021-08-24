@@ -40,3 +40,28 @@ resource DomainSignedPolicyData GET "/domain/{domainName}/signed_policy_data" {
         ResourceError NOT_FOUND;
     }
 }
+
+//SignedPolicyData using flattened JWS JSON Serialization syntax.
+//https://tools.ietf.org/html/rfc7515#section-7.2.2
+type JWSPolicyData Struct {
+    String payload;
+    String protected;
+    Map<String, String> header;
+    String signature;
+}
+
+//Get a signed policy enumeration from the service, to transfer to a local store.
+//An ETag is generated for the PolicyList that changes when any item in the list
+//changes. If the If-None-Match header is provided, and it matches the ETag that
+//would be returned, then a NOT_MODIFIED response is returned instead of the list.
+resource JWSPolicyData GET "/domain/{domainName}/policy/signed" {
+    DomainName domainName; //name of the domain
+    String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time
+    String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
+    authenticate;
+    expected OK, NOT_MODIFIED;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+    }
+}

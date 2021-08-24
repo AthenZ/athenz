@@ -2056,6 +2056,36 @@ public class ZTSClientTest {
     }
 
     @Test
+    public void testGetJWSPolicyData() {
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ztsClientMock.setPolicyName("policy1");
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        Map<String, List<String>> responseHeaders = new HashMap<>();
+        JWSPolicyData jwsPolicyData = client.getJWSPolicyData("coretech", null, responseHeaders);
+        assertNotNull(jwsPolicyData);
+
+        try {
+            client.getJWSPolicyData("invalid-domain", null, responseHeaders);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        try {
+            client.getJWSPolicyData(null, null, responseHeaders);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.close();
+    }
+
+    @Test
     public void testGetTenantDomains() {
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         List<String> tenantDomains = new ArrayList<>();

@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zts;
 
 import java.util.*;
+
 import com.yahoo.rdl.Timestamp;
 
 public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.Closeable {
@@ -180,30 +181,36 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         tokenResponse.setAccess_token("accesstoken");
         tokenResponse.setToken_type("Bearer");
 
-        if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain")) {
-            tokenResponse.setScope("coretech:role.role1");
-        } else if (request.equals("grant_type=client_credentials&expires_in=8&scope=coretech%3Adomain")) {
-            tokenResponse.setScope("coretech:role.role1");
-            tokenResponse.setExpires_in(8);
-        } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech2%3Adomain")) {
-            tokenResponse.setScope("coretech2:role.role1");
-        } else if (request.equals("grant_type=client_credentials&expires_in=8&scope=coretech2%3Adomain")) {
-            tokenResponse.setScope("coretech2:role.role1");
-            tokenResponse.setExpires_in(8);
-        } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Arole.role1")) {
-            tokenResponse.setScope("coretech:role.role1");
-        } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain+openid+coretech%3Aservice.backend")) {
-            tokenResponse.setScope("coretech:role.role1");
-            tokenResponse.setId_token("idtoken");
-        } else if (request.equals("grant_type=client_credentials&expires_in=3600&scope=coretech%3Arole.role1&authorization_details=%5B%7B%22type%22%3A%22message_access%22%2C%22location%22%3A%5B%22https%3A%2F%2Flocation1%22%2C%22https%3A%2F%2Flocation2%22%5D%2C%22identifier%22%3A%22id1%22%7D%5D")) {
-            tokenResponse.setAccess_token("accesstoken-authz-details");
-            tokenResponse.setExpires_in(3600 + requestCount);
-        } else if (request.equals("grant_type=client_credentials&expires_in=500&scope=resourceexception%3Adomain")) {
-            throw new ResourceException(400, "Unable to get access token");
-        } else if (request.equals("grant_type=client_credentials&expires_in=500&scope=exception%3Adomain")) {
-            throw new IllegalArgumentException("Unable to get access token");
-        } else {
-            throw new ResourceException(404, "domain not found");
+        switch (request) {
+            case "grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain":
+            case "grant_type=client_credentials&expires_in=3600&scope=coretech%3Arole.role1":
+                tokenResponse.setScope("coretech:role.role1");
+                break;
+            case "grant_type=client_credentials&expires_in=8&scope=coretech%3Adomain":
+                tokenResponse.setScope("coretech:role.role1");
+                tokenResponse.setExpires_in(8);
+                break;
+            case "grant_type=client_credentials&expires_in=3600&scope=coretech2%3Adomain":
+                tokenResponse.setScope("coretech2:role.role1");
+                break;
+            case "grant_type=client_credentials&expires_in=8&scope=coretech2%3Adomain":
+                tokenResponse.setScope("coretech2:role.role1");
+                tokenResponse.setExpires_in(8);
+                break;
+            case "grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain+openid+coretech%3Aservice.backend":
+                tokenResponse.setScope("coretech:role.role1");
+                tokenResponse.setId_token("idtoken");
+                break;
+            case "grant_type=client_credentials&expires_in=3600&scope=coretech%3Arole.role1&authorization_details=%5B%7B%22type%22%3A%22message_access%22%2C%22location%22%3A%5B%22https%3A%2F%2Flocation1%22%2C%22https%3A%2F%2Flocation2%22%5D%2C%22identifier%22%3A%22id1%22%7D%5D":
+                tokenResponse.setAccess_token("accesstoken-authz-details");
+                tokenResponse.setExpires_in(3600 + requestCount);
+                break;
+            case "grant_type=client_credentials&expires_in=500&scope=resourceexception%3Adomain":
+                throw new ResourceException(400, "Unable to get access token");
+            case "grant_type=client_credentials&expires_in=500&scope=exception%3Adomain":
+                throw new IllegalArgumentException("Unable to get access token");
+            default:
+                throw new ResourceException(404, "domain not found");
         }
 
         int idxScope = request.indexOf("scope=");
@@ -345,7 +352,27 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         
         return domSignedPolicyData;
     }
-    
+
+    @Override
+    public JWSPolicyData getJWSPolicyData(String domainName, String matchingTag, Map<String, List<String>> responseHeaders) {
+
+        if ("invalid-domain".equals(domainName)) {
+            throw new ResourceException(404, "not found domain");
+        } else if (domainName == null) {
+            throw new IllegalArgumentException("Invalid request");
+        }
+
+        JWSPolicyData jwsPolicyData = new JWSPolicyData();
+        jwsPolicyData.setSignature("signature");
+        jwsPolicyData.setPayload("payload");
+        jwsPolicyData.setPayload("protected-header");
+        Map<String, String> headers = new HashMap<>();
+        headers.put("kid", "0");
+        jwsPolicyData.setHeader(headers);
+
+        return jwsPolicyData;
+    }
+
     @Override
     public TenantDomains getTenantDomains(String providerDomainName, String userName,
             String roleName, String serviceName) {

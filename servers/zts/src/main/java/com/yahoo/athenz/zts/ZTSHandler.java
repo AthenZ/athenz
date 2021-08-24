@@ -19,6 +19,7 @@ public interface ZTSHandler {
     PublicKeyEntry getPublicKeyEntry(ResourceContext context, String domainName, String serviceName, String keyId);
     HostServices getHostServices(ResourceContext context, String host);
     Response getDomainSignedPolicyData(ResourceContext context, String domainName, String matchingTag);
+    Response getJWSPolicyData(ResourceContext context, String domainName, String matchingTag);
     RoleToken getRoleToken(ResourceContext context, String domainName, String role, Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal);
     RoleToken postRoleCertificateRequest(ResourceContext context, String domainName, String roleName, RoleCertificateRequest req);
     Access getAccess(ResourceContext context, String domainName, String roleName, String principal);
