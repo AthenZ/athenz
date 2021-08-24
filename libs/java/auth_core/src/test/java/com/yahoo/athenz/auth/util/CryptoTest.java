@@ -25,14 +25,14 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 
 import static com.yahoo.athenz.auth.AuthorityConsts.ATHENZ_PROP_RESTRICTED_OU;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
+import com.google.common.primitives.Bytes;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -68,6 +68,8 @@ public class CryptoTest {
     private final String serviceToken = "v=S1;d=coretech;n=storage;t=1234567000;e=123456800;h=localhost";
     private final String serviceRSASignature = "VsUlcNozK4as1FjPbowEE_DFDD8KWpQzphadfbt_TsMoCTLFpYrMzKTu_nHKemJmEi0bbPwj7hRLrIKEFu2VjQ--";
     private final String serviceECSignature = "MEQCIEBnyNCxp5GSeua3K9OenyetmVs4F68VB.Md1JRaU4OXAiBWAxlJLe74ZV4QDqapsD4FJm.MA3mv0FMcq.LEevJa0g--";
+
+    private static final byte[] PERIOD = { 46 };
 
     @Test
     public void testSignVerifyRSAKey() {
@@ -1269,7 +1271,121 @@ public class CryptoTest {
         assertEquals(Crypto.getDigestAlgorithm("RS384"), Crypto.SHA384);
         assertEquals(Crypto.getDigestAlgorithm("ES512"), Crypto.SHA512);
         assertEquals(Crypto.getDigestAlgorithm("RS512"), Crypto.SHA512);
-        assertEquals(Crypto.getDigestAlgorithm("SHA1"), null);
-        assertEquals(Crypto.getDigestAlgorithm("MD5"), null);
+        assertNull(Crypto.getDigestAlgorithm("SHA1"));
+        assertNull(Crypto.getDigestAlgorithm("MD5"));
+    }
+
+    @Test
+    public void testValidateJWSDocument() {
+        // valid support
+        assertTrue(validateJWSDocumentWithKeys("rsa-0", "RS256", rsaPrivateKey));
+        assertTrue(validateJWSDocumentWithKeys("ec-0", "ES256", ecPrivateKey));
+        // invalid keys
+        assertFalse(validateJWSDocumentWithKeys("0", "RS256", rsaPrivateKey));
+        // invalid algorithm
+        assertFalse(validateJWSDocumentWithKeys("rsa-0", "RS512", rsaPrivateKey));
+    }
+
+    private boolean validateJWSDocumentWithKeys(final String kid, final String algorithm, File privateKeyFile) {
+
+        Map<String, PublicKey> keyMap = new HashMap<>();
+        keyMap.put("rsa-0", Crypto.loadPublicKey(rsaPublicKey));
+        keyMap.put("ec-0", Crypto.loadPublicKey(ecPublicKey));
+        Function<String, PublicKey> keyGetter= keyMap::get;
+
+        final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+        final String protectedHeader = "{\"kid\":\"" + kid + "\",\"alg\":\"" + algorithm + "\"}";
+        final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
+
+        final String payload = "{\"domainName\":\"athenz\"}";
+        final byte[] encodedPayload = encoder.encode(payload.getBytes(StandardCharsets.UTF_8));
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+
+        final byte[] signature = encoder.encode(Crypto.sign(
+                Bytes.concat(encodedHeader, PERIOD, encodedPayload), privateKey, Crypto.SHA256));
+        return Crypto.validateJWSDocument(new String(encodedHeader), new String(encodedPayload),
+                new String(signature), keyGetter);
+    }
+
+    @Test
+    public void validateJWSDocumentMissingKid() {
+
+        Function<String, PublicKey> keyGetter= (String keyId)-> null;
+        final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+        final String protectedHeader = "{\"alg\":\"ES256\"}";
+        final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
+
+        final String payload = "{\"domainName\":\"athenz\"}";
+        final byte[] encodedPayload = encoder.encode(payload.getBytes(StandardCharsets.UTF_8));
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
+
+        final byte[] signature = encoder.encode(Crypto.sign(
+                Bytes.concat(encodedHeader, PERIOD, encodedPayload), privateKey, Crypto.SHA256));
+        assertFalse(Crypto.validateJWSDocument(new String(encodedHeader), new String(encodedPayload),
+                new String(signature), keyGetter));
+    }
+
+    @Test
+    public void validateJWSDocumentInvalidHeader() {
+
+        Function<String, PublicKey> keyGetter= (String keyId)-> null;
+        final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+        final String protectedHeader = "{\"alg\":\"ES256\"}";
+        final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
+
+        final String payload = "{\"domainName\":\"athenz\"}";
+        final byte[] encodedPayload = encoder.encode(payload.getBytes(StandardCharsets.UTF_8));
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
+
+        final byte[] signature = encoder.encode(Crypto.sign(
+                Bytes.concat(encodedHeader, PERIOD, encodedPayload), privateKey, Crypto.SHA256));
+        assertFalse(Crypto.validateJWSDocument("invalid-header", new String(encodedPayload),
+                new String(signature), keyGetter));
+    }
+
+    @Test
+    public void testValidateJWSDocumentInvalidSignature() {
+
+        Map<String, PublicKey> keyMap = new HashMap<>();
+        keyMap.put("rsa-0", Crypto.loadPublicKey(rsaPublicKey));
+        keyMap.put("ec-0", Crypto.loadPublicKey(ecPublicKey));
+        Function<String, PublicKey> keyGetter= keyMap::get;
+
+        final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+        final String protectedHeader = "{\"kid\":\"ec-0\",\"alg\":\"ES256\"}";
+        final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
+
+        final String payload = "{\"domainName\":\"athenz\"}";
+        final byte[] encodedPayload = encoder.encode(payload.getBytes(StandardCharsets.UTF_8));
+
+        assertFalse(Crypto.validateJWSDocument(new String(encodedHeader), new String(encodedPayload),
+                "invalid-signature", keyGetter));
+    }
+
+    @Test
+    public void testValidateJWSDocumentInvalidPublicKey() {
+
+        // we're going to return different public key for id
+        Map<String, PublicKey> keyMap = new HashMap<>();
+        keyMap.put("rsa-0", Crypto.loadPublicKey(ecPublicKey));
+        keyMap.put("ec-0", Crypto.loadPublicKey(rsaPublicKey));
+        Function<String, PublicKey> keyGetter= keyMap::get;
+
+        final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+        final String protectedHeader = "{\"kid\":\"ec-0\",\"alg\":\"ES256\"}";
+        final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
+
+        final String payload = "{\"domainName\":\"athenz\"}";
+        final byte[] encodedPayload = encoder.encode(payload.getBytes(StandardCharsets.UTF_8));
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        final byte[] signature = encoder.encode(Crypto.sign(
+                Bytes.concat(encodedHeader, PERIOD, encodedPayload), privateKey, Crypto.SHA256));
+        assertFalse(Crypto.validateJWSDocument(new String(encodedHeader), new String(encodedPayload),
+                new String(signature), keyGetter));
     }
 }
