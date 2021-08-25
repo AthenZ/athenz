@@ -515,6 +515,44 @@ func (client ZTSClient) GetDomainSignedPolicyData(domainName DomainName, matchin
 	}
 }
 
+func (client ZTSClient) GetJWSPolicyData(domainName DomainName, matchingTag string) (*JWSPolicyData, string, error) {
+	var data *JWSPolicyData
+	headers := map[string]string{
+		"If-None-Match": matchingTag,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy/signed"
+	resp, err := client.httpGet(url, headers)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200, 304:
+		if 304 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return nil, "", err
+			}
+		}
+		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
+		return data, tag, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, "", err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return nil, "", errobj
+	}
+}
+
 func (client ZTSClient) GetRoleToken(domainName DomainName, role EntityList, minExpiryTime *int32, maxExpiryTime *int32, proxyForPrincipal EntityName) (*RoleToken, error) {
 	var data *RoleToken
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/token" + encodeParams(encodeStringParam("role", string(role), ""), encodeOptionalInt32Param("minExpiryTime", minExpiryTime), encodeOptionalInt32Param("maxExpiryTime", maxExpiryTime), encodeStringParam("proxyForPrincipal", string(proxyForPrincipal), ""))

@@ -181,6 +181,40 @@ public class MSDClient implements Closeable {
   }
 
   /**
+   * Api to perform a dynamic workload PUT operation for a domain and service
+   * @param domain name of the domain
+   * @param service name of the service
+   * @param options options for the new workload
+   * @return WorkloadOptions
+   */
+  public WorkloadOptions putDynamicWorkload(String domain, String service, WorkloadOptions options) {
+    try {
+      return client.putDynamicWorkload(domain, service, options);
+    } catch (ResourceException ex) {
+      throw new MSDClientException(ex.getCode(), ex.getData());
+    } catch (Exception ex) {
+      throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+    }
+  }
+
+  /**
+   * Api to perform a static workload PUT operation for a domain and service
+   * @param domain name of the domain
+   * @param service name of the service
+   * @param staticWorkload StaticWorkload object
+   * @return WorkloadOptions
+   */
+  public StaticWorkload putStaticWorkload(String domain, String service, StaticWorkload staticWorkload) {
+    try {
+      return client.putStaticWorkload(domain, service, staticWorkload);
+    } catch (ResourceException ex) {
+      throw new MSDClientException(ex.getCode(), ex.getData());
+    } catch (Exception ex) {
+      throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+    }
+  }
+
+  /**
    * Close the MSDClient object and release any allocated resources.
    */
   @Override

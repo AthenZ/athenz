@@ -1089,6 +1089,90 @@ func (self *DomainSignedPolicyData) Validate() error {
 }
 
 //
+// JWSPolicyData - SignedPolicyData using flattened JWS JSON Serialization
+// syntax. https://tools.ietf.org/html/rfc7515#section-7.2.2
+//
+type JWSPolicyData struct {
+	Payload   string            `json:"payload"`
+	Protected string            `json:"protected"`
+	Header    map[string]string `json:"header"`
+	Signature string            `json:"signature"`
+}
+
+//
+// NewJWSPolicyData - creates an initialized JWSPolicyData instance, returns a pointer to it
+//
+func NewJWSPolicyData(init ...*JWSPolicyData) *JWSPolicyData {
+	var o *JWSPolicyData
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(JWSPolicyData)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *JWSPolicyData) Init() *JWSPolicyData {
+	if self.Header == nil {
+		self.Header = make(map[string]string)
+	}
+	return self
+}
+
+type rawJWSPolicyData JWSPolicyData
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a JWSPolicyData
+//
+func (self *JWSPolicyData) UnmarshalJSON(b []byte) error {
+	var m rawJWSPolicyData
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := JWSPolicyData(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *JWSPolicyData) Validate() error {
+	if self.Payload == "" {
+		return fmt.Errorf("JWSPolicyData.payload is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Payload)
+		if !val.Valid {
+			return fmt.Errorf("JWSPolicyData.payload does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Protected == "" {
+		return fmt.Errorf("JWSPolicyData.protected is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Protected)
+		if !val.Valid {
+			return fmt.Errorf("JWSPolicyData.protected does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Header == nil {
+		return fmt.Errorf("JWSPolicyData: Missing required field: header")
+	}
+	if self.Signature == "" {
+		return fmt.Errorf("JWSPolicyData.signature is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Signature)
+		if !val.Valid {
+			return fmt.Errorf("JWSPolicyData.signature does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // RoleCertificate - Copyright Athenz Authors Licensed under the terms of the
 // Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a
 // role certificate

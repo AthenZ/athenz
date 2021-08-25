@@ -88,12 +88,12 @@ public class MSDClientTest {
     msdClient.client = msdrdlClientMock;
     Workloads workloads = msdClient.getWorkloadsByIP("10.0.0.1", null, null);
     assertNotNull(workloads);
-    assertEquals(workloads.getWorkloadList().get(0).getProvider(), "openstack");
-    assertEquals(workloads.getWorkloadList().get(0).getUuid(), "avve-resw");
-    assertEquals(workloads.getWorkloadList().get(0).getDomainName(), "athenz");
-    assertEquals(workloads.getWorkloadList().get(0).getServiceName(), "api");
-    assertNotNull(workloads.getWorkloadList().get(0).getUpdateTime());
-    assertNull(workloads.getWorkloadList().get(0).getIpAddresses());
+    assertEquals(workloads.getDynamicWorkloadList().get(0).getProvider(), "openstack");
+    assertEquals(workloads.getDynamicWorkloadList().get(0).getUuid(), "avve-resw");
+    assertEquals(workloads.getDynamicWorkloadList().get(0).getDomainName(), "athenz");
+    assertEquals(workloads.getDynamicWorkloadList().get(0).getServiceName(), "api");
+    assertNotNull(workloads.getDynamicWorkloadList().get(0).getUpdateTime());
+    assertNull(workloads.getDynamicWorkloadList().get(0).getIpAddresses());
     try {
       msdClient.getWorkloadsByIP("127.0.0.1", null, null);
       fail();
@@ -116,12 +116,12 @@ public class MSDClientTest {
     msdClient.client = msdrdlClientMock;
     Workloads workloads = msdClient.getWorkloadsByService("athenz", "api", null, null);
     assertNotNull(workloads);
-    assertEquals(workloads.getWorkloadList().get(0).getProvider(), "openstack");
-    assertEquals(workloads.getWorkloadList().get(0).getUuid(), "avve-resw");
-    assertNull(workloads.getWorkloadList().get(0).getDomainName());
-    assertNull(workloads.getWorkloadList().get(0).getServiceName());
-    assertNotNull(workloads.getWorkloadList().get(0).getUpdateTime());
-    assertTrue(workloads.getWorkloadList().get(0).getIpAddresses().contains("10.0.0.1"));
+    assertEquals(workloads.getDynamicWorkloadList().get(0).getProvider(), "openstack");
+    assertEquals(workloads.getDynamicWorkloadList().get(0).getUuid(), "avve-resw");
+    assertNull(workloads.getDynamicWorkloadList().get(0).getDomainName());
+    assertNull(workloads.getDynamicWorkloadList().get(0).getServiceName());
+    assertNotNull(workloads.getDynamicWorkloadList().get(0).getUpdateTime());
+    assertTrue(workloads.getDynamicWorkloadList().get(0).getIpAddresses().contains("10.0.0.1"));
     try {
       msdClient.getWorkloadsByService("bad-domain", "api", null, null);
       fail();
@@ -135,6 +135,64 @@ public class MSDClientTest {
       assertTrue(ex.getMessage().contains("bad request"));
     }
     msdClient.close();
+  }
+
+  @Test
+  public void testPutDynamicWorkload() throws Exception {
+    MSDRDLClientMock msdrdlClientMock = new MSDRDLClientMock();
+    MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
+    msdClient.client = msdrdlClientMock;
+    WorkloadOptions options = new WorkloadOptions().setIpChanged(true);
+
+    try {
+      msdClient.putDynamicWorkload("mydomain", "myservice", options);
+    } catch (Exception ignored) {
+      fail();
+    }
+
+    try {
+      msdClient.putDynamicWorkload("bad-domain", "api", options);
+      fail();
+    } catch (ResourceException re) {
+      assertEquals(re.getCode(), 404);
+    }
+    try {
+      msdClient.putDynamicWorkload("mydomain", "api", null);
+      fail();
+    } catch (Exception ex) {
+      assertTrue(ex.getMessage().contains("bad request"));
+    }
+    msdClient.close();
+
+  }
+
+  @Test
+  public void testPutStaticWorkload() throws Exception {
+    MSDRDLClientMock msdrdlClientMock = new MSDRDLClientMock();
+    MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
+    msdClient.client = msdrdlClientMock;
+    StaticWorkload sw1 = new StaticWorkload();
+
+    try {
+      msdClient.putStaticWorkload("mydomain", "myservice", sw1);
+    } catch (Exception ignored) {
+      fail();
+    }
+
+    try {
+      msdClient.putStaticWorkload("bad-domain", "api", sw1);
+      fail();
+    } catch (ResourceException re) {
+      assertEquals(re.getCode(), 404);
+    }
+    try {
+      msdClient.putStaticWorkload("mydomain", "api", null);
+      fail();
+    } catch (Exception ex) {
+      assertTrue(ex.getMessage().contains("bad request"));
+    }
+    msdClient.close();
+
   }
 
   private SSLContext createDummySslContext() throws Exception {

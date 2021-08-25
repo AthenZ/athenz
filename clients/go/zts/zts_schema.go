@@ -171,6 +171,14 @@ func init() {
 	tDomainSignedPolicyData.Field("keyId", "String", false, nil, "the identifier of the key used to generate the signature")
 	sb.AddType(tDomainSignedPolicyData.Build())
 
+	tJWSPolicyData := rdl.NewStructTypeBuilder("Struct", "JWSPolicyData")
+	tJWSPolicyData.Comment("SignedPolicyData using flattened JWS JSON Serialization syntax. https://tools.ietf.org/html/rfc7515#section-7.2.2")
+	tJWSPolicyData.Field("payload", "String", false, nil, "")
+	tJWSPolicyData.Field("protected", "String", false, nil, "")
+	tJWSPolicyData.MapField("header", "String", "String", false, "")
+	tJWSPolicyData.Field("signature", "String", false, nil, "")
+	sb.AddType(tJWSPolicyData.Build())
+
 	tRoleCertificate := rdl.NewStructTypeBuilder("Struct", "RoleCertificate")
 	tRoleCertificate.Comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
 	tRoleCertificate.Field("x509Certificate", "String", false, nil, "")
@@ -507,6 +515,16 @@ func init() {
 	mGetDomainSignedPolicyData.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetDomainSignedPolicyData.Exception("NOT_FOUND", "ResourceError", "")
 	sb.AddResource(mGetDomainSignedPolicyData.Build())
+
+	mGetJWSPolicyData := rdl.NewResourceBuilder("JWSPolicyData", "GET", "/domain/{domainName}/policy/signed")
+	mGetJWSPolicyData.Comment("Get a signed policy enumeration from the service, to transfer to a local store. An ETag is generated for the PolicyList that changes when any item in the list changes. If the If-None-Match header is provided, and it matches the ETag that would be returned, then a NOT_MODIFIED response is returned instead of the list.")
+	mGetJWSPolicyData.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
+	mGetJWSPolicyData.Input("matchingTag", "String", false, "", "If-None-Match", false, nil, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
+	mGetJWSPolicyData.Output("tag", "String", "ETag", false, "The current latest modification timestamp is returned in this header")
+	mGetJWSPolicyData.Auth("", "", true, "")
+	mGetJWSPolicyData.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetJWSPolicyData.Exception("NOT_FOUND", "ResourceError", "")
+	sb.AddResource(mGetJWSPolicyData.Build())
 
 	mGetRoleToken := rdl.NewResourceBuilder("RoleToken", "GET", "/domain/{domainName}/token")
 	mGetRoleToken.Comment("Return a security token for the specific role in the namespace that the principal can assume. If the role is omitted, then all roles in the namespace that the authenticated user can assume are returned. the caller can specify how long the RoleToken should be valid for by specifying the minExpiryTime and maxExpiryTime parameters. The minExpiryTime specifies that the returned RoleToken must be at least valid (min/lower bound) for specified number of seconds, while maxExpiryTime specifies that the RoleToken must be at most valid (max/upper bound) for specified number of seconds. If both values are the same, the server must return a RoleToken for that many seconds. If no values are specified, the server's default RoleToken Timeout value is used.")

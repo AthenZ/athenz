@@ -69,9 +69,9 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
     if ("bad-req".equals(domainName)) {
       throw new RuntimeException("bad request");
     }
-    Workload wl = new Workload().setProvider("openstack").setIpAddresses(Collections.singletonList("10.0.0.1"))
+    DynamicWorkload wl = new DynamicWorkload().setProvider("openstack").setIpAddresses(Collections.singletonList("10.0.0.1"))
             .setUuid("avve-resw").setUpdateTime(Timestamp.fromMillis(System.currentTimeMillis()));
-    return new Workloads().setWorkloadList(Collections.singletonList(wl));
+    return new Workloads().setDynamicWorkloadList(Collections.singletonList(wl));
   }
 
   @Override
@@ -82,8 +82,30 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
     if ("bad-req".equals(ip)) {
       throw new RuntimeException("bad request");
     }
-    Workload wl = new Workload().setProvider("openstack").setDomainName("athenz").setServiceName("api")
+    DynamicWorkload wl = new DynamicWorkload().setProvider("openstack").setDomainName("athenz").setServiceName("api")
             .setUuid("avve-resw").setUpdateTime(Timestamp.fromMillis(System.currentTimeMillis()));
-    return new Workloads().setWorkloadList(Collections.singletonList(wl));
+    return new Workloads().setDynamicWorkloadList(Collections.singletonList(wl));
+  }
+
+  @Override
+  public WorkloadOptions putDynamicWorkload(String domain, String service, WorkloadOptions options) {
+    if ("bad-domain".equals(domain)) {
+      throw new ResourceException(404, "unknown domain");
+    }
+    if (options == null) {
+      throw new RuntimeException("bad request");
+    }
+    return null;
+  }
+
+  @Override
+  public StaticWorkload putStaticWorkload(String domain, String service, StaticWorkload staticWorkload) {
+    if ("bad-domain".equals(domain)) {
+      throw new ResourceException(404, "unknown domain");
+    }
+    if (staticWorkload == null) {
+      throw new RuntimeException("bad request");
+    }
+    return null;
   }
 }

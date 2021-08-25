@@ -30,6 +30,7 @@ public class WorkloadsTest {
     @Test
     public void testWorkloadsFields() {
         Workloads workloads1 = new Workloads();
+
         Workload wl1 = new Workload();
         List<String> ipAddresses = Collections.singletonList("10.20.30.40");
         wl1.setDomainName("athenz").setServiceName("api").setIpAddresses(ipAddresses).setProvider("kubernetes").setUuid("1234-rsaq-422dcz")
@@ -37,35 +38,72 @@ public class WorkloadsTest {
 
         List<Workload> workloadList1 = Collections.singletonList(wl1);
 
+        DynamicWorkload dwl1 = new DynamicWorkload();
+        dwl1.setDomainName("athenz").setServiceName("api").setIpAddresses(ipAddresses).setProvider("kubernetes").setUuid("1234-rsaq-422dcz")
+                .setUpdateTime(Timestamp.fromMillis(123456789123L)).setHostname("testhost-1").setCertExpiryTime(Timestamp.fromMillis(123456789123L));
+        List<DynamicWorkload> dynamicWorkloadList1 = Collections.singletonList(dwl1);
+
+        StaticWorkload swl1 = new StaticWorkload();
+        List<String> ipAddresses2 = Collections.singletonList("10.20.30.40");
+        swl1.setDomainName("athenz")
+                .setServiceName("api")
+                .setIpAddresses(ipAddresses2)
+                .setName("testhost-1")
+                .setUpdateTime(Timestamp.fromMillis(123456789123L));
+        List<StaticWorkload> staticWorkloadList1 = Collections.singletonList(swl1);
+
         workloads1.setWorkloadList(workloadList1);
+        workloads1.setDynamicWorkloadList(dynamicWorkloadList1);
+        workloads1.setStaticWorkloadList(staticWorkloadList1);
 
         assertNotNull(workloads1.getWorkloadList());
+        assertNotNull(workloads1.getDynamicWorkloadList());
+        assertNotNull(workloads1.getStaticWorkloadList());
 
         assertEquals(workloads1, workloads1);
 
         Workloads workloads2 = new Workloads();
+
         Workload wl2 = new Workload();
-        wl2.setDomainName("athenz").setServiceName("api").setIpAddresses(ipAddresses).setProvider("kubernetes").setUuid("1234-rsaq-422dcz")
-                .setUpdateTime(Timestamp.fromMillis(123456789123L)).setHostname("testhost-1").setCertExpiryTime(Timestamp.fromMillis(123456789123L));
+        wl2.setDomainName("athenz2").setServiceName("api2").setIpAddresses(ipAddresses).setProvider("kubernetes").setUuid("1234-rsaq-422dcz")
+                .setUpdateTime(Timestamp.fromMillis(123456789123L)).setHostname("testhost-2").setCertExpiryTime(Timestamp.fromMillis(123456789123L));
 
         List<Workload> workloadList2 = Collections.singletonList(wl2);
-        workloads2.setWorkloadList(workloadList2);
 
-        assertNotNull(workloads2.getWorkloadList());
+        DynamicWorkload dwl2 = new DynamicWorkload();
+        dwl2.setDomainName("athenz2").setServiceName("api2").setIpAddresses(ipAddresses).setProvider("kubernetes").setUuid("1234-rsaq-422dcz")
+                .setUpdateTime(Timestamp.fromMillis(123456789123L)).setHostname("testhost-2").setCertExpiryTime(Timestamp.fromMillis(123456789123L));
+
+        List<DynamicWorkload> dynamicWorkloadList2 = Collections.singletonList(dwl2);
+
+        StaticWorkload swl2 = new StaticWorkload();
+        swl2.setDomainName("athenz2")
+                .setServiceName("api2")
+                .setIpAddresses(ipAddresses2)
+                .setName("testhost-2")
+                .setUpdateTime(Timestamp.fromMillis(123456789123L));
+        List<StaticWorkload> staticWorkloadList2 = Collections.singletonList(swl2);
+
+        workloads2.setWorkloadList(workloadList2);
+        workloads2.setDynamicWorkloadList(dynamicWorkloadList2);
+        workloads2.setStaticWorkloadList(staticWorkloadList2);
+
+        assertNotEquals(workloads1, workloads2);
+
+        workloads2.setDynamicWorkloadList(dynamicWorkloadList1);
+        assertNotEquals(workloads1, workloads2);
+
+        workloads2.setStaticWorkloadList(staticWorkloadList1);
+        assertNotEquals(workloads1, workloads2);
 
         workloads2.setWorkloadList(workloadList1);
         assertEquals(workloads1, workloads2);
 
-        workloads2.setWorkloadList(null);
+        workloads2.setDynamicWorkloadList(null);
         assertNotEquals(workloads1, workloads2);
 
-        Workload wl3 = new Workload();
-        wl3.setDomainName("athenz").setServiceName("api").setIpAddresses(ipAddresses).setProvider("openstack").setUuid("1234-acbf")
-                .setUpdateTime(Timestamp.fromMillis(123456789123L)).setHostname("testhost-1").setCertExpiryTime(Timestamp.fromMillis(123456789123L));
-
-        List<Workload> workloadList3 = Collections.singletonList(wl3);
-        workloads2.setWorkloadList(workloadList3);
-
+        workloads2.setDynamicWorkloadList(dynamicWorkloadList1);
+        workloads2.setStaticWorkloadList(null);
         assertNotEquals(workloads1, workloads2);
 
         // for code coverage
