@@ -9,11 +9,11 @@ import java.util.List;
 import com.yahoo.rdl.*;
 
 //
-// Workload - kept for backward compatibility sake. Will be eventually
-// deprecated in favor of DynamicWorkload
+// DynamicWorkload - workload type describing workload bootstrapped with an
+// identity
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Workload {
+public class DynamicWorkload {
     public String domainName;
     public String serviceName;
     public String uuid;
@@ -26,63 +26,63 @@ public class Workload {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp certIssueTime;
 
-    public Workload setDomainName(String domainName) {
+    public DynamicWorkload setDomainName(String domainName) {
         this.domainName = domainName;
         return this;
     }
     public String getDomainName() {
         return domainName;
     }
-    public Workload setServiceName(String serviceName) {
+    public DynamicWorkload setServiceName(String serviceName) {
         this.serviceName = serviceName;
         return this;
     }
     public String getServiceName() {
         return serviceName;
     }
-    public Workload setUuid(String uuid) {
+    public DynamicWorkload setUuid(String uuid) {
         this.uuid = uuid;
         return this;
     }
     public String getUuid() {
         return uuid;
     }
-    public Workload setIpAddresses(List<String> ipAddresses) {
+    public DynamicWorkload setIpAddresses(List<String> ipAddresses) {
         this.ipAddresses = ipAddresses;
         return this;
     }
     public List<String> getIpAddresses() {
         return ipAddresses;
     }
-    public Workload setHostname(String hostname) {
+    public DynamicWorkload setHostname(String hostname) {
         this.hostname = hostname;
         return this;
     }
     public String getHostname() {
         return hostname;
     }
-    public Workload setProvider(String provider) {
+    public DynamicWorkload setProvider(String provider) {
         this.provider = provider;
         return this;
     }
     public String getProvider() {
         return provider;
     }
-    public Workload setUpdateTime(Timestamp updateTime) {
+    public DynamicWorkload setUpdateTime(Timestamp updateTime) {
         this.updateTime = updateTime;
         return this;
     }
     public Timestamp getUpdateTime() {
         return updateTime;
     }
-    public Workload setCertExpiryTime(Timestamp certExpiryTime) {
+    public DynamicWorkload setCertExpiryTime(Timestamp certExpiryTime) {
         this.certExpiryTime = certExpiryTime;
         return this;
     }
     public Timestamp getCertExpiryTime() {
         return certExpiryTime;
     }
-    public Workload setCertIssueTime(Timestamp certIssueTime) {
+    public DynamicWorkload setCertIssueTime(Timestamp certIssueTime) {
         this.certIssueTime = certIssueTime;
         return this;
     }
@@ -93,10 +93,10 @@ public class Workload {
     @Override
     public boolean equals(Object another) {
         if (this != another) {
-            if (another == null || another.getClass() != Workload.class) {
+            if (another == null || another.getClass() != DynamicWorkload.class) {
                 return false;
             }
-            Workload a = (Workload) another;
+            DynamicWorkload a = (DynamicWorkload) another;
             if (domainName == null ? a.domainName != null : !domainName.equals(a.domainName)) {
                 return false;
             }

@@ -16,8 +16,9 @@
 
 package com.yahoo.athenz.common.server.msd;
 
-import com.yahoo.athenz.msd.Workload;
+import com.yahoo.athenz.msd.DynamicWorkload;
 import com.yahoo.athenz.msd.WorkloadOptions;
+import com.yahoo.athenz.msd.Workloads;
 import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.Test;
 
@@ -25,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class MsdStoreConnectionTest {
 
@@ -35,7 +37,7 @@ public class MsdStoreConnectionTest {
     public void testMsdStoreApi() {
         MsdStoreConnection msdStoreConnection = new TestMsdStorageConnection();
 
-        Workload workload = new Workload();
+        DynamicWorkload workload = new DynamicWorkload();
         List<String> ipAddresses = Collections.singletonList("10.20.30.40");
         workload.setDomainName("athenz")
                 .setServiceName("api")
@@ -47,12 +49,16 @@ public class MsdStoreConnectionTest {
                 .setCertIssueTime(Timestamp.fromMillis(123456789120L))
                 .setCertExpiryTime(Timestamp.fromMillis(123456789123L));
 
-        msdStoreConnection.putWorkLoad(workload, new WorkloadOptions());
+        msdStoreConnection.putDynamicWorkLoad(workload, new WorkloadOptions());
 
-        List<Workload> workloadList = msdStoreConnection.getWorkloadsBySvc("athenz", "httpd");
-        assertEquals(workloadList.size(), 0);
+        Workloads workloads = msdStoreConnection.getWorkloadsBySvc("athenz", "httpd");
+        assertEquals(workloads.getWorkloadList().size(), 0);
+        assertNull(workloads.getDynamicWorkloadList());
+        assertNull(workloads.getStaticWorkloadList());
 
-        workloadList = msdStoreConnection.getWorkloadsByIp("10.1.2.3");
-        assertEquals(workloadList.size(), 0);
+        workloads = msdStoreConnection.getWorkloadsByIp("10.1.2.3");
+        assertEquals(workloads.getWorkloadList().size(), 0);
+        assertNull(workloads.getDynamicWorkloadList());
+        assertNull(workloads.getStaticWorkloadList());
     }
 }

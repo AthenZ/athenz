@@ -4,17 +4,42 @@
 //Name types
 include "Names.tdl";
 
-// workload type describing workload associated with an identity
-type Workload Struct {
-    DomainName domainName; // name of the domain, optional for getWorkloadsByService API call
-    EntityName serviceName; // name of the service, , optional for getWorkloadsByService API call
+// Enum representing defined types of static workloads.
+type StaticWorkloadType Enum {
+    VIP, // represents a virtual ip construct
+    ENTERPRISE_APPLIANCE, // represents generic network devices which can not be bootstrapped with an identity due to limitations
+    CLOUD_LB, // represents a public cloud load balancer ( for ingress to public cloud )
+    CLOUD_NAT, // represents a public cloud NAT gateway ( for egress from public cloud )
+    EXTERNAL_APPLIANCE // Appliance present outside of enterprise deployment locations. For SaaS / Third Party / Vendor use cases
+}
+
+
+// workload type describing workload bootstrapped with an identity
+type DynamicWorkload Struct {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
     String uuid; // unique identifier for the workload, usually defined by provider
     Array<String> ipAddresses; // list of IP addresses associated with the workload, optional for getWorkloadsByIP API call
-    String hostname; //hostname associated with the workload
-    String provider; // infrastructure provider e.g. k8s, AWS, Azure, openstack etc.
+    String hostname; // hostname associated with the workload
+    String provider; // infrastructure provider e.g. Kubernetes, AWS, Azure, openstack etc.
     Timestamp updateTime; // most recent update timestamp in the backend
     Timestamp certExpiryTime; // certificate expiry time (ex: getNotAfter)
     Timestamp certIssueTime (optional); // certificate issue time (ex: getNotBefore)
+}
+
+// kept for backward compatibility sake. Will be eventually deprecated in favor of DynamicWorkload
+type Workload DynamicWorkload {
+
+}
+
+// workload type describing workload indirectly associated with an identity ( without bootstrap )
+type StaticWorkload Struct {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    StaticWorkloadType type; // value representing one of the StaticWorkloadType enum
+    Array<String> ipAddresses (optional); // list of IP addresses associated with the workload, optional for getWorkloadsByIP API call
+    String name (optional); // name associated with the workload. In most cases will be a FQDN
+    Timestamp updateTime; // most recent update timestamp in the backend
 }
 
 type WorkloadOptions Struct {
@@ -24,4 +49,6 @@ type WorkloadOptions Struct {
 // list of workloads
 type Workloads Struct {
     Array<Workload> workloadList; // list of workloads
+    Array<DynamicWorkload> dynamicWorkloadList (optional); // list of dynamic workloads
+    Array<StaticWorkload> staticWorkloadList (optional); // list of static workloads
 }

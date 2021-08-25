@@ -126,24 +126,46 @@ public class MSDSchema {
             .arrayField("ingress", "TransportPolicyIngressRule", false, "List of ingress rules")
             .arrayField("egress", "TransportPolicyEgressRule", false, "List of egress rules");
 
-        sb.structType("Workload")
-            .comment("workload type describing workload associated with an identity")
-            .field("domainName", "DomainName", false, "name of the domain, optional for getWorkloadsByService API call")
-            .field("serviceName", "EntityName", false, "name of the service, , optional for getWorkloadsByService API call")
+        sb.enumType("StaticWorkloadType")
+            .comment("Enum representing defined types of static workloads.")
+            .element("VIP")
+            .element("ENTERPRISE_APPLIANCE")
+            .element("CLOUD_LB")
+            .element("CLOUD_NAT")
+            .element("EXTERNAL_APPLIANCE");
+
+        sb.structType("DynamicWorkload")
+            .comment("workload type describing workload bootstrapped with an identity")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .field("serviceName", "EntityName", false, "name of the service")
             .field("uuid", "String", false, "unique identifier for the workload, usually defined by provider")
             .arrayField("ipAddresses", "String", false, "list of IP addresses associated with the workload, optional for getWorkloadsByIP API call")
             .field("hostname", "String", false, "hostname associated with the workload")
-            .field("provider", "String", false, "infrastructure provider e.g. k8s, AWS, Azure, openstack etc.")
+            .field("provider", "String", false, "infrastructure provider e.g. Kubernetes, AWS, Azure, openstack etc.")
             .field("updateTime", "Timestamp", false, "most recent update timestamp in the backend")
             .field("certExpiryTime", "Timestamp", false, "certificate expiry time (ex: getNotAfter)")
             .field("certIssueTime", "Timestamp", true, "certificate issue time (ex: getNotBefore)");
+
+        sb.structType("Workload", "DynamicWorkload")
+            .comment("kept for backward compatibility sake. Will be eventually deprecated in favor of DynamicWorkload");
+
+        sb.structType("StaticWorkload")
+            .comment("workload type describing workload indirectly associated with an identity ( without bootstrap )")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .field("serviceName", "EntityName", false, "name of the service")
+            .field("type", "StaticWorkloadType", false, "value representing one of the StaticWorkloadType enum")
+            .arrayField("ipAddresses", "String", true, "list of IP addresses associated with the workload, optional for getWorkloadsByIP API call")
+            .field("name", "String", true, "name associated with the workload. In most cases will be a FQDN")
+            .field("updateTime", "Timestamp", false, "most recent update timestamp in the backend");
 
         sb.structType("WorkloadOptions")
             .field("ipChanged", "Bool", false, "boolean flag to signal a change in IP state");
 
         sb.structType("Workloads")
             .comment("list of workloads")
-            .arrayField("workloadList", "Workload", false, "list of workloads");
+            .arrayField("workloadList", "Workload", false, "list of workloads")
+            .arrayField("dynamicWorkloadList", "DynamicWorkload", true, "list of dynamic workloads")
+            .arrayField("staticWorkloadList", "StaticWorkload", true, "list of static workloads");
 
 
         sb.resource("TransportPolicyRules", "GET", "/transportpolicies")
@@ -200,13 +222,32 @@ public class MSDSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("WorkloadOptions", "PUT", "/domain/{domainName}/service/{serviceName}/workload")
-            .comment("Api for doing a PUT on Workload for a domain/service Workload details are obtained from the service certificate")
-            .name("putWorkload")
+        sb.resource("WorkloadOptions", "PUT", "/domain/{domainName}/service/{serviceName}/workload/dynamic")
+            .comment("Api to perform a dynamic workload PUT operation for a domain and service Workload details are obtained from the service certificate")
+            .name("putDynamicWorkload")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "name of the service")
-            .input("options", "WorkloadOptions", "workload store to be inserted")
+            .input("options", "WorkloadOptions", "metadata about the dynamic workload")
             .auth("", "", true)
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("StaticWorkload", "PUT", "/domain/{domainName}/service/{serviceName}/workload/static")
+            .comment("Api to perform a static workload PUT operation for a domain and service")
+            .name("putStaticWorkload")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .input("staticWorkload", "StaticWorkload", "Struct representing static workload entered by the user")
+            .auth("update", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

@@ -887,17 +887,108 @@ func (self *TransportPolicyRules) Validate() error {
 }
 
 //
-// Workload - workload type describing workload associated with an identity
+// StaticWorkloadType - Enum representing defined types of static workloads.
 //
-type Workload struct {
+type StaticWorkloadType int
+
+//
+// StaticWorkloadType constants
+//
+const (
+	_ StaticWorkloadType = iota
+	VIP
+	ENTERPRISE_APPLIANCE
+	CLOUD_LB
+	CLOUD_NAT
+	EXTERNAL_APPLIANCE
+)
+
+var namesStaticWorkloadType = []string{
+	VIP:                  "VIP",
+	ENTERPRISE_APPLIANCE: "ENTERPRISE_APPLIANCE",
+	CLOUD_LB:             "CLOUD_LB",
+	CLOUD_NAT:            "CLOUD_NAT",
+	EXTERNAL_APPLIANCE:   "EXTERNAL_APPLIANCE",
+}
+
+//
+// NewStaticWorkloadType - return a string representation of the enum
+//
+func NewStaticWorkloadType(init ...interface{}) StaticWorkloadType {
+	if len(init) == 1 {
+		switch v := init[0].(type) {
+		case StaticWorkloadType:
+			return v
+		case int:
+			return StaticWorkloadType(v)
+		case int32:
+			return StaticWorkloadType(v)
+		case string:
+			for i, s := range namesStaticWorkloadType {
+				if s == v {
+					return StaticWorkloadType(i)
+				}
+			}
+		default:
+			panic("Bad init value for StaticWorkloadType enum")
+		}
+	}
+	return StaticWorkloadType(0) //default to the first enum value
+}
+
+//
+// String - return a string representation of the enum
+//
+func (e StaticWorkloadType) String() string {
+	return namesStaticWorkloadType[e]
+}
+
+//
+// SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
+func (e StaticWorkloadType) SymbolSet() []string {
+	return namesStaticWorkloadType
+}
+
+//
+// MarshalJSON is defined for proper JSON encoding of a StaticWorkloadType
+//
+func (e StaticWorkloadType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a StaticWorkloadType
+//
+func (e *StaticWorkloadType) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err == nil {
+		s := string(j)
+		for v, s2 := range namesStaticWorkloadType {
+			if s == s2 {
+				*e = StaticWorkloadType(v)
+				return nil
+			}
+		}
+		err = fmt.Errorf("Bad enum symbol for type StaticWorkloadType: %s", s)
+	}
+	return err
+}
+
+//
+// DynamicWorkload - workload type describing workload bootstrapped with an
+// identity
+//
+type DynamicWorkload struct {
 
 	//
-	// name of the domain, optional for getWorkloadsByService API call
+	// name of the domain
 	//
 	DomainName DomainName `json:"domainName"`
 
 	//
-	// name of the service, , optional for getWorkloadsByService API call
+	// name of the service
 	//
 	ServiceName EntityName `json:"serviceName"`
 
@@ -918,7 +1009,155 @@ type Workload struct {
 	Hostname string `json:"hostname"`
 
 	//
-	// infrastructure provider e.g. k8s, AWS, Azure, openstack etc.
+	// infrastructure provider e.g. Kubernetes, AWS, Azure, openstack etc.
+	//
+	Provider string `json:"provider"`
+
+	//
+	// most recent update timestamp in the backend
+	//
+	UpdateTime rdl.Timestamp `json:"updateTime"`
+
+	//
+	// certificate expiry time (ex: getNotAfter)
+	//
+	CertExpiryTime rdl.Timestamp `json:"certExpiryTime"`
+
+	//
+	// certificate issue time (ex: getNotBefore)
+	//
+	CertIssueTime *rdl.Timestamp `json:"certIssueTime,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+//
+// NewDynamicWorkload - creates an initialized DynamicWorkload instance, returns a pointer to it
+//
+func NewDynamicWorkload(init ...*DynamicWorkload) *DynamicWorkload {
+	var o *DynamicWorkload
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DynamicWorkload)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *DynamicWorkload) Init() *DynamicWorkload {
+	if self.IpAddresses == nil {
+		self.IpAddresses = make([]string, 0)
+	}
+	return self
+}
+
+type rawDynamicWorkload DynamicWorkload
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DynamicWorkload
+//
+func (self *DynamicWorkload) UnmarshalJSON(b []byte) error {
+	var m rawDynamicWorkload
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DynamicWorkload(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DynamicWorkload) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("DynamicWorkload.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("DynamicWorkload.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.ServiceName == "" {
+		return fmt.Errorf("DynamicWorkload.serviceName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.ServiceName)
+		if !val.Valid {
+			return fmt.Errorf("DynamicWorkload.serviceName does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.Uuid == "" {
+		return fmt.Errorf("DynamicWorkload.uuid is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Uuid)
+		if !val.Valid {
+			return fmt.Errorf("DynamicWorkload.uuid does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.IpAddresses == nil {
+		return fmt.Errorf("DynamicWorkload: Missing required field: ipAddresses")
+	}
+	if self.Hostname == "" {
+		return fmt.Errorf("DynamicWorkload.hostname is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Hostname)
+		if !val.Valid {
+			return fmt.Errorf("DynamicWorkload.hostname does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Provider == "" {
+		return fmt.Errorf("DynamicWorkload.provider is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Provider)
+		if !val.Valid {
+			return fmt.Errorf("DynamicWorkload.provider does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.UpdateTime.IsZero() {
+		return fmt.Errorf("DynamicWorkload: Missing required field: updateTime")
+	}
+	if self.CertExpiryTime.IsZero() {
+		return fmt.Errorf("DynamicWorkload: Missing required field: certExpiryTime")
+	}
+	return nil
+}
+
+//
+// Workload - kept for backward compatibility sake. Will be eventually
+// deprecated in favor of DynamicWorkload
+//
+type Workload struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// name of the service
+	//
+	ServiceName EntityName `json:"serviceName"`
+
+	//
+	// unique identifier for the workload, usually defined by provider
+	//
+	Uuid string `json:"uuid"`
+
+	//
+	// list of IP addresses associated with the workload, optional for
+	// getWorkloadsByIP API call
+	//
+	IpAddresses []string `json:"ipAddresses"`
+
+	//
+	// hostname associated with the workload
+	//
+	Hostname string `json:"hostname"`
+
+	//
+	// infrastructure provider e.g. Kubernetes, AWS, Azure, openstack etc.
 	//
 	Provider string `json:"provider"`
 
@@ -1034,6 +1273,105 @@ func (self *Workload) Validate() error {
 }
 
 //
+// StaticWorkload - workload type describing workload indirectly associated
+// with an identity ( without bootstrap )
+//
+type StaticWorkload struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// name of the service
+	//
+	ServiceName EntityName `json:"serviceName"`
+
+	//
+	// value representing one of the StaticWorkloadType enum
+	//
+	Type StaticWorkloadType `json:"type"`
+
+	//
+	// list of IP addresses associated with the workload, optional for
+	// getWorkloadsByIP API call
+	//
+	IpAddresses []string `json:"ipAddresses,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// name associated with the workload. In most cases will be a FQDN
+	//
+	Name string `json:"name" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// most recent update timestamp in the backend
+	//
+	UpdateTime rdl.Timestamp `json:"updateTime"`
+}
+
+//
+// NewStaticWorkload - creates an initialized StaticWorkload instance, returns a pointer to it
+//
+func NewStaticWorkload(init ...*StaticWorkload) *StaticWorkload {
+	var o *StaticWorkload
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(StaticWorkload)
+	}
+	return o
+}
+
+type rawStaticWorkload StaticWorkload
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a StaticWorkload
+//
+func (self *StaticWorkload) UnmarshalJSON(b []byte) error {
+	var m rawStaticWorkload
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := StaticWorkload(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *StaticWorkload) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("StaticWorkload.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("StaticWorkload.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.ServiceName == "" {
+		return fmt.Errorf("StaticWorkload.serviceName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.ServiceName)
+		if !val.Valid {
+			return fmt.Errorf("StaticWorkload.serviceName does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.Name != "" {
+		val := rdl.Validate(MSDSchema(), "String", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("StaticWorkload.name does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.UpdateTime.IsZero() {
+		return fmt.Errorf("StaticWorkload: Missing required field: updateTime")
+	}
+	return nil
+}
+
+//
 // WorkloadOptions -
 //
 type WorkloadOptions struct {
@@ -1089,6 +1427,16 @@ type Workloads struct {
 	// list of workloads
 	//
 	WorkloadList []*Workload `json:"workloadList"`
+
+	//
+	// list of dynamic workloads
+	//
+	DynamicWorkloadList []*DynamicWorkload `json:"dynamicWorkloadList,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of static workloads
+	//
+	StaticWorkloadList []*StaticWorkload `json:"staticWorkloadList,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 //

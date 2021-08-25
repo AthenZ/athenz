@@ -36,13 +36,29 @@ resource Workloads GET "/workloads/{ip}" (name=getWorkloadsByIP) {
     }
 }
 
-// Api for doing a PUT on Workload for a domain/service
+// Api to perform a dynamic workload PUT operation for a domain and service
 // Workload details are obtained from the service certificate
-resource WorkloadOptions PUT "/domain/{domainName}/service/{serviceName}/workload" (name=putWorkload) {
+resource WorkloadOptions PUT "/domain/{domainName}/service/{serviceName}/workload/dynamic" (name=putDynamicWorkload) {
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
-    WorkloadOptions options; // workload store to be inserted
+    WorkloadOptions options; // metadata about the dynamic workload
     authenticate;
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Api to perform a static workload PUT operation for a domain and service
+resource StaticWorkload PUT "/domain/{domainName}/service/{serviceName}/workload/static" (name=putStaticWorkload) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    StaticWorkload staticWorkload; // Struct representing static workload entered by the user
+    authorize ("update", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {
         ResourceError BAD_REQUEST;

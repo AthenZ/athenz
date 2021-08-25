@@ -16,12 +16,12 @@
 
 package com.yahoo.athenz.common.server.msd;
 
-import com.yahoo.athenz.msd.Workload;
+import com.yahoo.athenz.msd.DynamicWorkload;
 import com.yahoo.athenz.msd.WorkloadOptions;
+import com.yahoo.athenz.msd.Workloads;
 
 import java.io.Closeable;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Storage interface for storing MicroSegmentation Daemon data
@@ -29,21 +29,23 @@ import java.util.List;
 public interface MsdStoreConnection extends Closeable {
 
     /**
-     * putWorkload stores the Wordload value into the underlying storage that can be an RDMS or NoSQL
+     * putDynamicWorkLoad stores the Workload value into the underlying storage that can be an RDMS or NoSQL
      * @param workload workload to be stored in the underlying storage
      * @param options workload options to be passed to the api
      */
-    default public void putWorkLoad(Workload workload, WorkloadOptions options) {
+    default void putDynamicWorkLoad(DynamicWorkload workload, WorkloadOptions options) {
     };
 
     /**
      * getWorkloadsBySvc looks up all workloads for the requested service in the MSD storage
      * @param domain of the service to look up
      * @param service name of the service to look up
-     * @return a List of Workload
+     * @return Workloads object containing static and dynamic workloads
      */
-    default public List<Workload> getWorkloadsBySvc(String domain, String service) {
-        return new ArrayList<>();
+    default Workloads getWorkloadsBySvc(String domain, String service) {
+        Workloads workloads = new Workloads();
+        workloads.setWorkloadList(new ArrayList<>());
+        return workloads;
     }
 
     /**
@@ -51,13 +53,15 @@ public interface MsdStoreConnection extends Closeable {
      * @param ip to lookup
      * @return a List of Workload
      */
-    default public List<Workload> getWorkloadsByIp(String ip) {
-        return new ArrayList<>();
+    default Workloads getWorkloadsByIp(String ip) {
+        Workloads workloads = new Workloads();
+        workloads.setWorkloadList(new ArrayList<>());
+        return workloads;
     }
 
     /**
      * Close the connection to the msd store
      */
-    default public void close() {
+    default void close() {
     }
 }
