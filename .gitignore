@@ -33,6 +33,7 @@ clients/go/msd/bin/
 clients/go/zts/examples/get-role-token/get-role-token
 clients/java/zpe/src/test/resources/upd_pol_dir/
 clients/java/zpe/src/test/resources/pol_dir/angler.pol
+clients/java/zpe/src/test/resources/pol_dir/angler.jws
 clients/java/zpe/src/test/resources/pol_dir/empty.pol
 clients/java/zpe/src/test/resources/pol_dir/sports.pol
 clients/java/zms/bin/

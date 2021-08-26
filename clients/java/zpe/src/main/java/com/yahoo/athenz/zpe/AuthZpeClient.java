@@ -62,7 +62,6 @@ public class AuthZpeClient {
     public static final String UNKNOWN_DOMAIN = "unknown";
     public static final String BEARER_TOKEN = "Bearer ";
 
-    private static String zpeClientImplName;
     private static int allowedOffset = 300;
     private static JwtsSigningKeyResolver accessSignKeyResolver = null;
 
@@ -181,7 +180,7 @@ public class AuthZpeClient {
 
     /**
      * Set the role token allowed offset. this might be necessary
-     * if the client and server are not ntp synchronized and we
+     * if the client and server are not ntp synchronized, and we
      * don't want the server to reject valid role tokens
      * @param offset value in seconds
      */
@@ -272,12 +271,11 @@ public class AuthZpeClient {
      */
     public static void setZPEClientClass(final String className) {
         
-        zpeClientImplName = className;
         try {
-            zpeClt = (ZpeClient) Class.forName(zpeClientImplName).newInstance();
+            zpeClt = (ZpeClient) Class.forName(className).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
             LOG.error("Unable to instantiate zpe class: {}, error: {}",
-                    zpeClientImplName, ex.getMessage());
+                    className, ex.getMessage());
             throw new RuntimeException(ex);
         }
         zpeClt.init(null);
@@ -695,7 +693,7 @@ public class AuthZpeClient {
         }
 
         if (roleName != null) {
-            matchRoleName.append(roleName.toString());
+            matchRoleName.append(roleName);
         }
 
         return retStatus;
@@ -834,44 +832,6 @@ public class AuthZpeClient {
         }
 
         return assertString.substring(index + 1);
-    }
-    
-    static boolean isRegexMetaCharacter(char regexChar) {
-        switch (regexChar) {
-            case '^':
-            case '$':
-            case '.':
-            case '|':
-            case '[':
-            case '+':
-            case '\\':
-            case '(':
-            case ')':
-            case '{':
-                return true;
-            default:
-                return false;
-        }
-    }
-    
-    public static String patternFromGlob(String glob) {
-        StringBuilder sb = new StringBuilder("^");
-        int len = glob.length();
-        for (int i = 0; i < len; i++) {
-            char c = glob.charAt(i);
-            if (c == '*') {
-                sb.append(".*");
-            } else if (c == '?') {
-                sb.append('.');
-            } else {
-                if (isRegexMetaCharacter(c)) {
-                    sb.append('\\');
-                }
-                sb.append(c);
-            }
-        }
-        sb.append("$");
-        return sb.toString();
     }
 
     // check action access in the domain to the resource with the given roles
@@ -1224,21 +1184,5 @@ public class AuthZpeClient {
         }
 
         return false;
-    }
-
-    public static void main(String[] args) {
-
-        if (args.length != 3) {
-            System.out.println("usage: AuthZpeClient <role-token> <action> <resource>");
-            System.exit(1);
-        }
-
-        final String roleToken = args[0];
-        final String action = args[1];
-        final String resource = args[2];
-
-        AuthZpeClient.init();
-        System.out.println("Authorization Response: "
-                + AuthZpeClient.allowAccess(roleToken, action, resource).toString());
     }
 }
