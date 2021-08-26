@@ -1188,20 +1188,6 @@ public class TestAuthZpe {
     }
     
     @Test
-    public void testPatternFromGlob() {
-        assertEquals("^abc$", AuthZpeClient.patternFromGlob("abc"));
-        assertEquals("^abc.*$", AuthZpeClient.patternFromGlob("abc*"));
-        assertEquals("^abc.$", AuthZpeClient.patternFromGlob("abc?"));
-        assertEquals("^.*abc.$", AuthZpeClient.patternFromGlob("*abc?"));
-        assertEquals("^abc\\.abc:.*$", AuthZpeClient.patternFromGlob("abc.abc:*"));
-        assertEquals("^ab\\[a-c]c$", AuthZpeClient.patternFromGlob("ab[a-c]c"));
-        assertEquals("^ab.*\\.\\(\\)\\^\\$c$", AuthZpeClient.patternFromGlob("ab*.()^$c"));
-        assertEquals("^abc\\\\test\\\\$", AuthZpeClient.patternFromGlob("abc\\test\\"));
-        assertEquals("^ab\\{\\|c\\+$", AuthZpeClient.patternFromGlob("ab{|c+"));
-        assertEquals("^\\^\\$\\[\\(\\)\\\\\\+\\{\\..*.\\|$", AuthZpeClient.patternFromGlob("^$[()\\+{.*?|"));
-    }
-    
-    @Test
     public void testValidateRoleToken() {
         
         List<String> roles = new ArrayList<>();
