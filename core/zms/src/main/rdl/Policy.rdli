@@ -27,9 +27,10 @@ resource PolicyList GET "/domain/{domainName}/policy?limit={limit}&skip={skip}" 
 }
 
 //List policies provisioned in this namespace.
-resource Policies GET "/domain/{domainName}/policies?assertions={assertions}" {
+resource Policies GET "/domain/{domainName}/policies?assertions={assertions}&includeNonActive={includeNonActive}" {
     DomainName domainName; //name of the domain
     Bool assertions (optional, default=false); // return list of assertions in the policy
+    Bool includeNonActive (optional, default=false); // include non-active policy versions
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;
@@ -123,12 +124,52 @@ resource Assertion PUT "/domain/{domainName}/policy/{policyName}/assertion" {
     }
 }
 
+//Add the specified assertion to the given policy version
+resource Assertion PUT "/domain/{domainName}/policy/{policyName}/version/{version}/assertion" (name=putAssertionPolicyVersion) {
+    DomainName domainName; //name of the domain
+    EntityName policyName; //name of the policy
+    SimpleName version;    //name of the version
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Assertion assertion; //Assertion object to be added to the given policy version
+    authorize ("update", "{domainName}:policy.{policyName}");
+    expected OK;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
 //Delete the specified policy assertion. Upon successful completion of this delete
 //request, the server will return NO_CONTENT status code without any data (no
 //object will be returned).
 resource Assertion DELETE "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}" {
     DomainName domainName; //name of the domain
     EntityName policyName; //name of the policy
+    Int64 assertionId; //assertion id
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize ("update", "{domainName}:policy.{policyName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Delete the specified policy version assertion. Upon successful completion of this delete
+//request, the server will return NO_CONTENT status code without any data (no
+//object will be returned).
+resource Assertion DELETE "/domain/{domainName}/policy/{policyName}/version/{version}/assertion/{assertionId}" (name=deleteAssertionPolicyVersion) {
+    DomainName domainName; //name of the domain
+    EntityName policyName; //name of the policy
+    SimpleName version;    //name of the version
     Int64 assertionId; //assertion id
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize ("update", "{domainName}:policy.{policyName}");
@@ -213,6 +254,91 @@ resource AssertionCondition DELETE "/domain/{domainName}/policy/{policyName}/ass
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//List policy versions.
+resource PolicyList GET "/domain/{domainName}/policy/{policyName}/version" (name=getPolicyVersionList) {
+    DomainName domainName; //name of the domain
+    EntityName policyName; //name of the policy
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Get the specified policy version.
+resource Policy GET "/domain/{domainName}/policy/{policyName}/version/{version}" (name=getPolicyVersion) {
+    DomainName domainName; //name of the domain
+    EntityName policyName; //name of the policy
+    SimpleName version;    //name of the version to be retrieved
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Create a new disabled policy version based on active policy
+resource Policy PUT "/domain/{domainName}/policy/{policyName}/version/create" (name=putPolicyVersion) {
+    DomainName domainName; //name of the domain
+    EntityName policyName; //name of the policy to be added/updated
+    PolicyOptions policyOptions; // name of the source version to copy from and name of new version
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize("update", "{domainName}:policy.{policyName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Mark the specified policy version as active
+resource Policy PUT "/domain/{domainName}/policy/{policyName}/version/active" (name=setActivePolicyVersion) {
+    DomainName domainName; //name of the domain
+    EntityName policyName; //name of the policy
+    PolicyOptions policyOptions; // name of the version
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize("update", "{domainName}:policy.{policyName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//Delete the specified policy version. Upon successful completion of this delete
+//request, the server will return NO_CONTENT status code without any data
+//(no object will be returned).
+resource Policy DELETE "/domain/{domainName}/policy/{policyName}/version/{version}" (name=deletePolicyVersion) {
+    DomainName domainName; //name of the domain
+    EntityName policyName; //name of the policy
+    SimpleName version;    //name of the version to be deleted
+    String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authorize("delete", "{domainName}:policy.{policyName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;

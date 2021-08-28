@@ -1272,11 +1272,14 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public Policies getPolicies(String domainName, Boolean assertions) {
+    public Policies getPolicies(String domainName, Boolean assertions, Boolean includeNonActive) {
         WebTarget target = base.path("/domain/{domainName}/policies")
             .resolveTemplate("domainName", domainName);
         if (assertions != null) {
             target = target.queryParam("assertions", assertions);
+        }
+        if (includeNonActive != null) {
+            target = target.queryParam("includeNonActive", includeNonActive);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
@@ -1404,10 +1407,59 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public Assertion putAssertionPolicyVersion(String domainName, String policyName, String version, String auditRef, Assertion assertion) {
+        WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/version/{version}/assertion")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName)
+            .resolveTemplate("version", version);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(assertion, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(Assertion.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public Assertion deleteAssertion(String domainName, String policyName, Long assertionId, String auditRef) {
         WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName)
+            .resolveTemplate("assertionId", assertionId);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.delete();
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Assertion deleteAssertionPolicyVersion(String domainName, String policyName, String version, Long assertionId, String auditRef) {
+        WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/version/{version}/assertion/{assertionId}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName)
+            .resolveTemplate("version", version)
             .resolveTemplate("assertionId", assertionId);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
@@ -1506,6 +1558,117 @@ public class ZMSRDLGeneratedClient {
             .resolveTemplate("policyName", policyName)
             .resolveTemplate("assertionId", assertionId)
             .resolveTemplate("conditionId", conditionId);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.delete();
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public PolicyList getPolicyVersionList(String domainName, String policyName) {
+        WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/version")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(PolicyList.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Policy getPolicyVersion(String domainName, String policyName, String version) {
+        WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/version/{version}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName)
+            .resolveTemplate("version", version);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(Policy.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Policy putPolicyVersion(String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
+        WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/version/create")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(policyOptions, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Policy setActivePolicyVersion(String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
+        WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/version/active")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(policyOptions, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public Policy deletePolicyVersion(String domainName, String policyName, String version, String auditRef) {
+        WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/version/{version}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName)
+            .resolveTemplate("version", version);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),

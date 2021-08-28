@@ -144,6 +144,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_GROUP_META = "GroupMeta";
     private static final String TYPE_ASSERTION_CONDITIONS = "AssertionConditions";
     private static final String TYPE_ASSERTION_CONDITION = "AssertionCondition";
+    private static final String TYPE_POLICY_OPTIONS = "PolicyOptions";
 
     private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
 
@@ -550,6 +551,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     lowerCasedMap.put(assertionConditionDataEntry.getKey().toLowerCase(), assertionConditionDataEntry.getValue());
                 }
                 assertionCondition.setConditionsMap(lowerCasedMap);
+            }
+        },
+        POLICY_OPTIONS {
+            @Override
+            void convertToLowerCase(Object obj) {
+                PolicyOptions policyOptions = (PolicyOptions) obj;
+                policyOptions.setVersion(policyOptions.getVersion().toLowerCase());
+                if (!StringUtil.isEmpty(policyOptions.getFromVersion())) {
+                    policyOptions.setFromVersion(policyOptions.getFromVersion().toLowerCase());
+                }
             }
         };
 
@@ -3153,7 +3164,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         RoleList result = new RoleList();
 
         List<String> names = new ArrayList<>();
-        String next = processListRequest(domainName, AthenzObject.ROLE, limit, skip, names);
+        names.addAll(dbService.listRoles(domainName));
+        String next = processListRequest(limit, skip, names);
         result.setNames(names);
         if (next != null) {
             result.setNext(next);
@@ -4323,28 +4335,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     /**
-     * process the list request for the given object type - e.g. role, policy, etc
+     * Cut the list from a specific entry until limit is reached.
      * if the limit is specified and we have reached that limit then return
      * the name of the object that should be set at the next item for the
      * subsequent list operation.
      */
-    String processListRequest(String domainName, AthenzObject objType, Integer limit,
-            String skip, List<String> names) {
-
-        switch (objType) {
-            case ROLE:
-                names.addAll(dbService.listRoles(domainName));
-                break;
-            case POLICY:
-                names.addAll(dbService.listPolicies(domainName));
-                break;
-            case SERVICE_IDENTITY:
-                names.addAll(dbService.listServiceIdentities(domainName));
-                break;
-            default:
-                return null;
-        }
-
+    String processListRequest(Integer limit, String skip, List<String> names) {
         int count = names.size();
         if (skip != null) {
             for (int i = 0; i < count; i++) {
@@ -4385,13 +4381,184 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         List<String> names = new ArrayList<>();
-        String next = processListRequest(domainName, AthenzObject.POLICY, limit, skip, names);
+        names.addAll(dbService.listPolicies(domainName));
+        String next = processListRequest(limit, skip, names);
         PolicyList result = new PolicyList().setNames(names);
         if (next != null) {
             result.setNext(next);
         }
 
         return result;
+    }
+
+    @Override
+    public PolicyList getPolicyVersionList(ResourceContext ctx, String domainName, String policyName) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_ENTITY_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        policyName = policyName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        List<String> names = dbService.listPolicyVersions(domainName, policyName);
+        PolicyList result = new PolicyList().setNames(names);
+
+        return result;
+    }
+
+    @Override
+    public Policy getPolicyVersion(ResourceContext ctx, String domainName, String policyName, String version) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_ENTITY_NAME, caller);
+        validate(version, TYPE_SIMPLE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        policyName = policyName.toLowerCase();
+        version = version.toLowerCase();
+
+        Policy policy = dbService.getPolicy(domainName, policyName, version);
+        if (policy == null) {
+            throw ZMSUtils.notFoundError(caller + ": Policy not found: '" +
+                    ResourceUtils.policyResourceName(domainName, policyName) + "' with version: " + version, caller);
+        }
+
+        return policy;
+    }
+
+    @Override
+    public void putPolicyVersion(ResourceContext ctx, String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_COMPOUND_NAME, caller);
+        validate(policyOptions, TYPE_POLICY_OPTIONS, caller);
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        policyName = policyName.toLowerCase();
+        AthenzObject.POLICY_OPTIONS.convertToLowerCase(policyOptions);
+
+
+        // we are not going to allow any user to update
+        // the admin policy since that is required
+        // for standard domain operations */
+
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError(caller + ": admin policy cannot be modified", caller);
+        }
+
+        dbService.executePutPolicyVersion(ctx, domainName, policyName, policyOptions.getVersion(), policyOptions.getFromVersion(), auditRef, caller);
+    }
+
+    @Override
+    public void setActivePolicyVersion(ResourceContext ctx, String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_COMPOUND_NAME, caller);
+        validate(policyOptions, TYPE_POLICY_OPTIONS, caller);
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        policyName = policyName.toLowerCase();
+        AthenzObject.POLICY_OPTIONS.convertToLowerCase(policyOptions);
+
+        // we are not going to allow any user to update
+        // the admin policy since that is required
+        // for standard domain operations */
+
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError(caller + ": admin policy cannot be modified", caller);
+        }
+
+        dbService.executeSetActivePolicy(ctx, domainName, policyName, policyOptions.getVersion(), auditRef, caller);
+    }
+
+    @Override
+    public void deletePolicyVersion(ResourceContext ctx, String domainName, String policyName, String version, String auditRef) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_ENTITY_NAME, caller);
+        validate(version, TYPE_SIMPLE_NAME, caller);
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        policyName = policyName.toLowerCase();
+        version = version.toLowerCase();
+
+        // we are not going to allow any user to delete
+        // the admin role and policy since those are required
+        // for standard domain operations */
+
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError(caller + ": admin policy version cannot be deleted", caller);
+        }
+
+        dbService.executeDeletePolicyVersion(ctx, domainName, policyName, version, auditRef, caller);
     }
 
     List<Policy> setupPolicyList(AthenzDomain domain, Boolean assertions, Boolean versions) {
@@ -4428,7 +4595,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public Policies getPolicies(ResourceContext ctx, String domainName, Boolean assertions) {
+    public Policies getPolicies(ResourceContext ctx, String domainName, Boolean assertions, Boolean includeNonActive) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4447,10 +4614,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         AthenzDomain domain = getAthenzDomain(domainName, false);
         if (domain == null) {
-            throw ZMSUtils.notFoundError("getPolicies: Domain not found: '" + domainName + "'", caller);
+            throw ZMSUtils.notFoundError(caller + ": Domain not found: '" + domainName + "'", caller);
         }
 
-        result.setList(setupPolicyList(domain, assertions, Boolean.FALSE));
+        result.setList(setupPolicyList(domain, assertions, includeNonActive));
         return result;
     }
 
@@ -4471,9 +4638,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setRequestDomain(ctx, domainName);
         policyName = policyName.toLowerCase();
 
-        Policy policy = dbService.getPolicy(domainName, policyName);
+        Policy policy = dbService.getPolicy(domainName, policyName, null);
         if (policy == null) {
-            throw ZMSUtils.notFoundError("getPolicy: Policy not found: '" +
+            throw ZMSUtils.notFoundError(caller + ": Policy not found: '" +
                     ResourceUtils.policyResourceName(domainName, policyName) + "'", caller);
         }
 
@@ -4550,7 +4717,54 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validatePolicyAssertion(assertion, caller);
 
-        dbService.executePutAssertion(ctx, domainName, policyName, assertion, auditRef, caller);
+        dbService.executePutAssertion(ctx, domainName, policyName, null, assertion, auditRef, caller);
+        return assertion;
+    }
+
+    @Override
+    public Assertion putAssertionPolicyVersion(ResourceContext ctx, String domainName, String policyName, String version,
+                                               String auditRef, Assertion assertion) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_COMPOUND_NAME, caller);
+        validate(assertion, TYPE_ASSERTION, caller);
+        validate(version, TYPE_SIMPLE_NAME, caller);
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        policyName = policyName.toLowerCase();
+        version = version.toLowerCase();
+        AthenzObject.ASSERTION.convertToLowerCase(assertion);
+
+        // we are not going to allow any user to update
+        // the admin policy since that is required
+        // for standard domain operations */
+
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError("putAssertionPolicyVersion: admin policy cannot be modified", caller);
+        }
+
+        // validate to make sure we have expected values for assertion fields
+
+        validatePolicyAssertion(assertion, caller);
+
+        dbService.executePutAssertion(ctx, domainName, policyName, version, assertion, auditRef, caller);
         return assertion;
     }
 
@@ -4589,7 +4803,46 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
-        dbService.executeDeleteAssertion(ctx, domainName, policyName, assertionId, auditRef, caller);
+        dbService.executeDeleteAssertion(ctx, domainName, policyName, null, assertionId, auditRef, caller);
+    }
+
+    @Override
+    public void deleteAssertionPolicyVersion(ResourceContext ctx, String domainName, String policyName, String version, Long assertionId, String auditRef) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_ENTITY_NAME, caller);
+        validate(version, TYPE_SIMPLE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        policyName = policyName.toLowerCase();
+        version = version.toLowerCase();
+
+        // we are not going to allow any user to update
+        // the admin policy since that is required
+        // for standard domain operations */
+
+        if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+            throw ZMSUtils.requestError("deleteAssertion: admin policy cannot be modified", caller);
+        }
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        dbService.executeDeleteAssertion(ctx, domainName, policyName, version, assertionId, auditRef, caller);
     }
 
     void validatePolicyAssertions(List<Assertion> assertions, String caller) {
@@ -5252,7 +5505,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         List<String> names = new ArrayList<>();
-        String next = processListRequest(domainName, AthenzObject.SERVICE_IDENTITY, limit, skip, names);
+        names.addAll(dbService.listServiceIdentities(domainName));
+        String next = processListRequest(limit, skip, names);
         ServiceIdentityList result = new ServiceIdentityList().setNames(names);
         if (next != null) {
             result.setNext(next);
@@ -7077,7 +7331,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // if no match then we're going to default action of empty string
 
-        Policy policy = dbService.getPolicy(provSvcDomain, roleName); // policy has same name
+        Policy policy = dbService.getPolicy(provSvcDomain, roleName, null); // policy has same name
         if (policy == null) {
             return "";
         }
@@ -7635,16 +7889,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
 
             String policyName = ZMSUtils.removeDomainPrefix(policy.getName(), domainName, POLICY_PREFIX);
-            if (assertions.size() == 0) {
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("Removing  policy: {} because it did not have any assertions after removing a DENY" +
-                            " assertion for the domain admin role.", policyName);
-                }
-
-                dbService.executeDeletePolicy(ctx, domainName, policyName, auditRef, caller);
-            } else {
-                dbService.executePutPolicy(ctx, domainName, policyName, policy, auditRef, caller);
-            }
+            dbService.executePutPolicy(ctx, domainName, policyName, policy, auditRef, caller);
         }
     }
 

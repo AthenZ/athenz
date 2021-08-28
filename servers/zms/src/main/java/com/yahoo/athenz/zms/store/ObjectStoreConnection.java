@@ -117,18 +117,21 @@ public interface ObjectStoreConnection extends Closeable {
 
     // Policy commands
 
-    Policy getPolicy(String domainName, String policyName);
+    Policy getPolicy(String domainName, String policyName, String version);
     boolean insertPolicy(String domainName, Policy policy);
     boolean updatePolicy(String domainName, Policy policy);
     boolean deletePolicy(String domainName, String policyName);
+    boolean deletePolicyVersion(String domainName, String policyName, String version);
     List<String> listPolicies(String domainName, String assertionRoleName);
+    List<String> listPolicyVersions(String domainName, String policyName);
     int countPolicies(String domainName);
-    boolean updatePolicyModTimestamp(String domainName, String policyName);
+    boolean updatePolicyModTimestamp(String domainName, String policyName, String version);
+    boolean setActivePolicyVersion(String domainName, String policyName, String version);
 
     Assertion getAssertion(String domainName, String policyName, Long assertionId);
-    boolean insertAssertion(String domainName, String policyName, Assertion assertion);
-    boolean deleteAssertion(String domainName, String policyName, Long assertionId);
-    List<Assertion> listAssertions(String domainName, String policyName);
+    boolean insertAssertion(String domainName, String policyName, String version, Assertion assertion);
+    boolean deleteAssertion(String domainName, String policyName, String version, Long assertionId);
+    List<Assertion> listAssertions(String domainName, String policyName, String version);
     int countAssertions(String domainName, String policyName);
     ResourceAccessList listResourceAccess(String principal, String action, String userDomain);
 

@@ -291,6 +291,11 @@ public class ZMSSchema {
             .comment("The representation of list of policy objects")
             .arrayField("list", "Policy", false, "list of policy objects");
 
+        sb.structType("PolicyOptions")
+            .comment("Options for Policy Management Requests")
+            .field("version", "SimpleName", false, "policy version")
+            .field("fromVersion", "SimpleName", true, "optional source version used when creating a new version, defaults to 0");
+
         sb.structType("PublicKeyEntry")
             .comment("The representation of the public key in a service identity object.")
             .field("key", "String", false, "the public key for the service")
@@ -1616,6 +1621,7 @@ public class ZMSSchema {
             .comment("List policies provisioned in this namespace.")
             .pathParam("domainName", "DomainName", "name of the domain")
             .queryParam("assertions", "assertions", "Bool", false, "return list of assertions in the policy")
+            .queryParam("includeNonActive", "includeNonActive", "Bool", false, "include non-active policy versions")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -1724,10 +1730,56 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("Assertion", "PUT", "/domain/{domainName}/policy/{policyName}/version/{version}/assertion")
+            .comment("Add the specified assertion to the given policy version")
+            .name("putAssertionPolicyVersion")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("policyName", "EntityName", "name of the policy")
+            .pathParam("version", "SimpleName", "name of the version")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("assertion", "Assertion", "Assertion object to be added to the given policy version")
+            .auth("update", "{domainName}:policy.{policyName}")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("Assertion", "DELETE", "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
             .comment("Delete the specified policy assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("policyName", "EntityName", "name of the policy")
+            .pathParam("assertionId", "Int64", "assertion id")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .auth("update", "{domainName}:policy.{policyName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Assertion", "DELETE", "/domain/{domainName}/policy/{policyName}/version/{version}/assertion/{assertionId}")
+            .comment("Delete the specified policy version assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .name("deleteAssertionPolicyVersion")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("policyName", "EntityName", "name of the policy")
+            .pathParam("version", "SimpleName", "name of the version")
             .pathParam("assertionId", "Int64", "assertion id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .auth("update", "{domainName}:policy.{policyName}")
@@ -1818,6 +1870,109 @@ public class ZMSSchema {
             .pathParam("conditionId", "Int32", "condition id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .auth("update", "{domainName}:policy.{policyName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyList", "GET", "/domain/{domainName}/policy/{policyName}/version")
+            .comment("List policy versions.")
+            .name("getPolicyVersionList")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("policyName", "EntityName", "name of the policy")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Policy", "GET", "/domain/{domainName}/policy/{policyName}/version/{version}")
+            .comment("Get the specified policy version.")
+            .name("getPolicyVersion")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("policyName", "EntityName", "name of the policy")
+            .pathParam("version", "SimpleName", "name of the version to be retrieved")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyOptions", "PUT", "/domain/{domainName}/policy/{policyName}/version/create")
+            .comment("Create a new disabled policy version based on active policy")
+            .name("putPolicyVersion")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("policyName", "EntityName", "name of the policy to be added/updated")
+            .input("policyOptions", "PolicyOptions", "name of the source version to copy from and name of new version")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .auth("update", "{domainName}:policy.{policyName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyOptions", "PUT", "/domain/{domainName}/policy/{policyName}/version/active")
+            .comment("Mark the specified policy version as active")
+            .name("setActivePolicyVersion")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("policyName", "EntityName", "name of the policy")
+            .input("policyOptions", "PolicyOptions", "name of the version")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .auth("update", "{domainName}:policy.{policyName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Policy", "DELETE", "/domain/{domainName}/policy/{policyName}/version/{version}")
+            .comment("Delete the specified policy version. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .name("deletePolicyVersion")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("policyName", "EntityName", "name of the policy")
+            .pathParam("version", "SimpleName", "name of the version to be deleted")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .auth("delete", "{domainName}:policy.{policyName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

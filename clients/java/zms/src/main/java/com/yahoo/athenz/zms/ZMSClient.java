@@ -1293,9 +1293,27 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public Policies getPolicies(String domainName, Boolean assertions) {
+        return getPoliciesImpl(domainName, assertions, false);
+    }
+
+    /**
+     * Retrieve the list of policies defined for the specified domain. The policies
+     * will contain their attributes and, if specified, the list of assertions.
+     *
+     * @param domainName name of the domain
+     * @param assertions include all assertion for policies as well
+     * @param includeNonActive include non-active policy versions
+     * @return list of policies
+     * @throws ZMSClientException in case of failure
+     */
+    public Policies getPolicies(String domainName, Boolean assertions, Boolean includeNonActive) {
+        return getPoliciesImpl(domainName, assertions, includeNonActive);
+    }
+
+    private Policies getPoliciesImpl(String domainName, Boolean assertions, Boolean includeNonActive) {
         updatePrincipal();
         try {
-            return client.getPolicies(domainName, assertions);
+            return client.getPolicies(domainName, assertions, includeNonActive);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1335,6 +1353,24 @@ public class ZMSClient implements Closeable {
         updatePrincipal();
         try {
             return client.getPolicyList(domainName, limit, skip);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Get list of policy versions for policy in a domain
+     * @param domainName name of the domain
+     * @param policyName name of the policy
+     * @return list of policy versions
+     * @throws ZMSClientException in case of failure
+     */
+    public PolicyList getPolicyVersionList(String domainName, String policyName) {
+        updatePrincipal();
+        try {
+            return client.getPolicyVersionList(domainName, policyName);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1384,6 +1420,28 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Add the specified assertion to the specified policy
+     *
+     * @param domainName name of the domain
+     * @param policyName name of the policy
+     * @param version    name of the policy
+     * @param auditRef   string containing audit specification or ticket number
+     * @param assertion  Assertion object to be added to the policy
+     * @return updated assertion object that includes the server assigned id
+     * @throws ZMSClientException in case of failure
+     */
+    public Assertion putAssertion(String domainName, String policyName, String version, String auditRef, Assertion assertion) {
+        updatePrincipal();
+        try {
+            return client.putAssertionPolicyVersion(domainName, policyName, version, auditRef, assertion);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Delete specified assertion from the given policy
      *
      * @param domainName  name of the domain
@@ -1404,6 +1462,27 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Delete specified assertion from the given policy
+     *
+     * @param domainName  name of the domain
+     * @param policyName  name of the policy
+     * @param version     name of the version
+     * @param assertionId the id of the assertion to be deleted
+     * @param auditRef    string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deleteAssertion(String domainName, String policyName, String version, Long assertionId, String auditRef) {
+        updatePrincipal();
+        try {
+            client.deleteAssertionPolicyVersion(domainName, policyName, version, assertionId, auditRef);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Return the specified policy object
      *
      * @param domainName name of the domain
@@ -1415,6 +1494,26 @@ public class ZMSClient implements Closeable {
         updatePrincipal();
         try {
             return client.getPolicy(domainName, policyName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Return the specified policy version object
+     *
+     * @param domainName name of the domain
+     * @param policyName name of the policy to be retrieved
+     * @param version    name of the policy version to be retrieved
+     * @return Policy object
+     * @throws ZMSClientException in case of failure
+     */
+    public Policy getPolicyVersion(String domainName, String policyName, String version) {
+        updatePrincipal();
+        try {
+            return client.getPolicyVersion(domainName, policyName, version);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1445,6 +1544,50 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Create a new policy version in the specified domain.
+     *
+     * @param domainName name of the domain
+     * @param policyName name of the policy
+     * @param version    name of the policy version
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void putPolicyVersion(String domainName, String policyName, String version, String auditRef) {
+        putPolicyVersionImpl(domainName, policyName, version, null, auditRef);
+    }
+
+    /**
+     * Create a new policy version in the specified domain.
+     *
+     * @param domainName name of the domain
+     * @param policyName name of the policy
+     * @param version    name of the policy version
+     * @param fromVersion    name of the policy version to copy assertions from
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void putPolicyVersion(String domainName, String policyName, String version, String fromVersion, String auditRef) {
+        putPolicyVersionImpl(domainName, policyName, version, fromVersion, auditRef);
+    }
+
+
+    private void putPolicyVersionImpl(String domainName, String policyName, String version, String fromVersion, String auditRef) {
+        updatePrincipal();
+        try {
+            PolicyOptions policyOptions = new PolicyOptions();
+            policyOptions.setVersion(version);
+            if (fromVersion != null) {
+                policyOptions.setFromVersion(fromVersion);
+            }
+            client.putPolicyVersion(domainName, policyName, policyOptions, auditRef);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Delete specified policy from a domain
      *
      * @param domainName name of the domain
@@ -1456,6 +1599,48 @@ public class ZMSClient implements Closeable {
         updatePrincipal();
         try {
             client.deletePolicy(domainName, policyName, auditRef);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Delete specified policy version from a domain
+     *
+     * @param domainName name of the domain
+     * @param policyName name of the policy
+     * @param version    name of the version to be deleted
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deletePolicyVersion(String domainName, String policyName, String version, String auditRef) {
+        updatePrincipal();
+        try {
+            client.deletePolicyVersion(domainName, policyName, version, auditRef);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Set a specified policy version active
+     *
+     * @param domainName name of the domain
+     * @param policyName name of the policy
+     * @param version    name of the version to be activated
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void setActivePolicyVersion(String domainName, String policyName, String version, String auditRef) {
+        updatePrincipal();
+        try {
+            PolicyOptions policyOptions = new PolicyOptions();
+            policyOptions.setVersion(version);
+            client.setActivePolicyVersion(domainName, policyName, policyOptions, auditRef);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

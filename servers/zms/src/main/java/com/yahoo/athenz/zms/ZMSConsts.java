@@ -94,6 +94,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_SECURE_REQUESTS_ONLY    = "athenz.zms.secure_requests_only";
     public static final String ZMS_PROP_RESERVED_SERVICE_NAMES  = "athenz.zms.reserved_service_names";
     public static final String ZMS_PROP_SERVICE_NAME_MIN_LENGTH = "athenz.zms.service_name_min_length";
+    public static final String ZMS_PROP_MAX_POLICY_VERSIONS     = "athenz.zms.max_policy_versions";
 
     public static final String ZMS_PROP_VALIDATE_USER_MEMBERS    = "athenz.zms.validate_user_members";
     public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS = "athenz.zms.validate_service_members";
@@ -326,4 +327,6 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER = "athenz.zms.disable_principal_state_updater_timer_task";
 
     public static final String ZMS_PROP_QUOTA_ASSERTION_CONDITIONS = "athenz.zms.quota_assertion_conditions";
+
+    public static final String ZMS_PROP_MAX_POLICY_VERSIONS_DEFAULT = "3";
 }
