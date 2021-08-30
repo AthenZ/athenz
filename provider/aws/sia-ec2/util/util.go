@@ -437,3 +437,25 @@ func UpdateKey(keyFile string, uid, gid int) {
 		}
 	}
 }
+
+func UidGidForUserGroup(username, groupname string, sysLogger io.Writer) (int, int) {
+	// Get uid and gid for the username.
+	uid, gid := uidGidForUser(username, sysLogger)
+
+	// Override the group id if user explicitly specified the group.
+	ggid := -1
+	if groupname != "" {
+		ggid = gidForGroup(groupname, sysLogger)
+	}
+	// if the group is not specified or invalid then we'll default
+	// to our unix group name called athenz
+	if ggid == -1 {
+		ggid = gidForGroup(siaUnixGroup, sysLogger)
+	}
+	// if we have a valid value then update the gid
+	// otherwise use the user group id value
+	if ggid != -1 {
+		gid = ggid
+	}
+	return uid, gid
+}

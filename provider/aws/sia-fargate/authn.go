@@ -25,6 +25,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/logutil"
@@ -32,8 +33,6 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/util"
-
-	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/aws/aws-sdk-go/service/sts"
 )
 
@@ -181,7 +180,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		uid, gid := util.UidGidForUserGroup(opts.User, opts.Group, sysLogger)
 		//we have the roletoken
 		//write the cert to pem file using Role.Filename
-		err = util.UpdateFile(certFilePem, roleToken.Token, uid, gid, 0444, sysLogger)
+		err = util.UpdateFile(certFilePem, []byte(roleToken.Token), uid, gid, 0444, sysLogger)
 		if err != nil {
 			failures += 1
 			continue
@@ -269,18 +268,18 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 		return err
 	}
 	svcKeyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
-	err = util.UpdateFile(svcKeyFile, util.PrivatePem(key), svc.Uid, svc.Gid, 0440, sysLogger)
+	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440, sysLogger)
 	if err != nil {
 		return err
 	}
 	certFile := getCertFileName(svc.Filename, opts.Domain, svc.Name, opts.CertDir)
-	err = util.UpdateFile(certFile, instIdent.X509Certificate, svc.Uid, svc.Gid, 0444, sysLogger)
+	err = util.UpdateFile(certFile, []byte(instIdent.X509Certificate), svc.Uid, svc.Gid, 0444, sysLogger)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, instIdent.X509CertificateSigner, svc.Uid, svc.Gid, 0444, sysLogger)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(instIdent.X509CertificateSigner), svc.Uid, svc.Gid, 0444, sysLogger)
 		if err != nil {
 			return err
 		}
@@ -325,13 +324,13 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		return err
 	}
 
-	err = util.UpdateFile(certFile, ident.X509Certificate, svc.Uid, svc.Gid, 0444, sysLogger)
+	err = util.UpdateFile(certFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444, sysLogger)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, ident.X509CertificateSigner, svc.Uid, svc.Gid, 0444, sysLogger)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444, sysLogger)
 		if err != nil {
 			return err
 		}

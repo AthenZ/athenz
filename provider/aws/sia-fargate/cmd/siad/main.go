@@ -186,7 +186,7 @@ func main() {
 		config.Accounts[0] = options.ConfigAccount{Domain: domain, Account: accountId}
 		confBytes, _ = json.Marshal(config)
 	}
-	opts, err := options.NewOptions(confBytes, accountId, MetaEndPoint, siaMainDir, Version, *ztsCACert, *ztsServerName, DnsDomain, sysLogger)
+	opts, err := options.NewOptions(confBytes, accountId, MetaEndPoint, siaMainDir, Version, *ztsCACert, *ztsServerName, DnsDomain, "", sysLogger)
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v\n", err)
 	}
