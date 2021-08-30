@@ -106,6 +106,7 @@ utils/zts-accesstoken/pkg/
 utils/zts-rolecert/bin/
 utils/zts-rolecert/pkg/
 utils/zts-rolecert/src/
+utils/msd-agent/pkg/
 libs/go/ztsclientutil/bin/
 libs/go/ztsclientutil/pkg/
 libs/go/ztsclientutil/src/

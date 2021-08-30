@@ -49,7 +49,7 @@ public class MsdStoreConnectionTest {
                 .setCertIssueTime(Timestamp.fromMillis(123456789120L))
                 .setCertExpiryTime(Timestamp.fromMillis(123456789123L));
 
-        msdStoreConnection.putDynamicWorkLoad(workload, new WorkloadOptions());
+        msdStoreConnection.putDynamicWorkload(workload, new WorkloadOptions());
 
         Workloads workloads = msdStoreConnection.getWorkloadsBySvc("athenz", "httpd");
         assertEquals(workloads.getWorkloadList().size(), 0);
@@ -60,5 +60,8 @@ public class MsdStoreConnectionTest {
         assertEquals(workloads.getWorkloadList().size(), 0);
         assertNull(workloads.getDynamicWorkloadList());
         assertNull(workloads.getStaticWorkloadList());
+
+        String tag = msdStoreConnection.getServiceModifiedTag("athenz", "httpd");
+        assertEquals(tag, "");
     }
 }

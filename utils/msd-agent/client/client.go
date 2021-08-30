@@ -30,7 +30,7 @@ var version = ""
 
 func (c Client) PutWorkload(domain string, service string, options *msd.WorkloadOptions) error {
 	msdClient := clientWithUserAgent(c)
-	return msdClient.PutWorkload(msd.DomainName(domain), msd.EntityName(service), options)
+	return msdClient.PutDynamicWorkload(msd.DomainName(domain), msd.EntityName(service), options)
 }
 
 func clientWithUserAgent(c Client) msd.MSDClient {

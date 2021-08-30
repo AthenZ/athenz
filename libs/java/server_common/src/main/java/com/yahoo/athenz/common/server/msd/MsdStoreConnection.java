@@ -33,7 +33,7 @@ public interface MsdStoreConnection extends Closeable {
      * @param workload workload to be stored in the underlying storage
      * @param options workload options to be passed to the api
      */
-    default void putDynamicWorkLoad(DynamicWorkload workload, WorkloadOptions options) {
+    default void putDynamicWorkload(DynamicWorkload workload, WorkloadOptions options) {
     };
 
     /**
@@ -60,8 +60,31 @@ public interface MsdStoreConnection extends Closeable {
     }
 
     /**
-     * Close the connection to the msd store
+     * getServiceModifiedTag returns a tag to indicate the change in workloads of the service.
+     * The change could be an addition of an IP to an existing workload, or a new workload getting added
+     * The tag itself could be a hash value or last modified timestamp
+     * @param domain of the service to look up
+     * @param service name of the service to look up
+     * @return a tag as a string
      */
+    default String getServiceModifiedTag(String domain, String service) {
+        return "";
+    }
+
+    // Transaction commands
     default void close() {
     }
+
+    default void commitChanges() {
+    };
+
+    default void rollbackChanges() {
+    };
+
+    /**
+     * set timeout for operations with underlying storage
+     * @param opTimout
+     */
+    default void setOperationTimeout(int opTimout) {
+    };
 }
