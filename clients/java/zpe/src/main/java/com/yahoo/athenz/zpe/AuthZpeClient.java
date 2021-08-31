@@ -1185,4 +1185,21 @@ public class AuthZpeClient {
 
         return false;
     }
+
+    public static void main(String[] args) {
+
+        if (args.length != 3) {
+            System.out.println("usage: AuthZpeClient <authz-token> <action> <resource>");
+            System.exit(1);
+        }
+
+        final String authzToken = args[0];
+        final String action = args[1];
+        final String resource = args[2];
+
+        StringBuilder matchRoleName = new StringBuilder();
+        AuthZpeClient.init();
+        AccessCheckStatus status = AuthZpeClient.allowAccess(authzToken, action, resource, matchRoleName);
+        System.out.println(status.toString() + ":" + matchRoleName);
+    }
 }
