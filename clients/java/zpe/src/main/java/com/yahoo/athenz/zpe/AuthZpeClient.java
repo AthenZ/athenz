@@ -1199,7 +1199,8 @@ public class AuthZpeClient {
 
         StringBuilder matchRoleName = new StringBuilder();
         AuthZpeClient.init();
-        AccessCheckStatus status = AuthZpeClient.allowAccess(authzToken, action, resource, matchRoleName);
+        AccessCheckStatus status = AuthZpeClient.allowAccess(authzToken, resource, action, matchRoleName);
         System.out.println(status.toString() + ":" + matchRoleName);
+        System.exit(0);
     }
 }
