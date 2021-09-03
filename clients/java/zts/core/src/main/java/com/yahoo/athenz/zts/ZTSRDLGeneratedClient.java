@@ -210,7 +210,7 @@ public class ZTSRDLGeneratedClient {
 
     }
 
-    public JWSPolicyData getJWSPolicyData(String domainName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
+    public JWSPolicyData postSignedPolicyRequest(String domainName, SignedPolicyRequest request, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
         WebTarget target = base.path("/domain/{domainName}/policy/signed")
             .resolveTemplate("domainName", domainName);
         Invocation.Builder invocationBuilder = target.request("application/json");
@@ -221,7 +221,7 @@ public class ZTSRDLGeneratedClient {
         if (matchingTag != null) {
             invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
         }
-        Response response = invocationBuilder.get();
+        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(request, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:

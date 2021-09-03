@@ -4,7 +4,10 @@
 package zpu
 
 import (
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -18,6 +21,8 @@ import (
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 	"github.com/AthenZ/athenz/utils/zpe-updater/util"
 	"github.com/ardielle/ardielle-go/rdl"
+
+	"gopkg.in/square/go-jose.v2"
 )
 
 func PolicyUpdater(config *ZpuConfiguration) error {
@@ -71,6 +76,46 @@ func PolicyUpdater(config *ZpuConfiguration) error {
 }
 
 func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDir, domain string) error {
+	if config.JWSPolicySupport {
+		return GetJWSPolicies(config, ztsClient, policyFileDir, domain)
+	} else {
+		return GetSignedPolicies(config, ztsClient, policyFileDir, domain)
+	}
+}
+
+func GetJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDir, domain string) error {
+	log.Printf("Getting policies for domain: %v", domain)
+	etag := GetEtagForExistingPolicy(config, ztsClient, domain, policyFileDir)
+	signedPolicyRequest := zts.SignedPolicyRequest{
+		PolicyVersions: config.PolicyVersions,
+		SignatureP1363Format: true,
+	}
+	data, _, err := ztsClient.PostSignedPolicyRequest(zts.DomainName(domain), &signedPolicyRequest, etag)
+	if err != nil {
+		return fmt.Errorf("failed to get domain jws policy data for domain: %v, Error:%v", domain, err)
+	}
+
+	if data == nil {
+		if etag != "" {
+			log.Printf("Policies not updated since last fetch for domain: %v", domain)
+			return nil
+		}
+		return fmt.Errorf("empty policies data returned for domain: %v", domain)
+	}
+	// validate data using zts public key and signature
+	bytes, err := ValidateJWSPolicies(config, ztsClient, data)
+	if err != nil {
+		return fmt.Errorf("failed to validate policy data for domain: %v, Error: %v", domain, err)
+	}
+	err = WritePolicies(config, bytes, domain, policyFileDir)
+	if err != nil {
+		return fmt.Errorf("unable to write Policies for domain:\"%v\" to file, Error:%v", domain, err)
+	}
+	log.Printf("Policies for domain: %v successfully written", domain)
+	return nil
+}
+
+func GetSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDir, domain string) error {
 	log.Printf("Getting policies for domain: %v", domain)
 	etag := GetEtagForExistingPolicy(config, ztsClient, domain, policyFileDir)
 	data, _, err := ztsClient.GetDomainSignedPolicyData(zts.DomainName(domain), etag)
@@ -98,10 +143,44 @@ func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDi
 	return nil
 }
 
+func GetSignedPolicyDataFromJson(config *ZpuConfiguration, ztsClient zts.ZTSClient, readFile *os.File) (*zts.SignedPolicyData, error){
+	var domainSignedPolicyData *zts.DomainSignedPolicyData
+	err := json.NewDecoder(readFile).Decode(&domainSignedPolicyData)
+	if err != nil {
+		return nil, err
+	}
+	_, err = ValidateSignedPolicies(config, ztsClient, domainSignedPolicyData)
+	if err != nil {
+		return nil, err
+	}
+	return domainSignedPolicyData.SignedPolicyData, nil
+}
+
+func GetSignedPolicyDataFromJws(config *ZpuConfiguration, ztsClient zts.ZTSClient, readFile *os.File) (*zts.SignedPolicyData, error){
+	var jwsPolicyData *zts.JWSPolicyData
+	err := json.NewDecoder(readFile).Decode(&jwsPolicyData)
+	if err != nil {
+		return nil, err
+	}
+	_, err = ValidateJWSPolicies(config, ztsClient, jwsPolicyData)
+	if err != nil {
+		return nil, err
+	}
+	signedPolicyBytes, err := base64.RawURLEncoding.DecodeString(jwsPolicyData.Payload)
+	if err != nil {
+		return nil, err
+	}
+	var signedPolicyData *zts.SignedPolicyData
+	err = json.Unmarshal(signedPolicyBytes, &signedPolicyData)
+	if err != nil {
+		return nil, err
+	}
+	return signedPolicyData, nil
+}
+
 func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient, domain, policyFileDir string) string {
 	var etag string
-	var domainSignedPolicyData *zts.DomainSignedPolicyData
-
+	var err error
 	policyFile := fmt.Sprintf("%s/%s.pol", policyFileDir, domain)
 
 	// If Policies file is not found, return empty etag the first time.
@@ -118,28 +197,45 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient,
 	}
 	defer readFile.Close()
 
-	err = json.NewDecoder(readFile).Decode(&domainSignedPolicyData)
+	var signedPolicyData *zts.SignedPolicyData
+	if config.JWSPolicySupport {
+		signedPolicyData, err = GetSignedPolicyDataFromJws(config, ztsClient, readFile)
+	} else {
+		signedPolicyData, err = GetSignedPolicyDataFromJson(config, ztsClient, readFile)
+	}
 	if err != nil {
 		return ""
 	}
-	_, err = ValidateSignedPolicies(config, ztsClient, domainSignedPolicyData)
-	if err != nil {
-		return ""
-	}
-	expires := domainSignedPolicyData.SignedPolicyData.Expires
 	// We are going to see if we should consider the policy expired
 	// and retrieve the latest policy. We're going to take the current
 	// expiry timestamp from the policy file, subtract the expected
 	// expiry check time (default 2 days) and then see if the date we
 	// get should be considered as expired.
+	expires := signedPolicyData.Expires
 	if expired(expires, config.ExpiryCheck) {
 		return ""
 	}
-	modified := domainSignedPolicyData.SignedPolicyData.Modified
+	modified := signedPolicyData.Modified
 	if !modified.IsZero() {
 		etag = "\"" + string(modified.String()) + "\""
 	}
 	return etag
+}
+
+func getZtsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, ztsKeyID string) (string, error) {
+	ztsPublicKey := config.GetZtsPublicKey(ztsKeyID)
+	if ztsPublicKey == "" {
+		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zts", ztsKeyID)
+		if err != nil {
+			return "", fmt.Errorf("unable to get the Zts public key with id:\"%v\" to verify data", ztsKeyID)
+		}
+		decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
+		if err != nil {
+			return "", fmt.Errorf("unable to decode the Zts public key with id:\"%v\" to verify data", ztsKeyID)
+		}
+		ztsPublicKey = string(decodedKey)
+	}
+	return ztsPublicKey, nil
 }
 
 func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, data *zts.DomainSignedPolicyData) ([]byte, error) {
@@ -151,18 +247,11 @@ func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, d
 	ztsSignature := data.Signature
 	ztsKeyID := data.KeyId
 
-	ztsPublicKey := config.GetZtsPublicKey(ztsKeyID)
-	if ztsPublicKey == "" {
-		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zts", ztsKeyID)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get the Zts public key with id:\"%v\" to verify data", ztsKeyID)
-		}
-		decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
-		if err != nil {
-			return nil, fmt.Errorf("unable to decode the Zts public key with id:\"%v\" to verify data", ztsKeyID)
-		}
-		ztsPublicKey = string(decodedKey)
+	ztsPublicKey, err := getZtsPublicKey(config, ztsClient, ztsKeyID)
+	if err != nil {
+		return nil, err
 	}
+
 	input, err := util.ToCanonicalString(signedPolicyData)
 	if err != nil {
 		return nil, err
@@ -201,6 +290,47 @@ func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, d
 		}
 	}
 	return bytes, nil
+}
+
+func ValidateJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, jwsPolicyData *zts.JWSPolicyData) ([]byte, error) {
+	// Parse the serialized, protected JWS object. An error would indicate that
+	// the given input did not represent a valid message.
+	jwsPolicyBytes, err := json.Marshal(jwsPolicyData)
+	if err != nil {
+		return nil, err
+	}
+	object, err := jose.ParseSigned(string(jwsPolicyBytes))
+	if err != nil {
+		return nil, err
+	}
+	ztsPublicKey, err := getZtsPublicKey(config, ztsClient, object.Signatures[0].Protected.KeyID)
+	if err != nil {
+		return nil, err
+	}
+	publicKey, err := loadPublicKey([]byte(ztsPublicKey))
+	if err != nil {
+		return nil, err
+	}
+	// Now we can verify the signature on the payload. An error here would
+	// indicate that the message failed to verify, e.g. because the signature was
+	// broken or the message was tampered with.
+	_, err = object.Verify(publicKey)
+	if err != nil {
+		return nil, err
+	}
+	return jwsPolicyBytes, nil
+}
+
+func loadPublicKey(publicKeyPEM []byte) (interface{}, error) {
+	block, _ := pem.Decode(publicKeyPEM)
+	if block == nil {
+		return nil, fmt.Errorf("unable to load public key")
+	}
+	if !strings.HasSuffix(block.Type, "PUBLIC KEY") {
+		return nil, fmt.Errorf("invalid public key type: %s", block.Type)
+	}
+
+	return x509.ParsePKIXPublicKey(block.Bytes)
 }
 
 func verify(input, signature, publicKey string) error {

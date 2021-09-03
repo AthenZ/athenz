@@ -912,12 +912,12 @@ type SignedPolicyData struct {
 	//
 	// zms signature generated based on the domain policies object
 	//
-	ZmsSignature string `json:"zmsSignature"`
+	ZmsSignature string `json:"zmsSignature,omitempty" rdl:"optional"`
 
 	//
 	// the identifier of the zms key used to generate the signature
 	//
-	ZmsKeyId string `json:"zmsKeyId"`
+	ZmsKeyId string `json:"zmsKeyId,omitempty" rdl:"optional"`
 
 	//
 	// when the domain itself was last modified
@@ -976,17 +976,13 @@ func (self *SignedPolicyData) Validate() error {
 	if self.PolicyData == nil {
 		return fmt.Errorf("SignedPolicyData: Missing required field: policyData")
 	}
-	if self.ZmsSignature == "" {
-		return fmt.Errorf("SignedPolicyData.zmsSignature is missing but is a required field")
-	} else {
+	if self.ZmsSignature != "" {
 		val := rdl.Validate(ZTSSchema(), "String", self.ZmsSignature)
 		if !val.Valid {
 			return fmt.Errorf("SignedPolicyData.zmsSignature does not contain a valid String (%v)", val.Error)
 		}
 	}
-	if self.ZmsKeyId == "" {
-		return fmt.Errorf("SignedPolicyData.zmsKeyId is missing but is a required field")
-	} else {
+	if self.ZmsKeyId != "" {
 		val := rdl.Validate(ZTSSchema(), "String", self.ZmsKeyId)
 		if !val.Valid {
 			return fmt.Errorf("SignedPolicyData.zmsKeyId does not contain a valid String (%v)", val.Error)
@@ -1168,6 +1164,67 @@ func (self *JWSPolicyData) Validate() error {
 		if !val.Valid {
 			return fmt.Errorf("JWSPolicyData.signature does not contain a valid String (%v)", val.Error)
 		}
+	}
+	return nil
+}
+
+//
+// SignedPolicyRequest -
+//
+type SignedPolicyRequest struct {
+	PolicyVersions map[string]string `json:"policyVersions"`
+
+	//
+	// true if signature must be in P1363 format instead of ASN.1 DER
+	//
+	SignatureP1363Format bool `json:"signatureP1363Format"`
+}
+
+//
+// NewSignedPolicyRequest - creates an initialized SignedPolicyRequest instance, returns a pointer to it
+//
+func NewSignedPolicyRequest(init ...*SignedPolicyRequest) *SignedPolicyRequest {
+	var o *SignedPolicyRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(SignedPolicyRequest)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *SignedPolicyRequest) Init() *SignedPolicyRequest {
+	if self.PolicyVersions == nil {
+		self.PolicyVersions = make(map[string]string)
+	}
+	return self
+}
+
+type rawSignedPolicyRequest SignedPolicyRequest
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a SignedPolicyRequest
+//
+func (self *SignedPolicyRequest) UnmarshalJSON(b []byte) error {
+	var m rawSignedPolicyRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := SignedPolicyRequest(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *SignedPolicyRequest) Validate() error {
+	if self.PolicyVersions == nil {
+		return fmt.Errorf("SignedPolicyRequest: Missing required field: policyVersions")
 	}
 	return nil
 }

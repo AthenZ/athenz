@@ -135,8 +135,8 @@ public class ZTSSchema {
         sb.structType("SignedPolicyData")
             .comment("A representation of policies object defined in a given server.")
             .field("policyData", "PolicyData", false, "list of policies defined in a domain")
-            .field("zmsSignature", "String", false, "zms signature generated based on the domain policies object")
-            .field("zmsKeyId", "String", false, "the identifier of the zms key used to generate the signature")
+            .field("zmsSignature", "String", true, "zms signature generated based on the domain policies object")
+            .field("zmsKeyId", "String", true, "the identifier of the zms key used to generate the signature")
             .field("modified", "Timestamp", false, "when the domain itself was last modified")
             .field("expires", "Timestamp", false, "timestamp specifying the expiration time for using this set of policies");
 
@@ -152,6 +152,10 @@ public class ZTSSchema {
             .field("protected", "String", false, "")
             .mapField("header", "String", "String", false, "")
             .field("signature", "String", false, "");
+
+        sb.structType("SignedPolicyRequest")
+            .mapField("policyVersions", "String", "String", false, "")
+            .field("signatureP1363Format", "Bool", false, "true if signature must be in P1363 format instead of ASN.1 DER");
 
         sb.structType("RoleCertificate")
             .comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
@@ -474,9 +478,10 @@ public class ZTSSchema {
             .exception("NOT_FOUND", "ResourceError", "")
 ;
 
-        sb.resource("JWSPolicyData", "GET", "/domain/{domainName}/policy/signed")
+        sb.resource("SignedPolicyRequest", "POST", "/domain/{domainName}/policy/signed")
             .comment("Get a signed policy enumeration from the service, to transfer to a local store. An ETag is generated for the PolicyList that changes when any item in the list changes. If the If-None-Match header is provided, and it matches the ETag that would be returned, then a NOT_MODIFIED response is returned instead of the list.")
             .pathParam("domainName", "DomainName", "name of the domain")
+            .input("request", "SignedPolicyRequest", "policy version request details")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)

@@ -515,13 +515,17 @@ func (client ZTSClient) GetDomainSignedPolicyData(domainName DomainName, matchin
 	}
 }
 
-func (client ZTSClient) GetJWSPolicyData(domainName DomainName, matchingTag string) (*JWSPolicyData, string, error) {
+func (client ZTSClient) PostSignedPolicyRequest(domainName DomainName, request *SignedPolicyRequest, matchingTag string) (*JWSPolicyData, string, error) {
 	var data *JWSPolicyData
 	headers := map[string]string{
 		"If-None-Match": matchingTag,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy/signed"
-	resp, err := client.httpGet(url, headers)
+	contentBytes, err := json.Marshal(request)
+	if err != nil {
+		return nil, "", err
+	}
+	resp, err := client.httpPost(url, headers, contentBytes)
 	if err != nil {
 		return nil, "", err
 	}
@@ -538,7 +542,7 @@ func (client ZTSClient) GetJWSPolicyData(domainName DomainName, matchingTag stri
 		return data, tag, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return nil, "", err
 		}

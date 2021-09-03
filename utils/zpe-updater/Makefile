@@ -28,7 +28,7 @@ all:
 else
 
 .PHONY: vet fmt linux darwin
-all: vet fmt linux darwin
+all: vet fmt tests linux darwin
 
 endif
 
@@ -44,6 +44,9 @@ vet:
 
 fmt:
 	gofmt -l .
+
+tests:
+	go test .
 
 darwin:
 	@echo "Building darwin client..."

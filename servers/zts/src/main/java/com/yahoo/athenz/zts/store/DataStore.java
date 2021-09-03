@@ -37,7 +37,6 @@ import com.yahoo.athenz.zts.cache.DataCacheProvider;
 import com.yahoo.athenz.zts.cache.MemberRole;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -622,8 +621,8 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                 jwk.setKty("RSA");
                 jwk.setAlg("RS256");
                 final RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
-                jwk.setN(new String(encoder.encode(toIntegerBytes(rsaPublicKey.getModulus(), rfc))));
-                jwk.setE(new String(encoder.encode(toIntegerBytes(rsaPublicKey.getPublicExponent(), rfc))));
+                jwk.setN(new String(encoder.encode(Crypto.toIntegerBytes(rsaPublicKey.getModulus(), rfc))));
+                jwk.setE(new String(encoder.encode(Crypto.toIntegerBytes(rsaPublicKey.getPublicExponent(), rfc))));
                 break;
             case ZTSConsts.ECDSA:
                 jwk = new JWK();
@@ -633,60 +632,13 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                 jwk.setAlg("ES256");
                 final ECPublicKey ecPublicKey = (ECPublicKey) publicKey;
                 final ECPoint ecPoint = ecPublicKey.getW();
-                jwk.setX(new String(encoder.encode(toIntegerBytes(ecPoint.getAffineX(), rfc))));
-                jwk.setY(new String(encoder.encode(toIntegerBytes(ecPoint.getAffineY(), rfc))));
+                jwk.setX(new String(encoder.encode(Crypto.toIntegerBytes(ecPoint.getAffineX(), rfc))));
+                jwk.setY(new String(encoder.encode(Crypto.toIntegerBytes(ecPoint.getAffineY(), rfc))));
                 jwk.setCrv(getCurveName(EC5Util.convertSpec(ecPublicKey.getParams()), rfc));
                 break;
         }
 
         return jwk;
-    }
-
-    /**
-     * https://github.com/apache/commons-codec/blob/master/src/main/java/org/apache/commons/codec/binary/Base64.java
-     * Licensed Under Apache 2.0 https://github.com/apache/commons-codec/blob/master/LICENSE.txt
-     *
-     * In apache.commons.code this is a private static function and the wrapper
-     * does not generate base64 encoded data that is url safe which is required
-     * per jwk spec. So we'll copy the function as is for our use.
-     *
-     * Returns a byte-array representation of a {@code BigInteger} without sign bit.
-     *
-     * @param bigInt {@code BigInteger} to be converted
-     * @return a byte array representation of the BigInteger parameter
-     */
-
-    byte[] toIntegerBytes(final BigInteger bigInt, boolean rfc) {
-
-        // this will be removed once all properties update
-        // their code to handle the sign bit correctly
-        if (!rfc) {
-            return bigInt.toByteArray();
-        }
-
-        int bitlen = bigInt.bitLength();
-        // round bitlen
-        bitlen = ((bitlen + 7) >> 3) << 3;
-        final byte[] bigBytes = bigInt.toByteArray();
-
-        if (((bigInt.bitLength() % 8) != 0) && (((bigInt.bitLength() / 8) + 1) == (bitlen / 8))) {
-            return bigBytes;
-        }
-        // set up params for copying everything but sign bit
-        int startSrc = 0;
-        int len = bigBytes.length;
-
-        ///CLOVER:OFF
-        // if bigInt is exactly byte-aligned, just skip signbit in copy
-        if ((bigInt.bitLength() % 8) == 0) {
-            startSrc = 1;
-            len--;
-        }
-        ///CLOVER:ON
-        final int startDst = bitlen / 8 - len; // to pad w/ nulls as per spec
-        final byte[] resizedBytes = new byte[bitlen / 8];
-        System.arraycopy(bigBytes, startSrc, resizedBytes, startDst, len);
-        return resizedBytes;
     }
 
     /**

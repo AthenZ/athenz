@@ -2702,17 +2702,20 @@ public class ZTSClient implements Closeable {
      * Retrieve the list of all policies (not just names) from the ZTS Server that
      * is signed and represented as JWS document. It will pass an optional matchingTag
      * so that ZTS can skip returning signed policies if no changes have taken
-     * place since that tag was issued.
+     * place since that tag was issued. If specific version of policy versions are
+     * needed, the request argument must include a map of those policy names along
+     * with their requested versions, otherwise an empty request object must be passed
      * @param domainName name of the domain
+     * @param request signed policy request with optional map of policy names and version numbers
      * @param matchingTag name of the tag issued with last request
      * @param responseHeaders contains the "tag" returned for modification
      *   time of the policies, map key = "tag", List should contain a single value
      * @return list of policies signed by ZTS Server. ZTSClientException will be thrown in case of failure
      */
-    public JWSPolicyData getJWSPolicyData(String domainName, String matchingTag,
+    public JWSPolicyData postSignedPolicyRequest(String domainName, SignedPolicyRequest request, String matchingTag,
             Map<String, List<String>> responseHeaders) {
         try {
-            return ztsClient.getJWSPolicyData(domainName, matchingTag, responseHeaders);
+            return ztsClient.postSignedPolicyRequest(domainName, request, matchingTag, responseHeaders);
         } catch (ResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

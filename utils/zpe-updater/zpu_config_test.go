@@ -105,11 +105,34 @@ func TestReadZpuConf(t *testing.T) {
 	a.Equal(zpuFile.Proxy, true)
 	a.Equal(zpuFile.ExpiryCheck, 30)
 	a.Equal(zpuFile.CheckZMSSignature, true)
+
+	//correct file with jws/policy attributes
+	err = devel.CreateFile(zpuConf, `{"domains":"domain","user":"user","policyDir":"/policy","metricsDir":"/metric","logMaxsize":10,"logMaxage":7,"logMaxbackups":2,"logCompress":true,"proxy":true,"certFile":"./certfile.pem","caCertFile":"./cacert.pem","privateKeyFile":"./privatekey","expiryCheck":30,"checkZMSSignature":true,"jwsPolicySupport":true,"policyVersions":{"policy1":"0","policy2":"1"}}`)
+	a.Nil(err)
+	zpuFile, err = ReadZpuConf(zpuConf)
+	a.Nil(err)
+	a.Equal(zpuFile.Domains, "domain")
+	a.Equal(zpuFile.User, "user")
+	a.Equal(zpuFile.PolicyDir, "/policy")
+	a.Equal(zpuFile.MetricsDir, "/metric")
+	a.True(zpuFile.LogCompress)
+	a.Equal(zpuFile.LogMaxSize, 10)
+	a.Equal(zpuFile.LogMaxBackups, 2)
+	a.Equal(zpuFile.LogMaxAge, 7)
+	a.Equal(zpuFile.PrivateKey, "./privatekey")
+	a.Equal(zpuFile.CaCertFile, "./cacert.pem")
+	a.Equal(zpuFile.CertFile, "./certfile.pem")
+	a.True(zpuFile.Proxy)
+	a.Equal(zpuFile.ExpiryCheck, 30)
+	a.True(zpuFile.CheckZMSSignature)
+	a.True(zpuFile.JWSPolicySupport)
+	a.Equal(zpuFile.PolicyVersions["policy1"], "0")
+	a.Equal(zpuFile.PolicyVersions["policy2"], "1")
 }
 
 func TestNewZpuConfiguration(t *testing.T) {
 	a := assert.New(t)
-	os.Setenv("STARTUP_DELAY", "60")
+	_ = os.Setenv("STARTUP_DELAY", "60")
 	err := devel.CreateFile(zpuConf, `{"domains":"domain","user":"user","tempPolicyDir": "/tmp/zpu_temp","policyDir":"/policy","metricsDir":"/metric","logMaxsize":10,"logMaxage":7,"logMaxbackups":2,"logCompress":true,"proxy":true,"certFile":"./certfile.pem","caCertFile":"./cacert.pem","privateKeyFile":"./privatekey","expiryCheck":50}`)
 	a.Nil(err)
 	a.Nil(err)
@@ -138,7 +161,7 @@ func TestNewZpuConfiguration(t *testing.T) {
 	a.Equal(config.ExpiryCheck, 50*60)
 
 	//testing defaults
-	os.Unsetenv("STARTUP_DELAY")
+	_ = os.Unsetenv("STARTUP_DELAY")
 	err = devel.CreateFile(zpuConf, `{"domains":"domain"}`)
 	a.Nil(err)
 	config, err = NewZpuConfiguration("", athenzConf, zpuConf)
@@ -147,7 +170,7 @@ func TestNewZpuConfiguration(t *testing.T) {
 	a.Equal(config.Zts, "zts_url")
 	a.Equal(config.Zms, "zms_url")
 	a.Equal(config.PolicyFileDir, "/var/zpe")
-	a.Equal(config.TempPolicyFileDir, TEMP_POLICIES_DIR)
+	a.Equal(config.TempPolicyFileDir, TempPoliciesDir)
 	a.Equal(config.DomainList, "domain")
 	a.Equal(config.ZpuOwner, "root")
 	a.Equal(config.MetricsDir, "/var/zpe_stat")
@@ -164,19 +187,19 @@ func TestNewZpuConfiguration(t *testing.T) {
 	a.Equal(config.ExpiryCheck, 2880*60)
 
 	//Start up delay more than max startup delay
-	os.Setenv("STARTUP_DELAY", "2000")
+	_ = os.Setenv("STARTUP_DELAY", "2000")
 	config, err = NewZpuConfiguration("", athenzConf, zpuConf)
 	a.Nil(err)
 	a.Equal(config.StartUpDelay, 86400)
 
 	//Start up delay less than min startup delay
-	os.Setenv("STARTUP_DELAY", "-10")
+	_ = os.Setenv("STARTUP_DELAY", "-10")
 	config, err = NewZpuConfiguration("", athenzConf, zpuConf)
 	a.Nil(err)
 	a.Equal(config.StartUpDelay, 0)
 
 	//invalid environment variable
-	os.Setenv("STARTUP_DELAY", "invalid")
+	_ = os.Setenv("STARTUP_DELAY", "invalid")
 	config, err = NewZpuConfiguration("", athenzConf, zpuConf)
 	a.NotNil(err)
 	a.Nil(config)

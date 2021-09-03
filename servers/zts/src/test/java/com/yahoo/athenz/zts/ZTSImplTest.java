@@ -15,8 +15,14 @@
  */
 package com.yahoo.athenz.zts;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.util.Base64URL;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
@@ -80,6 +86,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -1277,7 +1285,7 @@ public class ZTSImplTest {
         domain.setPolicies(signedPolicies);
         domain.setModified(Timestamp.fromCurrentTime());
 
-        List<com.yahoo.athenz.zts.Policy> policyList = zts.getPolicyList(domain);
+        List<com.yahoo.athenz.zts.Policy> policyList = zts.getPolicyList(domain, null);
         assertEquals(policyList.size(), 2);
         assertEquals(policyList.get(0).getName(), "coretech:policy.reader");
         assertEquals(policyList.get(1).getName(), "coretech:policy.writer");
@@ -1326,7 +1334,7 @@ public class ZTSImplTest {
         domain.setPolicies(signedPolicies);
         domain.setModified(Timestamp.fromCurrentTime());
 
-        List<com.yahoo.athenz.zts.Policy> policyList = zts.getPolicyList(domain);
+        List<com.yahoo.athenz.zts.Policy> policyList = zts.getPolicyList(domain, null);
         assertEquals(policyList.size(), 1);
         assertEquals(policyList.get(0).getName(), "coretech:policy.reader");
     }
@@ -1339,7 +1347,7 @@ public class ZTSImplTest {
         domain.setPolicies(null);
         domain.setModified(Timestamp.fromCurrentTime());
 
-        List<com.yahoo.athenz.zts.Policy> policyList = zts.getPolicyList(domain);
+        List<com.yahoo.athenz.zts.Policy> policyList = zts.getPolicyList(domain, null);
         assertEquals(policyList.size(), 0);
     }
 
@@ -1363,10 +1371,98 @@ public class ZTSImplTest {
         domain.setPolicies(signedPolicies);
         domain.setModified(Timestamp.fromCurrentTime());
 
-        List<com.yahoo.athenz.zts.Policy> policyList = zts.getPolicyList(domain);
+        List<com.yahoo.athenz.zts.Policy> policyList = zts.getPolicyList(domain, null);
         assertEquals(policyList.size(), 0);
     }
 
+    @Test
+    public void testGetPolicyListVersionFilter() {
+
+        List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
+        List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
+
+        com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
+        assertion.setResource("coretech:tenant.weather.*").setAction("read").setRole("coretech:role.readers");
+        assertions.add(assertion);
+
+        com.yahoo.athenz.zms.Policy policy = new com.yahoo.athenz.zms.Policy();
+        policy.setAssertions(assertions).setName("coretech:policy.reader").setVersion("0").setActive(true);
+        policies.add(policy);
+
+        policy = new com.yahoo.athenz.zms.Policy();
+        policy.setAssertions(assertions).setName("coretech:policy.reader").setVersion("1").setActive(false);
+        policies.add(policy);
+
+        assertion = new com.yahoo.athenz.zms.Assertion();
+        assertion.setResource("coretech:tenant.weather.*").setAction("write").setRole("coretech:role.writers");
+        assertions.add(assertion);
+
+        policy = new com.yahoo.athenz.zms.Policy();
+        policy.setAssertions(assertions).setName("coretech:policy.writer").setVersion("0").setActive(false);
+        policies.add(policy);
+
+        policy = new com.yahoo.athenz.zms.Policy();
+        policy.setAssertions(assertions).setName("coretech:policy.writer").setVersion("1").setActive(true);
+        policies.add(policy);
+
+        policy = new com.yahoo.athenz.zms.Policy();
+        policy.setAssertions(assertions).setName("coretech:policy.editor").setVersion("0").setActive(true);
+        policies.add(policy);
+
+        policy = new com.yahoo.athenz.zms.Policy();
+        policy.setAssertions(assertions).setName("coretech:policy.editor").setVersion("1").setActive(false);
+        policies.add(policy);
+
+        com.yahoo.athenz.zms.DomainPolicies domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
+        domainPolicies.setDomain("coretech");
+        domainPolicies.setPolicies(policies);
+
+        com.yahoo.athenz.zms.SignedPolicies signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
+        signedPolicies.setContents(domainPolicies);
+
+        DomainData domain = new DomainData();
+        domain.setName("coretech");
+        domain.setPolicies(signedPolicies);
+        domain.setModified(Timestamp.fromCurrentTime());
+
+        // first only active versions
+
+        List<com.yahoo.athenz.zts.Policy> policyList = zts.getPolicyList(domain, Collections.emptyMap());
+        assertEquals(policyList.size(), 3);
+        assertEquals(policyList.get(0).getName(), "coretech:policy.reader");
+        assertEquals(policyList.get(0).getVersion(), "0");
+        assertEquals(policyList.get(1).getName(), "coretech:policy.writer");
+        assertEquals(policyList.get(1).getVersion(), "1");
+        assertEquals(policyList.get(2).getName(), "coretech:policy.editor");
+        assertEquals(policyList.get(2).getVersion(), "0");
+
+        // now ask for specific version for reader only
+
+        Map<String, String> versions = new HashMap<>();
+        versions.put("coretech:policy.reader", "1");
+
+        policyList = zts.getPolicyList(domain, versions);
+        assertEquals(policyList.size(), 3);
+        assertEquals(policyList.get(0).getName(), "coretech:policy.reader");
+        assertEquals(policyList.get(0).getVersion(), "1");
+        assertEquals(policyList.get(1).getName(), "coretech:policy.writer");
+        assertEquals(policyList.get(1).getVersion(), "1");
+        assertEquals(policyList.get(2).getName(), "coretech:policy.editor");
+        assertEquals(policyList.get(2).getVersion(), "0");
+
+        // now ask for all versions
+
+        versions.put("coretech:policy.writer", "1");
+        versions.put("coretech:policy.editor", "1");
+        policyList = zts.getPolicyList(domain, versions);
+        assertEquals(policyList.size(), 3);
+        assertEquals(policyList.get(0).getName(), "coretech:policy.reader");
+        assertEquals(policyList.get(0).getVersion(), "1");
+        assertEquals(policyList.get(1).getName(), "coretech:policy.writer");
+        assertEquals(policyList.get(1).getVersion(), "1");
+        assertEquals(policyList.get(2).getName(), "coretech:policy.editor");
+        assertEquals(policyList.get(2).getVersion(), "1");
+    }
 
     @Test
     public void testGetRoleTokenAuthorizedService() {
@@ -9175,13 +9271,13 @@ public class ZTSImplTest {
         SignedPolicies signedPolicies = new SignedPolicies();
         domainData.setPolicies(signedPolicies);
 
-        List<com.yahoo.athenz.zts.Policy> policies = zts.getPolicyList(domainData);
+        List<com.yahoo.athenz.zts.Policy> policies = zts.getPolicyList(domainData, null);
         assertTrue(policies.isEmpty());
 
         DomainPolicies domainPolicies = new DomainPolicies();
         signedPolicies.setContents(domainPolicies);
 
-        policies = zts.getPolicyList(domainData);
+        policies = zts.getPolicyList(domainData, null);
         assertTrue(policies.isEmpty());
 
         Policy policy = new Policy();
@@ -9192,7 +9288,7 @@ public class ZTSImplTest {
 
         domainPolicies.setPolicies(zmsPolicies);
 
-        policies = zts.getPolicyList(domainData);
+        policies = zts.getPolicyList(domainData, null);
         assertEquals(1, policies.size());
         assertNull(policies.get(0).getAssertions());
     }
@@ -12423,5 +12519,211 @@ public class ZTSImplTest {
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("Invalid spiffe uri specified: spiffe://\\athenz/sa/service"));
         }
+    }
+
+    @Test
+    public void tesGeneratePolicyVersions() {
+
+        Map<String, String> versions = zts.generatePolicyVersions("coretech", null);
+        assertTrue(versions.isEmpty());
+
+        SignedPolicyRequest request = new SignedPolicyRequest();
+        versions = zts.generatePolicyVersions("coretech", request);
+        assertTrue(versions.isEmpty());
+
+        Map<String, String> requestVersions = new HashMap<>();
+        requestVersions.put("policy1", "Prod");
+        requestVersions.put("PolicyTwo", "Non-Prod");
+        requestVersions.put("policy-three", "prod");
+        requestVersions.put("Coretech:policy.policy4", "Four");
+        requestVersions.put("coretech:policy.Policy5", "five");
+        requestVersions.put("coretech:policy.test.policy", "test");
+        requestVersions.put("athenz:policy.policy", "prod");
+        request.setPolicyVersions(requestVersions);
+
+        versions = zts.generatePolicyVersions("coretech", request);
+        assertEquals(versions.size(), 7);
+        assertEquals(versions.get("coretech:policy.policy1"), "prod");
+        assertEquals(versions.get("coretech:policy.policytwo"), "non-prod");
+        assertEquals(versions.get("coretech:policy.policy-three"), "prod");
+        assertEquals(versions.get("coretech:policy.policy4"), "four");
+        assertEquals(versions.get("coretech:policy.policy5"), "five");
+        assertEquals(versions.get("coretech:policy.test.policy"), "test");
+        assertEquals(versions.get("coretech:policy.athenz:policy.policy"), "prod");
+    }
+
+    @Test
+    public void testPolicyVersionMatch() {
+        Map<String, String> requestVersions = new HashMap<>();
+        requestVersions.put("coretech:policy.policy1", "prod");
+        requestVersions.put("coretech:policy.policy2", "non-prod");
+        requestVersions.put("coretech:policy.policy3", "");
+
+        Policy zmsPolicy = new Policy();
+
+        // policy version not set
+
+        zmsPolicy.setName("coretech:policy.policy-10");
+        zmsPolicy.setVersion(null);
+        assertTrue(zts.policyVersionMatch(zmsPolicy, requestVersions));
+        zmsPolicy.setActive(true);
+        assertTrue(zts.policyVersionMatch(zmsPolicy, requestVersions));
+        zmsPolicy.setActive(false);
+        assertFalse(zts.policyVersionMatch(zmsPolicy, requestVersions));
+
+        // policy version set to an empty string
+
+        zmsPolicy.setName("coretech:policy.policy3");
+        zmsPolicy.setActive(null);
+        assertTrue(zts.policyVersionMatch(zmsPolicy, requestVersions));
+        zmsPolicy.setActive(true);
+        assertTrue(zts.policyVersionMatch(zmsPolicy, requestVersions));
+        zmsPolicy.setActive(false);
+        assertFalse(zts.policyVersionMatch(zmsPolicy, requestVersions));
+
+        // version match
+
+        zmsPolicy.setName("coretech:policy.policy1");
+        zmsPolicy.setVersion(null);
+        zmsPolicy.setActive(false);
+        assertFalse(zts.policyVersionMatch(zmsPolicy, requestVersions));
+        zmsPolicy.setVersion("prod");
+        zmsPolicy.setActive(false);
+        assertTrue(zts.policyVersionMatch(zmsPolicy, requestVersions));
+        zmsPolicy.setVersion("prod");
+        zmsPolicy.setActive(true);
+        assertTrue(zts.policyVersionMatch(zmsPolicy, requestVersions));
+        zmsPolicy.setVersion("non-prod");
+        zmsPolicy.setActive(false);
+        assertFalse(zts.policyVersionMatch(zmsPolicy, requestVersions));
+        zmsPolicy.setVersion("non-prod");
+        zmsPolicy.setActive(true);
+        assertFalse(zts.policyVersionMatch(zmsPolicy, requestVersions));
+    }
+
+    @Test
+    public void testCopyZMSPolicyObject() {
+
+        List<AssertionCondition> conditions = new ArrayList<>();
+        conditions.add(new AssertionCondition().setId(1000));
+        AssertionConditions assertionConditions = new AssertionConditions().setConditionsList(conditions);
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(new Assertion().setRole("role").setResource("resource").setCaseSensitive(false)
+                .setAction("action").setId(1001L).setEffect(AssertionEffect.ALLOW).setConditions(assertionConditions));
+        Policy zmsPolicy = new Policy().setActive(false).setVersion("0").setName("coretech:policy.policy1")
+                .setCaseSensitive(false).setModified(Timestamp.fromCurrentTime()).setAssertions(assertions);
+
+        com.yahoo.athenz.zts.Policy ztsPolicy = new com.yahoo.athenz.zts.Policy();
+        ztsPolicy = zts.copyZMSPolicyObject(zmsPolicy, false);
+        assertNull(ztsPolicy.getActive());
+        assertNull(ztsPolicy.getVersion());
+        com.yahoo.athenz.zts.Assertion assertion = ztsPolicy.getAssertions().get(0);
+        assertNotNull(assertion);
+        assertNull(assertion.getId());
+        assertNull(assertion.getCaseSensitive());
+
+        ztsPolicy = zts.copyZMSPolicyObject(zmsPolicy, true);
+        assertFalse(ztsPolicy.getActive());
+        assertEquals(ztsPolicy.getVersion(), "0");
+        assertion = ztsPolicy.getAssertions().get(0);
+        assertNotNull(assertion);
+        assertEquals(assertion.getId().longValue(), 1001L);
+        assertFalse(assertion.getCaseSensitive());
+    }
+
+    @Test
+    public void testPostSignedPolicyRequest() throws ParseException, JOSEException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ZTSImpl.serverHostName = "localhost";
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        SignedPolicyRequest signedPolicyRequest = new SignedPolicyRequest();
+        signedPolicyRequest.setPolicyVersions(Collections.emptyMap());
+        Response response = ztsImpl.postSignedPolicyRequest(context, "coretech", signedPolicyRequest, null);
+        assertEquals(response.getStatus(), 200);
+        JWSPolicyData jwsPolicyData = (JWSPolicyData) response.getEntity();
+
+        JWSObject jwsObject = new JWSObject(Base64URL.from(jwsPolicyData.getProtectedHeader()),
+                Base64URL.from(jwsPolicyData.getPayload()), Base64URL.from(jwsPolicyData.getSignature()));
+
+        JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) Crypto.extractPublicKey(zts.privateKey.getKey()));
+        assertTrue(jwsObject.verify(verifier));
+
+        // invalid domain
+
+        try {
+            ztsImpl.postSignedPolicyRequest(context, "unknowndomain", signedPolicyRequest, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+    }
+
+    @Test
+    public void testPostSignedPolicyRequestNoChanges() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ZTSImpl.serverHostName = "localhost";
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        Timestamp modified = signedDomain.getDomain().getModified();
+        EntityTag eTag = new EntityTag(modified.toString());
+
+        SignedPolicyRequest signedPolicyRequest = new SignedPolicyRequest();
+        signedPolicyRequest.setPolicyVersions(Collections.emptyMap());
+        Response response = ztsImpl.postSignedPolicyRequest(context, "coretech", signedPolicyRequest, eTag.toString());
+        assertEquals(response.getStatus(), 304);
+    }
+
+    @Test
+    public void testSignJWSPolicyDataError() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ZTSImpl.serverHostName = "localhost";
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        SignedPolicyRequest signedPolicyRequest = new SignedPolicyRequest();
+        signedPolicyRequest.setPolicyVersions(Collections.emptyMap());
+
+        // set the private key to null resulting in an exception
+
+        ztsImpl.privateKey = null;
+        Response response = ztsImpl.postSignedPolicyRequest(context, "coretech", signedPolicyRequest, null);
+        assertNull(response.getEntity());
+        assertEquals(response.getStatus(), 500);
     }
 }

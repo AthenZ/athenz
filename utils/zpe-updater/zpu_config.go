@@ -43,6 +43,8 @@ type ZpuConfiguration struct {
 	CaCertFile        string
 	Proxy             bool
 	CheckZMSSignature bool
+	JWSPolicySupport  bool
+	PolicyVersions    map[string]string
 }
 
 type AthenzConf struct {
@@ -74,6 +76,8 @@ type ZpuConf struct {
 	Proxy             bool   `json:"proxy"`
 	ExpiryCheck       int    `json:"expiryCheck"`
 	CheckZMSSignature bool   `json:"checkZMSSignature"`
+	JWSPolicySupport  bool   `json:"jwsPolicySupport"`
+	PolicyVersions    map[string]string `json:"policyVersions"`
 }
 
 func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfiguration, error) {
@@ -175,6 +179,8 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 		CertFile:          zpuConf.CertFile,
 		Proxy:             zpuConf.Proxy,
 		CheckZMSSignature: zpuConf.CheckZMSSignature,
+		JWSPolicySupport:  zpuConf.JWSPolicySupport,
+		PolicyVersions:    zpuConf.PolicyVersions,
 	}, nil
 }
 
@@ -221,6 +227,10 @@ func (config ZpuConfiguration) GetZtsPublicKey(key string) string {
 	return ""
 }
 
+func (config ZpuConfiguration) PutZtsPublicKey(key, publicKey string) {
+	config.ZtsKeysmap[key] = publicKey
+}
+
 func (config ZpuConfiguration) GetZmsPublicKey(key string) string {
 	for k := range config.ZmsKeysmap {
 		if k == key {
@@ -228,4 +238,8 @@ func (config ZpuConfiguration) GetZmsPublicKey(key string) string {
 		}
 	}
 	return ""
+}
+
+func (config ZpuConfiguration) PutZmsPublicKey(key, publicKey string) {
+	config.ZmsKeysmap[key] = publicKey
 }

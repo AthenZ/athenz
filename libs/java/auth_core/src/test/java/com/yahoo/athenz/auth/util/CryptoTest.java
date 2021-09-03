@@ -16,6 +16,7 @@
 package com.yahoo.athenz.auth.util;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1237,6 +1238,41 @@ public class CryptoTest {
     }
 
     @Test
+    public void testSignVerifyByteArrayECKeyP1363Format() {
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        assertNotNull(privateKey);
+
+        byte[] derSignature = Crypto.sign(serviceToken.getBytes(StandardCharsets.UTF_8), privateKey, Crypto.SHA256);
+        assertNotNull(derSignature);
+        byte[] p1363Signature = Crypto.convertSignatureFromDERToP1363Format(derSignature, Crypto.SHA256);
+        assertNotNull(p1363Signature);
+
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        assertNotNull(publicKey);
+
+        try {
+            Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), publicKey, p1363Signature, Crypto.SHA256);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("SignatureException"));
+        }
+
+        // verify original signature still works
+
+        assertTrue(Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), publicKey, derSignature, Crypto.SHA256));
+
+        // verify invalid digest algorithm is handled accordingly
+
+        try {
+            Crypto.convertSignatureFromDERToP1363Format(derSignature, "SHA1");
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("unknown signature size"));
+        }
+    }
+
+    @Test
     public void testSignVerifyByteArrayRSAKey() {
 
         PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
@@ -1387,5 +1423,68 @@ public class CryptoTest {
                 Bytes.concat(encodedHeader, PERIOD, encodedPayload), privateKey, Crypto.SHA256));
         assertFalse(Crypto.validateJWSDocument(new String(encodedHeader), new String(encodedPayload),
                 new String(signature), keyGetter));
+    }
+
+    /**
+     * Unit tests from the Apache codec library correspoding to
+     * toIntegerBytes function
+     * https://github.com/apache/commons-codec/blob/master/src/test/java/org/apache/commons/codec/binary/Base64Test.java
+     */
+    @Test
+    public void testToIntegerBytes1() {
+        final Base64.Encoder encoder = Base64.getEncoder();
+
+        final String encodedInt1 = "li7dzDacuo67Jg7mtqEm2TRuOMU=";
+        final BigInteger bigInt1 = new BigInteger("85739377120809420210425962799" + "0318636601332086981");
+
+        assertEquals(encodedInt1, new String(encoder.encode(Crypto.toIntegerBytes(bigInt1, true))));
+    }
+
+    @Test
+    public void testToIntegerBytes2() {
+        final Base64.Encoder encoder = Base64.getEncoder();
+
+        final String encodedInt2 = "9B5ypLY9pMOmtxCeTDHgwdNFeGs=";
+        final BigInteger bigInt2 = new BigInteger("13936727572861167254666467268" + "91466679477132949611");
+
+        assertEquals(encodedInt2, new String(encoder.encode(Crypto.toIntegerBytes(bigInt2, true))));
+    }
+
+    @Test
+    public void testToIntegerBytes3() {
+        final Base64.Encoder encoder = Base64.getEncoder();
+
+        final String encodedInt3 = "FKIhdgaG5LGKiEtF1vHy4f3y700zaD6QwDS3IrNVGzNp2"
+                + "rY+1LFWTK6D44AyiC1n8uWz1itkYMZF0/aKDK0Yjg==";
+        final BigInteger bigInt3 = new BigInteger(
+                "10806548154093873461951748545" + "1196989136416448805819079363524309897749044958112417136240557"
+                        + "4495062430572478766856090958495998158114332651671116876320938126");
+
+        assertEquals(encodedInt3, new String(encoder.encode(Crypto.toIntegerBytes(bigInt3, true))));
+    }
+
+    @Test
+    public void testToIntegerBytes4() {
+        final Base64.Encoder encoder = Base64.getEncoder();
+
+        final String encodedInt4 = "ctA8YGxrtngg/zKVvqEOefnwmViFztcnPBYPlJsvh6yKI"
+                + "4iDm68fnp4Mi3RrJ6bZAygFrUIQLxLjV+OJtgJAEto0xAs+Mehuq1DkSFEpP3o"
+                + "DzCTOsrOiS1DwQe4oIb7zVk/9l7aPtJMHW0LVlMdwZNFNNJoqMcT2ZfCPrfvYv" + "Q0=";
+        final BigInteger bigInt4 = new BigInteger(
+                "80624726256040348115552042320" + "6968135001872753709424419772586693950232350200555646471175944"
+                        + "519297087885987040810778908507262272892702303774422853675597"
+                        + "748008534040890923814202286633163248086055216976551456088015"
+                        + "338880713818192088877057717530169381044092839402438015097654"
+                        + "53542091716518238707344493641683483917");
+
+        assertEquals(encodedInt4, new String(encoder.encode(Crypto.toIntegerBytes(bigInt4, true))));
+    }
+
+    @Test
+    public void testGetSignatureExpectedSize() {
+        assertEquals(Crypto.getSignatureExpectedSize("SHA256"), 32);
+        assertEquals(Crypto.getSignatureExpectedSize("SHA384"), 48);
+        assertEquals(Crypto.getSignatureExpectedSize("SHA512"), 66);
+        assertEquals(Crypto.getSignatureExpectedSize("SHA1"), 0);
     }
 }

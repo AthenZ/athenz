@@ -354,7 +354,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     }
 
     @Override
-    public JWSPolicyData getJWSPolicyData(String domainName, String matchingTag, Map<String, List<String>> responseHeaders) {
+    public JWSPolicyData postSignedPolicyRequest(String domainName, SignedPolicyRequest request, String matchingTag, Map<String, List<String>> responseHeaders) {
 
         if ("invalid-domain".equals(domainName)) {
             throw new ResourceException(404, "not found domain");
