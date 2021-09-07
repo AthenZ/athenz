@@ -57,6 +57,7 @@ import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
 import org.mockito.*;
@@ -21491,12 +21492,11 @@ public class ZMSImplTest {
 
         final String domainName = "jws-domain";
 
-        // create multiple top level domains
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Response response = zms.getJWSDomain(mockDomRsrcCtx, domainName, null);
+        Response response = zms.getJWSDomain(mockDomRsrcCtx, domainName, null, null);
         JWSDomain jwsDomain = (JWSDomain) response.getEntity();
         DomainData domainData = getDomainData(jwsDomain);
 
@@ -21504,20 +21504,20 @@ public class ZMSImplTest {
         assertEquals(domainData.getName(), "jws-domain");
 
         Map<String, String> header = jwsDomain.getHeader();
-        assertEquals(header.get("keyid"), "0");
+        assertEquals(header.get("kid"), "0");
 
         // now we're going to ask for the same domain with the tag
         // and make sure we get back 304
 
         EntityTag tag = response.getEntityTag();
-        response = zms.getJWSDomain(mockDomRsrcCtx, domainName, tag.toString());
+        response = zms.getJWSDomain(mockDomRsrcCtx, domainName, Boolean.FALSE, tag.toString());
         assertEquals(response.getStatus(), ResourceException.NOT_MODIFIED);
 
         // pass a timestamp a minute back and make sure we
         // get back the domain
 
         Timestamp tstamp = Timestamp.fromMillis(System.currentTimeMillis() - 3600);
-        response = zms.getJWSDomain(mockDomRsrcCtx, domainName, tstamp.toString());
+        response = zms.getJWSDomain(mockDomRsrcCtx, domainName, false, tstamp.toString());
         jwsDomain = (JWSDomain) response.getEntity();
         domainData = getDomainData(jwsDomain);
 
@@ -21526,7 +21526,7 @@ public class ZMSImplTest {
 
         // any invalid data is also treated as no etag
 
-        response = zms.getJWSDomain(mockDomRsrcCtx, domainName, "unknown-date");
+        response = zms.getJWSDomain(mockDomRsrcCtx, domainName, null, "unknown-date");
         jwsDomain = (JWSDomain) response.getEntity();
         domainData = getDomainData(jwsDomain);
 
@@ -21537,12 +21537,33 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetJWSDomainP1363Signature() throws JsonProcessingException, ParseException, JOSEException {
+
+        final String domainName = "jws-domain-p1363";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Response response = zms.getJWSDomain(mockDomRsrcCtx, domainName, Boolean.TRUE, null);
+        JWSDomain jwsDomain = (JWSDomain) response.getEntity();
+
+        JWSObject jwsObject = new JWSObject(Base64URL.from(jwsDomain.getProtectedHeader()),
+                Base64URL.from(jwsDomain.getPayload()), Base64URL.from(jwsDomain.getSignature()));
+
+        JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) Crypto.extractPublicKey(zms.privateKey.getKey()));
+        assertTrue(jwsObject.verify(verifier));
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
     public void testGetJWSDomainError() {
 
         // not found
 
         try {
-            zms.getJWSDomain(mockDomRsrcCtx, "unknown", null);
+            zms.getJWSDomain(mockDomRsrcCtx, "unknown", Boolean.TRUE, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ResourceException.NOT_FOUND, ex.getCode());
@@ -21553,7 +21574,7 @@ public class ZMSImplTest {
 
         ServerPrivateKey pkey = zms.privateKey;
         zms.privateKey = null;
-        assertNull(zms.signJwsDomain(null));
+        assertNull(zms.signJwsDomain(null, null));
         zms.privateKey = pkey;
     }
 
@@ -26167,14 +26188,14 @@ public class ZMSImplTest {
         dom1.setTags(simpleDomainTag());
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        Response response = zms.getJWSDomain(mockDomRsrcCtx, domainName, null);
+        Response response = zms.getJWSDomain(mockDomRsrcCtx, domainName, null, null);
         JWSDomain jwsDomain = (JWSDomain) response.getEntity();
         DomainData domainData = getDomainData(jwsDomain);
         assertNotNull(domainData);
         assertEquals(domainData.getName(), domainName);
 
         Map<String, String> header = jwsDomain.getHeader();
-        assertEquals(header.get("keyid"), "0");
+        assertEquals(header.get("kid"), "0");
 
         assertEquals(domainData.getTags(), simpleDomainTag());
 

@@ -3433,11 +3433,11 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Map<String, String> header = new HashMap<>();
-        header.put("keyid", "0");
+        header.put("kid", "0");
         JWSDomain jwsDomain = new JWSDomain()
                 .setPayload("payload").setSignature("signature")
                 .setProtectedHeader("header").setHeader(header);
-        Mockito.when(c.getJWSDomain("domain1", "tag", Collections.emptyMap())).thenReturn(jwsDomain);
+        Mockito.when(c.getJWSDomain("domain1", false, "tag", Collections.emptyMap())).thenReturn(jwsDomain);
         JWSDomain jwsDom = client.getJWSDomain("domain1", "tag", Collections.emptyMap());
         assertNotNull(jwsDom);
     }
@@ -3448,11 +3448,11 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Map<String, String> header = new HashMap<>();
-        header.put("keyid", "0");
+        header.put("kid", "0");
         JWSDomain jwsDomain = new JWSDomain()
                 .setPayload("payload").setSignature("signature")
                 .setProtectedHeader("header").setHeader(header);
-        Mockito.when(c.getJWSDomain("domain1", null, null)).thenReturn(jwsDomain);
+        Mockito.when(c.getJWSDomain("domain1", false, null, null)).thenReturn(jwsDomain);
         JWSDomain jwsDom = client.getJWSDomain("domain1");
         assertNotNull(jwsDom);
     }
@@ -3466,7 +3466,7 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
 
-        Mockito.when(c.getJWSDomain(domainName, null, null))
+        Mockito.when(c.getJWSDomain(domainName, false, null, null))
                 .thenThrow(new ResourceException(403))
                 .thenThrow(new NullPointerException());
 
