@@ -54,25 +54,9 @@ public class ZpeUpdMonitor implements Runnable {
         File pdir = new File(dirName);
         File [] files = pdir.listFiles(polFileNameFilter);
         if (files == null || files.length == 0) {
-            if (pdir.exists()) {
-                LOG.error("loadFileStatus: the directory={} exists, but there are no policy files in it", dirName);
-            } else {
-                LOG.error("loadFileStatus: the directory={} does NOT exist", dirName);
-            }
+            LOG.error("directory {} - {}", dirName, pdir.exists() ? "does not have any files" : "does not exist");
         }
         return files;
-    }
-
-    private void logRunMsg(Exception exc) {
-
-        dirName = dirName == null ? "MISSING-POL-DIR-NAME" : dirName;
-        String msg = "Reload directory=" + dirName;
-
-        if (exc == null) {
-            LOG.debug(msg);
-        } else {
-            LOG.error("{}, exc: {}", msg, exc);
-        }
     }
 
     @Override
@@ -114,14 +98,12 @@ public class ZpeUpdMonitor implements Runnable {
                     updLoader.notify();
                 }
             }
-        } catch (Exception exc) {
-            logRunMsg(exc);
+        } catch (Exception ex) {
+            LOG.error("run: load failure, directory name: {}", dirName, ex);
             return;
         }
 
-        if (LOG.isDebugEnabled()) {
-            logRunMsg(null);
-        }
+        LOG.debug("run: reload directory: {}", dirName);
     }
 }
 

@@ -20,10 +20,14 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.PublicKey;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.Function;
 
 import com.yahoo.athenz.auth.token.AccessToken;
+import com.yahoo.athenz.zts.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +41,6 @@ import com.yahoo.athenz.zpe.match.impl.ZpeMatchAll;
 import com.yahoo.athenz.zpe.match.impl.ZpeMatchEqual;
 import com.yahoo.athenz.zpe.match.impl.ZpeMatchRegex;
 import com.yahoo.athenz.zpe.match.impl.ZpeMatchStartsWith;
-import com.yahoo.athenz.zts.Assertion;
-import com.yahoo.athenz.zts.AssertionEffect;
-import com.yahoo.athenz.zts.DomainSignedPolicyData;
-import com.yahoo.athenz.zts.Policy;
-import com.yahoo.athenz.zts.PolicyData;
-import com.yahoo.athenz.zts.SignedPolicyData;
 
 public class ZpeUpdPolLoader implements Closeable {
 
@@ -60,29 +58,24 @@ public class ZpeUpdPolLoader implements Closeable {
         skipPolicyDirCheck = Boolean.parseBoolean(System.getProperty(ZpeConsts.ZPE_PROP_SKIP_POLICY_DIR_CHECK, "false"));
         checkPolicyZMSSignature = Boolean.parseBoolean(System.getProperty(ZpeConsts.ZPE_PROP_CHECK_POLICY_ZMS_SIGNATURE, "false"));
 
-        String timeoutSecs = System.getProperty(ZpeConsts.ZPE_PROP_MON_TIMEOUT);
-        if (timeoutSecs == null) {
-            // default to 5 minutes
-            sleepTimeMillis = TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES);
-        } else {
-            try {
-                long secs = Long.parseLong(timeoutSecs);
-                sleepTimeMillis = TimeUnit.MILLISECONDS.convert(secs, TimeUnit.SECONDS);
-            } catch (NumberFormatException exc) {
-                LOG.warn("start: WARNING: Failed using system property({}) with value={}, exc: {}",
-                        ZpeConsts.ZPE_PROP_MON_TIMEOUT, timeoutSecs, exc);
-            }
+        // default to 5 minutes / 300 secs
+        String timeoutSecs = System.getProperty(ZpeConsts.ZPE_PROP_MON_TIMEOUT, "300");
+        try {
+            long secs = Long.parseLong(timeoutSecs);
+            sleepTimeMillis = TimeUnit.MILLISECONDS.convert(secs, TimeUnit.SECONDS);
+        } catch (NumberFormatException exc) {
+            LOG.warn("start: WARNING: Failed using system property({}) with value={}, exc: {}",
+                    ZpeConsts.ZPE_PROP_MON_TIMEOUT, timeoutSecs, exc);
         }
 
-        timeoutSecs = System.getProperty(ZpeConsts.ZPE_PROP_MON_CLEANUP_TOKENS);
-        if (timeoutSecs != null) {
-            try {
-                long secs = Long.parseLong(timeoutSecs);
-                cleanupTokenInterval = TimeUnit.MILLISECONDS.convert(secs, TimeUnit.SECONDS);
-            } catch (NumberFormatException exc) {
-                LOG.warn("start: WARNING: Failed using system property({}) with value={}, exc: {}",
-                        ZpeConsts.ZPE_PROP_MON_CLEANUP_TOKENS, timeoutSecs, exc);
-            }
+        // default is 10 minutes / 600 secs
+        timeoutSecs = System.getProperty(ZpeConsts.ZPE_PROP_MON_CLEANUP_TOKENS, "600");
+        try {
+            long secs = Long.parseLong(timeoutSecs);
+            cleanupTokenInterval = TimeUnit.MILLISECONDS.convert(secs, TimeUnit.SECONDS);
+        } catch (NumberFormatException exc) {
+            LOG.warn("start: WARNING: Failed using system property({}) with value={}, exc: {}",
+                    ZpeConsts.ZPE_PROP_MON_CLEANUP_TOKENS, timeoutSecs, exc);
         }
     }
 
@@ -209,7 +202,7 @@ public class ZpeUpdPolLoader implements Closeable {
     }
 
     static public void cleanupRoleTokenCache() {
-        // is it time to cleanup?
+        // is it time to clean up?
         long now = System.currentTimeMillis();
         if (now < (cleanupTokenInterval + lastRoleTokenCleanup)) {
             return;
@@ -221,7 +214,7 @@ public class ZpeUpdPolLoader implements Closeable {
     }
 
     static public void cleanupAccessTokenCache() {
-        // is it time to cleanup?
+        // is it time to clean up?
         long now = System.currentTimeMillis();
         if (now < (cleanupTokenInterval + lastAccessTokenCleanup)) {
             return;
@@ -242,8 +235,7 @@ public class ZpeUpdPolLoader implements Closeable {
             return;
         }
 
-        File[] polFileNames = updMonWorker.loadFileStatus();
-        loadDb(polFileNames);
+        loadDb(updMonWorker.loadFileStatus());
     }
 
     /**
@@ -252,6 +244,7 @@ public class ZpeUpdPolLoader implements Closeable {
      *  into the policy domain map.
      **/
     void loadDb(File []polFileNames) {
+
         if (polFileNames == null) {
             LOG.error("loadDb: no policy files to load");
             return;
@@ -293,7 +286,7 @@ public class ZpeUpdPolLoader implements Closeable {
                 // check if file was modified since last time it was loaded
                 //
                 if (lastModMilliSeconds <= fstat.modifyTimeMillis) {
-                    // if valid and up to date return
+                    // if valid and up-to-date return
                     // if not valid, may be due to timing issue for a new
                     // file not completely written - and file system timestamp
                     // only accurate up to the second - not millis
@@ -337,6 +330,89 @@ public class ZpeUpdPolLoader implements Closeable {
         return match;
     }
 
+    private PolicyData getJWSPolicyData(JWSPolicyData jwsPolicyData) {
+
+        Function<String, PublicKey> keyGetter = AuthZpeClient::getZtsPublicKey;
+        if (!Crypto.validateJWSDocument(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getPayload(),
+                jwsPolicyData.getSignature(), keyGetter)) {
+            LOG.error("zts signature validation failed");
+            return null;
+        }
+
+        Base64.Decoder base64Decoder = Base64.getUrlDecoder();
+        byte[] payload = base64Decoder.decode(jwsPolicyData.getPayload());
+        SignedPolicyData signedPolicyData = JSON.fromBytes(payload, SignedPolicyData.class);
+        if (signedPolicyData == null) {
+            LOG.error("unable to parse jws policy data payload");
+            return null;
+        }
+
+        return signedPolicyData.getPolicyData();
+    }
+
+    private PolicyData getSignedPolicyData(DomainSignedPolicyData domainSignedPolicyData) {
+
+        // we already verified that the object has policy data present
+
+        SignedPolicyData signedPolicyData = domainSignedPolicyData.getSignedPolicyData();
+
+        final String ztsSignature = domainSignedPolicyData.getSignature();
+        final String ztsKeyId = domainSignedPolicyData.getKeyId();
+
+        // first let's verify the ZTS signature for our policy file
+
+        java.security.PublicKey ztsPublicKey = AuthZpeClient.getZtsPublicKey(ztsKeyId);
+        if (ztsPublicKey == null) {
+            LOG.error("unable to fetch zts public key for id: {}", ztsKeyId);
+            return null;
+        }
+
+        if (!Crypto.verify(SignUtils.asCanonicalString(signedPolicyData), ztsPublicKey, ztsSignature)) {
+            LOG.error("zts signature validation failed");
+            return null;
+        }
+
+        PolicyData policyData = signedPolicyData.getPolicyData();
+        if (policyData == null) {
+            LOG.error("missing policy data");
+            return null;
+        }
+
+        // now let's verify that the ZMS signature for our policy file
+        // by default we're skipping this check because with multi-policy
+        // support we'll be returning different versions of the policy
+        // data from ZTS which cannot be signed by ZMS
+
+        if (checkPolicyZMSSignature) {
+
+            final String zmsSignature = signedPolicyData.getZmsSignature();
+            final String zmsKeyId = signedPolicyData.getZmsKeyId();
+
+            java.security.PublicKey zmsPublicKey = AuthZpeClient.getZmsPublicKey(zmsKeyId);
+            if (zmsPublicKey == null) {
+                LOG.error("unable to fetch zms public key for id: {}", zmsKeyId);
+                return null;
+            }
+
+            if (!Crypto.verify(SignUtils.asCanonicalString(policyData), zmsPublicKey, zmsSignature)) {
+                LOG.error("zms signature validation failed");
+                return null;
+            }
+        }
+
+        return policyData;
+    }
+
+    private void markInvalidFile(File polFile) {
+        // mark this as an invalid file
+        LOG.error("unable to decode domain file={}", polFile.getName());
+
+        Map<String, ZpeFileStatus> fsmap = getFileStatusMap();
+        ZpeFileStatus fstat = fsmap.get(polFile.getName());
+        if (fstat != null) {
+            fstat.validPolFile = false;
+        }
+    }
     /**
      * Loads and parses the given file. It will create the domain assertion
      * list per role and put it into the domain policy maps(domRoleMap, domWildcardRoleMap).
@@ -348,69 +424,32 @@ public class ZpeUpdPolLoader implements Closeable {
         }
         
         Path path = Paths.get(polDirName + File.separator + polFile.getName());
-        DomainSignedPolicyData spols = null;
+
+        byte[] policyFileData;
         try {
-            spols = JSON.fromBytes(Files.readAllBytes(path), DomainSignedPolicyData.class);
+            policyFileData = Files.readAllBytes(path);
         } catch (Exception ex) {
-            LOG.error("loadFile: unable to decode policy file={} error: {}", polFile.getName(), ex);
-        }
-        if (spols == null) {
-            LOG.error("loadFile: unable to decode domain file={}", polFile.getName());
-            // mark this as an invalid file
-            Map<String, ZpeFileStatus> fsmap = getFileStatusMap();
-            ZpeFileStatus fstat = fsmap.get(polFile.getName());
-            if (fstat != null) {
-                fstat.validPolFile = false;
-            }
+            LOG.error("unable to read policy file={}", polFile.getName(), ex);
+            markInvalidFile(polFile);
             return;
         }
-        
-        SignedPolicyData signedPolicyData = spols.getSignedPolicyData();
-        String signature = spols.getSignature();
-        String keyId = spols.getKeyId();
-        
-        // first let's verify the ZTS signature for our policy file
-        
-        boolean verified = false;
-        if (signedPolicyData != null) {
-            java.security.PublicKey pubKey = AuthZpeClient.getZtsPublicKey(keyId);
-            if (pubKey == null) {
-                LOG.error("loadFile: unable to fetch zts public key for id: {}", keyId);
-            } else {
-                verified = Crypto.verify(SignUtils.asCanonicalString(signedPolicyData), pubKey, signature);
-            }
-        }
-        
+
+        // we're going to assume the old domain signed policy format first
+        // and if that fails we'll try jws policy data format
+
         PolicyData policyData = null;
-        if (verified) {
-
-            policyData = signedPolicyData.getPolicyData();
-            signature = signedPolicyData.getZmsSignature();
-            keyId = signedPolicyData.getZmsKeyId();
-
-            // now let's verify that the ZMS signature for our policy file
-            // by default we're skipping this check because with multi-policy
-            // support we'll be returning different versions of the policy
-            // data from ZTS which cannot be signed by ZMS
-
-            if (policyData != null && checkPolicyZMSSignature) {
-                java.security.PublicKey pubKey = AuthZpeClient.getZmsPublicKey(keyId);
-                if (pubKey == null) {
-                    LOG.error("loadFile: unable to fetch zms public key for id: {}", keyId);
-                } else {
-                    verified = Crypto.verify(SignUtils.asCanonicalString(policyData), pubKey, signature);
-                }
+        DomainSignedPolicyData domainSignedPolicyData = JSON.fromBytes(policyFileData, DomainSignedPolicyData.class);
+        if (domainSignedPolicyData != null && domainSignedPolicyData.getSignedPolicyData() != null) {
+            policyData = getSignedPolicyData(domainSignedPolicyData);
+        } else {
+            JWSPolicyData jwsPolicyData = JSON.fromBytes(policyFileData, JWSPolicyData.class);
+            if (jwsPolicyData != null) {
+                policyData = getJWSPolicyData(jwsPolicyData);
             }
         }
-        
-         if (!verified || policyData == null) {
-             LOG.error("loadFile: policy file={} is invalid", polFile.getName());
-             // mark this as an invalid file
-             Map<String, ZpeFileStatus> fsmap = getFileStatusMap();
-             ZpeFileStatus fstat = fsmap.get(polFile.getName());
-             if (fstat != null) {
-                 fstat.validPolFile = false;
-             }
+
+         if (policyData == null) {
+             markInvalidFile(polFile);
              return;
          }
          
@@ -444,19 +483,19 @@ public class ZpeUpdPolLoader implements Closeable {
                 com.yahoo.rdl.Struct strAssert = new Struct();
                 strAssert.put(ZpeConsts.ZPE_FIELD_POLICY_NAME, pname);
 
-                // Is is possible for action and resource to retain case. Need to lower them both.
-                String passertAction = assertion.getAction().toLowerCase();
+                // It is possible for action and resource to retain case. Need to lower them both.
+                final String passertAction = assertion.getAction().toLowerCase();
 
                 ZpeMatch matchStruct = getMatchObject(passertAction);
                 strAssert.put(ZpeConsts.ZPE_ACTION_MATCH_STRUCT, matchStruct);
                 
-                String passertResource = assertion.getResource().toLowerCase();
-                String rsrc = AuthZpeClient.stripDomainPrefix(passertResource, domainName, passertResource);
+                final String passertResource = assertion.getResource().toLowerCase();
+                final String rsrc = AuthZpeClient.stripDomainPrefix(passertResource, domainName, passertResource);
                 strAssert.put(ZpeConsts.ZPE_FIELD_RESOURCE, rsrc);
                 matchStruct = getMatchObject(rsrc);
                 strAssert.put(ZpeConsts.ZPE_RESOURCE_MATCH_STRUCT, matchStruct);
 
-                String passertRole = assertion.getRole();
+                final String passertRole = assertion.getRole();
                 String pRoleName = AuthZpeClient.stripDomainPrefix(passertRole, domainName, passertRole);
                 // strip the prefix "role." too
                 pRoleName = pRoleName.replaceFirst("^role.", "");
