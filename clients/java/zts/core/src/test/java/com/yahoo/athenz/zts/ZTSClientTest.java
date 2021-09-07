@@ -2065,18 +2065,18 @@ public class ZTSClientTest {
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
         Map<String, List<String>> responseHeaders = new HashMap<>();
-        JWSPolicyData jwsPolicyData = client.getJWSPolicyData("coretech", null, responseHeaders);
+        JWSPolicyData jwsPolicyData = client.postSignedPolicyRequest("coretech", new SignedPolicyRequest(), null, responseHeaders);
         assertNotNull(jwsPolicyData);
 
         try {
-            client.getJWSPolicyData("invalid-domain", null, responseHeaders);
+            client.postSignedPolicyRequest("invalid-domain", new SignedPolicyRequest(), null, responseHeaders);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
         }
 
         try {
-            client.getJWSPolicyData(null, null, responseHeaders);
+            client.postSignedPolicyRequest(null, new SignedPolicyRequest(), null, responseHeaders);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);

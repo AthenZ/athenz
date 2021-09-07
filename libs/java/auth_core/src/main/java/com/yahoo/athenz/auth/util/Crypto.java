@@ -33,13 +33,10 @@ import javax.security.auth.x500.X500Principal;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bouncycastle.asn1.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.DERIA5String;
-import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -177,6 +174,22 @@ public class Crypto {
         return digestAlgorithm;
     }
 
+    public static int getSignatureExpectedSize(final String algorithm) {
+        int size = 0;
+        switch (algorithm) {
+            case SHA256:
+                size = 32;
+                break;
+            case SHA384:
+                size = 48;
+                break;
+            case SHA512:
+                size = 66;
+                break;
+        }
+        return size;
+    }
+
     /**
      * Sign the message with the shared secret using HmacSHA256
      * The result is a ybase64 (url safe) string.
@@ -211,7 +224,6 @@ public class Crypto {
     }
 
     static String getSignatureAlgorithm(String keyAlgorithm, String digestAlgorithm) throws NoSuchAlgorithmException {
-
         String signatureAlgorithm = null;
         switch (keyAlgorithm) {
             case RSA:
@@ -242,7 +254,6 @@ public class Crypto {
 
         return signatureAlgorithm;
     }
-
 
     /**
      * Sign the text with with given digest algorithm and private key. Returns the ybase64 encoding of it.
@@ -278,7 +289,7 @@ public class Crypto {
     }
 
     /**
-     * Sign the byte array with with given digest algorithm and private key. Returns the byte array
+     * Sign the byte array with given digest algorithm and private key. Returns the byte array
      * @param message the message to sign, as a byte array
      * @param key the private key to sign with
      * @param digestAlgorithm supported values SHA1 and SHA256
@@ -305,6 +316,82 @@ public class Crypto {
             LOG.error("sign: Caught InvalidKeyException, incorrect key type is being used.");
             throw new CryptoException(e);
         }
+    }
+
+    /**
+     * Convert signature byte array from ASN.1 DER format to P1363 Format
+     * @param signature byte array in DER format
+     * @param digestAlgorithm supported values e.g. SHA256
+     * @return the byte[] signature in P1363 format
+     * @throws CryptoException for any issues with provider/algorithm/signature/key
+     */
+    public static byte[] convertSignatureFromDERToP1363Format(byte[] signature, final String digestAlgorithm) {
+
+        // first get the expected size for the supported digest algorithms
+
+        int size = getSignatureExpectedSize(digestAlgorithm);
+        if (size == 0) {
+            LOG.error("unable to determine expected signature size for algorithm: {}", digestAlgorithm);
+            throw new CryptoException("unknown signature size");
+        }
+
+        ASN1Sequence seq = ASN1Sequence.getInstance(signature);
+        BigInteger r = ((ASN1Integer) seq.getObjectAt(0)).getValue();
+        BigInteger s = ((ASN1Integer) seq.getObjectAt(1)).getValue();
+
+        // generate our output data that would be
+        // twice the size of our expected value
+
+        byte[] out = new byte[2 * size];
+        System.arraycopy(toIntegerBytes(r, true), 0, out, 0, size);
+        System.arraycopy(toIntegerBytes(s, true), 0, out, size, size);
+        return out;
+    }
+
+    /**
+     * https://github.com/apache/commons-codec/blob/master/src/main/java/org/apache/commons/codec/binary/Base64.java
+     * Licensed Under Apache 2.0 https://github.com/apache/commons-codec/blob/master/LICENSE.txt
+     *
+     * In apache.commons.code this is a private static function and the wrapper
+     * does not generate base64 encoded data that is url safe which is required
+     * per jwk spec. So we'll copy the function as is for our use.
+     *
+     * Returns a byte-array representation of a {@code BigInteger} without sign bit.
+     *
+     * @param bigInt {@code BigInteger} to be converted
+     * @param skipSignBit support handling of sign bit based on spec (should be true)
+     * @return a byte array representation of the BigInteger parameter
+     */
+    public static byte[] toIntegerBytes(final BigInteger bigInt, boolean skipSignBit) {
+
+        // this will be removed once all properties update
+        // their code to handle the sign bit correctly
+        if (!skipSignBit) {
+            return bigInt.toByteArray();
+        }
+
+        int bitlen = bigInt.bitLength();
+        // round bitlen
+        bitlen = ((bitlen + 7) >> 3) << 3;
+        final byte[] bigBytes = bigInt.toByteArray();
+
+        if (((bigInt.bitLength() % 8) != 0) && (((bigInt.bitLength() / 8) + 1) == (bitlen / 8))) {
+            return bigBytes;
+        }
+        // set up params for copying everything but sign bit
+        int startSrc = 0;
+        int len = bigBytes.length;
+
+        // if bigInt is exactly byte-aligned, just skip signbit in copy
+        if ((bigInt.bitLength() % 8) == 0) {
+            startSrc = 1;
+            len--;
+        }
+
+        final int startDst = bitlen / 8 - len; // to pad w/ nulls as per spec
+        final byte[] resizedBytes = new byte[bitlen / 8];
+        System.arraycopy(bigBytes, startSrc, resizedBytes, startDst, len);
+        return resizedBytes;
     }
 
     /**
@@ -366,7 +453,7 @@ public class Crypto {
     }
 
     /**
-     * Verify the signed data with given digest algorithm and the private key against the ybase64 encoded signature.
+     * Verify the signed data with given digest algorithm and the private key against the given signature.
      * @param message the message to sign, as a byte[]
      * @param key the public key corresponding to the signing key
      * @param signature the signature for the data

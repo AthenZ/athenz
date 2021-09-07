@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zts;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.CertificateAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
@@ -64,10 +66,7 @@ import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
-import com.yahoo.rdl.JSON;
-import com.yahoo.rdl.Schema;
-import com.yahoo.rdl.Timestamp;
-import com.yahoo.rdl.Validator;
+import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -92,6 +91,7 @@ import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -154,6 +154,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected int maxAuthzDetailsLength;
     protected boolean enableWorkloadStore = false;
     protected AuthzDetailsEntityList systemAuthzDetails = null;
+    protected ObjectMapper jsonMapper;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -169,7 +170,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_RESOURCE_NAME = "ResourceName";
     private static final String TYPE_PATH_ELEMENT = "PathElement";
     private static final String TYPE_AWS_ARN_ROLE_NAME = "AWSArnRoleName";
-    
+    private static final String TYPE_SIGNED_POLICY_REQUEST = "SignedPolicyRequest";
+
     private static final String ZTS_ROLE_TOKEN_VERSION = "Z1";
     private static final String ZTS_REQUEST_LOG_SKIP_QUERY = "com.yahoo.athenz.uri.skip_query";
 
@@ -190,6 +192,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String USER_AGENT_HDR = "User-Agent";
 
     private static final String ACCESS_LOG_ADDL_QUERY = "com.yahoo.athenz.uri.addl_query";
+
+    private static final byte[] PERIOD = { 46 };
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZTSImpl.class);
     
@@ -249,7 +253,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // let's first get our server hostname
 
         ZTSImpl.serverHostName = getServerHostName();
-        
+
+        // create our json mapper
+
+        jsonMapper = new ObjectMapper();
+
         // before we do anything we need to load our configuration
         // settings
         
@@ -512,7 +520,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         ztsOAuthIssuer = System.getProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER, serverHostName);
 
-        // setup our health check file
+        // set up our health check file
 
         final String healthCheckPath = System.getProperty(ZTSConsts.ZTS_PROP_HEALTH_CHECK_PATH);
         if (!StringUtil.isEmpty(healthCheckPath)) {
@@ -931,7 +939,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return dataStore.getHostServices(host);
     }
 
-    List<Policy> getPolicyList(DomainData domainData) {
+    List<Policy> getPolicyList(DomainData domainData, Map<String, String> policyVersions) {
         
         ArrayList<Policy> ztsPolicies = new ArrayList<>();
 
@@ -949,36 +957,70 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (zmsPolicies == null) {
             return ztsPolicies;
         }
-        
+
         for (com.yahoo.athenz.zms.Policy zmsPolicy : zmsPolicies) {
 
-            // ignore any inactive/multi-version policies
+            // ignore any inactive/multi-version policies if we're only
+            // asked for active policies
 
-            if (zmsPolicy.getActive() == Boolean.FALSE) {
-                continue;
-            }
-
-            Policy ztsPolicy = new Policy()
-                    .setModified(zmsPolicy.getModified())
-                    .setName(zmsPolicy.getName());
-            
-            List<com.yahoo.athenz.zms.Assertion> zmsAssertions = zmsPolicy.getAssertions();
-            if (zmsAssertions != null) {
-                ArrayList<Assertion> ztsAssertions = new ArrayList<>();
-                for (com.yahoo.athenz.zms.Assertion zmsAssertion : zmsAssertions) {
-                    Assertion ztsAssertion = new Assertion()
-                            .setAction(zmsAssertion.getAction())
-                            .setResource(zmsAssertion.getResource())
-                            .setRole(zmsAssertion.getRole())
-                            .setEffect(getAssertionEffect(zmsAssertion.getEffect()));
-                    ztsAssertions.add(ztsAssertion);
+            if (policyVersions == null) {
+                if (zmsPolicy.getActive() == Boolean.FALSE) {
+                    continue;
                 }
-                ztsPolicy.setAssertions(ztsAssertions);
+            } else {
+                if (!policyVersionMatch(zmsPolicy, policyVersions)) {
+                    continue;
+                }
             }
-            ztsPolicies.add(ztsPolicy);
+
+            ztsPolicies.add(copyZMSPolicyObject(zmsPolicy, policyVersions != null));
         }
         
         return ztsPolicies;
+    }
+
+    boolean policyVersionMatch(com.yahoo.athenz.zms.Policy zmsPolicy, Map<String, String> requestedPolicyVersions) {
+
+        // first check if we're asked for a specific version of the policy
+        // if no there is no version specified then we must only return
+        // the active version of the policy
+
+        final String version = requestedPolicyVersions.get(zmsPolicy.getName());
+        if (StringUtil.isEmpty(version)) {
+            return zmsPolicy.getActive() != Boolean.FALSE;
+        }
+
+        return version.equals(zmsPolicy.getVersion());
+    }
+
+    Policy copyZMSPolicyObject(com.yahoo.athenz.zms.Policy zmsPolicy, boolean includeAllAttributes) {
+        Policy ztsPolicy = new Policy()
+                .setModified(zmsPolicy.getModified())
+                .setName(zmsPolicy.getName());
+        if (includeAllAttributes) {
+            ztsPolicy.setActive(zmsPolicy.getActive())
+                    .setCaseSensitive(zmsPolicy.getCaseSensitive())
+                    .setVersion(zmsPolicy.getVersion());
+        }
+
+        List<com.yahoo.athenz.zms.Assertion> zmsAssertions = zmsPolicy.getAssertions();
+        if (zmsAssertions != null) {
+            ArrayList<Assertion> ztsAssertions = new ArrayList<>();
+            for (com.yahoo.athenz.zms.Assertion zmsAssertion : zmsAssertions) {
+                Assertion ztsAssertion = new Assertion()
+                        .setAction(zmsAssertion.getAction())
+                        .setResource(zmsAssertion.getResource())
+                        .setRole(zmsAssertion.getRole())
+                        .setEffect(getAssertionEffect(zmsAssertion.getEffect()));
+                if (includeAllAttributes) {
+                    ztsAssertion.setCaseSensitive(zmsAssertion.getCaseSensitive())
+                            .setId(zmsAssertion.getId());
+                }
+                ztsAssertions.add(ztsAssertion);
+            }
+            ztsPolicy.setAssertions(ztsAssertions);
+        }
+        return ztsPolicy;
     }
 
     AssertionEffect getAssertionEffect(com.yahoo.athenz.zms.AssertionEffect effect) {
@@ -990,8 +1032,143 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
-    public Response getJWSPolicyData(ResourceContext ctx, String domainName, String matchingTag) {
-        return Response.status(ResourceException.NOT_IMPLEMENTED).build();
+    public Response postSignedPolicyRequest(ResourceContext ctx, String domainName, SignedPolicyRequest signedPolicyRequest, String matchingTag) {
+
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+
+        validateRequest(ctx.request(), principalDomain, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+        validate(signedPolicyRequest, TYPE_SIGNED_POLICY_REQUEST, principalDomain, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case since ZMS Server
+        // saves all of its object names in lower case
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        DomainData domainData = dataStore.getDomainData(domainName);
+        if (domainData == null) {
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("Domain not found: '" + domainName + "'", caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        Timestamp modified = domainData.getModified();
+        EntityTag eTag = new EntityTag(modified.toString());
+        final String tag = eTag.toString();
+
+        // Set timestamp for domain rather than youngest policy.
+        // Since a policy could have been deleted, and can only be detected
+        // via the domain modified timestamp.
+
+        if (matchingTag != null && matchingTag.equals(tag)) {
+            return Response.status(ResourceException.NOT_MODIFIED).header("ETag", tag).build();
+        }
+
+        // generate our list of policy version requests. in this method
+        // we make sure our policy name are complete (include domain prefix)
+        // and all are lowercase
+
+        Map<String, String> policyVersions = generatePolicyVersions(domainName, signedPolicyRequest);
+
+        // first get our PolicyData object
+
+        PolicyData policyData = new PolicyData()
+                .setDomain(domainName)
+                .setPolicies(getPolicyList(domainData, policyVersions));
+
+        // then get the signed policy data
+
+        Timestamp expires = Timestamp.fromMillis(System.currentTimeMillis() + signedPolicyTimeout);
+
+        SignedPolicyData signedPolicyData = new SignedPolicyData()
+                .setPolicyData(policyData)
+                .setExpires(expires)
+                .setModified(modified)
+                .setZmsKeyId("")
+                .setZmsSignature("");
+
+        JWSPolicyData jwsPolicyData = signJwsPolicyData(signedPolicyData, signedPolicyRequest.getSignatureP1363Format());
+        if (jwsPolicyData == null) {
+            return Response.status(ResourceException.INTERNAL_SERVER_ERROR).build();
+        } else {
+            return Response.status(ResourceException.OK).entity(jwsPolicyData).header("ETag", tag).build();
+        }
+    }
+
+    Map<String, String> generatePolicyVersions(final String domainName, SignedPolicyRequest signedPolicyRequest) {
+
+        if (signedPolicyRequest == null) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, String> requestPolicyVersions = signedPolicyRequest.getPolicyVersions();
+        if (requestPolicyVersions == null || requestPolicyVersions.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, String> policyVersions = new HashMap<>();
+        final String domainPrefix = domainName + AuthorityConsts.POLICY_SEP;
+        for (Map.Entry<String, String> entry : requestPolicyVersions.entrySet()) {
+            final String policyName = entry.getKey().toLowerCase();
+            if (policyName.startsWith(domainPrefix)) {
+                policyVersions.put(policyName, entry.getValue().toLowerCase());
+            } else {
+                policyVersions.put(domainPrefix + policyName, entry.getValue().toLowerCase());
+            }
+        }
+
+        return policyVersions;
+    }
+
+    JWSPolicyData signJwsPolicyData(SignedPolicyData signedPolicyData, boolean signatureP1363Format) {
+
+        // https://tools.ietf.org/html/rfc7515#section-7.2.2
+        // first generate the json output of our object
+
+        JWSPolicyData jwsPolicyData = null;
+        try {
+            // spec requires base64 url encoder without any padding
+
+            final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+
+            // generate our domain data payload and encode it
+
+            final byte[] jsonPolicyData = jsonMapper.writeValueAsBytes(signedPolicyData);
+            final byte[] encodedPolicyData = encoder.encode(jsonPolicyData);
+
+            // generate our protected header - just includes the key id + algorithm
+
+            final String protectedHeader = "{\"kid\":\"" + privateKey.getId() + "\",\"alg\":\"" + privateKey.getAlgorithm() + "\"}";
+            final byte[] encodedProtectedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
+
+            // combine protectedHeader . payload and sign the result
+
+            byte[] signature = Crypto.sign(Bytes.concat(encodedProtectedHeader, PERIOD, encodedPolicyData),
+                    privateKey.getKey(), Crypto.SHA256);
+            if (signatureP1363Format) {
+                signature = Crypto.convertSignatureFromDERToP1363Format(signature, Crypto.SHA256);
+            }
+            final byte[] encodedSignature = encoder.encode(signature);
+
+            // our header contains a single entry with the kid
+
+            final Map<String, String> headerMap = new HashMap<>();
+            headerMap.put("kid", privateKey.getId());
+
+            jwsPolicyData = new JWSPolicyData()
+                    .setHeader(headerMap)
+                    .setPayload(new String(encodedPolicyData))
+                    .setProtectedHeader(new String(encodedProtectedHeader))
+                    .setSignature(new String(encodedSignature));
+
+        } catch (Exception ex) {
+            LOGGER.error("Unable to generate signed policy data object", ex);
+        }
+
+        return jwsPolicyData;
     }
 
     @Override
@@ -1033,7 +1210,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         PolicyData policyData = new PolicyData()
                 .setDomain(domainName)
-                .setPolicies(getPolicyList(domainData));
+                .setPolicies(getPolicyList(domainData, null));
 
         // then get the signed policy data
         

@@ -28,7 +28,7 @@
   <description>Athenz ZTS Server</description>
 
   <properties>
-    <code.coverage.min>0.9830</code.coverage.min>
+    <code.coverage.min>0.980</code.coverage.min>
   </properties>
 
   <dependencyManagement>
@@ -210,6 +210,12 @@
       <groupId>io.swagger.core.v3</groupId>
       <artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
       <version>${swagger.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <version>9.13</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

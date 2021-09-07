@@ -11,8 +11,8 @@ type PolicyData Struct {
 //A representation of policies object defined in a given server.
 type SignedPolicyData Struct {
     PolicyData policyData; //list of policies defined in a domain
-    String zmsSignature; //zms signature generated based on the domain policies object
-    String zmsKeyId; //the identifier of the zms key used to generate the signature
+    String zmsSignature (optional); //zms signature generated based on the domain policies object
+    String zmsKeyId (optional); //the identifier of the zms key used to generate the signature
     Timestamp modified; //when the domain itself was last modified
     Timestamp expires; //timestamp specifying the expiration time for using this set of policies
 }
@@ -50,12 +50,18 @@ type JWSPolicyData Struct {
     String signature;
 }
 
+type SignedPolicyRequest Struct {
+    Map<String, String> policyVersions;
+    Bool signatureP1363Format; //true if signature must be in P1363 format instead of ASN.1 DER
+}
+
 //Get a signed policy enumeration from the service, to transfer to a local store.
 //An ETag is generated for the PolicyList that changes when any item in the list
 //changes. If the If-None-Match header is provided, and it matches the ETag that
 //would be returned, then a NOT_MODIFIED response is returned instead of the list.
-resource JWSPolicyData GET "/domain/{domainName}/policy/signed" {
+resource JWSPolicyData POST "/domain/{domainName}/policy/signed" {
     DomainName domainName; //name of the domain
+    SignedPolicyRequest request; //policy version request details
     String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time
     String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
     authenticate;

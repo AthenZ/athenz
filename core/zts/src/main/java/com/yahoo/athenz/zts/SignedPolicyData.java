@@ -4,6 +4,7 @@
 
 package com.yahoo.athenz.zts;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
@@ -13,7 +14,11 @@ import com.yahoo.rdl.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SignedPolicyData {
     public PolicyData policyData;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String zmsSignature;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String zmsKeyId;
     public Timestamp modified;
     public Timestamp expires;

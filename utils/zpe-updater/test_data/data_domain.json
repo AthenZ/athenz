@@ -1,9 +1,3 @@
-// Copyright 2017 Yahoo Holdings, Inc.
-// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
-
-package test_data
-
-const Domain1Policies = `
 {
   "signedPolicyData": {
     "policyData": {
@@ -35,4 +29,4 @@ const Domain1Policies = `
   },
   "signature": "XJnQ4t33D4yr7NtUjLaWhXULFr76z.z0p3QV4uCkA5KR9L4liVRmICYwVmnXxvHAlImKlKLv7sbIHNsjBfGfCw--",
   "keyId": "0"
-}`
+}

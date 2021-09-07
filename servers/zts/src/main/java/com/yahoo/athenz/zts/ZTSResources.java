@@ -231,19 +231,21 @@ public class ZTSResources {
         }
     }
 
-    @GET
+    @POST
     @Path("/domain/{domainName}/policy/signed")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Get a signed policy enumeration from the service, to transfer to a local store. An ETag is generated for the PolicyList that changes when any item in the list changes. If the If-None-Match header is provided, and it matches the ETag that would be returned, then a NOT_MODIFIED response is returned instead of the list.")
-    public Response getJWSPolicyData(
+    public Response postSignedPolicyRequest(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "policy version request details", required = true) SignedPolicyRequest request,
         @Parameter(description = "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time", required = true) @HeaderParam("If-None-Match") String matchingTag) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getJWSPolicyData");
+            context = this.delegate.newResourceContext(this.request, this.response, "postSignedPolicyRequest");
             context.authenticate();
-            return this.delegate.getJWSPolicyData(context, domainName, matchingTag);
+            return this.delegate.postSignedPolicyRequest(context, domainName, request, matchingTag);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -252,7 +254,7 @@ public class ZTSResources {
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
             default:
-                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getJWSPolicyData");
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postSignedPolicyRequest");
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
