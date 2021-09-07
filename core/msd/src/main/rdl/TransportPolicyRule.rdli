@@ -19,3 +19,18 @@ resource TransportPolicyRules GET "/transportpolicies" {
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+// API to validate microsegmentation policies against network policies
+
+resource TransportPolicyValidationResponse POST "/transportpolicy/validate" (name=validateTransportPolicy) {
+    TransportPolicyValidateRule transportPolicyRule ; // Struct representing microsegmentation policy entered by the user
+    expected OK;
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

@@ -76,10 +76,21 @@ public class MSDSchema {
             .element("TCP")
             .element("UDP");
 
+        sb.enumType("TransportPolicyTrafficDirection")
+            .comment("Types of transport policy traffic direction")
+            .element("INGRESS")
+            .element("EGRESS");
+
         sb.structType("TransportPolicySubject")
             .comment("Subject for a transport policy")
             .field("domainName", "DomainName", false, "Name of the domain")
             .field("serviceName", "EntityName", false, "Name of the service");
+
+        sb.enumType("TransportPolicyValidationStatus")
+            .comment("Validation Status of transport policy vs network policy")
+            .element("ALL")
+            .element("NONE")
+            .element("PARTIAL");
 
         sb.structType("TransportPolicyCondition")
             .comment("Transport policy condition. Used to specify additional restrictions for the subject of a transport policy")
@@ -125,6 +136,17 @@ public class MSDSchema {
             .comment("Transport policy containing ingress and egress rules")
             .arrayField("ingress", "TransportPolicyIngressRule", false, "List of ingress rules")
             .arrayField("egress", "TransportPolicyEgressRule", false, "List of egress rules");
+
+        sb.structType("TransportPolicyValidateRule")
+            .comment("Transport policy containing ingress and egress rules")
+            .arrayField("source", "TransportPolicyPeer", false, "")
+            .arrayField("destination", "TransportPolicyPeer", false, "")
+            .arrayField("instances", "String", true, "")
+            .field("trafficDirection", "TransportPolicyTrafficDirection", false, "");
+
+        sb.structType("TransportPolicyValidationResponse")
+            .field("status", "TransportPolicyValidationStatus", false, "")
+            .arrayField("errors", "String", true, "");
 
         sb.enumType("StaticWorkloadType")
             .comment("Enum representing defined types of static workloads.")
@@ -172,6 +194,23 @@ public class MSDSchema {
             .comment("API endpoint to get the transport policy rules defined in Athenz")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicyValidateRule", "POST", "/transportpolicy/validate")
+            .comment("API to validate microsegmentation policies against network policies")
+            .name("validateTransportPolicy")
+            .input("transportPolicyRule", "TransportPolicyValidateRule", "Struct representing microsegmentation policy entered by the user")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

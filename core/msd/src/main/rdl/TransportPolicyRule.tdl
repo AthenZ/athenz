@@ -15,11 +15,25 @@ type TransportPolicyProtocol Enum {
     UDP
 }
 
+// Types of transport policy traffic direction
+type TransportPolicyTrafficDirection Enum {
+    INGRESS,
+    EGRESS
+}
+
 // Subject for a transport policy
 type TransportPolicySubject Struct {
     DomainName domainName; // Name of the domain
     EntityName serviceName; // Name of the service
 }
+
+// Validation Status of transport policy vs network policy
+type TransportPolicyValidationStatus Enum {
+   ALL,
+   NONE,
+   PARTIAL
+}
+
 
 // Transport policy condition. Used to specify additional restrictions for the subject of a transport policy
 type TransportPolicyCondition Struct {
@@ -73,4 +87,18 @@ type TransportPolicyEgressRule Struct {
 type TransportPolicyRules Struct {
     Array<TransportPolicyIngressRule> ingress; // List of ingress rules
     Array<TransportPolicyEgressRule> egress; // List of egress rules
+}
+
+// Transport policy containing rule to be validated
+type TransportPolicyValidateRule Struct {
+    Array<TransportPolicyPeer> source;
+    Array<TransportPolicyPeer> destination;
+    Array<String> instances (optional);
+    TransportPolicyTrafficDirection trafficDirection;
+}
+
+// Response object of transport policy rule validation
+type TransportPolicyValidationResponse Struct {
+   TransportPolicyValidationStatus status;
+   Array<string> errors (optional);
 }
