@@ -3267,13 +3267,14 @@ public class ZMSResources {
     @Operation(description = "")
     public Response getJWSDomain(
         @Parameter(description = "name of the domain to be retrieved", required = true) @PathParam("name") String name,
+        @Parameter(description = "true if signature must be in P1363 format instead of ASN.1 DER", required = false) @QueryParam("signaturep1363format") Boolean signatureP1363Format,
         @Parameter(description = "Retrieved from the previous request, this timestamp specifies to the server to return if the domain was modified since this time", required = true) @HeaderParam("If-None-Match") String matchingTag) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getJWSDomain");
             context.authenticate();
-            return this.delegate.getJWSDomain(context, name, matchingTag);
+            return this.delegate.getJWSDomain(context, name, signatureP1363Format, matchingTag);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

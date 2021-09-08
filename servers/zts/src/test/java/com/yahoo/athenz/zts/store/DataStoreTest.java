@@ -2700,7 +2700,7 @@ public class DataStoreTest {
             // our header contains a single entry with the keyid
 
             final Map<String, String> headerMap = new HashMap<>();
-            headerMap.put("keyid", "0");
+            headerMap.put("kid", "0");
 
             jwsDomain = new JWSDomain().setHeader(headerMap)
                     .setPayload(new String(encodedDomain))

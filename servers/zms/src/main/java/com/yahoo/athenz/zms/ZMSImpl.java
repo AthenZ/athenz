@@ -57,6 +57,7 @@ import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -5734,7 +5735,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public Response getJWSDomain(ResourceContext ctx, String domainName, String matchingTag) {
+    public Response getJWSDomain(ResourceContext ctx, String domainName, Boolean signatureP1363Format, String matchingTag) {
 
         final String caller = ctx.getApiName();
 
@@ -5770,12 +5771,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         return Response
                 .status(ResourceException.OK)
-                .entity(generateJWSDomain(athenzDomain))
+                .entity(generateJWSDomain(athenzDomain, signatureP1363Format))
                 .header("ETag", eTag.toString())
                 .build();
     }
 
-    JWSDomain generateJWSDomain(AthenzDomain athenzDomain) {
+    JWSDomain generateJWSDomain(AthenzDomain athenzDomain, Boolean signatureP1363Format) {
 
         // set all domain attributes including roles and services
 
@@ -5814,10 +5815,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         domainData.setPolicies(signedPolicies);
 
-        return signJwsDomain(domainData);
+        return signJwsDomain(domainData, signatureP1363Format);
     }
 
-    JWSDomain signJwsDomain(DomainData domainData) {
+    JWSDomain signJwsDomain(DomainData domainData, Boolean signatureP1363Format) {
 
         // https://tools.ietf.org/html/rfc7515#section-7.2.2
         // first generate the json output of our object
@@ -5830,28 +5831,32 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             // generate our domain data payload and encode it
 
-            final byte[] jsonDomain = jsonMapper.writeValueAsBytes(domainData);
-            final byte[] encodedDomain = encoder.encode(jsonDomain);
+            final byte[] jsonDomainData = jsonMapper.writeValueAsBytes(domainData);
+            final byte[] encodedDomainData = encoder.encode(jsonDomainData);
 
             // generate our protected header - just includes the key id + algorithm
 
             final String protectedHeader = "{\"kid\":\"" + privateKey.getId() + "\",\"alg\":\"" + privateKey.getAlgorithm() + "\"}";
-            final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
+            final byte[] encodedProtectedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
 
             // combine protectedHeader . payload and sign the result
 
-            final byte[] signature = encoder.encode(Crypto.sign(
-                    Bytes.concat(encodedHeader, PERIOD, encodedDomain), privateKey.getKey(), Crypto.SHA256));
+            byte[] signature = Crypto.sign(Bytes.concat(encodedProtectedHeader, PERIOD, encodedDomainData),
+                    privateKey.getKey(), Crypto.SHA256);
+            if (signatureP1363Format == Boolean.TRUE && privateKey.getAlgorithm() == SignatureAlgorithm.ES256) {
+                signature = Crypto.convertSignatureFromDERToP1363Format(signature, Crypto.SHA256);
+            }
+            final byte[] encodedSignature = encoder.encode(signature);
 
-            // our header contains a single entry with the keyid
+            // our header contains a single entry with the kid
 
             final Map<String, String> headerMap = new HashMap<>();
-            headerMap.put("keyid", privateKey.getId());
+            headerMap.put("kid", privateKey.getId());
 
             jwsDomain = new JWSDomain().setHeader(headerMap)
-                    .setPayload(new String(encodedDomain))
-                    .setProtectedHeader(new String(encodedHeader))
-                    .setSignature(new String(signature));
+                    .setPayload(new String(encodedDomainData))
+                    .setProtectedHeader(new String(encodedProtectedHeader))
+                    .setSignature(new String(encodedSignature));
 
         } catch (Exception ex) {
             LOG.error("Unable to generate signed athenz domain object", ex);

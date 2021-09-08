@@ -3108,12 +3108,12 @@ func (client ZMSClient) GetSignedDomains(domain DomainName, metaOnly string, met
 	}
 }
 
-func (client ZMSClient) GetJWSDomain(name DomainName, matchingTag string) (*JWSDomain, string, error) {
+func (client ZMSClient) GetJWSDomain(name DomainName, signatureP1363Format *bool, matchingTag string) (*JWSDomain, string, error) {
 	var data *JWSDomain
 	headers := map[string]string{
 		"If-None-Match": matchingTag,
 	}
-	url := client.URL + "/domain/" + fmt.Sprint(name) + "/signed"
+	url := client.URL + "/domain/" + fmt.Sprint(name) + "/signed" + encodeParams(encodeOptionalBoolParam("signaturep1363format", signatureP1363Format))
 	resp, err := client.httpGet(url, headers)
 	if err != nil {
 		return nil, "", err

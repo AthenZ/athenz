@@ -81,8 +81,9 @@ type JWSDomain Struct {
     String signature;
 }
 
-resource JWSDomain GET "/domain/{name}/signed" {
+resource JWSDomain GET "/domain/{name}/signed?signaturep1363format={signatureP1363Format}" {
     DomainName name; //name of the domain to be retrieved
+    Bool signatureP1363Format (optional); //true if signature must be in P1363 format instead of ASN.1 DER
     String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return if the domain was modified since this time
     String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
     authenticate;

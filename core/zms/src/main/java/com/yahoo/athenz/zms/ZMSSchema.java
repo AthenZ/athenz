@@ -2299,6 +2299,7 @@ public class ZMSSchema {
 
         sb.resource("JWSDomain", "GET", "/domain/{name}/signed")
             .pathParam("name", "DomainName", "name of the domain to be retrieved")
+            .queryParam("signaturep1363format", "signatureP1363Format", "Bool", null, "true if signature must be in P1363 format instead of ASN.1 DER")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return if the domain was modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)

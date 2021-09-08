@@ -2093,9 +2093,12 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public JWSDomain getJWSDomain(String name, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
+    public JWSDomain getJWSDomain(String name, Boolean signatureP1363Format, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
         WebTarget target = base.path("/domain/{name}/signed")
             .resolveTemplate("name", name);
+        if (signatureP1363Format != null) {
+            target = target.queryParam("signaturep1363format", signatureP1363Format);
+        }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),

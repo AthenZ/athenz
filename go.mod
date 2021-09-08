@@ -3,6 +3,7 @@ module github.com/AthenZ/athenz
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/ardielle/ardielle-go v1.5.2
+	github.com/ardielle/ardielle-tools v1.5.4 // indirect
 	github.com/aws/aws-sdk-go v1.32.6
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dimfeld/httptreemux v5.0.1+incompatible
@@ -10,6 +11,7 @@ require (
 	github.com/golang/mock v1.4.3
 	github.com/google/go-cmp v0.5.1
 	github.com/gorilla/mux v1.7.4
+	github.com/jawher/mow.cli v1.2.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4

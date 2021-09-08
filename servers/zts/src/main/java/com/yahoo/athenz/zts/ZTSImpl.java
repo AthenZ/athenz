@@ -68,6 +68,7 @@ import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.StringUtil;
@@ -1148,7 +1149,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             byte[] signature = Crypto.sign(Bytes.concat(encodedProtectedHeader, PERIOD, encodedPolicyData),
                     privateKey.getKey(), Crypto.SHA256);
-            if (signatureP1363Format) {
+            if (signatureP1363Format && privateKey.getAlgorithm() == SignatureAlgorithm.ES256) {
                 signature = Crypto.convertSignatureFromDERToP1363Format(signature, Crypto.SHA256);
             }
             final byte[] encodedSignature = encoder.encode(signature);

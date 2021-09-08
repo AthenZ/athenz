@@ -1983,6 +1983,7 @@ func init() {
 
 	mGetJWSDomain := rdl.NewResourceBuilder("JWSDomain", "GET", "/domain/{name}/signed")
 	mGetJWSDomain.Input("name", "DomainName", true, "", "", false, nil, "name of the domain to be retrieved")
+	mGetJWSDomain.Input("signatureP1363Format", "Bool", false, "signaturep1363format", "", true, nil, "true if signature must be in P1363 format instead of ASN.1 DER")
 	mGetJWSDomain.Input("matchingTag", "String", false, "", "If-None-Match", false, nil, "Retrieved from the previous request, this timestamp specifies to the server to return if the domain was modified since this time")
 	mGetJWSDomain.Output("tag", "String", "ETag", false, "The current latest modification timestamp is returned in this header")
 	mGetJWSDomain.Auth("", "", true, "")

@@ -12661,6 +12661,17 @@ public class ZTSImplTest {
         JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) Crypto.extractPublicKey(zts.privateKey.getKey()));
         assertTrue(jwsObject.verify(verifier));
 
+        // verify that with p1363 signature and rsa - it's the same key so validation is successful
+
+        signedPolicyRequest.setSignatureP1363Format(true);
+        response = ztsImpl.postSignedPolicyRequest(context, "coretech", signedPolicyRequest, null);
+        assertEquals(response.getStatus(), 200);
+        jwsPolicyData = (JWSPolicyData) response.getEntity();
+
+        jwsObject = new JWSObject(Base64URL.from(jwsPolicyData.getProtectedHeader()),
+                Base64URL.from(jwsPolicyData.getPayload()), Base64URL.from(jwsPolicyData.getSignature()));
+        assertTrue(jwsObject.verify(verifier));
+
         // invalid domain
 
         try {
