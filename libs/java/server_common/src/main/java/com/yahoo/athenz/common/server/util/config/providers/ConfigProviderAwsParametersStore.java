@@ -89,7 +89,7 @@ public class ConfigProviderAwsParametersStore extends ConfigProvider {
 
             List<ConfigEntry> configEntries = new LinkedList<>();
             LOG.debug("Reading configurations page 1 from {}", this);
-            GetParametersByPathResponse result = ssmClient.getParametersByPath(GetParametersByPathRequest.builder().path(path).recursive(true).build());
+            GetParametersByPathResponse result = this.ssmClient.getParametersByPath(GetParametersByPathRequest.builder().path(path).recursive(true).withDecryption(true).build());
             for (int page = 2; ; page++) {
                 for (Parameter parameter : result.parameters()) {
 
@@ -111,7 +111,7 @@ public class ConfigProviderAwsParametersStore extends ConfigProvider {
                     break;
                 } else {
                     LOG.debug("Reading configurations page {} from {}", page, this);
-                    result = ssmClient.getParametersByPath(GetParametersByPathRequest.builder().path(path).recursive(true).nextToken(result.nextToken()).build());
+                    result = this.ssmClient.getParametersByPath(GetParametersByPathRequest.builder().path(path).recursive(true).withDecryption(true).nextToken(result.nextToken()).build());
                 }
             }
 
