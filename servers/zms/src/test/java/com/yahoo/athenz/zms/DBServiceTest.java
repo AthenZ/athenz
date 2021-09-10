@@ -34,6 +34,7 @@ import com.yahoo.athenz.zms.store.impl.jdbc.JDBCConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
+import org.apache.commons.lang3.StringUtils;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -141,6 +142,7 @@ public class DBServiceTest {
         System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
         System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, "src/test/resources/solution_templates.json");
 
+        System.setProperty(ZMSConsts.ZMS_PROP_MAX_POLICY_VERSIONS, "3");
         return new ZMSImpl();
     }
 
@@ -198,16 +200,24 @@ public class DBServiceTest {
 
     private Policy createPolicyObject(String domainName, String policyName) {
         return createPolicyObject(domainName, policyName, "role1", true, "*",
-                domainName + ":*", AssertionEffect.ALLOW);
+                domainName + ":*", AssertionEffect.ALLOW, null, true);
+    }
+
+    private Policy createPolicyObject(String domainName, String policyName, String version, boolean active) {
+        return createPolicyObject(domainName, policyName, "role1", true, "*",
+                domainName + ":*", AssertionEffect.ALLOW, version, active);
     }
 
     private Policy createPolicyObject(String domainName, String policyName,
             String roleName, boolean generateRoleName, String action,
-            String resource, AssertionEffect effect) {
+            String resource, AssertionEffect effect, String version, boolean active) {
 
         Policy policy = new Policy();
         policy.setName(ResourceUtils.policyResourceName(domainName, policyName));
-
+        if (!StringUtils.isEmpty(version)) {
+            policy.setVersion(version);
+            policy.setActive(active);
+        }
         Assertion assertion = new Assertion();
         assertion.setAction(action);
         assertion.setEffect(effect);
@@ -559,7 +569,7 @@ public class DBServiceTest {
     @Test
     public void testUpdateTemplatePolicy() {
         Policy policy = createPolicyObject("_domain_", "policy1",
-                "role1", true, "read", "_domain_:*", AssertionEffect.ALLOW);
+                "role1", true, "read", "_domain_:*", AssertionEffect.ALLOW, null, true);
 
         Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", null);
 
@@ -577,7 +587,7 @@ public class DBServiceTest {
     @Test
     public void testUpdateTemplatePolicyWithParams() {
         Policy policy = createPolicyObject("_domain_", "_service___api_policy1",
-                "_api_-role1", true, "read", "_domain_:_api___service__*", AssertionEffect.ALLOW);
+                "_api_-role1", true, "read", "_domain_:_api___service__*", AssertionEffect.ALLOW, null, true);
 
         List<TemplateParam> params = new ArrayList<>();
         params.add(new TemplateParam().setName("service").setValue("storage"));
@@ -609,7 +619,7 @@ public class DBServiceTest {
     @Test
     public void testUpdateTemplatePolicyAssertionNoRewrite() {
         Policy policy = createPolicyObject("_domain_", "policy1",
-                "coretech:role.role1", false, "read", "coretech:*", AssertionEffect.ALLOW);
+                "coretech:role.role1", false, "read", "coretech:*", AssertionEffect.ALLOW, null, true);
 
         Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", null);
 
@@ -765,6 +775,217 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecutePutPolicyVersion() {
+        String domainName = "policyadddom1";
+        String policyName = "policy1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Policy policy1 = createPolicyObject(domainName, policyName);
+        zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName,
+                policy1, auditRef, "putPolicy");
+
+        Policy policyRes2 = zms.getPolicy(mockDomRsrcCtx, domainName, policyName);
+        assertNotNull(policyRes2);
+        assertEquals(policyRes2.getName(), domainName + ":policy." + policyName);
+        assertEquals(policyRes2.getVersion(), "0");
+        assertTrue(policyRes2.getActive());
+
+        // Put new version
+        zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version", null, auditRef, "putPolicyVersion");
+
+        // Getting policy will return original active policy version
+        policyRes2 = zms.getPolicy(mockDomRsrcCtx, domainName, policyName);
+        assertNotNull(policyRes2);
+        assertEquals(policyRes2.getName(), domainName + ":policy." + policyName);
+        assertEquals(policyRes2.getVersion(), "0");
+        assertTrue(policyRes2.getActive());
+
+        // Get new non-active version
+        policyRes2 = zms.getPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version");
+        assertNotNull(policyRes2);
+        assertEquals(policyRes2.getName(), domainName + ":policy." + policyName);
+        assertEquals(policyRes2.getVersion(), "new-version");
+        assertFalse(policyRes2.getActive());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testExecutePutPolicyVersionMaxReached() {
+        String domainName = "policyadddom1";
+        String policyName = "policy1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Policy policy1 = createPolicyObject(domainName, policyName);
+        zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName,
+                policy1, auditRef, "putPolicy");
+
+        // Put new version
+        zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version", null, auditRef, "putPolicyVersion");
+
+        // Put third version (max number is 3)
+        zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version2", null, auditRef, "putPolicyVersion");
+
+        // Trying to put another version will throw an exception
+        try {
+            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version3", null, auditRef, "putPolicyVersion");
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (429): {code: 429, message: \"unable to put policy: policy1, version: new-version3, max number of versions reached (3)\"}");
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testExecutePutPolicyVersionFailure() {
+        String domainName = "policy-put-policy-version-failure";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
+        Mockito.when(mockJdbcConn.insertPolicy(domainName, originalPolicyVersion)).thenReturn(true);
+        Mockito.when(mockJdbcConn.listAssertions(eq(domainName), eq(policyName), isNull())).thenReturn(originalPolicyVersion.getAssertions());
+        Mockito.when(mockJdbcConn.listAssertions(domainName, policyName, "new-version")).thenReturn(originalPolicyVersion.getAssertions());
+
+        Policy newPolicyVersion = createPolicyObject(domainName, policyName);
+        newPolicyVersion.setVersion("new-version");
+        Mockito.when(mockJdbcConn.insertPolicy(domainName, newPolicyVersion)).thenReturn(false).thenReturn(true);
+        Mockito.when(mockJdbcConn.insertAssertion(eq(domainName), eq(policyName), isNull(), any())).thenReturn(true).thenReturn(false).thenReturn(false).thenReturn(true);
+        Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(null).thenReturn(originalPolicyVersion);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        // Put policy
+        zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, originalPolicyVersion, auditRef, "putPolicy");
+
+        // Put policy version - simulate failure in inserting policy
+        try {
+            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version", null, auditRef, "putPolicyVersion");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to put policy: policy-put-policy-version-failure:policy.policy1, version: new-version\"}");
+        }
+
+        // Put policy version - simulate failure in inserting assertion
+        try {
+            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version", null, auditRef, "putPolicyVersion");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to put policy: policy-put-policy-version-failure:policy.policy1, version: new-version, fail inserting assertion\"}");
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecutePutPolicyVersionConditionsFailure() {
+        String domainName = "policy-put-policy-version-condition-failure";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
+        Map<String, AssertionConditionData> conditionsMap = new HashMap<>();
+        conditionsMap.put("cond1", new AssertionConditionData().setValue("testVal"));
+        final List<AssertionCondition> assertionConditions = new ArrayList<>();
+        assertionConditions.add(new AssertionCondition().setConditionsMap(conditionsMap));
+        originalPolicyVersion.getAssertions().get(0).setConditions(new AssertionConditions().setConditionsList(assertionConditions));
+        originalPolicyVersion.getAssertions().get(0).setId(1L);
+        Mockito.when(mockJdbcConn.insertPolicy(domainName, originalPolicyVersion)).thenReturn(true);
+        Mockito.when(mockJdbcConn.listAssertions(eq(domainName), eq(policyName), isNull())).thenReturn(originalPolicyVersion.getAssertions());
+        Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(originalPolicyVersion);
+        Mockito.when(mockJdbcConn.insertAssertion(eq(domainName), eq(policyName), any(), any())).thenReturn(true);
+        Mockito.when(mockJdbcConn.getAssertionConditions(anyLong())).thenReturn(assertionConditions);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        // Put policy version - simulate failure in inserting assertion conditions
+        try {
+            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version", null, auditRef, "putPolicyVersion");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to put policy: policy-put-policy-version-condition-failure:policy.policy1, version: new-version, fail inserting assertion conditions\"}");
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteSetActivePolicyFailure() {
+        String domainName = "policy-set-active";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
+        Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(null).thenReturn(originalPolicyVersion);
+        Mockito.when(mockJdbcConn.setActivePolicyVersion(eq(domainName), eq(policyName), eq("0"))).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeSetActivePolicy(mockDomRsrcCtx, domainName, policyName, "0", auditRef, "setActivePolicy");
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to set active policy version: 0 for policy: policy1 in domain: policy-set-active\"}");
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeletePolicyVersionFailure() {
+        String domainName = "policy-delete-version";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
+        originalPolicyVersion.setActive(false);
+        Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), eq("0"))).thenReturn(originalPolicyVersion);
+        Mockito.when(mockJdbcConn.deletePolicyVersion(eq(domainName), eq(policyName), eq("0"))).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeDeletePolicyVersion(mockDomRsrcCtx, domainName, policyName, "0", auditRef, "deletePolicyVersion");
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"deletePolicyVersion: unable to delete policy: policy1, version: 0\"}");
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
     public void testExecutePutPolicyExisting() {
 
         String domainName = "testreplacepolicycreatedomain";
@@ -803,6 +1024,36 @@ public class DBServiceTest {
         assertTrue(asserts.size() > origAssertCnt);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testExecutePutPolicyFailure() {
+
+        String domainName = "testExecutePutPolicyFailure";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+
+        Policy policy = createPolicyObject(domainName, policyName);
+        Mockito.when(mockJdbcConn.insertPolicy(domainName, policy)).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, policy,
+                    auditRef, "testExecutePutPolicyFailure");
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to put policy: testExecutePutPolicyFailure:policy.policy1\"}");
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
     }
 
     @Test
@@ -1689,7 +1940,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         try {
-            zms.dbService.executeDeleteAssertion(mockDomRsrcCtx, domainName, policyName,
+            zms.dbService.executeDeleteAssertion(mockDomRsrcCtx, domainName, policyName, null,
                     1001L, auditRef, "deleteAssertion");
             fail();
         } catch (ResourceException ex) {
@@ -1711,13 +1962,13 @@ public class DBServiceTest {
         Assertion assertion = new Assertion().setRole("reader").setResource("table")
                 .setAction("update").setId(1001L);
         Mockito.when(mockJdbcConn.getAssertion(domainName, policyName, 1001L)).thenReturn(assertion);
-        Mockito.when(mockJdbcConn.deleteAssertion(domainName, policyName, 1001L)).thenReturn(false);
+        Mockito.when(mockJdbcConn.deleteAssertion(domainName, policyName, null, 1001L)).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
         try {
-            zms.dbService.executeDeleteAssertion(mockDomRsrcCtx, domainName, policyName,
+            zms.dbService.executeDeleteAssertion(mockDomRsrcCtx, domainName, policyName, null,
                     1001L, auditRef, "deleteAssertion");
             fail();
         } catch (ResourceException ex) {
@@ -1739,7 +1990,7 @@ public class DBServiceTest {
         Assertion assertion = new Assertion().setRole("reader").setResource("table")
                 .setAction("update").setId(1001L);
         Mockito.when(mockJdbcConn.getAssertion(domainName, policyName, 1001L)).thenReturn(assertion);
-        Mockito.when(mockJdbcConn.deleteAssertion(domainName, policyName, 1001L))
+        Mockito.when(mockJdbcConn.deleteAssertion(domainName, policyName, null, 1001L))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -1748,7 +1999,7 @@ public class DBServiceTest {
         zms.dbService.defaultRetryCount = 2;
 
         try {
-            zms.dbService.executeDeleteAssertion(mockDomRsrcCtx, domainName, policyName,
+            zms.dbService.executeDeleteAssertion(mockDomRsrcCtx, domainName, policyName, null,
                     1001L, auditRef, "deleteAssertion");
             fail();
         } catch (ResourceException ex) {
@@ -1770,7 +2021,7 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Assertion assertion = new Assertion().setRole("reader").setResource("table")
                 .setAction("update").setId(1001L);
-        Mockito.when(mockJdbcConn.insertAssertion(domainName, policyName, assertion)).thenReturn(false);
+        Mockito.when(mockJdbcConn.insertAssertion(domainName, policyName, null, assertion)).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -1778,7 +2029,7 @@ public class DBServiceTest {
         zms.dbService.defaultRetryCount = 2;
 
         try {
-            zms.dbService.executePutAssertion(mockDomRsrcCtx, domainName, policyName,
+            zms.dbService.executePutAssertion(mockDomRsrcCtx, domainName, policyName, null,
                     assertion, auditRef, "putAssertion");
             fail();
         } catch (ResourceException ex) {
@@ -1800,7 +2051,7 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Assertion assertion = new Assertion().setRole("reader").setResource("table")
                 .setAction("update").setId(1001L);
-        Mockito.when(mockJdbcConn.insertAssertion(domainName, policyName, assertion))
+        Mockito.when(mockJdbcConn.insertAssertion(domainName, policyName, null, assertion))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -1809,7 +2060,7 @@ public class DBServiceTest {
         zms.dbService.defaultRetryCount = 2;
 
         try {
-            zms.dbService.executePutAssertion(mockDomRsrcCtx, domainName, policyName,
+            zms.dbService.executePutAssertion(mockDomRsrcCtx, domainName, policyName, null,
                     assertion, auditRef, "putAssertion");
             fail();
         } catch (ResourceException ex) {
@@ -1829,7 +2080,7 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(false);
         Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
-        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName)).thenReturn(null);
+        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName, null)).thenReturn(null);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -1855,7 +2106,8 @@ public class DBServiceTest {
         Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Policy policy = new Policy().setName(policyName);
-        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName)).thenReturn(policy);
+        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName, "0")).thenReturn(null).thenReturn(policy);
+        Mockito.when(mockJdbcConn.listPolicyVersions(domainName, policyName)).thenReturn(null).thenReturn(Arrays.asList("0"));
         Mockito.when(mockJdbcConn.deletePolicy(domainName, policyName)).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
@@ -1866,7 +2118,23 @@ public class DBServiceTest {
                     auditRef, "deletePolicy");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"deletePolicy: unable to get versions for policy: policy1\"}");
+        }
+
+        try {
+            zms.dbService.executeDeletePolicy(mockDomRsrcCtx, domainName, policyName,
+                    auditRef, "deletePolicy");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"deletePolicy: unable to read policy: policy1, with version: 0\"}");
+        }
+
+        try {
+            zms.dbService.executeDeletePolicy(mockDomRsrcCtx, domainName, policyName,
+                    auditRef, "deletePolicy");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"deletePolicy: unable to delete policy: policy1\"}");
         }
 
         zms.dbService.store = saveStore;
@@ -1877,14 +2145,16 @@ public class DBServiceTest {
 
         String domainName = "policy-delete-failure-retry";
         String policyName = "policy1";
+        String version = "0";
 
         Domain domain = new Domain().setAuditEnabled(false);
         Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
-        Policy policy = new Policy().setName(policyName);
-        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName)).thenReturn(policy);
+        Policy policy = new Policy().setName(policyName).setVersion(version).setActive(true);
+        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName, version)).thenReturn(policy);
         Mockito.when(mockJdbcConn.deletePolicy(domainName, policyName))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+        Mockito.when(mockJdbcConn.listPolicyVersions(domainName, policyName)).thenReturn(Arrays.asList(version));
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -2352,7 +2622,7 @@ public class DBServiceTest {
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         // this should be our own policy that we created previously
-        Policy policy = zms.dbService.getPolicy(domainName, "vip_admin");
+        Policy policy = zms.dbService.getPolicy(domainName, "vip_admin", null);
         assertEquals(domainName + ":policy.vip_admin", policy.getName());
 
         // The updated policy will have two assertions, one from the original, and the other from template application.
@@ -2424,7 +2694,7 @@ public class DBServiceTest {
 
         // the rest should be identical what's in the template
 
-        Policy policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin");
+        Policy policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
         assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
         assertEquals(1, policy.getAssertions().size());
         Assertion assertion = policy.getAssertions().get(0);
@@ -2439,8 +2709,8 @@ public class DBServiceTest {
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
-        assertNull(zms.dbService.getPolicy(domainName, "vip_admin"));
-        assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin"));
+        assertNull(zms.dbService.getPolicy(domainName, "vip_admin", null));
+        assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null));
         assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
@@ -2453,8 +2723,8 @@ public class DBServiceTest {
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
-        assertNull(zms.dbService.getPolicy(domainName, "vip_admin"));
-        assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin"));
+        assertNull(zms.dbService.getPolicy(domainName, "vip_admin", null));
+        assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null));
         assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
@@ -2507,7 +2777,7 @@ public class DBServiceTest {
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
-        Policy policy = zms.dbService.getPolicy(domainName, "vip_admin");
+        Policy policy = zms.dbService.getPolicy(domainName, "vip_admin", null);
         assertEquals(domainName + ":policy.vip_admin", policy.getName());
         assertEquals(1, policy.getAssertions().size());
         Assertion assertion = policy.getAssertions().get(0);
@@ -2515,7 +2785,7 @@ public class DBServiceTest {
         assertEquals(domainName + ":role.vip_admin", assertion.getRole());
         assertEquals(domainName + ":vip*", assertion.getResource());
 
-        policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin");
+        policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
         assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
         assertEquals(1, policy.getAssertions().size());
         assertion = policy.getAssertions().get(0);
@@ -2872,7 +3142,7 @@ public class DBServiceTest {
 
         // the rest should be identical what's in the template
 
-        Policy policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin");
+        Policy policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
         assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
         assertEquals(1, policy.getAssertions().size());
         Assertion assertion = policy.getAssertions().get(0);
@@ -2887,8 +3157,8 @@ public class DBServiceTest {
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
-        assertNull(zms.dbService.getPolicy(domainName, "vip_admin"));
-        assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin"));
+        assertNull(zms.dbService.getPolicy(domainName, "vip_admin", null));
+        assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null));
         assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
@@ -2901,8 +3171,8 @@ public class DBServiceTest {
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
-        assertNull(zms.dbService.getPolicy(domainName, "vip_admin"));
-        assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin"));
+        assertNull(zms.dbService.getPolicy(domainName, "vip_admin", null));
+        assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null));
         assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
@@ -2959,7 +3229,7 @@ public class DBServiceTest {
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
-        Policy policy = zms.dbService.getPolicy(domainName, "vip_admin");
+        Policy policy = zms.dbService.getPolicy(domainName, "vip_admin", null);
         assertEquals(domainName + ":policy.vip_admin", policy.getName());
         assertEquals(1, policy.getAssertions().size());
         Assertion assertion = policy.getAssertions().get(0);
@@ -2967,7 +3237,7 @@ public class DBServiceTest {
         assertEquals(domainName + ":role.vip_admin", assertion.getRole());
         assertEquals(domainName + ":vip*", assertion.getResource());
 
-        policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin");
+        policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
         assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
         assertEquals(1, policy.getAssertions().size());
         assertion = policy.getAssertions().get(0);
@@ -2982,8 +3252,8 @@ public class DBServiceTest {
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
-        assertNull(zms.dbService.getPolicy(domainName, "vip_admin"));
-        assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin"));
+        assertNull(zms.dbService.getPolicy(domainName, "vip_admin", null));
+        assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null));
         assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
@@ -3055,7 +3325,7 @@ public class DBServiceTest {
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
-        Policy policy = zms.dbService.getPolicy(domainName, "vip_admin");
+        Policy policy = zms.dbService.getPolicy(domainName, "vip_admin", null);
         assertEquals(domainName + ":policy.vip_admin", policy.getName());
         assertEquals(1, policy.getAssertions().size());
         Assertion assertion = policy.getAssertions().get(0);
@@ -3063,7 +3333,7 @@ public class DBServiceTest {
         assertEquals(domainName + ":role.vip_admin", assertion.getRole());
         assertEquals(domainName + ":vip*", assertion.getResource());
 
-        policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin");
+        policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
         assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
         assertEquals(1, policy.getAssertions().size());
         assertion = policy.getAssertions().get(0);
@@ -3078,8 +3348,8 @@ public class DBServiceTest {
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
-        assertNull(zms.dbService.getPolicy(domainName, "vip_admin"));
-        assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin"));
+        assertNull(zms.dbService.getPolicy(domainName, "vip_admin", null));
+        assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null));
         assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
@@ -3148,7 +3418,7 @@ public class DBServiceTest {
         // the admin policy must be called
 
         String policyName = "tenancy.coretech.storage.admin";
-        Policy policy = zms.dbService.getPolicy(tenantDomain, policyName);
+        Policy policy = zms.dbService.getPolicy(tenantDomain, policyName, null);
         assertNotNull(policy);
 
         List<Assertion> assertList = policy.getAssertions();
@@ -3495,7 +3765,7 @@ public class DBServiceTest {
 
         Policy policy = createPolicyObject(domainName2, "policy",
                 domainName2 + ":role.role2a", false, "assume_role", domainName1 + ":role." + roleName,
-                AssertionEffect.ALLOW);
+                AssertionEffect.ALLOW, null, true);
 
         Assertion assertion = new Assertion();
         assertion.setAction("assume_role");
@@ -3571,7 +3841,7 @@ public class DBServiceTest {
 
         Policy policy = createPolicyObject(domainName2, "policy",
                 domainName2 + ":role.role2a", false, "assume_role", domainName1 + ":role." + roleName,
-                AssertionEffect.ALLOW);
+                AssertionEffect.ALLOW, null, true);
 
         Assertion assertion = new Assertion();
         assertion.setAction("assume_role");
@@ -10256,7 +10526,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertRole(anyString(), any(Role.class))).thenReturn(true);
         Mockito.when(conn.insertRoleMember(any(), any(), any(), any(), any())).thenReturn(true);
         Mockito.when(conn.insertPolicy(any(), any())).thenReturn(true);
-        Mockito.when(conn.insertAssertion(any(), any(), any())).thenReturn(true);
+        Mockito.when(conn.insertAssertion(any(), any(), any(), any())).thenReturn(true);
         Mockito.when(mockObjStore.getConnection(false, true))
             .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
         zms.dbService.store = mockObjStore;
@@ -10282,7 +10552,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertRole(anyString(), any(Role.class))).thenReturn(true);
         Mockito.when(conn.insertRoleMember(any(), any(), any(), any(), any())).thenReturn(true);
         Mockito.when(conn.insertPolicy(any(), any())).thenReturn(true);
-        Mockito.when(conn.insertAssertion(any(), any(), any())).thenReturn(true);
+        Mockito.when(conn.insertAssertion(any(), any(), any(), any())).thenReturn(true);
         Mockito.when(mockObjStore.getConnection(false, true))
             .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
         zms.dbService.store = mockObjStore;
@@ -10354,7 +10624,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertRole(anyString(), any(Role.class))).thenReturn(true);
         Mockito.when(conn.insertRoleMember(any(), any(), any(), any(), any())).thenReturn(true);
         Mockito.when(conn.insertPolicy(any(), any())).thenReturn(true);
-        Mockito.when(conn.insertAssertion(any(), any(), any())).thenReturn(true);
+        Mockito.when(conn.insertAssertion(any(), any(), any(), any())).thenReturn(true);
         Mockito.when(mockObjStore.getConnection(false, true))
                 .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
         zms.dbService.store = mockObjStore;
@@ -10391,7 +10661,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertRole(anyString(), any(Role.class))).thenReturn(true);
         Mockito.when(conn.insertRoleMember(any(), any(), any(), any(), any())).thenReturn(true);
         Mockito.when(conn.insertPolicy(any(), any())).thenReturn(true);
-        Mockito.when(conn.insertAssertion(any(), any(), any())).thenReturn(true);
+        Mockito.when(conn.insertAssertion(any(), any(), any(), any())).thenReturn(true);
         Mockito.when(mockObjStore.getConnection(false, true))
             .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
         zms.dbService.store = mockObjStore;
@@ -10434,20 +10704,35 @@ public class DBServiceTest {
     public void testAuditLogPolicy() {
 
         StringBuilder auditDetails = new StringBuilder();
-        Policy policy = new Policy().setName("policy1").setAssertions(null);
+        Timestamp currentTime = Timestamp.fromMillis(1629802092416L);
+        Policy policyVer1 = new Policy().setName("policy1").setVersion("version1").setModified(currentTime).setAssertions(null);
+        Policy policyVer2 = new Policy().setName("policy1").setVersion("version2").setAssertions(null);
+        List<Policy> policyVersions = new ArrayList<>();
+        policyVersions.add(policyVer1);
+        policyVersions.add(policyVer2);
 
-        zms.dbService.auditLogPolicy(auditDetails, policy, "delete-assertions");
-        assertEquals(auditDetails.toString(), "{\"name\": \"policy1\", \"modified\": \"null\"}");
+        zms.dbService.auditLogPolicy(auditDetails, policyVersions, "delete-policy-versions");
+        assertEquals(auditDetails.toString(), "{\"name\": \"policy1\", \"delete-policy-versions\": " +
+                "[{\"name\": \"policy1\", \"version\": \"version1\", \"active\": \"null\", \"modified\": \"2021-08-24T10:48:12.416Z\"}," +
+                "{\"name\": \"policy1\", \"version\": \"version2\", \"active\": \"null\", \"modified\": \"null\"}]}");
 
         Assertion assertion = new Assertion().setAction("update")
                 .setResource("table").setRole("reader");
-        policy.setAssertions(new ArrayList<>());
-        policy.getAssertions().add(assertion);
+        policyVer1.setAssertions(new ArrayList<>());
+        policyVer1.getAssertions().add(assertion);
+
+        Assertion assertionVer2 = new Assertion().setAction("update2")
+                .setResource("table2").setRole("reader2");
+        policyVer2.setAssertions(new ArrayList<>());
+        policyVer2.getAssertions().add(assertionVer2);
 
         auditDetails.setLength(0);
-        zms.dbService.auditLogPolicy(auditDetails, policy, "delete-assertions");
-        assertEquals(auditDetails.toString(), "{\"name\": \"policy1\", \"modified\": \"null\", " +
-                "\"delete-assertions\": [{\"role\": \"reader\", \"action\": \"update\", \"effect\": \"ALLOW\", \"resource\": \"table\"}]}");
+        zms.dbService.auditLogPolicy(auditDetails, policyVersions, "delete-policy-versions");
+        assertEquals(auditDetails.toString(), "{\"name\": \"policy1\", \"delete-policy-versions\": [" +
+                "{\"name\": \"policy1\", \"version\": \"version1\", \"active\": \"null\", \"modified\": \"2021-08-24T10:48:12.416Z\", \"deleted-assertions\": [" +
+                    "{\"role\": \"reader\", \"action\": \"update\", \"effect\": \"ALLOW\", \"resource\": \"table\"}]}," +
+                "{\"name\": \"policy1\", \"version\": \"version2\", \"active\": \"null\", \"modified\": \"null\", \"deleted-assertions\": [" +
+                    "{\"role\": \"reader2\", \"action\": \"update2\", \"effect\": \"ALLOW\", \"resource\": \"table2\"}]}]}");
     }
 
     @Test

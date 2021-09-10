@@ -23,7 +23,6 @@ import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.Matchers;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -280,6 +279,18 @@ public class JDBCConnectionTest {
     @Test
     public void testGetPolicyId() throws Exception {
 
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(9).when(mockResultSet).getInt(1);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        assertEquals(jdbcConn.getPolicyId(7, "policy1", null), 9);
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyIdVersion() throws Exception {
+
         // first time success from mysql, second time failure so
         // we can verify we get the value from our cache
 
@@ -287,8 +298,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(9).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(9, jdbcConn.getPolicyId(7, "policy1"));
-        assertEquals(9, jdbcConn.getPolicyId(7, "policy1"));
+        assertEquals(jdbcConn.getPolicyId(7, "policy1", "from-version"), 9);
+        assertEquals(jdbcConn.getPolicyId(7, "policy1", "from-version"), 9);
 
         jdbcConn.close();
     }
@@ -301,7 +312,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        assertEquals(jdbcConn.getPolicyId(3, "policy1"), 0);
+        assertEquals(jdbcConn.getPolicyId(3, "policy1", null), 0);
         jdbcConn.close();
     }
 
@@ -2514,7 +2525,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Policy policy = jdbcConn.getPolicy("my-domain", "policy1");
+        Policy policy = jdbcConn.getPolicy("my-domain", "policy1", null);
         assertNotNull(policy);
         assertEquals("my-domain:policy.policy1", policy.getName());
 
@@ -2529,7 +2540,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Policy policy = jdbcConn.getPolicy("my-domain", "policy1");
+        Policy policy = jdbcConn.getPolicy("my-domain", "policy1", null);
         assertNull(policy);
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
@@ -2544,7 +2555,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         try {
-            jdbcConn.getPolicy("my-domain", "policy1");
+            jdbcConn.getPolicy("my-domain", "policy1", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
@@ -2914,7 +2925,7 @@ public class JDBCConnectionTest {
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
-        boolean requestSuccess = jdbcConn.insertAssertion("my-domain", "policy1", assertion);
+        boolean requestSuccess = jdbcConn.insertAssertion("my-domain", "policy1", null, assertion);
         assertTrue(requestSuccess);
 
         // getting domain and policy ids
@@ -2955,7 +2966,7 @@ public class JDBCConnectionTest {
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
-        boolean requestSuccess = jdbcConn.insertAssertion("my-domain", "policy1", assertion);
+        boolean requestSuccess = jdbcConn.insertAssertion("my-domain", "policy1", null, assertion);
         assertTrue(requestSuccess);
 
         // getting domain and policy ids
@@ -2990,7 +3001,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
         try {
-            jdbcConn.insertAssertion("my-domain", "policy1", assertion);
+            jdbcConn.insertAssertion("my-domain", "policy1", null, assertion);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -3010,7 +3021,7 @@ public class JDBCConnectionTest {
                 .setRole("invalid_role");
 
         try {
-            jdbcConn.insertAssertion("my-domain", "policy1", assertion);
+            jdbcConn.insertAssertion("my-domain", "policy1", null, assertion);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -3036,7 +3047,7 @@ public class JDBCConnectionTest {
             .thenReturn(false); // this one is for policy id
 
         try {
-            jdbcConn.insertAssertion("my-domain", "policy1", assertion);
+            jdbcConn.insertAssertion("my-domain", "policy1", null, assertion);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -3065,7 +3076,7 @@ public class JDBCConnectionTest {
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
-            jdbcConn.insertAssertion("my-domain", "policy1", assertion);
+            jdbcConn.insertAssertion("my-domain", "policy1", null, assertion);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
@@ -3087,7 +3098,7 @@ public class JDBCConnectionTest {
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
-        boolean requestSuccess = jdbcConn.deleteAssertion("my-domain", "policy1", (long) 101);
+        boolean requestSuccess = jdbcConn.deleteAssertion("my-domain", "policy1", null, (long) 101);
         assertTrue(requestSuccess);
 
         // getting domain and policy ids
@@ -3114,7 +3125,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
         try {
-            jdbcConn.deleteAssertion("my-domain", "policy1", (long) 101);
+            jdbcConn.deleteAssertion("my-domain", "policy1", null, (long) 101);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -3134,7 +3145,7 @@ public class JDBCConnectionTest {
             .thenReturn(false); // this one is for policy id
 
         try {
-            jdbcConn.deleteAssertion("my-domain", "policy1", (long) 101);
+            jdbcConn.deleteAssertion("my-domain", "policy1", null, (long) 101);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -3156,7 +3167,7 @@ public class JDBCConnectionTest {
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
-            jdbcConn.deleteAssertion("my-domain", "policy1", (long) 101);
+            jdbcConn.deleteAssertion("my-domain", "policy1", null, (long) 101);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
@@ -4002,7 +4013,7 @@ public class JDBCConnectionTest {
             .thenReturn("ALLOW")
             .thenReturn("DENY");
 
-        List<Assertion> assertions = jdbcConn.listAssertions("my-domain", "policy1");
+        List<Assertion> assertions = jdbcConn.listAssertions("my-domain", "policy1", null);
 
         assertEquals(2, assertions.size());
         assertEquals("my-domain:role.role1", assertions.get(0).getRole());
@@ -4026,7 +4037,7 @@ public class JDBCConnectionTest {
             .thenReturn(false); // this one is for domain id
 
         try {
-            jdbcConn.listAssertions("my-domain", "policy1");
+            jdbcConn.listAssertions("my-domain", "policy1", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -4046,7 +4057,7 @@ public class JDBCConnectionTest {
                 .thenReturn(false); // this is for policy id
 
         try {
-            jdbcConn.listAssertions("my-domain", "policy1");
+            jdbcConn.listAssertions("my-domain", "policy1", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -6881,7 +6892,7 @@ public class JDBCConnectionTest {
             .thenReturn(5) // domain id
             .thenReturn(7); // policy id
 
-        boolean requestSuccess = jdbcConn.updatePolicyModTimestamp("my-domain", "policy1");
+        boolean requestSuccess = jdbcConn.updatePolicyModTimestamp("my-domain", "policy1", null);
         assertTrue(requestSuccess);
 
         // get domain id
@@ -6906,7 +6917,7 @@ public class JDBCConnectionTest {
                 .thenReturn(5); // domain id
 
         try {
-            jdbcConn.updatePolicyModTimestamp("my-domain", "policy1");
+            jdbcConn.updatePolicyModTimestamp("my-domain", "policy1", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -6926,7 +6937,7 @@ public class JDBCConnectionTest {
             .thenReturn(5) // domain id
             .thenReturn(7); // policy id
 
-        boolean requestSuccess = jdbcConn.updatePolicyModTimestamp("my-domain", "policy1");
+        boolean requestSuccess = jdbcConn.updatePolicyModTimestamp("my-domain", "policy1", null);
         assertFalse(requestSuccess);
 
         // get domain id
@@ -6946,7 +6957,7 @@ public class JDBCConnectionTest {
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
-            jdbcConn.updatePolicyModTimestamp("my-domain", "policy1");
+            jdbcConn.updatePolicyModTimestamp("my-domain", "policy1", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);

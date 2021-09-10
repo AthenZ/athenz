@@ -35,6 +35,7 @@ import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,7 @@ public class DBService implements RolesProvider {
     int defaultRetryCount;
     int defaultOpTimeout;
     ZMSConfig zmsConfig;
+    private final int maxPolicyVersions;
 
     private static final Logger LOG = LoggerFactory.getLogger(DBService.class);
 
@@ -125,6 +127,8 @@ public class DBService implements RolesProvider {
         userAuthorityFilterExecutor = Executors.newScheduledThreadPool(1);
         userAuthorityFilterExecutor.scheduleAtFixedRate(
                 new UserAuthorityFilterEnforcer(), 0, 1, TimeUnit.DAYS);
+
+        maxPolicyVersions = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_MAX_POLICY_VERSIONS, ZMSConsts.ZMS_PROP_MAX_POLICY_VERSIONS_DEFAULT));
     }
 
     void setAuditRefObjectBits() {
@@ -393,6 +397,7 @@ public class DBService implements RolesProvider {
 
         boolean requestSuccess;
         if (originalPolicy == null) {
+            policy.setVersion(null);
             requestSuccess = con.insertPolicy(domainName, policy);
         } else {
             requestSuccess = con.updatePolicy(domainName, policy);
@@ -418,7 +423,7 @@ public class DBService implements RolesProvider {
 
             if (newAssertions != null) {
                 for (Assertion assertion : newAssertions) {
-                    if (!con.insertAssertion(domainName, policyName, assertion)) {
+                    if (!con.insertAssertion(domainName, policyName, null, assertion)) {
                         return false;
                     }
                 }
@@ -439,7 +444,7 @@ public class DBService implements RolesProvider {
 
             if (!ignoreDeletes) {
                 for (Assertion assertion : delAssertions) {
-                    if (!con.deleteAssertion(domainName, policyName, assertion.getId())) {
+                    if (!con.deleteAssertion(domainName, policyName, null, assertion.getId())) {
                         return false;
                     }
                 }
@@ -447,7 +452,7 @@ public class DBService implements RolesProvider {
             }
 
             for (Assertion assertion : addAssertions) {
-                if (!con.insertAssertion(domainName, policyName, assertion)) {
+                if (!con.insertAssertion(domainName, policyName, null, assertion)) {
                     return false;
                 }
             }
@@ -978,6 +983,111 @@ public class DBService implements RolesProvider {
         return retry;
     }
 
+    public void executePutPolicyVersion(ResourceContext ctx, String domainName, String policyName, String version, String fromVersion,
+                                        String auditRef, String caller) {
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
+
+                // verify the policy hasn't reached maximum number of versions allowed
+
+                List<String> policyVersions = con.listPolicyVersions(domainName, policyName);
+                if (policyVersions.size() >= maxPolicyVersions) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.quotaLimitError("unable to put policy: " + policyName + ", version: " + version + ", max number of versions reached (" + maxPolicyVersions + ")", caller);
+                }
+
+                // retrieve our source policy version
+
+                Policy originalPolicy = getPolicy(con, domainName, policyName, fromVersion);
+
+                // check that quota is not exceeded
+
+                quotaCheck.checkPolicyQuota(con, domainName, originalPolicy, caller);
+
+                // now process the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                originalPolicy.setVersion(version);
+                if (!con.insertPolicy(domainName, originalPolicy)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() + ", version: " + version, caller);
+                }
+
+                // open our audit record
+
+                auditDetails.append("{\"name\": \"").append(policyName);
+                auditDetails.append("\", \"version\": \"").append(version);
+
+                // now we need process our policy assertions
+
+                List<Assertion> newAssertions = originalPolicy.getAssertions();
+                if (newAssertions != null) {
+                    for (Assertion assertion : newAssertions) {
+
+                        // get assertion conditions for original assertion
+
+                        AssertionConditions assertionConditions = new AssertionConditions();
+                        if (assertion.getId() != null) {
+                            assertionConditions.setConditionsList(con.getAssertionConditions(assertion.getId()));
+                        }
+
+                        // insert assertion (and get new assertion id)
+
+                        if (!con.insertAssertion(domainName, policyName, version, assertion)) {
+                            con.rollbackChanges();
+                            throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() + ", version: " + version + ", fail inserting assertion", caller);
+                        }
+
+                        // copy assertion conditions for new assertion id
+
+                        if (assertionConditions != null && assertionConditions.getConditionsList() != null && !assertionConditions.getConditionsList().isEmpty()) {
+                            if (!con.insertAssertionConditions(assertion.getId(), assertionConditions)) {
+                                con.rollbackChanges();
+                                throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() + ", version: " + version + ", fail inserting assertion conditions", caller);
+                            }
+                        }
+                    }
+
+                    // Log copied assertions and assertion conditions
+
+                    auditLogAssertions(auditDetails, "copied-assertions", newAssertions);
+                    for (Assertion assertion : newAssertions) {
+                        if (assertion.getId() != null) {
+                            auditLogAssertionConditions(auditDetails, con.getAssertionConditions(assertion.getId()), "copied-assertion-conditions");
+                        }
+                    }
+                }
+
+                auditDetails.append('}');
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        policyName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
     void executePutPolicy(ResourceContext ctx, String domainName, String policyName, Policy policy,
             String auditRef, String caller) {
 
@@ -999,7 +1109,7 @@ public class DBService implements RolesProvider {
 
                 // retrieve our original policy
 
-                Policy originalPolicy = getPolicy(con, domainName, policyName);
+                Policy originalPolicy = getPolicy(con, domainName, policyName, null);
 
                 // now process the request
 
@@ -1027,6 +1137,58 @@ public class DBService implements RolesProvider {
             }
         }
     }
+
+    void executeSetActivePolicy(ResourceContext ctx, String domainName, String policyName, String version,
+                          String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
+
+                // Get original active policy so we'll have the version for audit log and to update timestamp
+                Policy originalActivePolicy = con.getPolicy(domainName, policyName, null);
+
+                // now process the request
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                if (con.setActivePolicyVersion(domainName, policyName, version) &&
+                        con.updatePolicyModTimestamp(domainName, policyName, version) &&
+                        con.updatePolicyModTimestamp(domainName, policyName, originalActivePolicy.getVersion())) {
+                    // get policy versions with updated timestamp
+                    originalActivePolicy = con.getPolicy(domainName, policyName, originalActivePolicy.getVersion());
+                    Policy newActivePolicy = con.getPolicy(domainName, policyName, version);
+                    auditLogPolicy(auditDetails, Arrays.asList(originalActivePolicy, newActivePolicy), "set-active-policy");
+                } else {
+                    con.rollbackChanges();
+                    throw ZMSUtils.internalServerError("unable to set active policy version: " + version + " for policy: " + policyName + " in domain: " + domainName, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        policyName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
 
     void executePutRole(ResourceContext ctx, String domainName, String roleName, Role role,
             String auditRef, String caller) {
@@ -1876,14 +2038,22 @@ public class DBService implements RolesProvider {
 
                 // extract the current policy for audit log purposes
 
-                Policy policy = getPolicy(con, domainName, policyName);
-                if (policy == null) {
+                List<String> versions = con.listPolicyVersions(domainName, policyName);
+                if (versions == null || versions.isEmpty()) {
                     con.rollbackChanges();
-                    throw ZMSUtils.notFoundError(caller + ": unable to read policy: " + policyName, caller);
+                    throw ZMSUtils.notFoundError(caller + ": unable to get versions for policy: " + policyName, caller);
                 }
-
+                List<Policy> policyVersions = new ArrayList<>();
+                for (String version : versions) {
+                    Policy policy = getPolicy(con, domainName, policyName, version);
+                    if (policy == null) {
+                        con.rollbackChanges();
+                        throw ZMSUtils.notFoundError(caller + ": unable to read policy: " + policyName + ", with version: " + version, caller);
+                    }
+                    policyVersions.add(policy);
+                }
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditLogPolicy(auditDetails, policy, "deleted-assertions");
+                auditLogPolicy(auditDetails, policyVersions, "deleted-policy-versions");
 
                 // process our delete policy request
 
@@ -1900,6 +2070,62 @@ public class DBService implements RolesProvider {
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         policyName, auditDetails.toString());
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    void executeDeletePolicyVersion(ResourceContext ctx, String domainName, String policyName, String version,
+                             String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
+
+                // extract the current policy version for audit log purposes
+
+                Policy policy = getPolicy(con, domainName, policyName, version);
+                if (policy == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": unable to read policy: " + policyName + ", version: " + version, caller);
+                }
+                if (policy.getActive()) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.requestError(caller + ": unable to delete active policy version. Policy: " + policyName + ", version: " + version, caller);
+                }
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogPolicyVersion(auditDetails, policy, true);
+
+                // process our delete policy request
+
+                if (!con.deletePolicyVersion(domainName, policyName, version)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": unable to delete policy: " + policyName + ", version: " + version, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                        policyName + ":" + version, auditDetails.toString());
 
                 return;
 
@@ -2666,10 +2892,10 @@ public class DBService implements RolesProvider {
         return new ArrayList<>(roleMembers.values());
     }
 
-    Policy getPolicy(String domainName, String policyName) {
+    Policy getPolicy(String domainName, String policyName, String version) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            return getPolicy(con, domainName, policyName);
+            return getPolicy(con, domainName, policyName, version);
         }
     }
 
@@ -2680,7 +2906,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executePutAssertion(ResourceContext ctx, String domainName, String policyName,
+    void executePutAssertion(ResourceContext ctx, String domainName, String policyName, String version,
             Assertion assertion, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
@@ -2702,14 +2928,14 @@ public class DBService implements RolesProvider {
                 // process our insert assertion. since this is a "single"
                 // operation, we are not using any transactions.
 
-                if (!con.insertAssertion(domainName, policyName, assertion)) {
+                if (!con.insertAssertion(domainName, policyName, version, assertion)) {
                     throw ZMSUtils.requestError(caller + ": unable to insert assertion: " +
                             " to policy: " + policyName, caller);
                 }
 
                 // update our policy and domain time-stamps, and invalidate local cache entry
 
-                con.updatePolicyModTimestamp(domainName, policyName);
+                con.updatePolicyModTimestamp(domainName, policyName, version);
                 con.updateDomainModTimestamp(domainName);
                 cacheStore.invalidate(domainName);
 
@@ -2734,9 +2960,10 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executeDeleteAssertion(ResourceContext ctx, String domainName, String policyName,
+    void executeDeleteAssertion(ResourceContext ctx, String domainName, String policyName, String version,
             Long assertionId, String auditRef, String caller) {
 
+        String versionForAuditLog = StringUtil.isEmpty(version) ? "active version" : version;
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
         // count reaches 0
@@ -2754,20 +2981,20 @@ public class DBService implements RolesProvider {
                 Assertion assertion = con.getAssertion(domainName, policyName, assertionId);
                 if (assertion == null) {
                     throw ZMSUtils.notFoundError(caller + ": unable to read assertion: " +
-                            assertionId + " from policy: " + policyName, caller);
+                            assertionId + " from policy: " + policyName + " version: " + versionForAuditLog, caller);
                 }
 
                 // process our delete assertion. since this is a "single"
                 // operation, we are not using any transactions.
 
-                if (!con.deleteAssertion(domainName, policyName, assertionId)) {
+                if (!con.deleteAssertion(domainName, policyName, version, assertionId)) {
                     throw ZMSUtils.requestError(caller + ": unable to delete assertion: " +
-                            assertionId + " from policy: " + policyName, caller);
+                            assertionId + " from policy: " + policyName + " version: " + versionForAuditLog, caller);
                 }
 
                 // update our policy and domain time-stamps, and invalidate local cache entry
 
-                con.updatePolicyModTimestamp(domainName, policyName);
+                con.updatePolicyModTimestamp(domainName, policyName, version);
                 con.updateDomainModTimestamp(domainName);
                 cacheStore.invalidate(domainName);
 
@@ -2775,6 +3002,7 @@ public class DBService implements RolesProvider {
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"policy\": \"").append(policyName)
+                        .append("\", \"version\": \"").append(versionForAuditLog)
                         .append("\", \"assertionId\": \"").append(assertionId)
                         .append("\", \"deleted-assertions\": [");
                 auditLogAssertion(auditDetails, assertion, true);
@@ -2810,11 +3038,11 @@ public class DBService implements RolesProvider {
         }
     }
 
-    Policy getPolicy(ObjectStoreConnection con, String domainName, String policyName) {
+    Policy getPolicy(ObjectStoreConnection con, String domainName, String policyName, String version) {
 
-        Policy policy = con.getPolicy(domainName, policyName);
+        Policy policy = con.getPolicy(domainName, policyName, version);
         if (policy != null) {
-            policy.setAssertions(con.listAssertions(domainName, policyName));
+            policy.setAssertions(con.listAssertions(domainName, policyName, version));
         }
         return policy;
     }
@@ -2823,6 +3051,13 @@ public class DBService implements RolesProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listPolicies(domainName, null);
+        }
+    }
+
+    List<String> listPolicyVersions(String domainName, String policyName) {
+
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.listPolicyVersions(domainName, policyName);
         }
     }
 
@@ -3493,7 +3728,7 @@ public class DBService implements RolesProvider {
 
                 // retrieve our original policy
 
-                Policy originalPolicy = getPolicy(con, domainName, policyName);
+                Policy originalPolicy = getPolicy(con, domainName, policyName, null);
 
                 // now process the request
 
@@ -3792,9 +4027,10 @@ public class DBService implements RolesProvider {
                 // tenant admin policy - check to see if this already exists. If it does
                 // then we don't have anything to do
 
-                if (con.getPolicy(tenantDomain, adminName) == null) {
+                if (con.getPolicy(tenantDomain, adminName, null) == null) {
 
                     Policy adminPolicy = new Policy().setName(ResourceUtils.policyResourceName(tenantDomain, adminName));
+                    adminPolicy.setVersion(null);
                     con.insertPolicy(tenantDomain, adminPolicy);
 
                     // we are going to create 2 assertions - one for the domain admin role
@@ -3803,12 +4039,12 @@ public class DBService implements RolesProvider {
                     Assertion assertion = new Assertion().setRole(domainAdminRole)
                             .setResource(serviceRoleResourceName).setAction(ZMSConsts.ACTION_ASSUME_ROLE)
                             .setEffect(AssertionEffect.ALLOW);
-                    con.insertAssertion(tenantDomain, adminName, assertion);
+                    con.insertAssertion(tenantDomain, adminName, null, assertion);
 
                     assertion = new Assertion().setRole(tenantAdminRole)
                             .setResource(serviceRoleResourceName).setAction(ZMSConsts.ACTION_ASSUME_ROLE)
                             .setEffect(AssertionEffect.ALLOW);
-                    con.insertAssertion(tenantDomain, adminName, assertion);
+                    con.insertAssertion(tenantDomain, adminName, null, assertion);
 
                     // the tenant admin role must have the capability to provision
                     // new resource groups in the domain which requires update
@@ -3818,7 +4054,7 @@ public class DBService implements RolesProvider {
                     assertion = new Assertion().setRole(tenantAdminRole)
                             .setResource(tenantResourceName).setAction(ZMSConsts.ACTION_UPDATE)
                             .setEffect(AssertionEffect.ALLOW);
-                    con.insertAssertion(tenantDomain, adminName, assertion);
+                    con.insertAssertion(tenantDomain, adminName, null, assertion);
                 }
 
                 // update our domain time-stamp and save changes
@@ -3903,7 +4139,7 @@ public class DBService implements RolesProvider {
 
                     // retrieve our original policy
 
-                    Policy originalPolicy = getPolicy(con, provSvcDomain, trustedName);
+                    Policy originalPolicy = getPolicy(con, provSvcDomain, trustedName, null);
 
                     // now process the request
 
@@ -3982,7 +4218,7 @@ public class DBService implements RolesProvider {
 
         // retrieve our original policy
 
-        Policy originalPolicy = getPolicy(con, tenantDomain, policyName);
+        Policy originalPolicy = getPolicy(con, tenantDomain, policyName, null);
 
         // we need to add the original policy assertions to the new one
 
@@ -4510,12 +4746,27 @@ public class DBService implements RolesProvider {
         return firstEntry;
     }
 
-    void auditLogPolicy(StringBuilder auditDetails, Policy policy, String label)  {
+    boolean auditLogPolicyVersion(StringBuilder auditDetails, Policy policy, boolean firstEntry) {
+        firstEntry = auditLogSeparator(auditDetails, firstEntry);
         auditDetails.append("{\"name\": \"").append(policy.getName())
-                .append("\", \"modified\": \"").append(policy.getModified()).append('"');
+        .append("\", \"version\": \"").append(policy.getVersion())
+        .append("\", \"active\": \"").append(policy.getActive())
+        .append("\", \"modified\": \"").append(policy.getModified()).append('"');
         if (policy.getAssertions() != null) {
-            auditLogAssertions(auditDetails, label, policy.getAssertions());
+            auditLogAssertions(auditDetails, "deleted-assertions", policy.getAssertions());
         }
+        auditDetails.append("}");
+        return firstEntry;
+    }
+
+    void auditLogPolicy(StringBuilder auditDetails, List<Policy> policyVersions, String label)  {
+        auditDetails.append("{\"name\": \"").append(policyVersions.get(0).getName()).append('\"');
+        auditDetails.append(", \"").append(label).append("\": [");
+        boolean firstEntry = true;
+        for (Policy value : policyVersions) {
+            firstEntry = auditLogPolicyVersion(auditDetails, value, firstEntry);
+        }
+        auditDetails.append(']');
         auditDetails.append("}");
     }
 
@@ -6922,7 +7173,7 @@ public class DBService implements RolesProvider {
 
                 // update our policy and domain time-stamps, and invalidate local cache entry
 
-                con.updatePolicyModTimestamp(domainName, policyName);
+                con.updatePolicyModTimestamp(domainName, policyName, null);
                 saveChanges(con, domainName);
 
 
@@ -6995,7 +7246,7 @@ public class DBService implements RolesProvider {
 
                 // update our policy and domain time-stamps, and invalidate local cache entry
 
-                con.updatePolicyModTimestamp(domainName, policyName);
+                con.updatePolicyModTimestamp(domainName, policyName, null);
                 saveChanges(con, domainName);
 
 
@@ -7054,7 +7305,7 @@ public class DBService implements RolesProvider {
 
                 // update our policy and domain time-stamps, and invalidate local cache entry
 
-                con.updatePolicyModTimestamp(domainName, policyName);
+                con.updatePolicyModTimestamp(domainName, policyName, null);
                 con.updateDomainModTimestamp(domainName);
                 cacheStore.invalidate(domainName);
 
@@ -7114,7 +7365,7 @@ public class DBService implements RolesProvider {
 
                 // update our policy and domain time-stamps, and invalidate local cache entry
 
-                con.updatePolicyModTimestamp(domainName, policyName);
+                con.updatePolicyModTimestamp(domainName, policyName, null);
                 con.updateDomainModTimestamp(domainName);
                 cacheStore.invalidate(domainName);
 

@@ -150,14 +150,21 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "(role_id, admin, member, action, audit_ref) VALUES (?,?,?,?,?);";
     private static final String SQL_LIST_ROLE_AUDIT_LOGS = "SELECT * FROM role_audit_log WHERE role_id=?;";
     private static final String SQL_GET_POLICY = "SELECT * FROM policy "
-            + "JOIN domain ON domain.domain_id=policy.domain_id WHERE domain.name=? AND policy.name=?;";
+            + "JOIN domain ON domain.domain_id=policy.domain_id WHERE domain.name=? AND policy.name=? AND policy.active=true;";
+    private static final String SQL_GET_POLICY_VERSION = "SELECT * FROM policy "
+            + "JOIN domain ON domain.domain_id=policy.domain_id WHERE domain.name=? AND policy.name=? AND policy.version=?;";
     private static final String SQL_INSERT_POLICY = "INSERT INTO policy (name, domain_id) VALUES (?,?);";
+    private static final String SQL_INSERT_POLICY_VERSION = "INSERT INTO policy (name, domain_id, version, active) VALUES (?,?, ?, false);";
     private static final String SQL_UPDATE_POLICY = "UPDATE policy SET name=? WHERE policy_id=?;";
     private static final String SQL_UPDATE_POLICY_MOD_TIMESTAMP = "UPDATE policy "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE policy_id=?;";
-    private static final String SQL_GET_POLICY_ID = "SELECT policy_id FROM policy WHERE domain_id=? AND name=?;";
+    private static final String SQL_SET_ACTIVE_POLICY_VERSION = "UPDATE policy SET active = CASE WHEN version=? then true ELSE false END WHERE domain_id=? AND name=?;";
+    private static final String SQL_GET_ACTIVE_POLICY_ID = "SELECT policy_id FROM policy WHERE domain_id=? AND name=? AND active=true;";
+    private static final String SQL_GET_POLICY_VERSION_ID = "SELECT policy_id FROM policy WHERE domain_id=? AND name=? AND version=?;";
     private static final String SQL_DELETE_POLICY = "DELETE FROM policy WHERE domain_id=? AND name=?;";
-    private static final String SQL_LIST_POLICY = "SELECT name FROM policy WHERE domain_id=? AND active=1";
+    private static final String SQL_DELETE_POLICY_VERSION = "DELETE FROM policy WHERE domain_id=? AND name=? AND version=? and active=false;";
+    private static final String SQL_LIST_POLICY = "SELECT name FROM policy WHERE domain_id=? AND active=true";
+    private static final String SQL_LIST_POLICY_VERSION = "SELECT version FROM policy WHERE domain_id=? AND name=?";
     private static final String SQL_COUNT_POLICY = "SELECT COUNT(*) FROM policy WHERE domain_id=?";
     private static final String SQL_LIST_ASSERTION = "SELECT * FROM assertion WHERE policy_id=?";
     private static final String SQL_COUNT_ASSERTION = "SELECT COUNT(*) FROM assertion WHERE policy_id=?";
@@ -1362,24 +1369,29 @@ public class JDBCConnection implements ObjectStoreConnection {
         return domainId;
     }
 
-    int getPolicyId(int domainId, String policyName) {
+    int getPolicyId(int domainId, String policyName, String version) {
 
         final String caller = "getPolicyId";
 
         // first check to see if our cache contains this value
         // otherwise we'll contact the MySQL Server
 
-        final String cacheKey = CACHE_POLICY + domainId + '.' + policyName;
+        final String cacheKey = StringUtil.isEmpty(version) ? null : CACHE_POLICY + domainId + '.' + policyName + '.' + version;
 
-        Integer value = objectMap.get(cacheKey);
-        if (value != null) {
-            return value;
+        if (cacheKey != null) {
+            Integer value = objectMap.get(cacheKey);
+            if (value != null) {
+                return value;
+            }
         }
 
         int policyId = 0;
-        try (PreparedStatement ps = con.prepareStatement(SQL_GET_POLICY_ID)) {
+        try (PreparedStatement ps = con.prepareStatement(StringUtil.isEmpty(version) ? SQL_GET_ACTIVE_POLICY_ID : SQL_GET_POLICY_VERSION_ID)) {
             ps.setInt(1, domainId);
             ps.setString(2, policyName);
+            if (!StringUtil.isEmpty(version)) {
+                ps.setString(3, version);
+            }
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     policyId = rs.getInt(1);
@@ -1392,7 +1404,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         // before returning the value update our cache
 
-        if (policyId != 0) {
+        if (policyId != 0 && cacheKey != null) {
             objectMap.put(cacheKey, policyId);
         }
 
@@ -2559,13 +2571,16 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Policy getPolicy(String domainName, String policyName) {
+    public Policy getPolicy(String domainName, String policyName, String version) {
 
         final String caller = "getPolicy";
 
-        try (PreparedStatement ps = con.prepareStatement(SQL_GET_POLICY)) {
+        try (PreparedStatement ps = con.prepareStatement((StringUtil.isEmpty(version)) ? SQL_GET_POLICY : SQL_GET_POLICY_VERSION)) {
             ps.setString(1, domainName);
             ps.setString(2, policyName);
+            if (!StringUtil.isEmpty(version)) {
+                ps.setString(3, version);
+            }
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     return savePolicySettings(domainName, policyName, rs);
@@ -2593,9 +2608,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_POLICY)) {
+        try (PreparedStatement ps = con.prepareStatement(!StringUtil.isEmpty(policy.getVersion()) ? SQL_INSERT_POLICY_VERSION : SQL_INSERT_POLICY)) {
             ps.setString(1, policyName);
             ps.setInt(2, domainId);
+            if (!StringUtil.isEmpty(policy.getVersion())) {
+                ps.setString(3, policy.getVersion());
+            }
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -2619,7 +2637,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName, null);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
         }
@@ -2634,7 +2652,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean updatePolicyModTimestamp(String domainName, String policyName) {
+    public boolean updatePolicyModTimestamp(String domainName, String policyName, String version) {
 
         int affectedRows;
         final String caller = "updatePolicyModTimestamp";
@@ -2643,7 +2661,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName, version);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
         }
@@ -2658,6 +2676,29 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
+    public boolean setActivePolicyVersion(String domainName, String policyName, String version) {
+
+        int affectedRows;
+        final String caller = "setActivePolicyVersion";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_SET_ACTIVE_POLICY_VERSION)) {
+            ps.setString(1, version);
+            ps.setInt(2, domainId);
+            ps.setString(3, policyName);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+
+    @Override
     public boolean deletePolicy(String domainName, String policyName) {
 
         final String caller = "deletePolicy";
@@ -2670,6 +2711,27 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_POLICY)) {
             ps.setInt(1, domainId);
             ps.setString(2, policyName);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean deletePolicyVersion(String domainName, String policyName, String version) {
+
+        final String caller = "deletePolicyVersion";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_POLICY_VERSION)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, policyName);
+            ps.setString(3, version);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -2706,6 +2768,34 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
+    public List<String> listPolicyVersions(String domainName, String policyName) {
+        final String caller = "listPolicyVersions";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int policyId = getPolicyId(domainId, policyName, null);
+        if (policyId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
+        }
+        List<String> policies = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_POLICY_VERSION)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, policyName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    policies.add(rs.getString(1));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        Collections.sort(policies);
+        return policies;
+    }
+
+    @Override
     public int countPolicies(String domainName) {
 
         final String caller = "countPolicies";
@@ -2729,7 +2819,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean insertAssertion(String domainName, String policyName, Assertion assertion) {
+    public boolean insertAssertion(String domainName, String policyName, String version, Assertion assertion) {
 
         final String caller = "insertAssertion";
 
@@ -2743,7 +2833,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName, version);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
         }
@@ -2790,7 +2880,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean deleteAssertion(String domainName, String policyName, Long assertionId) {
+    public boolean deleteAssertion(String domainName, String policyName, String version, Long assertionId) {
 
         final String caller = "deleteAssertion";
 
@@ -2798,7 +2888,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName, version);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
         }
@@ -2815,7 +2905,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public List<Assertion> listAssertions(String domainName, String policyName) {
+    public List<Assertion> listAssertions(String domainName, String policyName, String version) {
 
         final String caller = "listAssertions";
 
@@ -2823,7 +2913,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName, version);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
         }
@@ -2856,7 +2946,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName, null);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
         }

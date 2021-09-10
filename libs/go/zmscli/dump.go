@@ -332,7 +332,8 @@ func (cli Zms) dumpPolicies(buf *bytes.Buffer, dn string) {
 	buf.WriteString(indentLevel1)
 	buf.WriteString("policies:\n")
 	assertions := true
-	policies, err := cli.Zms.GetPolicies(zms.DomainName(dn), &assertions)
+	versions := false
+	policies, err := cli.Zms.GetPolicies(zms.DomainName(dn), &assertions, &versions)
 	if err != nil {
 		log.Fatalf("Unable to get policy list - error: %v", err)
 	}

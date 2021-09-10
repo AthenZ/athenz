@@ -638,6 +638,90 @@ public class ZMSClientTest {
         client.deleteTopLevelDomain("PolicyAddDom1", AUDIT_REF);
     }
 
+    private void testCreatePolicyVersion(ZMSClient client, String adminUser) {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("PolicyAddDom1",
+                "Test Domain1", "testOrg", adminUser);
+        client.postTopLevelDomain(AUDIT_REF, dom1);
+
+        Policy policy1 = createPolicyObject(client, "PolicyAddDom1", "Policy1");
+        client.putPolicy("PolicyAddDom1", "Policy1", AUDIT_REF, policy1);
+
+        Policy policyRes2 = client.getPolicyVersion("PolicyAddDom1", "Policy1", "0");
+        assertNotNull(policyRes2);
+        assertEquals(policyRes2.getName(), "PolicyAddDom1:policy.Policy1".toLowerCase());
+
+        try {
+            client.getPolicyVersion("PolicyAddDom2", "Policy1", "0");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            client.getPolicyVersion("PolicyAddDom3", "Policy1", "0");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        try {
+            client.putPolicyVersion("PolicyAddDom2", "Policy1", "new-version", AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            client.putPolicyVersion("PolicyAddDom3", "Policy1", "new-version", AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        try {
+            client.putPolicyVersion("PolicyAddDom2", "Policy1", "new-version", "from-version", AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            client.putPolicyVersion("PolicyAddDom3", "Policy1", "new-version", "from-version", AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.deleteTopLevelDomain("PolicyAddDom1", AUDIT_REF);
+    }
+
+    private void testSetActivePolicyVersion(ZMSClient client, String adminUser) {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("PolicyAddDom1",
+                "Test Domain1", "testOrg", adminUser);
+        client.postTopLevelDomain(AUDIT_REF, dom1);
+
+        Policy policy1 = createPolicyObject(client, "PolicyAddDom1", "Policy1");
+        client.putPolicy("PolicyAddDom1", "Policy1", AUDIT_REF, policy1);
+        client.putPolicyVersion("PolicyAddDom1", "Policy1", "new-version", AUDIT_REF);
+        try {
+            client.setActivePolicyVersion("PolicyAddDom2", "Policy1", "new-version", AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            client.setActivePolicyVersion("PolicyAddDom2", "Policy1", "new-version2", AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.deleteTopLevelDomain("PolicyAddDom1", AUDIT_REF);
+    }
+
     private void testDeletePolicy(ZMSClient client, String adminUser) {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("PolicyDelDom1",
@@ -696,6 +780,72 @@ public class ZMSClientTest {
 
         try {
             client.deletePolicy("PolicyDelDom3", "Policy1", AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.deleteTopLevelDomain("PolicyDelDom1", AUDIT_REF);
+    }
+
+    private void testDeletePolicyVersion(ZMSClient client, String adminUser) {
+
+        TopLevelDomain dom1 = createTopLevelDomainObject("PolicyDelDom1",
+                "Test Domain1", "testOrg", adminUser);
+        client.postTopLevelDomain(AUDIT_REF, dom1);
+
+        Policy policy1 = createPolicyObject(client, "PolicyDelDom1", "Policy1");
+        client.putPolicy("PolicyDelDom1", "Policy1", AUDIT_REF, policy1);
+
+        Policy policy2 = createPolicyObject(client, "PolicyDelDom1", "Policy2");
+        client.putPolicy("PolicyDelDom1", "Policy2", AUDIT_REF, policy2);
+
+        Policy policyRes1 = client.getPolicyVersion("PolicyDelDom1", "Policy1", "0");
+        assertNotNull(policyRes1);
+
+        Policy policyRes2 = client.getPolicyVersion("PolicyDelDom1", "Policy2", "0");
+        assertNotNull(policyRes2);
+
+        client.deletePolicyVersion("PolicyDelDom1", "Policy1", "0", AUDIT_REF);
+
+        // we need to get an exception here
+        try {
+            client.getPolicyVersion("PolicyDelDom1", "Policy1", "0");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+
+        policyRes2 = client.getPolicyVersion("PolicyDelDom1", "Policy2", "0");
+        assertNotNull(policyRes2);
+
+        client.deletePolicyVersion("PolicyDelDom1", "Policy2", "0", AUDIT_REF);
+
+        // we need to get an exception here
+        try {
+            client.getPolicyVersion("PolicyDelDom1", "Policy1", "0");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+
+        // we need to get an exception here
+        try {
+            client.getPolicyVersion("PolicyDelDom1", "Policy2", "0");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+
+        try {
+            client.deletePolicyVersion("PolicyDelDom2", "Policy1", "0", AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            client.deletePolicyVersion("PolicyDelDom3", "Policy1", "0", AUDIT_REF);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -1314,15 +1464,29 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         try {
-            Mockito.when(c.getPolicies("domain1", true)).thenThrow(new NullPointerException());
+            Mockito.when(c.getPolicies("domain1", true, false)).thenThrow(new NullPointerException());
             client.getPolicies("domain1", true);
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
         }
         try {
-            Mockito.when(c.getPolicies("domain2", true)).thenThrow(new ResourceException(400));
+            Mockito.when(c.getPolicies("domain2", true, false)).thenThrow(new ResourceException(400));
             client.getPolicies("domain2", true);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(true);
+        }
+        try {
+            Mockito.when(c.getPolicies("domain3", true, true)).thenThrow(new ResourceException(400));
+            client.getPolicies("domain3", true, true);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(true);
+        }
+        try {
+            Mockito.when(c.getPolicies("domain3", false, true)).thenThrow(new NullPointerException());
+            client.getPolicies("domain3", false, true);
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
@@ -1479,6 +1643,14 @@ public class ZMSClientTest {
             assertTrue(true);
         }
         try {
+            Mockito.when(c.putAssertionPolicyVersion("domain1", "policy1", "new-version", AUDIT_REF, assertion))
+                    .thenThrow(new NullPointerException());
+            client.putAssertion("domain1", "policy1", "new-version", AUDIT_REF, assertion);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(true);
+        }
+        try {
             Mockito.when(c.getAssertion("principal2", "action2", assertionId)).thenThrow(new NullPointerException());
             client.getAssertion("principal2", "action2", assertionId);
             fail();
@@ -1489,6 +1661,14 @@ public class ZMSClientTest {
             Mockito.when(c.deleteAssertion("principal2", "action2", assertionId, AUDIT_REF))
                     .thenThrow(new NullPointerException());
             client.deleteAssertion("principal2", "action2", assertionId, AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(true);
+        }
+        try {
+            Mockito.when(c.deleteAssertionPolicyVersion("principal2", "action2", "new-version", assertionId, AUDIT_REF))
+                    .thenThrow(new NullPointerException());
+            client.deleteAssertion("principal2", "action2", "new-version", assertionId, AUDIT_REF);
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
@@ -1852,6 +2032,45 @@ public class ZMSClientTest {
         try {
             Mockito.when(c.getPolicyList("PolicyListDom5", null, null)).thenThrow(new NullPointerException());
             client.getPolicyList("PolicyListDom5", null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    public void testGetPolicyVersionList() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        PolicyList policyListMock = Mockito.mock(PolicyList.class);
+        Mockito.when(c.getPolicyVersionList("PolicyListDom1", "policyName1")).thenReturn(policyListMock);
+        client.getPolicyVersionList("PolicyListDom1", "policyName1");
+        try {
+            Mockito.when(c.getPolicyVersionList("PolicyListDom2", "policyName1")).thenThrow(new ResourceException(204));
+            client.getPolicyVersionList("PolicyListDom2", "policyName1");
+            fail();
+        } catch  (ResourceException ex) {
+            assertTrue(true);
+        }
+        try {
+            Mockito.when(c.getPolicyVersionList("PolicyListDom3", "policyName1")).thenThrow(new ResourceException(204));
+            client.getPolicyVersionList("PolicyListDom3", "policyName1");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(true);
+        }
+
+        try {
+            Mockito.when(c.getPolicyVersionList("PolicyListDom4", "policyName1")).thenThrow(new NullPointerException());
+            client.getPolicyVersionList("PolicyListDom4", "policyName1");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(true);
+        }
+        try {
+            Mockito.when(c.getPolicyVersionList("PolicyListDom5", "policyName1")).thenThrow(new NullPointerException());
+            client.getPolicyVersionList("PolicyListDom5", "policyName1");
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
@@ -2402,6 +2621,27 @@ public class ZMSClientTest {
         Mockito.when(c.getPolicy("PolicyAddDom3", "Policy1")).thenThrow(new NullPointerException());
         Mockito.when(policy1Mock.getName()).thenReturn("PolicyAddDom1:policy.Policy1".toLowerCase());
         testCreatePolicy(client, systemAdminFullUser);
+
+        PolicyOptions policyOptions = new PolicyOptions();
+        policyOptions.setVersion("new-version");
+        Mockito.when(c.getPolicyVersion("PolicyAddDom1", "Policy1", "0")).thenReturn(policy1Mock);
+        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptions), eq(AUDIT_REF))).thenThrow(new ResourceException(403));
+        Mockito.when(c.getPolicyVersion("PolicyAddDom2", "Policy1", "0")).thenThrow(new ResourceException(403));
+        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom3"), eq("Policy1"), eq(policyOptions), eq(AUDIT_REF))).thenThrow(new NullPointerException());
+        Mockito.when(c.getPolicyVersion("PolicyAddDom3", "Policy1", "0")).thenThrow(new NullPointerException());
+
+        PolicyOptions policyOptionsFrom = new PolicyOptions();
+        policyOptionsFrom.setVersion("new-version");
+        policyOptionsFrom.setFromVersion("from-version");
+        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptionsFrom), eq(AUDIT_REF))).thenThrow(new ResourceException(403));
+        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom3"), eq("Policy1"), eq(policyOptionsFrom), eq(AUDIT_REF))).thenThrow(new NullPointerException());
+        testCreatePolicyVersion(client, systemAdminFullUser);
+
+        Mockito.when(c.setActivePolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptions), eq(AUDIT_REF))).thenThrow(new ResourceException(403));
+        PolicyOptions policyOptions2 = new PolicyOptions();
+        policyOptions2.setVersion("new-version2");
+        Mockito.when(c.setActivePolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptions2), eq(AUDIT_REF))).thenThrow(new NullPointerException());
+        testSetActivePolicyVersion(client, systemAdminFullUser);
     }
 
     @Test
@@ -2420,6 +2660,12 @@ public class ZMSClientTest {
         Mockito.when(c.deletePolicy("PolicyDelDom2", "Policy1", AUDIT_REF)).thenThrow(new ResourceException(403));
         Mockito.when(c.deletePolicy("PolicyDelDom3", "Policy1", AUDIT_REF)).thenThrow(new NullPointerException());
         testDeletePolicy(client, systemAdminFullUser);
+
+        Mockito.when(c.getPolicyVersion("PolicyDelDom1", "Policy1", "0")).thenReturn(policy1Mock).thenThrow(new ResourceException(204));
+        Mockito.when(c.getPolicyVersion("PolicyDelDom1", "Policy2", "0")).thenReturn(policy1Mock,policy1Mock).thenThrow(new ResourceException(204));
+        Mockito.when(c.deletePolicyVersion("PolicyDelDom2", "Policy1", "0", AUDIT_REF)).thenThrow(new ResourceException(403));
+        Mockito.when(c.deletePolicyVersion("PolicyDelDom3", "Policy1", "0", AUDIT_REF)).thenThrow(new NullPointerException());
+        testDeletePolicyVersion(client, systemAdminFullUser);
     }
 
     @Test

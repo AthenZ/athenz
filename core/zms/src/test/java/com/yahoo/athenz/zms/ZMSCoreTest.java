@@ -26,6 +26,8 @@ import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
 
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertFalse;
+
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -2451,6 +2453,36 @@ public class ZMSCoreTest {
         pl2.setNames(null);
         assertFalse(pl2.equals(pl));
         assertFalse(pl2.equals(null));
+    }
+
+    @Test
+    public void testPolicyOptions() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        PolicyOptions policyOptions = new PolicyOptions();
+        policyOptions.setFromVersion("from-version");
+        policyOptions.setVersion("testversion");
+        Result result = validator.validate(policyOptions, "PolicyOptions");
+        assertTrue(result.valid);
+
+        assertEquals(policyOptions.getFromVersion(), "from-version");
+        assertEquals(policyOptions.getVersion(), "testversion");
+
+        PolicyOptions policyOptions2 = new PolicyOptions();
+        policyOptions2.setFromVersion("from-version");
+        policyOptions2.setVersion("testversion");
+
+        assertEquals(policyOptions, policyOptions2);
+        policyOptions2.setFromVersion(null);
+        assertFalse(policyOptions.equals(policyOptions2));
+        policyOptions.setFromVersion(null);
+        assertTrue(policyOptions.equals(policyOptions2));
+        policyOptions2.setVersion(null);
+        assertFalse(policyOptions.equals(policyOptions2));
+        policyOptions.setVersion(null);
+        assertTrue(policyOptions.equals(policyOptions2));
+        assertFalse(policyOptions.equals(null));
     }
 
     @Test

@@ -2585,6 +2585,72 @@ func (self *Policies) Validate() error {
 }
 
 //
+// PolicyOptions - Options for Policy Management Requests
+//
+type PolicyOptions struct {
+
+	//
+	// policy version
+	//
+	Version SimpleName `json:"version"`
+
+	//
+	// optional source version used when creating a new version, defaults to 0
+	//
+	FromVersion SimpleName `json:"fromVersion,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+//
+// NewPolicyOptions - creates an initialized PolicyOptions instance, returns a pointer to it
+//
+func NewPolicyOptions(init ...*PolicyOptions) *PolicyOptions {
+	var o *PolicyOptions
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(PolicyOptions)
+	}
+	return o
+}
+
+type rawPolicyOptions PolicyOptions
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a PolicyOptions
+//
+func (self *PolicyOptions) UnmarshalJSON(b []byte) error {
+	var m rawPolicyOptions
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := PolicyOptions(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *PolicyOptions) Validate() error {
+	if self.Version == "" {
+		return fmt.Errorf("PolicyOptions.version is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.Version)
+		if !val.Valid {
+			return fmt.Errorf("PolicyOptions.version does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.FromVersion != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.FromVersion)
+		if !val.Valid {
+			return fmt.Errorf("PolicyOptions.fromVersion does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // PublicKeyEntry - The representation of the public key in a service identity
 // object.
 //
