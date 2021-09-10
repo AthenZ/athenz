@@ -294,15 +294,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN assertion ON assertion.resource=CONCAT(\"*:role.\", role.name) "
             + "JOIN policy ON policy.policy_id=assertion.policy_id "
             + "WHERE assertion.action='assume_role';";
-    private static final String SQL_LIST_PRINCIPAL_ROLES = "SELECT domain.name, "
-            + "role.name AS role_name FROM role_member "
-            + "JOIN role ON role_member.role_id=role.role_id "
-            + "JOIN domain ON domain.domain_id=role.domain_id "
-            + "WHERE role_member.principal_id=?;";
-    private static final String SQL_LIST_PRINCIPAL_DOMAIN_ROLES = "SELECT role.name AS role_name FROM role_member "
-            + "JOIN role ON role_member.role_id=role.role_id "
-            + "JOIN domain ON domain.domain_id=role.domain_id "
-            + "WHERE role_member.principal_id=? AND domain.domain_id=?;";
+
     private static final String SQL_GET_QUOTA = "SELECT * FROM quota WHERE domain_id=?;";
     private static final String SQL_INSERT_QUOTA = "INSERT INTO quota (domain_id, role, role_member, "
             + "policy, assertion, service, service_host, public_key, entity, subdomain, principal_group, principal_group_member) "
@@ -2044,67 +2036,6 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
         return count;
-    }
-
-    @Override
-    public List<PrincipalRole> listPrincipalRoles(String domainName, String principalName) {
-
-        final String caller = "listPrincipalRoles";
-        if (domainName == null) {
-            return listPrincipalRolesForAllDomains(principalName, caller);
-        } else {
-            return listPrincipalRolesForOneDomain(domainName, principalName, caller);
-        }
-    }
-
-    List<PrincipalRole> listPrincipalRolesForAllDomains(String principalName, String caller) {
-
-        int principalId = getPrincipalId(principalName);
-        if (principalId == 0) {
-            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principalName);
-        }
-        List<PrincipalRole> roles = new ArrayList<>();
-        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_PRINCIPAL_ROLES)) {
-            ps.setInt(1, principalId);
-            try (ResultSet rs = executeQuery(ps, caller)) {
-                while (rs.next()) {
-                    PrincipalRole role = new PrincipalRole();
-                    role.setDomainName(rs.getString(ZMSConsts.DB_COLUMN_NAME));
-                    role.setRoleName(rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME));
-                    roles.add(role);
-                }
-            }
-        } catch (SQLException ex) {
-            throw sqlError(ex, caller);
-        }
-        return roles;
-    }
-
-    List<PrincipalRole> listPrincipalRolesForOneDomain(String domainName, String principalName, String caller) {
-
-        int domainId = getDomainId(domainName);
-        if (domainId == 0) {
-            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
-        }
-        int principalId = getPrincipalId(principalName);
-        if (principalId == 0) {
-            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principalName);
-        }
-        List<PrincipalRole> roles = new ArrayList<>();
-        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_PRINCIPAL_DOMAIN_ROLES)) {
-            ps.setInt(1, principalId);
-            ps.setInt(2, domainId);
-            try (ResultSet rs = executeQuery(ps, caller)) {
-                while (rs.next()) {
-                    PrincipalRole role = new PrincipalRole();
-                    role.setRoleName(rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME));
-                    roles.add(role);
-                }
-            }
-        } catch (SQLException ex) {
-            throw sqlError(ex, caller);
-        }
-        return roles;
     }
 
     @Override
@@ -4400,6 +4331,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     @Override
     public DomainRoleMember getPrincipalRoles(String principal, String domainName) {
+
         final String caller = "getPrincipalRoles";
 
         int principalId = getPrincipalId(principal);

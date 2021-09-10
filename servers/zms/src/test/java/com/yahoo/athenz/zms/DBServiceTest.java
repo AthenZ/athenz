@@ -4326,7 +4326,7 @@ public class DBServiceTest {
     public void testExecuteDeleteDomainRoleMemberRetryException() {
 
         Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
-        Mockito.when(mockJdbcConn.listPrincipalRoles("dom1", "user.joe"))
+        Mockito.when(mockJdbcConn.getPrincipalRoles("user.joe", "dom1"))
                 .thenThrow(new ResourceException(410));
 
         ObjectStore saveStore = zms.dbService.store;
@@ -4349,7 +4349,7 @@ public class DBServiceTest {
     public void testRemovePrincipalFromDomainRolesExceptions() {
 
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(conn.listPrincipalRoles("dom1", "user.joe"))
+        Mockito.when(conn.getPrincipalRoles("user.joe", "dom1"))
                 .thenThrow(new ResourceException(404))
                 .thenThrow(new ResourceException(501));
 
@@ -4373,18 +4373,19 @@ public class DBServiceTest {
     @Test
     public void testRemovePrincipalFromDomainRolesDeleteUserException() {
 
-        List<PrincipalRole> roles = new ArrayList<>();
-        PrincipalRole role1 = new PrincipalRole();
+        DomainRoleMember roles = new DomainRoleMember();
+        roles.setMemberRoles(new ArrayList<>());
+        MemberRole role1 = new MemberRole();
         role1.setDomainName("dom1");
         role1.setRoleName("role1");
-        roles.add(role1);
-        PrincipalRole role2 = new PrincipalRole();
+        roles.getMemberRoles().add(role1);
+        MemberRole role2 = new MemberRole();
         role2.setDomainName("dom1");
         role2.setRoleName("role2");
-        roles.add(role2);
+        roles.getMemberRoles().add(role2);
 
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(conn.listPrincipalRoles("dom1", "user.joe")).thenReturn(roles);
+        Mockito.when(conn.getPrincipalRoles("user.joe", "dom1")).thenReturn(roles);
         Mockito.when(conn.deleteRoleMember("dom1", "role1", "user.joe", adminUser, "unittest"))
                 .thenReturn(true);
         Mockito.when(conn.deleteRoleMember("dom1", "role2", "user.joe", adminUser, "unittest"))
@@ -4399,7 +4400,7 @@ public class DBServiceTest {
     public void testRemovePrincipalFromAllRolesExceptions() {
 
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(conn.listPrincipalRoles(null, "user.joe"))
+        Mockito.when(conn.getPrincipalRoles("user.joe", null))
                 .thenThrow(new ResourceException(404))
                 .thenThrow(new ResourceException(501));
 
@@ -4443,18 +4444,19 @@ public class DBServiceTest {
     @Test
     public void testRemovePrincipalFromAllRolesDeleteUserException() {
 
-        List<PrincipalRole> roles = new ArrayList<>();
-        PrincipalRole role1 = new PrincipalRole();
+        DomainRoleMember roles = new DomainRoleMember();
+        roles.setMemberRoles(new ArrayList<>());
+        MemberRole role1 = new MemberRole();
         role1.setDomainName("dom1");
         role1.setRoleName("role1");
-        roles.add(role1);
-        PrincipalRole role2 = new PrincipalRole();
+        roles.getMemberRoles().add(role1);
+        MemberRole role2 = new MemberRole();
         role2.setDomainName("dom1");
         role2.setRoleName("role2");
-        roles.add(role2);
+        roles.getMemberRoles().add(role2);
 
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(conn.listPrincipalRoles(null, "user.joe")).thenReturn(roles);
+        Mockito.when(conn.getPrincipalRoles("user.joe", null)).thenReturn(roles);
         Mockito.when(conn.deleteRoleMember("dom1", "role1", "user.joe", adminUser, "unittest"))
                 .thenReturn(true);
         Mockito.when(conn.deleteRoleMember("dom1", "role2", "user.joe", adminUser, "unittest"))
@@ -4463,6 +4465,54 @@ public class DBServiceTest {
         // we should handle the exception without any errors
 
         zms.dbService.removePrincipalFromAllRoles(conn, "user.joe", adminUser, "unittest");
+    }
+
+    @Test
+    public void testRemovePrincipalFromAllGroupExceptions() {
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.getPrincipalGroups("user.joe", null))
+                .thenThrow(new ResourceException(404))
+                .thenThrow(new ResourceException(501));
+
+        // no exception if store returns 404
+
+        zms.dbService.removePrincipalFromAllGroups(conn, "user.joe", adminUser, "unittest");
+
+        // with next we should throw the exception so we should catch it
+
+        try {
+            zms.dbService.removePrincipalFromAllGroups(conn, "user.joe", adminUser, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(501, ex.getCode());
+        }
+    }
+
+    @Test
+    public void testRemovePrincipalFromAllGroupsDeleteUserException() {
+
+        DomainGroupMember roles = new DomainGroupMember();
+        roles.setMemberGroups(new ArrayList<>());
+        GroupMember group1 = new GroupMember();
+        group1.setDomainName("dom1");
+        group1.setGroupName("group1");
+        roles.getMemberGroups().add(group1);
+        GroupMember group2 = new GroupMember();
+        group2.setDomainName("dom1");
+        group2.setGroupName("group2");
+        roles.getMemberGroups().add(group2);
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.getPrincipalGroups("user.joe", null)).thenReturn(roles);
+        Mockito.when(conn.deleteGroupMember("dom1", "group1", "user.joe", adminUser, "unittest"))
+                .thenReturn(true);
+        Mockito.when(conn.deleteGroupMember("dom1", "group2", "user.joe", adminUser, "unittest"))
+                .thenThrow(new ResourceException(501));
+
+        // we should handle the exception without any errors
+
+        zms.dbService.removePrincipalFromAllGroups(conn, "user.joe", adminUser, "unittest");
     }
 
     @Test
@@ -4969,8 +5019,6 @@ public class DBServiceTest {
         zms.dbService.defaultRetryCount = 120;
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
     }
-
-
 
     @Test
     public void testExecutePutGroupMetaExpirationUpdate() {

@@ -66,6 +66,7 @@ import org.testng.annotations.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
@@ -17974,7 +17975,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testDeleteUser() {
+    public void testDeleteUser() throws InterruptedException {
 
         String domainName = "deleteuser1";
 
@@ -17987,6 +17988,9 @@ public class ZMSImplTest {
         TopLevelDomain dom2 = createTopLevelDomainObject("deleteusersports",
                 "Test Domain2", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+
+        ServiceIdentity service = new ServiceIdentity().setName(ResourceUtils.serviceResourceName("deleteusersports", "api"));
+        zms.putServiceIdentity(mockDomRsrcCtx, "deleteusersports", "api", auditRef, service);
 
         SubDomain subDom1 = createSubDomainObject("jack", "user",
                 "Test SubDomain2", "testOrg", adminUser);
@@ -18001,12 +18005,37 @@ public class ZMSImplTest {
         zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, role1);
 
         Role role2 = createRoleObject(domainName, "role2", null,
-                "user.joe", "deleteusersports.jane");
+                "user.joe", "deleteusersports.api");
         zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, role2);
 
         Role role3 = createRoleObject(domainName, "role3", null,
                 "user.jack", "user.jack.sub1.api");
         zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, role3);
+
+        Group group1 = createGroupObject(domainName, "dev-team", "user.joe", "user.jack.sub1.api");
+        zms.putGroup(mockDomRsrcCtx, domainName, "dev-team", auditRef, group1);
+
+        Group group2 = createGroupObject(domainName, "ops-team", "user.joe", "deleteusersports.api");
+        zms.putGroup(mockDomRsrcCtx, domainName, "ops-team", auditRef, group2);
+
+        Group group3 = createGroupObject(domainName, "qa-team", "user.jack", "user.jack.sub1.api");
+        zms.putGroup(mockDomRsrcCtx, domainName, "qa-team", auditRef, group3);
+
+        // fetch the objects, so we can track of their modification timestamps
+
+        role1 = zms.getRole(mockDomRsrcCtx, domainName, "role1", true, false, false);
+        assertEquals(role1.getAuditLog().size(), 2);
+        role2 = zms.getRole(mockDomRsrcCtx, domainName, "role2", true, false, false);
+        assertEquals(role2.getAuditLog().size(), 2);
+        role3 = zms.getRole(mockDomRsrcCtx, domainName, "role3", true, false, false);
+        assertEquals(role3.getAuditLog().size(), 2);
+
+        group1 = zms.getGroup(mockDomRsrcCtx, domainName, "dev-team", true, false);
+        assertEquals(group1.getAuditLog().size(), 2);
+        group2 = zms.getGroup(mockDomRsrcCtx, domainName, "ops-team", true, false);
+        assertEquals(group2.getAuditLog().size(), 2);
+        group3 = zms.getGroup(mockDomRsrcCtx, domainName, "qa-team", true, false);
+        assertEquals(group3.getAuditLog().size(), 2);
 
         UserList userList = zms.getUserList(mockDomRsrcCtx, null);
         List<String> users = userList.getNames();
@@ -18015,7 +18044,40 @@ public class ZMSImplTest {
         assertTrue(users.contains("user.jack"));
         assertTrue(users.contains("user.joe"));
 
+        // sleep for a second, so we can track of last modification
+        // timestamp changes for objects
+
+        Thread.sleep(1000);
+
         zms.deleteUser(mockDomRsrcCtx, "jack", auditRef);
+
+        Role role1Res = zms.getRole(mockDomRsrcCtx, domainName, "role1", true, false, false);
+        assertTrue(role1Res.getModified().millis() > role1.getModified().millis());
+        assertEquals(role1Res.getAuditLog().size(), 3);
+
+        // role2 was not modified thus we must have the same value
+
+        Role role2Res = zms.getRole(mockDomRsrcCtx, domainName, "role2", true, false, false);
+        assertTrue(role2Res.getModified().millis() == role2.getModified().millis());
+        assertEquals(role2Res.getAuditLog().size(), 2);
+
+        Role role3Res = zms.getRole(mockDomRsrcCtx, domainName, "role3", true, false, false);
+        assertTrue(role3Res.getModified().millis() > role3.getModified().millis());
+        assertEquals(role3Res.getAuditLog().size(), 4);
+
+        Group group1Res = zms.getGroup(mockDomRsrcCtx, domainName, "dev-team", true, false);
+        assertTrue(group1Res.getModified().millis() > group1.getModified().millis());
+        assertEquals(group1Res.getAuditLog().size(), 3);
+
+        // group2 was not modified thus we must have the same value
+
+        Group group2Res = zms.getGroup(mockDomRsrcCtx, domainName, "ops-team", true, false);
+        assertTrue(group2Res.getModified().millis() == group2.getModified().millis());
+        assertEquals(group2Res.getAuditLog().size(), 2);
+
+        Group group3Res = zms.getGroup(mockDomRsrcCtx, domainName, "qa-team", true, false);
+        assertTrue(group3Res.getModified().millis() > group3.getModified().millis());
+        assertEquals(group3Res.getAuditLog().size(), 4);
 
         userList = zms.getUserList(mockDomRsrcCtx, null);
         users = userList.getNames();

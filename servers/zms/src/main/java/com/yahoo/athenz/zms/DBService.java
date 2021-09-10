@@ -2284,16 +2284,16 @@ public class DBService implements RolesProvider {
         // entries in the role member audit logs and the domain
         // entries are properly invalidated
 
-        List<PrincipalRole> roles = con.listPrincipalRoles(domainName, principalName);
+        DomainRoleMember roles = con.getPrincipalRoles(principalName, domainName);
 
         // we want to check if we had any roles otherwise
         // we don't want to update the domain mod timestamp
 
-        if (roles.isEmpty()) {
+        if (roles.getMemberRoles().isEmpty()) {
             return;
         }
 
-        for (PrincipalRole role : roles) {
+        for (MemberRole role : roles.getMemberRoles()) {
 
             final String roleName = role.getRoleName();
 
@@ -2320,19 +2320,20 @@ public class DBService implements RolesProvider {
         }
 
         con.updateDomainModTimestamp(domainName);
+        cacheStore.invalidate(domainName);
     }
 
-    void removePrincipalFromAllRoles(ObjectStoreConnection con, String principalName,
-            String adminUser, String auditRef) {
+    void removePrincipalFromAllRoles(ObjectStoreConnection con, final String principalName,
+            final String adminUser, final String auditRef) {
 
         // extract all the roles that this principal is member of
         // we have to this here so that there are records of
         // entries in the role member audit logs and the domain
         // entries are properly invalidated
 
-        List<PrincipalRole> roles;
+        DomainRoleMember roles;
         try {
-            roles = con.listPrincipalRoles(null, principalName);
+            roles = con.getPrincipalRoles(principalName, null);
         } catch (ResourceException ex) {
 
             // if there is no such principal then we have nothing to do
@@ -2344,7 +2345,7 @@ public class DBService implements RolesProvider {
             }
         }
 
-        for (PrincipalRole role : roles) {
+        for (MemberRole role : roles.getMemberRoles()) {
 
             final String domainName = role.getDomainName();
             final String roleName = role.getRoleName();
@@ -2352,8 +2353,7 @@ public class DBService implements RolesProvider {
             // process our delete role member operation
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("removePrincipalFromAllRoles: removing member {} from {}:role.{}",
-                        principalName, domainName, roleName);
+                LOG.debug("removing member {} from {}:role.{}", principalName, domainName, roleName);
             }
 
             // we are going to ignore all errors here rather than
@@ -2363,7 +2363,7 @@ public class DBService implements RolesProvider {
             try {
                 con.deleteRoleMember(domainName, roleName, principalName, adminUser, auditRef);
             } catch (ResourceException ex) {
-                LOG.error("removePrincipalFromAllRoles: unable to remove {} from {}:role.{} - error {}",
+                LOG.error("unable to remove {} from {}:role.{} - error {}",
                         principalName, domainName, roleName, ex.getMessage());
             }
 
@@ -2371,6 +2371,59 @@ public class DBService implements RolesProvider {
 
             con.updateRoleModTimestamp(domainName, roleName);
             con.updateDomainModTimestamp(domainName);
+            cacheStore.invalidate(domainName);
+        }
+    }
+
+    void removePrincipalFromAllGroups(ObjectStoreConnection con, final String principalName,
+            final String adminUser, final String auditRef) {
+
+        // extract all the groups that this principal is member of
+        // we have to this here so that there are records of
+        // entries in the group member audit logs and the domain
+        // entries are properly invalidated
+
+        DomainGroupMember roles;
+        try {
+            roles = con.getPrincipalGroups(principalName, null);
+        } catch (ResourceException ex) {
+
+            // if there is no such principal then we have nothing to do
+
+            if (ex.getCode() == ResourceException.NOT_FOUND) {
+                return;
+            } else {
+                throw ex;
+            }
+        }
+
+        for (GroupMember group : roles.getMemberGroups()) {
+
+            final String domainName = group.getDomainName();
+            final String groupName = group.getGroupName();
+
+            // process our delete group member operation
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("removing member {} from {}:group.{}", principalName, domainName, groupName);
+            }
+
+            // we are going to ignore all errors here rather than
+            // rejecting the full operation. our delete user will
+            // eventually remove all these principals
+
+            try {
+                con.deleteGroupMember(domainName, groupName, principalName, adminUser, auditRef);
+            } catch (ResourceException ex) {
+                LOG.error("unable to remove {} from {}:group.{} - error {}",
+                        principalName, domainName, groupName, ex.getMessage());
+            }
+
+            // update our group and domain time-stamps, and invalidate local cache entry
+
+            con.updateGroupModTimestamp(domainName, groupName);
+            con.updateDomainModTimestamp(domainName);
+            cacheStore.invalidate(domainName);
         }
     }
 
@@ -2449,7 +2502,7 @@ public class DBService implements RolesProvider {
 
                 List<String> userSvcPrincipals = con.listPrincipals(domainName);
 
-                // remove this user from all roles manually so that we
+                // remove this principal from all roles manually so that we
                 // can have an audit log record for each role
 
                 final String adminPrincipal = getPrincipalName(ctx);
@@ -2458,7 +2511,15 @@ public class DBService implements RolesProvider {
                     removePrincipalFromAllRoles(con, userSvcPrincipal, adminPrincipal, auditRef);
                 }
 
-                // finally delete the principal object. any roles that were
+                // remove this principal from all groups manually so that we
+                // can have an audit log record for each group
+
+                removePrincipalFromAllGroups(con, userName, adminPrincipal, auditRef);
+                for (String userSvcPrincipal : userSvcPrincipals) {
+                    removePrincipalFromAllGroups(con, userSvcPrincipal, adminPrincipal, auditRef);
+                }
+
+                // finally, delete the principal object. any roles that were
                 // left behind will be cleaned up from this operation
 
                 if (!con.deletePrincipal(userName, true)) {
@@ -3170,7 +3231,7 @@ public class DBService implements RolesProvider {
 
         if (originalDomain == null || originalDomain.getTags() == null || originalDomain.getTags().isEmpty()) {
             if (domainTags == null || domainTags.isEmpty()) {
-                // no tags to process..
+                // no tags to process
                 return true;
             }
             if (!con.insertDomainTags(domainName, domainTags)) {
