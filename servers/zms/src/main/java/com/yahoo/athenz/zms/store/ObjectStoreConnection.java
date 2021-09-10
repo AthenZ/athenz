@@ -58,7 +58,6 @@ public interface ObjectStoreConnection extends Closeable {
 
     boolean deletePrincipal(String principalName, boolean subDomains);
     List<String> listPrincipals(String domainName);
-    List<PrincipalRole> listPrincipalRoles(String domainName, String principalName);
 
     // Template commands
 
