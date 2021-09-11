@@ -444,7 +444,7 @@ public class DBService implements RolesProvider {
 
             if (!ignoreDeletes) {
                 for (Assertion assertion : delAssertions) {
-                    if (!con.deleteAssertion(domainName, policyName, null, assertion.getId())) {
+                    if (!con.deleteAssertion(domainName, policyName, policy.getVersion(), assertion.getId())) {
                         return false;
                     }
                 }
@@ -452,7 +452,7 @@ public class DBService implements RolesProvider {
             }
 
             for (Assertion assertion : addAssertions) {
-                if (!con.insertAssertion(domainName, policyName, null, assertion)) {
+                if (!con.insertAssertion(domainName, policyName, policy.getVersion(), assertion)) {
                     return false;
                 }
             }
@@ -1008,6 +1008,10 @@ public class DBService implements RolesProvider {
                 // retrieve our source policy version
 
                 Policy originalPolicy = getPolicy(con, domainName, policyName, fromVersion);
+                if (originalPolicy == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError("unable to fetch policy version: " + fromVersion, caller);
+                }
 
                 // check that quota is not exceeded
 
@@ -1109,7 +1113,17 @@ public class DBService implements RolesProvider {
 
                 // retrieve our original policy
 
-                Policy originalPolicy = getPolicy(con, domainName, policyName, null);
+                Policy originalPolicy = getPolicy(con, domainName, policyName, policy.getVersion());
+
+                // validate if we have a proper version specified for our object
+                // if no version is specified then we are dealing with
+                // our active version thus no validation is necessary
+                // otherwise we need to make sure our originalPolicy exists
+
+                if (!StringUtil.isEmpty(policy.getVersion()) && originalPolicy == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError("unknown policy version: " + policy.getVersion(), caller);
+                }
 
                 // now process the request
 
@@ -2984,7 +2998,7 @@ public class DBService implements RolesProvider {
 
                 // now we need verify our quota check
 
-                quotaCheck.checkPolicyAssertionQuota(con, domainName, policyName, caller);
+                quotaCheck.checkPolicyAssertionQuota(con, domainName, policyName, version, caller);
 
                 // process our insert assertion. since this is a "single"
                 // operation, we are not using any transactions.

@@ -4409,9 +4409,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setRequestDomain(ctx, domainName);
 
         List<String> names = dbService.listPolicyVersions(domainName, policyName);
-        PolicyList result = new PolicyList().setNames(names);
 
-        return result;
+        return new PolicyList().setNames(names);
     }
 
     @Override
@@ -4469,7 +4468,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setRequestDomain(ctx, domainName);
         policyName = policyName.toLowerCase();
         AthenzObject.POLICY_OPTIONS.convertToLowerCase(policyOptions);
-
 
         // we are not going to allow any user to update
         // the admin policy since that is required

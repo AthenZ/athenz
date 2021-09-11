@@ -48,7 +48,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -5042,7 +5041,6 @@ public class DBServiceTest {
         gm.setMemberExpiryDays(40);
         gm.setServiceExpiryDays(40);
 
-        Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
         zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
                 gm, auditRef);
 
@@ -5075,7 +5073,6 @@ public class DBServiceTest {
 
         gm.setMemberExpiryDays(20);
         gm.setServiceExpiryDays(20);
-        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
         zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
                 gm, auditRef);
 
@@ -5108,7 +5105,6 @@ public class DBServiceTest {
 
         gm.setMemberExpiryDays(40);
         gm.setServiceExpiryDays(40);
-        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
         zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
                 gm, auditRef);
 
@@ -5138,7 +5134,6 @@ public class DBServiceTest {
         // now set the service down to 5 days.
 
         gm.setServiceExpiryDays(5);
-        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
         zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
                 gm, auditRef);
 

@@ -154,7 +154,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_POLICY_VERSION = "SELECT * FROM policy "
             + "JOIN domain ON domain.domain_id=policy.domain_id WHERE domain.name=? AND policy.name=? AND policy.version=?;";
     private static final String SQL_INSERT_POLICY = "INSERT INTO policy (name, domain_id) VALUES (?,?);";
-    private static final String SQL_INSERT_POLICY_VERSION = "INSERT INTO policy (name, domain_id, version, active) VALUES (?,?, ?, false);";
+    private static final String SQL_INSERT_POLICY_VERSION = "INSERT INTO policy (name, domain_id, version, active) VALUES (?,?,?,false);";
     private static final String SQL_UPDATE_POLICY = "UPDATE policy SET name=? WHERE policy_id=?;";
     private static final String SQL_UPDATE_POLICY_MOD_TIMESTAMP = "UPDATE policy "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE policy_id=?;";
@@ -2568,7 +2568,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(domainId, policyName, null);
+        int policyId = getPolicyId(domainId, policyName, policy.getVersion());
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
         }
@@ -2869,7 +2869,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public int countAssertions(String domainName, String policyName) {
+    public int countAssertions(String domainName, String policyName, String version) {
 
         final String caller = "countAssertions";
 
@@ -2877,7 +2877,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getPolicyId(domainId, policyName, null);
+        int policyId = getPolicyId(domainId, policyName, version);
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
         }

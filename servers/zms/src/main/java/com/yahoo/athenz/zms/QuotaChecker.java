@@ -261,8 +261,8 @@ class QuotaChecker {
         }
     }
     
-    void checkPolicyAssertionQuota(ObjectStoreConnection con, String domainName,
-            String policyName, String caller) {
+    void checkPolicyAssertionQuota(ObjectStoreConnection con, final String domainName,
+            final String policyName, final String version, final String caller) {
         
         // if quota check is disabled we have nothing to do
         
@@ -277,7 +277,7 @@ class QuotaChecker {
         // now check to make sure we can add 1 more assertion
         // to this policy without exceeding the quota
         
-        int objectCount = con.countAssertions(domainName, policyName) + 1;
+        int objectCount = con.countAssertions(domainName, policyName, version) + 1;
         if (quota.getAssertion() < objectCount) {
             throw ZMSUtils.quotaLimitError("policy assertion quota exceeded - limit: "
                     + quota.getAssertion() + " actual: " + objectCount, caller);

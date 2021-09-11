@@ -4074,7 +4074,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
             .thenReturn(true);
 
-        assertEquals(jdbcConn.countAssertions("my-domain", "policy1"), 1);
+        assertEquals(jdbcConn.countAssertions("my-domain", "policy1", null), 1);
         jdbcConn.close();
     }
 
@@ -4087,7 +4087,7 @@ public class JDBCConnectionTest {
             .thenReturn(false); // this one is for domain id
 
         try {
-            jdbcConn.countAssertions("my-domain", "policy1");
+            jdbcConn.countAssertions("my-domain", "policy1", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -4105,7 +4105,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5);
 
         try {
-            jdbcConn.countAssertions("my-domain", "policy1");
+            jdbcConn.countAssertions("my-domain", "policy1", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -4123,7 +4123,7 @@ public class JDBCConnectionTest {
             .thenReturn(false); // no result for count
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
 
-        assertEquals(jdbcConn.countAssertions("my-domain", "policy1"), 0);
+        assertEquals(jdbcConn.countAssertions("my-domain", "policy1", null), 0);
         jdbcConn.close();
     }
 
@@ -4143,7 +4143,7 @@ public class JDBCConnectionTest {
             .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
-            jdbcConn.countAssertions("my-domain", "policy1");
+            jdbcConn.countAssertions("my-domain", "policy1", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
