@@ -131,7 +131,7 @@ public interface ObjectStoreConnection extends Closeable {
     boolean insertAssertion(String domainName, String policyName, String version, Assertion assertion);
     boolean deleteAssertion(String domainName, String policyName, String version, Long assertionId);
     List<Assertion> listAssertions(String domainName, String policyName, String version);
-    int countAssertions(String domainName, String policyName);
+    int countAssertions(String domainName, String policyName, String version);
     ResourceAccessList listResourceAccess(String principal, String action, String userDomain);
 
     // Service commands

@@ -344,11 +344,11 @@ public class QuotaCheckerTest {
                 .setPolicy(2).setAssertion(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        Mockito.when(con.countAssertions("athenz", "readers")).thenReturn(1);
+        Mockito.when(con.countAssertions("athenz", "readers", null)).thenReturn(1);
 
         // this should be successful - no exceptions
 
-        quotaCheck.checkPolicyAssertionQuota(con, "athenz", "readers", "caller");
+        quotaCheck.checkPolicyAssertionQuota(con, "athenz", "readers", null, "caller");
     }
     
     @Test
@@ -359,10 +359,10 @@ public class QuotaCheckerTest {
                 .setPolicy(2).setAssertion(2);
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.getQuota("athenz")).thenReturn(mockQuota);
-        Mockito.when(con.countAssertions("athenz", "readers")).thenReturn(3);
+        Mockito.when(con.countAssertions("athenz", "readers", null)).thenReturn(3);
         
         try {
-            quotaCheck.checkPolicyAssertionQuota(con, "athenz", "readers", "caller");
+            quotaCheck.checkPolicyAssertionQuota(con, "athenz", "readers", null, "caller");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
@@ -372,7 +372,7 @@ public class QuotaCheckerTest {
         // with quota check disabled - no exceptions
 
         quotaCheck.setQuotaCheckEnabled(false);
-        quotaCheck.checkPolicyAssertionQuota(con, "athenz", "readers", "caller");
+        quotaCheck.checkPolicyAssertionQuota(con, "athenz", "readers", null, "caller");
     }
 
     @Test
