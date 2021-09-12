@@ -1167,17 +1167,31 @@ public class DBService implements RolesProvider {
 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
 
-                // Get original active policy so we'll have the version for audit log and to update timestamp
+                // Get original active policy, so we'll have the version for audit log and to update timestamp
+
                 Policy originalActivePolicy = con.getPolicy(domainName, policyName, null);
+                if (originalActivePolicy == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError("unknown policy: " + policyName, caller);
+                }
+
+                // verify the new active policy version exists before executing the request
+
+                Policy newActivePolicy = con.getPolicy(domainName, policyName, version);
+                if (newActivePolicy == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError("unknown policy version: " + version, caller);
+                }
 
                 // now process the request
+
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (con.setActivePolicyVersion(domainName, policyName, version) &&
                         con.updatePolicyModTimestamp(domainName, policyName, version) &&
                         con.updatePolicyModTimestamp(domainName, policyName, originalActivePolicy.getVersion())) {
                     // get policy versions with updated timestamp
                     originalActivePolicy = con.getPolicy(domainName, policyName, originalActivePolicy.getVersion());
-                    Policy newActivePolicy = con.getPolicy(domainName, policyName, version);
+                    newActivePolicy = con.getPolicy(domainName, policyName, version);
                     auditLogPolicy(auditDetails, Arrays.asList(originalActivePolicy, newActivePolicy), "set-active-policy");
                 } else {
                     con.rollbackChanges();
