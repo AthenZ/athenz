@@ -5637,7 +5637,7 @@ public class ZMSImplTest {
             zmsImpl.setActivePolicyVersion(mockDomRsrcCtx, domainName, policyName, new PolicyOptions().setVersion("New-Version1"), auditRef);
             fail();
         } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"unknown policy - policygetdom1:policy.policy1\"}");
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"unknown policy version: new-version1\"}");
         }
 
         // Verify exception is thrown when trying to delete non-existing policy version
