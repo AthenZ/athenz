@@ -2087,7 +2087,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testPutDomainSystemMetaModifiedTimestamp() throws InterruptedException {
+    public void testPutDomainSystemMetaModifiedTimestamp() {
 
         final String domainName = "metadomainmodified";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
@@ -2098,7 +2098,7 @@ public class ZMSImplTest {
         assertNotNull(resDom1);
         long domMod1 = resDom1.getModified().millis();
 
-        Thread.sleep(1);
+        ZMSTestUtils.sleep(1);
 
         DomainMeta meta = new DomainMeta();
         zms.putDomainSystemMeta(mockDomRsrcCtx, domainName, "modified", auditRef, meta);
@@ -4725,6 +4725,47 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testSetUnknownPolicyVersionAsActive() {
+
+        final String domainName = "domain-name-invalid-active";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Policy policy1 = createPolicyObject(domainName, "policy1");
+        zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy1);
+
+        // valid policy - unknown version
+
+        try {
+            zms.setActivePolicyVersion(mockDomRsrcCtx, domainName, "policy1",
+                    new ActivePolicy().setVersion("unknown-version"), auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("unknown policy version: unknown-version"));
+        }
+
+        // unknown policy
+
+        try {
+            zms.setActivePolicyVersion(mockDomRsrcCtx, domainName, "policy2",
+                    new ActivePolicy().setVersion("unknown-version"), auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("unknown policy: policy2"));
+        }
+
+        // same policy version
+
+        zms.setActivePolicyVersion(mockDomRsrcCtx, domainName, "policy1",
+                new ActivePolicy().setVersion("0"), auditRef);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
     public void testDeleteAssertionIncorrectPolicyVersion() {
         String domainName = "PolicyGetDom1";
         String policyName = "Policy1";
@@ -5591,12 +5632,20 @@ public class ZMSImplTest {
         assertEquals(obj.getResource(), domainName.toLowerCase() + ":resourcetest");
         assertEquals(obj.getRole(), ResourceUtils.roleResourceName(domainName.toLowerCase(), "admin"));
 
+        // Verify exception is thrown when trying to set active to non-existing policy
+        try {
+            zmsImpl.setActivePolicyVersion(mockDomRsrcCtx, domainName, "wrong", new ActivePolicy().setVersion("New-Version1"), auditRef);
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"unknown policy: wrong\"}");
+        }
+
         // Verify exception is thrown when trying to set the deleted version active
         try {
             zmsImpl.setActivePolicyVersion(mockDomRsrcCtx, domainName, policyName, new ActivePolicy().setVersion("New-Version1"), auditRef);
             fail();
         } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"unknown policy - policygetdom1:policy.policy1\"}");
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"unknown policy version: new-version1\"}");
         }
 
         // Verify exception is thrown when trying to delete non-existing policy version
@@ -18018,7 +18067,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testDeleteUser() throws InterruptedException {
+    public void testDeleteUser() {
 
         String domainName = "deleteuser1";
 
@@ -18090,7 +18139,7 @@ public class ZMSImplTest {
         // sleep for a second, so we can track of last modification
         // timestamp changes for objects
 
-        Thread.sleep(1000);
+        ZMSTestUtils.sleep(1000);
 
         zms.deleteUser(mockDomRsrcCtx, "jack", auditRef);
 

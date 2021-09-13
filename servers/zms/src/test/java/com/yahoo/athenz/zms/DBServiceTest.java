@@ -937,12 +937,28 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
         Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(null).thenReturn(originalPolicyVersion);
+        Policy newActivePolcy = createPolicyObject(domainName, policyName, "0", false);
+        Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), eq("0"))).thenReturn(null).thenReturn(newActivePolcy);
         Mockito.when(mockJdbcConn.setActivePolicyVersion(eq(domainName), eq(policyName), eq("0"))).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         int saveRetryCount = zms.dbService.defaultRetryCount;
         zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeSetActivePolicy(mockDomRsrcCtx, domainName, policyName, "0", auditRef, "setActivePolicy");
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"unknown policy: policy1\"}");
+        }
+
+        try {
+            zms.dbService.executeSetActivePolicy(mockDomRsrcCtx, domainName, policyName, "0", auditRef, "setActivePolicy");
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"unknown policy version: 0\"}");
+        }
 
         try {
             zms.dbService.executeSetActivePolicy(mockDomRsrcCtx, domainName, policyName, "0", auditRef, "setActivePolicy");
