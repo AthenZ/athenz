@@ -79,8 +79,8 @@ public interface ZMSHandler {
     void deleteAssertionCondition(ResourceContext context, String domainName, String policyName, Long assertionId, Integer conditionId, String auditRef);
     PolicyList getPolicyVersionList(ResourceContext context, String domainName, String policyName);
     Policy getPolicyVersion(ResourceContext context, String domainName, String policyName, String version);
-    void putPolicyVersion(ResourceContext context, String domainName, String policyName, PolicyOptions policyOptions, String auditRef);
-    void setActivePolicyVersion(ResourceContext context, String domainName, String policyName, PolicyOptions policyOptions, String auditRef);
+    void putPolicyVersion(ResourceContext context, String domainName, String policyName, DuplicatePolicy duplicatePolicy, String auditRef);
+    void setActivePolicyVersion(ResourceContext context, String domainName, String policyName, ActivePolicy activePolicy, String auditRef);
     void deletePolicyVersion(ResourceContext context, String domainName, String policyName, String version, String auditRef);
     void putServiceIdentity(ResourceContext context, String domain, String service, String auditRef, ServiceIdentity detail);
     ServiceIdentity getServiceIdentity(ResourceContext context, String domain, String service);

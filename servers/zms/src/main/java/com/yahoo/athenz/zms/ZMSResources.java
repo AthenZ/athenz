@@ -2540,14 +2540,14 @@ public class ZMSResources {
     public void putPolicyVersion(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the policy to be added/updated", required = true) @PathParam("policyName") String policyName,
-        @Parameter(description = "name of the source version to copy from and name of new version", required = true) PolicyOptions policyOptions,
+        @Parameter(description = "name of the source version to copy from and name of new version", required = true) DuplicatePolicy duplicatePolicy,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "putPolicyVersion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
-            this.delegate.putPolicyVersion(context, domainName, policyName, policyOptions, auditRef);
+            this.delegate.putPolicyVersion(context, domainName, policyName, duplicatePolicy, auditRef);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2580,14 +2580,14 @@ public class ZMSResources {
     public void setActivePolicyVersion(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
-        @Parameter(description = "name of the version", required = true) PolicyOptions policyOptions,
+        @Parameter(description = "name of the version", required = true) ActivePolicy activePolicy,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "setActivePolicyVersion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
-            this.delegate.setActivePolicyVersion(context, domainName, policyName, policyOptions, auditRef);
+            this.delegate.setActivePolicyVersion(context, domainName, policyName, activePolicy, auditRef);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

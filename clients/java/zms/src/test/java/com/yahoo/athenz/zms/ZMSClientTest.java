@@ -2622,25 +2622,27 @@ public class ZMSClientTest {
         Mockito.when(policy1Mock.getName()).thenReturn("PolicyAddDom1:policy.Policy1".toLowerCase());
         testCreatePolicy(client, systemAdminFullUser);
 
-        PolicyOptions policyOptions = new PolicyOptions();
-        policyOptions.setVersion("new-version");
+        DuplicatePolicy duplicatePolicy = new DuplicatePolicy();
+        duplicatePolicy.setVersion("new-version");
         Mockito.when(c.getPolicyVersion("PolicyAddDom1", "Policy1", "0")).thenReturn(policy1Mock);
-        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptions), eq(AUDIT_REF))).thenThrow(new ResourceException(403));
+        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(duplicatePolicy), eq(AUDIT_REF))).thenThrow(new ResourceException(403));
         Mockito.when(c.getPolicyVersion("PolicyAddDom2", "Policy1", "0")).thenThrow(new ResourceException(403));
-        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom3"), eq("Policy1"), eq(policyOptions), eq(AUDIT_REF))).thenThrow(new NullPointerException());
+        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom3"), eq("Policy1"), eq(duplicatePolicy), eq(AUDIT_REF))).thenThrow(new NullPointerException());
         Mockito.when(c.getPolicyVersion("PolicyAddDom3", "Policy1", "0")).thenThrow(new NullPointerException());
 
-        PolicyOptions policyOptionsFrom = new PolicyOptions();
-        policyOptionsFrom.setVersion("new-version");
-        policyOptionsFrom.setFromVersion("from-version");
-        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptionsFrom), eq(AUDIT_REF))).thenThrow(new ResourceException(403));
-        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom3"), eq("Policy1"), eq(policyOptionsFrom), eq(AUDIT_REF))).thenThrow(new NullPointerException());
+        DuplicatePolicy duplicatePolicyFrom = new DuplicatePolicy();
+        duplicatePolicyFrom.setVersion("new-version");
+        duplicatePolicyFrom.setFromVersion("from-version");
+        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(duplicatePolicyFrom), eq(AUDIT_REF))).thenThrow(new ResourceException(403));
+        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom3"), eq("Policy1"), eq(duplicatePolicyFrom), eq(AUDIT_REF))).thenThrow(new NullPointerException());
         testCreatePolicyVersion(client, systemAdminFullUser);
 
-        Mockito.when(c.setActivePolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptions), eq(AUDIT_REF))).thenThrow(new ResourceException(403));
-        PolicyOptions policyOptions2 = new PolicyOptions();
-        policyOptions2.setVersion("new-version2");
-        Mockito.when(c.setActivePolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptions2), eq(AUDIT_REF))).thenThrow(new NullPointerException());
+        ActivePolicy activePolicy = new ActivePolicy();
+        activePolicy.setVersion("new-version");
+        Mockito.when(c.setActivePolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(activePolicy), eq(AUDIT_REF))).thenThrow(new ResourceException(403));
+        ActivePolicy activePolicy2 = new ActivePolicy();
+        activePolicy2.setVersion("new-version2");
+        Mockito.when(c.setActivePolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(activePolicy2), eq(AUDIT_REF))).thenThrow(new NullPointerException());
         testSetActivePolicyVersion(client, systemAdminFullUser);
     }
 

@@ -8,23 +8,23 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
-// PolicyOptions - Options for Policy Management Requests
+// DuplicatePolicy - The representation for duplicate policy version request
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PolicyOptions {
+public class DuplicatePolicy {
     public String version;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String fromVersion;
 
-    public PolicyOptions setVersion(String version) {
+    public DuplicatePolicy setVersion(String version) {
         this.version = version;
         return this;
     }
     public String getVersion() {
         return version;
     }
-    public PolicyOptions setFromVersion(String fromVersion) {
+    public DuplicatePolicy setFromVersion(String fromVersion) {
         this.fromVersion = fromVersion;
         return this;
     }
@@ -35,10 +35,10 @@ public class PolicyOptions {
     @Override
     public boolean equals(Object another) {
         if (this != another) {
-            if (another == null || another.getClass() != PolicyOptions.class) {
+            if (another == null || another.getClass() != DuplicatePolicy.class) {
                 return false;
             }
-            PolicyOptions a = (PolicyOptions) another;
+            DuplicatePolicy a = (DuplicatePolicy) another;
             if (version == null ? a.version != null : !version.equals(a.version)) {
                 return false;
             }

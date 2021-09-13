@@ -2456,33 +2456,56 @@ public class ZMSCoreTest {
     }
 
     @Test
-    public void testPolicyOptions() {
+    public void testDuplicatePolicy() {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-        PolicyOptions policyOptions = new PolicyOptions();
-        policyOptions.setFromVersion("from-version");
-        policyOptions.setVersion("testversion");
-        Result result = validator.validate(policyOptions, "PolicyOptions");
+        DuplicatePolicy duplicatePolicy = new DuplicatePolicy();
+        duplicatePolicy.setFromVersion("from-version");
+        duplicatePolicy.setVersion("testversion");
+        Result result = validator.validate(duplicatePolicy, "DuplicatePolicy");
         assertTrue(result.valid);
 
-        assertEquals(policyOptions.getFromVersion(), "from-version");
-        assertEquals(policyOptions.getVersion(), "testversion");
+        assertEquals(duplicatePolicy.getFromVersion(), "from-version");
+        assertEquals(duplicatePolicy.getVersion(), "testversion");
 
-        PolicyOptions policyOptions2 = new PolicyOptions();
-        policyOptions2.setFromVersion("from-version");
-        policyOptions2.setVersion("testversion");
+        DuplicatePolicy duplicatePolicy2 = new DuplicatePolicy();
+        duplicatePolicy2.setFromVersion("from-version");
+        duplicatePolicy2.setVersion("testversion");
 
-        assertEquals(policyOptions, policyOptions2);
-        policyOptions2.setFromVersion(null);
-        assertFalse(policyOptions.equals(policyOptions2));
-        policyOptions.setFromVersion(null);
-        assertTrue(policyOptions.equals(policyOptions2));
-        policyOptions2.setVersion(null);
-        assertFalse(policyOptions.equals(policyOptions2));
-        policyOptions.setVersion(null);
-        assertTrue(policyOptions.equals(policyOptions2));
-        assertFalse(policyOptions.equals(null));
+        assertEquals(duplicatePolicy, duplicatePolicy2);
+        duplicatePolicy2.setFromVersion(null);
+        assertFalse(duplicatePolicy.equals(duplicatePolicy2));
+        duplicatePolicy.setFromVersion(null);
+        assertTrue(duplicatePolicy.equals(duplicatePolicy2));
+        duplicatePolicy2.setVersion(null);
+        assertFalse(duplicatePolicy.equals(duplicatePolicy2));
+        duplicatePolicy.setVersion(null);
+        assertTrue(duplicatePolicy.equals(duplicatePolicy2));
+        assertFalse(duplicatePolicy.equals(null));
+    }
+
+    @Test
+    public void testActivePolicy() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        ActivePolicy activePolicy = new ActivePolicy();
+        activePolicy.setVersion("testversion");
+        Result result = validator.validate(activePolicy, "ActivePolicy");
+        assertTrue(result.valid);
+
+        assertEquals(activePolicy.getVersion(), "testversion");
+
+        ActivePolicy activePolicy2 = new ActivePolicy();
+        activePolicy2.setVersion("testversion");
+
+        assertEquals(activePolicy, activePolicy2);
+        activePolicy2.setVersion(null);
+        assertFalse(activePolicy.equals(activePolicy2));
+        activePolicy.setVersion(null);
+        assertTrue(activePolicy.equals(activePolicy2));
+        assertFalse(activePolicy.equals(null));
     }
 
     @Test

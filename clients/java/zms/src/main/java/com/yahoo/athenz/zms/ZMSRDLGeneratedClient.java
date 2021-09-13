@@ -1618,7 +1618,7 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public Policy putPolicyVersion(String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
+    public Policy putPolicyVersion(String domainName, String policyName, DuplicatePolicy duplicatePolicy, String auditRef) {
         WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/version/create")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName);
@@ -1630,7 +1630,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(policyOptions, "application/json"));
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(duplicatePolicy, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1641,7 +1641,7 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public Policy setActivePolicyVersion(String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
+    public Policy setActivePolicyVersion(String domainName, String policyName, ActivePolicy activePolicy, String auditRef) {
         WebTarget target = base.path("/domain/{domainName}/policy/{policyName}/version/active")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName);
@@ -1653,7 +1653,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(policyOptions, "application/json"));
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(activePolicy, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:

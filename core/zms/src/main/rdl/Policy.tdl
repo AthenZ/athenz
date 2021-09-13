@@ -54,8 +54,13 @@ type Policies Struct {
     Array<Policy> list; // list of policy objects
 }
 
-//Options for Policy Management Requests
-type PolicyOptions Struct {
+//The representation for duplicate policy version request
+type DuplicatePolicy Struct {
     SimpleName version; // policy version
     SimpleName fromVersion (optional); // optional source version used when creating a new version, defaults to 0
+}
+
+//The representation for active policy version request
+type ActivePolicy Struct {
+    SimpleName version; // policy version
 }

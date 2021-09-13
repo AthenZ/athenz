@@ -2487,12 +2487,12 @@ func (client ZMSClient) GetPolicyVersion(domainName DomainName, policyName Entit
 	}
 }
 
-func (client ZMSClient) PutPolicyVersion(domainName DomainName, policyName EntityName, policyOptions *PolicyOptions, auditRef string) error {
+func (client ZMSClient) PutPolicyVersion(domainName DomainName, policyName EntityName, duplicatePolicy *DuplicatePolicy, auditRef string) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy/" + fmt.Sprint(policyName) + "/version/create"
-	contentBytes, err := json.Marshal(policyOptions)
+	contentBytes, err := json.Marshal(duplicatePolicy)
 	if err != nil {
 		return err
 	}
@@ -2521,12 +2521,12 @@ func (client ZMSClient) PutPolicyVersion(domainName DomainName, policyName Entit
 	}
 }
 
-func (client ZMSClient) SetActivePolicyVersion(domainName DomainName, policyName EntityName, policyOptions *PolicyOptions, auditRef string) error {
+func (client ZMSClient) SetActivePolicyVersion(domainName DomainName, policyName EntityName, activePolicy *ActivePolicy, auditRef string) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy/" + fmt.Sprint(policyName) + "/version/active"
-	contentBytes, err := json.Marshal(policyOptions)
+	contentBytes, err := json.Marshal(activePolicy)
 	if err != nil {
 		return err
 	}

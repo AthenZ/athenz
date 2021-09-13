@@ -1574,12 +1574,12 @@ public class ZMSClient implements Closeable {
     private void putPolicyVersionImpl(String domainName, String policyName, String version, String fromVersion, String auditRef) {
         updatePrincipal();
         try {
-            PolicyOptions policyOptions = new PolicyOptions();
-            policyOptions.setVersion(version);
+            DuplicatePolicy duplicatePolicy = new DuplicatePolicy();
+            duplicatePolicy.setVersion(version);
             if (fromVersion != null) {
-                policyOptions.setFromVersion(fromVersion);
+                duplicatePolicy.setFromVersion(fromVersion);
             }
-            client.putPolicyVersion(domainName, policyName, policyOptions, auditRef);
+            client.putPolicyVersion(domainName, policyName, duplicatePolicy, auditRef);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1638,9 +1638,9 @@ public class ZMSClient implements Closeable {
     public void setActivePolicyVersion(String domainName, String policyName, String version, String auditRef) {
         updatePrincipal();
         try {
-            PolicyOptions policyOptions = new PolicyOptions();
-            policyOptions.setVersion(version);
-            client.setActivePolicyVersion(domainName, policyName, policyOptions, auditRef);
+            ActivePolicy activePolicy = new ActivePolicy();
+            activePolicy.setVersion(version);
+            client.setActivePolicyVersion(domainName, policyName, activePolicy, auditRef);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

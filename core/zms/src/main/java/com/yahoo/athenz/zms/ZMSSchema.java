@@ -291,10 +291,14 @@ public class ZMSSchema {
             .comment("The representation of list of policy objects")
             .arrayField("list", "Policy", false, "list of policy objects");
 
-        sb.structType("PolicyOptions")
-            .comment("Options for Policy Management Requests")
+        sb.structType("DuplicatePolicy")
+            .comment("The representation for duplicate policy version request")
             .field("version", "SimpleName", false, "policy version")
             .field("fromVersion", "SimpleName", true, "optional source version used when creating a new version, defaults to 0");
+
+        sb.structType("ActivePolicy")
+            .comment("The representation for active policy version request")
+            .field("version", "SimpleName", false, "policy version");
 
         sb.structType("PublicKeyEntry")
             .comment("The representation of the public key in a service identity object.")
@@ -1921,12 +1925,12 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("PolicyOptions", "PUT", "/domain/{domainName}/policy/{policyName}/version/create")
+        sb.resource("DuplicatePolicy", "PUT", "/domain/{domainName}/policy/{policyName}/version/create")
             .comment("Create a new disabled policy version based on active policy")
             .name("putPolicyVersion")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("policyName", "EntityName", "name of the policy to be added/updated")
-            .input("policyOptions", "PolicyOptions", "name of the source version to copy from and name of new version")
+            .input("duplicatePolicy", "DuplicatePolicy", "name of the source version to copy from and name of new version")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("NO_CONTENT")
@@ -1943,12 +1947,12 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("PolicyOptions", "PUT", "/domain/{domainName}/policy/{policyName}/version/active")
+        sb.resource("ActivePolicy", "PUT", "/domain/{domainName}/policy/{policyName}/version/active")
             .comment("Mark the specified policy version as active")
             .name("setActivePolicyVersion")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("policyName", "EntityName", "name of the policy")
-            .input("policyOptions", "PolicyOptions", "name of the version")
+            .input("activePolicy", "ActivePolicy", "name of the version")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("NO_CONTENT")

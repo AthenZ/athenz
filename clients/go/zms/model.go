@@ -2585,9 +2585,9 @@ func (self *Policies) Validate() error {
 }
 
 //
-// PolicyOptions - Options for Policy Management Requests
+// DuplicatePolicy - The representation for duplicate policy version request
 //
-type PolicyOptions struct {
+type DuplicatePolicy struct {
 
 	//
 	// policy version
@@ -2601,28 +2601,28 @@ type PolicyOptions struct {
 }
 
 //
-// NewPolicyOptions - creates an initialized PolicyOptions instance, returns a pointer to it
+// NewDuplicatePolicy - creates an initialized DuplicatePolicy instance, returns a pointer to it
 //
-func NewPolicyOptions(init ...*PolicyOptions) *PolicyOptions {
-	var o *PolicyOptions
+func NewDuplicatePolicy(init ...*DuplicatePolicy) *DuplicatePolicy {
+	var o *DuplicatePolicy
 	if len(init) == 1 {
 		o = init[0]
 	} else {
-		o = new(PolicyOptions)
+		o = new(DuplicatePolicy)
 	}
 	return o
 }
 
-type rawPolicyOptions PolicyOptions
+type rawDuplicatePolicy DuplicatePolicy
 
 //
-// UnmarshalJSON is defined for proper JSON decoding of a PolicyOptions
+// UnmarshalJSON is defined for proper JSON decoding of a DuplicatePolicy
 //
-func (self *PolicyOptions) UnmarshalJSON(b []byte) error {
-	var m rawPolicyOptions
+func (self *DuplicatePolicy) UnmarshalJSON(b []byte) error {
+	var m rawDuplicatePolicy
 	err := json.Unmarshal(b, &m)
 	if err == nil {
-		o := PolicyOptions(m)
+		o := DuplicatePolicy(m)
 		*self = o
 		err = self.Validate()
 	}
@@ -2632,19 +2632,74 @@ func (self *PolicyOptions) UnmarshalJSON(b []byte) error {
 //
 // Validate - checks for missing required fields, etc
 //
-func (self *PolicyOptions) Validate() error {
+func (self *DuplicatePolicy) Validate() error {
 	if self.Version == "" {
-		return fmt.Errorf("PolicyOptions.version is missing but is a required field")
+		return fmt.Errorf("DuplicatePolicy.version is missing but is a required field")
 	} else {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.Version)
 		if !val.Valid {
-			return fmt.Errorf("PolicyOptions.version does not contain a valid SimpleName (%v)", val.Error)
+			return fmt.Errorf("DuplicatePolicy.version does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	if self.FromVersion != "" {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.FromVersion)
 		if !val.Valid {
-			return fmt.Errorf("PolicyOptions.fromVersion does not contain a valid SimpleName (%v)", val.Error)
+			return fmt.Errorf("DuplicatePolicy.fromVersion does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// ActivePolicy - The representation for active policy version request
+//
+type ActivePolicy struct {
+
+	//
+	// policy version
+	//
+	Version SimpleName `json:"version"`
+}
+
+//
+// NewActivePolicy - creates an initialized ActivePolicy instance, returns a pointer to it
+//
+func NewActivePolicy(init ...*ActivePolicy) *ActivePolicy {
+	var o *ActivePolicy
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ActivePolicy)
+	}
+	return o
+}
+
+type rawActivePolicy ActivePolicy
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a ActivePolicy
+//
+func (self *ActivePolicy) UnmarshalJSON(b []byte) error {
+	var m rawActivePolicy
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ActivePolicy(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *ActivePolicy) Validate() error {
+	if self.Version == "" {
+		return fmt.Errorf("ActivePolicy.version is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.Version)
+		if !val.Valid {
+			return fmt.Errorf("ActivePolicy.version does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	return nil

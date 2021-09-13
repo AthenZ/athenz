@@ -144,7 +144,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_GROUP_META = "GroupMeta";
     private static final String TYPE_ASSERTION_CONDITIONS = "AssertionConditions";
     private static final String TYPE_ASSERTION_CONDITION = "AssertionCondition";
-    private static final String TYPE_POLICY_OPTIONS = "PolicyOptions";
+    private static final String TYPE_DUPLICATE_POLICY = "DuplicatePolicy";
+    private static final String TYPE_ACTIVE_POLICY = "ActivePolicy";
 
     private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
 
@@ -553,13 +554,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 assertionCondition.setConditionsMap(lowerCasedMap);
             }
         },
-        POLICY_OPTIONS {
+        ACTIVE_POLICY {
             @Override
             void convertToLowerCase(Object obj) {
-                PolicyOptions policyOptions = (PolicyOptions) obj;
-                policyOptions.setVersion(policyOptions.getVersion().toLowerCase());
-                if (!StringUtil.isEmpty(policyOptions.getFromVersion())) {
-                    policyOptions.setFromVersion(policyOptions.getFromVersion().toLowerCase());
+                ActivePolicy activePolicy = (ActivePolicy) obj;
+                activePolicy.setVersion(activePolicy.getVersion().toLowerCase());
+            }
+        },
+        DUPLICATE_POLICY {
+            @Override
+            void convertToLowerCase(Object obj) {
+                DuplicatePolicy activePolicy = (DuplicatePolicy) obj;
+                activePolicy.setVersion(activePolicy.getVersion().toLowerCase());
+                if (!StringUtil.isEmpty(activePolicy.getFromVersion())) {
+                    activePolicy.setFromVersion(activePolicy.getFromVersion().toLowerCase());
                 }
             }
         };
@@ -4442,7 +4450,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putPolicyVersion(ResourceContext ctx, String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
+    public void putPolicyVersion(ResourceContext ctx, String domainName, String policyName, DuplicatePolicy duplicatePolicy, String auditRef) {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
@@ -4454,7 +4462,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_COMPOUND_NAME, caller);
-        validate(policyOptions, TYPE_POLICY_OPTIONS, caller);
+        validate(duplicatePolicy, TYPE_DUPLICATE_POLICY, caller);
 
         // verify that request is properly authenticated for this request
 
@@ -4467,7 +4475,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
         policyName = policyName.toLowerCase();
-        AthenzObject.POLICY_OPTIONS.convertToLowerCase(policyOptions);
+        AthenzObject.DUPLICATE_POLICY.convertToLowerCase(duplicatePolicy);
 
         // we are not going to allow any user to update
         // the admin policy since that is required
@@ -4477,11 +4485,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError(caller + ": admin policy cannot be modified", caller);
         }
 
-        dbService.executePutPolicyVersion(ctx, domainName, policyName, policyOptions.getVersion(), policyOptions.getFromVersion(), auditRef, caller);
+        dbService.executePutPolicyVersion(ctx, domainName, policyName, duplicatePolicy.getVersion(), duplicatePolicy.getFromVersion(), auditRef, caller);
     }
 
     @Override
-    public void setActivePolicyVersion(ResourceContext ctx, String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
+    public void setActivePolicyVersion(ResourceContext ctx, String domainName, String policyName, ActivePolicy activePolicy, String auditRef) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4494,7 +4502,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_COMPOUND_NAME, caller);
-        validate(policyOptions, TYPE_POLICY_OPTIONS, caller);
+        validate(activePolicy, TYPE_ACTIVE_POLICY, caller);
 
         // verify that request is properly authenticated for this request
 
@@ -4507,7 +4515,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
         policyName = policyName.toLowerCase();
-        AthenzObject.POLICY_OPTIONS.convertToLowerCase(policyOptions);
+        AthenzObject.ACTIVE_POLICY.convertToLowerCase(activePolicy);
 
         // we are not going to allow any user to update
         // the admin policy since that is required
@@ -4517,7 +4525,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError(caller + ": admin policy cannot be modified", caller);
         }
 
-        dbService.executeSetActivePolicy(ctx, domainName, policyName, policyOptions.getVersion(), auditRef, caller);
+        dbService.executeSetActivePolicy(ctx, domainName, policyName, activePolicy.getVersion(), auditRef, caller);
     }
 
     @Override

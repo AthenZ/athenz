@@ -294,7 +294,7 @@ resource Policy GET "/domain/{domainName}/policy/{policyName}/version/{version}"
 resource Policy PUT "/domain/{domainName}/policy/{policyName}/version/create" (name=putPolicyVersion) {
     DomainName domainName; //name of the domain
     EntityName policyName; //name of the policy to be added/updated
-    PolicyOptions policyOptions; // name of the source version to copy from and name of new version
+    DuplicatePolicy duplicatePolicy; // name of the source version to copy from and name of new version
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize("update", "{domainName}:policy.{policyName}");
     expected NO_CONTENT;
@@ -312,7 +312,7 @@ resource Policy PUT "/domain/{domainName}/policy/{policyName}/version/create" (n
 resource Policy PUT "/domain/{domainName}/policy/{policyName}/version/active" (name=setActivePolicyVersion) {
     DomainName domainName; //name of the domain
     EntityName policyName; //name of the policy
-    PolicyOptions policyOptions; // name of the version
+    ActivePolicy activePolicy; // name of the version
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize("update", "{domainName}:policy.{policyName}");
     expected NO_CONTENT;
