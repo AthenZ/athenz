@@ -528,11 +528,11 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   margin-right: 1px;
 }
 
-.emotion-77 {
+.emotion-74 {
   width: 65%;
 }
 
-.emotion-86 {
+.emotion-83 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -787,34 +787,13 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         <input
           autocomplete="off"
           data-testid="input-node"
-          placeholder="eg: yamas.api, sys.auth.zms (click + button to add)"
+          placeholder="eg: yamas.api, sys.auth.zms"
           value=""
         />
         <div
           class="message"
           data-testid="message"
         />
-      </div>
-      <div
-        class="emotion-48 emotion-49"
-      >
-        <svg
-          class="emotion-50"
-          data-testid="icon"
-          height="1.75em"
-          viewBox="0 0 1024 1024"
-          width="1.75em"
-        >
-          <title>
-            add-circle
-          </title>
-          <path
-            d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001z"
-          />
-          <path
-            d="M725.333 469.333h-170.667v-170.667c0-23.564-19.103-42.667-42.667-42.667s-42.667 19.103-42.667 42.667v0 170.667h-170.667c-23.564 0-42.667 19.103-42.667 42.667s19.103 42.667 42.667 42.667v0h170.667v170.667c0 23.564 19.103 42.667 42.667 42.667s42.667-19.103 42.667-42.667v0-170.667h170.667c23.564 0 42.667-19.103 42.667-42.667s-19.103-42.667-42.667-42.667v0z"
-          />
-        </svg>
       </div>
     </div>
     <div
@@ -824,7 +803,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         class="emotion-6 denali-input-label emotion-7 emotion-8"
       />
       <div
-        class="emotion-77 emotion-78"
+        class="emotion-74 emotion-75"
       />
     </div>
     <div
@@ -839,7 +818,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         class="emotion-56 emotion-57"
       >
         <div
-          class="emotion-86 emotion-87"
+          class="emotion-83 emotion-84"
         >
           <div
             class="emotion-19 denali-input emotion-20 emotion-21"
