@@ -90,6 +90,19 @@ func init() {
 	tTransportPolicyProtocol.Element("UDP", "")
 	sb.AddType(tTransportPolicyProtocol.Build())
 
+	tTransportPolicyValidationStatus := rdl.NewEnumTypeBuilder("Enum", "TransportPolicyValidationStatus")
+	tTransportPolicyValidationStatus.Comment("Validation Status of transport policy vs network policy")
+	tTransportPolicyValidationStatus.Element("VALID", "")
+	tTransportPolicyValidationStatus.Element("INVALID", "")
+	tTransportPolicyValidationStatus.Element("PARTIAL", "")
+	sb.AddType(tTransportPolicyValidationStatus.Build())
+
+	tTransportPolicyTrafficDirection := rdl.NewEnumTypeBuilder("Enum", "TransportPolicyTrafficDirection")
+	tTransportPolicyTrafficDirection.Comment("Types of transport policy traffic direction")
+	tTransportPolicyTrafficDirection.Element("INGRESS", "")
+	tTransportPolicyTrafficDirection.Element("EGRESS", "")
+	sb.AddType(tTransportPolicyTrafficDirection.Build())
+
 	tTransportPolicySubject := rdl.NewStructTypeBuilder("Struct", "TransportPolicySubject")
 	tTransportPolicySubject.Comment("Subject for a transport policy")
 	tTransportPolicySubject.Field("domainName", "DomainName", false, nil, "Name of the domain")
@@ -149,6 +162,19 @@ func init() {
 	tTransportPolicyRules.ArrayField("egress", "TransportPolicyEgressRule", false, "List of egress rules")
 	sb.AddType(tTransportPolicyRules.Build())
 
+	tTransportPolicyValidationRequest := rdl.NewStructTypeBuilder("Struct", "TransportPolicyValidationRequest")
+	tTransportPolicyValidationRequest.Comment("Transport policy request object to be validated")
+	tTransportPolicyValidationRequest.Field("entitySelector", "TransportPolicyEntitySelector", false, nil, "Describes the entity to which this transport policy applies")
+	tTransportPolicyValidationRequest.Field("peer", "TransportPolicyPeer", false, nil, "source or destination of the network traffic depending on direction")
+	tTransportPolicyValidationRequest.Field("trafficDirection", "TransportPolicyTrafficDirection", false, nil, "")
+	sb.AddType(tTransportPolicyValidationRequest.Build())
+
+	tTransportPolicyValidationResponse := rdl.NewStructTypeBuilder("Struct", "TransportPolicyValidationResponse")
+	tTransportPolicyValidationResponse.Comment("Response object of transport policy rule validation")
+	tTransportPolicyValidationResponse.Field("status", "TransportPolicyValidationStatus", false, nil, "")
+	tTransportPolicyValidationResponse.ArrayField("errors", "String", true, "")
+	sb.AddType(tTransportPolicyValidationResponse.Build())
+
 	tStaticWorkloadType := rdl.NewEnumTypeBuilder("Enum", "StaticWorkloadType")
 	tStaticWorkloadType.Comment("Enum representing defined types of static workloads.")
 	tStaticWorkloadType.Element("VIP", "represents a virtual ip construct")
@@ -207,6 +233,18 @@ func init() {
 	mGetTransportPolicyRules.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetTransportPolicyRules.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetTransportPolicyRules.Build())
+
+	mValidateTransportPolicy := rdl.NewResourceBuilder("TransportPolicyValidationResponse", "POST", "/transportpolicy/validate")
+	mValidateTransportPolicy.Comment("API to validate microsegmentation policies against network policies")
+	mValidateTransportPolicy.Name("validateTransportPolicy")
+	mValidateTransportPolicy.Input("transportPolicy", "TransportPolicyValidationRequest", false, "", "", false, nil, "Struct representing microsegmentation policy entered by the user")
+	mValidateTransportPolicy.Auth("", "", true, "")
+	mValidateTransportPolicy.Exception("BAD_REQUEST", "ResourceError", "")
+	mValidateTransportPolicy.Exception("FORBIDDEN", "ResourceError", "")
+	mValidateTransportPolicy.Exception("NOT_FOUND", "ResourceError", "")
+	mValidateTransportPolicy.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mValidateTransportPolicy.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mValidateTransportPolicy.Build())
 
 	mGetWorkloadsByService := rdl.NewResourceBuilder("Workloads", "GET", "/domain/{domainName}/service/{serviceName}/workloads")
 	mGetWorkloadsByService.Name("getWorkloadsByService")
