@@ -64,7 +64,7 @@ public class TestZpeUpdPolLoader {
     }
 
     private void setupJWSPolicyFile(SignedPolicyData signedPolicyData, PrivateKey privateKey, final String keyId,
-                                    final String algorithm, final String fileName) throws IOException {
+                                    final String algorithm, boolean p1363Format, final String fileName) throws IOException {
 
         signedPolicyData.setZmsSignature("");
         signedPolicyData.setZmsKeyId("");
@@ -73,14 +73,17 @@ public class TestZpeUpdPolLoader {
         final byte[] encodedPolicyData = encoder.encode(jsonPolicyData);
         final String protectedHeader = "{\"kid\":\"" + keyId + "\",\"alg\":\"" + algorithm + "\"}";
         final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
-        final byte[] signatureBytes = encoder.encode(Crypto.sign(
-                Bytes.concat(encodedHeader, PERIOD, encodedPolicyData), privateKey, Crypto.SHA256));
+        byte[] signatureBytes = Crypto.sign(Bytes.concat(encodedHeader, PERIOD, encodedPolicyData),
+                privateKey, Crypto.SHA256);
+        if (p1363Format) {
+            signatureBytes = Crypto.convertSignatureFromDERToP1363Format(signatureBytes, Crypto.SHA256);
+        }
         final Map<String, String> headerMap = new HashMap<>();
         headerMap.put("kid", keyId);
         JWSPolicyData jwsPolicyData = new JWSPolicyData().setHeader(headerMap)
                 .setPayload(new String(encodedPolicyData))
                 .setProtectedHeader(new String(encodedHeader))
-                .setSignature(new String(signatureBytes));
+                .setSignature(encoder.encodeToString(signatureBytes));
         File file = new File("./src/test/resources/pol_dir/angler.jws.gen");
         file.createNewFile();
         Files.write(file.toPath(), JSON.bytes(jwsPolicyData));
@@ -88,12 +91,13 @@ public class TestZpeUpdPolLoader {
         file.renameTo(renamedFile);
     }
 
-    private void setupPolicyFiles() throws IOException {
+    private void setupPolicyFiles(final String ztsPrivateKeyFile, final String zmsPrivateKeyFile,
+                                  final String keyVersion, final String algorithm, boolean p1363Format) throws IOException {
 
-        Path path = Paths.get("./src/test/resources/unit_test_zts_private_k0.pem");
+        Path path = Paths.get(ztsPrivateKeyFile);
         PrivateKey ztsPrivateKeyK0 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
 
-        path = Paths.get("./src/test/resources/unit_test_zms_private_k0.pem");
+        path = Paths.get(zmsPrivateKeyFile);
         PrivateKey zmsPrivateKeyK0 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
 
         // generate the signed policy file data
@@ -103,9 +107,9 @@ public class TestZpeUpdPolLoader {
                 DomainSignedPolicyData.class);
         SignedPolicyData signedPolicyData = domainSignedPolicyData.getSignedPolicyData();
         String signature = Crypto.sign(SignUtils.asCanonicalString(signedPolicyData.getPolicyData()), zmsPrivateKeyK0);
-        signedPolicyData.setZmsSignature(signature).setZmsKeyId("0");
+        signedPolicyData.setZmsSignature(signature).setZmsKeyId(keyVersion);
         signature = Crypto.sign(SignUtils.asCanonicalString(signedPolicyData), ztsPrivateKeyK0);
-        domainSignedPolicyData.setSignature(signature).setKeyId("0");
+        domainSignedPolicyData.setSignature(signature).setKeyId(keyVersion);
         File file = new File("./src/test/resources/pol_dir/angler.gen");
         file.createNewFile();
         Files.write(file.toPath(), JSON.bytes(domainSignedPolicyData));
@@ -114,12 +118,40 @@ public class TestZpeUpdPolLoader {
 
         // generate the jws policy data
 
-        setupJWSPolicyFile(signedPolicyData, ztsPrivateKeyK0, "0", "RS256", TEST_JWS_POL_GOOD_FILE);
+        setupJWSPolicyFile(signedPolicyData, ztsPrivateKeyK0, keyVersion, algorithm,
+                p1363Format, TEST_JWS_POL_GOOD_FILE);
     }
 
-    private void setupInvalidJWSPolicyDataInvalidVersion() throws IOException {
+    private void setupInvalidJsonPolicyDataInvalidVersion(final String ztsPrivateKeyFile, final String ztsKeyVersion,
+            final String zmsPrivateKeyFile, final String zmsKeyVersion) throws IOException {
 
-        Path path = Paths.get("./src/test/resources/unit_test_zts_private_k0.pem");
+        Path path = Paths.get(ztsPrivateKeyFile);
+        PrivateKey ztsPrivateKeyK0 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
+
+        path = Paths.get(zmsPrivateKeyFile);
+        PrivateKey zmsPrivateKeyK0 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
+
+        // generate the signed policy file data
+
+        path = Paths.get(TEST_ORIG_POL_FILE);
+        DomainSignedPolicyData domainSignedPolicyData = JSON.fromBytes(Files.readAllBytes(path),
+                DomainSignedPolicyData.class);
+        SignedPolicyData signedPolicyData = domainSignedPolicyData.getSignedPolicyData();
+        String signature = Crypto.sign(SignUtils.asCanonicalString(signedPolicyData.getPolicyData()), zmsPrivateKeyK0);
+        signedPolicyData.setZmsSignature(signature).setZmsKeyId(zmsKeyVersion);
+        signature = Crypto.sign(SignUtils.asCanonicalString(signedPolicyData), ztsPrivateKeyK0);
+        domainSignedPolicyData.setSignature(signature).setKeyId(ztsKeyVersion);
+        File file = new File("./src/test/resources/pol_dir/angler.gen");
+        file.createNewFile();
+        Files.write(file.toPath(), JSON.bytes(domainSignedPolicyData));
+        File renamedFile = new File(TEST_SIGNED_POL_GOOD_FILE);
+        file.renameTo(renamedFile);
+    }
+
+    private void setupInvalidJWSPolicyDataInvalidVersion(final String privateKeyPath, final String keyVersion,
+            final String algorithm, boolean p1363Format) throws IOException {
+
+        Path path = Paths.get(privateKeyPath);
         PrivateKey ztsPrivateKeyK0 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
 
         // generate the signed policy file data
@@ -131,7 +163,7 @@ public class TestZpeUpdPolLoader {
 
         // generate the jws policy data
 
-        setupJWSPolicyFile(signedPolicyData, ztsPrivateKeyK0, "1001", "RS256", TEST_JWS_POL_GOOD_FILE);
+        setupJWSPolicyFile(signedPolicyData, ztsPrivateKeyK0, keyVersion, algorithm, p1363Format, TEST_JWS_POL_GOOD_FILE);
     }
 
     private void setupInvalidJWSPolicyDataInvalidData() throws IOException {
@@ -154,6 +186,28 @@ public class TestZpeUpdPolLoader {
                 .setPayload(new String(encodedPolicyData))
                 .setProtectedHeader(new String(encodedHeader))
                 .setSignature(new String(signatureBytes));
+        File file = new File("./src/test/resources/pol_dir/angler.jws.gen");
+        file.createNewFile();
+        Files.write(file.toPath(), JSON.bytes(jwsPolicyData));
+        File renamedFile = new File(TEST_JWS_POL_GOOD_FILE);
+        file.renameTo(renamedFile);
+    }
+
+    private void setupInvalidJWSPolicyDataInvalidSignature(final String algorithm) throws IOException {
+
+        // generate the signed policy file data
+
+        Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+        final byte[] jsonPolicyData = JSON.bytes("policy-data");
+        final byte[] encodedPolicyData = encoder.encode(jsonPolicyData);
+        final String protectedHeader = "{\"kid\":\"0\",\"alg\":\"" + algorithm + "\"}";
+        final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
+        final Map<String, String> headerMap = new HashMap<>();
+        headerMap.put("kid", "0");
+        JWSPolicyData jwsPolicyData = new JWSPolicyData().setHeader(headerMap)
+                .setPayload(new String(encodedPolicyData))
+                .setProtectedHeader(new String(encodedHeader))
+                .setSignature("invalid-signature");
         File file = new File("./src/test/resources/pol_dir/angler.jws.gen");
         file.createNewFile();
         Files.write(file.toPath(), JSON.bytes(jwsPolicyData));
@@ -194,13 +248,26 @@ public class TestZpeUpdPolLoader {
             assertTrue(matchObject instanceof ZpeMatchStartsWith);
         }
     }
+    @Test
+    public void testLoadDBCasesRSAKey() throws Exception {
+        testLoadDBCases("./src/test/resources/unit_test_zts_private_k0.pem",
+                "./src/test/resources/unit_test_zms_private_k0.pem", "0", "RS256", false);
+    }
 
     @Test
-    public void testLoadDBCases() throws Exception {
+    public void testLoadDBCasesECKey() throws Exception {
+        testLoadDBCases("./src/test/resources/unit_test_zts_private_ec_k0.pem",
+                "./src/test/resources/unit_test_zms_private_ec_k0.pem", "2", "ES256", false);
+        testLoadDBCases("./src/test/resources/unit_test_zts_private_ec_k0.pem",
+                "./src/test/resources/unit_test_zms_private_ec_k0.pem", "2", "ES256", true);
+    }
+
+    void testLoadDBCases(final String ztsPrivateKeyFile, final String zmsPrivateKeyFile,
+                         final String keyVersion, final String algorithm, boolean p1363Format) throws Exception {
 
         // setup our policy files
 
-        setupPolicyFiles();
+        setupPolicyFiles(ztsPrivateKeyFile, zmsPrivateKeyFile, keyVersion, algorithm, p1363Format);
 
         // save the current value for the check policy
 
@@ -283,14 +350,62 @@ public class TestZpeUpdPolLoader {
     }
 
     @Test
-    public void testLoadDBJWSInvalidKeyVersion() throws IOException {
+    public void testLoadDBJWSInvalidRSAKeyVersion() throws IOException {
+        testLoadDBJWSInvalidKeyVersion("./src/test/resources/unit_test_zts_private_k0.pem", "1001", "RS256", false);
+    }
 
-        setupInvalidJWSPolicyDataInvalidVersion();
+    @Test
+    public void testLoadDBJWSInvalidECKeyVersion() throws IOException {
+        testLoadDBJWSInvalidKeyVersion("./src/test/resources/unit_test_zts_private_ec_k0.pem", "1001", "ES256", true);
+        testLoadDBJWSInvalidKeyVersion("./src/test/resources/unit_test_zts_private_ec_k0.pem", "1001", "ES256", false);
+    }
+
+    public void testLoadDBJWSInvalidKeyVersion(final String privateKeyPath, final String keyVersion,
+                                               final String algorithm, boolean p1363Format) throws IOException {
+
+        setupInvalidJWSPolicyDataInvalidVersion(privateKeyPath, keyVersion, algorithm, p1363Format);
 
         java.nio.file.Path polFile = java.nio.file.Paths.get(TEST_POL_DIR, TEST_POL_FILE);
         java.nio.file.Files.deleteIfExists(polFile);
 
         java.nio.file.Path invalidKeyVersionFile = java.nio.file.Paths.get(TEST_JWS_POL_GOOD_FILE);
+        java.nio.file.Files.copy(invalidKeyVersionFile, polFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+        java.io.File [] files = { polFile.toFile() };
+
+        ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+        loader.loadDb(files);
+
+        java.util.Map<String, ZpeUpdPolLoader.ZpeFileStatus> fsmap = loader.getFileStatusMap();
+        ZpeUpdPolLoader.ZpeFileStatus fstat = fsmap.get(polFile.toFile().getName());
+        assertFalse(fstat.validPolFile);
+    }
+
+    @Test
+    public void testLoadDBJsonInvalidRSAKeyVersion() throws IOException {
+        testLoadDBJsonInvalidKeyVersion("./src/test/resources/unit_test_zts_private_k0.pem", "1001",
+                "./src/test/resources/unit_test_zms_private_k0.pem", "0");
+        testLoadDBJsonInvalidKeyVersion("./src/test/resources/unit_test_zts_private_k0.pem", "0",
+                "./src/test/resources/unit_test_zms_private_k0.pem", "1001");
+    }
+
+    @Test
+    public void testLoadDBJsonInvalidECKeyVersion() throws IOException {
+        testLoadDBJsonInvalidKeyVersion("./src/test/resources/unit_test_zts_private_ec_k0.pem", "1001",
+                "./src/test/resources/unit_test_zms_private_ec_k0.pem", "0");
+        testLoadDBJsonInvalidKeyVersion("./src/test/resources/unit_test_zts_private_ec_k0.pem", "0",
+                "./src/test/resources/unit_test_zms_private_ec_k0.pem", "1001");
+    }
+
+    public void testLoadDBJsonInvalidKeyVersion(final String ztsPrivateKeyFile, final String ztsKeyVersion,
+            final String zmsPrivateKeyFile, final String zmsKeyVersion) throws IOException {
+
+        setupInvalidJsonPolicyDataInvalidVersion(ztsPrivateKeyFile, ztsKeyVersion, zmsPrivateKeyFile, zmsKeyVersion);
+
+        java.nio.file.Path polFile = java.nio.file.Paths.get(TEST_POL_DIR, TEST_POL_FILE);
+        java.nio.file.Files.deleteIfExists(polFile);
+
+        java.nio.file.Path invalidKeyVersionFile = java.nio.file.Paths.get(TEST_SIGNED_POL_GOOD_FILE);
         java.nio.file.Files.copy(invalidKeyVersionFile, polFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
         java.io.File [] files = { polFile.toFile() };
@@ -322,6 +437,55 @@ public class TestZpeUpdPolLoader {
         java.util.Map<String, ZpeUpdPolLoader.ZpeFileStatus> fsmap = loader.getFileStatusMap();
         ZpeUpdPolLoader.ZpeFileStatus fstat = fsmap.get(polFile.toFile().getName());
         assertFalse(fstat.validPolFile);
+    }
+
+    @Test
+    public void testLoadDBJWSInvalidRSASignature() throws IOException {
+        testLoadDBJWSInvalidSignature("RS256");
+    }
+
+    @Test
+    public void testLoadDBJWSInvalidECSignature() throws IOException {
+        testLoadDBJWSInvalidSignature("ES256");
+    }
+
+    void testLoadDBJWSInvalidSignature(final String algorithm) throws IOException {
+
+        setupInvalidJWSPolicyDataInvalidSignature(algorithm);
+
+        java.nio.file.Path polFile = java.nio.file.Paths.get(TEST_POL_DIR, TEST_POL_FILE);
+        java.nio.file.Files.deleteIfExists(polFile);
+
+        java.nio.file.Path invalidSignatureFile = java.nio.file.Paths.get(TEST_JWS_POL_GOOD_FILE);
+        java.nio.file.Files.copy(invalidSignatureFile, polFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+        java.io.File [] files = { polFile.toFile() };
+
+        ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+        loader.loadDb(files);
+
+        java.util.Map<String, ZpeUpdPolLoader.ZpeFileStatus> fsmap = loader.getFileStatusMap();
+        ZpeUpdPolLoader.ZpeFileStatus fstat = fsmap.get(polFile.toFile().getName());
+        assertFalse(fstat.validPolFile);
+    }
+
+    @Test
+    public void testIsESAlgorithm() {
+
+        ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+        boolean skipPolicyDirCheck = ZpeUpdPolLoader.skipPolicyDirCheck;
+        ZpeUpdPolLoader.skipPolicyDirCheck = true;
+        loader.loadDb();
+
+        assertTrue(loader.isESAlgorithm("ES256"));
+        assertTrue(loader.isESAlgorithm("ES384"));
+        assertTrue(loader.isESAlgorithm("ES512"));
+        assertFalse(loader.isESAlgorithm("RS256"));
+        assertFalse(loader.isESAlgorithm(""));
+        assertFalse(loader.isESAlgorithm(null));
+
+        loader.close();
+        ZpeUpdPolLoader.skipPolicyDirCheck = skipPolicyDirCheck;
     }
 
     @Test
@@ -372,9 +536,15 @@ public class TestZpeUpdPolLoader {
         Mockito.when(loaderMock.getDirName()).thenReturn(null);
         ZpeUpdMonitor monitor = new ZpeUpdMonitor(loaderMock);
                 
-        // TODO: validate log message
         monitor.run();
         monitor.cancel();
         monitor.run();
+    }
+
+    @Test
+    public void testGetDERSignatureInvalidHeader() {
+        ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+        assertNull(loader.getDERSignature("invalid-header", "signature"));
+        loader.close();
     }
 }
