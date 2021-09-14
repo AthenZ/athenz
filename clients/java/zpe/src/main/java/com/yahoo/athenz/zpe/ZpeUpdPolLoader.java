@@ -335,8 +335,21 @@ public class ZpeUpdPolLoader implements Closeable {
         Function<String, PublicKey> keyGetter = AuthZpeClient::getZtsPublicKey;
         if (!Crypto.validateJWSDocument(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getPayload(),
                 jwsPolicyData.getSignature(), keyGetter)) {
-            LOG.error("zts signature validation failed");
-            return null;
+
+            // if our validation failed then it's possible our signature was
+            // provided in p1363 format and our BC supports DER format only
+
+            final String derSignature = getDERSignature(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getSignature());
+            if (derSignature == null) {
+                LOG.error("zts signature validation failed");
+                return null;
+            }
+
+            if (!Crypto.validateJWSDocument(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getPayload(),
+                    derSignature, keyGetter)) {
+                LOG.error("zts signature validation failed");
+                return null;
+            }
         }
 
         Base64.Decoder base64Decoder = Base64.getUrlDecoder();
@@ -348,6 +361,40 @@ public class ZpeUpdPolLoader implements Closeable {
         }
 
         return signedPolicyData.getPolicyData();
+    }
+
+    boolean isESAlgorithm(final String algorithm) {
+        if (algorithm != null) {
+            switch (algorithm) {
+                case "ES256":
+                case "ES384":
+                case "ES512":
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    String getDERSignature(final String protectedHeader, final String signature) {
+
+        Map<String, String> header = Crypto.parseJWSProtectedHeader(protectedHeader);
+        if (header == null) {
+            return null;
+        }
+        final String algorithm = header.get("alg");
+        if (!isESAlgorithm(algorithm)) {
+            return null;
+        }
+        try {
+            Base64.Decoder base64Decoder = Base64.getUrlDecoder();
+            final byte[] signatureBytes = base64Decoder.decode(signature);
+            final byte[] convertedSignature = Crypto.convertSignatureFromP1363ToDERFormat(signatureBytes,
+                    Crypto.getDigestAlgorithm(algorithm));
+            Base64.Encoder base64Encoder = Base64.getUrlEncoder().withoutPadding();
+            return base64Encoder.encodeToString(convertedSignature);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     private PolicyData getSignedPolicyData(DomainSignedPolicyData domainSignedPolicyData) {

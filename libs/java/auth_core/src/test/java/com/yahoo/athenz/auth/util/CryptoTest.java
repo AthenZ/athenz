@@ -1273,6 +1273,36 @@ public class CryptoTest {
     }
 
     @Test
+    public void testConvertSignatureFromP1363ToDERFormat() {
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        assertNotNull(privateKey);
+
+        byte[] derSignature = Crypto.sign(serviceToken.getBytes(StandardCharsets.UTF_8), privateKey, Crypto.SHA256);
+        assertNotNull(derSignature);
+        byte[] p1363Signature = Crypto.convertSignatureFromDERToP1363Format(derSignature, Crypto.SHA256);
+        assertNotNull(p1363Signature);
+        byte [] testDerSignature = Crypto.convertSignatureFromP1363ToDERFormat(p1363Signature, Crypto.SHA256);
+        assertEquals(derSignature, testDerSignature);
+
+        try {
+            Crypto.convertSignatureFromP1363ToDERFormat(p1363Signature, "SHA1");
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("unknown signature size"));
+        }
+
+        // convert invalid size signature
+
+        try {
+            Crypto.convertSignatureFromP1363ToDERFormat("test".getBytes(StandardCharsets.UTF_8), Crypto.SHA256);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("invalid signature size"));
+        }
+    }
+
+    @Test
     public void testSignVerifyByteArrayRSAKey() {
 
         PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
