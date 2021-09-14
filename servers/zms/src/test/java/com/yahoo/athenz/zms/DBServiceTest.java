@@ -929,15 +929,16 @@ public class DBServiceTest {
 
     @Test
     public void testExecuteSetActivePolicyFailure() {
-        String domainName = "policy-set-active";
+        String domainName = "policy-set-active-failure";
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
         Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
-        Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
-        Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(null).thenReturn(originalPolicyVersion);
-        Mockito.when(mockJdbcConn.setActivePolicyVersion(eq(domainName), eq(policyName), eq("0"))).thenReturn(false);
+        Policy policy = createPolicyObject(domainName, policyName);
+        Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(policy);
+        Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), eq("1"))).thenReturn(policy);
+        Mockito.when(mockJdbcConn.setActivePolicyVersion(eq(domainName), eq(policyName), eq("1"))).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -945,10 +946,40 @@ public class DBServiceTest {
         zms.dbService.defaultRetryCount = 2;
 
         try {
-            zms.dbService.executeSetActivePolicy(mockDomRsrcCtx, domainName, policyName, "0", auditRef, "setActivePolicy");
+            zms.dbService.executeSetActivePolicy(mockDomRsrcCtx, domainName, policyName, "1", auditRef, "setActivePolicy");
             fail();
         } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to set active policy version: 0 for policy: policy1 in domain: policy-set-active\"}");
+            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to set active policy version: 1 for policy: policy1 in domain: policy-set-active-failure\"}");
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteSetActivePolicyRetryException() {
+        String domainName = "policy-set-active-retry";
+        String policyName = "policy1";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Policy policy = createPolicyObject(domainName, policyName);
+        Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(policy);
+        Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), eq("1"))).thenReturn(policy);
+        Mockito.when(mockJdbcConn.setActivePolicyVersion(eq(domainName), eq(policyName), eq("1")))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "db conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeSetActivePolicy(mockDomRsrcCtx, domainName, policyName, "1", auditRef, "setActivePolicy");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
