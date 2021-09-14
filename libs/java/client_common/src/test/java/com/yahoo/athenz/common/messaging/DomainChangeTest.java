@@ -1,0 +1,73 @@
+/*
+ *
+ *  * Copyright The Athenz Authors
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  *     http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
+ *
+ */
+
+package com.yahoo.athenz.common.messaging;
+
+import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
+
+public class DomainChangeTest {
+
+    @Test
+    public void testDomainChange() {
+        
+        DomainChange domainChange = new DomainChange();
+        domainChange.setDomainName("domain")
+            .setPublished(123L)
+            .setUuid("uuid")
+            .setMetaChange(true)
+            .setPolicyChange(true)
+            .setEntityChange(true)
+            .setServiceChange(true)
+            .setGroupChange(true)
+            .setRoleChange(true);
+        
+        assertEquals(domainChange.getDomainName(), "domain");
+        assertEquals(domainChange.getPublished(), 123L);
+        assertEquals(domainChange.getUuid(), "uuid");
+        assertTrue(domainChange.isMetaChange());
+        assertTrue(domainChange.isPolicyChange());
+        assertTrue(domainChange.isEntityChange());
+        assertTrue(domainChange.isServiceChange());
+        assertTrue(domainChange.isGroupChange());
+        assertTrue(domainChange.isRoleChange());
+        assertEquals(domainChange, domainChange);
+        
+        assertFalse(domainChange.equals(null));
+        assertFalse(domainChange.equals("nonDomainChange"));
+
+        DomainChange domainChange1 = new DomainChange();
+        domainChange1.setDomainName("domain")
+            .setPublished(123L)
+            .setUuid("uuid")
+            .setMetaChange(true)
+            .setPolicyChange(true)
+            .setEntityChange(true)
+            .setServiceChange(true)
+            .setGroupChange(true)
+            .setRoleChange(true);
+        
+        assertEquals(domainChange, domainChange1);
+        assertEquals(domainChange.hashCode(), domainChange1.hashCode());
+
+        domainChange1.setMetaChange(false);
+        assertNotEquals(domainChange, domainChange1);
+    }
+    
+}
