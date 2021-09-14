@@ -318,6 +318,38 @@ public class Crypto {
         }
     }
 
+    public static byte[] convertSignatureFromP1363ToDERFormat(byte[] signature, final String digestAlgorithm) {
+
+        int size = getSignatureExpectedSize(digestAlgorithm);
+        if (size == 0) {
+            LOG.error("unable to determine expected signature size for algorithm: {}", digestAlgorithm);
+            throw new CryptoException("unknown signature size");
+        }
+
+        // the size of our buffer must twice the size of determined value
+
+        if (signature.length != 2 * size) {
+            LOG.error("unexpected signature size: {}, expected: {}", signature.length, 2 * size);
+            throw new CryptoException("invalid signature size");
+        }
+
+        // generate our big integers
+
+        BigInteger r = new BigInteger(1, Arrays.copyOfRange(signature, 0, size));
+        BigInteger s = new BigInteger(1, Arrays.copyOfRange(signature, size, 2 * size));
+
+        ASN1EncodableVector vector = new ASN1EncodableVector();
+        vector.add(new ASN1Integer(r));
+        vector.add(new ASN1Integer(s));
+
+        try {
+            return new DERSequence(vector).getEncoded();
+        } catch (Exception ex) {
+            LOG.error("unable to generate der sequence", ex);
+            throw new CryptoException("unable to convert to der format");
+        }
+    }
+
     /**
      * Convert signature byte array from ASN.1 DER format to P1363 Format
      * @param signature byte array in DER format
@@ -1498,7 +1530,7 @@ public class Crypto {
         return writer.toString();
     }
 
-    static Map<String, String> parseJWSProtectedHeader(final String protectedHeader) {
+    public static Map<String, String> parseJWSProtectedHeader(final String protectedHeader) {
 
         java.util.Base64.Decoder base64Decoder = java.util.Base64.getUrlDecoder();
         try {

@@ -29,7 +29,7 @@
   <properties>
     <jmh.version>1.21</jmh.version>
     <uberjar.name>benchmarks</uberjar.name>
-    <code.coverage.min>0.8468</code.coverage.min>
+    <code.coverage.min>0.8601</code.coverage.min>
   </properties>
 
   <dependencies>
