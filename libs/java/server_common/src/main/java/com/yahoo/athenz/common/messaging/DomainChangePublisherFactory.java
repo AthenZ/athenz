@@ -16,7 +16,7 @@
  *
  */
 
-package com.yahoo.athenz.zms.messaging;
+package com.yahoo.athenz.common.messaging;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -24,7 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 public class DomainChangePublisherFactory {
 
     public static final String ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS = "athenz.zms.domain_change_publisher_class";
-    public static final String ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT = "com.yahoo.athenz.zms.messaging.NoOpDomainChangePublisher";
+    public static final String ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT = "com.yahoo.athenz.common.messaging.NoOpDomainChangePublisher";
 
     private static DomainChangePublisher createPublisher() {
         DomainChangePublisher instance;

@@ -27,7 +27,7 @@ public class DomainChangeTest {
     @Test
     public void testDomainChange() {
         
-        DomainChange domainChange = new DomainChange();
+        DomainChangeMessage domainChange = new DomainChangeMessage();
         domainChange.setDomainName("domain")
             .setPublished(123L)
             .setUuid("uuid")
@@ -52,7 +52,7 @@ public class DomainChangeTest {
         assertFalse(domainChange.equals(null));
         assertFalse(domainChange.equals("nonDomainChange"));
 
-        DomainChange domainChange1 = new DomainChange();
+        DomainChangeMessage domainChange1 = new DomainChangeMessage();
         domainChange1.setDomainName("domain")
             .setPublished(123L)
             .setUuid("uuid")

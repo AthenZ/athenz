@@ -20,7 +20,7 @@ package com.yahoo.athenz.common.messaging;
 
 import java.util.Objects;
 
-public class DomainChange {
+public class DomainChangeMessage {
     
     private String domainName;
     
@@ -52,7 +52,7 @@ public class DomainChange {
         return domainName;
     }
 
-    public DomainChange setDomainName(String domainName) {
+    public DomainChangeMessage setDomainName(String domainName) {
         this.domainName = domainName;
         return this;
     }
@@ -61,7 +61,7 @@ public class DomainChange {
         return uuid;
     }
 
-    public DomainChange setUuid(String uuid) {
+    public DomainChangeMessage setUuid(String uuid) {
         this.uuid = uuid;
         return this;
     }
@@ -70,7 +70,7 @@ public class DomainChange {
         return published;
     }
 
-    public DomainChange setPublished(long published) {
+    public DomainChangeMessage setPublished(long published) {
         this.published = published;
         return this;
     }
@@ -79,7 +79,7 @@ public class DomainChange {
         return metaChange;
     }
 
-    public DomainChange setMetaChange(boolean metaChange) {
+    public DomainChangeMessage setMetaChange(boolean metaChange) {
         this.metaChange = metaChange;
         return this;
     }
@@ -88,7 +88,7 @@ public class DomainChange {
         return roleChange;
     }
 
-    public DomainChange setRoleChange(boolean roleChange) {
+    public DomainChangeMessage setRoleChange(boolean roleChange) {
         this.roleChange = roleChange;
         return this;
     }
@@ -97,7 +97,7 @@ public class DomainChange {
         return policyChange;
     }
 
-    public DomainChange setPolicyChange(boolean policyChange) {
+    public DomainChangeMessage setPolicyChange(boolean policyChange) {
         this.policyChange = policyChange;
         return this;
     }
@@ -106,7 +106,7 @@ public class DomainChange {
         return serviceChange;
     }
 
-    public DomainChange setServiceChange(boolean serviceChange) {
+    public DomainChangeMessage setServiceChange(boolean serviceChange) {
         this.serviceChange = serviceChange;
         return this;
     }
@@ -115,7 +115,7 @@ public class DomainChange {
         return groupChange;
     }
 
-    public DomainChange setGroupChange(boolean groupChange) {
+    public DomainChangeMessage setGroupChange(boolean groupChange) {
         this.groupChange = groupChange;
         return this;
     }
@@ -124,7 +124,7 @@ public class DomainChange {
         return entityChange;
     }
 
-    public DomainChange setEntityChange(boolean entityChange) {
+    public DomainChangeMessage setEntityChange(boolean entityChange) {
         this.entityChange = entityChange;
         return this;
     }
@@ -137,7 +137,7 @@ public class DomainChange {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DomainChange that = (DomainChange) o;
+        DomainChangeMessage that = (DomainChangeMessage) o;
         return published == that.published &&
             metaChange == that.metaChange &&
             roleChange == that.roleChange &&

@@ -16,20 +16,19 @@
  *
  */
 
-package com.yahoo.athenz.zms.messaging;
+package com.yahoo.athenz.common.messaging;
 
-import com.yahoo.athenz.common.messaging.DomainChange;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.time.Instant;
 import java.util.UUID;
 
-import static com.yahoo.athenz.zms.messaging.DomainChangePublisherFactory.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS;
+import static com.yahoo.athenz.common.messaging.DomainChangePublisherFactory.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-public class NoOpDomainChangePublisherTest {
+public class NoOpDomainChangeMessagePublisherTest {
 
     @BeforeClass
     public void setUp() {
@@ -50,11 +49,11 @@ public class NoOpDomainChangePublisherTest {
     public void testNoOpDomainChangePublisher() {
         DomainChangePublisher noOpPublisher = DomainChangePublisherFactory.create();
         assertTrue(noOpPublisher instanceof NoOpDomainChangePublisher);
-        DomainChange domainChange = new DomainChange();
-        domainChange.setDomainName("someDomain")
+        DomainChangeMessage domainChangeMessage = new DomainChangeMessage();
+        domainChangeMessage.setDomainName("someDomain")
             .setPublished(Instant.now().toEpochMilli())
             .setUuid(UUID.randomUUID().toString())
             .setRoleChange(true);
-        noOpPublisher.publishMessage(domainChange);
+        noOpPublisher.publishMessage(domainChangeMessage);
     }
 }

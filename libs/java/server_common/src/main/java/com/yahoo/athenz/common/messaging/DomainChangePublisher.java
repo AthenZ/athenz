@@ -16,12 +16,10 @@
  *
  */
 
-package com.yahoo.athenz.zms.messaging;
-
-import com.yahoo.athenz.common.messaging.DomainChange;
+package com.yahoo.athenz.common.messaging;
 
 public interface DomainChangePublisher {
     
-    void publishMessage(DomainChange domainChange);
+    void publishMessage(DomainChangeMessage domainChangeMessage);
     
 }
