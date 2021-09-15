@@ -22,7 +22,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-public class DomainChangeTest {
+public class DomainChangeMessageTest {
 
     @Test
     public void testDomainChange() {
@@ -31,22 +31,16 @@ public class DomainChangeTest {
         domainChange.setDomainName("domain")
             .setPublished(123L)
             .setUuid("uuid")
-            .setMetaChange(true)
-            .setPolicyChange(true)
-            .setEntityChange(true)
-            .setServiceChange(true)
-            .setGroupChange(true)
-            .setRoleChange(true);
+            .setObjectName("role-obj")
+            .setObjectType(DomainChangeMessage.ObjectType.ROLE)
+            .setApiName("putRole");
         
         assertEquals(domainChange.getDomainName(), "domain");
         assertEquals(domainChange.getPublished(), 123L);
         assertEquals(domainChange.getUuid(), "uuid");
-        assertTrue(domainChange.isMetaChange());
-        assertTrue(domainChange.isPolicyChange());
-        assertTrue(domainChange.isEntityChange());
-        assertTrue(domainChange.isServiceChange());
-        assertTrue(domainChange.isGroupChange());
-        assertTrue(domainChange.isRoleChange());
+        assertEquals(domainChange.getObjectType(), DomainChangeMessage.ObjectType.ROLE);
+        assertEquals(domainChange.getObjectName(), "role-obj");
+        assertEquals(domainChange.getApiName(), "putRole");
         assertEquals(domainChange, domainChange);
         
         assertFalse(domainChange.equals(null));
@@ -56,17 +50,14 @@ public class DomainChangeTest {
         domainChange1.setDomainName("domain")
             .setPublished(123L)
             .setUuid("uuid")
-            .setMetaChange(true)
-            .setPolicyChange(true)
-            .setEntityChange(true)
-            .setServiceChange(true)
-            .setGroupChange(true)
-            .setRoleChange(true);
+            .setObjectName("role-obj")
+            .setObjectType(DomainChangeMessage.ObjectType.ROLE)
+            .setApiName("putRole");
         
         assertEquals(domainChange, domainChange1);
         assertEquals(domainChange.hashCode(), domainChange1.hashCode());
 
-        domainChange1.setMetaChange(false);
+        domainChange1.setObjectType(DomainChangeMessage.ObjectType.POLICY);
         assertNotEquals(domainChange, domainChange1);
     }
     

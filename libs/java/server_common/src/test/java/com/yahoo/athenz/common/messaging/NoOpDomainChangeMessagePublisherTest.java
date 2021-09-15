@@ -53,7 +53,9 @@ public class NoOpDomainChangeMessagePublisherTest {
         domainChangeMessage.setDomainName("someDomain")
             .setPublished(Instant.now().toEpochMilli())
             .setUuid(UUID.randomUUID().toString())
-            .setRoleChange(true);
+            .setObjectName("group-obj")
+            .setObjectType(DomainChangeMessage.ObjectType.POLICY)
+            .setApiName("putGroup");
         noOpPublisher.publishMessage(domainChangeMessage);
     }
 }
