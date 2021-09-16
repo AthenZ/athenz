@@ -22,7 +22,23 @@ import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.msd.MsdStore;
 import com.yahoo.athenz.msd.StaticWorkloadType;
 
+/**
+ * Factory to create various static workload data repositories
+ */
 public interface StaticWorkloadDataRepositoryFactory {
+
+    /**
+     * Creates the Repository objects
+     * @param privateKeyStore used to fetch necessary secrets to initialize the repository
+     * @param hostnameResolver used to resolve hostnames to ip addresses
+     * @param msdStore used to fetch workload data from underlying storage
+     */
     void create(final PrivateKeyStore privateKeyStore, final HostnameResolver hostnameResolver, final MsdStore msdStore);
+
+    /**
+     *
+     * @param type type of static workload to get appropriate repository from the factory implementation
+     * @return static workload data repository object
+     */
     StaticWorkloadDataRepository<?> getByType(StaticWorkloadType type);
 }

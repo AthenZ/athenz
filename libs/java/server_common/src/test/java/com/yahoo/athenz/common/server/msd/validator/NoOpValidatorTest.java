@@ -12,27 +12,21 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
  */
 
 package com.yahoo.athenz.common.server.msd.validator;
 
-/**
- * Factory to create various static workload validators
- */
-public interface StaticWorkloadValidatorFactory {
+import org.testng.annotations.Test;
 
-    /**
-     * Creates the static workload validators
-     */
-    void create();
+import static org.testng.Assert.*;
 
-    /**
-     * Get an appropriate static workload validator based on the type parameter
-     * @param type static workload type {@link com.yahoo.athenz.msd.StaticWorkloadType}
-     * @return static workload validator
-     */
-    default StaticWorkloadValidator getByType(String type) {
-        return new NoOpValidator();
+public class NoOpValidatorTest {
+
+    @Test
+    public void testNoOpValidator() {
+        StaticWorkloadValidatorFactory factory = () -> {};
+        StaticWorkloadValidator validator = factory.getByType("abc");
+        assertTrue(validator instanceof NoOpValidator);
+        assertTrue(validator.validateWorkload("mydom", "mysvc", "xyz.athenz.io"));
     }
 }

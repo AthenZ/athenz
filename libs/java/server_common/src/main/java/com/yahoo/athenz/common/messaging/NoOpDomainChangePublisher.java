@@ -25,6 +25,6 @@ public class NoOpDomainChangePublisher implements DomainChangePublisher {
 
     @Override
     public void publishMessage(DomainChangeMessage domainChangeMessage) {
-        // do nothing ..        
+        // do nothing
     }
 }

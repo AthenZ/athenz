@@ -19,7 +19,23 @@ package com.yahoo.athenz.common.server.msd.validator;
 
 import com.yahoo.athenz.common.server.msd.repository.StaticWorkloadDataRepository;
 
+/**
+ * Static workload validator interface
+ */
 public interface StaticWorkloadValidator {
+
+    /**
+     * Initializes the validator
+     * @param repository static workload data repository used by the validator for source of truth data
+     */
     void initialize(StaticWorkloadDataRepository<?> repository);
+
+    /**
+     * Validates the static workload entry against the business rules and / or repository
+     * @param domain input domain of the static workload entry
+     * @param service input service of the static workload entry
+     * @param name static workload entry ( usually a Domain name like abc.example.com, but can be an IP address )
+     * @return validation status
+     */
     boolean validateWorkload(String domain, String service, String name);
 }
