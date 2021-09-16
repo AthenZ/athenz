@@ -38,6 +38,10 @@ public class DomainChangePublisherFactory {
         return instance;
     }
 
+    /**
+     * Creates the domain change publisher
+     * @return domain change publisher
+     */
     public static DomainChangePublisher create() {
         return createPublisher();
     }

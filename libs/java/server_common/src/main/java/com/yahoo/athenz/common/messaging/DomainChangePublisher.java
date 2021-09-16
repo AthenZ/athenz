@@ -18,8 +18,15 @@
 
 package com.yahoo.athenz.common.messaging;
 
+/**
+ * Domain change publisher interface
+ */
 public interface DomainChangePublisher {
-    
+
+    /**
+     * Publishes a message to configured messaging system
+     * @param domainChangeMessage input object containing details to be published
+     */
     void publishMessage(DomainChangeMessage domainChangeMessage);
     
 }
