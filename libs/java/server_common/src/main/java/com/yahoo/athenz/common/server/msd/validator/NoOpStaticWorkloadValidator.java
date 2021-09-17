@@ -19,7 +19,7 @@ package com.yahoo.athenz.common.server.msd.validator;
 
 import com.yahoo.athenz.common.server.msd.repository.StaticWorkloadDataRepository;
 
-public class NoOpValidator implements StaticWorkloadValidator {
+public class NoOpStaticWorkloadValidator implements StaticWorkloadValidator {
     @Override
     public void initialize(StaticWorkloadDataRepository<?> repository) {
         // NO OP

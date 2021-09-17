@@ -17,6 +17,9 @@
 
 package com.yahoo.athenz.common.server.msd.validator;
 
+import com.yahoo.athenz.common.server.msd.repository.StaticWorkloadDataRepository;
+import com.yahoo.athenz.msd.StaticWorkloadType;
+
 /**
  * Factory to create various static workload validators
  */
@@ -24,15 +27,11 @@ public interface StaticWorkloadValidatorFactory {
 
     /**
      * Creates the static workload validators
-     */
-    void create();
-
-    /**
-     * Get an appropriate static workload validator based on the type parameter
      * @param type static workload type {@link com.yahoo.athenz.msd.StaticWorkloadType}
+     * @param repository repository associated with the corresponding static workload type to be instantiated
      * @return static workload validator
      */
-    default StaticWorkloadValidator getByType(String type) {
-        return new NoOpValidator();
+    default StaticWorkloadValidator create(final StaticWorkloadType type, final StaticWorkloadDataRepository<?> repository) {
+        return new NoOpStaticWorkloadValidator();
     }
 }
