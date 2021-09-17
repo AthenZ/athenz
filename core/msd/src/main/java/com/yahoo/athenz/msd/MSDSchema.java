@@ -76,6 +76,17 @@ public class MSDSchema {
             .element("TCP")
             .element("UDP");
 
+        sb.enumType("TransportPolicyValidationStatus")
+            .comment("Validation Status of transport policy vs network policy")
+            .element("VALID")
+            .element("INVALID")
+            .element("PARTIAL");
+
+        sb.enumType("TransportPolicyTrafficDirection")
+            .comment("Types of transport policy traffic direction")
+            .element("INGRESS")
+            .element("EGRESS");
+
         sb.structType("TransportPolicySubject")
             .comment("Subject for a transport policy")
             .field("domainName", "DomainName", false, "Name of the domain")
@@ -126,6 +137,17 @@ public class MSDSchema {
             .arrayField("ingress", "TransportPolicyIngressRule", false, "List of ingress rules")
             .arrayField("egress", "TransportPolicyEgressRule", false, "List of egress rules");
 
+        sb.structType("TransportPolicyValidationRequest")
+            .comment("Transport policy request object to be validated")
+            .field("entitySelector", "TransportPolicyEntitySelector", false, "Describes the entity to which this transport policy applies")
+            .field("peer", "TransportPolicyPeer", false, "source or destination of the network traffic depending on direction")
+            .field("trafficDirection", "TransportPolicyTrafficDirection", false, "");
+
+        sb.structType("TransportPolicyValidationResponse")
+            .comment("Response object of transport policy rule validation")
+            .field("status", "TransportPolicyValidationStatus", false, "")
+            .arrayField("errors", "String", true, "");
+
         sb.enumType("StaticWorkloadType")
             .comment("Enum representing defined types of static workloads.")
             .element("VIP")
@@ -172,6 +194,23 @@ public class MSDSchema {
             .comment("API endpoint to get the transport policy rules defined in Athenz")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicyValidationRequest", "POST", "/transportpolicy/validate")
+            .comment("API to validate microsegmentation policies against network policies")
+            .name("validateTransportPolicy")
+            .input("transportPolicy", "TransportPolicyValidationRequest", "Struct representing microsegmentation policy entered by the user")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

@@ -252,6 +252,178 @@ func (e *TransportPolicyProtocol) UnmarshalJSON(b []byte) error {
 }
 
 //
+// TransportPolicyValidationStatus - Validation Status of transport policy vs
+// network policy
+//
+type TransportPolicyValidationStatus int
+
+//
+// TransportPolicyValidationStatus constants
+//
+const (
+	_ TransportPolicyValidationStatus = iota
+	VALID
+	INVALID
+	PARTIAL
+)
+
+var namesTransportPolicyValidationStatus = []string{
+	VALID:   "VALID",
+	INVALID: "INVALID",
+	PARTIAL: "PARTIAL",
+}
+
+//
+// NewTransportPolicyValidationStatus - return a string representation of the enum
+//
+func NewTransportPolicyValidationStatus(init ...interface{}) TransportPolicyValidationStatus {
+	if len(init) == 1 {
+		switch v := init[0].(type) {
+		case TransportPolicyValidationStatus:
+			return v
+		case int:
+			return TransportPolicyValidationStatus(v)
+		case int32:
+			return TransportPolicyValidationStatus(v)
+		case string:
+			for i, s := range namesTransportPolicyValidationStatus {
+				if s == v {
+					return TransportPolicyValidationStatus(i)
+				}
+			}
+		default:
+			panic("Bad init value for TransportPolicyValidationStatus enum")
+		}
+	}
+	return TransportPolicyValidationStatus(0) //default to the first enum value
+}
+
+//
+// String - return a string representation of the enum
+//
+func (e TransportPolicyValidationStatus) String() string {
+	return namesTransportPolicyValidationStatus[e]
+}
+
+//
+// SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
+func (e TransportPolicyValidationStatus) SymbolSet() []string {
+	return namesTransportPolicyValidationStatus
+}
+
+//
+// MarshalJSON is defined for proper JSON encoding of a TransportPolicyValidationStatus
+//
+func (e TransportPolicyValidationStatus) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyValidationStatus
+//
+func (e *TransportPolicyValidationStatus) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err == nil {
+		s := string(j)
+		for v, s2 := range namesTransportPolicyValidationStatus {
+			if s == s2 {
+				*e = TransportPolicyValidationStatus(v)
+				return nil
+			}
+		}
+		err = fmt.Errorf("Bad enum symbol for type TransportPolicyValidationStatus: %s", s)
+	}
+	return err
+}
+
+//
+// TransportPolicyTrafficDirection - Types of transport policy traffic
+// direction
+//
+type TransportPolicyTrafficDirection int
+
+//
+// TransportPolicyTrafficDirection constants
+//
+const (
+	_ TransportPolicyTrafficDirection = iota
+	INGRESS
+	EGRESS
+)
+
+var namesTransportPolicyTrafficDirection = []string{
+	INGRESS: "INGRESS",
+	EGRESS:  "EGRESS",
+}
+
+//
+// NewTransportPolicyTrafficDirection - return a string representation of the enum
+//
+func NewTransportPolicyTrafficDirection(init ...interface{}) TransportPolicyTrafficDirection {
+	if len(init) == 1 {
+		switch v := init[0].(type) {
+		case TransportPolicyTrafficDirection:
+			return v
+		case int:
+			return TransportPolicyTrafficDirection(v)
+		case int32:
+			return TransportPolicyTrafficDirection(v)
+		case string:
+			for i, s := range namesTransportPolicyTrafficDirection {
+				if s == v {
+					return TransportPolicyTrafficDirection(i)
+				}
+			}
+		default:
+			panic("Bad init value for TransportPolicyTrafficDirection enum")
+		}
+	}
+	return TransportPolicyTrafficDirection(0) //default to the first enum value
+}
+
+//
+// String - return a string representation of the enum
+//
+func (e TransportPolicyTrafficDirection) String() string {
+	return namesTransportPolicyTrafficDirection[e]
+}
+
+//
+// SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
+func (e TransportPolicyTrafficDirection) SymbolSet() []string {
+	return namesTransportPolicyTrafficDirection
+}
+
+//
+// MarshalJSON is defined for proper JSON encoding of a TransportPolicyTrafficDirection
+//
+func (e TransportPolicyTrafficDirection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyTrafficDirection
+//
+func (e *TransportPolicyTrafficDirection) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err == nil {
+		s := string(j)
+		for v, s2 := range namesTransportPolicyTrafficDirection {
+			if s == s2 {
+				*e = TransportPolicyTrafficDirection(v)
+				return nil
+			}
+		}
+		err = fmt.Errorf("Bad enum symbol for type TransportPolicyTrafficDirection: %s", s)
+	}
+	return err
+}
+
+//
 // TransportPolicySubject - Subject for a transport policy
 //
 type TransportPolicySubject struct {
@@ -883,6 +1055,124 @@ func (self *TransportPolicyRules) Validate() error {
 	if self.Egress == nil {
 		return fmt.Errorf("TransportPolicyRules: Missing required field: egress")
 	}
+	return nil
+}
+
+//
+// TransportPolicyValidationRequest - Transport policy request object to be
+// validated
+//
+type TransportPolicyValidationRequest struct {
+
+	//
+	// Describes the entity to which this transport policy applies
+	//
+	EntitySelector *TransportPolicyEntitySelector `json:"entitySelector"`
+
+	//
+	// source or destination of the network traffic depending on direction
+	//
+	Peer             *TransportPolicyPeer            `json:"peer"`
+	TrafficDirection TransportPolicyTrafficDirection `json:"trafficDirection"`
+}
+
+//
+// NewTransportPolicyValidationRequest - creates an initialized TransportPolicyValidationRequest instance, returns a pointer to it
+//
+func NewTransportPolicyValidationRequest(init ...*TransportPolicyValidationRequest) *TransportPolicyValidationRequest {
+	var o *TransportPolicyValidationRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicyValidationRequest)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *TransportPolicyValidationRequest) Init() *TransportPolicyValidationRequest {
+	if self.EntitySelector == nil {
+		self.EntitySelector = NewTransportPolicyEntitySelector()
+	}
+	if self.Peer == nil {
+		self.Peer = NewTransportPolicyPeer()
+	}
+	return self
+}
+
+type rawTransportPolicyValidationRequest TransportPolicyValidationRequest
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyValidationRequest
+//
+func (self *TransportPolicyValidationRequest) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicyValidationRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicyValidationRequest(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *TransportPolicyValidationRequest) Validate() error {
+	if self.EntitySelector == nil {
+		return fmt.Errorf("TransportPolicyValidationRequest: Missing required field: entitySelector")
+	}
+	if self.Peer == nil {
+		return fmt.Errorf("TransportPolicyValidationRequest: Missing required field: peer")
+	}
+	return nil
+}
+
+//
+// TransportPolicyValidationResponse - Response object of transport policy rule
+// validation
+//
+type TransportPolicyValidationResponse struct {
+	Status TransportPolicyValidationStatus `json:"status"`
+	Errors []string                        `json:"errors,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+//
+// NewTransportPolicyValidationResponse - creates an initialized TransportPolicyValidationResponse instance, returns a pointer to it
+//
+func NewTransportPolicyValidationResponse(init ...*TransportPolicyValidationResponse) *TransportPolicyValidationResponse {
+	var o *TransportPolicyValidationResponse
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicyValidationResponse)
+	}
+	return o
+}
+
+type rawTransportPolicyValidationResponse TransportPolicyValidationResponse
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyValidationResponse
+//
+func (self *TransportPolicyValidationResponse) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicyValidationResponse
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicyValidationResponse(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *TransportPolicyValidationResponse) Validate() error {
 	return nil
 }
 
