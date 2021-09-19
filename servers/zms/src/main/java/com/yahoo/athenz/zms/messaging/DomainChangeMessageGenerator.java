@@ -42,15 +42,15 @@ public class DomainChangeMessageGenerator {
                     break;
             }
             if (objectType != null) {
-                domainChangeMessage = DomainChangeMessageGenerator.genericUri(uriArgs, methodArgs, objectType);
+                domainChangeMessage = genericUri(uriArgs, methodArgs, objectType);
             }
         }
         
         if (domainChangeMessage == null) {
             if (uriArgs.get(0).contains("domain")) {
-                domainChangeMessage = DomainChangeMessageGenerator.domainUri(uriArgs, methodArgs);
+                domainChangeMessage = domainUri(uriArgs, methodArgs);
             } else if (uriArgs.get(0).equals("user")) {
-                domainChangeMessage = userUri(uriArgs, methodArgs, DomainChangeMessage.ObjectType.USER);
+                domainChangeMessage = userUri(uriArgs, methodArgs);
             }
         }
 
@@ -97,10 +97,10 @@ public class DomainChangeMessageGenerator {
         return null;
     }
 
-    private static DomainChangeMessage userUri(List<String> uriArgs, Object[] methodArgs, DomainChangeMessage.ObjectType objectType) {
+    private static DomainChangeMessage userUri(List<String> uriArgs, Object[] methodArgs) {
         String objectName = (String) methodArgs[0];
         return new DomainChangeMessage()
-            .setObjectType(objectType)
+            .setObjectType(DomainChangeMessage.ObjectType.USER)
             .setObjectName(objectName);
     }
 
