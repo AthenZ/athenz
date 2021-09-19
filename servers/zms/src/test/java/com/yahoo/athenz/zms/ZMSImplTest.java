@@ -16476,8 +16476,8 @@ public class ZMSImplTest {
 
         final String domainName = "setup-policy-with-assert-all-versions";
 
-        Policy policy1 = createPolicyObject(domainName, "policy1").setActive(true);
-        Policy policy2 = createPolicyObject(domainName, "policy2").setActive(false);
+        Policy policy1 = createPolicyObject(domainName, "policy1").setActive(true).setVersion("ver1");
+        Policy policy2 = createPolicyObject(domainName, "policy2").setActive(false).setVersion("ver2");
 
         List<Policy> policyList = new ArrayList<>();
         policyList.add(policy1);
@@ -16489,7 +16489,20 @@ public class ZMSImplTest {
         List<Policy> policies = zms.setupPolicyList(domain, Boolean.TRUE, Boolean.TRUE);
         assertEquals(2, policies.size());
         assertEquals(policies.get(0).getName(), "setup-policy-with-assert-all-versions:policy.policy1");
+        assertEquals(policies.get(0).getVersion(), "ver1");
+        assertTrue(policies.get(0).getActive());
         assertEquals(policies.get(1).getName(), "setup-policy-with-assert-all-versions:policy.policy2");
+        assertEquals(policies.get(1).getVersion(), "ver2");
+        assertFalse(policies.get(1).getActive());
+
+        policies = zms.setupPolicyList(domain, Boolean.FALSE, Boolean.TRUE);
+        assertEquals(2, policies.size());
+        assertEquals(policies.get(0).getName(), "setup-policy-with-assert-all-versions:policy.policy1");
+        assertEquals(policies.get(0).getVersion(), "ver1");
+        assertTrue(policies.get(0).getActive());
+        assertEquals(policies.get(1).getName(), "setup-policy-with-assert-all-versions:policy.policy2");
+        assertEquals(policies.get(1).getVersion(), "ver2");
+        assertFalse(policies.get(1).getActive());
     }
 
     @Test
