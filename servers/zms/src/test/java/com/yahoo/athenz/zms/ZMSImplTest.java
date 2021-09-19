@@ -173,6 +173,7 @@ public class ZMSImplTest {
         ZMSTestUtils.setDatabaseReadOnlyMode(mysqld, readOnlyMode);
     }
 
+
     @BeforeMethod
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
@@ -193,18 +194,18 @@ public class ZMSImplTest {
         System.setProperty(ZMSConsts.ZMS_PROP_MASTER_COPY_FOR_SIGNED_DOMAINS, "true");
 
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
-                "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
+            "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zms_private.pem");
         System.setProperty(ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
         System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
-                "src/test/resources/authorized_services.json");
+            "src/test/resources/authorized_services.json");
         System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
-                "src/test/resources/solution_templates.json");
+            "src/test/resources/solution_templates.json");
         System.setProperty(ZMSConsts.ZMS_PROP_NOAUTH_URI_LIST,
-                "uri1,uri2,uri3+uri4");
+            "uri1,uri2,uri3+uri4");
         System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS,
-                "role,group,policy,service,domain,entity,tenancy,template");
+            "role,group,policy,service,domain,entity,tenancy,template");
 
         System.setProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER, "true");
 
@@ -214,7 +215,6 @@ public class ZMSImplTest {
 
         initializeZms();
     }
-
     @AfterMethod
     public void clearConnections() {
         if (zms != null && zms.objectStore != null) {

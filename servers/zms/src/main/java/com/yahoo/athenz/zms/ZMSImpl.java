@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.token.PrincipalToken;
@@ -22,6 +23,9 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
+import com.yahoo.athenz.common.messaging.DomainChangeMessage;
+import com.yahoo.athenz.common.messaging.DomainChangePublisher;
+import com.yahoo.athenz.common.messaging.DomainChangePublisherFactory;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
@@ -38,24 +42,24 @@ import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
+import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
-import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.config.ConfigManager;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.config.*;
-import com.yahoo.athenz.zms.notification.*;
+import com.yahoo.athenz.zms.messaging.DomainChangeMessageGenerator;
+import com.yahoo.athenz.zms.notification.PutGroupMembershipNotificationTask;
+import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
+import com.yahoo.athenz.zms.notification.ZMSNotificationTaskFactory;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreFactory;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
-import com.yahoo.rdl.JSON;
-import com.yahoo.rdl.Schema;
-import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
-import com.yahoo.rdl.Validator;
+import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.eclipse.jetty.util.StringUtil;
@@ -79,14 +83,15 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
@@ -209,6 +214,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected ZMSGroupMembersFetcher groupMemberFetcher = null;
     protected DomainMetaStore domainMetaStore = null;
     protected NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+    protected DomainChangePublisher domainChangePublisher;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -657,6 +663,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // system disabled from UserAuthority
 
         initializePrincipalStateUpdater();
+        
+        // load the DomainChangePublisher
+        
+        loadDomainChangePublisher();
+    }
+
+    private void loadDomainChangePublisher() {
+        domainChangePublisher = DomainChangePublisherFactory.create();
     }
 
     private void initializePrincipalStateUpdater() {
@@ -9982,20 +9996,39 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public void recordMetrics(ResourceContext ctx, int httpStatus) {
-        final String principalDomainName = getPrincipalDomain(ctx);
-        final String domainName = getRequestDomainName(ctx);
-        final Object timerMetric = getTimerMetric(ctx);
-        final String httpMethod = (ctx != null) ? ctx.getHttpMethod() : null;
-        final String apiName = (ctx != null) ? ctx.getApiName() : null;
-        final String timerName = (apiName != null) ? apiName + "_timing" : null;
-        metric.increment("zms_api", domainName, principalDomainName, httpMethod, httpStatus, apiName);
-        metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
+        try {
+            final String principalDomainName = getPrincipalDomain(ctx);
+            final String domainName = getRequestDomainName(ctx);
+            final Object timerMetric = getTimerMetric(ctx);
+            final String httpMethod = (ctx != null) ? ctx.getHttpMethod() : null;
+            final String apiName = (ctx != null) ? ctx.getApiName() : null;
+            final String timerName = (apiName != null) ? apiName + "_timing" : null;
+            metric.increment("zms_api", domainName, principalDomainName, httpMethod, httpStatus, apiName);
+            metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
+        } catch (Exception e) {
+            LOG.warn("Got exception during recordMetrics: {}", e.getMessage(), e);
+        }
     }
 
-    public void publishChangeEvents(ResourceContext ctx, int httpStatus) {
-        
+    @Override
+    public void publishChangeEvent(ResourceContext ctx, int httpStatus, String uri, Object... methodArgs) {
+        try {
+            if (httpStatus == 200) {
+                DomainChangeMessage domainChangeMessage = DomainChangeMessageGenerator.fromUri(uri, methodArgs);
+                if (domainChangeMessage != null) {
+                    domainChangeMessage.setApiName((ctx != null) ? ctx.getApiName() : null)
+                        .setPublished(Instant.now().toEpochMilli())
+                        .setUuid(java.util.UUID.randomUUID().toString());
+                    domainChangePublisher.publishMessage(domainChangeMessage);
+                } else {
+                    LOG.warn("Failed to generate event for : {}, uri: {}", ctx.getApiName(), uri);
+                }
+            }
+        } catch (Exception e) {
+            LOG.warn("Got exception during publishChangeEvent: {}", e.getMessage(), e);
+        }
     }
-
+    
     static class ZMSGroupMembersFetcher implements AuthzHelper.GroupMembersFetcher {
 
         DBService dbService;

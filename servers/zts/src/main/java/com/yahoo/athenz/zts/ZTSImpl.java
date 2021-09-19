@@ -4529,7 +4529,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
     }
 
-    public void publishChangeEvents(ResourceContext ctx, int httpStatus) {
+    @Override
+    public void publishChangeEvent(ResourceContext ctx, int httpStatus, String uri, Object... methodArgs) {
         // do nothing..   
     }
 

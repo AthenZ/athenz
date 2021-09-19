@@ -258,7 +258,7 @@ public interface {{cName}}Handler {{openBrace}} {{range .Resources}}
     {{methodSig .}};{{end}}
     ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
     void recordMetrics(ResourceContext ctx, int httpStatus);
-    void publishChangeEvents(ResourceContext ctx, int httpStatus);
+    void publishChangeEvent(ResourceContext ctx, int httpStatus, String uri, Object... methodArgs);
 }
 `
 
@@ -480,12 +480,23 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 	s += "                throw typedException(code, e, ResourceError.class);\n" //? really
 	s += "            }\n"
 	s += "        } finally {\n"
-	s += "            this.delegate.recordMetrics(context, code);\n"
 	if r.Method == "POST" || r.Method == "PUT" || r.Method == "DELETE" {
-		s += "            this.delegate.publishChangeEvents(context, code);\n"
+		s += "            this.delegate.publishChangeEvent(context, code, \"" + r.Path + "\", " + methodArgs(r.Inputs) + ");\n"
 	}
+	s += "            this.delegate.recordMetrics(context, code);\n"
 	s += "        }\n"
 	return s
+}
+
+func methodArgs(inputs []*rdl.ResourceInput) string {
+	args := ""
+	for _, in := range inputs {
+		if string(in.Name) != "auditRef" {
+			args += string(in.Name) + ", "
+		}
+	}
+	args = strings.TrimSuffix(args, ", ")
+	return args
 }
 
 func (gen *javaServerGenerator) paramInit(qname string, pname string, ptype rdl.TypeRef, pdefault *interface{}) string {

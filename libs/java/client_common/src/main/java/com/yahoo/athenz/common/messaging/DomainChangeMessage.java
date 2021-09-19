@@ -23,12 +23,14 @@ import java.util.Objects;
 public class DomainChangeMessage {
     
     // Represent the changed object type 
-    enum ObjectType {
+    public enum ObjectType {
         DOMAIN, 
-        ROLE, 
+        ROLE,
+        GROUP,
         POLICY, 
-        SERVICE, 
-        ENTITY
+        SERVICE,
+        ENTITY,
+        USER
     } 
     
     private String domainName;
