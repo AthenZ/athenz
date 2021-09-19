@@ -4583,7 +4583,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 } else {
                     Policy newPolicy = new Policy()
                             .setName(policy.getName())
-                            .setModified(policy.getModified());
+                            .setModified(policy.getModified())
+                            .setVersion(policy.getVersion())
+                            .setActive(policy.getActive());
                     policies.add(newPolicy);
                 }
             }
