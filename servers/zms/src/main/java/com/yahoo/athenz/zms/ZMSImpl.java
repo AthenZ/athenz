@@ -9992,6 +9992,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
     }
 
+    public void publishChangeEvents(ResourceContext ctx, int httpStatus) {
+        
+    }
+
     static class ZMSGroupMembersFetcher implements AuthzHelper.GroupMembersFetcher {
 
         DBService dbService;

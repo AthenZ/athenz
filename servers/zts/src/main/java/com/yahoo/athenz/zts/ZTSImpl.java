@@ -4528,4 +4528,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment("zts_api", domainName, principalDomainName, httpMethod, httpStatus, apiName);
         metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
     }
+
+    public void publishChangeEvents(ResourceContext ctx, int httpStatus) {
+        // do nothing..   
+    }
+
 }

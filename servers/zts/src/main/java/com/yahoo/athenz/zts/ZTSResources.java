@@ -259,6 +259,7 @@ public class ZTSResources {
             }
         } finally {
             this.delegate.recordMetrics(context, code);
+            this.delegate.publishChangeEvents(context, code);
         }
     }
 
@@ -330,6 +331,7 @@ public class ZTSResources {
             }
         } finally {
             this.delegate.recordMetrics(context, code);
+            this.delegate.publishChangeEvents(context, code);
         }
     }
 
@@ -465,6 +467,7 @@ public class ZTSResources {
             }
         } finally {
             this.delegate.recordMetrics(context, code);
+            this.delegate.publishChangeEvents(context, code);
         }
     }
 
@@ -535,6 +538,7 @@ public class ZTSResources {
             }
         } finally {
             this.delegate.recordMetrics(context, code);
+            this.delegate.publishChangeEvents(context, code);
         }
     }
 
@@ -574,6 +578,7 @@ public class ZTSResources {
             }
         } finally {
             this.delegate.recordMetrics(context, code);
+            this.delegate.publishChangeEvents(context, code);
         }
     }
 
@@ -648,6 +653,7 @@ public class ZTSResources {
             }
         } finally {
             this.delegate.recordMetrics(context, code);
+            this.delegate.publishChangeEvents(context, code);
         }
     }
 
@@ -741,6 +747,7 @@ public class ZTSResources {
             }
         } finally {
             this.delegate.recordMetrics(context, code);
+            this.delegate.publishChangeEvents(context, code);
         }
     }
 
@@ -804,6 +811,7 @@ public class ZTSResources {
             }
         } finally {
             this.delegate.recordMetrics(context, code);
+            this.delegate.publishChangeEvents(context, code);
         }
     }
 
@@ -837,6 +845,7 @@ public class ZTSResources {
             }
         } finally {
             this.delegate.recordMetrics(context, code);
+            this.delegate.publishChangeEvents(context, code);
         }
     }
 
