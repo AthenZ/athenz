@@ -3843,7 +3843,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         domain = domain.toLowerCase();
         setRequestDomain(ctx, domain);
         service = service.toLowerCase();
-        
+
+        // There are two possible authorization checks for this endpoint:
+        // 1) provider itself: if the identity of the caller is the provider itself
+        // then the provider is notifying ZTS that the instance was deleted
+        // 2) domain admin: authorize("delete", "{domain}:instance.{instanceId}")
+        // the authorized user can remove the instance record from the datastore
+
+        final String resource = domain + ":instance." + instanceId;
+        if (!(provider.equals(principal.getFullName()) || authorizer.access("delete", resource, principal, null))) {
+            throw forbiddenError("principal not authorized to delete the requested instance record",
+                    caller, domain, principalDomain);
+        }
+
         // remove the cert record for this instance
 
         instanceCertManager.deleteX509CertRecord(provider, instanceId, domain + "." + service);

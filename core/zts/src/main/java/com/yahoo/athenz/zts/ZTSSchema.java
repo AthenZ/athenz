@@ -659,12 +659,12 @@ public class ZTSSchema {
 ;
 
         sb.resource("InstanceIdentity", "DELETE", "/instance/{provider}/{domain}/{service}/{instanceId}")
-            .comment("Delete the given service instance certificate record thus blocking any future refresh requests from the given instance for this service")
+            .comment("Delete the given service instance certificate record thus blocking any future refresh requests from the given instance for this service There are two possible authorization checks for this endpoint: 1) domain admin: authorize(\"delete\", \"{domain}:instance.{instanceId}\") the authorized user can remove the instance record from the datastore 2) provider itself: if the identity of the caller is the provider itself then the provider is notifying ZTS that the instance was deleted")
             .pathParam("provider", "ServiceName", "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")")
             .pathParam("domain", "DomainName", "the domain of the instance")
             .pathParam("service", "SimpleName", "the service this instance is supposed to run")
             .pathParam("instanceId", "PathElement", "unique instance id within provider's namespace")
-            .auth("delete", "{domain}:instance.{instanceId}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
