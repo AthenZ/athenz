@@ -22,7 +22,6 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.Base64URL;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
@@ -85,11 +84,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -7778,13 +7779,85 @@ public class ZTSImplTest {
         Mockito.when(instanceManager.deleteX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(true);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
 
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
+                "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("delete", "athenz:instance.1001", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+
         ztsImpl.instanceCertManager = instanceManager;
 
-        ResourceContext context = createResourceContext(null);
+        ResourceContext context = createResourceContext(principal);
 
         try {
             ztsImpl.deleteInstanceIdentity(context, "athenz.provider",
                 "athenz", "production", "1001");
+        } catch (Exception ex) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testDeleteInstanceIdentityUnauthorized() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        InstanceCertManager instanceManager = Mockito.mock(InstanceCertManager.class);
+        Mockito.when(instanceManager.deleteX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(true);
+        Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user",
+                "doe", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("delete", "athenz:instance.1001", principal, null)).thenReturn(false);
+        ztsImpl.authorizer = authorizer;
+
+        ztsImpl.instanceCertManager = instanceManager;
+
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            ztsImpl.deleteInstanceIdentity(context, "athenz.provider",
+                    "athenz", "production", "1001");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+    }
+
+    @Test
+    public void testDeleteInstanceIdentityProvider() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        InstanceCertManager instanceManager = Mockito.mock(InstanceCertManager.class);
+        Mockito.when(instanceManager.deleteX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(true);
+        Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "provider", "v=U1,d=user;n=doe;s=sig", 0, new PrincipalAuthority());
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("delete", "athenz:instance.1001", principal, null)).thenReturn(false);
+        ztsImpl.authorizer = authorizer;
+
+        ztsImpl.instanceCertManager = instanceManager;
+
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            ztsImpl.deleteInstanceIdentity(context, "athenz.provider",
+                    "athenz", "production", "1001");
         } catch (Exception ex) {
             fail();
         }
@@ -12613,8 +12686,7 @@ public class ZTSImplTest {
         Policy zmsPolicy = new Policy().setActive(false).setVersion("0").setName("coretech:policy.policy1")
                 .setCaseSensitive(false).setModified(Timestamp.fromCurrentTime()).setAssertions(assertions);
 
-        com.yahoo.athenz.zts.Policy ztsPolicy = new com.yahoo.athenz.zts.Policy();
-        ztsPolicy = zts.copyZMSPolicyObject(zmsPolicy, false);
+        com.yahoo.athenz.zts.Policy ztsPolicy = zts.copyZMSPolicyObject(zmsPolicy, false);
         assertNull(ztsPolicy.getActive());
         assertNull(ztsPolicy.getVersion());
         com.yahoo.athenz.zts.Assertion assertion = ztsPolicy.getAssertions().get(0);
@@ -12736,5 +12808,64 @@ public class ZTSImplTest {
         Response response = ztsImpl.postSignedPolicyRequest(context, "coretech", signedPolicyRequest, null);
         assertNull(response.getEntity());
         assertEquals(response.getStatus(), 500);
+    }
+
+    @Test
+    public void testSignJWSPolicyDataECKey() {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY, "src/test/resources/unit_test_zts_private_ec.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ZTSImpl.serverHostName = "localhost";
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        SignedPolicyRequest signedPolicyRequest = new SignedPolicyRequest();
+        signedPolicyRequest.setPolicyVersions(Collections.emptyMap());
+        signedPolicyRequest.setSignatureP1363Format(true);
+
+        Response response = ztsImpl.postSignedPolicyRequest(context, "coretech", signedPolicyRequest, null);
+        assertEquals(response.getStatus(), 200);
+        JWSPolicyData jwsPolicyData = (JWSPolicyData) response.getEntity();
+
+        // using standard DER format signature we're going to get failure
+
+        Function<String, PublicKey> keyGetter = s -> Crypto.extractPublicKey(ztsImpl.privateKey.getKey());
+        assertFalse(Crypto.validateJWSDocument(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getPayload(),
+                jwsPolicyData.getSignature(), keyGetter));
+
+        // now we need to convert to DER format
+
+        final String derSignature = ZTSTestUtils.getDERSignature(jwsPolicyData.getProtectedHeader(),
+                jwsPolicyData.getSignature());
+        assertTrue(Crypto.validateJWSDocument(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getPayload(),
+                derSignature, keyGetter));
+
+        // now we're going to request the jws policy data with DER signature
+
+        signedPolicyRequest.setSignatureP1363Format(false);
+        response = ztsImpl.postSignedPolicyRequest(context, "coretech", signedPolicyRequest, null);
+        assertEquals(response.getStatus(), 200);
+        jwsPolicyData = (JWSPolicyData) response.getEntity();
+
+        // we should be able to validate without any conversion
+
+        assertTrue(Crypto.validateJWSDocument(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getPayload(),
+                jwsPolicyData.getSignature(), keyGetter));
+
+        // set back our private key setting
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
     }
 }

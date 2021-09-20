@@ -113,12 +113,17 @@ resource InstanceRegisterToken GET "/instance/{provider}/{domain}/{service}/{ins
 
 // Delete the given service instance certificate record thus blocking
 // any future refresh requests from the given instance for this service
+// There are two possible authorization checks for this endpoint:
+// 1) domain admin: authorize("delete", "{domain}:instance.{instanceId}")
+// the authorized user can remove the instance record from the datastore
+// 2) provider itself: if the identity of the caller is the provider itself
+// then the provider is notifying ZTS that the instance was deleted
 resource InstanceIdentity DELETE "/instance/{provider}/{domain}/{service}/{instanceId}" {
     ServiceName provider; //the provider service name (i.e. "aws.us-west-2", "paas.manhattan.corp-gq1")
     DomainName domain; //the domain of the instance
     SimpleName service; //the service this instance is supposed to run
     PathElement instanceId; //unique instance id within provider's namespace
-    authorize("delete", "{domain}:instance.{instanceId}");
+    authenticate;
     expected NO_CONTENT;
     exceptions {
         ResourceError BAD_REQUEST;
