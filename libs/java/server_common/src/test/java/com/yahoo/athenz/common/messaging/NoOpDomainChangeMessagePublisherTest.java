@@ -39,7 +39,7 @@ public class NoOpDomainChangeMessagePublisherTest {
     public void invalidFactoryClass() {
         System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS, "com.yahoo.athenz.zms.messaging.noexist");
         try {
-            DomainChangePublisherFactory.create();
+            DomainChangePublisherFactory.create("topic");
             fail();
         } catch (ExceptionInInitializerError ignored) { }
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS);
@@ -47,7 +47,7 @@ public class NoOpDomainChangeMessagePublisherTest {
     
     @Test
     public void testNoOpDomainChangePublisher() {
-        DomainChangePublisher noOpPublisher = DomainChangePublisherFactory.create();
+        DomainChangePublisher noOpPublisher = DomainChangePublisherFactory.create("topic");
         assertTrue(noOpPublisher instanceof NoOpDomainChangePublisher);
         DomainChangeMessage domainChangeMessage = new DomainChangeMessage();
         domainChangeMessage.setDomainName("someDomain")

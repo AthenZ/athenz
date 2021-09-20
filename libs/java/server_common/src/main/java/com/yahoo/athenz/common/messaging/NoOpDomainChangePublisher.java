@@ -23,6 +23,10 @@ package com.yahoo.athenz.common.messaging;
  */
 public class NoOpDomainChangePublisher implements DomainChangePublisher {
 
+    public NoOpDomainChangePublisher(String topicName) {
+        
+    }
+    
     @Override
     public void publishMessage(DomainChangeMessage domainChangeMessage) {
         // do nothing

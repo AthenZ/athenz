@@ -9,11 +9,16 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static com.yahoo.athenz.common.messaging.DomainChangePublisherFactory.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS;
+import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.*;
 
 public class ZMSImplDomainChangeEventTest {
 
@@ -27,6 +32,7 @@ public class ZMSImplDomainChangeEventTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zms_private.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
         System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisher");
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic");
         zms = new ZMSImpl();
     }
 
@@ -37,10 +43,11 @@ public class ZMSImplDomainChangeEventTest {
         System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         System.clearProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS);
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
     }
     
     private MockDomainChangePublisher.Recorder getEventRecorder() {
-        return ((MockDomainChangePublisher) zms.domainChangePublisher).getRecorder();
+        return ((MockDomainChangePublisher) zms.domainChangePublishers.get(0)).getRecorder();
     }
 
     private DomainChangeMessage getActualDomainChangeMessage() {
@@ -49,7 +56,25 @@ public class ZMSImplDomainChangeEventTest {
         verify(evtRecorder, Mockito.times(1)).record(evtArgumentCaptor.capture());
         return evtArgumentCaptor.getValue();
     }
+    
+    @Test
+    public void testNoConfiguredTopic() {
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
+        zms = new ZMSImpl();
+        assertNull(zms.domainChangePublishers);
+    }
 
+    @Test
+    public void testMultipleTopics() {
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic1 , topic2");
+        zms = new ZMSImpl();
+        assertNotNull(zms.domainChangePublishers);
+        List<String> topicNames = zms.domainChangePublishers.stream()
+            .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
+            .collect(Collectors.toList());
+        assertThat(topicNames, containsInAnyOrder("topic1", "topic2"));
+    }
+    
     @Test
     public void testOperationFailure() {
         String apiName = "postTopLevelDomain";

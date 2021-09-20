@@ -329,4 +329,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_ASSERTION_CONDITIONS = "athenz.zms.quota_assertion_conditions";
 
     public static final String ZMS_PROP_MAX_POLICY_VERSIONS_DEFAULT = "3";
+    
+    public static final String ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES = "athenz.zms.domain_changes_topic_names";
+
 }

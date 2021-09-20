@@ -96,6 +96,7 @@ import java.util.stream.Collectors;
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES;
 
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
@@ -214,7 +215,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected ZMSGroupMembersFetcher groupMemberFetcher = null;
     protected DomainMetaStore domainMetaStore = null;
     protected NotificationToEmailConverterCommon notificationToEmailConverterCommon;
-    protected DomainChangePublisher domainChangePublisher;
+    protected List<DomainChangePublisher> domainChangePublishers;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -669,8 +670,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         loadDomainChangePublisher();
     }
 
-    private void loadDomainChangePublisher() {
-        domainChangePublisher = DomainChangePublisherFactory.create();
+    void loadDomainChangePublisher() {
+        String topicNames = System.getProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "");
+        for (String topic : topicNames.split(",")) {
+            if (!topic.isEmpty()) {
+                if (domainChangePublishers == null) {
+                    domainChangePublishers = new ArrayList<>();
+                }
+                domainChangePublishers.add(DomainChangePublisherFactory.create(topic.trim()));
+            }
+        }
     }
 
     private void initializePrincipalStateUpdater() {
@@ -10021,7 +10030,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainChangeMessage.setApiName((ctx != null) ? ctx.getApiName() : null)
                         .setPublished(Instant.now().toEpochMilli())
                         .setUuid(java.util.UUID.randomUUID().toString());
-                    domainChangePublisher.publishMessage(domainChangeMessage);
+                    for (DomainChangePublisher domainChangePublisher : domainChangePublishers) {
+                        domainChangePublisher.publishMessage(domainChangeMessage);   
+                    }
                 } else {
                     LOG.warn("Failed to generate event for : {}, uri: {}", ctx.getApiName(), uri);
                 }

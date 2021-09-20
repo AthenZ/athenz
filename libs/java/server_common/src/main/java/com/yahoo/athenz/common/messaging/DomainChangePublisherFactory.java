@@ -26,23 +26,24 @@ public class DomainChangePublisherFactory {
     public static final String ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS = "athenz.zms.domain_change_publisher_class";
     public static final String ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT = "com.yahoo.athenz.common.messaging.NoOpDomainChangePublisher";
 
-    private static DomainChangePublisher createPublisher() {
+    private static DomainChangePublisher createPublisher(String topicName) {
         DomainChangePublisher instance;
-        String paramStoreClassName = System.getProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS, ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT);
+        String domainChangePublisherClassName = System.getProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS, ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT);
         try {
-            Constructor<?> ctor = Class.forName(paramStoreClassName).getConstructor();
-            instance = (DomainChangePublisher) ctor.newInstance();
+            Constructor<?> ctor = Class.forName(domainChangePublisherClassName).getConstructor(String.class);
+            instance = (DomainChangePublisher) ctor.newInstance(topicName);
         } catch (NoSuchMethodException | ClassNotFoundException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
             throw new ExceptionInInitializerError(e);
         }
         return instance;
     }
-
+    
     /**
      * Creates the domain change publisher
+     * @param topicName topic name to publish the {@link DomainChangeMessage}
      * @return domain change publisher
      */
-    public static DomainChangePublisher create() {
-        return createPublisher();
+    public static DomainChangePublisher create(String topicName) {
+        return createPublisher(topicName);
     }
 }
