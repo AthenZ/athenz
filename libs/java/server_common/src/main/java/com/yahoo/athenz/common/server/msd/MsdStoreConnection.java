@@ -17,6 +17,7 @@
 package com.yahoo.athenz.common.server.msd;
 
 import com.yahoo.athenz.msd.DynamicWorkload;
+import com.yahoo.athenz.msd.StaticWorkload;
 import com.yahoo.athenz.msd.WorkloadOptions;
 import com.yahoo.athenz.msd.Workloads;
 
@@ -27,6 +28,13 @@ import java.util.ArrayList;
  * Storage interface for storing MicroSegmentation Daemon data
  */
 public interface MsdStoreConnection extends Closeable {
+
+    /**
+     * putStaticWorkload stores the Workload value into the underlying storage that can be an RDMS or NoSQL
+     * @param workload static workload to be stored in the underlying storage
+     */
+    default void putStaticWorkload(StaticWorkload workload) {
+    };
 
     /**
      * putDynamicWorkLoad stores the Workload value into the underlying storage that can be an RDMS or NoSQL

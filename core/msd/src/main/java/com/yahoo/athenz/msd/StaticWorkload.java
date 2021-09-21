@@ -23,6 +23,8 @@ public class StaticWorkload {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String name;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp updateTime;
 
     public StaticWorkload setDomainName(String domainName) {
