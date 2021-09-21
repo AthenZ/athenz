@@ -35,6 +35,6 @@ public interface StaticWorkloadDataRepositoryFactory {
      * @param type type of static workload to get appropriate repository from the factory implementation
      * @return static workload data repository object
      */
-    StaticWorkloadDataRepository<?> create(final PrivateKeyStore privateKeyStore, final HostnameResolver hostnameResolver, final MsdStore msdStore,
+    <T> StaticWorkloadDataRepository<T> create(final PrivateKeyStore privateKeyStore, final HostnameResolver hostnameResolver, final MsdStore msdStore,
                                            final StaticWorkloadType type);
 }

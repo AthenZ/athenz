@@ -178,7 +178,7 @@ public class MSDSchema {
             .field("type", "StaticWorkloadType", false, "value representing one of the StaticWorkloadType enum")
             .arrayField("ipAddresses", "String", true, "list of IP addresses associated with the workload, optional for getWorkloadsByIP API call")
             .field("name", "String", true, "name associated with the workload. In most cases will be a FQDN")
-            .field("updateTime", "Timestamp", false, "most recent update timestamp in the backend");
+            .field("updateTime", "Timestamp", true, "most recent update timestamp in the backend");
 
         sb.structType("WorkloadOptions")
             .field("ipChanged", "Bool", false, "boolean flag to signal a change in IP state");

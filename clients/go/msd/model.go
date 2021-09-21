@@ -1597,7 +1597,7 @@ type StaticWorkload struct {
 	//
 	// most recent update timestamp in the backend
 	//
-	UpdateTime rdl.Timestamp `json:"updateTime"`
+	UpdateTime *rdl.Timestamp `json:"updateTime,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 //
@@ -1654,9 +1654,6 @@ func (self *StaticWorkload) Validate() error {
 		if !val.Valid {
 			return fmt.Errorf("StaticWorkload.name does not contain a valid String (%v)", val.Error)
 		}
-	}
-	if self.UpdateTime.IsZero() {
-		return fmt.Errorf("StaticWorkload: Missing required field: updateTime")
 	}
 	return nil
 }

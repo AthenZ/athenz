@@ -28,7 +28,7 @@ public interface StaticWorkloadValidator {
      * Initializes the validator
      * @param repository static workload data repository used by the validator for source of truth data
      */
-    void initialize(StaticWorkloadDataRepository<?> repository);
+    <T> void initialize(StaticWorkloadDataRepository<T> repository);
 
     /**
      * Validates the static workload entry against the business rules and / or repository
