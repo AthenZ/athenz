@@ -22,7 +22,11 @@ import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.ServerCommonConsts;
+import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.server.rest.Http;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RsrcCtxWrapper implements ResourceContext {
 
@@ -30,7 +34,8 @@ public class RsrcCtxWrapper implements ResourceContext {
     private Object timerMetric;
     private boolean optionalAuth;
     private String apiName;
-
+    private List<DomainChangeMessage> domainChangeMessages;
+    
     RsrcCtxWrapper(HttpServletRequest request, HttpServletResponse response,
                    Http.AuthorityList authList, boolean optionalAuth,
                    Authorizer authorizer, Object timerMetric, String apiName) {
@@ -134,5 +139,28 @@ public class RsrcCtxWrapper implements ResourceContext {
         }
         throw new com.yahoo.athenz.zms.ResourceException(restExc.getCode(),
                 new ResourceError().code(restExc.getCode()).message(msg));
+    }
+
+    public void addDomainChangeMessage(DomainChangeMessage domainChangeMsg) {
+        if (domainChangeMessages == null) {
+            domainChangeMessages = new ArrayList<>();
+        }
+        
+        if (isNewTypeMessage(domainChangeMsg)) {
+            domainChangeMessages.add(domainChangeMsg);
+        }
+    }
+
+    private boolean isNewTypeMessage(DomainChangeMessage domainChangeMsg) {
+        for (DomainChangeMessage existMsg : domainChangeMessages) {
+            if (existMsg.getDomainName().equals(domainChangeMsg.getDomainName()) && existMsg.getObjectType() == domainChangeMsg.getObjectType()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public List<DomainChangeMessage> getDomainChangeMessages() {
+        return domainChangeMessages;
     }
 }

@@ -88,6 +88,7 @@ public class ZMSImplDomainChangeEventTest {
         verify(evtRecorder, Mockito.times(0)).record(evtArgumentCaptor.capture());
     }
     
+    // done
     @Test
     public void testPostTopLevelDomain() {
         String apiName = "postTopLevelDomain";
@@ -103,6 +104,7 @@ public class ZMSImplDomainChangeEventTest {
         assertEquals(actual.getObjectName(), name);
     }
 
+    //DONE
     @Test
     public void testPostSubDomain() {
         String apiName = "postSubDomain";
@@ -118,6 +120,7 @@ public class ZMSImplDomainChangeEventTest {
         assertEquals(actual.getObjectName(), name);
     }
 
+    // done
     @Test
     public void testPostUserDomain() {
         String apiName = "postUserDomain";
@@ -133,6 +136,7 @@ public class ZMSImplDomainChangeEventTest {
         assertEquals(actual.getObjectName(), name);
     }
 
+    // done
     @Test
     public void testDeleteTopLevelDomain() {
         String apiName = "deleteTopLevelDomain";

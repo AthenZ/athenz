@@ -22,6 +22,7 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
@@ -39,6 +40,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -380,6 +382,11 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_POST,
                         domainName, auditDetails.toString());
 
+                // add domain change event
+                if (ctx != null) {
+                    ctx.addDomainChangeMessage(domainChangeMessage(domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN, ctx.getApiName()));
+                }
+                
                 return domain;
 
             } catch (ResourceException ex) {
@@ -2240,6 +2247,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         domainName, null);
 
+                // add domain change event
+                ctx.addDomainChangeMessage(domainChangeMessage(domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN, ctx.getApiName()));
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -2351,7 +2361,7 @@ public class DBService implements RolesProvider {
         cacheStore.invalidate(domainName);
     }
 
-    void removePrincipalFromAllRoles(ObjectStoreConnection con, final String principalName,
+    void removePrincipalFromAllRoles(ResourceContext ctx, ObjectStoreConnection con, final String principalName,
             final String adminUser, final String auditRef) {
 
         // extract all the roles that this principal is member of
@@ -2400,10 +2410,13 @@ public class DBService implements RolesProvider {
             con.updateRoleModTimestamp(domainName, roleName);
             con.updateDomainModTimestamp(domainName);
             cacheStore.invalidate(domainName);
+
+            // add domain change event
+            ctx.addDomainChangeMessage(domainChangeMessage(domainName, roleName, DomainChangeMessage.ObjectType.ROLE, ctx.getApiName()));
         }
     }
 
-    void removePrincipalFromAllGroups(ObjectStoreConnection con, final String principalName,
+    void removePrincipalFromAllGroups(ResourceContext ctx, ObjectStoreConnection con, final String principalName,
             final String adminUser, final String auditRef) {
 
         // extract all the groups that this principal is member of
@@ -2452,10 +2465,13 @@ public class DBService implements RolesProvider {
             con.updateGroupModTimestamp(domainName, groupName);
             con.updateDomainModTimestamp(domainName);
             cacheStore.invalidate(domainName);
+
+            // add domain change event
+            ctx.addDomainChangeMessage(domainChangeMessage(domainName, groupName, DomainChangeMessage.ObjectType.GROUP, ctx.getApiName()));
         }
     }
 
-    void removePrincipalDomains(ObjectStoreConnection con, String principalName) {
+    void removePrincipalDomains(ResourceContext ctx, ObjectStoreConnection con, String principalName) {
 
         // first we're going to retrieve the list domains for
         // the given user
@@ -2470,10 +2486,12 @@ public class DBService implements RolesProvider {
 
         con.deleteDomain(principalName);
         cacheStore.invalidate(principalName);
-
+        ctx.addDomainChangeMessage(domainChangeMessage(principalName, principalName, DomainChangeMessage.ObjectType.DOMAIN, ctx.getApiName()));
+        
         for (String subDomain : subDomains) {
             con.deleteDomain(subDomain);
             cacheStore.invalidate(subDomain);
+            ctx.addDomainChangeMessage(domainChangeMessage(subDomain, subDomain, DomainChangeMessage.ObjectType.DOMAIN, ctx.getApiName()));
         }
     }
 
@@ -2522,7 +2540,7 @@ public class DBService implements RolesProvider {
 
                 // remove all principal domains
 
-                removePrincipalDomains(con, domainName);
+                removePrincipalDomains(ctx, con, domainName);
 
                 // extract all principals that this user has - this would
                 // include the user self plus all services this user
@@ -2534,17 +2552,17 @@ public class DBService implements RolesProvider {
                 // can have an audit log record for each role
 
                 final String adminPrincipal = getPrincipalName(ctx);
-                removePrincipalFromAllRoles(con, userName, adminPrincipal, auditRef);
+                removePrincipalFromAllRoles(ctx, con, userName, adminPrincipal, auditRef);
                 for (String userSvcPrincipal : userSvcPrincipals) {
-                    removePrincipalFromAllRoles(con, userSvcPrincipal, adminPrincipal, auditRef);
+                    removePrincipalFromAllRoles(ctx, con, userSvcPrincipal, adminPrincipal, auditRef);
                 }
 
                 // remove this principal from all groups manually so that we
                 // can have an audit log record for each group
 
-                removePrincipalFromAllGroups(con, userName, adminPrincipal, auditRef);
+                removePrincipalFromAllGroups(ctx, con, userName, adminPrincipal, auditRef);
                 for (String userSvcPrincipal : userSvcPrincipals) {
-                    removePrincipalFromAllGroups(con, userSvcPrincipal, adminPrincipal, auditRef);
+                    removePrincipalFromAllGroups(ctx, con, userSvcPrincipal, adminPrincipal, auditRef);
                 }
 
                 // finally, delete the principal object. any roles that were
@@ -7548,6 +7566,16 @@ public class DBService implements RolesProvider {
                 cacheStore.invalidate(dom);
             });
         }
+    }
+
+    private DomainChangeMessage domainChangeMessage(String domainName, String objectName, DomainChangeMessage.ObjectType objectType, String caller) {
+        return new DomainChangeMessage()
+            .setDomainName(domainName)
+            .setObjectName(objectName)
+            .setObjectType(objectType)
+            .setApiName(caller)
+            .setPublished(Instant.now().toEpochMilli())
+            .setUuid(java.util.UUID.randomUUID().toString());
     }
 
     class UserAuthorityFilterEnforcer implements Runnable {

@@ -4436,12 +4436,12 @@ public class DBServiceTest {
 
         // no exception if store returns 404
 
-        zms.dbService.removePrincipalFromAllRoles(conn, "user.joe", adminUser, "unittest");
+        zms.dbService.removePrincipalFromAllRoles(mockDomRsrcCtx, conn, "user.joe", adminUser, "unittest");
 
         // with next we should throw the exception so we should catch it
 
         try {
-            zms.dbService.removePrincipalFromAllRoles(conn, "user.joe", adminUser, "unittest");
+            zms.dbService.removePrincipalFromAllRoles(mockDomRsrcCtx, conn, "user.joe", adminUser, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(501, ex.getCode());
@@ -4494,7 +4494,7 @@ public class DBServiceTest {
 
         // we should handle the exception without any errors
 
-        zms.dbService.removePrincipalFromAllRoles(conn, "user.joe", adminUser, "unittest");
+        zms.dbService.removePrincipalFromAllRoles(mockDomRsrcCtx, conn, "user.joe", adminUser, "unittest");
     }
 
     @Test
@@ -4507,12 +4507,12 @@ public class DBServiceTest {
 
         // no exception if store returns 404
 
-        zms.dbService.removePrincipalFromAllGroups(conn, "user.joe", adminUser, "unittest");
+        zms.dbService.removePrincipalFromAllGroups(mockDomRsrcCtx, conn, "user.joe", adminUser, "unittest");
 
         // with next we should throw the exception so we should catch it
 
         try {
-            zms.dbService.removePrincipalFromAllGroups(conn, "user.joe", adminUser, "unittest");
+            zms.dbService.removePrincipalFromAllGroups(mockDomRsrcCtx, conn, "user.joe", adminUser, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(501, ex.getCode());
@@ -4542,7 +4542,7 @@ public class DBServiceTest {
 
         // we should handle the exception without any errors
 
-        zms.dbService.removePrincipalFromAllGroups(conn, "user.joe", adminUser, "unittest");
+        zms.dbService.removePrincipalFromAllGroups(mockDomRsrcCtx, conn, "user.joe", adminUser, "unittest");
     }
 
     @Test
