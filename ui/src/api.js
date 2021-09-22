@@ -997,11 +997,34 @@ const Api = (req) => {
             });
         },
 
-        getPolicies(domainName, assertions) {
+        getPolicies(domainName, assertions, includeNonActive) {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('policies')
-                    .params({ domainName: domainName, assertions: assertions })
+                    .params({
+                        domainName: domainName,
+                        assertions: assertions,
+                        includeNonActive: includeNonActive,
+                    })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            if (data) {
+                                resolve(data);
+                            } else {
+                                resolve([]);
+                            }
+                        }
+                    });
+            });
+        },
+
+        getPoliciesVersions(domainName, policyName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('policies-versions')
+                    .params({ domainName: domainName, policyName: policyName })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1064,6 +1087,95 @@ const Api = (req) => {
             });
         },
 
+        duplicatePolicyVersion(
+            domainName,
+            policyName,
+            sourceVersionName,
+            newVersionName,
+            _csrf
+        ) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                var params = {
+                    domainName,
+                    policyName,
+                    policyOptions: {
+                        fromVersion: sourceVersionName,
+                        version: newVersionName,
+                    },
+                };
+                fetchr
+                    .create('policy-version')
+                    .params(params)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        setActivePolicyVersion(domainName, policyName, version, _csrf) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                var params = {
+                    domainName,
+                    policyName,
+                    policyOptions: {
+                        version: version,
+                    },
+                };
+                fetchr
+                    .update('policy-version')
+                    .params(params)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        getPolicyVersion(domainName, policyName, version) {
+            // escape zero version
+            let versionEscaped = version;
+            if (versionEscaped === '0') {
+                versionEscaped = '"0"';
+            }
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('policy-version')
+                    .params({
+                        domainName: domainName,
+                        policyName: policyName,
+                        version: versionEscaped,
+                    })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            if (data) {
+                                resolve(data);
+                            } else {
+                                resolve([]);
+                            }
+                        }
+                    });
+            });
+        },
+
         deletePolicy(domainName, policyName, _csrf) {
             return new Promise((resolve, reject) => {
                 fetchr.updateOptions({
@@ -1079,6 +1191,33 @@ const Api = (req) => {
 
                 fetchr
                     .delete('policy')
+                    .params(params)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        deletePolicyVersion(domainName, policyName, version, _csrf) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+
+                var params = {
+                    domainName,
+                    policyName,
+                    version,
+                };
+
+                fetchr
+                    .delete('policy-version')
                     .params(params)
                     .end((err, data) => {
                         if (err) {
@@ -1146,6 +1285,51 @@ const Api = (req) => {
                 };
                 fetchr
                     .create('assertion')
+                    .params(params)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        addAssertionPolicyVersion(
+            domainName,
+            policyName,
+            version,
+            roleName,
+            resource,
+            action,
+            effect,
+            caseSensitive,
+            _csrf
+        ) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                var params = {
+                    domainName,
+                    policyName,
+                    version,
+                    assertion: {
+                        role: domainName + ':role.' + roleName,
+                        resource: NameUtils.getResourceName(
+                            resource,
+                            domainName
+                        ),
+                        effect,
+                        action: action.trim(),
+                        caseSensitive: caseSensitive,
+                    },
+                };
+                fetchr
+                    .create('assertion-version')
                     .params(params)
                     .end((err, data) => {
                         if (err) {
@@ -1244,6 +1428,42 @@ const Api = (req) => {
 
                 fetchr
                     .delete('assertion')
+                    .params(params)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        deleteAssertionPolicyVersion(
+            domainName,
+            policyName,
+            version,
+            assertionId,
+            auditRef,
+            _csrf
+        ) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+
+                let params = {
+                    domainName,
+                    policyName,
+                    version,
+                    assertionId,
+                    auditRef,
+                };
+
+                fetchr
+                    .delete('assertion-version')
                     .params(params)
                     .end((err, data) => {
                         if (err) {

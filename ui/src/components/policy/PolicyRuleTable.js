@@ -141,7 +141,11 @@ export default class PolicyRuleTable extends React.Component {
 
     reLoadAssertions(successMessage, showSuccess) {
         this.api
-            .getPolicy(this.props.domain, this.props.name)
+            .getPolicyVersion(
+                this.props.domain,
+                this.props.name,
+                this.props.version
+            )
             .then((assertions) => {
                 this.setState({
                     assertions: assertions.assertions,
@@ -182,16 +186,17 @@ export default class PolicyRuleTable extends React.Component {
 
     onSubmitDeleteAssertion() {
         this.api
-            .deleteAssertion(
+            .deleteAssertionPolicyVersion(
                 this.props.domain,
                 this.props.name,
+                this.props.version,
                 this.state.deleteAssertionId,
                 DELETE_AUDIT_REFERENCE,
                 this.props._csrf
             )
             .then(() => {
                 this.reLoadAssertions(
-                    `Successfully deleted assertion from policy ${this.props.name}`
+                    `Successfully deleted assertion from policy ${this.props.name} version ${this.props.version}`
                 );
             })
             .catch((err) => {
@@ -232,6 +237,8 @@ export default class PolicyRuleTable extends React.Component {
             let newAssertion =
                 this.props.name +
                     '-' +
+                    this.props.version +
+                    '-' +
                     tempRole +
                     '-' +
                     tempResource +
@@ -240,7 +247,13 @@ export default class PolicyRuleTable extends React.Component {
                 this.state.successMessage;
             rows.push(
                 <TrStyled
-                    key={this.props.name + i + '-assertion'}
+                    key={
+                        this.props.name +
+                        '-' +
+                        this.props.version +
+                        i +
+                        '-assertion'
+                    }
                     isSuccess={newAssertion}
                 >
                     <TDStyled align={left}>{assertion.effect}</TDStyled>
@@ -272,12 +285,13 @@ export default class PolicyRuleTable extends React.Component {
                     submit={this.reLoadAssertions}
                     _csrf={this.props._csrf}
                     name={this.props.name}
+                    version={this.props.version}
                 />
             );
         }
         return (
             <StyleTd
-                colSpan={4}
+                colSpan={7}
                 backgroundColor={'black'}
                 data-testid='ruletable'
             >
@@ -303,10 +317,10 @@ export default class PolicyRuleTable extends React.Component {
                             </TableHeadStyled>
                         </tr>
                         <tr>
-                            <td colSpan={4}>{addAssertion}</td>
+                            <td colSpan={7}>{addAssertion}</td>
                         </tr>
                         <tr>
-                            <td colSpan={4}>
+                            <td colSpan={7}>
                                 <TableDiv>
                                     <StyleTable>
                                         <thead>

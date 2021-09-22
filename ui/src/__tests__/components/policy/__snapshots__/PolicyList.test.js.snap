@@ -71,16 +71,17 @@ exports[`PolicyList should render 1`] = `
 
 .emotion-5 {
   width: 100%;
-  border-spacing: 0;
+  border-spacing: 0 15px;
   display: table;
   border-collapse: separate;
   border-color: grey;
 }
 
 .emotion-7 {
-  text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
+  text-align: center;
+  border-bottom: 2px solid rgb(213, 213, 213);
+  color: rgb(154, 154, 154);
+  padding-bottom: 5px;
   font-weight: 600;
   font-size: 0.8rem;
   padding-bottom: 5px;
@@ -90,10 +91,11 @@ exports[`PolicyList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-11 {
-  text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
+.emotion-9 {
+  text-align: left;
+  border-bottom: 2px solid rgb(213, 213, 213);
+  color: rgb(154, 154, 154);
+  padding-bottom: 5px;
   font-weight: 600;
   font-size: 0.8rem;
   padding-bottom: 5px;
@@ -127,20 +129,35 @@ exports[`PolicyList should render 1`] = `
         <th
           class="emotion-7 emotion-8"
         >
+          Active
+        </th>
+        <th
+          class="emotion-9 emotion-8"
+        >
           Policy
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-9 emotion-8"
+        >
+          Versions
+        </th>
+        <th
+          class="emotion-9 emotion-8"
         >
           Modified Date
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-7 emotion-8"
         >
           Rules
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-7 emotion-8"
+        >
+          Duplicate
+        </th>
+        <th
+          class="emotion-7 emotion-8"
         >
           Delete
         </th>

@@ -82,7 +82,7 @@ export default class PolicyPage extends React.Component {
             api.listUserDomains(),
             api.getHeaderDetails(),
             api.getDomain(props.query.domain),
-            api.getPolicies(props.query.domain),
+            api.getPolicies(props.query.domain, false, true),
             api.getForm(),
             api.getPendingDomainMembersList(),
             api.isAWSTemplateApplied(props.query.domain),

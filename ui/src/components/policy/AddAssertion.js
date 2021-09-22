@@ -75,9 +75,10 @@ export default class AddAssertion extends React.Component {
             return;
         }
         this.api
-            .addAssertion(
+            .addAssertionPolicyVersion(
                 this.props.domain,
                 this.props.name,
+                this.props.version,
                 this.state.role,
                 this.state.resource,
                 this.state.action,
@@ -87,7 +88,7 @@ export default class AddAssertion extends React.Component {
             )
             .then((data) => {
                 this.props.submit(
-                    `${this.props.name}-${this.state.role}-${this.state.resource}-${this.state.action}`,
+                    `${this.props.name}-${this.props.version}-${this.state.role}-${this.state.resource}-${this.state.action}`,
                     false
                 );
             })
@@ -105,7 +106,7 @@ export default class AddAssertion extends React.Component {
                     api={this.api}
                     onChange={this.onChange}
                     domain={this.props.domain}
-                    id={this.props.name}
+                    id={this.props.name + '-' + this.props.version}
                 />
                 {this.state.errorMessage && (
                     <ErrorDiv>

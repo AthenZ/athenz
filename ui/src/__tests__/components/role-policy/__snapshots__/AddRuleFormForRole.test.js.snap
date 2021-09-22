@@ -154,6 +154,13 @@ exports[`AddRuleForm should render 1`] = `
   width: 8px;
 }
 
+.emotion-12>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
 .emotion-21 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -666,6 +673,13 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
   width: 8px;
+}
+
+.emotion-12>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
 }
 
 .emotion-21 {

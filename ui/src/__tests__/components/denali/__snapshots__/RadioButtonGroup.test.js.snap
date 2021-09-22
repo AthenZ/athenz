@@ -106,6 +106,13 @@ exports[`RadioButtonGroup should render 1`] = `
   width: 8px;
 }
 
+.emotion-1>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
 <div
   class="emotion-0 denali-radiobutton-group"
   data-testid="radiobuttongroup"
@@ -266,6 +273,13 @@ exports[`RadioButtonGroup should render vertical radio button group 1`] = `
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
   width: 8px;
+}
+
+.emotion-1>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
 }
 
 <div

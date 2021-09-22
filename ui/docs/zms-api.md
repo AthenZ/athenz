@@ -756,7 +756,8 @@ List policies provisioned in this namespace.
 ```
 obj = {
 	"domainName": "<DomainName>", // name of the domain
-	"assertions": "<Bool>" // return list of assertions in the policy
+	"assertions": "<Bool>", // return list of assertions in the policy
+	"includeNonActive": "<Bool>" // include non-active policy versions
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string)
@@ -832,6 +833,22 @@ obj = {
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`Assertion <Struct>`](#assertion-struct)
 
+### putAssertion(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/policy/{policyName}/version/{version}/assertion`
+Add the specified assertion to the given policy version
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"policyName": "<EntityName>", // name of the policy
+	"version": "<SimpleName>", // name of the version
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"assertion": "<Assertion>" // Assertion object to be added to the given policy version
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`SimpleName <String>`](#simplename-string), [`Assertion <Struct>`](#assertion-struct)
+
 ### deleteAssertion(*obj, function(err, json, response) { });
 
 `DELETE /domain/{domainName}/policy/{policyName}/assertion/{assertionId}`
@@ -846,6 +863,157 @@ obj = {
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
+
+### deleteAssertion(*obj, function(err, json, response) { });
+
+`DELETE /domain/{domainName}/policy/{policyName}/version/{version}/assertion/{assertionId}`
+Delete the specified policy version assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"policyName": "<EntityName>", // name of the policy
+	"version": "<SimpleName>", // name of the version
+	"assertionId": "<Int64>", // assertion id
+	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`SimpleName <String>`](#simplename-string)
+
+### putAssertionConditions(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/policy/{policyName}/assertion/{assertionId}/conditions`
+Add the specified conditions to the given assertion
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"policyName": "<EntityName>", // name of the policy
+	"assertionId": "<Int64>", // assertion id
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"assertionConditions": "<AssertionConditions>" // Assertion conditions object to be added to the given assertion
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`AssertionConditions <Struct>`](#assertionconditions-struct)
+
+### putAssertionCondition(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/policy/{policyName}/assertion/{assertionId}/condition`
+Add the specified condition to the existing assertion conditions of an assertion
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"policyName": "<EntityName>", // name of the policy
+	"assertionId": "<Int64>", // assertion id
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"assertionCondition": "<AssertionCondition>" // Assertion conditions object to be added to the given assertion
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`AssertionCondition <Struct>`](#assertioncondition-struct)
+
+### deleteAssertionConditions(*obj, function(err, json, response) { });
+
+`DELETE /domain/{domainName}/policy/{policyName}/assertion/{assertionId}/conditions`
+Delete all assertion conditions for specified assertion id. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"policyName": "<EntityName>", // name of the policy
+	"assertionId": "<Int64>", // assertion id
+	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
+
+### deleteAssertionCondition(*obj, function(err, json, response) { });
+
+`DELETE /domain/{domainName}/policy/{policyName}/assertion/{assertionId}/condition/{conditionId}`
+Delete the assertion condition(s) for specified assertion id and condition id. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"policyName": "<EntityName>", // name of the policy
+	"assertionId": "<Int64>", // assertion id
+	"conditionId": "<Int32>", // condition id
+	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
+
+### getPolicyList(*obj, function(err, json, response) { });
+
+`GET /domain/{domainName}/policy/{policyName}/version`
+List policy versions.
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"policyName": "<EntityName>" // name of the policy
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
+
+### getPolicy(*obj, function(err, json, response) { });
+
+`GET /domain/{domainName}/policy/{policyName}/version/{version}`
+Get the specified policy version.
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"policyName": "<EntityName>", // name of the policy
+	"version": "<SimpleName>" // name of the version to be retrieved
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`SimpleName <String>`](#simplename-string)
+
+### putPolicyOptions(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/policy/{policyName}/version/create`
+Create a new disabled policy version based on active policy
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"policyName": "<EntityName>", // name of the policy to be added/updated
+	"policyOptions": "<PolicyOptions>", // name of the source version to copy from and name of new version
+	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`PolicyOptions <Struct>`](#policyoptions-struct)
+
+### putPolicyOptions(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/policy/{policyName}/version/active`
+Mark the specified policy version as active
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"policyName": "<EntityName>", // name of the policy
+	"policyOptions": "<PolicyOptions>", // name of the version
+	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`PolicyOptions <Struct>`](#policyoptions-struct)
+
+### deletePolicy(*obj, function(err, json, response) { });
+
+`DELETE /domain/{domainName}/policy/{policyName}/version/{version}`
+Delete the specified policy version. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"policyName": "<EntityName>", // name of the policy
+	"version": "<SimpleName>", // name of the version to be deleted
+	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`SimpleName <String>`](#simplename-string)
 
 ### putServiceIdentity(*obj, function(err, json, response) { });
 
@@ -1180,7 +1348,7 @@ obj = {
 ### getSignedDomains(*obj, function(err, json, response) { });
 
 `GET /sys/modified_domains`
-Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, dont add roles, policies or services, dont sign
+Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, don't add roles, policies or services, don't sign
 
 ```
 obj = {
@@ -1188,6 +1356,7 @@ obj = {
 	"metaOnly": "<String>", // (optional) valid values are "true" or "false"
 	"metaAttr": "<SimpleName>", // (optional) domain meta attribute to filter/return, valid values "account", "ypmId", or "all"
 	"master": "<Bool>", // (optional) for system principals only - request data from master data store and not read replicas if any are configured
+	"conditions": "<Bool>", // (optional) for specific purpose only. If this flag is passed, assertion id and assertion conditions will be included in the response assertions if available
 	"matchingTag": "<String>" // (optional) Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time
 };
 ```
@@ -1200,7 +1369,9 @@ obj = {
 
 ```
 obj = {
-	"name": "<DomainName>" // name of the domain to be retrieved
+	"name": "<DomainName>", // name of the domain to be retrieved
+	"signatureP1363Format": "<Bool>", // (optional) true if signature must be in P1363 format instead of ASN.1 DER
+	"matchingTag": "<String>" // (optional) Retrieved from the previous request, this timestamp specifies to the server to return if the domain was modified since this time
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string)
@@ -1671,6 +1842,46 @@ A compound value of TagValue
         }
     ],
     "closed": false
+}
+```
+
+### AssertionConditionKeyPattern `<String>`
+
+```
+{
+    "type": "String",
+    "name": "AssertionConditionKeyPattern",
+    "pattern": "[a-zA-Z][a-zA-Z0-9_-]+"
+}
+```
+
+### AssertionConditionKey `<String>`
+
+```
+{
+    "type": "String",
+    "name": "AssertionConditionKey",
+    "pattern": "([a-zA-Z][a-zA-Z0-9_-]+\\.)*[a-zA-Z][a-zA-Z0-9_-]+"
+}
+```
+
+### AssertionConditionValuePattern `<String>`
+
+```
+{
+    "type": "String",
+    "name": "AssertionConditionValuePattern",
+    "pattern": "[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*"
+}
+```
+
+### AssertionConditionValue `<String>`
+
+```
+{
+    "type": "String",
+    "name": "AssertionConditionValue",
+    "pattern": "([a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*,)*[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*"
 }
 ```
 
@@ -2496,6 +2707,105 @@ Every assertion can have the effect of ALLOW or DENY.
 }
 ```
 
+### AssertionConditionOperator `<Enum>`
+
+Allowed operators for assertion conditions
+
+
+```
+{
+    "type": "Enum",
+    "name": "AssertionConditionOperator",
+    "comment": "Allowed operators for assertion conditions",
+    "elements": [
+        {
+            "symbol": "EQUALS"
+        }
+    ]
+}
+```
+
+### AssertionConditionData `<Struct>`
+
+A representation of details associated with an assertion condition key
+
+
+```
+{
+    "type": "Struct",
+    "name": "AssertionConditionData",
+    "comment": "A representation of details associated with an assertion condition key",
+    "fields": [
+        {
+            "name": "operator",
+            "type": "AssertionConditionOperator",
+            "optional": false,
+            "comment": "Operator for the assertion condition"
+        },
+        {
+            "name": "value",
+            "type": "AssertionConditionValue",
+            "optional": false,
+            "comment": "Value of the assertion condition"
+        }
+    ],
+    "closed": false
+}
+```
+
+### AssertionCondition `<Struct>`
+
+A representation of condition associated with an assertion
+
+
+```
+{
+    "type": "Struct",
+    "name": "AssertionCondition",
+    "comment": "A representation of condition associated with an assertion",
+    "fields": [
+        {
+            "name": "id",
+            "type": "Int32",
+            "optional": true,
+            "comment": "condition id - auto generated by server. Not required during put operations."
+        },
+        {
+            "name": "conditionsMap",
+            "type": "Map",
+            "optional": false,
+            "comment": "each key in the map represents a unique condition. All the keys present in the map form a logical condition with AND operation.",
+            "items": "AssertionConditionData",
+            "keys": "AssertionConditionKey"
+        }
+    ],
+    "closed": false
+}
+```
+
+### AssertionConditions `<Struct>`
+
+The representation of list of assertion conditions
+
+
+```
+{
+    "type": "Struct",
+    "name": "AssertionConditions",
+    "comment": "The representation of list of assertion conditions",
+    "fields": [
+        {
+            "name": "conditionsList",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of assertion conditions.",
+            "items": "AssertionCondition"
+        }
+    ],
+    "closed": false
+}
+```
+
 ### Assertion `<Struct>`
 
 A representation for the encapsulation of an action to be performed on a resource by a principal.
@@ -2543,6 +2853,12 @@ A representation for the encapsulation of an action to be performed on a resourc
             "type": "Bool",
             "optional": true,
             "comment": "If true, we should store action and resource in their original case"
+        },
+        {
+            "name": "conditions",
+            "type": "AssertionConditions",
+            "optional": true,
+            "comment": "optional list of assertion conditions associated with given assertion"
         }
     ],
     "closed": false
@@ -2584,6 +2900,18 @@ The representation for a Policy with set of assertions.
             "type": "Bool",
             "optional": true,
             "comment": "If true, we should store action and resource in their original case"
+        },
+        {
+            "name": "version",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "optional version string, defaults to 0"
+        },
+        {
+            "name": "active",
+            "type": "Bool",
+            "optional": true,
+            "comment": "if multi-version policy then indicates active version"
         }
     ],
     "closed": false
@@ -2607,6 +2935,34 @@ The representation of list of policy objects
             "optional": false,
             "comment": "list of policy objects",
             "items": "Policy"
+        }
+    ],
+    "closed": false
+}
+```
+
+### PolicyOptions `<Struct>`
+
+Options for Policy Management Requests
+
+
+```
+{
+    "type": "Struct",
+    "name": "PolicyOptions",
+    "comment": "Options for Policy Management Requests",
+    "fields": [
+        {
+            "name": "version",
+            "type": "SimpleName",
+            "optional": false,
+            "comment": "policy version"
+        },
+        {
+            "name": "fromVersion",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "optional source version used when creating a new version, defaults to 0"
         }
     ],
     "closed": false
@@ -4040,7 +4396,7 @@ A signed bulk transfer of policies. The data is signed with server's private key
             "name": "signature",
             "type": "String",
             "optional": false,
-            "comment": "signature generated based on the domain policies object"
+            "comment": "signature generated based on the domain active policies object"
         },
         {
             "name": "keyId",
@@ -4499,4 +4855,4 @@ Map of user authority attributes
 ```
 
 
-*generated on Wed Jun 16 2021 14:07:27 GMT+0300 (Israel Daylight Time)*
+*generated on Mon Sep 13 2021 13:17:49 GMT+0300 (Israel Daylight Time)*

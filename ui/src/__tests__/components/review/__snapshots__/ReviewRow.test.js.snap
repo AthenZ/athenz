@@ -119,6 +119,13 @@ exports[`ReviewRow should render 1`] = `
   width: 8px;
 }
 
+.emotion-8>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
 <tr
   class="emotion-0 emotion-1"
   data-testid="review-row"

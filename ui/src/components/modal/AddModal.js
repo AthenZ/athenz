@@ -24,7 +24,7 @@ const MessageDiv = styled.div`
     font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
     padding-bottom: 15px;
     max-height: ${(props) => props.height};
-    overflow-y: scroll;
+    overflow-y: ${(props) => props.overflowY};
 `;
 
 const ButtonDiv = styled.div`
@@ -45,6 +45,7 @@ export default class AddModal extends React.Component {
     render() {
         let width = '805px';
         let height = 'auto';
+        let overflowY = 'scroll';
         let modalHeight = this.props.modalHeight
             ? this.props.modalHeight
             : 'auto';
@@ -53,6 +54,9 @@ export default class AddModal extends React.Component {
         }
         if (this.props.bodyMaxHeight) {
             height = this.props.bodyMaxHeight;
+        }
+        if (this.props.overflowY) {
+            overflowY = this.props.overflowY;
         }
         return (
             <StyledAddModal
@@ -64,12 +68,19 @@ export default class AddModal extends React.Component {
                 height={modalHeight}
             >
                 {this.props.header != null && this.props.header && (
-                    <MessageDiv data-testid='add-modal-message'>
+                    <MessageDiv
+                        data-testid='add-modal-message'
+                        overflowY={overflowY}
+                    >
                         This update requires you to enter the following
                         parameters
                     </MessageDiv>
                 )}
-                <MessageDiv data-testid='add-modal-message' height={height}>
+                <MessageDiv
+                    data-testid='add-modal-message'
+                    height={height}
+                    overflowY={overflowY}
+                >
                     {this.props.sections}
                 </MessageDiv>
                 {this.props.errorMessage && (

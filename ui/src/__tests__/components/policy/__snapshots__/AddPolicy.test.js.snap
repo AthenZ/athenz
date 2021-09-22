@@ -263,6 +263,13 @@ exports[`AddPolicy should render 1`] = `
   width: 8px;
 }
 
+.emotion-24>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
 .emotion-43 {
   position: relative;
   width: 100%;
@@ -1016,6 +1023,13 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
   width: 8px;
+}
+
+.emotion-24>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
 }
 
 .emotion-43 {
@@ -1773,6 +1787,13 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   width: 8px;
 }
 
+.emotion-24>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
 .emotion-43 {
   position: relative;
   width: 100%;
@@ -2526,6 +2547,13 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
   width: 8px;
+}
+
+.emotion-24>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
 }
 
 .emotion-43 {
