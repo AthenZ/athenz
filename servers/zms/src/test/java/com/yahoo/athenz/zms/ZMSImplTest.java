@@ -18239,26 +18239,6 @@ public class ZMSImplTest {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteusersports", auditRef);
     }
 
-    private RsrcCtxWrapper contextWithMockPrincipal(String apiName) {
-        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-        MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        RsrcCtxWrapper wrapperCtx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object(), apiName);
-        com.yahoo.athenz.common.server.rest.ResourceContext ctx = wrapperCtx.context();
-        
-        Principal principal = mock(Principal.class);
-        when(principal.getAuthorizedService()).thenReturn(null);
-        
-        final Field principalField;
-        try {
-            principalField = ctx.getClass().getDeclaredField("principal");
-            principalField.setAccessible(true);
-            principalField.set(ctx, principal);
-        } catch (final NoSuchFieldException | IllegalAccessException ignored) {
-            throw new AssertionError("Failed to get Principal::principal");
-        }
-        return wrapperCtx;
-    }
-
     @Test
     public void testGetDomainRoleMembersInvalidDomain() {
 
@@ -28130,14 +28110,15 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testTopLevelDomainChangeMessage() {
+    public void testDomainChangeMessages() {
+        // postTopLevelDomain events
         String domainName = "test-dom-change-msg";
         TopLevelDomain dom1 = createTopLevelDomainObject("test-dom-change-msg",
             "Test Domain1", "testOrg", adminUser);
 
         RsrcCtxWrapper ctx = contextWithMockPrincipal("postTopLevelDomain");
         zms.postTopLevelDomain(ctx, auditRef, dom1);
-
+        
         List<DomainChangeMessage> changeMsgs = ctx.getDomainChangeMessages();
         assertEquals(changeMsgs.size(), 1);
         DomainChangeMessage createdDomain = changeMsgs.get(0);
@@ -28145,6 +28126,182 @@ public class ZMSImplTest {
         assertEquals(createdDomain.getDomainName(), domainName);
         assertEquals(createdDomain.getApiName(), "postTopLevelDomain".toLowerCase(Locale.ROOT));
 
+        // putDomainTemplate events
+        DomainTemplate domTemplate = new DomainTemplate();
+        List<String> templates = new ArrayList<>();
+        templates.add("vipng");
+        domTemplate.setTemplateNames(templates);
+        ctx = contextWithMockPrincipal("putDomainTemplate");
+        zms.putDomainTemplate(ctx, domainName, auditRef, domTemplate);
+
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertTemplateChanges(domainName, changeMsgs, "putDomainTemplate");
+
+        // deleteDomainTemplate events
+        ctx = contextWithMockPrincipal("deleteDomainTemplate");
+        zms.deleteDomainTemplate(ctx, domainName, "vipng", auditRef);
+
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertTemplateChanges(domainName, changeMsgs, "deleteDomainTemplate");
+
+        // putDomainTemplateExt events
+        ctx = contextWithMockPrincipal("putDomainTemplateExt");
+
+        zms.putDomainTemplateExt(ctx, domainName, "vipng", auditRef, domTemplate);
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertTemplateChanges(domainName, changeMsgs, "putDomainTemplateExt");
+
+        // putDomainMeta events
+        ctx = contextWithMockPrincipal("putDomainMeta");
+        DomainMeta dm = new DomainMeta().setBusinessService("invalid");
+        zms.putDomainMeta(ctx, domainName, auditRef, dm);
+        
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 1);
+        DomainChangeMessage metaChanges = changeMsgs.get(0);
+        assertEquals(metaChanges.getObjectType(), DomainChangeMessage.ObjectType.DOMAIN);
+        assertEquals(metaChanges.getDomainName(), domainName);
+        assertEquals(metaChanges.getApiName(), "putDomainMeta".toLowerCase(Locale.ROOT));
+
+        // putDomainSystemMeta events
+        ctx = contextWithMockPrincipal("putDomainSystemMeta");
+        zms.putDomainSystemMeta(ctx, domainName, "auditenabled", auditRef, dm);
+
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 1);
+        DomainChangeMessage sysMetaChanges = changeMsgs.get(0);
+        assertEquals(sysMetaChanges.getObjectType(), DomainChangeMessage.ObjectType.DOMAIN);
+        assertEquals(sysMetaChanges.getDomainName(), domainName);
+        assertEquals(sysMetaChanges.getApiName(), "putDomainSystemMeta".toLowerCase(Locale.ROOT));
+
+        // putEntity events
+        ctx = contextWithMockPrincipal("putEntity");
+        Entity entity1 = createEntityObject(domainName, "Entity1");
+        zms.putEntity(ctx, domainName, "Entity1", auditRef, entity1);
+
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 1);
+        DomainChangeMessage entityChanges = changeMsgs.get(0);
+        assertEquals(entityChanges.getObjectType(), DomainChangeMessage.ObjectType.ENTITY);
+        assertEquals(entityChanges.getDomainName(), domainName);
+        assertEquals(entityChanges.getObjectName(), "entity1");
+        assertEquals(entityChanges.getApiName(), "putEntity".toLowerCase(Locale.ROOT));
+
+        // deleteEntity events
+        ctx = contextWithMockPrincipal("deleteEntity");
+        zms.deleteEntity(ctx, domainName, "Entity1", auditRef);
+
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 1);
+        entityChanges = changeMsgs.get(0);
+        assertEquals(entityChanges.getObjectType(), DomainChangeMessage.ObjectType.ENTITY);
+        assertEquals(entityChanges.getDomainName(), domainName);
+        assertEquals(entityChanges.getObjectName(), "entity1");
+        assertEquals(entityChanges.getApiName(), "deleteEntity".toLowerCase(Locale.ROOT));
+
+        // putRole events
+        ctx = contextWithMockPrincipal("putRole");
+        String roleName = "role-test1";
+        Role role = createRoleObject(domainName, roleName, null, "user.user101", null);
+        role.setAuditEnabled(true);
+        zms.putRole(ctx, domainName, roleName, auditRef, role);
+
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 1);
+        DomainChangeMessage roleChanges = changeMsgs.get(0);
+        assertEquals(roleChanges.getObjectType(), DomainChangeMessage.ObjectType.ROLE);
+        assertEquals(roleChanges.getDomainName(), domainName);
+        assertEquals(roleChanges.getObjectName(), roleName);
+        assertEquals(roleChanges.getApiName(), "putRole".toLowerCase(Locale.ROOT));
+
+        // putRoleMeta events
+        ctx = contextWithMockPrincipal("putRoleMeta");
+        RoleMeta rm = createRoleMetaObject(true);
+        zms.putRoleMeta(ctx, domainName, roleName, "auditenabled", rm);
+
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 1);
+        roleChanges = changeMsgs.get(0);
+        assertEquals(roleChanges.getObjectType(), DomainChangeMessage.ObjectType.ROLE);
+        assertEquals(roleChanges.getDomainName(), domainName);
+        assertEquals(roleChanges.getObjectName(), roleName);
+        assertEquals(roleChanges.getApiName(), "putRoleMeta".toLowerCase(Locale.ROOT));
+
+        // putMembership events
+        ctx = contextWithMockPrincipal("putMembership");
+        
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.doe");
+        mbr.setActive(true);
+        mbr.setApproved(false);
+
+        zms.putMembership(ctx, domainName, roleName, "user.doe", auditRef, mbr);
+
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 1);
+        DomainChangeMessage membershipChanges = changeMsgs.get(0);
+        assertEquals(membershipChanges.getObjectType(), DomainChangeMessage.ObjectType.ROLE);
+        assertEquals(membershipChanges.getDomainName(), domainName);
+        assertEquals(membershipChanges.getObjectName(), roleName);
+        assertEquals(membershipChanges.getApiName(), "putMembership".toLowerCase(Locale.ROOT));
+
+        // putRoleReview events
+        ctx = contextWithMockPrincipal("putRoleReview");
+        
+        Role inputRole = new Role().setName(roleName);
+        List<RoleMember> inputMembers = new ArrayList<>();
+        inputRole.setRoleMembers(inputMembers);
+        inputMembers.add(new RoleMember().setMemberName("user.doe").setActive(false));
+        zms.putRoleReview(ctx, domainName, roleName, auditRef, inputRole);
+        
+//        // putMembershipDecision events
+//        ctx = contextWithMockPrincipal("putMembershipDecision");
+//        mbr.setActive(true);
+//        mbr.setApproved(true);
+//        zms.putMembershipDecision(ctx, domainName, roleName, "user.doe", auditRef, mbr);
+//
+//        changeMsgs = ctx.getDomainChangeMessages();
+//        assertEquals(changeMsgs.size(), 1);
+//        membershipChanges = changeMsgs.get(0);
+//        assertEquals(membershipChanges.getObjectType(), DomainChangeMessage.ObjectType.ROLE);
+//        assertEquals(membershipChanges.getDomainName(), domainName);
+//        assertEquals(membershipChanges.getObjectName(), roleName);
+//        assertEquals(membershipChanges.getApiName(), "putMembershipDecision".toLowerCase(Locale.ROOT));
+//
+//        // deletePendingMembership events
+//        ctx = contextWithMockPrincipal("putMembership");
+//
+//        Membership mbr1 = new Membership();
+//        mbr1.setMemberName("user.joe");
+//        mbr1.setActive(false);
+//        mbr1.setApproved(false);
+//        
+//        zms.putMembership(mockDomRsrcCtx, domainName, roleName, "user.joe", auditRef, mbr1);
+//        
+//        ctx = contextWithMockPrincipal("deletePendingMembership");
+//        zms.deletePendingMembership(ctx, domainName, roleName, "user.joe", auditRef);
+
+//        changeMsgs = ctx.getDomainChangeMessages();
+//        assertEquals(changeMsgs.size(), 1);
+//        membershipChanges = changeMsgs.get(0);
+//        assertEquals(membershipChanges.getObjectType(), DomainChangeMessage.ObjectType.ROLE);
+//        assertEquals(membershipChanges.getDomainName(), domainName);
+//        assertEquals(membershipChanges.getObjectName(), roleName);
+//        assertEquals(membershipChanges.getApiName(), "deletePendingMembership".toLowerCase(Locale.ROOT));
+        
+//        // deleteMembership events
+//        ctx = contextWithMockPrincipal("deleteMembership");
+//        zms.deleteMembership(ctx, domainName, roleName, "user.doe", auditRef);
+//
+//        changeMsgs = ctx.getDomainChangeMessages();
+//        assertEquals(changeMsgs.size(), 1);
+//        membershipChanges = changeMsgs.get(0);
+//        assertEquals(membershipChanges.getObjectType(), DomainChangeMessage.ObjectType.ROLE);
+//        assertEquals(membershipChanges.getDomainName(), domainName);
+//        assertEquals(membershipChanges.getObjectName(), roleName);
+//        assertEquals(membershipChanges.getApiName(), "deleteMembership".toLowerCase(Locale.ROOT));
+        
+        // postSubDomain events
         RsrcCtxWrapper subCtx = contextWithMockPrincipal("postSubDomain");
 
         SubDomain subDomain = createSubDomainObject("AddSubDom1", domainName,
@@ -28157,9 +28314,9 @@ public class ZMSImplTest {
         createdDomain = changeMsgs.get(0);
         assertEquals(createdDomain.getObjectType(), DomainChangeMessage.ObjectType.DOMAIN);
         assertEquals(createdDomain.getDomainName(), "test-dom-change-msg.addsubdom1");
-        
-        RsrcCtxWrapper deleteCtx = contextWithMockPrincipal("deleteSubDomain");
 
+        // deleteSubDomain events
+        RsrcCtxWrapper deleteCtx = contextWithMockPrincipal("deleteSubDomain");
         zms.deleteSubDomain(deleteCtx, domainName, "AddSubDom1", auditRef);
         changeMsgs = deleteCtx.getDomainChangeMessages();
         assertEquals(changeMsgs.size(), 1);
@@ -28168,8 +28325,8 @@ public class ZMSImplTest {
         assertEquals(deletedDomain.getDomainName(), "test-dom-change-msg.addsubdom1");
         assertEquals(deletedDomain.getApiName(), "deleteSubDomain".toLowerCase(Locale.ROOT));
 
+        // deleteTopLevelDomain events
         deleteCtx = contextWithMockPrincipal("deleteTopLevelDomain");
-
         zms.deleteTopLevelDomain(deleteCtx, domainName, auditRef);
         changeMsgs = deleteCtx.getDomainChangeMessages();
         assertEquals(changeMsgs.size(), 1);
@@ -28177,6 +28334,49 @@ public class ZMSImplTest {
         assertEquals(deletedDomain.getObjectType(), DomainChangeMessage.ObjectType.DOMAIN);
         assertEquals(deletedDomain.getDomainName(), domainName);
         assertEquals(deletedDomain.getApiName(), "deleteTopLevelDomain".toLowerCase(Locale.ROOT));
+    }
 
+    private void assertTemplateChanges(String domainName, List<DomainChangeMessage> changeMsgs, String templateApi) {
+        assertEquals(changeMsgs.size(), 3);
+        DomainChangeMessage deleteTemplateRoleChanges = changeMsgs.get(0);
+        assertEquals(deleteTemplateRoleChanges.getObjectType(), DomainChangeMessage.ObjectType.ROLE);
+        assertEquals(deleteTemplateRoleChanges.getDomainName(), domainName);
+        assertEquals(deleteTemplateRoleChanges.getObjectName(), "vip_admin");
+        assertEquals(deleteTemplateRoleChanges.getApiName(), templateApi.toLowerCase(Locale.ROOT));
+
+        DomainChangeMessage deleteTemplatePolicyChanges = changeMsgs.get(1);
+        assertEquals(deleteTemplatePolicyChanges.getObjectType(), DomainChangeMessage.ObjectType.POLICY);
+        assertEquals(deleteTemplatePolicyChanges.getDomainName(), domainName);
+        assertEquals(deleteTemplatePolicyChanges.getObjectName(), "vip_admin");
+        assertEquals(deleteTemplatePolicyChanges.getApiName(), templateApi.toLowerCase(Locale.ROOT));
+
+        DomainChangeMessage deleteTemplateChanges = changeMsgs.get(2);
+        assertEquals(deleteTemplateChanges.getObjectType(), DomainChangeMessage.ObjectType.TEMPLATE);
+        assertEquals(deleteTemplateChanges.getDomainName(), domainName);
+        assertEquals(deleteTemplateChanges.getObjectName(), "vipng");
+        assertEquals(deleteTemplateChanges.getApiName(), templateApi.toLowerCase(Locale.ROOT));
+    }
+    
+    private RsrcCtxWrapper contextWithMockPrincipal(String apiName) {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+        MockHttpServletResponse servletResponse = new MockHttpServletResponse();
+        RsrcCtxWrapper wrapperCtx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object(), apiName);
+        com.yahoo.athenz.common.server.rest.ResourceContext ctx = wrapperCtx.context();
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=testadminuser";
+        Principal principal = SimplePrincipal.create("user", "testadminuser", adminUnsignedCreds + ";s=signature",
+            0, adminPrincipalAuthority);
+        ((SimplePrincipal) principal).setUnsignedCreds(adminUnsignedCreds);
+                
+        final Field principalField;
+        try {
+            principalField = ctx.getClass().getDeclaredField("principal");
+            principalField.setAccessible(true);
+            principalField.set(ctx, principal);
+        } catch (final NoSuchFieldException | IllegalAccessException ignored) {
+            throw new AssertionError("Failed to get Principal::principal");
+        }
+        return wrapperCtx;
     }
 }

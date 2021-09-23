@@ -50,7 +50,6 @@ import com.yahoo.athenz.common.server.util.config.ConfigManager;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.config.*;
-import com.yahoo.athenz.zms.messaging.DomainChangeMessageGenerator;
 import com.yahoo.athenz.zms.notification.PutGroupMembershipNotificationTask;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.notification.ZMSNotificationTaskFactory;
@@ -83,7 +82,6 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -10037,16 +10035,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     public void publishChangeEvent(ResourceContext ctx, int httpStatus, String uri, Object... methodArgs) {
         try {
             if (httpStatus == 200) {
-                DomainChangeMessage domainChangeMessage = DomainChangeMessageGenerator.fromUri(uri, methodArgs);
-                if (domainChangeMessage != null) {
-                    domainChangeMessage.setApiName((ctx != null) ? ctx.getApiName() : null)
-                        .setPublished(Instant.now().toEpochMilli())
-                        .setUuid(java.util.UUID.randomUUID().toString());
-                    for (DomainChangePublisher domainChangePublisher : domainChangePublishers) {
-                        domainChangePublisher.publishMessage(domainChangeMessage);   
+                for (DomainChangeMessage event : ctx.getDomainChangeMessages()) {
+                    for (DomainChangePublisher publisher : domainChangePublishers) {
+                        publisher.publishMessage(event);
                     }
-                } else {
-                    LOG.warn("Failed to generate event for : {}, uri: {}", ctx.getApiName(), uri);
                 }
             }
         } catch (Exception e) {

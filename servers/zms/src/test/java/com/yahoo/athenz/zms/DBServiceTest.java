@@ -3715,12 +3715,12 @@ public class DBServiceTest {
     @Test
     public void testApplySolutionTemplateNullTemplate() {
         StringBuilder auditDetails = new StringBuilder();
-        assertTrue(zms.dbService.addSolutionTemplate(null, null, "template1",
+        assertTrue(zms.dbService.addSolutionTemplate(mockDomRsrcCtx, null, null, "template1",
                 null, null, null, auditDetails));
         assertEquals("{\"name\": \"template1\"}", auditDetails.toString());
 
         auditDetails.setLength(0);
-        zms.dbService.deleteSolutionTemplate(null, null, "template1", null, auditDetails);
+        zms.dbService.deleteSolutionTemplate(mockDomRsrcCtx, null, null, "template1", null, auditDetails);
         assertEquals("{\"name\": \"template1\"}", auditDetails.toString());
     }
 

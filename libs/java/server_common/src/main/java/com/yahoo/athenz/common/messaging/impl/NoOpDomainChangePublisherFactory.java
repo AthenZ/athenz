@@ -25,6 +25,6 @@ public class NoOpDomainChangePublisherFactory implements DomainChangePublisherFa
     
     @Override
     public DomainChangePublisher create(String topicName) {
-        return new NoOpDomainChangePublisher(topicName);
+        return new NoOpDomainChangePublisher();
     }
 }

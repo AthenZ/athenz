@@ -25,10 +25,6 @@ import com.yahoo.athenz.common.messaging.DomainChangePublisher;
  * Default and empty implementation of {@link DomainChangePublisher}
  */
 public class NoOpDomainChangePublisher implements DomainChangePublisher {
-
-    public NoOpDomainChangePublisher(String topicName) {
-        
-    }
     
     @Override
     public void publishMessage(DomainChangeMessage domainChangeMessage) {

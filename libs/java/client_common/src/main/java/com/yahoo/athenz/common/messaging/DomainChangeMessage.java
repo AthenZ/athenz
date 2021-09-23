@@ -30,7 +30,7 @@ public class DomainChangeMessage {
         POLICY, 
         SERVICE,
         ENTITY,
-        USER
+        TEMPLATE
     } 
     
     private String domainName;
