@@ -16,7 +16,10 @@
  *
  */
 
-package com.yahoo.athenz.common.messaging;
+package com.yahoo.athenz.common.messaging.impl;
+
+import com.yahoo.athenz.common.messaging.DomainChangeMessage;
+import com.yahoo.athenz.common.messaging.DomainChangePublisher;
 
 /**
  * Default and empty implementation of {@link DomainChangePublisher}

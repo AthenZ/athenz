@@ -12,7 +12,6 @@ import org.testng.annotations.Test;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.yahoo.athenz.common.messaging.DomainChangePublisherFactory.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS;
 import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -31,7 +30,7 @@ public class ZMSImplDomainChangeEventTest {
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS, "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zms_private.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
-        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisher");
+        //System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisher");
         System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic");
         zms = new ZMSImpl();
     }
@@ -42,7 +41,7 @@ public class ZMSImplDomainChangeEventTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS);
         System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         System.clearProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
-        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS);
+       // System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS);
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
     }
     
@@ -151,6 +150,7 @@ public class ZMSImplDomainChangeEventTest {
         assertEquals(actual.getObjectName(), name);
     }
 
+    // done
     @Test
     public void testDeleteSubDomain() {
         String apiName = "deleteSubDomain";
@@ -165,6 +165,7 @@ public class ZMSImplDomainChangeEventTest {
         assertEquals(actual.getObjectName(), name);
     }
 
+    // done
     @Test
     public void testDeleteUserDomain() {
         String apiName = "deleteUserDomain";

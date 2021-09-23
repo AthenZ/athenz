@@ -331,5 +331,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_MAX_POLICY_VERSIONS_DEFAULT = "3";
     
     public static final String ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES = "athenz.zms.domain_changes_topic_names";
+    public static final String ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS = "athenz.zms.domain_change_publisher_factory_class";
+    public static final String ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT = "com.yahoo.athenz.common.messaging.impl.NoOpDomainChangePublisherFactory";
 
 }

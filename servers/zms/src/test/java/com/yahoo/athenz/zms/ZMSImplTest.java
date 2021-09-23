@@ -994,34 +994,6 @@ public class ZMSImplTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_DOMAIN_NAME_MAX_SIZE);
         zmsImpl.objectStore.clearConnections();
     }
-
-    @Test
-    public void testTopLevelDomainChangeMessage() {
-        String domainName = "test-dom-change-msg";
-        TopLevelDomain dom1 = createTopLevelDomainObject("test-dom-change-msg",
-            "Test Domain1", "testOrg", adminUser);
-
-        RsrcCtxWrapper ctx = contextWithMockPrincipal("postTopLevelDomain");
-        zms.postTopLevelDomain(ctx, auditRef, dom1);
-
-        List<DomainChangeMessage> changeMsgs = ctx.getDomainChangeMessages();
-        assertEquals(changeMsgs.size(), 1);
-        DomainChangeMessage createdDomain = changeMsgs.get(0);
-        assertEquals(createdDomain.getObjectType(), DomainChangeMessage.ObjectType.DOMAIN);
-        assertEquals(createdDomain.getDomainName(), domainName);
-        assertEquals(createdDomain.getApiName(), "postTopLevelDomain".toLowerCase(Locale.ROOT));
-
-        RsrcCtxWrapper deleteCtx = contextWithMockPrincipal("deleteTopLevelDomain");
-
-        zms.deleteTopLevelDomain(deleteCtx, domainName, auditRef);
-        changeMsgs = deleteCtx.getDomainChangeMessages();
-        assertEquals(changeMsgs.size(), 1);
-        DomainChangeMessage deletedDomain = changeMsgs.get(0);
-        assertEquals(deletedDomain.getObjectType(), DomainChangeMessage.ObjectType.DOMAIN);
-        assertEquals(deletedDomain.getDomainName(), domainName);
-        assertEquals(deletedDomain.getApiName(), "deleteTopLevelDomain".toLowerCase(Locale.ROOT));
-
-    }
     
     @Test
     public void testGetDomainList() {
@@ -1403,22 +1375,14 @@ public class ZMSImplTest {
     public void testCreateSubDomain() {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("AddSubDom1",
-                "Test Domain1", "testOrg", adminUser);
+            "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        RsrcCtxWrapper ctx = contextWithMockPrincipal("postSubDomain");
-        
         SubDomain dom2 = createSubDomainObject("AddSubDom2", "AddSubDom1",
-                "Test Domain2", null, adminUser);
-        Domain resDom1 = zms.postSubDomain(ctx, "AddSubDom1", auditRef, dom2);
+            "Test Domain2", null, adminUser);
+        Domain resDom1 = zms.postSubDomain(mockDomRsrcCtx, "AddSubDom1", auditRef, dom2);
         assertNotNull(resDom1);
 
-        List<DomainChangeMessage> changeMsgs = ctx.getDomainChangeMessages();
-        assertEquals(changeMsgs.size(), 1);
-        DomainChangeMessage createdDomain = changeMsgs.get(0);
-        assertEquals(createdDomain.getObjectType(), DomainChangeMessage.ObjectType.DOMAIN);
-        assertEquals(createdDomain.getDomainName(), "addsubdom1.addsubdom2");
-        
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "AddSubDom1.AddSubDom2");
         assertNotNull(resDom2);
 
@@ -1426,7 +1390,6 @@ public class ZMSImplTest {
         assertFalse(resDom2.getAuditEnabled());
 
         zms.deleteSubDomain(mockDomRsrcCtx, "AddSubDom1", "AddSubDom2", auditRef);
-        
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "AddSubDom1", auditRef);
     }
 
@@ -1460,7 +1423,6 @@ public class ZMSImplTest {
     public void testCreateUserDomain() {
 
         RsrcCtxWrapper ctx = contextWithMockPrincipal("postUserDomain");
-
         UserDomain dom1 = createUserDomainObject("hga", "Test Domain1", "testOrg");
         zms.postUserDomain(ctx, "hga", auditRef, dom1);
 
@@ -1473,7 +1435,14 @@ public class ZMSImplTest {
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "user.hga");
         assertNotNull(resDom2);
 
+        RsrcCtxWrapper deleteCtx = contextWithMockPrincipal("deleteUserDomain");
         zms.deleteUserDomain(mockDomRsrcCtx, "hga", auditRef);
+        
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 1);
+        DomainChangeMessage deletedDomain = changeMsgs.get(0);
+        assertEquals(deletedDomain.getObjectType(), DomainChangeMessage.ObjectType.DOMAIN);
+        assertEquals(deletedDomain.getDomainName(), "user.hga");
     }
 
     @Test
@@ -3443,9 +3412,9 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         Mockito.when(mockDomRsrcCtx.getApiName())
-                .thenReturn("posttopleveldomain")
-                .thenReturn("posttopleveldomain")
-                .thenReturn("postsubdomain")
+                .thenReturn("posttopleveldomain").thenReturn("posttopleveldomain") // called twice in domain api
+                .thenReturn("posttopleveldomain").thenReturn("posttopleveldomain") // called twice in domain api
+                .thenReturn("postsubdomain").thenReturn("postsubdomain") // called twice in domain api
                 .thenReturn("putrole")
                 .thenReturn("putmembership");
         TopLevelDomain dom1 = createTopLevelDomainObject("MbrAddDom1",
@@ -3546,9 +3515,9 @@ public class ZMSImplTest {
     public void testPutMembershipExpiration() {
 
         Mockito.when(mockDomRsrcCtx.getApiName())
-                .thenReturn("posttopleveldomain")
-                .thenReturn("posttopleveldomain")
-                .thenReturn("postsubdomain")
+                .thenReturn("posttopleveldomain").thenReturn("posttopleveldomain") // called twice in domain api
+                .thenReturn("posttopleveldomain").thenReturn("posttopleveldomain") // called twice in domain api
+                .thenReturn("postsubdomain").thenReturn("postsubdomain") // called twice in domain api
                 .thenReturn("putrole")
                 .thenReturn("putmembership")
                 .thenReturn("deleteSubDomain")
@@ -24324,10 +24293,10 @@ public class ZMSImplTest {
 
         Mockito.when(mockDomRsrcCtx.getApiName())
                 .thenReturn("putserviceidentity")
-                .thenReturn("posttopleveldomain")
-                .thenReturn("posttopleveldomain")
+                .thenReturn("posttopleveldomain").thenReturn("posttopleveldomain") // called twice in domain api
+                .thenReturn("posttopleveldomain").thenReturn("posttopleveldomain") // called twice in domain api
                 .thenReturn("putserviceidentity")
-                .thenReturn("postsubdomain")
+                .thenReturn("postsubdomain").thenReturn("postsubdomain") // called twice in domain api
                 .thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup") // called 4 times in group api
                 .thenReturn("putgroupmembership");
 
@@ -28158,5 +28127,56 @@ public class ZMSImplTest {
         assertEquals(verPolicy1, verPolicy2);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testTopLevelDomainChangeMessage() {
+        String domainName = "test-dom-change-msg";
+        TopLevelDomain dom1 = createTopLevelDomainObject("test-dom-change-msg",
+            "Test Domain1", "testOrg", adminUser);
+
+        RsrcCtxWrapper ctx = contextWithMockPrincipal("postTopLevelDomain");
+        zms.postTopLevelDomain(ctx, auditRef, dom1);
+
+        List<DomainChangeMessage> changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 1);
+        DomainChangeMessage createdDomain = changeMsgs.get(0);
+        assertEquals(createdDomain.getObjectType(), DomainChangeMessage.ObjectType.DOMAIN);
+        assertEquals(createdDomain.getDomainName(), domainName);
+        assertEquals(createdDomain.getApiName(), "postTopLevelDomain".toLowerCase(Locale.ROOT));
+
+        RsrcCtxWrapper subCtx = contextWithMockPrincipal("postSubDomain");
+
+        SubDomain subDomain = createSubDomainObject("AddSubDom1", domainName,
+            "Test Domain2", null, adminUser);
+        Domain resDom1 = zms.postSubDomain(subCtx,domainName, auditRef, subDomain);
+        assertNotNull(resDom1);
+
+        changeMsgs = subCtx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 1);
+        createdDomain = changeMsgs.get(0);
+        assertEquals(createdDomain.getObjectType(), DomainChangeMessage.ObjectType.DOMAIN);
+        assertEquals(createdDomain.getDomainName(), "test-dom-change-msg.addsubdom1");
+        
+        RsrcCtxWrapper deleteCtx = contextWithMockPrincipal("deleteSubDomain");
+
+        zms.deleteSubDomain(deleteCtx, domainName, "AddSubDom1", auditRef);
+        changeMsgs = deleteCtx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 1);
+        DomainChangeMessage deletedDomain = changeMsgs.get(0);
+        assertEquals(deletedDomain.getObjectType(), DomainChangeMessage.ObjectType.DOMAIN);
+        assertEquals(deletedDomain.getDomainName(), "test-dom-change-msg.addsubdom1");
+        assertEquals(deletedDomain.getApiName(), "deleteSubDomain".toLowerCase(Locale.ROOT));
+
+        deleteCtx = contextWithMockPrincipal("deleteTopLevelDomain");
+
+        zms.deleteTopLevelDomain(deleteCtx, domainName, auditRef);
+        changeMsgs = deleteCtx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 1);
+        deletedDomain = changeMsgs.get(0);
+        assertEquals(deletedDomain.getObjectType(), DomainChangeMessage.ObjectType.DOMAIN);
+        assertEquals(deletedDomain.getDomainName(), domainName);
+        assertEquals(deletedDomain.getApiName(), "deleteTopLevelDomain".toLowerCase(Locale.ROOT));
+
     }
 }

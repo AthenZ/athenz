@@ -677,9 +677,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 if (domainChangePublishers == null) {
                     domainChangePublishers = new ArrayList<>();
                 }
-                domainChangePublishers.add(DomainChangePublisherFactory.create(topic.trim()));
+                domainChangePublishers.add(createPublisher(topic.trim()));
             }
         }
+    }
+
+    private DomainChangePublisher createPublisher(String topicName) {
+        DomainChangePublisherFactory publisherFactory;
+        String domainChangePublisherClassName = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, 
+            ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT);
+        try {
+            publisherFactory = (DomainChangePublisherFactory) Class.forName(domainChangePublisherClassName).newInstance();
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+        return publisherFactory.create(topicName);
     }
 
     private void initializePrincipalStateUpdater() {

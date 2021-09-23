@@ -16,15 +16,15 @@
  *
  */
 
-package com.yahoo.athenz.common.messaging;
+package com.yahoo.athenz.common.messaging.impl;
 
-public interface DomainChangePublisherFactory {
+import com.yahoo.athenz.common.messaging.DomainChangePublisher;
+import com.yahoo.athenz.common.messaging.DomainChangePublisherFactory;
 
-    /**
-     * Creates the domain change publisher
-     * @param topicName topic name to publish the {@link DomainChangeMessage}
-     * @return domain change publisher
-     */
-    DomainChangePublisher create(String topicName);
-
+public class NoOpDomainChangePublisherFactory implements DomainChangePublisherFactory {
+    
+    @Override
+    public DomainChangePublisher create(String topicName) {
+        return new NoOpDomainChangePublisher(topicName);
+    }
 }
