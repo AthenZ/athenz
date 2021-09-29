@@ -12809,6 +12809,7 @@ public class ZTSImplTest {
         assertEquals(response.getStatus(), 500);
     }
 
+    @Test
     public void testSignJWSPolicyDataECKey() {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY, "src/test/resources/unit_test_zts_private_ec.pem");

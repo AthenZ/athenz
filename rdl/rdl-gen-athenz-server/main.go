@@ -493,17 +493,6 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 	return s
 }
 
-func methodArgs(inputs []*rdl.ResourceInput) string {
-	args := ""
-	for _, in := range inputs {
-		if string(in.Name) != "auditRef" {
-			args += string(in.Name) + ", "
-		}
-	}
-	args = strings.TrimSuffix(args, ", ")
-	return args
-}
-
 func (gen *javaServerGenerator) paramInit(qname string, pname string, ptype rdl.TypeRef, pdefault *interface{}) string {
 	reg := gen.registry
 	s := ""
