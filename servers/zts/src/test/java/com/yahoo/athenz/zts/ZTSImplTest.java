@@ -12731,10 +12731,18 @@ public class ZTSImplTest {
         signedPolicyRequest.setPolicyVersions(Collections.emptyMap());
 
         // set the private key to null resulting in an exception
-
         ztsImpl.privateKey = null;
         Response response = ztsImpl.postSignedPolicyRequest(context, "coretech", signedPolicyRequest, null);
         assertNull(response.getEntity());
         assertEquals(response.getStatus(), 500);
+    }
+
+    @Test
+    public void testChangeEvent() {
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+            "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        ztsImpl.publishChangeEvent(context, 200);
     }
 }

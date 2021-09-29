@@ -19,6 +19,6 @@ public interface ResourceContext {
     String getHttpMethod();
     void authenticate();
     void authorize(String action, String resource, String trustedDomain);
-    void addDomainChangeMessage(DomainChangeMessage deleteDomainMessage);
+    void addDomainChangeMessage(DomainChangeMessage domainChangeMsg);
     List<DomainChangeMessage> getDomainChangeMessages();
 }

@@ -4530,7 +4530,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
-    public void publishChangeEvent(ResourceContext ctx, int httpStatus, String uri, Object... methodArgs) {
+    public void publishChangeEvent(ResourceContext ctx, int httpStatus) {
         // do nothing..   
     }
 

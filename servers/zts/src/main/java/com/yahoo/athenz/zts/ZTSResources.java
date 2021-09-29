@@ -258,7 +258,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.publishChangeEvent(context, code, "/domain/{domainName}/policy/signed", domainName, request, matchingTag);
+            this.delegate.publishChangeEvent(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -330,7 +330,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.publishChangeEvent(context, code, "/domain/{domainName}/role/{roleName}/token", domainName, roleName, req);
+            this.delegate.publishChangeEvent(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -466,7 +466,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.publishChangeEvent(context, code, "/instance/{domain}/{service}/refresh", domain, service, req);
+            this.delegate.publishChangeEvent(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -537,7 +537,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.publishChangeEvent(context, code, "/instance", info);
+            this.delegate.publishChangeEvent(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -577,7 +577,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.publishChangeEvent(context, code, "/instance/{provider}/{domain}/{service}/{instanceId}", provider, domain, service, instanceId, info);
+            this.delegate.publishChangeEvent(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -652,7 +652,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.publishChangeEvent(context, code, "/instance/{provider}/{domain}/{service}/{instanceId}", provider, domain, service, instanceId);
+            this.delegate.publishChangeEvent(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -746,7 +746,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.publishChangeEvent(context, code, "/sshcert", certRequest);
+            this.delegate.publishChangeEvent(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -810,7 +810,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.publishChangeEvent(context, code, "/oauth2/token", request);
+            this.delegate.publishChangeEvent(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -844,7 +844,7 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
-            this.delegate.publishChangeEvent(context, code, "/rolecert", req);
+            this.delegate.publishChangeEvent(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }

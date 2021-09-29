@@ -10032,7 +10032,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void publishChangeEvent(ResourceContext ctx, int httpStatus, String uri, Object... methodArgs) {
+    public void publishChangeEvent(ResourceContext ctx, int httpStatus) {
         try {
             if (httpStatus == 200) {
                 for (DomainChangeMessage event : ctx.getDomainChangeMessages()) {

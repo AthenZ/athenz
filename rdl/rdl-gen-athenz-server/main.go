@@ -258,14 +258,17 @@ public interface {{cName}}Handler {{openBrace}} {{range .Resources}}
     {{methodSig .}};{{end}}
     ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
     void recordMetrics(ResourceContext ctx, int httpStatus);
-    void publishChangeEvent(ResourceContext ctx, int httpStatus, String uri, Object... methodArgs);
+    void publishChangeEvent(ResourceContext ctx, int httpStatus);
 }
 `
 
 const javaServerContextTemplate = `{{header}}
 {{package}}
+import com.yahoo.athenz.common.messaging.DomainChangeMessage;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 //
 // ResourceContext
@@ -277,6 +280,8 @@ public interface ResourceContext {
     String getHttpMethod();
     void authenticate();
     void authorize(String action, String resource, String trustedDomain);
+    void addDomainChangeMessage(DomainChangeMessage domainChangeMsg);
+    List<DomainChangeMessage> getDomainChangeMessages();
 }
 `
 
@@ -481,7 +486,7 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 	s += "            }\n"
 	s += "        } finally {\n"
 	if r.Method == "POST" || r.Method == "PUT" || r.Method == "DELETE" {
-		s += "            this.delegate.publishChangeEvent(context, code, \"" + r.Path + "\", " + methodArgs(r.Inputs) + ");\n"
+		s += "            this.delegate.publishChangeEvent(context, code);\n"
 	}
 	s += "            this.delegate.recordMetrics(context, code);\n"
 	s += "        }\n"
