@@ -622,7 +622,7 @@ public class ZTSResources {
     @DELETE
     @Path("/instance/{provider}/{domain}/{service}/{instanceId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Delete the given service instance certificate record thus blocking any future refresh requests from the given instance for this service")
+    @Operation(description = "Delete the given service instance certificate record thus blocking any future refresh requests from the given instance for this service There are two possible authorization checks for this endpoint: 1) domain admin: authorize(\"delete\", \"{domain}:instance.{instanceId}\") the authorized user can remove the instance record from the datastore 2) provider itself: if the identity of the caller is the provider itself then the provider is notifying ZTS that the instance was deleted")
     public void deleteInstanceIdentity(
         @Parameter(description = "the provider service name (i.e. \"aws.us-west-2\", \"paas.manhattan.corp-gq1\")", required = true) @PathParam("provider") String provider,
         @Parameter(description = "the domain of the instance", required = true) @PathParam("domain") String domain,
@@ -632,7 +632,7 @@ public class ZTSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "deleteInstanceIdentity");
-            context.authorize("delete", "" + domain + ":instance." + instanceId + "", null);
+            context.authenticate();
             this.delegate.deleteInstanceIdentity(context, provider, domain, service, instanceId);
         } catch (ResourceException e) {
             code = e.getCode();

@@ -39,7 +39,7 @@ type StaticWorkload Struct {
     StaticWorkloadType type; // value representing one of the StaticWorkloadType enum
     Array<String> ipAddresses (optional); // list of IP addresses associated with the workload, optional for getWorkloadsByIP API call
     String name (optional); // name associated with the workload. In most cases will be a FQDN
-    Timestamp updateTime; // most recent update timestamp in the backend
+    Timestamp updateTime (optional); // most recent update timestamp in the backend
 }
 
 type WorkloadOptions Struct {

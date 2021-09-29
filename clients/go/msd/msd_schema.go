@@ -208,7 +208,7 @@ func init() {
 	tStaticWorkload.Field("type", "StaticWorkloadType", false, nil, "value representing one of the StaticWorkloadType enum")
 	tStaticWorkload.ArrayField("ipAddresses", "String", true, "list of IP addresses associated with the workload, optional for getWorkloadsByIP API call")
 	tStaticWorkload.Field("name", "String", true, nil, "name associated with the workload. In most cases will be a FQDN")
-	tStaticWorkload.Field("updateTime", "Timestamp", false, nil, "most recent update timestamp in the backend")
+	tStaticWorkload.Field("updateTime", "Timestamp", true, nil, "most recent update timestamp in the backend")
 	sb.AddType(tStaticWorkload.Build())
 
 	tWorkloadOptions := rdl.NewStructTypeBuilder("Struct", "WorkloadOptions")
