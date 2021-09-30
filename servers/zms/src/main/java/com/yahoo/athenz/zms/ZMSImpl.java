@@ -23,9 +23,9 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
+import com.yahoo.athenz.common.messaging.ChangePublisher;
+import com.yahoo.athenz.common.messaging.ChangePublisherFactory;
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
-import com.yahoo.athenz.common.messaging.DomainChangePublisher;
-import com.yahoo.athenz.common.messaging.DomainChangePublisherFactory;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
@@ -213,7 +213,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected ZMSGroupMembersFetcher groupMemberFetcher = null;
     protected DomainMetaStore domainMetaStore = null;
     protected NotificationToEmailConverterCommon notificationToEmailConverterCommon;
-    protected List<DomainChangePublisher> domainChangePublishers;
+    protected List<ChangePublisher<DomainChangeMessage>> domainChangePublishers;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -680,16 +680,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    private DomainChangePublisher createPublisher(String topicName) {
-        DomainChangePublisherFactory publisherFactory;
+    private ChangePublisher<DomainChangeMessage> createPublisher(String topicName) {
+        ChangePublisherFactory<DomainChangeMessage> publisherFactory;
         String domainChangePublisherClassName = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, 
             ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT);
         try {
-            publisherFactory = (DomainChangePublisherFactory) Class.forName(domainChangePublisherClassName).newInstance();
+            publisherFactory = (ChangePublisherFactory<DomainChangeMessage>) Class.forName(domainChangePublisherClassName).newInstance();
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             throw new ExceptionInInitializerError(e);
         }
-        return publisherFactory.create(topicName);
+        return publisherFactory.create(keyStore, topicName);
     }
 
     private void initializePrincipalStateUpdater() {
@@ -10036,8 +10036,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             if (httpStatus == 200) {
                 for (DomainChangeMessage event : ctx.getDomainChangeMessages()) {
-                    for (DomainChangePublisher publisher : domainChangePublishers) {
-                        publisher.publishMessage(event);
+                    for (ChangePublisher<DomainChangeMessage> publisher : domainChangePublishers) {
+                        publisher.publish(event);
                     }
                 }
             }

@@ -32,8 +32,8 @@ public class NoOpDomainChangeMessagePublisherTest {
     
     @Test
     public void testNoOpDomainChangePublisher() {
-        DomainChangePublisherFactory factory = new NoOpDomainChangePublisherFactory();
-        DomainChangePublisher noOpPublisher = factory.create("topic");
+        ChangePublisherFactory<DomainChangeMessage> factory = new NoOpDomainChangePublisherFactory();
+        ChangePublisher<DomainChangeMessage> noOpPublisher = factory.create(null, "topic");
         assertTrue(noOpPublisher instanceof NoOpDomainChangePublisher);
         DomainChangeMessage domainChangeMessage = new DomainChangeMessage();
         domainChangeMessage.setDomainName("someDomain")
@@ -42,6 +42,6 @@ public class NoOpDomainChangeMessagePublisherTest {
             .setObjectName("group-obj")
             .setObjectType(DomainChangeMessage.ObjectType.POLICY)
             .setApiName("putGroup");
-        noOpPublisher.publishMessage(domainChangeMessage);
+        noOpPublisher.publish(domainChangeMessage);
     }
 }

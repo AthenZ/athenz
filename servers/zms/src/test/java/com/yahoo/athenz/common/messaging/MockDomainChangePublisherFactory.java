@@ -1,9 +1,11 @@
 package com.yahoo.athenz.common.messaging;
 
-public class MockDomainChangePublisherFactory implements DomainChangePublisherFactory {
+import com.yahoo.athenz.auth.PrivateKeyStore;
+
+public class MockDomainChangePublisherFactory implements ChangePublisherFactory<DomainChangeMessage> {
 
     @Override
-    public DomainChangePublisher create(String topicName) {
+    public ChangePublisher<DomainChangeMessage> create(PrivateKeyStore keyStore, String topicName) {
         return new MockDomainChangePublisher(topicName);
     }
 }
