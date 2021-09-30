@@ -154,7 +154,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_POLICY_VERSION = "SELECT * FROM policy "
             + "JOIN domain ON domain.domain_id=policy.domain_id WHERE domain.name=? AND policy.name=? AND policy.version=?;";
     private static final String SQL_INSERT_POLICY = "INSERT INTO policy (name, domain_id) VALUES (?,?);";
-    private static final String SQL_INSERT_POLICY_VERSION = "INSERT INTO policy (name, domain_id, version, active) VALUES (?,?,?,false);";
+    private static final String SQL_INSERT_POLICY_VERSION = "INSERT INTO policy (name, domain_id, version, active) VALUES (?,?,?,?);";
     private static final String SQL_UPDATE_POLICY = "UPDATE policy SET name=? WHERE policy_id=?;";
     private static final String SQL_UPDATE_POLICY_MOD_TIMESTAMP = "UPDATE policy "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE policy_id=?;";
@@ -2544,6 +2544,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(2, domainId);
             if (!StringUtil.isEmpty(policy.getVersion())) {
                 ps.setString(3, policy.getVersion());
+                ps.setBoolean(4, policy.getActive());
             }
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {

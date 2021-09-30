@@ -397,7 +397,6 @@ public class DBService implements RolesProvider {
 
         boolean requestSuccess;
         if (originalPolicy == null) {
-            policy.setVersion(null);
             requestSuccess = con.insertPolicy(domainName, policy);
         } else {
             requestSuccess = con.updatePolicy(domainName, policy);
@@ -423,7 +422,7 @@ public class DBService implements RolesProvider {
 
             if (newAssertions != null) {
                 for (Assertion assertion : newAssertions) {
-                    if (!con.insertAssertion(domainName, policyName, null, assertion)) {
+                    if (!con.insertAssertion(domainName, policyName, policy.getVersion(), assertion)) {
                         return false;
                     }
                 }
@@ -1021,6 +1020,7 @@ public class DBService implements RolesProvider {
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 originalPolicy.setVersion(version);
+                originalPolicy.setActive(false);
                 if (!con.insertPolicy(domainName, originalPolicy)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() + ", version: " + version, caller);
@@ -1121,8 +1121,18 @@ public class DBService implements RolesProvider {
                 // otherwise we need to make sure our originalPolicy exists
 
                 if (!StringUtil.isEmpty(policy.getVersion()) && originalPolicy == null) {
-                    con.rollbackChanges();
-                    throw ZMSUtils.notFoundError("unknown policy version: " + policy.getVersion(), caller);
+                    // unknown policy version - check to see if we already have a policy with that name
+                    Policy activePolicy = getPolicy(con, domainName, policyName, null);
+                    // If the new version is active and we already have a policy with that name - terminate with error
+                    if (policy.getActive() && activePolicy != null) {
+                        con.rollbackChanges();
+                        throw ZMSUtils.requestError("Policy " + policyName + " already exists with an active version. ", caller);
+                    }
+                    // If the new version is not active and we don't have a policy with that name - terminate with error
+                    if (!policy.getActive() && activePolicy == null) {
+                        con.rollbackChanges();
+                        throw ZMSUtils.notFoundError("Policy " + policyName + " doesn't exist, new version must be active ", caller);
+                    }
                 }
 
                 // now process the request

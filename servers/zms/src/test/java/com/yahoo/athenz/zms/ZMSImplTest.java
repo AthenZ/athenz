@@ -27985,8 +27985,9 @@ public class ZMSImplTest {
 
         Policy policy1 = createPolicyObject(domainName, "policy1");
         policy1.setVersion("1");
+        policy1.setActive(false);
 
-        // this should be rejected as invalid
+        // this should be rejected as invalid as version is specified and marked non-active but no policy exists with that name
 
         try {
             zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy1);
@@ -27997,6 +27998,42 @@ public class ZMSImplTest {
 
         policy1.setVersion(null);
         zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy1);
+
+        Policy policy1NewActive = createPolicyObject(domainName, "policy1");
+        policy1NewActive.setVersion("testversion");
+        policy1NewActive.setActive(true);
+        Assertion assertion = new Assertion();
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "Role1"));
+        assertion.setResource(domainName + ":newpolicyversionnonzero");
+        assertion.setAction("newpolicyaction");
+        policy1NewActive.getAssertions().add(assertion);
+
+        // this should be rejected as invalid as a policy exists with that name with an active policy version (users should use setActivePolicyVersion endpoint to change active version)
+
+        try {
+            zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy1NewActive);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        //  now set a new policy name with this version, "testversion", and make it active - this will create a new policy with version "testversion" instead of the default 0
+        policy1NewActive.setName("newpolicy1");
+        zms.putPolicy(mockDomRsrcCtx, domainName, "newpolicy1", auditRef, policy1NewActive);
+        Policy newpolicy1 = zms.getPolicy(mockDomRsrcCtx, domainName, "newpolicy1");
+        assertEquals(newpolicy1.getName(), "put-policy-version-direct:policy.newpolicy1");
+        assertEquals(newpolicy1.getVersion(), "testversion");
+        List<Assertion> assertionsList = newpolicy1.getAssertions();
+        assertEquals(assertionsList.size(), 2);
+        Assertion originalAssertion = assertionsList.get(0);
+        Assertion newAssertion = assertionsList.get(1);
+        assertEquals(originalAssertion.getResource(), domainName + ":*");
+        assertEquals(newAssertion.getResource(), domainName + ":newpolicyversionnonzero");
+
+        // Make sure it's the only version for this policy
+        PolicyList newpolicy11Versions = zms.getPolicyVersionList(mockDomRsrcCtx, domainName, "newpolicy1");
+        assertEquals(newpolicy11Versions.getNames().size(), 1);
+        assertEquals(newpolicy11Versions.getNames().get(0), "testversion");
 
         // now make a copy to the active version which should be rejected as invalid
 
