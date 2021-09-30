@@ -3442,7 +3442,7 @@ public class DBServiceTest {
 
         // let's create the tenant admin policy
 
-        zms.dbService.setupTenantAdminPolicy(tenantDomain, providerDomain,
+        zms.dbService.setupTenantAdminPolicy(null, tenantDomain, providerDomain,
                 providerService, auditRef, caller);
 
         // the admin policy must be called
@@ -4386,14 +4386,14 @@ public class DBServiceTest {
         // handle exceptions accordingly
 
         try {
-            zms.dbService.removePrincipalFromDomainRoles(conn, "dom1", "user.joe", adminUser, "unittest");
+            zms.dbService.removePrincipalFromDomainRoles(null, conn, "dom1", "user.joe", adminUser, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(404, ex.getCode());
         }
 
         try {
-            zms.dbService.removePrincipalFromDomainRoles(conn, "dom1", "user.joe", adminUser, "unittest");
+            zms.dbService.removePrincipalFromDomainRoles(null, conn, "dom1", "user.joe", adminUser, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(501, ex.getCode());
@@ -4423,7 +4423,7 @@ public class DBServiceTest {
 
         // we should handle the exception without any errors
 
-        zms.dbService.removePrincipalFromDomainRoles(conn, "dom1", "user.joe", adminUser, "unittest");
+        zms.dbService.removePrincipalFromDomainRoles(null, conn, "dom1", "user.joe", adminUser, "unittest");
     }
 
     @Test

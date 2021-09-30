@@ -6538,7 +6538,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!Boolean.FALSE.equals(detail.getCreateAdminRole())) {
             // set up our tenant admin policy so provider can check admin's access
 
-            dbService.setupTenantAdminPolicy(tenantDomain, provSvcDomain,
+            dbService.setupTenantAdminPolicy(ctx, tenantDomain, provSvcDomain,
                     provSvcName, auditRef, caller);
         }
 
@@ -7305,7 +7305,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!Boolean.FALSE.equals(detail.getCreateAdminRole())) {
             // set up our tenant admin policy so provider can check admin's access
 
-            dbService.setupTenantAdminPolicy(tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
+            dbService.setupTenantAdminPolicy(ctx, tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
         }
 
         // now we're going to setup our roles

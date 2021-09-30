@@ -20,6 +20,7 @@ import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
@@ -27,6 +28,11 @@ import org.testng.annotations.Test;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.List;
+import java.util.UUID;
+
+import static com.yahoo.athenz.common.messaging.DomainChangeMessage.ObjectType.DOMAIN;
+import static com.yahoo.athenz.common.messaging.DomainChangeMessage.ObjectType.ROLE;
 import static org.testng.Assert.*;
 
 public class RsrcCtxWrapperTest {
@@ -220,5 +226,61 @@ public class RsrcCtxWrapperTest {
 
         wrapper.logAuthorityId(new PrincipalAuthority());
         assertEquals(servletRequest.getAttribute("com.yahoo.athenz.auth.authority_id"), "Auth-NTOKEN");
+    }
+
+    @Test
+    public void testDomainChangeMessage() {
+
+        HttpServletRequest servletRequest = new MockHttpServletRequest();
+        HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+
+        Object timerMetric = new Object();
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
+            authListMock, false, authorizerMock, timerMetric, "apiName");
+
+        assertNull(wrapper.getDomainChangeMessages());
+
+        // add domain msg
+        wrapper.addDomainChangeMessage(new DomainChangeMessage()
+            .setDomainName("domain1Name")
+            .setObjectName("domain1Name1")
+            .setObjectType(DOMAIN));
+
+        // add domain msg for the same domain - should be ignored
+        wrapper.addDomainChangeMessage(new DomainChangeMessage()
+            .setDomainName("domain1Name")
+            .setObjectName("domain1Name2")
+            .setObjectType(DOMAIN));
+
+        // add role msg for the same domain
+        wrapper.addDomainChangeMessage(new DomainChangeMessage()
+            .setDomainName("domain1Name")
+            .setObjectName("domain1role")
+            .setObjectType(ROLE));
+        
+        // add domain msg for other domain
+        wrapper.addDomainChangeMessage(new DomainChangeMessage()
+            .setDomainName("domain2Name")
+            .setObjectName("domain2Name1")
+            .setObjectType(DOMAIN));
+
+        List<DomainChangeMessage> messages = wrapper.getDomainChangeMessages();
+        
+        assertEquals(messages.size(), 3);
+
+        assertEquals(messages.get(0).getDomainName(), "domain1Name");
+        assertEquals(messages.get(1).getDomainName(), "domain1Name");
+        assertEquals(messages.get(2).getDomainName(), "domain2Name");
+
+        assertEquals(messages.get(0).getObjectType(), DOMAIN);
+        assertEquals(messages.get(1).getObjectType(), ROLE);
+        assertEquals(messages.get(2).getObjectType(), DOMAIN);
+
+        assertEquals(messages.get(0).getObjectName(), "domain1Name1");
+        assertEquals(messages.get(1).getObjectName(), "domain1role");
+        assertEquals(messages.get(2).getObjectName(), "domain2Name1");
     }
 }
