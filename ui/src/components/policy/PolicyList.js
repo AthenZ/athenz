@@ -22,12 +22,43 @@ import AddPolicyToRole from './AddPolicyToRole';
 import PolicyRow from './PolicyRow';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
+import AddModal from '../modal/AddModal';
 import NameUtils from '../utils/NameUtils';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
+import InputLabel from '../denali/InputLabel';
+import Input from '../denali/Input';
+import AppUtils from '../utils/AppUtils';
 
 const PolicySectionDiv = styled.div`
     margin: 20px;
+`;
+
+const SectionDiv = styled.div`
+    align-items: flex-start;
+    display: flex;
+    flex-flow: row nowrap;
+    padding: 10px 30px;
+`;
+
+const StyledInputLabel = styled(InputLabel)`
+    flex: 0 0 100px;
+    margin-right: 2%;
+`;
+
+const StyledInput = styled(Input)`
+    width: 500px;
+`;
+
+const ContentDiv = styled.div`
+    flex: 1 1;
+    margin-right: 10px;
+`;
+
+const SectionsDiv = styled.div`
+    width: 100%;
+    text-align: left;
+    background-color: ${colors.white};
 `;
 
 const AddContainerDiv = styled.div`
@@ -41,7 +72,7 @@ const AddContainerDiv = styled.div`
 
 const PolicyTable = styled.table`
     width: 100%;
-    border-spacing: 0;
+    border-spacing: 0 15px;
     display: table;
     border-collapse: separate;
     border-color: grey;
@@ -49,8 +80,9 @@ const PolicyTable = styled.table`
 
 const TableHeadStyled = styled.th`
     text-align: ${(props) => props.align};
-    border-bottom: 2px solid #d5d5d5;
-    color: #9a9a9a;
+    border-bottom: 2px solid rgb(213, 213, 213);
+    color: rgb(154, 154, 154);
+    padding-bottom: 5px;
     font-weight: 600;
     font-size: 0.8rem;
     padding-bottom: 5px;
@@ -66,13 +98,35 @@ export default class PolicyList extends React.Component {
         this.api = props.api;
         this.onSubmitDeletePolicy = this.onSubmitDeletePolicy.bind(this);
         this.onCancelDeletePolicy = this.onCancelDeletePolicy.bind(this);
+        this.onSubmitDuplicatePolicy = this.onSubmitDuplicatePolicy.bind(this);
+        this.onCancelDuplicatePolicy = this.onCancelDuplicatePolicy.bind(this);
         this.toggleAddPolicy = this.toggleAddPolicy.bind(this);
         this.reloadPolicies = this.reloadPolicies.bind(this);
-        this.closeModal = this.closeModal.bind(this);
+        this.closeModals = this.closeModals.bind(this);
+        this.policyListToMap = this.policyListToMap.bind(this);
+
         this.state = {
-            list: props.policies || [],
+            policiesMap: this.policyListToMap(props.policies),
             showAddPolicy: false,
+            showDelete: false,
+            deletePolicyName: null,
+            showDuplicatePolicy: false,
+            duplicatePolicyName: null,
+            duplicateVersionSourceName: null,
+            duplicateVersionName: null,
         };
+    }
+
+    policyListToMap(policies) {
+        let policyList = policies || [];
+        return policyList.reduce(function (map, obj) {
+            if (!map[obj.name]) {
+                map[obj.name] = [];
+            }
+
+            map[obj.name].push(obj);
+            return map;
+        }, {});
     }
 
     onSubmitDeletePolicy() {
@@ -95,10 +149,45 @@ export default class PolicyList extends React.Component {
             });
     }
 
+    onSubmitDuplicatePolicy() {
+        this.api
+            .duplicatePolicyVersion(
+                this.props.domain,
+                this.state.duplicatePolicyName,
+                this.state.duplicateVersionSourceName,
+                this.state.duplicateVersionName,
+                this.props._csrf
+            )
+            .then(() => {
+                this.state.reloadPolicyVersionsFunc(
+                    'duplicatePolicyVersion',
+                    false,
+                    `${this.state.duplicatePolicyName}` +
+                        '-' +
+                        `${this.state.duplicateVersionName}`,
+                    this.closeModals
+                );
+            })
+            .catch((err) => {
+                this.setState({
+                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                });
+            });
+    }
+
     onCancelDeletePolicy() {
         this.setState({
             showDelete: false,
             deletePolicyName: null,
+        });
+    }
+
+    onCancelDuplicatePolicy() {
+        this.setState({
+            showDuplicatePolicy: false,
+            duplicatePolicyName: null,
+            duplicateVersionName: null,
+            reloadPolicyVersionsFunc: null,
         });
     }
 
@@ -110,36 +199,47 @@ export default class PolicyList extends React.Component {
         });
     }
 
-    reloadPolicies(successMessage, showSuccess) {
-        let role = this.props.role;
+    onClickDuplicatePolicyVersion(
+        policyName,
+        version,
+        reloadPolicyVersionsFunc
+    ) {
+        this.setState({
+            showDuplicatePolicy: true,
+            duplicatePolicyName: policyName,
+            duplicateVersionSourceName: version,
+            reloadPolicyVersionsFunc: reloadPolicyVersionsFunc,
+            errorMessage: null,
+        });
+    }
 
-        this.api
-            .getPolicies(this.props.domain, true)
-            .then((data) => {
-                let filteredPolicies = data;
-                if (role) {
-                    filteredPolicies = data.filter((policy) => {
-                        let included = false;
-                        policy.assertions.forEach((element) => {
-                            if (
-                                NameUtils.getShortName(
-                                    ':role.',
-                                    element.role
-                                ) === role
-                            ) {
-                                included = true;
-                            }
-                        });
-                        return included;
-                    });
-                }
-
+    closeModals(showSuccess, successMessage) {
+        this.setState({
+            showSuccess,
+            successMessage,
+            showAddPolicy: false,
+            showDelete: false,
+            showDuplicatePolicy: false,
+        });
+        setTimeout(
+            () =>
                 this.setState({
-                    list: filteredPolicies,
+                    showSuccess: false,
+                }),
+            MODAL_TIME_OUT
+        );
+    }
+    reloadPolicies(successMessage, showSuccess) {
+        this.api
+            .getPolicies(this.props.domain, false, true)
+            .then((data) => {
+                this.setState({
+                    policiesMap: this.policyListToMap(data),
                     showAddPolicy: false,
                     showSuccess,
                     successMessage,
                     showDelete: false,
+                    showDuplicatePolicy: false,
                 });
                 // this is to close the success alert
                 setTimeout(
@@ -163,60 +263,92 @@ export default class PolicyList extends React.Component {
         });
     }
 
-    closeModal() {
-        this.setState({ showSuccess: null });
+    inputChanged(key, evt) {
+        let value = '';
+        if (evt.target) {
+            value = evt.target.value;
+        } else {
+            value = evt ? evt : '';
+        }
+        this.setState({ [key]: value });
     }
 
     render() {
-        const { domain, role } = this.props;
+        const { domain } = this.props;
         const left = 'left';
         const center = 'center';
-        const rows = this.state.list.map((item, i) => {
+        const policyNames = Object.keys(this.state.policiesMap);
+        const rows = policyNames.map((policyName, i) => {
+            let item = AppUtils.deepClone(
+                this.state.policiesMap[policyName][0]
+            );
+            let activeVersion = this.state.policiesMap[policyName].find(
+                (x) => x.active
+            );
+            // policy modified date of the active version
+            item.modified = activeVersion.modified;
+            // polciy row will be considered the active version (for assertions)
+            item.version = activeVersion.version;
             const name = NameUtils.getShortName(':policy.', item.name);
-            let color = '';
-            if (i % 2 === 0) {
-                color = colors.row;
-            }
             let onClickDeletePolicy = this.onClickDeletePolicy.bind(this, name);
+            let onClickDuplicatePolicyVersion =
+                this.onClickDuplicatePolicyVersion.bind(this, name);
             let newPolicy = name === this.state.successMessage;
             return (
                 <PolicyRow
                     name={name}
+                    isActive={true}
+                    version={item.version}
+                    policyVersions={this.state.policiesMap[policyName]}
                     domain={domain}
-                    role={role}
                     modified={item.modified}
-                    color={color}
                     api={this.api}
-                    key={item.name}
+                    key={item.name + '-' + item.version}
                     _csrf={this.props._csrf}
                     onClickDeletePolicy={onClickDeletePolicy}
+                    onClickDuplicatePolicyVersion={
+                        onClickDuplicatePolicyVersion
+                    }
                     newPolicy={newPolicy}
+                    rowInVersionGroup={'single'}
+                    enableDelete={true}
+                    enableDuplicate={
+                        this.state.policiesMap[policyName].length < 3
+                    }
+                    isChild={false}
                 />
             );
         });
         let addPolicy = this.state.showAddPolicy ? (
-            this.props.role ? (
-                <AddPolicyToRole
-                    showAddPolicy={this.state.showAddPolicy}
-                    onCancel={this.toggleAddPolicy}
-                    onSubmit={this.reloadPolicies}
-                    domain={domain}
-                    role={role}
-                    api={this.api}
-                    _csrf={this.props._csrf}
-                />
-            ) : (
-                <AddPolicy
-                    showAddPolicy={this.state.showAddPolicy}
-                    onCancel={this.toggleAddPolicy}
-                    onSubmit={this.reloadPolicies}
-                    domain={domain}
-                    api={this.api}
-                    _csrf={this.props._csrf}
-                />
-            )
+            <AddPolicy
+                showAddPolicy={this.state.showAddPolicy}
+                onCancel={this.toggleAddPolicy}
+                onSubmit={this.reloadPolicies}
+                domain={domain}
+                api={this.api}
+                _csrf={this.props._csrf}
+            />
         ) : (
             ''
+        );
+        let versionNameChanged = this.inputChanged.bind(
+            this,
+            'duplicateVersionName'
+        );
+        let sections = (
+            <SectionsDiv>
+                <SectionDiv>
+                    <StyledInputLabel>Version Name</StyledInputLabel>
+                    <ContentDiv>
+                        <StyledInput
+                            placeholder='Enter Version Name'
+                            onChange={versionNameChanged}
+                            noanim
+                            fluid
+                        />
+                    </ContentDiv>
+                </SectionDiv>
+            </SectionsDiv>
         );
         return (
             <PolicySectionDiv data-testid='policylist'>
@@ -231,14 +363,23 @@ export default class PolicyList extends React.Component {
                 <PolicyTable>
                     <thead>
                         <tr>
+                            <TableHeadStyled align={center}>
+                                Active
+                            </TableHeadStyled>
                             <TableHeadStyled align={left}>
                                 Policy
+                            </TableHeadStyled>
+                            <TableHeadStyled align={left}>
+                                Versions
                             </TableHeadStyled>
                             <TableHeadStyled align={left}>
                                 Modified Date
                             </TableHeadStyled>
                             <TableHeadStyled align={center}>
                                 Rules
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                Duplicate
                             </TableHeadStyled>
                             <TableHeadStyled align={center}>
                                 Delete
@@ -251,7 +392,7 @@ export default class PolicyList extends React.Component {
                     <Alert
                         isOpen={this.state.showSuccess}
                         title={this.state.successMessage}
-                        onClose={this.closeModal}
+                        onClose={() => this.closeModals(false)}
                         type='success'
                     />
                 ) : null}
@@ -265,6 +406,17 @@ export default class PolicyList extends React.Component {
                         message={
                             'Are you sure you want to permanently delete the Policy '
                         }
+                    />
+                ) : null}
+                {this.state.showDuplicatePolicy ? (
+                    <AddModal
+                        isOpen={this.state.showDuplicatePolicy}
+                        cancel={this.onCancelDuplicatePolicy}
+                        submit={this.onSubmitDuplicatePolicy}
+                        errorMessage={this.state.errorMessage}
+                        title={`Add version to ${this.state.duplicatePolicyName} based on version ${this.state.duplicateVersionSourceName}`}
+                        sections={sections}
+                        overflowY={'auto'}
                     />
                 ) : null}
             </PolicySectionDiv>

@@ -108,6 +108,14 @@ const makeCssRadioButton = (props) => css`
         transition: ${!props.noanim ? 'all 0.2s ease-in' : undefined};
         width: 8px;
     }
+
+    /* Disabled checked button */
+    & > input[type='radio']:disabled:checked + label:after {
+        color: ${colors.grey500};
+        border: 2px solid ${colors.grey500};
+        background-color: ${colors.grey500};
+        cursor: not-allowed;
+    }
 `;
 
 /**

@@ -489,6 +489,13 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 8px;
 }
 
+.emotion-40>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
 .emotion-43 {
   float: left;
   font-size: 14px;

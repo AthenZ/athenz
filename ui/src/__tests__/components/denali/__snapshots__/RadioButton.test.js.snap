@@ -85,6 +85,13 @@ exports[`RadioButton should disabled animation 1`] = `
   width: 8px;
 }
 
+.emotion-0>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
 <div
   class="emotion-0 denali-radiobutton"
   data-testid="radiobutton-wrapper"
@@ -190,6 +197,13 @@ exports[`RadioButton should render a disabled radio button 1`] = `
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
   width: 8px;
+}
+
+.emotion-0>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
 }
 
 <div
@@ -301,6 +315,13 @@ exports[`RadioButton should render selected state 1`] = `
   width: 8px;
 }
 
+.emotion-0>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
 <div
   class="emotion-0 denali-radiobutton"
   data-testid="radiobutton-wrapper"
@@ -407,6 +428,13 @@ exports[`RadioButton should render unselected state 1`] = `
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
   width: 8px;
+}
+
+.emotion-0>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
 }
 
 <div

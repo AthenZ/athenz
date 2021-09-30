@@ -62,6 +62,30 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'assertion-version',
+    create(req, resource, params, body, config, callback) {
+        req.clients.zms.putAssertionPolicyVersion(
+            params,
+            responseHandler.bind({
+                caller: 'putAssertionPolicyVersion',
+                callback,
+                req,
+            })
+        );
+    },
+    delete(req, resource, params, config, callback) {
+        req.clients.zms.deleteAssertionPolicyVersion(
+            params,
+            responseHandler.bind({
+                caller: 'deleteAssertionPolicyVersion',
+                callback,
+                req,
+            })
+        );
+    },
+});
+
+Fetchr.registerService({
     name: 'assertionConditions',
     create(req, resource, params, body, config, callback) {
         let assertionConditions = [];
@@ -667,6 +691,30 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'policies-versions',
+    read(req, resource, params, config, callback) {
+        req.clients.zms.getPolicyVersionList(params, function (err, data) {
+            if (!err && Array.isArray(data.list)) {
+                return callback(
+                    null,
+                    data.list.sort((a, b) => {
+                        return a.name > b.name ? 1 : -1;
+                    })
+                );
+            }
+            debug(
+                `principal: ${req.session.shortId} rid: ${
+                    req.headers.rid
+                } Error from ZMS while calling getPolicyVersionList API: ${JSON.stringify(
+                    err
+                )}`
+            );
+            return callback(errorHandler.fetcherError(err));
+        });
+    },
+});
+
+Fetchr.registerService({
     name: 'policy',
     read(req, resource, params, config, callback) {
         req.clients.zms.getPolicy(
@@ -708,6 +756,41 @@ Fetchr.registerService({
     },
     delete(req, resource, params, config, callback) {
         req.clients.zms.deletePolicy(params, function (err, data) {
+            if (err) {
+                return callback(errorHandler.fetcherError(err));
+            } else {
+                callback(null, data);
+            }
+        });
+    },
+});
+
+Fetchr.registerService({
+    name: 'policy-version',
+    create(req, resource, params, body, config, callback) {
+        req.clients.zms.putPolicyVersion(
+            params,
+            responseHandler.bind({ caller: 'putPolicyVersion', callback, req })
+        );
+    },
+    read(req, resource, params, config, callback) {
+        req.clients.zms.getPolicyVersion(
+            params,
+            responseHandler.bind({ caller: 'getPolicyVersion', callback, req })
+        );
+    },
+    update(req, resource, params, body, config, callback) {
+        req.clients.zms.setActivePolicyVersion(
+            params,
+            responseHandler.bind({
+                caller: 'setActivePolicyVersion',
+                callback,
+                req,
+            })
+        );
+    },
+    delete(req, resource, params, config, callback) {
+        req.clients.zms.deletePolicyVersion(params, function (err, data) {
             if (err) {
                 return callback(errorHandler.fetcherError(err));
             } else {

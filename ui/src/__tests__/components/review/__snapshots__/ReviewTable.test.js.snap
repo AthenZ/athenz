@@ -158,6 +158,13 @@ exports[`ReviewTable should render review table 1`] = `
   width: 8px;
 }
 
+.emotion-30>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
 .emotion-94 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -928,6 +935,13 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   width: 8px;
 }
 
+.emotion-30>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
 .emotion-94 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -1696,6 +1710,13 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
   width: 8px;
+}
+
+.emotion-30>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
 }
 
 .emotion-94 {

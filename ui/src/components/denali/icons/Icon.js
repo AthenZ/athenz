@@ -22,9 +22,10 @@ const Icon = (props) => {
     const icon = ICONS[props.icon];
     const width = props.size ? props.size : props.width;
     const height = props.size ? props.size : props.height;
+    const viewBoxDimensions = '0 0 ' + props.viewBoxWidth + ' ' + props.viewBoxHeight;
     return (
         <svg
-            viewBox='0 0 1024 1024'
+            viewBox={viewBoxDimensions}
             width={width}
             height={height}
             className={css`
@@ -36,7 +37,7 @@ const Icon = (props) => {
             ref={props.innerRef}
             data-testid='icon'
         >
-            {props.enableTitle && <title>{props.icon}</title>}
+            {props.enableTitle && <title>{props.title? props.title : props.icon}</title>}
             {icon.map((path, index) => (
                 <path key={index} d={path} />
             ))}
@@ -51,6 +52,9 @@ Icon.propTypes = {
     /* can be used when size height and width are different */
     width: PropTypes.string,
     height: PropTypes.string,
+    /* width and height of viewbox */
+    viewBoxWidth: PropTypes.string,
+    viewBoxHeight: PropTypes.string,
     /* Can be any CSS color (eg. 'red', '#fff', rgba(128, 34, 64, 0.3)) */
     color: PropTypes.string,
     /* Default: text-bottom */
@@ -60,12 +64,16 @@ Icon.propTypes = {
     isLink: PropTypes.bool,
     innerRef: P.oneOfType([P.func, P.object]),
     /*By default icon will display name on hover. Setting this to false will stop it*/
-    enableTitle: PropTypes.bool
+    enableTitle: PropTypes.bool,
+    /*Tooltip that will appear instead of the icon name on hover*/
+    title: PropTypes.string
 };
 
 Icon.defaultProps = {
     icon: 'x',
     size: '1em',
+    viewBoxWidth: '1024',
+    viewBoxHeight: '1024',
     verticalAlign: 'text-bottom',
     enableTitle: true
 };

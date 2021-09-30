@@ -158,6 +158,13 @@ exports[`AddAssertion should render 1`] = `
   width: 8px;
 }
 
+.emotion-14>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
 .emotion-23 {
   box-sizing: border-box;
   display: -webkit-inline-box;
@@ -804,12 +811,12 @@ exports[`AddAssertion should render 1`] = `
         >
           <input
             data-partial="false"
-            id="checkbox-case-sensitiveundefined"
-            name="checkbox-case-sensitiveundefined"
+            id="checkbox-case-sensitiveundefined-undefined"
+            name="checkbox-case-sensitiveundefined-undefined"
             type="checkbox"
           />
           <label
-            for="checkbox-case-sensitiveundefined"
+            for="checkbox-case-sensitiveundefined-undefined"
           >
             Case Sensitive Action and Resource
           </label>
@@ -990,6 +997,13 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
   width: 8px;
+}
+
+.emotion-14>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
 }
 
 .emotion-23 {
@@ -1638,12 +1652,12 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
         >
           <input
             data-partial="false"
-            id="checkbox-case-sensitiveundefined"
-            name="checkbox-case-sensitiveundefined"
+            id="checkbox-case-sensitiveundefined-undefined"
+            name="checkbox-case-sensitiveundefined-undefined"
             type="checkbox"
           />
           <label
-            for="checkbox-case-sensitiveundefined"
+            for="checkbox-case-sensitiveundefined-undefined"
           >
             Case Sensitive Action and Resource
           </label>
@@ -1824,6 +1838,13 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
   width: 8px;
+}
+
+.emotion-14>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
 }
 
 .emotion-23 {
@@ -2472,12 +2493,12 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
         >
           <input
             data-partial="false"
-            id="checkbox-case-sensitiveundefined"
-            name="checkbox-case-sensitiveundefined"
+            id="checkbox-case-sensitiveundefined-undefined"
+            name="checkbox-case-sensitiveundefined-undefined"
             type="checkbox"
           />
           <label
-            for="checkbox-case-sensitiveundefined"
+            for="checkbox-case-sensitiveundefined-undefined"
           >
             Case Sensitive Action and Resource
           </label>

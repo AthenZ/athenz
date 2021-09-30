@@ -1,26 +1,180 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PolicyRow should render 1`] = `
-.emotion-2 {
-  background-color: #3570f40D;
-  text-align: left;
+.emotion-0 {
+  box-sizing: border-box;
+  margin-top: 10px;
+  box-shadow: 0 1px 4px #d9d9d9;
+  box-shadow: 0 1px 4px #d9d9d9;
+  border: 1px solid #fff;
+  -webkit-border-image: none;
+  border-image: none;
+  -webkit-border-image: initial;
+  border-image: initial;
   padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
 }
 
-.emotion-6 {
-  background-color: #3570f40D;
+.emotion-2 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
+  width: 10%;
 }
 
-.emotion-8 {
+.emotion-4 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0px;
+  position: relative;
+  vertical-align: bottom;
+}
+
+.emotion-4>input[type='radio'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-4>input[type='radio']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-4>input[type='radio']+label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-4>input[type='radio']:hover+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-4>input[type='radio']:focus+label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-4>input[type='radio']:checked+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-4>input[type='radio']:disabled+label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-4>input[type='radio']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-4>input[type='radio']:checked+label:after {
+  background-color: #3697f2;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 8px;
+  line-height: 8px;
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  width: 8px;
+}
+
+.emotion-4>input[type='radio']:disabled:checked+label:after {
+  color: #d5d5d5;
+  border: 2px solid #d5d5d5;
+  background-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-5 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  width: 20%;
+}
+
+.emotion-7 {
+  text-align: left;
+  padding: 5px 0 5px 0;
+  vertical-align: middle;
+  word-break: break-all;
+  width: 15%;
+}
+
+.emotion-9 {
+  width: 100%;
+  border-spacing: 0 0;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-11 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  width: 70%;
+}
+
+.emotion-13 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  width: 30%;
+}
+
+.emotion-19 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
+}
+
+.emotion-22 {
+  fill: #d5d5d5;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-23 {
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  width: 15%;
 }
 
 <tr
@@ -29,22 +183,61 @@ exports[`PolicyRow should render 1`] = `
 >
   <td
     class="emotion-2 emotion-3"
-    color="#3570f40D"
+    width="10%"
   >
-    sections
+    <div
+      class="emotion-4 denali-radiobutton"
+      data-testid="radiobutton-wrapper"
+    >
+      <input
+        id="radiobutton-sections-undefined-active-undefined-active"
+        name="sections-undefined-active-undefined"
+        type="radio"
+        value="active"
+      />
+      <label
+        for="radiobutton-sections-undefined-active-undefined-active"
+      />
+    </div>
   </td>
   <td
-    class="emotion-2 emotion-3"
-    color="#3570f40D"
+    class="emotion-5 emotion-3"
+    width="20%"
+  />
+  <td
+    class="emotion-7 emotion-3"
+    width="15%"
+  >
+    <table
+      class="emotion-9 emotion-10"
+    >
+      <thead />
+      <tbody>
+        <tr>
+          <td
+            class="emotion-11 emotion-3"
+            width="70%"
+          />
+          <td
+            class="emotion-13 emotion-3"
+            width="30%"
+          />
+        </tr>
+      </tbody>
+    </table>
+  </td>
+  <td
+    class="emotion-5 emotion-3"
+    width="20%"
   >
     Invalid date
   </td>
   <td
-    class="emotion-6 emotion-3"
-    color="#3570f40D"
+    class="emotion-2 emotion-3"
+    width="10%"
   >
     <svg
-      class="emotion-8"
+      class="emotion-19"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"
@@ -59,24 +252,46 @@ exports[`PolicyRow should render 1`] = `
     </svg>
   </td>
   <td
-    class="emotion-6 emotion-3"
-    color="#3570f40D"
+    class="emotion-2 emotion-3"
+    width="10%"
   >
     <svg
-      class="emotion-8"
+      class="emotion-22"
       data-testid="icon"
       height="1.25em"
-      viewBox="0 0 1024 1024"
+      viewBox="0 0 48 48"
       width="1.25em"
     >
       <title>
-        trash
+        You have created the maximum number of versions allowed.
       </title>
       <path
-        d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+        d="M36,12V6a2,2,0,0,0-2-2H6A2,2,0,0,0,4,6V34a2,2,0,0,0,2,2h6v6a2,2,0,0,0,2,2H42a2,2,0,0,0,2-2V14a2,2,0,0,0-2-2ZM8,32V8H32V32Zm32,8H16V36H34a2,2,0,0,0,2-2V16h4Z"
+      />
+    </svg>
+  </td>
+  <td
+    class="emotion-23 emotion-3"
+    width="15%"
+  >
+    <svg
+      class="emotion-22"
+      data-testid="icon"
+      height="1.25em"
+      viewBox="0 0 48 48"
+      width="1.25em"
+    >
+      <title>
+        you can not delete a version that is active. Please change active version to delete this version
+      </title>
+      <path
+        d="M41.4,42.6l-36-36a1.9,1.9,0,0,0-2.8,0A1.8,1.8,0,0,0,2.3,9l6.8,6.9,2.7,27.3a2,2,0,0,0,2,1.8H34.2a2,2,0,0,0,2-1.8V43l2.4,2.4a1.9,1.9,0,0,0,2.8,0A1.9,1.9,0,0,0,41.4,42.6Zm-9-1.6H15.6l-2-20.6L31.7,38.5l.9.9Z"
       />
       <path
-        d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+        d="M43,8.8a2.3,2.3,0,0,1-.6,1.6A2,2,0,0,1,41,11H29a2,2,0,0,1-2-2V7H21V9a2,2,0,0,1-2,2H15.8l-4-4H17V5a2,2,0,0,1,2-2H29a2,2,0,0,1,2,2V7h9.9A2.1,2.1,0,0,1,43,8.8Z"
+      />
+      <path
+        d="M36.8,15a2,2,0,0,0-2,1.8l-1.2,12,3.7,3.6,1.5-15.2A2,2,0,0,0,36.8,15Z"
       />
     </svg>
   </td>

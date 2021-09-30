@@ -197,14 +197,14 @@
             "StringTypeDef": {
                 "type": "String",
                 "name": "AssertionConditionValuePattern",
-                "pattern": "[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]+"
+                "pattern": "[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*"
             }
         },
         {
             "StringTypeDef": {
                 "type": "String",
                 "name": "AssertionConditionValue",
-                "pattern": "([a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]+,)*[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]+"
+                "pattern": "([a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*,)*[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*"
             }
         },
         {
@@ -1103,6 +1103,18 @@
                         "type": "Bool",
                         "optional": true,
                         "comment": "If true, we should store action and resource in their original case"
+                    },
+                    {
+                        "name": "version",
+                        "type": "SimpleName",
+                        "optional": true,
+                        "comment": "optional version string, defaults to 0"
+                    },
+                    {
+                        "name": "active",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "if multi-version policy then indicates active version"
                     }
                 ],
                 "closed": false
@@ -1120,6 +1132,28 @@
                         "optional": false,
                         "comment": "list of policy objects",
                         "items": "Policy"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "PolicyOptions",
+                "comment": "Options for Policy Management Requests",
+                "fields": [
+                    {
+                        "name": "version",
+                        "type": "SimpleName",
+                        "optional": false,
+                        "comment": "policy version"
+                    },
+                    {
+                        "name": "fromVersion",
+                        "type": "SimpleName",
+                        "optional": true,
+                        "comment": "optional source version used when creating a new version, defaults to 0"
                     }
                 ],
                 "closed": false
@@ -2322,7 +2356,7 @@
                         "name": "signature",
                         "type": "String",
                         "optional": false,
-                        "comment": "signature generated based on the domain policies object"
+                        "comment": "signature generated based on the domain active policies object"
                     },
                     {
                         "name": "keyId",
@@ -5821,6 +5855,16 @@
                     "optional": false,
                     "flag": false,
                     "default": false
+                },
+                {
+                    "name": "includeNonActive",
+                    "type": "Bool",
+                    "comment": "include non-active policy versions",
+                    "pathParam": false,
+                    "queryParam": "includeNonActive",
+                    "optional": false,
+                    "flag": false,
+                    "default": false
                 }
             ],
             "auth": {
@@ -6135,6 +6179,82 @@
         },
         {
             "type": "Assertion",
+            "method": "PUT",
+            "path": "/domain/{domainName}/policy/{policyName}/version/{version}/assertion",
+            "comment": "Add the specified assertion to the given policy version",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "policyName",
+                    "type": "EntityName",
+                    "comment": "name of the policy",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "version",
+                    "type": "SimpleName",
+                    "comment": "name of the version",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "assertion",
+                    "type": "Assertion",
+                    "comment": "Assertion object to be added to the given policy version",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:policy.{policyName}"
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "putAssertionPolicyVersion"
+        },
+        {
+            "type": "Assertion",
             "method": "DELETE",
             "path": "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}",
             "comment": "Delete the specified policy assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
@@ -6199,6 +6319,82 @@
                     "type": "ResourceError"
                 }
             }
+        },
+        {
+            "type": "Assertion",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/policy/{policyName}/version/{version}/assertion/{assertionId}",
+            "comment": "Delete the specified policy version assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "policyName",
+                    "type": "EntityName",
+                    "comment": "name of the policy",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "version",
+                    "type": "SimpleName",
+                    "comment": "name of the version",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "assertionId",
+                    "type": "Int64",
+                    "comment": "assertion id",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:policy.{policyName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "deleteAssertionPolicyVersion"
         },
         {
             "type": "AssertionConditions",
@@ -6491,6 +6687,310 @@
                     "type": "ResourceError"
                 }
             }
+        },
+        {
+            "type": "PolicyList",
+            "method": "GET",
+            "path": "/domain/{domainName}/policy/{policyName}/version",
+            "comment": "List policy versions.",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "policyName",
+                    "type": "EntityName",
+                    "comment": "name of the policy",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getPolicyVersionList"
+        },
+        {
+            "type": "Policy",
+            "method": "GET",
+            "path": "/domain/{domainName}/policy/{policyName}/version/{version}",
+            "comment": "Get the specified policy version.",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "policyName",
+                    "type": "EntityName",
+                    "comment": "name of the policy",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "version",
+                    "type": "SimpleName",
+                    "comment": "name of the version to be retrieved",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getPolicyVersion"
+        },
+        {
+            "type": "PolicyOptions",
+            "method": "PUT",
+            "path": "/domain/{domainName}/policy/{policyName}/version/create",
+            "comment": "Create a new disabled policy version based on active policy",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "policyName",
+                    "type": "EntityName",
+                    "comment": "name of the policy to be added/updated",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "policyOptions",
+                    "type": "PolicyOptions",
+                    "comment": "name of the source version to copy from and name of new version",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:policy.{policyName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "putPolicyVersion"
+        },
+        {
+            "type": "PolicyOptions",
+            "method": "PUT",
+            "path": "/domain/{domainName}/policy/{policyName}/version/active",
+            "comment": "Mark the specified policy version as active",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "policyName",
+                    "type": "EntityName",
+                    "comment": "name of the policy",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "policyOptions",
+                    "type": "PolicyOptions",
+                    "comment": "name of the version",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:policy.{policyName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "setActivePolicyVersion"
+        },
+        {
+            "type": "Policy",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/policy/{policyName}/version/{version}",
+            "comment": "Delete the specified policy version. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "policyName",
+                    "type": "EntityName",
+                    "comment": "name of the policy",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "version",
+                    "type": "SimpleName",
+                    "comment": "name of the version to be deleted",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "delete",
+                "resource": "{domainName}:policy.{policyName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "deletePolicyVersion"
         },
         {
             "type": "ServiceIdentity",
@@ -7929,7 +8429,7 @@
             "type": "SignedDomains",
             "method": "GET",
             "path": "/sys/modified_domains",
-            "comment": "Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, dont add roles, policies or services, dont sign",
+            "comment": "Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, don't add roles, policies or services, don't sign",
             "inputs": [
                 {
                     "name": "domain",
@@ -8026,6 +8526,33 @@
                     "pathParam": true,
                     "optional": false,
                     "flag": false
+                },
+                {
+                    "name": "signatureP1363Format",
+                    "type": "Bool",
+                    "comment": "true if signature must be in P1363 format instead of ASN.1 DER",
+                    "pathParam": false,
+                    "queryParam": "signaturep1363format",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "matchingTag",
+                    "type": "String",
+                    "comment": "Retrieved from the previous request, this timestamp specifies to the server to return if the domain was modified since this time",
+                    "pathParam": false,
+                    "header": "If-None-Match",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "tag",
+                    "type": "String",
+                    "header": "ETag",
+                    "comment": "The current latest modification timestamp is returned in this header",
+                    "optional": false
                 }
             ],
             "auth": {
