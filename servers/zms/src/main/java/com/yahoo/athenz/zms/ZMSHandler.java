@@ -125,5 +125,5 @@ public interface ZMSHandler {
     Schema getRdlSchema(ResourceContext context);
     ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
     void recordMetrics(ResourceContext ctx, int httpStatus);
-    void publishChangeEvent(ResourceContext ctx, int httpStatus);
+    void publishChangeMessage(ResourceContext ctx, int httpStatus);
 }

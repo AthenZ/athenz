@@ -28639,7 +28639,7 @@ public class ZMSImplTest {
                 .setPublished(Instant.now().toEpochMilli())
                 .setUuid(java.util.UUID.randomUUID().toString())
             ));
-        zmsImpl.publishChangeEvent(mockContext, 200);
+        zmsImpl.publishChangeMessage(mockContext, 200);
 
         MockDomainChangePublisher.Recorder evtRecorder = getEventRecorder(zmsImpl);
         ArgumentCaptor<DomainChangeMessage> evtArgumentCaptor = ArgumentCaptor.forClass(DomainChangeMessage.class);
@@ -28669,7 +28669,7 @@ public class ZMSImplTest {
         when(mockContext.getApiName()).thenReturn(apiName);
         when(mockContext.getDomainChangeMessages()).thenReturn(Collections.singletonList(new DomainChangeMessage()));
 
-        zmsImpl.publishChangeEvent(mockContext, 500);
+        zmsImpl.publishChangeMessage(mockContext, 500);
 
         MockDomainChangePublisher.Recorder evtRecorder = getEventRecorder(zmsImpl);
         ArgumentCaptor<DomainChangeMessage> evtArgumentCaptor = ArgumentCaptor.forClass(DomainChangeMessage.class);

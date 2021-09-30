@@ -12869,11 +12869,11 @@ public class ZTSImplTest {
     }
   
     @Test
-    public void testChangeEvent() {
+    public void testChangeMessage() {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
             "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
         ResourceContext context = createResourceContext(principal);
-        ztsImpl.publishChangeEvent(context, 200);
+        ztsImpl.publishChangeMessage(context, 200);
     }
 }

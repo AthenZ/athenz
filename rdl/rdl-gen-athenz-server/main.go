@@ -258,7 +258,7 @@ public interface {{cName}}Handler {{openBrace}} {{range .Resources}}
     {{methodSig .}};{{end}}
     ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
     void recordMetrics(ResourceContext ctx, int httpStatus);
-    void publishChangeEvent(ResourceContext ctx, int httpStatus);
+    void publishChangeMessage(ResourceContext ctx, int httpStatus);
 }
 `
 
@@ -486,7 +486,7 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 	s += "            }\n"
 	s += "        } finally {\n"
 	if r.Method == "POST" || r.Method == "PUT" || r.Method == "DELETE" {
-		s += "            this.delegate.publishChangeEvent(context, code);\n"
+		s += "            this.delegate.publishChangeMessage(context, code);\n"
 	}
 	s += "            this.delegate.recordMetrics(context, code);\n"
 	s += "        }\n"

@@ -10032,17 +10032,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void publishChangeEvent(ResourceContext ctx, int httpStatus) {
+    public void publishChangeMessage(ResourceContext ctx, int httpStatus) {
         try {
             if (httpStatus == 200) {
-                for (DomainChangeMessage event : ctx.getDomainChangeMessages()) {
+                for (DomainChangeMessage changeMessage : ctx.getDomainChangeMessages()) {
                     for (ChangePublisher<DomainChangeMessage> publisher : domainChangePublishers) {
-                        publisher.publish(event);
+                        publisher.publish(changeMessage);
                     }
                 }
             }
         } catch (Exception e) {
-            LOG.warn("Got exception during publishChangeEvent: {}", e.getMessage(), e);
+            LOG.warn("Got exception during publishChangeMessage: {}", e.getMessage(), e);
         }
     }
     
