@@ -28637,7 +28637,7 @@ public class ZMSImplTest {
                 .setObjectType(DOMAIN)
                 .setApiName("apiName")
                 .setPublished(Instant.now().toEpochMilli())
-                .setUuid(java.util.UUID.randomUUID().toString())
+                .setMessageId(java.util.UUID.randomUUID().toString())
             ));
         zmsImpl.publishChangeMessage(mockContext, 200);
 

@@ -7767,7 +7767,7 @@ public class DBService implements RolesProvider {
                 .setObjectType(objectType)
                 .setApiName(ctx.getApiName())
                 .setPublished(Instant.now().toEpochMilli())
-                .setUuid(java.util.UUID.randomUUID().toString())
+                .setMessageId(java.util.UUID.randomUUID().toString())
             );
         }
     }

@@ -38,7 +38,7 @@ public class NoOpDomainChangeMessagePublisherTest {
         DomainChangeMessage domainChangeMessage = new DomainChangeMessage();
         domainChangeMessage.setDomainName("someDomain")
             .setPublished(Instant.now().toEpochMilli())
-            .setUuid(UUID.randomUUID().toString())
+            .setMessageId(UUID.randomUUID().toString())
             .setObjectName("group-obj")
             .setObjectType(DomainChangeMessage.ObjectType.POLICY)
             .setApiName("putGroup");

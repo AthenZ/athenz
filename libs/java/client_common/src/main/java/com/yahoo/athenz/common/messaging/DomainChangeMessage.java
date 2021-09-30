@@ -35,7 +35,7 @@ public class DomainChangeMessage {
     private String domainName;
     
      // Domain change message id     
-    private String uuid;
+    private String messageId;
    
     // The number of milliseconds since the epoch 
     private long published;
@@ -57,12 +57,12 @@ public class DomainChangeMessage {
         return this;
     }
 
-    public String getUuid() {
-        return uuid;
+    public String getMessageId() {
+        return messageId;
     }
 
-    public DomainChangeMessage setUuid(String uuid) {
-        this.uuid = uuid;
+    public DomainChangeMessage setMessageId(String messageId) {
+        this.messageId = messageId;
         return this;
     }
 
@@ -113,7 +113,7 @@ public class DomainChangeMessage {
         DomainChangeMessage that = (DomainChangeMessage) o;
         return published == that.published && 
             domainName.equals(that.domainName) && 
-            uuid.equals(that.uuid) && 
+            messageId.equals(that.messageId) && 
             objectType == that.objectType && 
             objectName.equals(that.objectName) && 
             apiName.equals(that.apiName);
@@ -121,6 +121,6 @@ public class DomainChangeMessage {
 
     @Override
     public int hashCode() {
-        return Objects.hash(domainName, uuid, published, objectType, objectName, apiName);
+        return Objects.hash(domainName, messageId, published, objectType, objectName, apiName);
     }
 }
