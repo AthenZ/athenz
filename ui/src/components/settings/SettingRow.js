@@ -18,10 +18,12 @@ import styled from '@emotion/styled';
 import Switch from '../denali/Switch';
 import Input from '../denali/Input';
 import InputDropdown from '../denali/InputDropdown';
+import InputLabel from '../denali/InputLabel';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
     text-align: ${(props) => props.align};
+    width: ${(props) => props.width};
     padding: 5px 0 5px 15px;
     vertical-align: middle;
     word-break: break-all;
@@ -30,7 +32,7 @@ const TDStyled = styled.td`
 const TrStyled = styled.tr`
     box-sizing: border-box;
     margin-top: 10px;
-    box-shadow: 0 1px 4px #d9d9d9;
+    box-shadow: ${(props) => (props.inModal ? '' : '0 1px 4px #d9d9d9')};
     border: 1px solid #fff;
     -webkit-border-image: none;
     border-image: none;
@@ -52,6 +54,11 @@ const StyledInputDropDown = styled(InputDropdown)`
     display: block;
 `;
 
+const StyledInputLabel = styled(InputLabel)`
+    font-size: 14px;
+    font-weight: 700;
+`;
+
 export default class SettingRow extends React.Component {
     constructor(props) {
         super(props);
@@ -59,7 +66,6 @@ export default class SettingRow extends React.Component {
         this.onDropDownChange = this.onDropDownChange.bind(this);
         this.toggleSwitchButton = this.toggleSwitchButton.bind(this);
         this.onRadioChange = this.onRadioChange.bind(this);
-        this.api = props.api;
     }
 
     toggleSwitchButton(evt) {
@@ -142,21 +148,45 @@ export default class SettingRow extends React.Component {
         let name = this.props.name;
 
         let button = this.getSettingButton();
-
-        rows.push(
-            <TrStyled key={name} data-testid='setting-row'>
-                <TDStyled color={color} align={left}>
-                    {label}
-                </TDStyled>
-                <TDStyled color={color} align={left}>
-                    {button}
-                </TDStyled>
-                <TDStyled color={color} align={left}>
-                    {this.props.desc}
-                </TDStyled>
-            </TrStyled>
-        );
-
+        if (this.props.inModal) {
+            rows.push(
+                <TrStyled
+                    key={name}
+                    data-testid='setting-row'
+                    inModal={this.props.inModal}
+                    title={this.props.tooltip}
+                >
+                    <TDStyled color={color} align={left} width={'17%'}>
+                        <StyledInputLabel>{label}</StyledInputLabel>
+                    </TDStyled>
+                    <TDStyled color={color} align={left} width={'auto'}>
+                        {button}
+                    </TDStyled>
+                    <TDStyled color={color} align={left} width={'auto'}>
+                        {this.props.desc}
+                    </TDStyled>
+                </TrStyled>
+            );
+        } else {
+            rows.push(
+                <TrStyled
+                    key={name}
+                    data-testid='setting-row'
+                    inModal={this.props.inModal}
+                    title={this.props.tooltip}
+                >
+                    <TDStyled color={color} align={left} width={'auto'}>
+                        {label}
+                    </TDStyled>
+                    <TDStyled color={color} align={left} width={'auto'}>
+                        {button}
+                    </TDStyled>
+                    <TDStyled color={color} align={left} width={'auto'}>
+                        {this.props.desc}
+                    </TDStyled>
+                </TrStyled>
+            );
+        }
         return rows;
     }
 }

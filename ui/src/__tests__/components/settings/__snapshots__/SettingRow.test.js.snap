@@ -15,6 +15,7 @@ exports[`SettingRow should render input type setting row 1`] = `
 
 .emotion-2 {
   text-align: left;
+  width: auto;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
@@ -134,11 +135,13 @@ exports[`SettingRow should render input type setting row 1`] = `
 >
   <td
     class="emotion-2 emotion-3"
+    width="auto"
   >
     Test
   </td>
   <td
     class="emotion-2 emotion-3"
+    width="auto"
   >
     <div
       class="emotion-6 emotion-7"
@@ -163,6 +166,7 @@ exports[`SettingRow should render input type setting row 1`] = `
   </td>
   <td
     class="emotion-2 emotion-3"
+    width="auto"
   >
     desc for testing
   </td>
@@ -184,6 +188,7 @@ exports[`SettingRow should render switch type setting row 1`] = `
 
 .emotion-2 {
   text-align: left;
+  width: auto;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
@@ -307,11 +312,13 @@ exports[`SettingRow should render switch type setting row 1`] = `
 >
   <td
     class="emotion-2 emotion-3"
+    width="auto"
   >
     Test
   </td>
   <td
     class="emotion-2 emotion-3"
+    width="auto"
   >
     <div
       class="emotion-6 denali-switch"
@@ -331,6 +338,7 @@ exports[`SettingRow should render switch type setting row 1`] = `
   </td>
   <td
     class="emotion-2 emotion-3"
+    width="auto"
   >
     desc for testing
   </td>

@@ -664,6 +664,7 @@ exports[`GroupSettingPage should render 1`] = `
 
 .emotion-61 {
   text-align: left;
+  width: auto;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
@@ -1434,11 +1435,13 @@ exports[`GroupSettingPage should render 1`] = `
                 >
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     Review
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     <div
                       class="emotion-65 denali-switch"
@@ -1457,6 +1460,7 @@ exports[`GroupSettingPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     Flag indicates whether or not role updates require another review and approval
                   </td>
@@ -1467,11 +1471,13 @@ exports[`GroupSettingPage should render 1`] = `
                 >
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     Self-Service
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     <div
                       class="emotion-65 denali-switch"
@@ -1490,6 +1496,7 @@ exports[`GroupSettingPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     Flag indicates whether or not role allows self service
                   </td>
@@ -1500,11 +1507,13 @@ exports[`GroupSettingPage should render 1`] = `
                 >
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     User Expiry (Days)
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     <div
                       class="emotion-83 emotion-84"
@@ -1530,6 +1539,7 @@ exports[`GroupSettingPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     All user members in the role will have specified max expiry days
                   </td>
@@ -1540,11 +1550,13 @@ exports[`GroupSettingPage should render 1`] = `
                 >
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     User Review (Days)
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     <div
                       class="emotion-83 emotion-84"
@@ -1570,6 +1582,7 @@ exports[`GroupSettingPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     All user members in the role will have specified review days
                   </td>
@@ -1580,11 +1593,13 @@ exports[`GroupSettingPage should render 1`] = `
                 >
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     Group Expiry (Days)
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     <div
                       class="emotion-83 emotion-84"
@@ -1610,6 +1625,7 @@ exports[`GroupSettingPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     All group members in the role will have specified max expiry days
                   </td>
@@ -1620,11 +1636,13 @@ exports[`GroupSettingPage should render 1`] = `
                 >
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     Group Review (Days)
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     <div
                       class="emotion-83 emotion-84"
@@ -1650,6 +1668,7 @@ exports[`GroupSettingPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     All groups in the role will have specified max review days
                   </td>
@@ -1660,11 +1679,13 @@ exports[`GroupSettingPage should render 1`] = `
                 >
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     Service Expiry (Days)
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     <div
                       class="emotion-83 emotion-84"
@@ -1690,6 +1711,7 @@ exports[`GroupSettingPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     All services in the role will have specified max expiry days
                   </td>
@@ -1700,11 +1722,13 @@ exports[`GroupSettingPage should render 1`] = `
                 >
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     Service Review (Days)
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     <div
                       class="emotion-83 emotion-84"
@@ -1730,6 +1754,7 @@ exports[`GroupSettingPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     All service members in the role will have specified review days
                   </td>
@@ -1740,11 +1765,13 @@ exports[`GroupSettingPage should render 1`] = `
                 >
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     Token Expiry (Mins)
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     <div
                       class="emotion-83 emotion-84"
@@ -1770,6 +1797,7 @@ exports[`GroupSettingPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     Tokens issued for this role will have specified max timeout in mins
                   </td>
@@ -1780,11 +1808,13 @@ exports[`GroupSettingPage should render 1`] = `
                 >
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     Certificate Expiry (Mins)
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     <div
                       class="emotion-83 emotion-84"
@@ -1810,6 +1840,7 @@ exports[`GroupSettingPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     Certs issued for this role will have specified max timeout in mins
                   </td>
@@ -1820,11 +1851,13 @@ exports[`GroupSettingPage should render 1`] = `
                 >
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     User Authority Filter
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     <div
                       class="emotion-83 emotion-84"
@@ -1882,6 +1915,7 @@ exports[`GroupSettingPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     membership filtered based on user authority configured attributes
                   </td>
@@ -1892,11 +1926,13 @@ exports[`GroupSettingPage should render 1`] = `
                 >
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     User Authority Expiration
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     <div
                       class="emotion-83 emotion-84"
@@ -1954,6 +1990,7 @@ exports[`GroupSettingPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-61 emotion-62"
+                    width="auto"
                   >
                     expiration enforced by a user authority configured attribute
                   </td>

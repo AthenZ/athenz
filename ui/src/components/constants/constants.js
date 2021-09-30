@@ -112,3 +112,40 @@ export const StaticWorkloadType = [
         pattern: '^(?=.*[^.]$)((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).?){4}$',
     },
 ];
+
+export const ADD_ROLE_REVIEW_ENABLED_TOOLTIP =
+    'Review Enabled Role must not contain members during creation';
+export const ADD_ROLE_REVIEW_DESC =
+    'Flag indicates whether or not role updates require another review and approval';
+export const ADD_ROLE_SELF_SERVICE_DESC =
+    'Flag indicates whether or not role allows self service';
+export const ADD_ROLE_MEMBER_EXPIRY_DAYS_DESC =
+    'All user members in the role will have specified max expiry days';
+export const ADD_ROLE_MEMBER_REVIEW_DAYS_DESC =
+    'All user members in the role will have specified review days';
+export const ADD_ROLE_GROUP_EXPIRY_DAYS_DESC =
+    'All group members in the role will have specified max expiry days';
+export const ADD_ROLE_GROUP_REVIEW_DAYS_DESC =
+    'All groups in the role will have specified max review days';
+export const ADD_ROLE_SERVICE_EXPIRY_DAYS_DESC =
+    'All services in the role will have specified max expiry days';
+export const ADD_ROLE_SERVICE_REVIEW_DAYS_DESC =
+    'All service members in the role will have specified review days';
+export const ADD_ROLE_TOKEN_MAX_TIMEOUT_MINS_DESC =
+    'Tokens issued for this role will have specified max timeout in mins';
+export const ADD_ROLE_CERT_MAX_TIMEOUT_MINS_DESC =
+    'Certs issued for this role will have specified max timeout in mins';
+export const ADD_ROLE_AUTHORITY_FILTER_DESC =
+    'membership filtered based on user authority configured attributes';
+export const ADD_ROLE_AUTHORITY_EXPIRY_DESC =
+    'expiration enforced by a user authority configured attribute';
+export const ADD_ROLE_JUSTIFICATION_PLACEHOLDER = 'Enter justification here';
+export const ADD_ROLE_AUTHORITY_FILTER_PLACEHOLDER = 'User Authority Filter';
+export const ADD_ROLE_AUTHORITY_EXPIRY_PLACEHOLDER =
+    'User Authority Expiration';
+export const ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER = 'Enter New Role Name';
+export const ADD_ROLE_MEMBER_PLACEHOLDER =
+    'user.<userid> or <domain>.<service> or <domain>:group.<group>';
+export const ADD_ROLE_REMINDER_PLACEHOLDER = 'Reminder (Optional)';
+export const ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER =
+    'Enter Domain for Delegate Role';

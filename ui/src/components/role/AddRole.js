@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
+import AddRoleAdvancedSettings from './AddRoleAdvancedSettings';
 import Button from '../denali/Button';
 import ButtonGroup from '../denali/ButtonGroup';
 import Input from '../denali/Input';
@@ -25,6 +26,15 @@ import { colors } from '../denali/styles';
 import AddModal from '../modal/AddModal';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
+import Icon from '../denali/icons/Icon';
+import {
+    ADD_ROLE_REVIEW_ENABLED_TOOLTIP,
+    ADD_ROLE_JUSTIFICATION_PLACEHOLDER,
+    ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER,
+    ADD_ROLE_MEMBER_PLACEHOLDER,
+    ADD_ROLE_REMINDER_PLACEHOLDER,
+    ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER,
+} from '../constants/constants';
 
 const CATEGORIES = [
     {
@@ -48,7 +58,6 @@ const StyledInputLabel = styled(InputLabel)`
     float: left;
     font-size: 14px;
     font-weight: 700;
-    padding-top: 12px;
     width: 17%;
 `;
 
@@ -58,17 +67,17 @@ const StyledButtonGroup = styled(ButtonGroup)`
 `;
 
 const StyledInput = styled(Input)`
-    width: 500px;
-`;
-
-const StyledInputUser = styled(Input)`
-    width: 270px;
-    margin-top: 5px;
+    width: 100%;
 `;
 
 const ContentDiv = styled.div`
     flex: 1 1;
     margin-right: 10px;
+`;
+
+const AdvancedSettingsDiv = styled.div`
+    flex: 1 1;
+    margin-left: 10px;
 `;
 
 const AddMemberDiv = styled.div`
@@ -80,7 +89,7 @@ const StyledIncludedMembersDiv = styled.div`
 `;
 
 const SectionsDiv = styled.div`
-    width: 780px;
+    width: 700px;
     text-align: left;
     background-color: ${colors.white};
 `;
@@ -122,6 +131,14 @@ const StyledButton = styled(Button)`
     width: 125px;
 `;
 
+const StyleTable = styled.table`
+    width: 100%;
+    border-spacing: 0 20px;
+    display: table;
+    border-collapse: separate;
+    border-color: grey;
+`;
+
 export default class AddRole extends React.Component {
     constructor(props) {
         super(props);
@@ -130,7 +147,11 @@ export default class AddRole extends React.Component {
         this.addMember = this.addMember.bind(this);
         this.delegateChanged = this.delegateChanged.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.expandSettings = this.expandSettings.bind(this);
         this.dateUtils = new DateUtils();
+
+        let role = {};
+        role['selfServe'] = false;
         this.state = {
             saving: 'nope',
             category: 'regular',
@@ -141,6 +162,8 @@ export default class AddRole extends React.Component {
             members: [],
             trustDomain: '',
             date: '',
+            showSettings: false,
+            role: role,
         };
     }
 
@@ -160,6 +183,15 @@ export default class AddRole extends React.Component {
         this.setState({ [key]: value });
     }
 
+    advancedSettingsChanged(name, val) {
+        let role = this.state.role;
+        role[name] = val;
+
+        this.setState({
+            role: role,
+        });
+    }
+
     getJustification() {
         if (this.props.justificationRequired) {
             return (
@@ -175,7 +207,7 @@ export default class AddRole extends React.Component {
                                 'justification'
                             )}
                             autoComplete={'off'}
-                            placeholder='Enter justification here'
+                            placeholder={ADD_ROLE_JUSTIFICATION_PLACEHOLDER}
                         />
                     </ContentDiv>
                 </SectionDiv>
@@ -231,9 +263,9 @@ export default class AddRole extends React.Component {
         let members = this.state.members;
         // this if is done to avoid [null] condition
         if (members.length === 1) {
-            members = null;
+            members = [];
         } else {
-            delete members[idx];
+            members.splice(idx, 1);
         }
         this.setState({ members });
     }
@@ -254,8 +286,13 @@ export default class AddRole extends React.Component {
             return;
         }
 
-        let role = { name: roleName };
-        if (this.state.category === 'regular') {
+        let role = this.state.role;
+        role.name = roleName;
+        role.reviewEnabled = this.state.reviewEnabled;
+
+        // Add members to role only if role isn't review enabled.
+        // If it is - we want all added members to be reviewed including the first members
+        if (this.state.category === 'regular' && !this.state.reviewEnabled) {
             role.roleMembers =
                 this.state.members.filter((member) => {
                     return member != null || member != undefined;
@@ -339,6 +376,13 @@ export default class AddRole extends React.Component {
             });
     }
 
+    expandSettings() {
+        let showSettings = this.state.showSettings;
+        this.setState({
+            showSettings: !showSettings,
+        });
+    }
+
     render() {
         let memberNameChanged = this.inputChanged.bind(this, 'newMemberName');
         let memberExpiryDateChanged = this.inputChanged.bind(
@@ -350,7 +394,8 @@ export default class AddRole extends React.Component {
             'memberReviewReminder'
         );
         let nameChanged = this.inputChanged.bind(this, 'name');
-
+        let advancedSettingsChanged = this.advancedSettingsChanged.bind(this);
+        let reviewEnabledChanged = this.inputChanged.bind(this);
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
                   // dummy place holder so that it can be be used in the form
@@ -366,6 +411,14 @@ export default class AddRole extends React.Component {
                   );
               })
             : '';
+        const arrowup = 'arrowhead-up-circle-solid';
+        const arrowdown = 'arrowhead-down-circle';
+        let reviewToolTip = this.state.reviewEnabled
+            ? ADD_ROLE_REVIEW_ENABLED_TOOLTIP
+            : null;
+        let reviewTriggerStyle = this.state.reviewEnabled
+            ? { pointerEvents: 'none', opacity: '0.4' }
+            : {};
         let sections = (
             <SectionsDiv>
                 <SectionDiv>
@@ -381,7 +434,9 @@ export default class AddRole extends React.Component {
                     <StyledInputLabel>Role Name</StyledInputLabel>
                     <ContentDiv>
                         <StyledInput
-                            placeholder='Enter New Role Name'
+                            placeholder={
+                                ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER
+                            }
                             value={this.state.name}
                             onChange={nameChanged}
                             noanim
@@ -390,12 +445,14 @@ export default class AddRole extends React.Component {
                     </ContentDiv>
                 </SectionDiv>
                 {this.state.category === 'regular' && (
-                    <SectionDiv>
-                        <StyledInputLabel>Add Member(s)</StyledInputLabel>
-                        <ContentDiv>
+                    <SectionDiv title={reviewToolTip}>
+                        <StyledInputLabel style={reviewTriggerStyle}>
+                            Add Member(s)
+                        </StyledInputLabel>
+                        <ContentDiv style={reviewTriggerStyle}>
                             <AddMemberDiv>
                                 <StyledInput
-                                    placeholder='user.<userid> or <domain>.<service> or <domain>:group.<group>'
+                                    placeholder={ADD_ROLE_MEMBER_PLACEHOLDER}
                                     value={this.state.newMemberName}
                                     onChange={memberNameChanged}
                                     noanim
@@ -406,29 +463,29 @@ export default class AddRole extends React.Component {
                     </SectionDiv>
                 )}
                 {this.state.category === 'regular' && (
-                    <SectionDiv>
-                        <StyledInputLabel />
-                        <FlatPickrStyled>
+                    <SectionDiv title={reviewToolTip}>
+                        <StyledInputLabel style={reviewTriggerStyle} />
+                        <FlatPickrStyled style={reviewTriggerStyle}>
                             <Flatpicker
                                 onChange={memberExpiryDateChanged}
                                 clear={this.state.memberExpiry}
                                 id='addrole'
                             />
                         </FlatPickrStyled>
-                        <FlatPickrStyled>
+                        <FlatPickrStyled style={reviewTriggerStyle}>
                             <Flatpicker
                                 onChange={memberReviewReminderDateChanged}
                                 clear={this.state.memberReviewReminder}
                                 id='addrole-reminder'
-                                placeholder='Reminder (Optional)'
+                                placeholder={ADD_ROLE_REMINDER_PLACEHOLDER}
                             />
                         </FlatPickrStyled>
                     </SectionDiv>
                 )}
                 {this.state.category === 'regular' && (
-                    <SectionDiv>
-                        <StyledInputLabel />
-                        <ButtonDiv>
+                    <SectionDiv title={reviewToolTip}>
+                        <StyledInputLabel style={reviewTriggerStyle} />
+                        <ButtonDiv style={reviewTriggerStyle}>
                             <StyledButton
                                 secondary
                                 size={'small'}
@@ -440,9 +497,9 @@ export default class AddRole extends React.Component {
                     </SectionDiv>
                 )}
                 {this.state.category === 'regular' && (
-                    <SectionDiv>
-                        <StyledInputLabel />
-                        <StyledIncludedMembersDiv>
+                    <SectionDiv title={reviewToolTip}>
+                        <StyledInputLabel style={reviewTriggerStyle} />
+                        <StyledIncludedMembersDiv style={reviewTriggerStyle}>
                             {members}
                         </StyledIncludedMembersDiv>
                     </SectionDiv>
@@ -453,7 +510,9 @@ export default class AddRole extends React.Component {
                         <StyledInputLabel>Delegated to</StyledInputLabel>
                         <ContentDiv>
                             <StyledInput
-                                placeholder='Enter Domain for Delegate Role'
+                                placeholder={
+                                    ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER
+                                }
                                 value={this.state.trustDomain}
                                 onChange={this.delegateChanged}
                                 noanim
@@ -463,6 +522,37 @@ export default class AddRole extends React.Component {
                     </SectionDiv>
                 )}
                 {this.getJustification()}
+                <SectionDiv>
+                    <Icon
+                        icon={this.state.showSettings ? arrowup : arrowdown}
+                        onClick={this.expandSettings}
+                        color={colors.icons}
+                        isLink
+                        size={'1.25em'}
+                        verticalAlign={'text-bottom'}
+                    />
+                    <AdvancedSettingsDiv>
+                        {'Advanced Settings'}
+                    </AdvancedSettingsDiv>
+                </SectionDiv>
+                {this.state.showSettings && (
+                    <StyleTable data-testid='advanced-setting-table'>
+                        <tbody>
+                            <AddRoleAdvancedSettings
+                                userAuthorityAttributes={
+                                    this.props.userAuthorityAttributes
+                                }
+                                userProfileLink={this.props.userProfileLink}
+                                advancedSettingsChanged={
+                                    advancedSettingsChanged
+                                }
+                                reviewEnabledChanged={reviewEnabledChanged}
+                                role={this.state.role}
+                                reviewEnabled={this.state.reviewEnabled}
+                            />
+                        </tbody>
+                    </StyleTable>
+                )}
             </SectionsDiv>
         );
         return (
@@ -474,6 +564,7 @@ export default class AddRole extends React.Component {
                     title={`Add Role to ${this.props.domain}`}
                     errorMessage={this.state.errorMessage}
                     sections={sections}
+                    overflowY={'auto'}
                 />
             </div>
         );
