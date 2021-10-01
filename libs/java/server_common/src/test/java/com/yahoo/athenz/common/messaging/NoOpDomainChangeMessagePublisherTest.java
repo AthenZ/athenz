@@ -18,44 +18,30 @@
 
 package com.yahoo.athenz.common.messaging;
 
-import org.testng.annotations.BeforeClass;
+import com.yahoo.athenz.common.messaging.impl.NoOpDomainChangePublisher;
+import com.yahoo.athenz.common.messaging.impl.NoOpDomainChangePublisherFactory;
 import org.testng.annotations.Test;
 
 import java.time.Instant;
 import java.util.UUID;
 
-import static com.yahoo.athenz.common.messaging.DomainChangePublisherFactory.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
 public class NoOpDomainChangeMessagePublisherTest {
-
-    @BeforeClass
-    public void setUp() {
-        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS);
-    }
-
-    @Test
-    public void invalidFactoryClass() {
-        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS, "com.yahoo.athenz.zms.messaging.noexist");
-        try {
-            DomainChangePublisherFactory.create();
-            fail();
-        } catch (ExceptionInInitializerError ignored) { }
-        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_CLASS);
-    }
+    
     
     @Test
     public void testNoOpDomainChangePublisher() {
-        DomainChangePublisher noOpPublisher = DomainChangePublisherFactory.create();
+        ChangePublisherFactory<DomainChangeMessage> factory = new NoOpDomainChangePublisherFactory();
+        ChangePublisher<DomainChangeMessage> noOpPublisher = factory.create(null, "topic");
         assertTrue(noOpPublisher instanceof NoOpDomainChangePublisher);
         DomainChangeMessage domainChangeMessage = new DomainChangeMessage();
         domainChangeMessage.setDomainName("someDomain")
             .setPublished(Instant.now().toEpochMilli())
-            .setUuid(UUID.randomUUID().toString())
+            .setMessageId(UUID.randomUUID().toString())
             .setObjectName("group-obj")
             .setObjectType(DomainChangeMessage.ObjectType.POLICY)
             .setApiName("putGroup");
-        noOpPublisher.publishMessage(domainChangeMessage);
+        noOpPublisher.publish(domainChangeMessage);
     }
 }

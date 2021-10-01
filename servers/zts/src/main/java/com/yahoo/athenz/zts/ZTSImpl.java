@@ -4540,4 +4540,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         metric.increment("zts_api", domainName, principalDomainName, httpMethod, httpStatus, apiName);
         metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
     }
+
+    @Override
+    public void publishChangeMessage(ResourceContext ctx, int httpStatus) {
+        // do nothing..   
+    }
+
 }

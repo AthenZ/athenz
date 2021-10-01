@@ -19,6 +19,7 @@ import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.ServerCommonConsts;
+import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.metrics.Metric;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 public class RsrcCtxWrapper implements ResourceContext {
 
@@ -111,6 +113,16 @@ public class RsrcCtxWrapper implements ResourceContext {
             logPrincipal(ctx.principal());
             throwZtsException(restExc);
         }
+    }
+
+    @Override
+    public void addDomainChangeMessage(DomainChangeMessage domainChangeMsg) {
+        
+    }
+
+    @Override
+    public List<DomainChangeMessage> getDomainChangeMessages() {
+        return null;
     }
 
     public void logPrincipal(final Principal principal) {

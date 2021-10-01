@@ -119,6 +119,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -156,6 +157,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -193,6 +195,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -228,6 +231,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -264,6 +268,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -299,6 +304,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -338,6 +344,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -378,6 +385,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -417,6 +425,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -457,6 +466,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -527,6 +537,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -632,6 +643,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -705,6 +717,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -886,6 +899,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -924,6 +938,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1105,6 +1120,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1144,6 +1160,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1183,6 +1200,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1220,6 +1238,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1261,6 +1280,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1301,6 +1321,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1342,6 +1363,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1382,6 +1404,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1492,6 +1515,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1530,6 +1554,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1643,6 +1668,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1682,6 +1708,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1721,6 +1748,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1762,6 +1790,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1802,6 +1831,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1843,6 +1873,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -1883,6 +1914,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2062,6 +2094,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2100,6 +2133,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2176,6 +2210,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2217,6 +2252,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2256,6 +2292,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2296,6 +2333,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2337,6 +2375,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2378,6 +2417,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2417,6 +2457,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2457,6 +2498,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2568,6 +2610,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2608,6 +2651,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2647,6 +2691,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2687,6 +2732,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2760,6 +2806,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2907,6 +2954,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2946,6 +2994,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -2987,6 +3036,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -3027,6 +3077,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -3065,6 +3116,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -3106,6 +3158,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -3145,6 +3198,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -3187,6 +3241,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -3264,6 +3319,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -3306,6 +3362,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -3383,6 +3440,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -3837,6 +3895,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -3875,6 +3934,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -3940,6 +4000,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }
@@ -3975,6 +4036,7 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
+            this.delegate.publishChangeMessage(context, code);
             this.delegate.recordMetrics(context, code);
         }
     }

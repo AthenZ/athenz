@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 import com.yahoo.athenz.common.metrics.Metric;
@@ -319,5 +320,24 @@ public class RsrcCtxWrapperTest {
         } catch (ResourceException ex) {
             assertEquals(503, ex.getCode());
         }
+    }
+
+    @Test
+    public void testDomainChanges() {
+
+        HttpServletRequest servletRequest = new MockHttpServletRequest();
+        HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
+            authListMock, false, authorizerMock, metricMock, timerMetricMock, "apiName");
+        
+        wrapper.addDomainChangeMessage(new DomainChangeMessage());
+        
+        assertNull(wrapper.getDomainChangeMessages());
     }
 }

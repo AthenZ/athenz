@@ -15,21 +15,6 @@
  */
 package com.yahoo.athenz.zms;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.PrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,61 +25,80 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.Base64URL;
 import com.wix.mysql.EmbeddedMysql;
+import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
+import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.AthenzUtils;
+import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
+import com.yahoo.athenz.common.messaging.DomainChangeMessage;
+import com.yahoo.athenz.common.messaging.MockDomainChangePublisher;
 import com.yahoo.athenz.common.metrics.Metric;
+import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
+import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
+import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogger;
 import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.common.utils.SignUtils;
+import com.yahoo.athenz.zms.ZMSImpl.AccessStatus;
+import com.yahoo.athenz.zms.ZMSImpl.AthenzObject;
 import com.yahoo.athenz.zms.config.MemberDueDays;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
-import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
+import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
+import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import com.yahoo.athenz.zms.utils.ZMSUtils;
+import com.yahoo.rdl.Schema;
+import com.yahoo.rdl.Struct;
+import com.yahoo.rdl.Timestamp;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.*;
-
-import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.times;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.fail;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.PrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
-import com.yahoo.athenz.auth.Authority;
-import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.token.PrincipalToken;
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
-import com.yahoo.athenz.common.server.log.AuditLogger;
-import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
-import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogger;
-import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.zms.ZMSImpl.AccessStatus;
-import com.yahoo.athenz.zms.ZMSImpl.AthenzObject;
-import com.yahoo.athenz.zms.store.AthenzDomain;
-import com.yahoo.athenz.zms.utils.ZMSUtils;
-import com.yahoo.rdl.Schema;
-import com.yahoo.rdl.Struct;
-import com.yahoo.rdl.Timestamp;
+import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
+import static com.yahoo.athenz.common.messaging.DomainChangeMessage.ObjectType.*;
+import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS;
+import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.*;
 
 public class ZMSImplTest {
 
@@ -173,6 +177,7 @@ public class ZMSImplTest {
         ZMSTestUtils.setDatabaseReadOnlyMode(mysqld, readOnlyMode);
     }
 
+
     @BeforeMethod
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
@@ -182,10 +187,10 @@ public class ZMSImplTest {
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER, DB_USER);
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, DB_PASS);
 
-        Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
-        Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
-        Mockito.when(mockServletRequest.getRequestURI()).thenReturn("/zms/v1/request");
-        Mockito.when(mockServletRequest.getMethod()).thenReturn("GET");
+        when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
+        when(mockServletRequest.isSecure()).thenReturn(true);
+        when(mockServletRequest.getRequestURI()).thenReturn("/zms/v1/request");
+        when(mockServletRequest.getMethod()).thenReturn("GET");
 
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
         System.setProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS, METRIC_DEFAULT_FACTORY_CLASS);
@@ -193,18 +198,18 @@ public class ZMSImplTest {
         System.setProperty(ZMSConsts.ZMS_PROP_MASTER_COPY_FOR_SIGNED_DOMAINS, "true");
 
         System.setProperty(ZMSConsts.ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
-                "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
+            "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zms_private.pem");
         System.setProperty(ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
         System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
-                "src/test/resources/authorized_services.json");
+            "src/test/resources/authorized_services.json");
         System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
-                "src/test/resources/solution_templates.json");
+            "src/test/resources/solution_templates.json");
         System.setProperty(ZMSConsts.ZMS_PROP_NOAUTH_URI_LIST,
-                "uri1,uri2,uri3+uri4");
+            "uri1,uri2,uri3+uri4");
         System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS,
-                "role,group,policy,service,domain,entity,tenancy,template");
+            "role,group,policy,service,domain,entity,tenancy,template");
 
         System.setProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER, "true");
 
@@ -214,7 +219,6 @@ public class ZMSImplTest {
 
         initializeZms();
     }
-
     @AfterMethod
     public void clearConnections() {
         if (zms != null && zms.objectStore != null) {
@@ -229,16 +233,16 @@ public class ZMSImplTest {
     private com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal prince, String apiName) {
         com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx =
                 Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
-        Mockito.when(rsrcCtx.principal()).thenReturn(prince);
-        Mockito.when(rsrcCtx.request()).thenReturn(mockServletRequest);
-        Mockito.when(rsrcCtx.response()).thenReturn(mockServletResponse);
+        when(rsrcCtx.principal()).thenReturn(prince);
+        when(rsrcCtx.request()).thenReturn(mockServletRequest);
+        when(rsrcCtx.response()).thenReturn(mockServletResponse);
 
         RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(RsrcCtxWrapper.class);
-        Mockito.when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
-        Mockito.when(rsrcCtxWrapper.principal()).thenReturn(prince);
-        Mockito.when(rsrcCtxWrapper.request()).thenReturn(mockServletRequest);
-        Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
-        Mockito.when(rsrcCtxWrapper.getApiName()).thenReturn(apiName);
+        when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
+        when(rsrcCtxWrapper.principal()).thenReturn(prince);
+        when(rsrcCtxWrapper.request()).thenReturn(mockServletRequest);
+        when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
+        when(rsrcCtxWrapper.getApiName()).thenReturn(apiName);
 
         return rsrcCtxWrapper;
     }
@@ -254,16 +258,16 @@ public class ZMSImplTest {
 
         com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx =
                 Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
-        Mockito.when(rsrcCtx.principal()).thenReturn(principal);
-        Mockito.when(rsrcCtx.request()).thenReturn(request);
-        Mockito.when(rsrcCtx.response()).thenReturn(mockServletResponse);
+        when(rsrcCtx.principal()).thenReturn(principal);
+        when(rsrcCtx.request()).thenReturn(request);
+        when(rsrcCtx.response()).thenReturn(mockServletResponse);
 
         RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(RsrcCtxWrapper.class);
-        Mockito.when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
-        Mockito.when(rsrcCtxWrapper.request()).thenReturn(request);
-        Mockito.when(rsrcCtxWrapper.principal()).thenReturn(principal);
-        Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
-        Mockito.when(rsrcCtxWrapper.getApiName()).thenReturn(apiName);
+        when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
+        when(rsrcCtxWrapper.request()).thenReturn(request);
+        when(rsrcCtxWrapper.principal()).thenReturn(principal);
+        when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
+        when(rsrcCtxWrapper.getApiName()).thenReturn(apiName);
 
         return rsrcCtxWrapper;
     }
@@ -278,13 +282,13 @@ public class ZMSImplTest {
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.request()).thenReturn(mockServletRequest);
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
-        Mockito.when(mockDomRsrcCtx.context()).thenReturn(mockDomRestRsrcCtx);
-        Mockito.when(mockDomRsrcCtx.request()).thenReturn(mockServletRequest);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
-        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("someApiMethod");
-        Mockito.when(mockDomRsrcCtx.getHttpMethod()).thenReturn("GET");
+        when(mockDomRestRsrcCtx.request()).thenReturn(mockServletRequest);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRsrcCtx.context()).thenReturn(mockDomRestRsrcCtx);
+        when(mockDomRsrcCtx.request()).thenReturn(mockServletRequest);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRsrcCtx.getApiName()).thenReturn("someApiMethod");
+        when(mockDomRsrcCtx.getHttpMethod()).thenReturn("GET");
 
         String pubKeyName = System.getProperty(ZMS_PROP_PUBLIC_KEY);
         File pubKeyFile = new File(pubKeyName);
@@ -992,7 +996,7 @@ public class ZMSImplTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_DOMAIN_NAME_MAX_SIZE);
         zmsImpl.objectStore.clearConnections();
     }
-
+    
     @Test
     public void testGetDomainList() {
 
@@ -1373,11 +1377,11 @@ public class ZMSImplTest {
     public void testCreateSubDomain() {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("AddSubDom1",
-                "Test Domain1", "testOrg", adminUser);
+            "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         SubDomain dom2 = createSubDomainObject("AddSubDom2", "AddSubDom1",
-                "Test Domain2", null, adminUser);
+            "Test Domain2", null, adminUser);
         Domain resDom1 = zms.postSubDomain(mockDomRsrcCtx, "AddSubDom1", auditRef, dom2);
         assertNotNull(resDom1);
 
@@ -1420,13 +1424,18 @@ public class ZMSImplTest {
     @Test
     public void testCreateUserDomain() {
 
+        RsrcCtxWrapper ctx = contextWithMockPrincipal("postUserDomain");
         UserDomain dom1 = createUserDomainObject("hga", "Test Domain1", "testOrg");
-        zms.postUserDomain(mockDomRsrcCtx, "hga", auditRef, dom1);
+        zms.postUserDomain(ctx, "hga", auditRef, dom1);
 
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, "user.hga", "user.hga", "postUserDomain");
+        
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, "user.hga");
         assertNotNull(resDom2);
 
-        zms.deleteUserDomain(mockDomRsrcCtx, "hga", auditRef);
+        RsrcCtxWrapper deleteCtx = contextWithMockPrincipal("deleteUserDomain");
+        zms.deleteUserDomain(deleteCtx, "hga", auditRef);
+        assertSingleChangeMessage(deleteCtx.getDomainChangeMessages(), DOMAIN, "user.hga", "user.hga", "deleteUserDomain");
     }
 
     @Test
@@ -2593,7 +2602,7 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("CreateRoleDom1",
                 "Test Domain1", "testOrg", adminUser);
-        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putrole");
+        when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putrole");
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Role role1 = createRoleObject("CreateRoleDom1", "Role1", null,
@@ -3395,10 +3404,10 @@ public class ZMSImplTest {
         TestAuditLogger alogger = new TestAuditLogger();
         ZMSImpl zmsImpl = getZmsImpl(alogger);
 
-        Mockito.when(mockDomRsrcCtx.getApiName())
-                .thenReturn("posttopleveldomain")
-                .thenReturn("posttopleveldomain")
-                .thenReturn("postsubdomain")
+        when(mockDomRsrcCtx.getApiName())
+                .thenReturn("posttopleveldomain").thenReturn("posttopleveldomain") // called twice in domain api
+                .thenReturn("posttopleveldomain").thenReturn("posttopleveldomain") // called twice in domain api
+                .thenReturn("postsubdomain").thenReturn("postsubdomain") // called twice in domain api
                 .thenReturn("putrole")
                 .thenReturn("putmembership");
         TopLevelDomain dom1 = createTopLevelDomainObject("MbrAddDom1",
@@ -3498,10 +3507,10 @@ public class ZMSImplTest {
     @Test
     public void testPutMembershipExpiration() {
 
-        Mockito.when(mockDomRsrcCtx.getApiName())
-                .thenReturn("posttopleveldomain")
-                .thenReturn("posttopleveldomain")
-                .thenReturn("postsubdomain")
+        when(mockDomRsrcCtx.getApiName())
+                .thenReturn("posttopleveldomain").thenReturn("posttopleveldomain") // called twice in domain api
+                .thenReturn("posttopleveldomain").thenReturn("posttopleveldomain") // called twice in domain api
+                .thenReturn("postsubdomain").thenReturn("postsubdomain") // called twice in domain api
                 .thenReturn("putrole")
                 .thenReturn("putmembership")
                 .thenReturn("deleteSubDomain")
@@ -3987,11 +3996,11 @@ public class ZMSImplTest {
         Authority savedAuthority = zms.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
-        Mockito.when(authority.getDateAttribute(anyString(), anyString())).thenReturn(null);
+        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.getDateAttribute(anyString(), anyString())).thenReturn(null);
         Set<String> attrs = new HashSet<>();
         attrs.add("elevated-clearance");
-        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
@@ -4406,7 +4415,7 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("PolicyGetDom1",
                 "Test Domain1", "testOrg", adminUser);
-        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Policy policy1 = createPolicyObject("PolicyGetDom1", "Policy1");
@@ -4493,7 +4502,7 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Policy policy1 = createPolicyWithVersions(zmsImpl, domainName, policyName);
@@ -4662,7 +4671,7 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         createPolicyWithVersions(zms, domainName, policyName);
@@ -4772,7 +4781,7 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         createPolicyWithVersions(zms, domainName, policyName);
@@ -4824,7 +4833,7 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("setActivePolicyVersion");
+        when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("setActivePolicyVersion");
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Policy policy1 = createPolicyObject(domainName, policyName);
@@ -4925,7 +4934,7 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("setActivePolicyVersion");
+        when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("setActivePolicyVersion");
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         createPolicyWithVersions(zmsImpl, domainName, policyName);
@@ -5026,7 +5035,7 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("PolicyGetDom1",
                 "Test Domain1", "testOrg", adminUser);
-        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Policy policy1 = createPolicyObject("PolicyGetDom1", "Policy1", "Role1", "ActioN1", "PolicyGetDom1:SomeResourcE", AssertionEffect.ALLOW);
@@ -5117,7 +5126,7 @@ public class ZMSImplTest {
             assertEquals(e.getCode(), 404);
         }
 
-        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
@@ -5581,7 +5590,7 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy").thenReturn("putpolicyversion").thenReturn("putassertion").thenReturn("putpolicyversion").thenReturn("deletepolicyversion");
+        when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy").thenReturn("putpolicyversion").thenReturn("putassertion").thenReturn("putpolicyversion").thenReturn("deletepolicyversion");
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         createPolicyWithVersions(zmsImpl, domainName, policyName);
@@ -7473,7 +7482,7 @@ public class ZMSImplTest {
                     if (("signeddom1:policy.pol1").equals(polResp.getName())) {
                         conditionsResp = polResp.getAssertions().get(0).getConditions();
                         assertNotNull(conditionsResp);
-                        MatcherAssert.assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
+                        assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
                     }
                 }
 
@@ -8009,11 +8018,11 @@ public class ZMSImplTest {
         Authority savedAuthority = zms.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
-        Mockito.when(authority.getDateAttribute(anyString(), anyString())).thenReturn(null);
+        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.getDateAttribute(anyString(), anyString())).thenReturn(null);
         Set<String> attrs = new HashSet<>();
         attrs.add("elevated-clearance");
-        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -8621,9 +8630,9 @@ public class ZMSImplTest {
         final String domainName = "access-domain-fails";
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.allowAuthorization()).thenReturn(false);
+        when(authority.allowAuthorization()).thenReturn(false);
         Principal principal1 = Mockito.mock(Principal.class);
-        Mockito.when(principal1.getAuthority()).thenReturn(authority);
+        when(principal1.getAuthority()).thenReturn(authority);
 
         // authority not authorized
 
@@ -11609,7 +11618,7 @@ public class ZMSImplTest {
                 null, null, mockDomRestRsrcCtx.principal()), AccessStatus.DENIED);
 
         // Verify that it was denied by explicit "Deny" assertion and not because no match was found
-        Mockito.verify(spiedZms, times(1)).matchPrincipal(
+        verify(spiedZms, times(1)).matchPrincipal(
                 eq(domain.getRoles()),
                 eq("^coretech:role\\.role1$"),
                 eq("user.user1"),
@@ -15090,8 +15099,8 @@ public class ZMSImplTest {
     @Test
     public void testPutPolicyNoLoopbackNoSuchDomainError() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.getRemoteAddr()).thenReturn("10.10.10.11");
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        when(servletRequest.getRemoteAddr()).thenReturn("10.10.10.11");
+        when(servletRequest.isSecure()).thenReturn(true);
 
         TestAuditLogger alogger = new TestAuditLogger();
         ZMSImpl zmsObj = getZmsImpl(alogger);
@@ -15117,8 +15126,8 @@ public class ZMSImplTest {
     @Test
     public void testPutPolicyLoopbackNoXFF_InconsistentNameError() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(servletRequest.isSecure()).thenReturn(true);
 
         TestAuditLogger alogger = new TestAuditLogger();
         ZMSImpl zmsObj = getZmsImpl(alogger);
@@ -15143,9 +15152,9 @@ public class ZMSImplTest {
     @Test
     public void testPutPolicyLoopbackXFFSingleValue() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
-        Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11");
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11");
+        when(servletRequest.isSecure()).thenReturn(true);
 
         TestAuditLogger alogger = new TestAuditLogger();
         ZMSImpl zmsObj = getZmsImpl(alogger);
@@ -15170,9 +15179,9 @@ public class ZMSImplTest {
     @Test
     public void testPutPolicyLoopbackXFFMultipleValues() {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
-        Mockito.when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11, 10.11.11.11, 10.12.12.12");
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("10.10.10.11, 10.11.11.11, 10.12.12.12");
+        when(servletRequest.isSecure()).thenReturn(true);
 
         TestAuditLogger alogger = new TestAuditLogger();
         ZMSImpl zmsObj = getZmsImpl(alogger);
@@ -18145,9 +18154,17 @@ public class ZMSImplTest {
         // timestamp changes for objects
 
         ZMSTestUtils.sleep(1000);
+        
+        RsrcCtxWrapper ctx = contextWithMockPrincipal("deleteUser");
 
-        zms.deleteUser(mockDomRsrcCtx, "jack", auditRef);
-
+        zms.deleteUser(ctx, "jack", auditRef);
+        List<DomainChangeMessage> changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 4);
+        assertChange(changeMsgs.get(0), DOMAIN, "user.jack", "user.jack", "deleteUser");
+        assertChange(changeMsgs.get(1), DOMAIN, "user.jack.sub1", "user.jack.sub1", "deleteUser");
+        assertChange(changeMsgs.get(2), ROLE, "deleteuser1", "role3", "deleteUser");
+        assertChange(changeMsgs.get(3), GROUP, "deleteuser1", "qa-team", "deleteUser");
+        
         Role role1Res = zms.getRole(mockDomRsrcCtx, domainName, "role1", true, false, false);
         assertTrue(role1Res.getModified().millis() > role1.getModified().millis());
         assertEquals(role1Res.getAuditLog().size(), 3);
@@ -18573,7 +18590,7 @@ public class ZMSImplTest {
         zmsImpl.statusPort = 0;
 
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.isSecure()).thenReturn(true);
+        when(request.isSecure()).thenReturn(true);
 
         // if secure requests is false, no check is done
 
@@ -18601,7 +18618,7 @@ public class ZMSImplTest {
 
         // if request is not secure, should be rejected
 
-        Mockito.when(request.isSecure()).thenReturn(false);
+        when(request.isSecure()).thenReturn(false);
         try {
             zmsImpl.validateRequest(request, "test");
             fail();
@@ -18629,8 +18646,8 @@ public class ZMSImplTest {
         zmsImpl.statusPort = 8443;
 
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.isSecure()).thenReturn(true);
-        Mockito.when(request.getLocalPort()).thenReturn(4443);
+        when(request.isSecure()).thenReturn(true);
+        when(request.getLocalPort()).thenReturn(4443);
 
         // non-status requests are allowed on port 4443
 
@@ -18656,8 +18673,8 @@ public class ZMSImplTest {
         zmsImpl.statusPort = 8443;
 
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.isSecure()).thenReturn(true);
-        Mockito.when(request.getLocalPort()).thenReturn(8443);
+        when(request.isSecure()).thenReturn(true);
+        when(request.getLocalPort()).thenReturn(8443);
 
         // status requests are allowed on port 8443
 
@@ -19168,7 +19185,7 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsInit();
 
         DBService dbService = Mockito.mock(DBService.class);
-        Mockito.when(dbService.getDomain("signeddom1", true)).thenThrow(new ResourceException(503));
+        when(dbService.getDomain("signeddom1", true)).thenThrow(new ResourceException(503));
         zmsImpl.dbService = dbService;
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
@@ -19192,7 +19209,7 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsInit();
 
         DBService dbService = Mockito.mock(DBService.class);
-        Mockito.when(dbService.getDomain("signeddom1", true)).thenThrow(new ResourceException(404));
+        when(dbService.getDomain("signeddom1", true)).thenThrow(new ResourceException(404));
         zmsImpl.dbService = dbService;
 
         // now signed domains with unknown domain name
@@ -19255,13 +19272,13 @@ public class ZMSImplTest {
         dom1.setServiceExpiryDays(60);
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.getDateAttribute("user.testadminuser", "elevated-clearance")).thenReturn(new Date());
-        Mockito.when(authority.isAttributeSet("user.testadminuser", "OnShore-US")).thenReturn(true);
+        when(authority.getDateAttribute("user.testadminuser", "elevated-clearance")).thenReturn(new Date());
+        when(authority.isAttributeSet("user.testadminuser", "OnShore-US")).thenReturn(true);
         Set<String> attrs = new HashSet<>();
         attrs.add("OnShore-US");
         attrs.add("elevated-clearance");
-        Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
-        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        when(authority.booleanAttributesSupported()).thenReturn(attrs);
+        when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -20009,15 +20026,15 @@ public class ZMSImplTest {
         Authority savedAuthority = zms.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
-        Mockito.when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
-        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
-        Mockito.when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(true);
+        when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
+        when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
+        when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
+        when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(true);
         Set<String> attrs = new HashSet<>();
         attrs.add("OnShore-US");
         attrs.add("elevated-clearance");
-        Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
-        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        when(authority.booleanAttributesSupported()).thenReturn(attrs);
+        when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -20208,8 +20225,8 @@ public class ZMSImplTest {
         final Principal rsrcPrince = SimplePrincipal.create("user", "bob", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
 
         Membership mbr = new Membership();
         mbr.setMemberName("user.bob");
@@ -20227,8 +20244,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
     }
 
     private void addMemberToSelfServeGroupWithUserIdentity(final String domainName, final String groupName) {
@@ -20248,8 +20265,8 @@ public class ZMSImplTest {
         final Principal rsrcPrince = SimplePrincipal.create("user", "bob", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
 
         GroupMembership mbr = new GroupMembership();
         mbr.setMemberName("user.bob");
@@ -20267,8 +20284,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
     }
 
     @Test
@@ -20390,8 +20407,8 @@ public class ZMSImplTest {
                 unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
 
         Membership mbr = new Membership();
         mbr.setMemberName("user.bob");
@@ -20431,8 +20448,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
 
         // approve the message which should be successful
 
@@ -20532,8 +20549,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAuditAdminPrince);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
 
         zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
 
@@ -20546,8 +20563,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
 
         resrole = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
         assertEquals(resrole.getRoleMembers().size(), 3);
@@ -20616,8 +20633,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAuditAdminPrince);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
 
         zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
 
@@ -20630,8 +20647,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
 
         resrole = zms.getRole(mockDomRsrcCtx, domainName, roleName, false, false, false);
         assertEquals(resrole.getRoleMembers().size(), 3);
@@ -20683,7 +20700,7 @@ public class ZMSImplTest {
         assertNotNull(rsrcAuditAdminPrince);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
 
         // enable user authority check - joe and jane are the only
         // valid users in the system
@@ -20771,8 +20788,8 @@ public class ZMSImplTest {
                 unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
 
         try {
             zms.putMembershipDecision(mockDomRsrcCtx, domainName, roleName, "user.bob", auditRef, mbr);
@@ -20790,8 +20807,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -20912,9 +20929,9 @@ public class ZMSImplTest {
         // repeat the request using context principal
 
         Principal mockPrincipal = Mockito.mock(Principal.class);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(mockPrincipal);
-        Mockito.when(mockPrincipal.getDomain()).thenReturn("user");
-        Mockito.when(mockPrincipal.getFullName()).thenReturn("user.fury");
+        when(mockDomRsrcCtx.principal()).thenReturn(mockPrincipal);
+        when(mockPrincipal.getDomain()).thenReturn("user");
+        when(mockPrincipal.getFullName()).thenReturn("user.fury");
         domainRoleMembership = zms.getPendingDomainRoleMembersList(mockDomRsrcCtx, null);
 
         assertNotNull(domainRoleMembership);
@@ -21335,8 +21352,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAuditAdminPrince);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
 
         Membership membership = new Membership().setActive(false).setApproved(false)
                 .setMemberName("user.fury").setRoleName("testrole2");
@@ -21352,8 +21369,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
 
         List<Notification> expextedNotifications = Collections.singletonList(new Notification());
         expextedNotifications.get(0).addRecipient("user.user1");
@@ -21365,7 +21382,7 @@ public class ZMSImplTest {
         expextedNotifications.get(0).setNotificationToEmailConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(new NotificationToEmailConverterCommon(null)));
         expextedNotifications.get(0).setNotificationToMetricConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter());
 
-        Mockito.verify(mockNotificationManager,
+        verify(mockNotificationManager,
                 times(1)).sendNotifications(eq(expextedNotifications));
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
@@ -22833,9 +22850,9 @@ public class ZMSImplTest {
         assertNull(zms.getUserAuthorityExpiry("user.john", role.getUserAuthorityExpiration(), "unit-test"));
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+        when(authority.getDateAttribute("user.john", "elevated-clearance"))
                 .thenReturn(new Date());
-        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+        when(authority.getDateAttribute("user.joe", "elevated-clearance"))
                 .thenReturn(null);
         zms.userAuthority = authority;
 
@@ -22871,11 +22888,11 @@ public class ZMSImplTest {
         assertNull(role.getRoleMembers().get(1).getExpiration());
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+        when(authority.getDateAttribute("user.john", "elevated-clearance"))
                 .thenReturn(new Date());
-        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance"))
+        when(authority.getDateAttribute("user.jane", "elevated-clearance"))
                 .thenReturn(new Date());
-        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+        when(authority.getDateAttribute("user.joe", "elevated-clearance"))
                 .thenReturn(null);
         zms.userAuthority = authority;
 
@@ -22947,10 +22964,10 @@ public class ZMSImplTest {
         Set<String> booleanAttrSet = new HashSet<>();
         booleanAttrSet.add("elevated-clearance");
         booleanAttrSet.add("full-time-employee");
-        Mockito.when(authority.booleanAttributesSupported()).thenReturn(booleanAttrSet);
+        when(authority.booleanAttributesSupported()).thenReturn(booleanAttrSet);
         Set<String> dateAttrSet = new HashSet<>();
         dateAttrSet.add("term-date");
-        Mockito.when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
+        when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
         zms.userAuthority = authority;
 
         // valid values
@@ -22996,15 +23013,15 @@ public class ZMSImplTest {
 
         Authority authority = Mockito.mock(Authority.class);
         Date testDate = new Date();
-        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+        when(authority.getDateAttribute("user.john", "elevated-clearance"))
                 .thenReturn(testDate);
-        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance"))
+        when(authority.getDateAttribute("user.jane", "elevated-clearance"))
                 .thenReturn(testDate);
-        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+        when(authority.getDateAttribute("user.joe", "elevated-clearance"))
                 .thenReturn(null);
         Set<String> dateAttrSet = new HashSet<>();
         dateAttrSet.add("elevated-clearance");
-        Mockito.when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
+        when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
 
         zms.userAuthority = authority;
 
@@ -23092,17 +23109,17 @@ public class ZMSImplTest {
 
         Authority authority = Mockito.mock(Authority.class);
         Date testDate = new Date();
-        Mockito.when(authority.getDateAttribute("user.john2", "elevated-clearance"))
+        when(authority.getDateAttribute("user.john2", "elevated-clearance"))
                 .thenReturn(testDate);
-        Mockito.when(authority.getDateAttribute("user.jane2", "elevated-clearance"))
+        when(authority.getDateAttribute("user.jane2", "elevated-clearance"))
                 .thenReturn(testDate);
-        Mockito.when(authority.getDateAttribute("user.joe2", "elevated-clearance"))
+        when(authority.getDateAttribute("user.joe2", "elevated-clearance"))
                 .thenReturn(null);
-        Mockito.when(authority.isValidUser(anyString()))
+        when(authority.isValidUser(anyString()))
                 .thenReturn(true);
         Set<String> dateAttrSet = new HashSet<>();
         dateAttrSet.add("elevated-clearance");
-        Mockito.when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
+        when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
 
         zms.userAuthority = authority;
 
@@ -23229,7 +23246,7 @@ public class ZMSImplTest {
         int httpStatus = 200;
         ctx.setRequestDomain(testDomain);
         zms.recordMetrics(ctx, httpStatus);
-        Mockito.verify(ZMSImpl.metric,
+        verify(ZMSImpl.metric,
                 times(1)).increment (
                 eq("zms_api"),
                 eq(testDomain),
@@ -23237,7 +23254,7 @@ public class ZMSImplTest {
                 eq("GET"),
                 eq(httpStatus),
                 eq("someapimethod"));
-        Mockito.verify(ZMSImpl.metric,
+        verify(ZMSImpl.metric,
                 times(1)).stopTiming (
                 eq(ctx.getTimerMetric()),
                 eq(testDomain),
@@ -23245,7 +23262,7 @@ public class ZMSImplTest {
                 eq("GET"),
                 eq(httpStatus),
                 eq("someapimethod_timing"));
-        Mockito.verify(ZMSImpl.metric,
+        verify(ZMSImpl.metric,
                 times(1)).startTiming (
                 eq("zms_api_latency"),
                 eq(null),
@@ -23260,9 +23277,9 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = mockDomRsrcCtx;
         String testDomain = "testDomain";
         int httpStatus = 200;
-        Mockito.when(ctx.getRequestDomain()).thenReturn(testDomain);
+        when(ctx.getRequestDomain()).thenReturn(testDomain);
         zms.recordMetrics(ctx, httpStatus);
-        Mockito.verify(ZMSImpl.metric,
+        verify(ZMSImpl.metric,
                 times(1)).increment (
                 eq("zms_api"),
                 eq(testDomain),
@@ -23270,7 +23287,7 @@ public class ZMSImplTest {
                 eq("GET"),
                 eq(httpStatus),
                 eq("someApiMethod"));
-        Mockito.verify(ZMSImpl.metric,
+        verify(ZMSImpl.metric,
                 times(1)).stopTiming (
                 eq(ctx.getTimerMetric()),
                 eq(testDomain),
@@ -23283,7 +23300,7 @@ public class ZMSImplTest {
         int httpStatus = 200;
         ZMSImpl.metric = Mockito.mock(Metric.class);
         zms.recordMetrics(null, httpStatus);
-        Mockito.verify(ZMSImpl.metric,
+        verify(ZMSImpl.metric,
                 times(1)).increment (
                 eq("zms_api"),
                 eq(null),
@@ -23291,7 +23308,7 @@ public class ZMSImplTest {
                 eq(null),
                 eq(httpStatus),
                 eq(null));
-        Mockito.verify(ZMSImpl.metric,
+        verify(ZMSImpl.metric,
                 times(1)).stopTiming (
                 eq(null),
                 eq(null),
@@ -23352,7 +23369,7 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = getZmsImpl(alogger);
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
-        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putgroup");
+        when(mockDomRsrcCtx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putgroup");
         zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Group group1 = createGroupObject(domainName, groupName, "user.joe", "user.jane");
@@ -24152,11 +24169,11 @@ public class ZMSImplTest {
         assertNull(group.getGroupMembers().get(1).getExpiration());
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+        when(authority.getDateAttribute("user.john", "elevated-clearance"))
                 .thenReturn(new Date());
-        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance"))
+        when(authority.getDateAttribute("user.jane", "elevated-clearance"))
                 .thenReturn(new Date());
-        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+        when(authority.getDateAttribute("user.joe", "elevated-clearance"))
                 .thenReturn(null);
         zms.userAuthority = authority;
 
@@ -24233,12 +24250,13 @@ public class ZMSImplTest {
         final String domainName = "put-group-mbr";
         final String groupName = "group1";
 
-        Mockito.when(mockDomRsrcCtx.getApiName())
+        when(mockDomRsrcCtx.getApiName())
                 .thenReturn("putserviceidentity")
-                .thenReturn("posttopleveldomain")
-                .thenReturn("posttopleveldomain")
-                .thenReturn("putserviceidentity")
-                .thenReturn("postsubdomain")
+                .thenReturn("posttopleveldomain").thenReturn("posttopleveldomain") // called twice in domain api
+                .thenReturn("posttopleveldomain").thenReturn("posttopleveldomain") // called twice in domain api
+                .thenReturn("putserviceidentity").thenReturn("putserviceidentity").thenReturn("putserviceidentity")
+                .thenReturn("putserviceidentity").thenReturn("putserviceidentity")
+                .thenReturn("postsubdomain").thenReturn("postsubdomain") // called twice in domain api
                 .thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup") // called 4 times in group api
                 .thenReturn("putgroupmembership");
 
@@ -24357,12 +24375,12 @@ public class ZMSImplTest {
 
         Authority mockAuthority = Mockito.mock(Authority.class);
 
-        Mockito.when(mockAuthority.isValidUser(anyString())).thenReturn(true);
-        Mockito.when(mockAuthority.getDateAttribute("user.joe", "ElevatedClearance")).thenReturn(joeDate);
-        Mockito.when(mockAuthority.getDateAttribute("user.jane", "ElevatedClearance")).thenReturn(janeDate);
-        Mockito.when(mockAuthority.getDateAttribute("user.bob", "ElevatedClearance")).thenReturn(bobDate);
-        Mockito.when(mockAuthority.getDateAttribute("user.dave", "ElevatedClearance")).thenReturn(null);
-        Mockito.when(mockAuthority.dateAttributesSupported()).thenReturn(attrSet);
+        when(mockAuthority.isValidUser(anyString())).thenReturn(true);
+        when(mockAuthority.getDateAttribute("user.joe", "ElevatedClearance")).thenReturn(joeDate);
+        when(mockAuthority.getDateAttribute("user.jane", "ElevatedClearance")).thenReturn(janeDate);
+        when(mockAuthority.getDateAttribute("user.bob", "ElevatedClearance")).thenReturn(bobDate);
+        when(mockAuthority.getDateAttribute("user.dave", "ElevatedClearance")).thenReturn(null);
+        when(mockAuthority.dateAttributesSupported()).thenReturn(attrSet);
 
         Authority savedAuthority = zms.userAuthority;
         zms.userAuthority = mockAuthority;
@@ -24538,8 +24556,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAuditAdminPrince);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
 
         try {
             zms.deletePendingGroupMembership(mockDomRsrcCtx, domainName, groupName, "user.doe", null);
@@ -24658,8 +24676,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAuditAdminPrince);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
 
         zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
 
@@ -24672,8 +24690,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
 
         resgroup = zms.getGroup(mockDomRsrcCtx, domainName, groupName, false, false);
         assertEquals(resgroup.getGroupMembers().size(), 3);
@@ -24728,7 +24746,7 @@ public class ZMSImplTest {
         assertNotNull(rsrcAuditAdminPrince);
         ((SimplePrincipal) rsrcAuditAdminPrince).setUnsignedCreds(auditAdminUnsignedCreds);
 
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAuditAdminPrince);
 
         // enable user authority check - joe and jane are the only
         // valid users in the system
@@ -24817,8 +24835,8 @@ public class ZMSImplTest {
                 unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
 
         try {
             zms.putGroupMembershipDecision(mockDomRsrcCtx, domainName, groupName, "user.bob", auditRef, mbr);
@@ -24836,8 +24854,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
@@ -25291,9 +25309,9 @@ public class ZMSImplTest {
         // repeat the request using context principal
 
         Principal mockPrincipal = Mockito.mock(Principal.class);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(mockPrincipal);
-        Mockito.when(mockPrincipal.getDomain()).thenReturn("user");
-        Mockito.when(mockPrincipal.getFullName()).thenReturn("user.fury");
+        when(mockDomRsrcCtx.principal()).thenReturn(mockPrincipal);
+        when(mockPrincipal.getDomain()).thenReturn("user");
+        when(mockPrincipal.getFullName()).thenReturn("user.fury");
         domainGroupMembership = zms.getPendingDomainGroupMembersList(mockDomRsrcCtx, null);
 
         assertNotNull(domainGroupMembership);
@@ -25625,8 +25643,8 @@ public class ZMSImplTest {
                 unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrince);
 
         GroupMembership mbr = new GroupMembership();
         mbr.setMemberName("user.bob");
@@ -25666,8 +25684,8 @@ public class ZMSImplTest {
         assertNotNull(rsrcAdminPrince);
         ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
 
-        Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
-        Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
+        when(mockDomRsrcCtx.principal()).thenReturn(rsrcAdminPrince);
 
         // approve the message which should be successful
 
@@ -25717,15 +25735,15 @@ public class ZMSImplTest {
         Authority savedAuthority = zms.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
-        Mockito.when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
-        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
-        Mockito.when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(true);
+        when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
+        when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
+        when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
+        when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(true);
         Set<String> attrs = new HashSet<>();
         attrs.add("OnShore-US");
         attrs.add("elevated-clearance");
-        Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
-        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        when(authority.booleanAttributesSupported()).thenReturn(attrs);
+        when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -25842,14 +25860,14 @@ public class ZMSImplTest {
         Authority savedAuthority = zms.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
-        Mockito.when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
-        Mockito.when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(false);
-        Mockito.when(authority.isAttributeSet("user.joe", "OnShore-US")).thenReturn(true);
-        Mockito.when(authority.isAttributeSet("user.doe", "OnShore-US")).thenReturn(false);
+        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
+        when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(false);
+        when(authority.isAttributeSet("user.joe", "OnShore-US")).thenReturn(true);
+        when(authority.isAttributeSet("user.doe", "OnShore-US")).thenReturn(false);
         Set<String> attrs = new HashSet<>();
         attrs.add("OnShore-US");
-        Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
+        when(authority.booleanAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -25920,14 +25938,14 @@ public class ZMSImplTest {
         Timestamp timestmp = Timestamp.fromMillis(System.currentTimeMillis() + 100000);
         Date date = timestmp.toDate();
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
-        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(date);
-        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(null);
-        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance")).thenReturn(date);
-        Mockito.when(authority.getDateAttribute("user.doe", "elevated-clearance")).thenReturn(null);
+        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(date);
+        when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(null);
+        when(authority.getDateAttribute("user.joe", "elevated-clearance")).thenReturn(date);
+        when(authority.getDateAttribute("user.doe", "elevated-clearance")).thenReturn(null);
         Set<String> attrs = new HashSet<>();
         attrs.add("elevated-clearance");
-        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -26156,16 +26174,16 @@ public class ZMSImplTest {
         Authority savedAuthority = zms.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
-        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
-        Mockito.when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
-        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
-        Mockito.when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(true);
+        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
+        when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
+        when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
+        when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(true);
         Set<String> attrs = new HashSet<>();
         attrs.add("OnShore-US");
         attrs.add("elevated-clearance");
-        Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
-        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        when(authority.booleanAttributesSupported()).thenReturn(attrs);
+        when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -26337,11 +26355,11 @@ public class ZMSImplTest {
         Authority savedAuthority = zms.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
-        Mockito.when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
+        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
         Set<String> attrs = new HashSet<>();
         attrs.add("OnShore-US");
-        Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
+        when(authority.booleanAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
@@ -26393,13 +26411,13 @@ public class ZMSImplTest {
         Authority savedAuthority = zms.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        Mockito.when(authority.isValidUser(anyString())).thenReturn(true);
-        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
-        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
+        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
+        when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
         Set<String> attrs = new HashSet<>();
         attrs.add("elevated-clearance");
-        Mockito.when(authority.booleanAttributesSupported()).thenReturn(attrs);
-        Mockito.when(authority.dateAttributesSupported()).thenReturn(attrs);
+        when(authority.booleanAttributesSupported()).thenReturn(attrs);
+        when(authority.dateAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -27592,13 +27610,13 @@ public class ZMSImplTest {
         DomainMetaStore savedMetaStore = zms.domainMetaStore;
         DomainMetaStore mockDomainMetaStore = Mockito.mock(DomainMetaStore.class);
         List<String> awsAccountsList = Collections.singletonList("awsAcc");
-        Mockito.when(mockDomainMetaStore.getValidAWSAccounts(isNull())).thenReturn(awsAccountsList);
+        when(mockDomainMetaStore.getValidAWSAccounts(isNull())).thenReturn(awsAccountsList);
         List<String> businessServicesList = Collections.singletonList("bservice");
-        Mockito.when(mockDomainMetaStore.getValidBusinessServices(isNull())).thenReturn(businessServicesList);
+        when(mockDomainMetaStore.getValidBusinessServices(isNull())).thenReturn(businessServicesList);
         List<String> azureList = Collections.singletonList("azureSub");
-        Mockito.when(mockDomainMetaStore.getValidAzureSubscriptions(isNull())).thenReturn(azureList);
+        when(mockDomainMetaStore.getValidAzureSubscriptions(isNull())).thenReturn(azureList);
         List<String> productIdList = Collections.singletonList("product");
-        Mockito.when(mockDomainMetaStore.getValidProductIds(isNull())).thenReturn(productIdList);
+        when(mockDomainMetaStore.getValidProductIds(isNull())).thenReturn(productIdList);
         zms.domainMetaStore = mockDomainMetaStore;
         assertEquals("bservice", zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "businessService", null).getValidValues().get(0));
         assertEquals("awsAcc", zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "awsAccount", null).getValidValues().get(0));
@@ -27653,12 +27671,12 @@ public class ZMSImplTest {
         DomainMetaStore savedMetaStore = zms.domainMetaStore;
         DomainMetaStore mockDomainMetaStore = Mockito.mock(DomainMetaStore.class);
         List<String> businessServicesList = Collections.singletonList("bservice");
-        Mockito.when(mockDomainMetaStore.getValidBusinessServices(anyString())).thenReturn(businessServicesList);
+        when(mockDomainMetaStore.getValidBusinessServices(anyString())).thenReturn(businessServicesList);
 
         zms.domainMetaStore = mockDomainMetaStore;
         ArgumentCaptor<String> userCapture = ArgumentCaptor.forClass(String.class);
         zms.getDomainMetaStoreValidValuesList(mockDomRsrcCtx, "businessService", "TestUser");
-        Mockito.verify(mockDomainMetaStore, times(1)).getValidBusinessServices(userCapture.capture());
+        verify(mockDomainMetaStore, times(1)).getValidBusinessServices(userCapture.capture());
 
         assertEquals(userCapture.getValue(), "testuser");
         zms.domainMetaStore = savedMetaStore;
@@ -27670,8 +27688,8 @@ public class ZMSImplTest {
 
         Authority authority = Mockito.mock(Authority.class);
 
-        Mockito.when(authority.booleanAttributesSupported()).thenReturn(new HashSet<>(Arrays.asList("boolAttr1")));
-        Mockito.when(authority.dateAttributesSupported()).thenReturn(new HashSet<>(Arrays.asList("dateAttr1")));
+        when(authority.booleanAttributesSupported()).thenReturn(new HashSet<>(Arrays.asList("boolAttr1")));
+        when(authority.dateAttributesSupported()).thenReturn(new HashSet<>(Arrays.asList("dateAttr1")));
         zms.userAuthority = authority;
         UserAuthorityAttributeMap attributes = zms.getUserAuthorityAttributeMap(mockDomRsrcCtx);
         assertEquals(attributes.getAttributes().size(), 2);
@@ -27733,7 +27751,7 @@ public class ZMSImplTest {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
                 conditionsResp = policy.getAssertions().get(0).getConditions();
                 assertNotNull(conditionsResp);
-                MatcherAssert.assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp, conditionResp2));
+                assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp, conditionResp2));
             }
         }
         zms.readOnlyMode = true;
@@ -27789,7 +27807,7 @@ public class ZMSImplTest {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
                 conditionsResp = policy.getAssertions().get(0).getConditions();
                 assertNotNull(conditionsResp);
-                MatcherAssert.assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
+                assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
             }
         }
         // update condition
@@ -27814,7 +27832,7 @@ public class ZMSImplTest {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
                 conditionsResp = policy.getAssertions().get(0).getConditions();
                 assertNotNull(conditionsResp);
-                MatcherAssert.assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
+                assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
             }
         }
         zms.readOnlyMode = true;
@@ -27877,7 +27895,7 @@ public class ZMSImplTest {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
                 conditionsResp = policy.getAssertions().get(0).getConditions();
                 assertNotNull(conditionsResp);
-                MatcherAssert.assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
+                assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
             }
         }
         // now delete all condition
@@ -27944,7 +27962,7 @@ public class ZMSImplTest {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
                 conditionsResp = policy.getAssertions().get(0).getConditions();
                 assertNotNull(conditionsResp);
-                MatcherAssert.assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
+                assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
             }
         }
 
@@ -28069,5 +28087,623 @@ public class ZMSImplTest {
         assertEquals(verPolicy1, verPolicy2);
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDomainChangeMessages() {
+        // postTopLevelDomain events
+        String domainName = "test-dom-change-msg";
+        TopLevelDomain dom1 = createTopLevelDomainObject("test-dom-change-msg",
+            "Test description Domain1", "testOrg", adminUser);
+        dom1.setAuditEnabled(true);
+        
+        RsrcCtxWrapper ctx = contextWithMockPrincipal("postTopLevelDomain");
+        zms.postTopLevelDomain(ctx, auditRef, dom1);
+        
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "postTopLevelDomain");
+
+        // putDomainTemplate events
+        DomainTemplate domTemplate = new DomainTemplate();
+        List<String> templates = new ArrayList<>();
+        templates.add("vipng");
+        domTemplate.setTemplateNames(templates);
+        ctx = contextWithMockPrincipal("putDomainTemplate");
+        zms.putDomainTemplate(ctx, domainName, auditRef, domTemplate);
+        assertTemplateChanges(domainName, ctx.getDomainChangeMessages(), "putDomainTemplate");
+
+        // deleteDomainTemplate events
+        ctx = contextWithMockPrincipal("deleteDomainTemplate");
+        zms.deleteDomainTemplate(ctx, domainName, "vipng", auditRef);
+        assertTemplateChanges(domainName, ctx.getDomainChangeMessages(), "deleteDomainTemplate");
+
+        // putDomainTemplateExt events
+        ctx = contextWithMockPrincipal("putDomainTemplateExt");
+        zms.putDomainTemplateExt(ctx, domainName, "vipng", auditRef, domTemplate);
+        assertTemplateChanges(domainName, ctx.getDomainChangeMessages(), "putDomainTemplateExt");
+
+        // putDomainMeta events
+        ctx = contextWithMockPrincipal("putDomainMeta");
+        DomainMeta dm = new DomainMeta().setBusinessService("invalid");
+        zms.putDomainMeta(ctx, domainName, auditRef, dm);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "putDomainMeta");
+
+        // putDomainSystemMeta events
+        ctx = contextWithMockPrincipal("putDomainSystemMeta");
+        DomainMeta meta = new DomainMeta().setAuditEnabled(true);
+        zms.putDomainSystemMeta(ctx, domainName, "auditenabled", auditRef, meta);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "putDomainSystemMeta");
+
+        // putEntity events
+        ctx = contextWithMockPrincipal("putEntity");
+        Entity entity1 = createEntityObject(domainName, "Entity1");
+        zms.putEntity(ctx, domainName, "Entity1", auditRef, entity1);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ENTITY, domainName, "entity1", "putEntity");
+
+        // deleteEntity events
+        ctx = contextWithMockPrincipal("deleteEntity");
+        zms.deleteEntity(ctx, domainName, "Entity1", auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ENTITY, domainName, "entity1", "deleteEntity");
+
+        // putRole events
+        ctx = contextWithMockPrincipal("putRole");
+        String roleName = "role-test1";
+        Role role = createRoleObject(domainName, roleName, null, "user.user101", "user.todelete");
+        role.setAuditEnabled(true);
+        zms.putRole(ctx, domainName, roleName, auditRef, role);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putRole");
+
+        // putRoleMeta events
+        ctx = contextWithMockPrincipal("putRoleMeta");
+        RoleMeta rm = createRoleMetaObject(true);
+        zms.putRoleMeta(ctx, domainName, roleName, "auditenabled", rm);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putRoleMeta");
+
+        // putMembership events using user.doe principal
+        ctx = contextWithMockPrincipal("putMembership", "doe");
+        
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.doe");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+
+        zms.putMembership(ctx, domainName, roleName, "user.doe", auditRef, mbr);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putMembership");
+        
+        // putRoleReview events
+        ctx = contextWithMockPrincipal("putRoleReview");
+        
+        Role inputRole = new Role().setName(roleName);
+        List<RoleMember> inputMembers = new ArrayList<>();
+        inputRole.setRoleMembers(inputMembers);
+        inputMembers.add(new RoleMember().setMemberName("user.doe").setActive(false));
+        zms.putRoleReview(ctx, domainName, roleName, auditRef, inputRole);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putRoleReview");
+        
+        // putMembershipDecision events
+        ctx = contextWithMockPrincipal("putMembershipDecision");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+        zms.putMembershipDecision(ctx, domainName, roleName, "user.doe", auditRef, mbr);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putMembershipDecision");
+
+        // putMembership events using user.pend principal
+        ctx = contextWithMockPrincipal("putMembership", "pend");
+
+        Membership mbr1 = new Membership();
+        mbr1.setMemberName("user.pend");
+        mbr1.setActive(false);
+        mbr1.setApproved(false);
+
+        zms.putMembership(ctx, domainName, roleName, "user.pend", auditRef, mbr1);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putMembership");
+
+        // deletePendingMembership events
+        ctx = contextWithMockPrincipal("deletePendingMembership");
+        zms.deletePendingMembership(ctx, domainName, roleName, "user.pend", auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "deletePendingMembership");
+        
+        // deleteMembership events
+        ctx = contextWithMockPrincipal("deleteMembership");
+        zms.deleteMembership(ctx, domainName, roleName, "user.doe", auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "deleteMembership");
+
+        // putRoleSystemMeta events
+        ctx = contextWithMockPrincipal("putRoleSystemMeta");
+        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
+        zms.putRoleSystemMeta(ctx, domainName, roleName, "auditenabled", auditRef, rsm);        
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putRoleSystemMeta");
+    
+        // deleteRole events
+        ctx = contextWithMockPrincipal("deleteRole");
+        zms.deleteRole(ctx, domainName, roleName, auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "deleteRole");
+
+        // putDefaultAdmins events
+        ctx = contextWithMockPrincipal("putDefaultAdmins");
+        List<String> adminList = Arrays.asList("user.newadmin", adminUser);
+        DefaultAdmins admins = new DefaultAdmins().setAdmins(adminList);
+        zms.putDefaultAdmins(ctx, domainName, auditRef, admins);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, "admin", "putDefaultAdmins");
+
+        // putGroup events
+        ctx = contextWithMockPrincipal("putGroup");
+        String groupName = "group-test1";
+        Group group = createGroupObject(domainName, groupName, "user.user12", "user.user101");
+        group.setAuditEnabled(true);
+        zms.putGroup(ctx, domainName, groupName, auditRef, group);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "putGroup");
+
+        // putGroupMeta events
+        ctx = contextWithMockPrincipal("putGroupMeta");
+        GroupMeta gm = new GroupMeta().setSelfServe(true);
+        zms.putGroupMeta(ctx, domainName, groupName, "auditenabled", gm);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "putGroupMeta");
+
+        // putGroupMembership events using user.doe principal
+        ctx = contextWithMockPrincipal("putGroupMembership", "doe");
+
+        GroupMembership gmbr = new GroupMembership();
+        gmbr.setMemberName("user.doe");
+        gmbr.setActive(false);
+        gmbr.setApproved(false);
+
+        zms.putGroupMembership(ctx, domainName, groupName, "user.doe", auditRef, gmbr);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "putGroupMembership");
+        
+        // putGroupReview events
+        ctx = contextWithMockPrincipal("putGroupReview");
+
+        Group inputGroup = new Group().setName(groupName);
+        List<GroupMember> gInputMembers = new ArrayList<>();
+        inputGroup.setGroupMembers(gInputMembers);
+        gInputMembers.add(new GroupMember().setMemberName("user.doe").setActive(false));
+        zms.putGroupReview(ctx, domainName, groupName, auditRef, inputGroup);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "putGroupReview");
+
+        // putGroupMembershipDecision events
+        ctx = contextWithMockPrincipal("putGroupMembershipDecision");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+        zms.putGroupMembershipDecision(ctx, domainName, groupName, "user.doe", auditRef, gmbr);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "putGroupMembershipDecision");
+
+        // putGroupMembership events using user.pend principal
+        ctx = contextWithMockPrincipal("putGroupMembership", "pend");
+
+        GroupMembership gmbr1 = new GroupMembership();
+        gmbr1.setMemberName("user.pend");
+        gmbr1.setActive(false);
+        gmbr1.setApproved(false);
+
+        zms.putGroupMembership(ctx, domainName, groupName, "user.pend", auditRef, gmbr1);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "putGroupMembership");
+
+        // deletePendingGroupMembership events
+        ctx = contextWithMockPrincipal("deletePendingGroupMembership");
+        zms.deletePendingGroupMembership(ctx, domainName, groupName, "user.pend", auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "deletePendingGroupMembership");
+
+        // deleteGroupMembership events
+        ctx = contextWithMockPrincipal("deleteGroupMembership");
+        zms.deleteGroupMembership(ctx, domainName, groupName, "user.user12", auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "deleteGroupMembership");
+
+        // putGroupSystemMeta events
+        ctx = contextWithMockPrincipal("putGroupSystemMeta");
+        GroupSystemMeta gsm = createGroupSystemMetaObject(true);
+        zms.putGroupSystemMeta(ctx, domainName, groupName, "auditenabled", auditRef, gsm);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "putGroupSystemMeta");
+
+        // deleteGroup events
+        ctx = contextWithMockPrincipal("deleteGroup");
+        zms.deleteGroup(ctx, domainName, groupName, auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "deleteGroup");
+
+        // putPolicy events
+        ctx = contextWithMockPrincipal("putPolicy");
+        String policyName = "test-policy";
+        Policy policy = createPolicyObject(domainName, policyName);
+        zms.putPolicy(ctx, domainName, policyName, auditRef, policy);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyName, "putPolicy");
+
+        // putAssertion events
+        ctx = contextWithMockPrincipal("putAssertion");
+        Assertion assertion = new Assertion();
+        assertion.setAction("update");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource(domainName + ":resource");
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "admin"));
+        assertion = zms.putAssertion(ctx, domainName, policyName, auditRef, assertion);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyName, "putAssertion");
+
+        // deleteAssertion events
+        ctx = contextWithMockPrincipal("deleteAssertion");
+        zms.deleteAssertion(ctx, domainName, policyName, assertion.getId(), auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyName, "deleteAssertion");
+        
+        // putPolicyVersion events
+        ctx = contextWithMockPrincipal("putPolicyVersion");
+        String newVersion = "new-version";
+        zms.putPolicyVersion(ctx, domainName, policyName, new PolicyOptions().setVersion(newVersion), auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyName, "putPolicyVersion");
+
+        // putAssertionPolicyVersion events
+        ctx = contextWithMockPrincipal("putAssertionPolicyVersion");
+        Assertion assertionWithVersion = new Assertion();
+        assertionWithVersion.setAction("testAction");
+        assertionWithVersion.setEffect(AssertionEffect.DENY);
+        assertionWithVersion.setResource(domainName + ":test-resource");
+        assertionWithVersion.setRole(ResourceUtils.roleResourceName(domainName, "Role1"));
+        assertionWithVersion = zms.putAssertionPolicyVersion(ctx, domainName, policyName, newVersion, auditRef, assertionWithVersion);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyName, "putAssertionPolicyVersion");
+
+        // setActivePolicyVersion events
+        ctx = contextWithMockPrincipal("setActivePolicyVersion");
+        zms.setActivePolicyVersion(ctx, domainName, policyName, new PolicyOptions().setVersion(newVersion), auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyName, "setActivePolicyVersion");
+
+        // deleteAssertionPolicyVersion events
+        ctx = contextWithMockPrincipal("deleteAssertionPolicyVersion");
+        zms.deleteAssertionPolicyVersion(ctx, domainName, policyName, newVersion, assertionWithVersion.getId(), auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyName, "deleteAssertionPolicyVersion");
+
+        // deletePolicyVersion events
+        ctx = contextWithMockPrincipal("deletePolicyVersion");
+        zms.putPolicyVersion(ctx, domainName, policyName, new PolicyOptions().setVersion("versionToDelete"), auditRef);
+        zms.deletePolicyVersion(ctx, domainName, policyName, "versionToDelete", auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyName, "deletePolicyVersion");
+
+        // putAssertionCondition events
+        ctx = contextWithMockPrincipal("putAssertionCondition");
+        String policyConditionName = "test-policy-cond";
+        Policy policyCondition = createPolicyObject(domainName, policyConditionName);
+        zms.putPolicy(ctx, domainName, policyConditionName, auditRef, policyCondition);
+        policyCondition = zms.getPolicy(ctx, domainName, policyConditionName);
+        Long assertionId = policyCondition.getAssertions().get(0).getId();
+        AssertionCondition ac = createAssertionConditionObject(1, "instances", "HOST1,host2,Host3");
+        ac.setId(null);
+        ac = zms.putAssertionCondition(ctx, domainName, policyConditionName, assertionId, auditRef, ac);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyConditionName, "putAssertionCondition");
+
+        // putAssertionConditions events
+        ctx = contextWithMockPrincipal("putAssertionConditions");
+        AssertionConditions acs = new AssertionConditions().setConditionsList(Collections.singletonList(ac));
+        zms.putAssertionConditions(ctx, domainName, policyConditionName, assertionId, auditRef, acs);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyConditionName, "putAssertionConditions");
+
+        // deleteAssertionCondition events
+        ctx = contextWithMockPrincipal("deleteAssertionCondition");
+        zms.deleteAssertionCondition(ctx, domainName, policyConditionName, assertionId, 1, auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyConditionName, "deleteAssertionCondition");
+        
+        // deleteAssertionConditions events
+        ctx = contextWithMockPrincipal("deleteAssertionConditions");
+        zms.deleteAssertionConditions(ctx, domainName, policyConditionName, assertionId, auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyConditionName, "deleteAssertionConditions");
+
+        // deletePolicy events
+        ctx = contextWithMockPrincipal("deletePolicy");
+        zms.deletePolicy(ctx, domainName, policyConditionName, auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyConditionName, "deletePolicy");
+        
+        // putServiceIdentity events
+        String serviceName = "test-srv";
+        ServiceIdentity service = createServiceObject(domainName, serviceName,
+            "http://localhost", "/usr/bin/test", "root", "users", "host1");
+        ctx = contextWithMockPrincipal("putServiceIdentity");
+        zms.putServiceIdentity(ctx, domainName, serviceName, auditRef, service);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), SERVICE, domainName, serviceName, "putServiceIdentity");
+
+        // putPublicKeyEntry events
+        PublicKeyEntry keyEntry = new PublicKeyEntry();
+        keyEntry.setId("1");
+        keyEntry.setKey(pubKeyK2);
+
+        ctx = contextWithMockPrincipal("putPublicKeyEntry");
+        zms.putPublicKeyEntry(ctx, domainName, serviceName, "1", auditRef, keyEntry);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), SERVICE, domainName, serviceName, "putPublicKeyEntry");
+
+        // deletePublicKeyEntry events
+        ctx = contextWithMockPrincipal("deletePublicKeyEntry");
+        zms.deletePublicKeyEntry(ctx, domainName, serviceName, "1", auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), SERVICE, domainName, serviceName, "deletePublicKeyEntry");
+
+        // putServiceIdentitySystemMeta events
+        ServiceIdentitySystemMeta srvIdMeta = new ServiceIdentitySystemMeta();
+        srvIdMeta.setProviderEndpoint("https://localhost");
+        ctx = contextWithMockPrincipal("putServiceIdentitySystemMeta");
+        zms.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "providerendpoint", auditRef, srvIdMeta);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), SERVICE, domainName, serviceName, "putServiceIdentitySystemMeta");
+
+        // putTenancy events
+        String tenantDomainName = domainName + "-tenant";
+        TopLevelDomain tenDom = createTopLevelDomainObject(tenantDomainName,
+            "Test Tenant Provider Domain", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, tenDom);
+        
+        Tenancy tenancy = createTenantObject(tenantDomainName, domainName + "." + serviceName);
+        ctx = contextWithMockPrincipal("putTenancy");
+        zms.putTenancy(ctx, tenantDomainName, domainName + "." + serviceName, auditRef, tenancy);
+        List<DomainChangeMessage> changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 2);
+        assertChange(changeMsgs.get(0), ROLE, tenantDomainName, "test-dom-change-msg-tenant:role.tenancy.test-dom-change-msg.test-srv.admin", "putTenancy");
+        assertChange(changeMsgs.get(1), POLICY, tenantDomainName, "test-dom-change-msg-tenant:policy.tenancy.test-dom-change-msg.test-srv.admin", "putTenancy");
+        
+        // deleteTenancy events
+        ctx = contextWithMockPrincipal("deleteTenancy");
+        zms.deleteTenancy(ctx, tenantDomainName, domainName + "." + serviceName, auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, tenantDomainName, "tenancy.test-dom-change-msg.test-srv.admin", "deleteTenancy");
+
+        // putTenant events
+        String tenantServiceName = serviceName + "-tenant";
+        ServiceIdentity tenantService = createServiceObject(tenantDomainName, tenantServiceName,
+            "http://localhost", "/usr/bin/test", "root", "users", "host1");
+        zms.putServiceIdentity(mockDomRsrcCtx, tenantDomainName, tenantServiceName, auditRef, tenantService);
+        
+        ctx = contextWithMockPrincipal("putTenant");
+        Tenancy tenant = new Tenancy().setDomain(tenantDomainName).setService(domainName + "." + serviceName);
+        zms.putTenant(ctx, domainName, serviceName, tenantDomainName, auditRef, tenant);
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 2);
+        assertChange(changeMsgs.get(0), ROLE, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin", "putTenant");
+        assertChange(changeMsgs.get(1), POLICY, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin", "putTenant");
+        
+        // deleteTenant events
+        ctx = contextWithMockPrincipal("deleteTenant");
+        zms.deleteTenant(ctx, domainName, serviceName, tenantDomainName, auditRef);
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 2);
+        assertChange(changeMsgs.get(0), ROLE, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin", "deleteTenant");
+        assertChange(changeMsgs.get(1), POLICY, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin", "deleteTenant");
+
+        // putProviderResourceGroupRoles events
+        ctx = contextWithMockPrincipal("putProviderResourceGroupRoles");
+        ProviderResourceGroupRoles providerRoles = new ProviderResourceGroupRoles()
+            .setDomain(domainName).setService(serviceName)
+            .setTenant(tenantDomainName).setRoles(Collections.singletonList(new TenantRoleAction().setRole("role").setAction("action")))
+            .setResourceGroup("set1-test");
+        zms.putProviderResourceGroupRoles(ctx, tenantDomainName, domainName, serviceName, "set1-test", auditRef, providerRoles);
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 2);
+        assertChange(changeMsgs.get(0), POLICY, tenantDomainName, "test-dom-change-msg-tenant:policy.tenancy.test-dom-change-msg.test-srv.admin", "putProviderResourceGroupRoles");
+        assertChange(changeMsgs.get(1), ROLE, tenantDomainName, "test-dom-change-msg.test-srv.res_group.set1-test.role", "putProviderResourceGroupRoles");
+
+        // putTenantResourceGroupRoles events
+        ctx = contextWithMockPrincipal("putTenantResourceGroupRoles");
+        TenantResourceGroupRoles tenantRoles = new TenantResourceGroupRoles().setDomain(domainName)
+            .setService(serviceName).setTenant(tenantDomainName)
+            .setRoles(Collections.singletonList(new TenantRoleAction().setRole("role").setAction("action")))
+            .setResourceGroup("set1-test");
+
+        zms.putTenantResourceGroupRoles(ctx, domainName, serviceName, tenantDomainName, "set1-test", auditRef, tenantRoles);
+
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 2);
+        assertChange(changeMsgs.get(0), ROLE, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin", "putTenantResourceGroupRoles");
+        assertChange(changeMsgs.get(1), POLICY, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin", "putTenantResourceGroupRoles");
+
+        // deleteTenantResourceGroupRoles events
+        ctx = contextWithMockPrincipal("deleteTenantResourceGroupRoles");
+        zms.deleteTenantResourceGroupRoles(ctx, domainName, serviceName, tenantDomainName, "set1-test", auditRef);
+
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 2);
+        assertChange(changeMsgs.get(0), ROLE, domainName, "test-srv.tenant.test-dom-change-msg-tenant.res_group.set1-test.role", "deleteTenantResourceGroupRoles");
+        assertChange(changeMsgs.get(1), POLICY, domainName, "test-srv.tenant.test-dom-change-msg-tenant.res_group.set1-test.role", "deleteTenantResourceGroupRoles");
+
+        // deleteProviderResourceGroupRoles events
+        ctx = contextWithMockPrincipal("deleteProviderResourceGroupRoles");
+        zms.deleteProviderResourceGroupRoles(ctx, tenantDomainName, domainName, serviceName, "set1-test", auditRef);
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, tenantDomainName, "tenancy.test-dom-change-msg.test-srv.res_group.set1-test.role", "deleteProviderResourceGroupRoles");
+        
+        // deleteTenant events
+        ctx = contextWithMockPrincipal("deleteTenant");
+        zms.deleteTenant(ctx, domainName, serviceName, tenantDomainName, auditRef);
+        changeMsgs = ctx.getDomainChangeMessages();
+        assertEquals(changeMsgs.size(), 2);
+        assertChange(changeMsgs.get(0), ROLE, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin", "deleteTenant");
+        assertChange(changeMsgs.get(1), POLICY, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin", "deleteTenant");
+
+        // deleteServiceIdentity events
+        ctx = contextWithMockPrincipal("deleteServiceIdentity");
+        zms.deleteServiceIdentity(ctx, domainName, serviceName, auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), SERVICE, domainName, serviceName, "deleteServiceIdentity");
+
+        // deleteDomainRoleMember events
+        role = createRoleObject(domainName, "some-role", null, "user.user222", "user.todelete");
+        zms.putRole(mockDomRsrcCtx, domainName, "some-role", auditRef, role);
+        
+        ctx = contextWithMockPrincipal("deleteDomainRoleMember");
+        zms.deleteDomainRoleMember(ctx, domainName, "user.todelete", auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, "some-role", "deleteDomainRoleMember");
+
+        // putQuota events
+        ctx = contextWithMockPrincipal("putQuota");
+        Quota quota = new Quota().setName(domainName)
+            .setRole(14).setRoleMember(15).setGroup(16);
+        zms.putQuota(ctx, domainName, auditRef, quota);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "putQuota");
+
+        // deleteQuota events
+        ctx = contextWithMockPrincipal("deleteQuota");
+        zms.deleteQuota(ctx, domainName, auditRef);
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "deleteQuota");
+        
+        // postSubDomain events
+        RsrcCtxWrapper subCtx = contextWithMockPrincipal("postSubDomain");
+
+        SubDomain subDomain = createSubDomainObject("AddSubDom1", domainName,
+            "Test Domain2", null, adminUser);
+        Domain resDom1 = zms.postSubDomain(subCtx,domainName, auditRef, subDomain);
+        assertSingleChangeMessage(subCtx.getDomainChangeMessages(), DOMAIN, "test-dom-change-msg.addsubdom1", "test-dom-change-msg.addsubdom1", "postSubDomain");
+
+        // deleteSubDomain events
+        RsrcCtxWrapper deleteCtx = contextWithMockPrincipal("deleteSubDomain");
+        zms.deleteSubDomain(deleteCtx, domainName, "AddSubDom1", auditRef);
+        assertSingleChangeMessage(deleteCtx.getDomainChangeMessages(), DOMAIN, "test-dom-change-msg.addsubdom1", "test-dom-change-msg.addsubdom1", "deleteSubDomain");
+
+        // deleteTopLevelDomain events
+        deleteCtx = contextWithMockPrincipal("deleteTopLevelDomain");
+        zms.deleteTopLevelDomain(deleteCtx, domainName, auditRef);
+        assertSingleChangeMessage(deleteCtx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "deleteTopLevelDomain");
+    }
+    
+    private void assertSingleChangeMessage(List<DomainChangeMessage> changeMsgs, DomainChangeMessage.ObjectType objType,
+                                           String domainName, String objName, String apiName) {
+        assertEquals(changeMsgs.size(), 1);
+        assertChange(changeMsgs.get(0), objType, domainName, objName, apiName);
+    }
+
+    private void assertChange(DomainChangeMessage change, DomainChangeMessage.ObjectType objType,
+                 String domainName, String objName, String apiName) {
+        assertEquals(change.getObjectType(), objType);
+        assertEquals(change.getDomainName(), domainName);
+        assertEquals(change.getObjectName(), objName);
+        assertEquals(change.getApiName(), apiName.toLowerCase(Locale.ROOT));
+    }
+
+    private void assertTemplateChanges(String domainName, List<DomainChangeMessage> changeMsgs, String templateApi) {
+        assertEquals(changeMsgs.size(), 2);
+        assertChange(changeMsgs.get(0), ROLE, domainName, "vip_admin", templateApi);
+        assertChange(changeMsgs.get(1), POLICY, domainName, "vip_admin", templateApi);
+    }
+
+    private RsrcCtxWrapper contextWithMockPrincipal(String apiName) {
+        return contextWithMockPrincipal(apiName, "testadminuser");
+    }
+    
+    private RsrcCtxWrapper contextWithMockPrincipal(String apiName, String princName) {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+        MockHttpServletResponse servletResponse = new MockHttpServletResponse();
+        RsrcCtxWrapper wrapperCtx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object(), apiName);
+        com.yahoo.athenz.common.server.rest.ResourceContext ctx = wrapperCtx.context();
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=" + princName;
+        Principal principal = SimplePrincipal.create("user", princName, adminUnsignedCreds + ";s=signature",
+            0, adminPrincipalAuthority);
+        ((SimplePrincipal) principal).setUnsignedCreds(adminUnsignedCreds);
+                
+        final Field principalField;
+        try {
+            principalField = ctx.getClass().getDeclaredField("principal");
+            principalField.setAccessible(true);
+            principalField.set(ctx, principal);
+        } catch (final NoSuchFieldException | IllegalAccessException ignored) {
+            throw new AssertionError("Failed to get Principal::principal");
+        }
+        return wrapperCtx;
+    }
+
+    @Test
+    public void testNoConfiguredTopic() {
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
+        ZMSImpl zmsImpl = zmsInit();
+        assertNull(zmsImpl.domainChangePublishers);
+    }
+
+    @Test
+    public void testMultipleTopics() {
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisherFactory");
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic1 , topic2");
+        ZMSImpl zmsImpl = zmsInit();
+        assertNotNull(zmsImpl.domainChangePublishers);
+        List<String> topicNames = zmsImpl.domainChangePublishers.stream()
+            .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
+            .collect(Collectors.toList());
+        assertThat(topicNames, containsInAnyOrder("topic1", "topic2"));
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testPublishEvent() {
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisherFactory");
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic1");
+        ZMSImpl zmsImpl = zmsInit();
+        assertNotNull(zmsImpl.domainChangePublishers);
+        List<String> topicNames = zmsImpl.domainChangePublishers.stream()
+            .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
+            .collect(Collectors.toList());
+        assertThat(topicNames, containsInAnyOrder("topic1"));
+
+        ResourceContext mockContext = Mockito.mock(ResourceContext.class);
+        when(mockContext.getApiName()).thenReturn("apiName");
+        when(mockContext.getDomainChangeMessages()).
+            thenReturn(Collections.singletonList(new DomainChangeMessage()
+                .setDomainName("domainName")
+                .setObjectName("objectName")
+                .setObjectType(DOMAIN)
+                .setApiName("apiName")
+                .setPublished(Instant.now().toEpochMilli())
+                .setMessageId(java.util.UUID.randomUUID().toString())
+            ));
+        zmsImpl.publishChangeMessage(mockContext, 200);
+
+
+        // verify publish messages
+        MockDomainChangePublisher.Recorder evtRecorder = getEventRecorder(zmsImpl);
+        ArgumentCaptor<DomainChangeMessage> evtArgumentCaptor = ArgumentCaptor.forClass(DomainChangeMessage.class);
+        verify(evtRecorder, Mockito.times(1)).record(evtArgumentCaptor.capture());
+        DomainChangeMessage actual = evtArgumentCaptor.getValue();
+        assertEquals(actual.getDomainName(), "domainName");
+        assertEquals(actual.getApiName(), "apiName");
+        assertEquals(actual.getObjectType(), DOMAIN);
+        assertEquals(actual.getObjectName(), "objectName");
+
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
+    }
+
+    private MockDomainChangePublisher.Recorder getEventRecorder(ZMSImpl zmsImpl) {
+        return ((MockDomainChangePublisher) zmsImpl.domainChangePublishers.get(0)).getRecorder();
+    }
+    
+    @Test
+    public void testPublisherNonSuccessErrorCode() {
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisherFactory");
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic1 , topic2");
+        
+        ZMSImpl zmsImpl = zmsInit();
+        String apiName = "postTopLevelDomain";
+        ResourceContext mockContext = Mockito.mock(ResourceContext.class);
+        when(mockContext.getApiName()).thenReturn(apiName);
+        when(mockContext.getDomainChangeMessages()).thenReturn(Collections.singletonList(new DomainChangeMessage()));
+        zmsImpl.publishChangeMessage(mockContext, 500);
+
+        // verify no publish messages
+        MockDomainChangePublisher.Recorder evtRecorder = getEventRecorder(zmsImpl);
+        ArgumentCaptor<DomainChangeMessage> evtArgumentCaptor = ArgumentCaptor.forClass(DomainChangeMessage.class);
+        verify(evtRecorder, Mockito.times(0)).record(evtArgumentCaptor.capture());
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
+    }
+    
+    @Test
+    public void testEmptyTopicName() {
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisherFactory");
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic1 , , topic2");
+        ZMSImpl zmsImpl = zmsInit();
+        assertNotNull(zmsImpl.domainChangePublishers);
+        assertEquals(zmsImpl.domainChangePublishers.size(), 2);
+        List<String> topicNames = zmsImpl.domainChangePublishers.stream()
+            .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
+            .collect(Collectors.toList());
+        assertThat(topicNames, containsInAnyOrder("topic1", "topic2"));
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
+    }
+
+    @Test
+    public void testNoPublishers() {
+        ZMSImpl zmsImpl = zmsInit();
+        String apiName = "postTopLevelDomain";
+        ResourceContext mockContext = Mockito.mock(ResourceContext.class);
+        when(mockContext.getApiName()).thenReturn(apiName);
+        when(mockContext.getDomainChangeMessages()).thenReturn(Collections.singletonList(new DomainChangeMessage()));
+
+        assertNull(zmsImpl.domainChangePublishers);
+        zmsImpl.publishChangeMessage(mockContext, 200);
     }
 }

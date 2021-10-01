@@ -28,14 +28,14 @@ public class DomainChangeMessageTest {
         DomainChangeMessage domainChange = new DomainChangeMessage();
         domainChange.setDomainName("domain")
             .setPublished(123L)
-            .setUuid("uuid")
+            .setMessageId("messageId")
             .setObjectName("role-obj")
             .setObjectType(DomainChangeMessage.ObjectType.ROLE)
             .setApiName("putRole");
         
         assertEquals(domainChange.getDomainName(), "domain");
         assertEquals(domainChange.getPublished(), 123L);
-        assertEquals(domainChange.getUuid(), "uuid");
+        assertEquals(domainChange.getMessageId(), "messageId");
         assertEquals(domainChange.getObjectType(), DomainChangeMessage.ObjectType.ROLE);
         assertEquals(domainChange.getObjectName(), "role-obj");
         assertEquals(domainChange.getApiName(), "putRole");
@@ -47,7 +47,7 @@ public class DomainChangeMessageTest {
         DomainChangeMessage domainChange1 = new DomainChangeMessage();
         domainChange1.setDomainName("domain")
             .setPublished(123L)
-            .setUuid("uuid")
+            .setMessageId("messageId")
             .setObjectName("role-obj")
             .setObjectType(DomainChangeMessage.ObjectType.ROLE)
             .setApiName("putRole");

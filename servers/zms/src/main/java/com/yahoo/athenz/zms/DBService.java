@@ -22,6 +22,7 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
@@ -39,6 +40,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -361,7 +363,7 @@ public class DBService implements RolesProvider {
                 if (solutionTemplates != null) {
                     for (String templateName : solutionTemplates) {
                         auditDetails.append(", \"template\": ");
-                        if (!addSolutionTemplate(con, domainName, templateName, principalName,
+                        if (!addSolutionTemplate(ctx, con, domainName, templateName, principalName,
                                 null, auditRef, auditDetails)) {
                             con.rollbackChanges();
                             throw ZMSUtils.internalServerError("makeDomain: Cannot apply templates: '" +
@@ -380,6 +382,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_POST,
                         domainName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
+                
                 return domain;
 
             } catch (ResourceException ex) {
@@ -806,7 +811,7 @@ public class DBService implements RolesProvider {
         return true;
     }
 
-    boolean processServiceIdentity(ObjectStoreConnection con, ServiceIdentity originalService,
+    boolean processServiceIdentity(ResourceContext ctx, ObjectStoreConnection con, ServiceIdentity originalService,
             String domainName, String serviceName, ServiceIdentity service,
             boolean ignoreDeletes, StringBuilder auditDetails) {
 
@@ -835,6 +840,9 @@ public class DBService implements RolesProvider {
             .append(", \"group\": \"").append(service.getGroup()).append('\"')
             .append(", \"description\": \"").append(service.getDescription()).append('\"');
 
+        // add domain change event
+        addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
+        
         // now we need process our public keys depending this is
         // a new insert operation or an update
 
@@ -1082,6 +1090,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         policyName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1142,6 +1153,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         policyName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1207,6 +1221,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         policyName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1266,6 +1283,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         roleName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1323,6 +1343,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT,
                         groupName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1359,7 +1382,7 @@ public class DBService implements RolesProvider {
                 // now process the request
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                if (!processServiceIdentity(con, originalService, domainName, serviceName,
+                if (!processServiceIdentity(ctx, con, originalService, domainName, serviceName,
                         service, false, auditDetails)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError("unable to put service: " + service.getName(), caller);
@@ -1374,6 +1397,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         serviceName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1443,6 +1469,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         serviceName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1486,6 +1515,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         serviceName, "{\"deleted-publicKeys\": [{\"id\": \"" + keyId + "\"}]}");
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1569,6 +1601,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT, roleName,
                         auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1631,6 +1666,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT, groupName,
                         auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1691,6 +1729,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         entityName, JSON.string(entity.getValue()));
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, entityName, DomainChangeMessage.ObjectType.ENTITY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1737,6 +1778,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         roleName, "{\"member\": \"" + normalizedMember + "\"}");
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1784,6 +1828,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         roleName, "{\"pending-member\": \"" + normalizedMember + "\"}");
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1830,6 +1877,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_DELETE,
                         groupName, "{\"member\": \"" + normalizedMember + "\"}");
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1876,6 +1926,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_DELETE,
                         groupName, "{\"pending-member\": \"" + normalizedMember + "\"}");
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1917,6 +1970,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         serviceName, null);
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1958,6 +2014,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         entityName, null);
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, entityName, DomainChangeMessage.ObjectType.ENTITY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -1999,6 +2058,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         roleName, null);
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -2039,6 +2101,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_DELETE,
                         groupName, null);
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -2099,6 +2164,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         policyName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -2155,6 +2223,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         policyName + ":" + version, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -2240,6 +2311,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         domainName, null);
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -2304,7 +2378,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void removePrincipalFromDomainRoles(ObjectStoreConnection con, String domainName, String principalName,
+    void removePrincipalFromDomainRoles(ResourceContext ctx, ObjectStoreConnection con, String domainName, String principalName,
             String adminUser, String auditRef) {
 
         // extract all the roles that this principal is member of
@@ -2345,13 +2419,16 @@ public class DBService implements RolesProvider {
             // update our role and domain time-stamps, and invalidate local cache entry
 
             con.updateRoleModTimestamp(domainName, roleName);
+
+            // add domain change event
+            addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
         }
 
         con.updateDomainModTimestamp(domainName);
         cacheStore.invalidate(domainName);
     }
 
-    void removePrincipalFromAllRoles(ObjectStoreConnection con, final String principalName,
+    void removePrincipalFromAllRoles(ResourceContext ctx, ObjectStoreConnection con, final String principalName,
             final String adminUser, final String auditRef) {
 
         // extract all the roles that this principal is member of
@@ -2400,10 +2477,13 @@ public class DBService implements RolesProvider {
             con.updateRoleModTimestamp(domainName, roleName);
             con.updateDomainModTimestamp(domainName);
             cacheStore.invalidate(domainName);
+
+            // add domain change event
+            addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
         }
     }
 
-    void removePrincipalFromAllGroups(ObjectStoreConnection con, final String principalName,
+    void removePrincipalFromAllGroups(ResourceContext ctx, ObjectStoreConnection con, final String principalName,
             final String adminUser, final String auditRef) {
 
         // extract all the groups that this principal is member of
@@ -2452,10 +2532,13 @@ public class DBService implements RolesProvider {
             con.updateGroupModTimestamp(domainName, groupName);
             con.updateDomainModTimestamp(domainName);
             cacheStore.invalidate(domainName);
+
+            // add domain change event
+            addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
         }
     }
 
-    void removePrincipalDomains(ObjectStoreConnection con, String principalName) {
+    void removePrincipalDomains(ResourceContext ctx, ObjectStoreConnection con, String principalName) {
 
         // first we're going to retrieve the list domains for
         // the given user
@@ -2470,10 +2553,12 @@ public class DBService implements RolesProvider {
 
         con.deleteDomain(principalName);
         cacheStore.invalidate(principalName);
-
+        addDomainChangeMessage(ctx, principalName, principalName, DomainChangeMessage.ObjectType.DOMAIN);
+        
         for (String subDomain : subDomains) {
             con.deleteDomain(subDomain);
             cacheStore.invalidate(subDomain);
+            addDomainChangeMessage(ctx, subDomain, subDomain, DomainChangeMessage.ObjectType.DOMAIN);
         }
     }
 
@@ -2491,7 +2576,7 @@ public class DBService implements RolesProvider {
                 // remove this user from all roles manually so that we
                 // can have an audit log record for each role
 
-                removePrincipalFromDomainRoles(con, domainName, memberName,
+                removePrincipalFromDomainRoles(ctx, con, domainName, memberName,
                         getPrincipalName(ctx), auditRef);
 
                 // audit log the request
@@ -2522,7 +2607,7 @@ public class DBService implements RolesProvider {
 
                 // remove all principal domains
 
-                removePrincipalDomains(con, domainName);
+                removePrincipalDomains(ctx, con, domainName);
 
                 // extract all principals that this user has - this would
                 // include the user self plus all services this user
@@ -2534,17 +2619,17 @@ public class DBService implements RolesProvider {
                 // can have an audit log record for each role
 
                 final String adminPrincipal = getPrincipalName(ctx);
-                removePrincipalFromAllRoles(con, userName, adminPrincipal, auditRef);
+                removePrincipalFromAllRoles(ctx, con, userName, adminPrincipal, auditRef);
                 for (String userSvcPrincipal : userSvcPrincipals) {
-                    removePrincipalFromAllRoles(con, userSvcPrincipal, adminPrincipal, auditRef);
+                    removePrincipalFromAllRoles(ctx, con, userSvcPrincipal, adminPrincipal, auditRef);
                 }
 
                 // remove this principal from all groups manually so that we
                 // can have an audit log record for each group
 
-                removePrincipalFromAllGroups(con, userName, adminPrincipal, auditRef);
+                removePrincipalFromAllGroups(ctx, con, userName, adminPrincipal, auditRef);
                 for (String userSvcPrincipal : userSvcPrincipals) {
-                    removePrincipalFromAllGroups(con, userSvcPrincipal, adminPrincipal, auditRef);
+                    removePrincipalFromAllGroups(ctx, con, userSvcPrincipal, adminPrincipal, auditRef);
                 }
 
                 // finally, delete the principal object. any roles that were
@@ -3036,6 +3121,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         policyName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -3100,6 +3188,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         policyName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -3244,6 +3335,9 @@ public class DBService implements RolesProvider {
 
                 updateDomainMembersUserAuthorityFilter(ctx, con, domain, updatedDomain, auditRef, caller);
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
+
                 return;
 
             } catch (ResourceException ex) {
@@ -3358,6 +3452,9 @@ public class DBService implements RolesProvider {
                 con.updateRoleModTimestamp(domainName, roleName);
                 con.updateDomainModTimestamp(domainName);
                 cacheStore.invalidate(domainName);
+
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
             }
         }
     }
@@ -3679,7 +3776,7 @@ public class DBService implements RolesProvider {
 
                 for (String templateName : domainTemplate.getTemplateNames()) {
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                    if (!addSolutionTemplate(con, domainName, templateName, getPrincipalName(ctx),
+                    if (!addSolutionTemplate(ctx, con, domainName, templateName, getPrincipalName(ctx),
                             domainTemplate.getParams(), auditRef, auditDetails)) {
                         con.rollbackChanges();
                         throw ZMSUtils.internalServerError("unable to put domain templates: " + domainName, caller);
@@ -3695,7 +3792,7 @@ public class DBService implements RolesProvider {
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
-
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -3728,7 +3825,7 @@ public class DBService implements RolesProvider {
                 auditDetails.append("{\"templates\": ");
 
                 Template template = zmsConfig.getServerSolutionTemplates().get(templateName);
-                deleteSolutionTemplate(con, domainName, templateName, template, auditDetails);
+                deleteSolutionTemplate(ctx, con, domainName, templateName, template, auditDetails);
 
                 auditDetails.append("}");
 
@@ -3751,7 +3848,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    boolean addSolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
+    boolean addSolutionTemplate(ResourceContext ctx, ObjectStoreConnection con, String domainName, String templateName,
             String admin, List<TemplateParam> templateParams, String auditRef, StringBuilder auditDetails) {
 
         auditDetails.append("{\"name\": \"").append(templateName).append('\"');
@@ -3799,6 +3896,9 @@ public class DBService implements RolesProvider {
                         admin, auditRef, true, auditDetails)) {
                     return false;
                 }
+
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
             }
         }
 
@@ -3827,6 +3927,9 @@ public class DBService implements RolesProvider {
                         true, auditDetails)) {
                     return false;
                 }
+                
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
             }
         }
 
@@ -3853,10 +3956,13 @@ public class DBService implements RolesProvider {
 
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-service\": ");
-                if (!processServiceIdentity(con, originalServiceIdentity, domainName,
+                if (!processServiceIdentity(ctx, con, originalServiceIdentity, domainName,
                         serviceIdentityName, templateServiceIdentity, true, auditDetails)) {
                     return false;
                 }
+
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, serviceIdentityName, DomainChangeMessage.ObjectType.SERVICE);
             }
         }
 
@@ -3874,10 +3980,11 @@ public class DBService implements RolesProvider {
         }
 
         auditDetails.append("}");
+        
         return true;
     }
 
-    void deleteSolutionTemplate(ObjectStoreConnection con, String domainName, String templateName,
+    void deleteSolutionTemplate(ResourceContext ctx, ObjectStoreConnection con, String domainName, String templateName,
             Template template, StringBuilder auditDetails) {
 
         // currently there is no support for dynamic templates since the
@@ -3906,6 +4013,9 @@ public class DBService implements RolesProvider {
                 con.deleteRole(domainName, roleName);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"delete-role\": \"").append(roleName).append('\"');
+
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
             }
         }
 
@@ -3920,6 +4030,9 @@ public class DBService implements RolesProvider {
                 con.deletePolicy(domainName, policyName);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"delete-policy\": \"").append(policyName).append('\"');
+                
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
             }
         }
 
@@ -3933,6 +4046,9 @@ public class DBService implements RolesProvider {
                 con.deleteServiceIdentity(domainName, serviceName);
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"delete-service\": \"").append(serviceName).append('\"');
+
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
             }
         }
 
@@ -4080,7 +4196,7 @@ public class DBService implements RolesProvider {
         return templateServiceIdentity;
     }
 
-    void setupTenantAdminPolicy(String tenantDomain, String provSvcDomain,
+    void setupTenantAdminPolicy(ResourceContext ctx, String tenantDomain, String provSvcDomain,
             String provSvcName, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
@@ -4111,6 +4227,9 @@ public class DBService implements RolesProvider {
 
                 if (con.getRole(tenantDomain, adminName) == null) {
                     con.insertRole(tenantDomain, new Role().setName(tenantAdminRole));
+
+                    // add domain change event
+                    addDomainChangeMessage(ctx, tenantDomain, tenantAdminRole, DomainChangeMessage.ObjectType.ROLE);
                 }
 
                 // tenant admin policy - check to see if this already exists. If it does
@@ -4144,12 +4263,15 @@ public class DBService implements RolesProvider {
                             .setResource(tenantResourceName).setAction(ZMSConsts.ACTION_UPDATE)
                             .setEffect(AssertionEffect.ALLOW);
                     con.insertAssertion(tenantDomain, adminName, null, assertion);
+
+                    // add domain change event
+                    addDomainChangeMessage(ctx, tenantDomain, adminPolicy.getName(), DomainChangeMessage.ObjectType.POLICY);
                 }
 
                 // update our domain time-stamp and save changes
 
                 saveChanges(con, tenantDomain);
-
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -4211,6 +4333,9 @@ public class DBService implements RolesProvider {
                         throw ZMSUtils.internalServerError("unable to put role: " + trustedRole, caller);
                     }
 
+                    // add domain change event
+                    addDomainChangeMessage(ctx, provSvcDomain, trustedName, DomainChangeMessage.ObjectType.ROLE);
+                    
                     String policyResourceName = ResourceUtils.policyResourceName(provSvcDomain, trustedName);
                     final String resourceName = provSvcDomain + ":service." +
                             ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, resourceGroup) + '*';
@@ -4238,6 +4363,9 @@ public class DBService implements RolesProvider {
                         throw ZMSUtils.internalServerError("unable to put policy: " + policy.getName(), caller);
                     }
                     auditDetails.append('}');
+
+                    // add domain change event
+                    addDomainChangeMessage(ctx, provSvcDomain, trustedName, DomainChangeMessage.ObjectType.POLICY);
                 }
 
                 // update our domain time-stamp and save changes
@@ -4248,7 +4376,7 @@ public class DBService implements RolesProvider {
 
                 auditLogRequest(ctx, provSvcDomain, auditRef, caller, ZMSConsts.HTTP_PUT,
                         tenantDomain, auditDetails.toString());
-
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -4259,7 +4387,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void addAssumeRolePolicy(ObjectStoreConnection con, String rolePrefix,
+    void addAssumeRolePolicy(ResourceContext ctx, ObjectStoreConnection con, String rolePrefix,
             String trustedRolePrefix, String role, List<RoleMember> roleMembers,
             String tenantDomain, String admin, String auditRef,
             StringBuilder auditDetails, String caller) {
@@ -4290,6 +4418,9 @@ public class DBService implements RolesProvider {
             throw ZMSUtils.internalServerError("unable to put role: " + roleName, caller);
         }
 
+        // add domain change event
+        addDomainChangeMessage(ctx, tenantDomain, roleName, DomainChangeMessage.ObjectType.ROLE);
+        
         // now create the corresponding policy. We're going to create it
         // only if the policy does not exist otherwise we'll just
         // add a new assertion
@@ -4334,6 +4465,9 @@ public class DBService implements RolesProvider {
                     assumeRolePolicy.getName(), caller);
         }
         auditDetails.append('}');
+
+        // add domain change event
+        addDomainChangeMessage(ctx, tenantDomain, policyName, DomainChangeMessage.ObjectType.ROLE);
     }
 
     void executePutProviderRoles(ResourceContext ctx, String tenantDomain, String provSvcDomain,
@@ -4389,7 +4523,7 @@ public class DBService implements RolesProvider {
 
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
 
-                    addAssumeRolePolicy(con, rolePrefix, trustedRolePrefix, role, roleMembers,
+                    addAssumeRolePolicy(ctx, con, rolePrefix, trustedRolePrefix, role, roleMembers,
                             tenantDomain, principalName, auditRef, auditDetails, caller);
                 }
 
@@ -4457,6 +4591,9 @@ public class DBService implements RolesProvider {
                     }
 
                     con.deletePolicy(tenantDomain, pname);
+
+                    // add domain change event
+                    addDomainChangeMessage(ctx, tenantDomain, pname, DomainChangeMessage.ObjectType.POLICY);
                 }
 
                 // now we're going to find any roles that have the provider prefix as
@@ -4485,6 +4622,9 @@ public class DBService implements RolesProvider {
                     }
 
                     con.deleteRole(tenantDomain, rname);
+
+                    // add domain change event
+                    addDomainChangeMessage(ctx, tenantDomain, rname, DomainChangeMessage.ObjectType.POLICY);
                 }
 
                 // update our domain time-stamp and save changes
@@ -4556,6 +4696,10 @@ public class DBService implements RolesProvider {
                         con.deleteRole(provSvcDomain, rname);
                         con.deletePolicy(provSvcDomain, rname);
                         firstEntry = auditLogString(auditDetails, rname, firstEntry);
+
+                        // add domain change event
+                        addDomainChangeMessage(ctx, provSvcDomain, rname, DomainChangeMessage.ObjectType.ROLE);
+                        addDomainChangeMessage(ctx, provSvcDomain, rname, DomainChangeMessage.ObjectType.POLICY);
                     }
                 }
                 auditDetails.append("]}");
@@ -5005,6 +5149,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, null);
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -5040,6 +5187,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         domainName, null);
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -5119,6 +5269,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -5187,6 +5340,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -5238,6 +5394,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -5366,6 +5525,9 @@ public class DBService implements RolesProvider {
                 updateRoleMembersSystemDisabledState(ctx, con, domainName, roleName, originalRole,
                         updatedRole, auditRef, caller);
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -5470,6 +5632,9 @@ public class DBService implements RolesProvider {
                 updateGroupMembersSystemDisabledState(ctx, con, domainName, groupName, originalGroup,
                         updatedGroup, auditRef);
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -5902,6 +6067,9 @@ public class DBService implements RolesProvider {
                     auditDetails.toString());
 
             bDataChanged = true;
+
+            // add domain change event
+            addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
         }
 
         return bDataChanged;
@@ -5931,6 +6099,9 @@ public class DBService implements RolesProvider {
                     auditDetails.toString());
 
             bDataChanged = true;
+
+            // add domain change event
+            addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
         }
 
         return bDataChanged;
@@ -5961,6 +6132,9 @@ public class DBService implements RolesProvider {
                     auditDetails.toString());
 
             bDataChanged = true;
+
+            // add domain change event
+            addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
         }
 
         return bDataChanged;
@@ -5991,6 +6165,9 @@ public class DBService implements RolesProvider {
                     auditDetails.toString());
 
             bDataChanged = true;
+
+            // add domain change event
+            addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
         }
 
         return bDataChanged;
@@ -6094,6 +6271,9 @@ public class DBService implements RolesProvider {
             con.updateRoleModTimestamp(domainName, roleName);
             con.updateDomainModTimestamp(domainName);
             cacheStore.invalidate(domainName);
+
+            // add domain change event
+            addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
         }
     }
 
@@ -6287,6 +6467,9 @@ public class DBService implements RolesProvider {
             con.updateRoleModTimestamp(domainName, roleName);
             con.updateDomainModTimestamp(domainName);
             cacheStore.invalidate(domainName);
+
+            // add domain change event
+            addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
         }
     }
 
@@ -6366,6 +6549,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         roleName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -6419,6 +6605,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT,
                         groupName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -6665,6 +6854,9 @@ public class DBService implements RolesProvider {
 
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), "REVIEW", groupName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -6764,6 +6956,9 @@ public class DBService implements RolesProvider {
 
                 auditLogRequest(ctx, domainName, auditRef, caller, "REVIEW", roleName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -7277,6 +7472,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         policyName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -7350,6 +7548,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         policyName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -7410,6 +7611,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         policyName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -7470,6 +7674,9 @@ public class DBService implements RolesProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
                         policyName, auditDetails.toString());
 
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
+                
                 return;
 
             } catch (ResourceException ex) {
@@ -7547,6 +7754,21 @@ public class DBService implements RolesProvider {
                 con.updateDomainModTimestamp(dom);
                 cacheStore.invalidate(dom);
             });
+        }
+    }
+
+
+
+    private void addDomainChangeMessage(ResourceContext ctx, String domainName, String objectName, DomainChangeMessage.ObjectType objectType) {
+        if (ctx != null) {
+            ctx.addDomainChangeMessage(new DomainChangeMessage()
+                .setDomainName(domainName)
+                .setObjectName(objectName)
+                .setObjectType(objectType)
+                .setApiName(ctx.getApiName())
+                .setPublished(Instant.now().toEpochMilli())
+                .setMessageId(java.util.UUID.randomUUID().toString())
+            );
         }
     }
 
