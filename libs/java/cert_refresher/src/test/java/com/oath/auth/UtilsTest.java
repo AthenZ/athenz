@@ -25,19 +25,19 @@ import org.junit.Test;
 public class UtilsTest {
 
     @Test (expected = FileNotFoundException.class)
-    public void getKeyStoreTest() throws FileNotFoundException, IOException, KeyRefresherException {
+    public void getKeyStoreTest() throws IOException, KeyRefresherException {
         Utils.getKeyStore(null);
         Assert.fail("Should have thrown FileNotFoundException.");
     }
     
     @Test (expected = FileNotFoundException.class)
-    public void createKeyStoreTest() throws FileNotFoundException, IOException, KeyRefresherException, InterruptedException {
+    public void createKeyStoreTest() throws IOException, KeyRefresherException, InterruptedException {
         Utils.createKeyStore(null, null);
         Assert.fail("Should have thrown FileNotFoundException.");
     }
     
     @Test (expected = FileNotFoundException.class)
-    public void getKeyManagersTest() throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
+    public void getKeyManagersTest() throws IOException, InterruptedException, KeyRefresherException {
         Utils.getKeyManagers(null, null);
         Assert.fail("Should have thrown FileNotFoundException.");
     }
