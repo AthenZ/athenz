@@ -34,6 +34,7 @@ import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
+import com.yahoo.athenz.common.messaging.ChangePublisher;
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.messaging.MockDomainChangePublisher;
 import com.yahoo.athenz.common.metrics.Metric;
@@ -14154,7 +14155,8 @@ public class ZMSImplTest {
     public void testOptionsUserToken() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object(), "apiName");
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+                null, new Object(), "apiName", false);
 
         zms.optionsUserToken(ctx, "user", "coretech.storage");
         assertEquals("GET", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS));
@@ -14171,7 +14173,8 @@ public class ZMSImplTest {
     public void testOptionsUserTokenRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object(), "apiName");
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+                null, new Object(), "apiName", false);
 
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
@@ -14205,7 +14208,8 @@ public class ZMSImplTest {
     public void testSetStandardCORSHeaders() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object(), "apiName");
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+                null, new Object(), "apiName", false);
 
         zms.setStandardCORSHeaders(ctx);
         assertEquals("true", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS));
@@ -14220,7 +14224,8 @@ public class ZMSImplTest {
     public void testSetStandardCORSHeadersRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object(), "apiName");
+        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+                null, new Object(), "apiName", true);
 
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
@@ -28535,7 +28540,7 @@ public class ZMSImplTest {
 
         SubDomain subDomain = createSubDomainObject("AddSubDom1", domainName,
             "Test Domain2", null, adminUser);
-        Domain resDom1 = zms.postSubDomain(subCtx,domainName, auditRef, subDomain);
+        zms.postSubDomain(subCtx,domainName, auditRef, subDomain);
         assertSingleChangeMessage(subCtx.getDomainChangeMessages(), DOMAIN, "test-dom-change-msg.addsubdom1", "test-dom-change-msg.addsubdom1", "postSubDomain");
 
         // deleteSubDomain events
@@ -28576,7 +28581,8 @@ public class ZMSImplTest {
     private RsrcCtxWrapper contextWithMockPrincipal(String apiName, String princName) {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        RsrcCtxWrapper wrapperCtx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false, null, new Object(), apiName);
+        RsrcCtxWrapper wrapperCtx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+                null, new Object(), apiName, true);
         com.yahoo.athenz.common.server.rest.ResourceContext ctx = wrapperCtx.context();
 
         Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
@@ -28705,5 +28711,36 @@ public class ZMSImplTest {
 
         assertNull(zmsImpl.domainChangePublishers);
         zmsImpl.publishChangeMessage(mockContext, 200);
+    }
+
+    @Test
+    public void testPublisherException() {
+
+        ZMSImpl zmsImpl = zmsInit();
+        String apiName = "postTopLevelDomain";
+        ResourceContext mockContext = Mockito.mock(ResourceContext.class);
+        when(mockContext.getApiName()).thenReturn(apiName);
+        when(mockContext.getDomainChangeMessages()).thenReturn(Collections.singletonList(new DomainChangeMessage()));
+
+        MockDomainChangePublisher mockDomainChangePublisher = new MockDomainChangePublisher("domainChanges");
+        mockDomainChangePublisher.setThrowPublishExceptions(true);
+        zmsImpl.domainChangePublishers = new ArrayList<>();
+        zmsImpl.domainChangePublishers.add(mockDomainChangePublisher);
+
+        // make sure no exceptions are thrown since we should catch and log them
+        zmsImpl.publishChangeMessage(mockContext, 200);
+    }
+
+    @Test
+    public void testTimerMetricException() {
+
+        ZMSImpl zmsImpl = zmsInit();
+        String apiName = "postTopLevelDomain";
+        RsrcCtxWrapper mockContext = Mockito.mock(RsrcCtxWrapper.class);
+        when(mockContext.getApiName()).thenReturn(apiName);
+        when(mockContext.getTimerMetric()).thenThrow(new IllegalArgumentException());
+
+        // make sure no exceptions are thrown since we should catch and log them
+        zmsImpl.recordMetrics(mockContext, 200);
     }
 }

@@ -669,7 +669,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void loadDomainChangePublisher() {
-        String topicNames = System.getProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "");
+        final String topicNames = System.getProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "");
         for (String topic : topicNames.split(",")) {
             topic = topic.trim();
             if (!topic.isEmpty()) {
@@ -686,7 +686,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private ChangePublisher<DomainChangeMessage> createPublisher(String topicName) {
         ChangePublisherFactory<DomainChangeMessage> publisherFactory;
-        String domainChangePublisherClassName = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, 
+        final String domainChangePublisherClassName = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS,
             ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT);
         try {
             publisherFactory = (ChangePublisherFactory<DomainChangeMessage>) Class.forName(domainChangePublisherClassName).newInstance();
@@ -3200,9 +3200,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         RoleList result = new RoleList();
 
-        List<String> names = new ArrayList<>();
-        names.addAll(dbService.listRoles(domainName));
-        String next = processListRequest(limit, skip, names);
+        List<String> names = new ArrayList<>(dbService.listRoles(domainName));
+        final String next = processListRequest(limit, skip, names);
         result.setNames(names);
         if (next != null) {
             result.setNext(next);
@@ -4417,9 +4416,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             skip = skip.toLowerCase();
         }
 
-        List<String> names = new ArrayList<>();
-        names.addAll(dbService.listPolicies(domainName));
-        String next = processListRequest(limit, skip, names);
+        List<String> names = new ArrayList<>(dbService.listPolicies(domainName));
+        final String next = processListRequest(limit, skip, names);
         PolicyList result = new PolicyList().setNames(names);
         if (next != null) {
             result.setNext(next);
@@ -5541,9 +5539,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             skip = skip.toLowerCase();
         }
 
-        List<String> names = new ArrayList<>();
-        names.addAll(dbService.listServiceIdentities(domainName));
-        String next = processListRequest(limit, skip, names);
+        List<String> names = new ArrayList<>(dbService.listServiceIdentities(domainName));
+        final String next = processListRequest(limit, skip, names);
         ServiceIdentityList result = new ServiceIdentityList().setNames(names);
         if (next != null) {
             result.setNext(next);
@@ -8259,7 +8256,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
-        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, this, timerMetric, apiName);
+        boolean eventPublishersEnabled = domainChangePublishers != null && !domainChangePublishers.isEmpty();
+        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, this,
+                timerMetric, apiName, eventPublishersEnabled);
     }
 
     @Override
@@ -10030,26 +10029,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             final String timerName = (apiName != null) ? apiName + "_timing" : null;
             metric.increment("zms_api", domainName, principalDomainName, httpMethod, httpStatus, apiName);
             metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
-        } catch (Exception e) {
-            LOG.error("Got exception during recordMetrics: {}", e.getMessage(), e);
+        } catch (Exception ex) {
+            LOG.error("Got exception during recordMetrics", ex);
         }
     }
 
     @Override
     public void publishChangeMessage(ResourceContext ctx, int httpStatus) {
-        if (domainChangePublishers == null) {
+        if (domainChangePublishers == null || ctx.getDomainChangeMessages() == null) {
             return;
         }
-        try {
-            if (httpStatus >= 200 && httpStatus <= 299) {
-                for (DomainChangeMessage changeMessage : ctx.getDomainChangeMessages()) {
-                    for (ChangePublisher<DomainChangeMessage> publisher : domainChangePublishers) {
+        if (httpStatus >= 200 && httpStatus <= 299) {
+            for (DomainChangeMessage changeMessage : ctx.getDomainChangeMessages()) {
+                for (ChangePublisher<DomainChangeMessage> publisher : domainChangePublishers) {
+                    try {
                         publisher.publish(changeMessage);
+                    } catch (Exception ex) {
+                        LOG.error("Got exception during publishChangeMessage", ex);
                     }
                 }
             }
-        } catch (Exception e) {
-            LOG.error("Got exception during publishChangeMessage: {}", e.getMessage(), e);
         }
     }
     

@@ -6,6 +6,7 @@ public class MockDomainChangePublisher implements ChangePublisher<DomainChangeMe
     
     private final Recorder recorder = Mockito.mock(Recorder.class);
     private final String topicName;
+    private boolean throwPublishExceptions = false;
 
     public MockDomainChangePublisher(String topicName) {
         this.topicName = topicName;
@@ -19,9 +20,17 @@ public class MockDomainChangePublisher implements ChangePublisher<DomainChangeMe
         return topicName;
     }
 
+    public void setThrowPublishExceptions(boolean throwPublishExceptions) {
+        this.throwPublishExceptions = throwPublishExceptions;
+    }
+
     @Override
     public void publish(DomainChangeMessage message) {
-        recorder.record(message);
+        if (throwPublishExceptions) {
+            throw new IllegalArgumentException();
+        } else {
+            recorder.record(message);
+        }
     }
 
     public static class Recorder {
