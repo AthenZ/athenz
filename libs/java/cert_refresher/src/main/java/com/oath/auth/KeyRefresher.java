@@ -81,7 +81,6 @@ public class KeyRefresher {
     public KeyRefresher(final String athenzPublicCert, final String athenzPrivateKey, final TrustStore trustStore,
             final KeyManagerProxy keyManagerProxy, final TrustManagerProxy trustManagerProxy) throws NoSuchAlgorithmException {
         this(athenzPublicCert, athenzPrivateKey, trustStore, keyManagerProxy, trustManagerProxy, null);
-        
     }
     
     /**
@@ -224,7 +223,7 @@ public class KeyRefresher {
                 // do nothing, just read until the EoF
             }
         } catch (IOException ex) {
-            //this is best effort, if we couldn't read the file, assume its the same
+            //this is best effort, if we couldn't read the file, assume it's the same
             LOGGER.warn("Error reading file {}", filePath, ex);
             return false;
         }
