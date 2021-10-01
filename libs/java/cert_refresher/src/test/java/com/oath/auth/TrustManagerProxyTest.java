@@ -19,11 +19,9 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.junit.Test;
 
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 
-import java.net.Socket;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 

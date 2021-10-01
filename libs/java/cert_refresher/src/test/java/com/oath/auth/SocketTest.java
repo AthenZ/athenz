@@ -20,6 +20,7 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,7 +51,7 @@ import static org.testng.Assert.assertTrue;
 public class SocketTest {
 
     private final int listenPort = 2000;
-    private final boolean running = true;
+    private boolean running = true;
     private KeyRefresher keyRefresher;
 
     @Before
@@ -70,14 +71,18 @@ public class SocketTest {
         }
     }
 
+    @After
+    public void shutdown() {
+        running = false;
+    }
+
     private void runPingServer(int port, KeyRefresher keyRefresher) throws Exception {
         SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(), keyRefresher.getTrustManagerProxy());
         SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
         SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(port);
 
         new Thread(() -> {
-            //noinspection InfiniteLoopStatement
-            while(running) {
+            while (running) {
                 try {
                     final Socket s = sslServerSocket.accept();
 
@@ -86,8 +91,7 @@ public class SocketTest {
                             BufferedReader is = new BufferedReader(new InputStreamReader(s.getInputStream()));
                             OutputStream os = s.getOutputStream();
 
-                            //noinspection ConstantConditions,InfiniteLoopStatement
-                            while(running) {
+                            while (running) {
                                 String line = is.readLine();
                                 if (line.equals("ping")) {
                                     os.write("pong\n".getBytes());
@@ -124,12 +128,8 @@ public class SocketTest {
 
         // create ssl context with unknown protocol
 
-        try {
-            Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(), keyRefresher.getTrustManagerProxy(), "TLS2.0");
-            fail();
-        } catch (KeyRefresherException ex) {
-            assertTrue(ex.getMessage().contains("No Provider supports a SSLContextSpi implementation"));
-        }
+        testBuildSSLContextWithBadSpecifiedVersion();
+        testBuildSSLContextWithBadPropertyVersion();
 
         //setup socket for first call
         SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
@@ -165,6 +165,26 @@ public class SocketTest {
         response = new BufferedReader(new InputStreamReader(s.getInputStream())).readLine();
         assertEquals("pong", response);
         assertEquals("athenz.production", getCN(s.getSession().getPeerCertificates()));
+    }
+
+    private void testBuildSSLContextWithBadSpecifiedVersion() {
+        try {
+            Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(), keyRefresher.getTrustManagerProxy(), "TLS2.0");
+            fail();
+        } catch (KeyRefresherException ex) {
+            assertTrue(ex.getMessage().contains("No Provider supports a SSLContextSpi implementation"));
+        }
+    }
+
+    private void testBuildSSLContextWithBadPropertyVersion() {
+        System.setProperty("athenz.cert_refresher.tls_algorithm", "TLSv2.0");
+        try {
+            Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(), keyRefresher.getTrustManagerProxy());
+            fail();
+        } catch (KeyRefresherException ex) {
+            assertTrue(ex.getMessage().contains("No Provider supports a SSLContextSpi implementation"));
+        }
+        System.clearProperty("athenz.cert_refresher.tls_algorithm");
     }
 
     private String getCN(Certificate[] certificates) throws CertificateEncodingException {

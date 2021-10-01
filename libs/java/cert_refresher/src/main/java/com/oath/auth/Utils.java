@@ -42,7 +42,8 @@ public class Utils {
 
     private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
-    private static final String SSLCONTEXT_ALGORITHM = "TLSv1.3";
+    private static final String SSLCONTEXT_ALGORITHM_TLS12 = "TLSv1.2";
+    private static final String SSLCONTEXT_ALGORITHM_TLS13 = "TLSv1.3";
 
     private static final String PROP_KEY_WAIT_TIME = "athenz.cert_refresher.key_wait_time";
     private static final String PROP_TLS_ALGORITHM = "athenz.cert_refresher.tls_algorithm";
@@ -259,8 +260,8 @@ public class Utils {
     }
 
     /**
-     * this method will create a new SSLContext object that can be updated on the fly should the
-     * public/private keys / trustStore change.
+     * this method will create a new SSLContext object with the given tls protocol
+     * that can be updated on the fly should the public/private keys / trustStore change.
      *
      * @param keyManagerProxy   uses standard KeyManager interface except also allows
      *                          for the updating of KeyManager on the fly
@@ -286,7 +287,8 @@ public class Utils {
 
     /**
      * this method will create a new SSLContext object that can be updated on the fly should the
-     * public/private keys / trustStore change. It defaults to TLS 1.3 protocol.
+     * public/private keys / trustStore change. It defaults to TLS 1.3 protocol. If the 1.3
+     * is not supported, then it'll fall back to TLS 1.2 protocol.
      *
      * @param keyManagerProxy   uses standard KeyManager interface except also allows
      *                          for the updating of KeyManager on the fly
@@ -295,10 +297,25 @@ public class Utils {
      * @return a valid SSLContext object using the passed in key/trust managers
      * @throws KeyRefresherException in case of any errors
      */
-    public static SSLContext buildSSLContext(KeyManagerProxy keyManagerProxy,
-                                             TrustManagerProxy trustManagerProxy) throws KeyRefresherException {
-        final String protocol = System.getProperty(PROP_TLS_ALGORITHM, SSLCONTEXT_ALGORITHM);
-        return buildSSLContext(keyManagerProxy, trustManagerProxy, protocol);
+    public static SSLContext buildSSLContext(KeyManagerProxy keyManagerProxy, TrustManagerProxy trustManagerProxy)
+            throws KeyRefresherException {
+
+        // if the user has configured our tls property then that's what we'll
+        // be using for our ssl context
+
+        final String protocol = System.getProperty(PROP_TLS_ALGORITHM);
+        if (protocol != null && !protocol.isEmpty()) {
+            return buildSSLContext(keyManagerProxy, trustManagerProxy, protocol);
+        }
+
+        // we're going to default to 1.3 protocol and if it fails, we're
+        // going to fall back and try tls 1.2
+
+        try {
+            return buildSSLContext(keyManagerProxy, trustManagerProxy, SSLCONTEXT_ALGORITHM_TLS13);
+        } catch (KeyRefresherException ignored) {
+            return buildSSLContext(keyManagerProxy, trustManagerProxy, SSLCONTEXT_ALGORITHM_TLS12);
+        }
     }
 
     static Supplier<InputStream> inputStreamSupplierFromFile(File file) throws UncheckedIOException {
