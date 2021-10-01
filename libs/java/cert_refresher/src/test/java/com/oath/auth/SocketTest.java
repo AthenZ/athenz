@@ -40,6 +40,8 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.testng.Assert.assertTrue;
 
 /**
  * this test validates that when the server changes the keyManager on the fly, no existing connections are broken
@@ -119,6 +121,15 @@ public class SocketTest {
                 return null;
             }
         };
+
+        // create ssl context with unknown protocol
+
+        try {
+            Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(), keyRefresher.getTrustManagerProxy(), "TLS2.0");
+            fail();
+        } catch (KeyRefresherException ex) {
+            assertTrue(ex.getMessage().contains("No Provider supports a SSLContextSpi implementation"));
+        }
 
         //setup socket for first call
         SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),

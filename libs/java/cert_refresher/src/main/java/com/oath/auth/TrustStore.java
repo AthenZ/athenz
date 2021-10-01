@@ -15,7 +15,6 @@
  */
 package com.oath.auth;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -37,7 +36,7 @@ class TrustStore {
         this.keyStoreProvider = keyStoreProvider;
     }
 
-    public TrustManager[] getTrustManagers() throws FileNotFoundException, KeyRefresherException, IOException  {
+    public TrustManager[] getTrustManagers() throws KeyRefresherException, IOException  {
         final KeyStore keystore = keyStoreProvider.provide();
 
         TrustManagerFactory trustManagerFactory;
