@@ -28641,6 +28641,8 @@ public class ZMSImplTest {
             ));
         zmsImpl.publishChangeMessage(mockContext, 200);
 
+
+        // verify publish messages
         MockDomainChangePublisher.Recorder evtRecorder = getEventRecorder(zmsImpl);
         ArgumentCaptor<DomainChangeMessage> evtArgumentCaptor = ArgumentCaptor.forClass(DomainChangeMessage.class);
         verify(evtRecorder, Mockito.times(1)).record(evtArgumentCaptor.capture());
@@ -28659,7 +28661,7 @@ public class ZMSImplTest {
     }
     
     @Test
-    public void testOperationFailure() {
+    public void testPublisherNonSuccessErrorCode() {
         System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisherFactory");
         System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic1 , topic2");
         
@@ -28668,9 +28670,9 @@ public class ZMSImplTest {
         ResourceContext mockContext = Mockito.mock(ResourceContext.class);
         when(mockContext.getApiName()).thenReturn(apiName);
         when(mockContext.getDomainChangeMessages()).thenReturn(Collections.singletonList(new DomainChangeMessage()));
-
         zmsImpl.publishChangeMessage(mockContext, 500);
 
+        // verify no publish messages
         MockDomainChangePublisher.Recorder evtRecorder = getEventRecorder(zmsImpl);
         ArgumentCaptor<DomainChangeMessage> evtArgumentCaptor = ArgumentCaptor.forClass(DomainChangeMessage.class);
         verify(evtRecorder, Mockito.times(0)).record(evtArgumentCaptor.capture());
@@ -28691,5 +28693,17 @@ public class ZMSImplTest {
         assertThat(topicNames, containsInAnyOrder("topic1", "topic2"));
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
+    }
+
+    @Test
+    public void testNoPublishers() {
+        ZMSImpl zmsImpl = zmsInit();
+        String apiName = "postTopLevelDomain";
+        ResourceContext mockContext = Mockito.mock(ResourceContext.class);
+        when(mockContext.getApiName()).thenReturn(apiName);
+        when(mockContext.getDomainChangeMessages()).thenReturn(Collections.singletonList(new DomainChangeMessage()));
+
+        assertNull(zmsImpl.domainChangePublishers);
+        zmsImpl.publishChangeMessage(mockContext, 200);
     }
 }
