@@ -671,11 +671,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void loadDomainChangePublisher() {
         String topicNames = System.getProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "");
         for (String topic : topicNames.split(",")) {
+            topic = topic.trim();
             if (!topic.isEmpty()) {
                 if (domainChangePublishers == null) {
                     domainChangePublishers = new ArrayList<>();
                 }
-                domainChangePublishers.add(createPublisher(topic.trim()));
+                ChangePublisher<DomainChangeMessage> publisher = createPublisher(topic);
+                if (publisher != null) {
+                    domainChangePublishers.add(publisher);
+                }
             }
         }
     }
@@ -10027,14 +10031,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             metric.increment("zms_api", domainName, principalDomainName, httpMethod, httpStatus, apiName);
             metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
         } catch (Exception e) {
-            LOG.warn("Got exception during recordMetrics: {}", e.getMessage(), e);
+            LOG.error("Got exception during recordMetrics: {}", e.getMessage(), e);
         }
     }
 
     @Override
     public void publishChangeMessage(ResourceContext ctx, int httpStatus) {
         try {
-            if (httpStatus == 200) {
+            if (httpStatus >= 200 && httpStatus <= 299) {
                 for (DomainChangeMessage changeMessage : ctx.getDomainChangeMessages()) {
                     for (ChangePublisher<DomainChangeMessage> publisher : domainChangePublishers) {
                         publisher.publish(changeMessage);
@@ -10042,7 +10046,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
             }
         } catch (Exception e) {
-            LOG.warn("Got exception during publishChangeMessage: {}", e.getMessage(), e);
+            LOG.error("Got exception during publishChangeMessage: {}", e.getMessage(), e);
         }
     }
     

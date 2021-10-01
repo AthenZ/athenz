@@ -28614,7 +28614,7 @@ public class ZMSImplTest {
             .collect(Collectors.toList());
         assertThat(topicNames, containsInAnyOrder("topic1", "topic2"));
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
-        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
     }
 
     @Test
@@ -28674,6 +28674,21 @@ public class ZMSImplTest {
         MockDomainChangePublisher.Recorder evtRecorder = getEventRecorder(zmsImpl);
         ArgumentCaptor<DomainChangeMessage> evtArgumentCaptor = ArgumentCaptor.forClass(DomainChangeMessage.class);
         verify(evtRecorder, Mockito.times(0)).record(evtArgumentCaptor.capture());
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
+    }
+    
+    @Test
+    public void testEmptyTopicName() {
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisherFactory");
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic1 , , topic2");
+        ZMSImpl zmsImpl = zmsInit();
+        assertNotNull(zmsImpl.domainChangePublishers);
+        assertEquals(zmsImpl.domainChangePublishers.size(), 2);
+        List<String> topicNames = zmsImpl.domainChangePublishers.stream()
+            .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
+            .collect(Collectors.toList());
+        assertThat(topicNames, containsInAnyOrder("topic1", "topic2"));
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
     }
