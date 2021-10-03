@@ -26,6 +26,18 @@ func (cli Zms) policyNames(dn string) ([]string, error) {
 	return names, nil
 }
 
+func (cli Zms) policyVersionNames(dn string, policy string) ([]string, error) {
+	names := make([]string, 0)
+	lst, err := cli.Zms.GetPolicyVersionList(zms.DomainName(dn), zms.EntityName(policy))
+	if err != nil {
+		return nil, err
+	}
+	for _, n := range lst.Names {
+		names = append(names, string(n))
+	}
+	return names, nil
+}
+
 func (cli Zms) ListPolicies(dn string) (*string, error) {
 	policies, err := cli.policyNames(dn)
 	if err != nil {
@@ -41,6 +53,23 @@ func (cli Zms) ListPolicies(dn string) (*string, error) {
 	}
 
 	return cli.dumpByFormat(policies, oldYamlConverter)
+}
+
+func (cli Zms) ListPolicyVersions(dn string, policy string) (*string, error) {
+	policyVersions, err := cli.policyVersionNames(dn, policy)
+	if err != nil {
+		return nil, err
+	}
+
+	oldYamlConverter := func(res interface{}) (*string, error) {
+		var buf bytes.Buffer
+		buf.WriteString("policy-versions:\n")
+		cli.dumpObjectList(&buf, policyVersions, dn, "version")
+		s := buf.String()
+		return &s, nil
+	}
+
+	return cli.dumpByFormat(policyVersions, oldYamlConverter)
 }
 
 func (cli Zms) ShowPolicy(dn string, name string) (*string, error) {
@@ -59,6 +88,24 @@ func (cli Zms) ShowPolicy(dn string, name string) (*string, error) {
 
 	return cli.dumpByFormat(policy, oldYamlConverter)
 }
+
+func (cli Zms) ShowPolicyVersion(dn string, policy string, version string) (*string, error) {
+	policyVersion, err := cli.Zms.GetPolicyVersion(zms.DomainName(dn), zms.EntityName(policy), zms.SimpleName(version))
+	if err != nil {
+		return nil, err
+	}
+
+	oldYamlConverter := func(res interface{}) (*string, error) {
+		var buf bytes.Buffer
+		buf.WriteString("policy-version:\n")
+		cli.dumpPolicy(&buf, *policyVersion, indentLevel1Dash, indentLevel1DashLvl)
+		s := buf.String()
+		return &s, nil
+	}
+
+	return cli.dumpByFormat(policyVersion, oldYamlConverter)
+}
+
 
 func parseAssertion(dn string, lst []string) (*zms.Assertion, error) {
 	err := fmt.Errorf("bad assertion syntax. should be '<effect> <action> to <role> on <resource>'")
@@ -176,6 +223,40 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 	return output, err
 }
 
+func (cli Zms) AddPolicyVersion(dn string, pn string, source_version string, version string) (*string, error) {
+	fullResourceName := dn + ":policy." + pn
+	_, err := cli.Zms.GetPolicyVersion(zms.DomainName(dn), zms.EntityName(pn), zms.SimpleName(version))
+	if err == nil {
+		return nil, fmt.Errorf("policy version already exists: %v with version %v", fullResourceName, version)
+	}
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code != 404 {
+			return nil, v
+		}
+	}
+	var policyOptions zms.PolicyOptions
+	policyOptions.Version = zms.SimpleName(version)
+	policyOptions.FromVersion = zms.SimpleName(source_version)
+	err = cli.Zms.PutPolicyVersion(zms.DomainName(dn), zms.EntityName(pn), &policyOptions, cli.AuditRef)
+	if err != nil {
+		return nil, err
+	}
+	if cli.Bulkmode {
+		s := ""
+		return &s, nil
+	}
+	output, err := cli.ShowPolicyVersion(dn, pn, version)
+	if err != nil {
+		// due to mysql read after write issue it's possible that
+		// we'll get 404 after writing our object so in that
+		// case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		output, err = cli.ShowPolicyVersion(dn, pn, version)
+	}
+	return output, err
+}
+
 func (cli Zms) AddAssertion(dn string, pn string, assertion []string) (*string, error) {
 	newAssertion, err := parseAssertion(dn, assertion)
 	if err != nil {
@@ -190,6 +271,22 @@ func (cli Zms) AddAssertion(dn string, pn string, assertion []string) (*string, 
 		return &s, nil
 	}
 	return cli.ShowPolicy(dn, pn)
+}
+
+func (cli Zms) AddAssertionPolicyVersion(dn string, pn string, version string, assertion []string) (*string, error) {
+	newAssertion, err := parseAssertion(dn, assertion)
+	if err != nil {
+		return nil, err
+	}
+	_, err = cli.Zms.PutAssertionPolicyVersion(zms.DomainName(dn), zms.EntityName(pn), zms.SimpleName(version), cli.AuditRef, newAssertion)
+	if err != nil {
+		return nil, err
+	}
+	if cli.Bulkmode {
+		s := ""
+		return &s, nil
+	}
+	return cli.ShowPolicyVersion(dn, pn, version)
 }
 
 func (cli Zms) assertionMatch(assertion1 *zms.Assertion, assertion2 *zms.Assertion) bool {
@@ -255,12 +352,67 @@ func (cli Zms) DeleteAssertion(dn string, pn string, assertion []string) (*strin
 	return cli.ShowPolicy(dn, pn)
 }
 
+func (cli Zms) DeleteAssertionPolicyVersion(dn string, pn string, version string, assertion []string) (*string, error) {
+	policy, err := cli.Zms.GetPolicyVersion(zms.DomainName(dn), zms.EntityName(pn), zms.SimpleName(version))
+	if err != nil {
+		return nil, err
+	}
+	deleteAssertion, err := parseAssertion(dn, assertion)
+	if err != nil {
+		return nil, err
+	}
+	err = cli.removeAssertion(policy, deleteAssertion)
+	if err != nil {
+		return nil, err
+	}
+	err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, policy)
+	if err != nil {
+		return nil, err
+	}
+	if cli.Bulkmode {
+		s := ""
+		return &s, nil
+	}
+	return cli.ShowPolicyVersion(dn, pn, version)
+}
+
 func (cli Zms) DeletePolicy(dn string, pn string) (*string, error) {
 	err := cli.Zms.DeletePolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef)
 	if err != nil {
 		return nil, err
 	}
 	s := "[Deleted policy: " + pn + "]"
+
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) DeletePolicyVersion(dn string, pn string, version string) (*string, error) {
+	err := cli.Zms.DeletePolicyVersion(zms.DomainName(dn), zms.EntityName(pn), zms.SimpleName(version), cli.AuditRef)
+	if err != nil {
+		return nil, err
+	}
+	s := "[Deleted policy: " + pn + " with version: " + version + "]"
+
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetActivePolicyVersion(dn string, pn string, version string) (*string, error) {
+	var policyOptions zms.PolicyOptions
+	policyOptions.Version = zms.SimpleName(version)
+
+	err := cli.Zms.SetActivePolicyVersion(zms.DomainName(dn), zms.EntityName(pn), &policyOptions, cli.AuditRef)
+	if err != nil {
+		return nil, err
+	}
+	s := "[Set active policy: " + pn + " with version: " + version + "]"
 
 	message := SuccessMessage{
 		Status:  200,

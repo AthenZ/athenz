@@ -306,6 +306,8 @@ func (cli Zms) dumpAssertion(buf *bytes.Buffer, assertion *zms.Assertion, dn str
 func (cli Zms) dumpPolicy(buf *bytes.Buffer, policy zms.Policy, indent1 string, indent2 string) {
 	resourceName := string(policy.Name)
 	cli.displayObjectName(buf, resourceName, ":policy.", indent1)
+	dumpStringValue(buf, indent2, "version", string(policy.Version))
+	dumpBoolValue(buf, indent2, "active", policy.Active)
 	dn := resourceName[0:strings.LastIndex(resourceName, ":")]
 	buf.WriteString(indent2)
 	if len(policy.Assertions) == 0 {
