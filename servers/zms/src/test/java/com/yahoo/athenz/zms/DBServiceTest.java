@@ -857,6 +857,7 @@ public class DBServiceTest {
 
         Policy newPolicyVersion = createPolicyObject(domainName, policyName);
         newPolicyVersion.setVersion("new-version");
+        newPolicyVersion.setActive(false);
         Mockito.when(mockJdbcConn.insertPolicy(domainName, newPolicyVersion)).thenReturn(false).thenReturn(true);
         Mockito.when(mockJdbcConn.insertAssertion(eq(domainName), eq(policyName), isNull(), any())).thenReturn(true).thenReturn(false).thenReturn(false).thenReturn(true);
         Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(null).thenReturn(originalPolicyVersion);
