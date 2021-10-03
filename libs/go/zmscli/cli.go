@@ -398,25 +398,53 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 
 		case "list-policy", "list-policies":
 			return cli.ListPolicies(dn)
+		case "list-policy-versions", "list-policy-version":
+			if argc == 1 {
+				return cli.ListPolicyVersions(dn, args[0])
+			}
 		case "show-policy":
 			if argc == 1 {
 				return cli.ShowPolicy(dn, args[0])
+			}
+		case "show-policy-version":
+			if argc == 2 {
+				return cli.ShowPolicyVersion(dn, args[0], args[1])
 			}
 		case "add-policy", "set-policy":
 			if argc >= 1 {
 				return cli.AddPolicy(dn, args[0], args[1:])
 			}
+		case "add-policy-version":
+			if argc == 3 {
+				return cli.AddPolicyVersion(dn, args[0], args[1], args[2])
+			}
 		case "add-assertion":
 			if argc >= 1 {
 				return cli.AddAssertion(dn, args[0], args[1:])
+			}
+		case "add-assertion-policy-version":
+			if argc >= 1 {
+				return cli.AddAssertionPolicyVersion(dn, args[0], args[1], args[2:])
 			}
 		case "delete-assertion":
 			if argc >= 1 {
 				return cli.DeleteAssertion(dn, args[0], args[1:])
 			}
+		case "delete-assertion-policy-version":
+			if argc >= 1 {
+				return cli.DeleteAssertionPolicyVersion(dn, args[0], args[1], args[2:])
+			}
 		case "delete-policy":
 			if argc == 1 {
 				return cli.DeletePolicy(dn, args[0])
+			}
+		case "delete-policy-version":
+			if argc == 2 {
+				return cli.DeletePolicyVersion(dn, args[0], args[1])
+			}
+		case "set-active-policy-version":
+			if argc == 2 {
+				return cli.SetActivePolicyVersion(dn, args[0], args[1])
 			}
 		case "show-access":
 			if argc >= 2 {
@@ -1426,6 +1454,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		}
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " list-policy\n")
+	case "list-policy-versions":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " list-policy-versions policy\n")
+		if !interactive {
+			buf.WriteString(" parameters:\n")
+			buf.WriteString("   domain : name of the domain\n")
+		}
+		buf.WriteString("   policy : name of the policy to retrieve the list of versions from\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " list-policy-versions writers_policy\n")
 	case "show-policy":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " show-policy policy\n")
@@ -1434,6 +1472,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 			buf.WriteString("   domain : name of the domain that policy belongs to\n")
 		}
 		buf.WriteString("   policy : name of the policy to be displayed\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " show-policy admin\n")
+	case "show-policy-version":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " show-policy-version policy version\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain : name of the domain that policy belongs to\n")
+		}
+		buf.WriteString("   policy  : name of the policy\n")
+		buf.WriteString("   version : name of the version to be displayed\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " show-policy admin\n")
 	case "add-policy", "set-policy":
@@ -1456,6 +1505,18 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " add-policy writers_policy grant write to writers_role on articles.sports\n")
 		buf.WriteString("   " + domainExample + " add-policy writers_policy grant WritE to writers_role on articles.SPORTS true\n")
 		buf.WriteString("   " + domainExample + " add-policy readers_policy grant read to readers_role on " + cli.interactiveSingleQuoteString(interactive, "articles.*") + "\n")
+	case "add-policy-version", "set-policy-version":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-policy-version policy source_version version\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain    	   : name of the domain\n")
+		}
+		buf.WriteString("   policy    	   : name of the policy to add version to\n")
+		buf.WriteString("   source_version  : name of the source version to copy assertions from\n")
+		buf.WriteString("   version   	   : name of the new version\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-policy-version writers_policy screen_writers book_writers\n")
 	case "add-assertion":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " add-assertion policy assertion [is_case_sensitive]\n")
@@ -1476,6 +1537,27 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " add-assertion writers_policy grant write to writers_role on articles.sports\n")
 		buf.WriteString("   " + domainExample + " add-assertion writers_policy grant WRITE to writers_role on articles.SPORTS true\n")
 		buf.WriteString("   " + domainExample + " add-assertion readers_policy grant read to readers_role on " + cli.interactiveSingleQuoteString(interactive, "articles.*") + "\n")
+	case "add-assertion-policy-version":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-assertion-policy-version policy version assertion [is_case_sensitive]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain    : name of the domain that policy belongs to\n")
+		}
+		buf.WriteString("   policy    : name of the policy\n")
+		buf.WriteString("   version   : name of the version to add this assertion to\n")
+		buf.WriteString("   assertion : <effect> <action> to <role> on <resource>\n")
+		buf.WriteString("             : effect - grant or deny\n")
+		buf.WriteString("             : action - domain admin defined action available for the resource (e.g. read, write, delete)\n")
+		buf.WriteString("             : role - which role this assertion applies to\n")
+		buf.WriteString("             :        client will prepend 'domain:role.' to role name if not specified\n")
+		buf.WriteString("             : resource - which resource this assertion applies to\n")
+		buf.WriteString("             :            client will prepend 'domain:' to resource if not specified\n")
+		buf.WriteString("   is_case_sensitive 	: optional parameter if true, action and resource will be case-sensitive\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-assertion-policy-version writers_policy onprem_version grant write to writers_role on articles.sports\n")
+		buf.WriteString("   " + domainExample + " add-assertion-policy-version writers_policy 0 grant WRITE to writers_role on articles.SPORTS true\n")
+		buf.WriteString("   " + domainExample + " add-assertion-policy-version readers_policy dev_version grant read to readers_role on " + cli.interactiveSingleQuoteString(interactive, "articles.*") + "\n")
 	case "delete-assertion":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " delete-assertion policy assertion\n")
@@ -1489,6 +1571,20 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " delete-assertion writers_policy grant write to writers_role on articles.sports\n")
 		buf.WriteString("   " + domainExample + " delete-assertion readers_policy grant read to readers_role on " + cli.interactiveSingleQuoteString(interactive, "articles.*") + "\n")
+	case "delete-assertion-policy-version":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-assertion-policy-version policy version assertion\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain     : name of the domain that policy belongs to\n")
+		}
+		buf.WriteString("   policy     : name of the policy\n")
+		buf.WriteString("   version    : name of the version to delete this assertion from\n")
+		buf.WriteString("   assertion  : existing assertion in the policy version in the '<effect> <action> to <role> on <resource>' format\n")
+		buf.WriteString("              : the value must be exactly what's displayed when executing the show-policy-version command\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-assertion-policy-version writers_policy onprem_version grant write to writers_role on articles.sports\n")
+		buf.WriteString("   " + domainExample + " delete-assertion-policy-version readers_policy 0 grant read to readers_role on " + cli.interactiveSingleQuoteString(interactive, "articles.*") + "\n")
 	case "delete-policy":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " delete-policy policy\n")
@@ -1496,9 +1592,31 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		if !interactive {
 			buf.WriteString("   domain : name of the domain that policy belongs to\n")
 		}
-		buf.WriteString("   policy : name of the policy to be deleted\n")
+		buf.WriteString("   policy : name of the policy to be deleted along with all its versions\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " delete-policy readers\n")
+	case "delete-policy-version":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-policy-version policy version\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain : name of the domain that policy belongs to\n")
+		}
+		buf.WriteString("   policy  : name of the policy\n")
+		buf.WriteString("   version : name of the version to be deleted\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-policy readers dev_version\n")
+	case "set-active-policy-version":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-active-policy-version policy version\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain : name of the domain that policy belongs to\n")
+		}
+		buf.WriteString("   policy  : name of the policy\n")
+		buf.WriteString("   version : name of the version to set active\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-active-policy-version readers dev_version\n")
 	case "show-access":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " show-access action resource [alt_identity [trust_domain]]\n")
@@ -2690,11 +2808,18 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("\n")
 	buf.WriteString(" Policy commands:\n")
 	buf.WriteString("   list-policy\n")
+	buf.WriteString("   list-policy-versions policy\n")
 	buf.WriteString("   show-policy policy\n")
+	buf.WriteString("   show-policy-version policy version\n")
 	buf.WriteString("   add-policy policy [assertion] [is_case_sensitive]\n")
+	buf.WriteString("   add-policy-version policy version source_version\n")
 	buf.WriteString("   add-assertion policy assertion [is_case_sensitive]\n")
+	buf.WriteString("   add-assertion-policy-version policy version assertion [is_case_sensitive]\n")
 	buf.WriteString("   delete-assertion policy assertion\n")
+	buf.WriteString("   delete-assertion-policy-version policy assertion\n")
 	buf.WriteString("   delete-policy policy\n")
+	buf.WriteString("   delete-policy-version policy version\n")
+	buf.WriteString("   set-active-policy-version policy version\n")
 	buf.WriteString("   show-access action resource [alt_identity [trust_domain]]\n")
 	buf.WriteString("   show-access-ext action resource [alt_identity [trust_domain]]\n")
 	buf.WriteString("   show-resource principal action\n")
