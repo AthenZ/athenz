@@ -28019,6 +28019,9 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 404);
         }
 
+        // Setting active as null is the same as setting it true. When active and version both null - create new active poicy with version "0"
+
+        policy1.setActive(null);
         policy1.setVersion(null);
         zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy1);
 
@@ -28040,7 +28043,17 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 400);
         }
 
-        //  now set a new policy name with this version, "testversion", and make it active - this will create a new policy with version "testversion" instead of the default 0
+        // Same behaviour when active is set to null
+
+        policy1NewActive.setActive(null);
+        try {
+            zms.putPolicy(mockDomRsrcCtx, domainName, "policy1", auditRef, policy1NewActive);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        //  now set a new policy name with this version, "testversion", and make it active / keep null - this will create a new policy with version "testversion" instead of the default 0
         policy1NewActive.setName("newpolicy1");
         zms.putPolicy(mockDomRsrcCtx, domainName, "newpolicy1", auditRef, policy1NewActive);
         Policy newpolicy1 = zms.getPolicy(mockDomRsrcCtx, domainName, "newpolicy1");
@@ -28055,6 +28068,26 @@ public class ZMSImplTest {
 
         // Make sure it's the only version for this policy
         PolicyList newpolicy11Versions = zms.getPolicyVersionList(mockDomRsrcCtx, domainName, "newpolicy1");
+        assertEquals(newpolicy11Versions.getNames().size(), 1);
+        assertEquals(newpolicy11Versions.getNames().get(0), "testversion");
+
+        // Verify the same behaviour when setting Active as "True" instead of null
+
+        policy1NewActive.setActive(true);
+        policy1NewActive.setName("newpolicyactivetrue");
+        zms.putPolicy(mockDomRsrcCtx, domainName, "newpolicyactivetrue", auditRef, policy1NewActive);
+        newpolicy1 = zms.getPolicy(mockDomRsrcCtx, domainName, "newpolicyactivetrue");
+        assertEquals(newpolicy1.getName(), "put-policy-version-direct:policy.newpolicyactivetrue");
+        assertEquals(newpolicy1.getVersion(), "testversion");
+        assertionsList = newpolicy1.getAssertions();
+        assertEquals(assertionsList.size(), 2);
+        originalAssertion = assertionsList.get(0);
+        newAssertion = assertionsList.get(1);
+        assertEquals(originalAssertion.getResource(), domainName + ":*");
+        assertEquals(newAssertion.getResource(), domainName + ":newpolicyversionnonzero");
+
+        // Make sure it's the only version for this policy
+        newpolicy11Versions = zms.getPolicyVersionList(mockDomRsrcCtx, domainName, "newpolicyactivetrue");
         assertEquals(newpolicy11Versions.getNames().size(), 1);
         assertEquals(newpolicy11Versions.getNames().get(0), "testversion");
 
