@@ -24,9 +24,15 @@ import java.util.function.Consumer;
 public interface ChangeSubscriber<T> {
 
     /**
-     * init accepts a processor function, which can be applied on each message consumed from the subscription
+     * Init accepts a processor function, which can be applied on each message consumed from the subscription
+     * Init the subscriber thread and start subscription process.
      * @param processor is java.util.function.Consumer provided by client that uses the implementation of this interface
      * @param valueType is the class of the type T that is needed for deserializing the message into type T
      */
     void init(Consumer<T> processor, Class<T> valueType);
+
+    /**
+     * Close the consumer and any allocated resources.
+     */
+    void close();
 }

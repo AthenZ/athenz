@@ -30,4 +30,9 @@ public class NoOpDomainChangePublisher implements ChangePublisher<DomainChangeMe
     public void publish(DomainChangeMessage message) {
         
     }
+
+    @Override
+    public void close() {
+        
+    }
 }

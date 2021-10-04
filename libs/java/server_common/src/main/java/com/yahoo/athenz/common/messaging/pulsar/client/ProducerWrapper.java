@@ -1,4 +1,5 @@
 /*
+ *
  * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,23 +13,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.yahoo.athenz.common.messaging;
+package com.yahoo.athenz.common.messaging.pulsar.client;
 
-/**
- * change publisher interface
- */
-public interface ChangePublisher<T> {
+import org.apache.pulsar.client.api.Producer;
+import org.apache.pulsar.client.impl.PulsarClientImpl;
 
-    /**
-     * Publishes a message of type T to the configured messaging system
-     * @param message to be published
-     */
-    void publish(T message);
+public class ProducerWrapper<T> {
+  
+  private final PulsarClientImpl pulsarClient;
+  private final Producer<T> producer;
 
-    /**
-     * Close the producer and releases resources allocated.
-     */
-    void close();
+  public ProducerWrapper(Producer<T> producer, PulsarClientImpl pulsarClient) {
+    this.producer = producer;
+    this.pulsarClient = pulsarClient;
+  }
+
+  public Producer<T> getProducer() {
+    return producer;
+  }
+
+  public PulsarClientImpl getPulsarClient() {
+    return pulsarClient;
+  }
 }
