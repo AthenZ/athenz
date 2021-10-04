@@ -4986,6 +4986,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setRequestDomain(ctx, domainName);
         policyName = policyName.toLowerCase();
         AthenzObject.POLICY.convertToLowerCase(policy);
+        if (policy.getActive() == null) {
+            policy.setActive(Boolean.TRUE);
+        }
 
         // we are not going to allow any user to update
         // the admin policy since that is required
