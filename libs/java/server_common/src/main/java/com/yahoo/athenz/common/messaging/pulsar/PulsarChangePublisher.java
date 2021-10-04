@@ -34,4 +34,13 @@ public class PulsarChangePublisher<T> implements ChangePublisher<T> {
       LOG.error("Pulsar client was not able to publish message. error: {}", e.getMessage(), e);
     }
   }
+
+  @Override
+  public void close() {
+    try {
+      producer.close();
+    } catch (PulsarClientException e) {
+      LOG.error("Got exception while closing pulsar producer: {}", e.getMessage(), e);
+    }
+  }
 }

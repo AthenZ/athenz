@@ -26,4 +26,9 @@ public interface ChangePublisher<T> {
      * @param message to be published
      */
     void publish(T message);
+
+    /**
+     * Close the producer and releases resources allocated.
+     */
+    void close();
 }

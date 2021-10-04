@@ -31,6 +31,7 @@ public class AthenzPulsarClient {
     if (producerConfiguration.getTopicName() == null) {
       producerConfiguration.setTopicName(topicName);
     }
+    validateProducer(serviceUrl, producerConfiguration, tlsConfig);
     try {
       ClientConfigurationData config = getClientConfiguration(tlsConfig);
       AthenzPulsarClient athenzPulsarClient = createAthenzPulsarClientInstance();
@@ -43,6 +44,18 @@ public class AthenzPulsarClient {
       Thread.currentThread().interrupt();
     }
     return null;
+  }
+
+  private static void validateProducer(String serviceUrl, ProducerConfigurationData producerConfiguration, TlsConfig tlsConfig) {
+    if (tlsConfig == null || tlsConfig.tlsCertFilePath == null || tlsConfig.tlsKeyFilePath == null || tlsConfig.tlsTrustCertsFilePath == null) {
+      throw new IllegalArgumentException("invalid tls configured");
+    }
+    if (serviceUrl == null || serviceUrl.isEmpty()) {
+      throw new IllegalArgumentException("invalid service configured");
+    }
+    if (producerConfiguration.getTopicName() == null || producerConfiguration.getTopicName().isEmpty()) {
+      throw new IllegalArgumentException("invalid topic configured");
+    }
   }
 
   private static ClientConfigurationData getClientConfiguration(TlsConfig tlsConfig) {
@@ -94,6 +107,7 @@ public class AthenzPulsarClient {
     if (consumerConfiguration.getTopicNames() == null || consumerConfiguration.getTopicNames().isEmpty()) {
       consumerConfiguration.setTopicNames(topicNames);
     }
+    validateConsumer(serviceUrl, consumerConfiguration, tlsConfig);
     try {
       ClientConfigurationData config = getClientConfiguration(tlsConfig);
       AthenzPulsarClient athenzPulsarClient = createAthenzPulsarClientInstance();
@@ -106,6 +120,29 @@ public class AthenzPulsarClient {
       Thread.currentThread().interrupt();
     }
     return null;
+  }
+
+  private static <T> void validateConsumer(String serviceUrl, ConsumerConfigurationData<T> consumerConfiguration, TlsConfig tlsConfig) {
+    if (tlsConfig == null || tlsConfig.tlsCertFilePath == null || tlsConfig.tlsKeyFilePath == null || tlsConfig.tlsTrustCertsFilePath == null) {
+      throw new IllegalArgumentException("invalid tls configured");
+    }
+    if (serviceUrl == null || serviceUrl.isEmpty()) {
+      throw new IllegalArgumentException("invalid service configured");
+    }
+    if (consumerConfiguration == null || consumerConfiguration.getSubscriptionType() == null) {
+      throw new IllegalArgumentException("invalid subscription type configured");
+    }
+    if (consumerConfiguration.getSubscriptionName() == null) {
+      throw new IllegalArgumentException("invalid subscription name configured");
+    }
+    if (consumerConfiguration.getTopicNames() == null || consumerConfiguration.getTopicNames().isEmpty()) {
+      throw new IllegalArgumentException("invalid topic configured");
+    }
+    for (String topic : consumerConfiguration.getTopicNames()) {
+      if (topic == null) {
+        throw new IllegalArgumentException("invalid topic configured");
+      }
+    }
   }
 
   public static ConsumerConfigurationData<byte[]> defaultConsumerConfig(Set<String> topicNames, String subscriptionName, SubscriptionType subscriptionType) {

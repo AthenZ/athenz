@@ -12,14 +12,13 @@ import java.lang.reflect.Field;
 import static com.yahoo.athenz.common.messaging.pulsar.PulsarFactory.PROP_MESSAGING_CLI_SERVICE_URL;
 import static com.yahoo.athenz.common.messaging.pulsar.PulsarFactory.serviceUrl;
 import static com.yahoo.athenz.common.messaging.pulsar.client.AthenzPulsarClient.PROP_ATHENZ_PULSAR_CLIENT_CLASS;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.*;
 
 public class PulsarChangePublisherTest {
 
     @BeforeMethod
     public void init() {
-        System.setProperty(PROP_ATHENZ_PULSAR_CLIENT_CLASS, "com.yahoo.athenz.common.messaging.pulsar.MockAthenzPulsarClient");
+        System.setProperty(PROP_ATHENZ_PULSAR_CLIENT_CLASS, "com.yahoo.athenz.common.messaging.pulsar.client.MockAthenzPulsarClient");
     }
 
     @AfterMethod
@@ -28,20 +27,47 @@ public class PulsarChangePublisherTest {
     }
 
     @Test
-    public void test_publisher_creation_no_topic_no_broker() {
-        PulsarChangePublisher<DomainChangeMessage> publisher =
-            new PulsarChangePublisher<>(null, null, new TlsConfig("cert", "key", "trust"));
-        assertNull(getPulsarProducer(publisher));
-        publisher = new PulsarChangePublisher<>(null, "topic", new TlsConfig("cert", "key", "trust"));
-        assertNull(getPulsarProducer(publisher));
-
+    public void test_validate_publisher() {
+        try {
+            new PulsarChangePublisher<>(null,
+                "topic",
+                new TlsConfig("cert", "key", "trust"));
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals(e.getMessage(), "invalid service configured");
+        }
+        try {
+            new PulsarChangePublisher<>("service-url",
+                null,
+                new TlsConfig("cert", "key", "trust"));
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals(e.getMessage(), "invalid topic configured");
+        }
+        try {
+            new PulsarChangePublisher<>("service-url",
+                "topic",
+                new TlsConfig(null, "key", "trust"));
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals(e.getMessage(), "invalid tls configured");
+        }
+        try {
+            new PulsarChangePublisher<>("service-url",
+                "topic",
+                null);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals(e.getMessage(), "invalid tls configured");
+        }
     }
 
     @Test
-    public void test_publisher_creation_with_topic_and_broker() {
-        System.setProperty(PROP_MESSAGING_CLI_SERVICE_URL, "some-broker");
+    public void test_publisher_creation() {
+        System.setProperty(PROP_MESSAGING_CLI_SERVICE_URL, "some-service");
         PulsarChangePublisher<DomainChangeMessage> publisher = new PulsarChangePublisher<>(serviceUrl(), "some-topic", new TlsConfig("cert", "key", "trust"));
         publisher.publish(new DomainChangeMessage());
+        publisher.close();
         assertNotNull(getPulsarProducer(publisher));
         System.clearProperty(PROP_MESSAGING_CLI_SERVICE_URL);
     }
@@ -50,12 +76,12 @@ public class PulsarChangePublisherTest {
      * Since pulsarProducer is private member, and not exposes outside,
      * load it in reflection for better assertion.
      */
-    static Producer getPulsarProducer(PulsarChangePublisher<DomainChangeMessage> publisher) {
+    static <T> Producer<T> getPulsarProducer(PulsarChangePublisher<DomainChangeMessage> publisher) {
         final Field privateProducer;
         try {
             privateProducer = publisher.getClass().getDeclaredField("producer");
             privateProducer.setAccessible(true);
-            return (Producer) privateProducer.get(publisher);
+            return (Producer<T>) privateProducer.get(publisher);
         } catch (final NoSuchFieldException | IllegalAccessException ignored) { }
         throw new AssertionError("Failed to retrieve pulsarProducer from PulsarChangePublisher<DomainChangeMessage>");
     }

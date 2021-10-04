@@ -26,7 +26,7 @@ public class PulsarFactory<T> implements ChangePublisherFactory<T>, ChangeSubscr
     String tlsCaPath = System.getProperty(PROP_MESSAGING_CLI_TRUST_STORE_PATH);
 
     if (tlsCertPath == null || tlsKeyPath == null || tlsCaPath == null) {
-      LOG.error("PULSAR client configuration invalid. tlsCertPath :[{}]. tlsKeyPath : [{}], tlsCaPath: [{}]", tlsCertPath, tlsKeyPath, tlsCaPath);
+      LOG.error("Pulsar client configuration invalid. tlsCertPath :[{}]. tlsKeyPath : [{}], tlsCaPath: [{}]", tlsCertPath, tlsKeyPath, tlsCaPath);
       throw new IllegalArgumentException("invalid settings configured");
     }
 
@@ -37,7 +37,7 @@ public class PulsarFactory<T> implements ChangePublisherFactory<T>, ChangeSubscr
     String serviceUrl = System.getProperty(PROP_MESSAGING_CLI_SERVICE_URL);
 
     if (serviceUrl == null) {
-      LOG.error("PULSAR client invalid service url: [{}]", serviceUrl);
+      LOG.error("Pulsar client invalid service url: [{}]", serviceUrl);
       throw new IllegalArgumentException("invalid pulsar service url");
     }
 
@@ -51,7 +51,11 @@ public class PulsarFactory<T> implements ChangePublisherFactory<T>, ChangeSubscr
   }
 
   @Override
-  public ChangeSubscriber<T> create(PrivateKeyStore keyStore, String topicName, String subcriptionName, String subscriptionType) {
-    return new com.yahoo.athenz.common.messaging.pulsar.PulsarChangeSubscriber<>(serviceUrl(), topicName, subcriptionName, SubscriptionType.Exclusive, tlsConfig());
+  public ChangeSubscriber<T> create(PrivateKeyStore keyStore, String topicName, String subscriptionName, String subscriptionTypeAsString) {
+    return new PulsarChangeSubscriber<>(serviceUrl(), topicName, subscriptionName, toSubscriptionType(subscriptionTypeAsString), tlsConfig());
+  }
+
+  private SubscriptionType toSubscriptionType(String subscriptionType) {
+    return SubscriptionType.valueOf(subscriptionType);
   }
 }

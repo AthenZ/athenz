@@ -24,6 +24,11 @@ public class MockDomainChangePublisher implements ChangePublisher<DomainChangeMe
         recorder.record(message);
     }
 
+    @Override
+    public void close() {
+        
+    }
+
     public static class Recorder {
         public void record(DomainChangeMessage domainChangeMessage) {
         }

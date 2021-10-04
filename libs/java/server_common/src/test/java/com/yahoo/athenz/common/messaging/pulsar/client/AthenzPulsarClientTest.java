@@ -18,7 +18,7 @@ public class AthenzPulsarClientTest {
 
     @BeforeMethod
     public void init() {
-        System.setProperty(PROP_ATHENZ_PULSAR_CLIENT_CLASS, "com.yahoo.athenz.common.messaging.pulsar.MockAthenzPulsarClient");
+        System.setProperty(PROP_ATHENZ_PULSAR_CLIENT_CLASS, "com.yahoo.athenz.common.messaging.pulsar.client.MockAthenzPulsarClient");
     }
 
     @AfterMethod
