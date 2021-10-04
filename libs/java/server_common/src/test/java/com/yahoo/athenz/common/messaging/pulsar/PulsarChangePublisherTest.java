@@ -2,6 +2,7 @@ package com.yahoo.athenz.common.messaging.pulsar;
 
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.messaging.pulsar.client.AthenzPulsarClient.TlsConfig;
+import com.yahoo.athenz.common.messaging.pulsar.client.ProducerWrapper;
 import org.apache.pulsar.client.api.Producer;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -79,9 +80,9 @@ public class PulsarChangePublisherTest {
     static <T> Producer<T> getPulsarProducer(PulsarChangePublisher<DomainChangeMessage> publisher) {
         final Field privateProducer;
         try {
-            privateProducer = publisher.getClass().getDeclaredField("producer");
+            privateProducer = publisher.getClass().getDeclaredField("producerWrapper");
             privateProducer.setAccessible(true);
-            return (Producer<T>) privateProducer.get(publisher);
+            return ((ProducerWrapper<T>) privateProducer.get(publisher)).getProducer();
         } catch (final NoSuchFieldException | IllegalAccessException ignored) { }
         throw new AssertionError("Failed to retrieve pulsarProducer from PulsarChangePublisher<DomainChangeMessage>");
     }

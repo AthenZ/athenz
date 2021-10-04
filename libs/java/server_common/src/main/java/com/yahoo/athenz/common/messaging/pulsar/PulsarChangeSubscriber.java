@@ -3,7 +3,7 @@ package com.yahoo.athenz.common.messaging.pulsar;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.messaging.ChangeSubscriber;
 import com.yahoo.athenz.common.messaging.pulsar.client.AthenzPulsarClient;
-import org.apache.pulsar.client.api.Consumer;
+import com.yahoo.athenz.common.messaging.pulsar.client.ConsumerWrapper;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.SubscriptionType;
@@ -19,7 +19,7 @@ public class PulsarChangeSubscriber<T> implements ChangeSubscriber<T> {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  protected Consumer<byte[]> pulsarConsumer;
+  protected ConsumerWrapper<byte[]> consumerWrapper;
   protected java.util.function.Consumer<T> processor;
   protected Class<T> valueType;
   private boolean closed = false;
@@ -30,13 +30,13 @@ public class PulsarChangeSubscriber<T> implements ChangeSubscriber<T> {
                                 String subscriptionName,
                                 SubscriptionType subscriptionType,
                                 AthenzPulsarClient.TlsConfig tlsConfig) {
-    pulsarConsumer = AthenzPulsarClient.createConsumer(serviceUrl,
+    consumerWrapper = AthenzPulsarClient.createConsumer(serviceUrl,
         Collections.singleton(topicName),
         subscriptionName,
         subscriptionType,
         tlsConfig
     );
-    LOG.debug("created publisher: {}, pulsarConsumer: {}", this.getClass(), pulsarConsumer);
+    LOG.debug("created publisher: {}, pulsarConsumer: {}", this.getClass(), consumerWrapper);
   }
 
   @Override
@@ -45,7 +45,7 @@ public class PulsarChangeSubscriber<T> implements ChangeSubscriber<T> {
     this.valueType = valueType;
 
     subscriberThread = new Thread(this::subscriberTask);
-    subscriberThread.setName("pulsar-" + pulsarConsumer.getTopic());
+    subscriberThread.setName("pulsar-" + consumerWrapper.getConsumer().getTopic());
     subscriberThread.setDaemon(true);
     subscriberThread.start();
   }
@@ -56,7 +56,7 @@ public class PulsarChangeSubscriber<T> implements ChangeSubscriber<T> {
         LOG.debug("looping over the consumer receive method");
       }
       try {
-        Message<byte[]> msg = this.pulsarConsumer.receive(1, TimeUnit.SECONDS);
+        Message<byte[]> msg = this.consumerWrapper.getConsumer().receive(1, TimeUnit.SECONDS);
         if (msg != null) {
           if (LOG.isDebugEnabled()) {
             LOG.debug("received message: {}", new String(msg.getData()));
@@ -64,7 +64,7 @@ public class PulsarChangeSubscriber<T> implements ChangeSubscriber<T> {
           
           T message = OBJECT_MAPPER.readValue(msg.getData(), valueType);
           processor.accept(message);
-          pulsarConsumer.acknowledge(msg);
+          consumerWrapper.getConsumer().acknowledge(msg);
         }
       } catch (Exception e) {
         LOG.error("exception in receiving the message: {}", e.getMessage(), e);
@@ -77,7 +77,8 @@ public class PulsarChangeSubscriber<T> implements ChangeSubscriber<T> {
     closed = true;
     subscriberThread.interrupt();
     try {
-      pulsarConsumer.close();
+      consumerWrapper.getConsumer().close();
+      consumerWrapper.getPulsarClient().shutdown();
     } catch (PulsarClientException e) {
       LOG.error("Got exception while closing pulsar consumer: {}", e.getMessage(), e);
     }

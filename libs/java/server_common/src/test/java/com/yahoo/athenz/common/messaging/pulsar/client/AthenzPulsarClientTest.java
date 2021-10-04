@@ -28,7 +28,7 @@ public class AthenzPulsarClientTest {
 
     @Test
     public void test_producer_creation() {
-        Producer<byte[]> producer = AthenzPulsarClient.createProducer("service", "topic", tlsConfig());
+        ProducerWrapper<byte[]> producer = AthenzPulsarClient.createProducer("service", "topic", tlsConfig());
         assertNotNull(producer);
 
         producer = AthenzPulsarClient.createProducer("service", "topic", AthenzPulsarClient.defaultProducerConfig(null), tlsConfig(), Schema.BYTES);
@@ -37,7 +37,7 @@ public class AthenzPulsarClientTest {
 
     @Test
     public void test_consumer_creation() {
-        Consumer<byte[]> consumer = AthenzPulsarClient.createConsumer("service", Collections.singleton("topic"), "subs", SubscriptionType.Exclusive, tlsConfig());
+        ConsumerWrapper<byte[]> consumer = AthenzPulsarClient.createConsumer("service", Collections.singleton("topic"), "subs", SubscriptionType.Exclusive, tlsConfig());
         assertNotNull(consumer);
 
         consumer = AthenzPulsarClient.createConsumer("service", Collections.singleton("topic"), defaultConsumerConfig(null, "subs", SubscriptionType.Exclusive), tlsConfig(), Schema.BYTES);

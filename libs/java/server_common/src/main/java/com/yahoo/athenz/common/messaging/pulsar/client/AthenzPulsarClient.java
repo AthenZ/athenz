@@ -22,12 +22,12 @@ public class AthenzPulsarClient {
   public static final String PROP_ATHENZ_PULSAR_CLIENT_CLASS = "athenz.pulsar.pulsar_client_class";
   public static final String PROP_ATHENZ_PULSAR_CLIENT_CLASS_DEFAULT = "com.yahoo.athenz.common.messaging.pulsar.client.AthenzPulsarClient";
 
-  public static Producer<byte[]> createProducer(String serviceUrl, String topicName, TlsConfig tlsConfig) {
+  public static ProducerWrapper<byte[]> createProducer(String serviceUrl, String topicName, TlsConfig tlsConfig) {
     ProducerConfigurationData producerConfiguration = defaultProducerConfig(topicName);
     return createProducer(serviceUrl, topicName, producerConfiguration, tlsConfig, Schema.BYTES);
   }
 
-  public static <T> Producer<T> createProducer(String serviceUrl, String topicName, ProducerConfigurationData producerConfiguration, TlsConfig tlsConfig, Schema<T> schema) {
+  public static <T> ProducerWrapper<T> createProducer(String serviceUrl, String topicName, ProducerConfigurationData producerConfiguration, TlsConfig tlsConfig, Schema<T> schema) {
     if (producerConfiguration.getTopicName() == null) {
       producerConfiguration.setTopicName(topicName);
     }
@@ -36,7 +36,8 @@ public class AthenzPulsarClient {
       ClientConfigurationData config = getClientConfiguration(tlsConfig);
       AthenzPulsarClient athenzPulsarClient = createAthenzPulsarClientInstance();
       PulsarClientImpl pulsarClient = athenzPulsarClient.getPulsarClient(serviceUrl, config);
-      return pulsarClient.createProducerAsync(producerConfiguration, schema).get();
+      Producer<T> producer = pulsarClient.createProducerAsync(producerConfiguration, schema).get();
+      return new ProducerWrapper<>(producer, pulsarClient);
     } catch (ExecutionException | PulsarClientException e) {
       LOG.error("Failed to create pulsar producer: {}", e.getMessage());
     } catch (InterruptedException e) {
@@ -98,12 +99,12 @@ public class AthenzPulsarClient {
     return producerConfiguration;
   }
 
-  public static Consumer<byte[]> createConsumer(String serviceUrl, Set<String> topicNames, String subscriptionName, SubscriptionType subscriptionType, TlsConfig tlsConfig) {
+  public static ConsumerWrapper<byte[]> createConsumer(String serviceUrl, Set<String> topicNames, String subscriptionName, SubscriptionType subscriptionType, TlsConfig tlsConfig) {
     ConsumerConfigurationData<byte[]> consumerConfiguration = defaultConsumerConfig(topicNames, subscriptionName, subscriptionType);
     return createConsumer(serviceUrl, topicNames, consumerConfiguration, tlsConfig, Schema.BYTES);
   }
 
-  public static <T> Consumer<T> createConsumer(String serviceUrl, Set<String> topicNames, ConsumerConfigurationData<T> consumerConfiguration, TlsConfig tlsConfig, Schema<T> schema) {
+  public static <T> ConsumerWrapper<T> createConsumer(String serviceUrl, Set<String> topicNames, ConsumerConfigurationData<T> consumerConfiguration, TlsConfig tlsConfig, Schema<T> schema) {
     if (consumerConfiguration.getTopicNames() == null || consumerConfiguration.getTopicNames().isEmpty()) {
       consumerConfiguration.setTopicNames(topicNames);
     }
@@ -112,7 +113,8 @@ public class AthenzPulsarClient {
       ClientConfigurationData config = getClientConfiguration(tlsConfig);
       AthenzPulsarClient athenzPulsarClient = createAthenzPulsarClientInstance();
       PulsarClientImpl pulsarClient = athenzPulsarClient.getPulsarClient(serviceUrl, config);
-      return pulsarClient.subscribeAsync(consumerConfiguration, schema, null).get();
+      Consumer<T> consumer = pulsarClient.subscribeAsync(consumerConfiguration, schema, null).get();
+      return new ConsumerWrapper<>(consumer, pulsarClient);
     } catch (ExecutionException | PulsarClientException e) {
       LOG.error("Failed to create pulsar consumer: {}", e.getMessage());
     } catch (InterruptedException e) {
