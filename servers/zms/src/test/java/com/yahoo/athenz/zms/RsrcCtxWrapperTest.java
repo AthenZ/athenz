@@ -29,7 +29,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.util.List;
-import java.util.UUID;
 
 import static com.yahoo.athenz.common.messaging.DomainChangeMessage.ObjectType.DOMAIN;
 import static com.yahoo.athenz.common.messaging.DomainChangeMessage.ObjectType.ROLE;
@@ -57,7 +56,7 @@ public class RsrcCtxWrapperTest {
         authListMock.add(authMock);
         Object timerMetric = new Object();
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
-                authorizerMock, timerMetric, "apiName");
+                authorizerMock, timerMetric, "apiName", false);
 
         assertNotNull(wrapper.context());
 
@@ -96,7 +95,7 @@ public class RsrcCtxWrapperTest {
 
         Object timerMetric = new Object();
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
-                authorizerMock, timerMetric, "apiName");
+                authorizerMock, timerMetric, "apiName", false);
 
         try {
             wrapper.authenticate();
@@ -129,7 +128,8 @@ public class RsrcCtxWrapperTest {
                 .thenReturn(true);
 
         Object timerMetric = new Object();
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock, timerMetric, "apiName");
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
+                authorizerMock, timerMetric, "apiName", false);
 
         wrapper.authorize("add-domain", "test", "test");
 
@@ -154,7 +154,8 @@ public class RsrcCtxWrapperTest {
                 .thenReturn(true);
 
         Object timerMetric = new Object();
-        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false, authorizerMock, timerMetric, "apiName");
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
+                authorizerMock, timerMetric, "apiName", false);
 
         // when not set authority
         wrapper.authorize("add-domain", "test", "test");
@@ -171,7 +172,7 @@ public class RsrcCtxWrapperTest {
 
         Object timerMetric = new Object();
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
-                authListMock, false, authorizerMock, timerMetric, "apiName");
+                authListMock, false, authorizerMock, timerMetric, "apiName", false);
 
         wrapper.logPrincipal(null);
         assertNull(servletRequest.getAttribute("com.yahoo.athenz.auth.principal"));
@@ -195,7 +196,7 @@ public class RsrcCtxWrapperTest {
 
         Object timerMetric = new Object();
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
-                authListMock, false, authorizerMock, timerMetric, "apiName");
+                authListMock, false, authorizerMock, timerMetric, "apiName", false);
 
         com.yahoo.athenz.common.server.rest.ResourceException restExc =
                 new com.yahoo.athenz.common.server.rest.ResourceException(503, null);
@@ -219,7 +220,7 @@ public class RsrcCtxWrapperTest {
 
         Object timerMetric = new Object();
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
-                authListMock, false, authorizerMock, timerMetric, "apiName");
+                authListMock, false, authorizerMock, timerMetric, "apiName", false);
 
         wrapper.logAuthorityId(null);
         assertNull(servletRequest.getAttribute("com.yahoo.athenz.auth.authority_id"));
@@ -239,7 +240,7 @@ public class RsrcCtxWrapperTest {
 
         Object timerMetric = new Object();
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
-            authListMock, false, authorizerMock, timerMetric, "apiName");
+            authListMock, false, authorizerMock, timerMetric, "apiName", true);
 
         assertNull(wrapper.getDomainChangeMessages());
 
@@ -282,5 +283,35 @@ public class RsrcCtxWrapperTest {
         assertEquals(messages.get(0).getObjectName(), "domain1Name1");
         assertEquals(messages.get(1).getObjectName(), "domain1role");
         assertEquals(messages.get(2).getObjectName(), "domain2Name1");
+    }
+
+    @Test
+    public void testDomainChangeMessageDisabled() {
+
+        HttpServletRequest servletRequest = new MockHttpServletRequest();
+        HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+
+        Object timerMetric = new Object();
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
+                authListMock, false, authorizerMock, timerMetric, "apiName", false);
+
+        assertNull(wrapper.getDomainChangeMessages());
+
+        // add domain msg
+        wrapper.addDomainChangeMessage(new DomainChangeMessage()
+                .setDomainName("domain1Name")
+                .setObjectName("domain1Name1")
+                .setObjectType(DOMAIN));
+
+        // add role msg for the same domain
+        wrapper.addDomainChangeMessage(new DomainChangeMessage()
+                .setDomainName("domain1Name")
+                .setObjectName("domain1role")
+                .setObjectType(ROLE));
+
+        assertNull(wrapper.getDomainChangeMessages());
     }
 }

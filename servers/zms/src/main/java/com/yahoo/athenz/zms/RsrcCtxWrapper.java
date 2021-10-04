@@ -31,17 +31,19 @@ import java.util.List;
 public class RsrcCtxWrapper implements ResourceContext {
 
     private final com.yahoo.athenz.common.server.rest.ResourceContext ctx;
-    private Object timerMetric;
-    private boolean optionalAuth;
-    private String apiName;
+    private final Object timerMetric;
+    private final boolean optionalAuth;
+    private final String apiName;
+    private final boolean eventPublishersEnabled;
     private List<DomainChangeMessage> domainChangeMessages;
     
-    RsrcCtxWrapper(HttpServletRequest request, HttpServletResponse response,
-                   Http.AuthorityList authList, boolean optionalAuth,
-                   Authorizer authorizer, Object timerMetric, String apiName) {
+    RsrcCtxWrapper(HttpServletRequest request, HttpServletResponse response, Http.AuthorityList authList,
+                   boolean optionalAuth, Authorizer authorizer, Object timerMetric, final String apiName,
+                   boolean eventPublishersEnabled) {
         this.optionalAuth = optionalAuth;
         this.timerMetric = timerMetric;
         this.apiName = apiName.toLowerCase();
+        this.eventPublishersEnabled = eventPublishersEnabled;
         ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(request,
                 response, authList, authorizer);
     }
@@ -142,6 +144,14 @@ public class RsrcCtxWrapper implements ResourceContext {
     }
 
     public void addDomainChangeMessage(DomainChangeMessage domainChangeMsg) {
+
+        // if we have no event publishers configured there is no
+        // point of creating event objects
+
+        if (!eventPublishersEnabled) {
+            return;
+        }
+
         if (domainChangeMessages == null) {
             domainChangeMessages = new ArrayList<>();
         }
