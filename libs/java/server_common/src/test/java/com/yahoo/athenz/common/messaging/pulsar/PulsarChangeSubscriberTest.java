@@ -21,7 +21,6 @@ package com.yahoo.athenz.common.messaging.pulsar;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.messaging.pulsar.client.AthenzPulsarClient.TlsConfig;
-import com.yahoo.athenz.common.messaging.pulsar.client.ConsumerWrapper;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.SubscriptionType;
@@ -33,6 +32,8 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.yahoo.athenz.common.messaging.pulsar.PulsarFactory.PROP_MESSAGING_CLI_SERVICE_URL;
 import static com.yahoo.athenz.common.messaging.pulsar.client.AthenzPulsarClient.PROP_ATHENZ_PULSAR_CLIENT_CLASS;
@@ -137,6 +138,10 @@ public class PulsarChangeSubscriberTest {
         
         // init subscriber
         subscriber.init(this::assertDomainMessage, DomainChangeMessage.class);
+
+        ExecutorService service = Executors.newSingleThreadExecutor();
+        service.submit(subscriber);
+        
         Thread.sleep(500);
         subscriber.close();
         Consumer<byte[]> pulsarConsumer = getPulsarConsumer(subscriber);
@@ -161,9 +166,9 @@ public class PulsarChangeSubscriberTest {
     static <T> Consumer<T> getPulsarConsumer(PulsarChangeSubscriber<DomainChangeMessage> subscriber) {
         final Field privateConsumer;
         try {
-            privateConsumer = subscriber.getClass().getDeclaredField("consumerWrapper");
+            privateConsumer = subscriber.getClass().getDeclaredField("consumer");
             privateConsumer.setAccessible(true);
-            return ((ConsumerWrapper<T>) privateConsumer.get(subscriber)).getConsumer();
+            return (Consumer<T>) privateConsumer.get(subscriber);
         } catch (final NoSuchFieldException | IllegalAccessException ignored) { }
         throw new AssertionError("Failed to retrieve pulsarConsumer from PulsarChangeSubscriber<DomainChangeMessage>");
     }

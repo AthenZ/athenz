@@ -40,43 +40,57 @@ public class AthenzPulsarClient {
   public static final String PROP_ATHENZ_PULSAR_CLIENT_CLASS = "athenz.pulsar.pulsar_client_class";
   public static final String PROP_ATHENZ_PULSAR_CLIENT_CLASS_DEFAULT = "com.yahoo.athenz.common.messaging.pulsar.client.AthenzPulsarClient";
 
-  public static ProducerWrapper<byte[]> createProducer(String serviceUrl, String topicName, TlsConfig tlsConfig) {
-    ProducerConfigurationData producerConfiguration = defaultProducerConfig(topicName);
-    return createProducer(serviceUrl, topicName, producerConfiguration, tlsConfig, Schema.BYTES);
-  }
-
-  public static <T> ProducerWrapper<T> createProducer(String serviceUrl, String topicName, ProducerConfigurationData producerConfiguration, TlsConfig tlsConfig, Schema<T> schema) {
-    if (producerConfiguration.getTopicName() == null) {
-      producerConfiguration.setTopicName(topicName);
-    }
-    validateProducer(serviceUrl, producerConfiguration, tlsConfig);
-    try {
-      ClientConfigurationData config = getClientConfiguration(tlsConfig);
-      AthenzPulsarClient athenzPulsarClient = createAthenzPulsarClientInstance();
-      PulsarClientImpl pulsarClient = athenzPulsarClient.getPulsarClient(serviceUrl, config);
-      Producer<T> producer = pulsarClient.createProducerAsync(producerConfiguration, schema).get();
-      return new ProducerWrapper<>(producer, pulsarClient);
-    } catch (ExecutionException | PulsarClientException e) {
-      LOG.error("Failed to create pulsar producer: {}", e.getMessage());
-    } catch (InterruptedException e) {
-      LOG.error("Failed to create pulsar producer, thread was interrupt: {}", e.getMessage());
-      Thread.currentThread().interrupt();
-    }
-    return null;
-  }
-
-  private static void validateProducer(String serviceUrl, ProducerConfigurationData producerConfiguration, TlsConfig tlsConfig) {
+  public static PulsarClientImpl createPulsarClient(String serviceUrl, TlsConfig tlsConfig) {
     if (tlsConfig == null || tlsConfig.tlsCertFilePath == null || tlsConfig.tlsKeyFilePath == null || tlsConfig.tlsTrustCertsFilePath == null) {
       throw new IllegalArgumentException("invalid tls configured");
     }
     if (serviceUrl == null || serviceUrl.isEmpty()) {
       throw new IllegalArgumentException("invalid service configured");
     }
+    try {
+      ClientConfigurationData config = getClientConfiguration(tlsConfig);
+      AthenzPulsarClient athenzPulsarClient = createAthenzPulsarClientInstance();
+      return athenzPulsarClient.getPulsarClient(serviceUrl, config);
+    } catch (PulsarClientException e) {
+      LOG.error("Failed to create pulsar client: {}", e.getMessage(), e);
+    }
+    throw new IllegalStateException("failed to create pulsar client");
+  }
+
+  public static ProducerConfigurationData defaultProducerConfig(String topicName) {
+    int maxPendingMessages = Integer.parseInt(System.getProperty(PROP_PULSAR_MAX_PENDING_MSGS, "10000"));
+    ProducerConfigurationData producerConfiguration = new ProducerConfigurationData();
+    producerConfiguration.setBlockIfQueueFull(true);
+    producerConfiguration.setMaxPendingMessages(maxPendingMessages);
+    producerConfiguration.setTopicName(topicName);
+    return producerConfiguration;
+  }
+
+  public static Producer<byte[]> createProducer(String serviceUrl, String topicName, TlsConfig tlsConfig) {
+    ProducerConfigurationData producerConfiguration = defaultProducerConfig(topicName);
+    PulsarClientImpl pulsarClient = createPulsarClient(serviceUrl, tlsConfig);
+    return createProducer(pulsarClient, producerConfiguration);
+  }
+  
+  public static Producer<byte[]> createProducer(PulsarClientImpl pulsarClient, ProducerConfigurationData producerConfiguration) {
+    return createProducer(pulsarClient, producerConfiguration, Schema.BYTES);
+  }
+  
+  public static <T> Producer<T> createProducer(PulsarClientImpl pulsarClient, ProducerConfigurationData producerConfiguration, Schema<T> schema) {
     if (producerConfiguration.getTopicName() == null || producerConfiguration.getTopicName().isEmpty()) {
       throw new IllegalArgumentException("invalid topic configured");
     }
+    try {
+      return pulsarClient.createProducerAsync(producerConfiguration, schema).get();
+    } catch (ExecutionException e) {
+      LOG.error("Failed to create pulsar producer: {}", e.getMessage(), e);
+    } catch (InterruptedException e) {
+      LOG.error("Failed to create pulsar producer, thread was interrupt: {}", e.getMessage(), e);
+      Thread.currentThread().interrupt();
+    }
+    throw new IllegalStateException("failed to create pulsar producer");
   }
-
+  
   private static ClientConfigurationData getClientConfiguration(TlsConfig tlsConfig) {
     ClientConfigurationData config = new ClientConfigurationData();
     AuthenticationTls authenticationTls = new AuthenticationTls();
@@ -108,50 +122,42 @@ public class AthenzPulsarClient {
     return new PulsarClientImpl(config);
   }
 
-  public static ProducerConfigurationData defaultProducerConfig(String topicName) {
-    int maxPendingMessages = Integer.parseInt(System.getProperty(PROP_PULSAR_MAX_PENDING_MSGS, "10000"));
-    ProducerConfigurationData producerConfiguration = new ProducerConfigurationData();
-    producerConfiguration.setBlockIfQueueFull(true);
-    producerConfiguration.setMaxPendingMessages(maxPendingMessages);
-    producerConfiguration.setTopicName(topicName);
-    return producerConfiguration;
-  }
-
-  public static ConsumerWrapper<byte[]> createConsumer(String serviceUrl, Set<String> topicNames, String subscriptionName, SubscriptionType subscriptionType, TlsConfig tlsConfig) {
-    ConsumerConfigurationData<byte[]> consumerConfiguration = defaultConsumerConfig(topicNames, subscriptionName, subscriptionType);
-    return createConsumer(serviceUrl, topicNames, consumerConfiguration, tlsConfig, Schema.BYTES);
-  }
-
-  public static <T> ConsumerWrapper<T> createConsumer(String serviceUrl, Set<String> topicNames, ConsumerConfigurationData<T> consumerConfiguration, TlsConfig tlsConfig, Schema<T> schema) {
-    if (consumerConfiguration.getTopicNames() == null || consumerConfiguration.getTopicNames().isEmpty()) {
-      consumerConfiguration.setTopicNames(topicNames);
-    }
-    validateConsumer(serviceUrl, consumerConfiguration, tlsConfig);
-    try {
-      ClientConfigurationData config = getClientConfiguration(tlsConfig);
-      AthenzPulsarClient athenzPulsarClient = createAthenzPulsarClientInstance();
-      PulsarClientImpl pulsarClient = athenzPulsarClient.getPulsarClient(serviceUrl, config);
-      Consumer<T> consumer = pulsarClient.subscribeAsync(consumerConfiguration, schema, null).get();
-      return new ConsumerWrapper<>(consumer, pulsarClient);
-    } catch (ExecutionException | PulsarClientException e) {
-      LOG.error("Failed to create pulsar consumer: {}", e.getMessage());
-    } catch (InterruptedException e) {
-      LOG.error("Failed to create pulsar consumer, thread was interrupt: {}", e.getMessage());
-      Thread.currentThread().interrupt();
-    }
-    return null;
-  }
-
-  private static <T> void validateConsumer(String serviceUrl, ConsumerConfigurationData<T> consumerConfiguration, TlsConfig tlsConfig) {
-    if (tlsConfig == null || tlsConfig.tlsCertFilePath == null || tlsConfig.tlsKeyFilePath == null || tlsConfig.tlsTrustCertsFilePath == null) {
-      throw new IllegalArgumentException("invalid tls configured");
-    }
-    if (serviceUrl == null || serviceUrl.isEmpty()) {
-      throw new IllegalArgumentException("invalid service configured");
-    }
-    if (consumerConfiguration == null || consumerConfiguration.getSubscriptionType() == null) {
+  public static ConsumerConfigurationData<byte[]> defaultConsumerConfig(Set<String> topicNames, String subscriptionName, SubscriptionType subscriptionType) {
+    if (subscriptionType == null) {
       throw new IllegalArgumentException("invalid subscription type configured");
     }
+    ConsumerConfigurationData<byte[]> conf = new ConsumerConfigurationData<>();
+    conf.setSubscriptionType(subscriptionType);
+    conf.setSubscriptionName(subscriptionName);
+    conf.setTopicNames(topicNames);
+    conf.setPoolMessages(true);
+    return conf;
+  }
+  
+  public static Consumer<byte[]> createConsumer(String serviceUrl, Set<String> topicNames, String subscriptionName, SubscriptionType subscriptionType, TlsConfig tlsConfig) {
+    ConsumerConfigurationData<byte[]> consumerConfiguration = defaultConsumerConfig(topicNames, subscriptionName, subscriptionType);
+    PulsarClientImpl pulsarClient = createPulsarClient(serviceUrl, tlsConfig);
+    return createConsumer(pulsarClient, consumerConfiguration);
+  }
+
+  public static Consumer<byte[]> createConsumer(PulsarClientImpl pulsarClient, ConsumerConfigurationData<byte[]> consumerConfiguration) {
+    return createConsumer(pulsarClient, consumerConfiguration, Schema.BYTES);
+  }
+
+  public static <T> Consumer<T> createConsumer(PulsarClientImpl pulsarClient, ConsumerConfigurationData<T> consumerConfiguration, Schema<T> schema) {
+    validateConsumerConfiguration(consumerConfiguration);
+    try {
+      return pulsarClient.subscribeAsync(consumerConfiguration, schema, null).get();
+    } catch (ExecutionException e) {
+      LOG.error("Failed to create pulsar consumer: {}", e.getMessage(), e);
+    } catch (InterruptedException e) {
+      LOG.error("Failed to create pulsar consumer, thread was interrupt: {}", e.getMessage(), e);
+      Thread.currentThread().interrupt();
+    }
+    throw new IllegalStateException("failed to create pulsar consumer");
+  }
+
+  private static <T> void validateConsumerConfiguration(ConsumerConfigurationData<T> consumerConfiguration) {
     if (consumerConfiguration.getSubscriptionName() == null) {
       throw new IllegalArgumentException("invalid subscription name configured");
     }
@@ -163,15 +169,6 @@ public class AthenzPulsarClient {
         throw new IllegalArgumentException("invalid topic configured");
       }
     }
-  }
-
-  public static ConsumerConfigurationData<byte[]> defaultConsumerConfig(Set<String> topicNames, String subscriptionName, SubscriptionType subscriptionType) {
-    ConsumerConfigurationData<byte[]> conf = new ConsumerConfigurationData<>();
-    conf.setSubscriptionType(subscriptionType);
-    conf.setSubscriptionName(subscriptionName);
-    conf.setTopicNames(topicNames);
-    conf.setPoolMessages(true);
-    return conf;
   }
 
   public static class TlsConfig {
