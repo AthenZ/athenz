@@ -34,6 +34,7 @@ describe('clients test', () => {
             zms: 'test',
             userFilePath: 'data',
             userFileName: 'users.json',
+            msd: 'test',
         };
 
         clients.load(config, {}).catch((err) => {

@@ -26,6 +26,7 @@ import NameUtils from '../utils/NameUtils';
 import RequestUtils from '../utils/RequestUtils';
 import MemberUtils from '../utils/MemberUtils';
 import { GROUP_MEMBER_NAME_REGEX } from '../constants/constants';
+import RegexUtils from '../utils/RegexUtils';
 
 const SectionsDiv = styled.div`
     width: 760px;
@@ -112,10 +113,7 @@ export default class AddMember extends React.Component {
 
         if (
             this.props.category === 'group' &&
-            !MemberUtils.matchRegexName(
-                this.state.memberName,
-                GROUP_MEMBER_NAME_REGEX
-            )
+            !RegexUtils.validate(this.state.memberName, GROUP_MEMBER_NAME_REGEX)
         ) {
             this.setState({
                 errorMessage:

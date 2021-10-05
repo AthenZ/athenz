@@ -278,21 +278,6 @@ exports[`AddStaticInstances should render 1`] = `
   padding: 0 12px;
 }
 
-.emotion-15 {
-  margin-top: 5px;
-  margin-left: 5px;
-}
-
-.emotion-17 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-23 {
-  width: 65%;
-}
-
 <div
   class="emotion-0 emotion-1"
   data-testid="add-modal-message"
@@ -373,37 +358,6 @@ exports[`AddStaticInstances should render 1`] = `
           data-testid="message"
         />
       </div>
-      <div
-        class="emotion-15 emotion-16"
-      >
-        <svg
-          class="emotion-17"
-          data-testid="icon"
-          height="1.75em"
-          viewBox="0 0 1024 1024"
-          width="1.75em"
-        >
-          <title>
-            add-circle
-          </title>
-          <path
-            d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001z"
-          />
-          <path
-            d="M725.333 469.333h-170.667v-170.667c0-23.564-19.103-42.667-42.667-42.667s-42.667 19.103-42.667 42.667v0 170.667h-170.667c-23.564 0-42.667 19.103-42.667 42.667s19.103 42.667 42.667 42.667v0h170.667v170.667c0 23.564 19.103 42.667 42.667 42.667s42.667-19.103 42.667-42.667v0-170.667h170.667c23.564 0 42.667-19.103 42.667-42.667s-19.103-42.667-42.667-42.667v0z"
-          />
-        </svg>
-      </div>
-    </div>
-    <div
-      class="emotion-4 emotion-5"
-    >
-      <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
-      />
-      <div
-        class="emotion-23 emotion-24"
-      />
     </div>
   </div>
 </div>
@@ -687,21 +641,6 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   padding: 0 12px;
 }
 
-.emotion-15 {
-  margin-top: 5px;
-  margin-left: 5px;
-}
-
-.emotion-17 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-23 {
-  width: 65%;
-}
-
 <div
   class="emotion-0 emotion-1"
   data-testid="add-modal-message"
@@ -782,37 +721,6 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
           data-testid="message"
         />
       </div>
-      <div
-        class="emotion-15 emotion-16"
-      >
-        <svg
-          class="emotion-17"
-          data-testid="icon"
-          height="1.75em"
-          viewBox="0 0 1024 1024"
-          width="1.75em"
-        >
-          <title>
-            add-circle
-          </title>
-          <path
-            d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001z"
-          />
-          <path
-            d="M725.333 469.333h-170.667v-170.667c0-23.564-19.103-42.667-42.667-42.667s-42.667 19.103-42.667 42.667v0 170.667h-170.667c-23.564 0-42.667 19.103-42.667 42.667s19.103 42.667 42.667 42.667v0h170.667v170.667c0 23.564 19.103 42.667 42.667 42.667s42.667-19.103 42.667-42.667v0-170.667h170.667c23.564 0 42.667-19.103 42.667-42.667s-19.103-42.667-42.667-42.667v0z"
-          />
-        </svg>
-      </div>
-    </div>
-    <div
-      class="emotion-4 emotion-5"
-    >
-      <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
-      />
-      <div
-        class="emotion-23 emotion-24"
-      />
     </div>
   </div>
 </div>

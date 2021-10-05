@@ -35,5 +35,6 @@ module.exports.load = function (config) {
     promises.push(loadFile('serverKey', config.uiKeyPath));
     promises.push(loadFile('serverCert', config.uiCertPath));
     promises.push(loadFile('cookieSession', config.cookieSession));
+    promises.push(loadFile('msdAuthHeader', config.msdAuthHeaderPath));
     return Promise.all(promises);
 };

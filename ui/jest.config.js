@@ -28,7 +28,10 @@ module.exports = {
     globalSetup: './src/global-jest-setup.js',
     moduleDirectories: ['node_modules'],
     reporters: ['default', 'jest-junit'],
-    setupFilesAfterEnv: ['./src/setup-jest-test-framework.js'],
+    setupFilesAfterEnv: [
+        '@testing-library/jest-dom/extend-expect',
+        '<rootDir>/src/setup-jest-test-framework.js',
+    ],
     testURL: 'http://localhost',
     testPathIgnorePatterns: [
         './.next/',
@@ -36,9 +39,11 @@ module.exports = {
         './src/__tests__/spec/',
     ],
     transform: {
-        '^.+\\.js$': 'babel-jest',
+        '^.+\\.js$': ['babel-jest', { presets: ['next/babel'] }],
     },
     moduleNameMapper: {
         '\\.(css|less)$': 'identity-obj-proxy',
     },
+    testEnvironment: 'jsdom',
+    snapshotSerializers: ['@emotion/jest/serializer'],
 };

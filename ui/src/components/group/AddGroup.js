@@ -29,6 +29,7 @@ import {
     GROUP_NAME_REGEX,
 } from '../constants/constants';
 import MemberUtils from '../utils/MemberUtils';
+import RegexUtils from '../utils/RegexUtils';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -187,7 +188,7 @@ export default class AddGroup extends React.Component {
             return;
         }
 
-        if (!MemberUtils.matchRegexName(groupName, GROUP_NAME_REGEX)) {
+        if (!RegexUtils.validate(groupName, GROUP_NAME_REGEX)) {
             this.setState({
                 errorMessage:
                     "Group name doesn't match regex: " + GROUP_NAME_REGEX,
