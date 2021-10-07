@@ -18,16 +18,17 @@
 
 package com.yahoo.athenz.common.messaging.pulsar.client;
 
-import org.apache.pulsar.client.api.Schema;
+import org.apache.pulsar.client.api.Consumer;
+import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.SubscriptionType;
+import org.apache.pulsar.client.impl.PulsarClientImpl;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
 
-import static com.yahoo.athenz.common.messaging.pulsar.client.AthenzPulsarClient.PROP_ATHENZ_PULSAR_CLIENT_CLASS;
-import static com.yahoo.athenz.common.messaging.pulsar.client.AthenzPulsarClient.defaultConsumerConfig;
+import static com.yahoo.athenz.common.messaging.pulsar.client.AthenzPulsarClient.*;
 import static org.testng.Assert.assertNotNull;
 
 public class AthenzPulsarClientTest {
@@ -44,19 +45,19 @@ public class AthenzPulsarClientTest {
 
     @Test
     public void test_producer_creation() {
-        ProducerWrapper<byte[]> producer = AthenzPulsarClient.createProducer("service", "topic", tlsConfig());
+        Producer<byte[]> producer = AthenzPulsarClient.createProducer("service", "topic", tlsConfig());
         assertNotNull(producer);
-
-        producer = AthenzPulsarClient.createProducer("service", "topic", AthenzPulsarClient.defaultProducerConfig(null), tlsConfig(), Schema.BYTES);
+        PulsarClientImpl pulsarClient = AthenzPulsarClient.createPulsarClient("service", tlsConfig());
+        producer = AthenzPulsarClient.createProducer(pulsarClient, defaultProducerConfig("topic"));
         assertNotNull(producer);
     }
 
     @Test
     public void test_consumer_creation() {
-        ConsumerWrapper<byte[]> consumer = AthenzPulsarClient.createConsumer("service", Collections.singleton("topic"), "subs", SubscriptionType.Exclusive, tlsConfig());
+        Consumer<byte[]> consumer = AthenzPulsarClient.createConsumer("service", Collections.singleton("topic"), "subs", SubscriptionType.Exclusive, tlsConfig());
         assertNotNull(consumer);
-
-        consumer = AthenzPulsarClient.createConsumer("service", Collections.singleton("topic"), defaultConsumerConfig(null, "subs", SubscriptionType.Exclusive), tlsConfig(), Schema.BYTES);
+        PulsarClientImpl pulsarClient = AthenzPulsarClient.createPulsarClient("service", tlsConfig());
+        consumer = AthenzPulsarClient.createConsumer(pulsarClient, defaultConsumerConfig(Collections.singleton("topic"), "subs", SubscriptionType.Exclusive));
         assertNotNull(consumer);
     }
 

@@ -31,10 +31,10 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 
 public class PulsarFactory<T> implements ChangePublisherFactory<T>, ChangeSubscriberFactory<T> {
-  public static final String PROP_MESSAGING_CLI_SERVICE_URL = "athenz.messaging_cli_service_url";
-  public static final String PROP_MESSAGING_CLI_KEY_PATH = "athenz.messaging_cli_key_path";
-  public static final String PROP_MESSAGING_CLI_CERT_PATH = "athenz.messaging_cli_cert_path";
-  public static final String PROP_MESSAGING_CLI_TRUST_STORE_PATH = "athenz.messaging_cli_truststore_path";
+  public static final String PROP_MESSAGING_CLI_SERVICE_URL = "athenz.messaging_cli.service_url";
+  public static final String PROP_MESSAGING_CLI_KEY_PATH = "athenz.messaging_cli.key_path";
+  public static final String PROP_MESSAGING_CLI_CERT_PATH = "athenz.messaging_cli.cert_path";
+  public static final String PROP_MESSAGING_CLI_TRUST_STORE_PATH = "athenz.messaging_cli.truststore_path";
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

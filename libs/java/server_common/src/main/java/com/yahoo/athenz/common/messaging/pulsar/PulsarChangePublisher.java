@@ -22,8 +22,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.messaging.ChangePublisher;
 import com.yahoo.athenz.common.messaging.pulsar.client.AthenzPulsarClient;
-import com.yahoo.athenz.common.messaging.pulsar.client.ProducerWrapper;
+import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.client.impl.PulsarClientImpl;
+import org.apache.pulsar.client.impl.conf.ProducerConfigurationData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,20 +36,23 @@ public class PulsarChangePublisher<T> implements ChangePublisher<T> {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-  private final ProducerWrapper<byte[]> producerWrapper;
+  private final Producer<byte[]> producer;
+  private final PulsarClientImpl pulsarClient;
 
   public PulsarChangePublisher(String serviceUrl, String topicName, AthenzPulsarClient.TlsConfig tlsConfig) {
-    producerWrapper = AthenzPulsarClient.createProducer(serviceUrl, topicName, tlsConfig);
-    LOG.debug("created publisher: {}, producer: {}", this.getClass(), producerWrapper);
+    ProducerConfigurationData producerConfig = AthenzPulsarClient.defaultProducerConfig(topicName);
+    pulsarClient = AthenzPulsarClient.createPulsarClient(serviceUrl, tlsConfig);
+    producer = AthenzPulsarClient.createProducer(pulsarClient, producerConfig);
+    LOG.debug("created publisher: {}, producer: {}", this.getClass(), producer);
   }
 
   @Override
   public void publish(T message) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("producer: {}, publishing message: {}", producerWrapper, message);
+      LOG.debug("producer: {}, publishing message: {}", producer, message);
     }
     try {
-      producerWrapper.getProducer().send(OBJECT_MAPPER.writeValueAsBytes(message));
+      producer.send(OBJECT_MAPPER.writeValueAsBytes(message));
     } catch (PulsarClientException | JsonProcessingException e) {
       LOG.error("Pulsar client was not able to publish message. error: {}", e.getMessage(), e);
     }
@@ -56,8 +61,8 @@ public class PulsarChangePublisher<T> implements ChangePublisher<T> {
   @Override
   public void close() {
     try {
-      producerWrapper.getProducer().close();
-      producerWrapper.getPulsarClient().shutdown();
+      producer.close();
+      pulsarClient.shutdown();
     } catch (PulsarClientException e) {
       LOG.error("Got exception while closing pulsar producer: {}", e.getMessage(), e);
     }
