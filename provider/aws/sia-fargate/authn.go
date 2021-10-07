@@ -31,8 +31,8 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/aws/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/util"
 	"github.com/aws/aws-sdk-go/service/sts"
 )
 

@@ -37,7 +37,7 @@ import (
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/util"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 
 	"github.com/AthenZ/athenz/provider/aws/sia-fargate"
 )

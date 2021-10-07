@@ -2,7 +2,7 @@ package util
 
 import (
 	"fmt"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/logutil"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"io"
 	"io/ioutil"
 	"os"

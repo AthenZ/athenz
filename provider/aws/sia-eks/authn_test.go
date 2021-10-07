@@ -27,8 +27,8 @@ import (
 	"time"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/util"
 	"github.com/AthenZ/athenz/provider/aws/sia-eks/devel/metamock"
 	"github.com/AthenZ/athenz/provider/aws/sia-eks/devel/ztsmock"
 
@@ -65,7 +65,7 @@ func TestUpdateFileNew(test *testing.T) {
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	_ = os.Remove(fileName)
 	testContents := "sia-unit-test"
-	err = util.UpdateFile(fileName, testContents, 0, 0, 0644, sysLogger)
+	err = util.UpdateFile(fileName, []byte(testContents), 0, 0, 0644, sysLogger)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -103,7 +103,7 @@ func TestUpdateFileExisting(test *testing.T) {
 		return
 	}
 	testNewContents := "sia-unit"
-	err = util.UpdateFile(fileName, testNewContents, 0, 0, 0644, sysLogger)
+	err = util.UpdateFile(fileName, []byte(testNewContents), 0, 0, 0644, sysLogger)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return

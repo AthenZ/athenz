@@ -19,25 +19,24 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
-	"github.com/AthenZ/athenz/provider/aws/sia-eks"
-	eksutil "github.com/AthenZ/athenz/provider/aws/sia-eks/util"
 	"io"
 	"io/ioutil"
 	"log"
 	"log/syslog"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
-	"flag"
-	"os/signal"
-	"syscall"
-
+	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/logutil"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/util"
+	"github.com/AthenZ/athenz/provider/aws/sia-eks"
 )
 
 // Following can be set by the build script using LDFLAGS
@@ -132,7 +131,7 @@ func main() {
 
 	logutil.LogInfo(sysLogger, "Using ZTS: %s with DNS domain: %s & Provider prefix: %s\n", ZtsEndPoint, DnsDomain, ProviderPrefix)
 
-	accountId, domain, service, region, err := eksutil.GetMetaDetailsFromCreds()
+	accountId, domain, service, region, err := stssession.GetMetaDetailsFromCreds("-service", *useRegionalSTS, sysLogger)
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to get account id from available credentials, error: %v\n", err)
 	}

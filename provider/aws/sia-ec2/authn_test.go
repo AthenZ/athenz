@@ -19,7 +19,7 @@ package sia
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/data/attestation"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/devel/metamock"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/devel/ztsmock"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/internal/driver"
