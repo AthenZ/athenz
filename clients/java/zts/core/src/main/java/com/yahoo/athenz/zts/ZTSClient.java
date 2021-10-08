@@ -1390,7 +1390,7 @@ public class ZTSClient implements Closeable {
      * @param privateKey private key for the service identity for the caller
      * @param csrDn string identifying the dn for the csr without the cn component
      * @param csrDomain string identifying the dns domain for generating SAN fields
-     * @param expiryTime number of seconds to request certificate to be valid for
+     * @param expiryTime number of minutes to request certificate to be valid for
      * @return RoleCertificateRequest object
      */
     public static RoleCertificateRequest generateRoleCertificateRequest(final String principalDomain,
@@ -1457,7 +1457,7 @@ public class ZTSClient implements Closeable {
      * @param roleName name of the role to get a certificate request for
      * @param privateKey private key for the service identity for the caller
      * @param cloud string identifying the environment, e.g. aws
-     * @param expiryTime number of seconds to request certificate to be valid for
+     * @param expiryTime number of minutes to request certificate to be valid for
      * @return RoleCertificateRequest object
      */
     public static RoleCertificateRequest generateRoleCertificateRequest(final String principalDomain,
