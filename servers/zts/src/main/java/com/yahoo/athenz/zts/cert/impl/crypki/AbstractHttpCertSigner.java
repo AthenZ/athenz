@@ -68,7 +68,8 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
     private final SslContextFactory sslContextFactory;
     
     String serverBaseUri;
-    int requestConnectRetryCount;
+    int certsignRequestRetryCount;
+    boolean retryConnFailuresOnly;
     int maxCertExpiryTimeMins;
     String defaultProviderSignerKeyId = X509_KEY_META_IDENTIFIER;
     Map<String, String> providerSignerKeys = new ConcurrentHashMap<>();
@@ -80,16 +81,16 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
         // retrieve our default timeout and retry timer
         
         int connectionTimeoutSec = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_CONNECT_TIMEOUT, "10"));
-
         int readTimeoutSec = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT, "25"));
 
-        requestConnectRetryCount = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_RETRY_COUNT, "2"));
+        certsignRequestRetryCount = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_RETRY_COUNT, "2"));
+        retryConnFailuresOnly = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_RETRY_CONN_ONLY, "true"));
 
-        // max expiry time in minutes.  Max is is 30 days
+        // max expiry time in minutes.  Max is 30 days
+
         maxCertExpiryTimeMins = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME, "43200"));
         
         // Instantiate HttpClient with SSLContext
-        //TODO: Switch from using jetty's SslContextFactory and possible use SSLUtils class from athenz-client-common
         this.sslContextFactory = ZTSUtils.createSSLContextObject(new String[] {"TLSv1.2"}, privateKeyStore);
         try {
             this.sslContextFactory.start();
@@ -294,16 +295,18 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
         
         // Retry configured number of times before returning failure
 
-        for (int i = 0; i < requestConnectRetryCount; i++) {
+        for (int i = 0; i < certsignRequestRetryCount; i++) {
             try {
                 return processHttpResponse(httpPost, 201);
             } catch (ConnectException ex) {
                 LOGGER.error("Unable to process x509 certificate request to url {}, retrying {}/{}, {}",
-                        x509CertUri, i + 1, requestConnectRetryCount, ex);
+                        x509CertUri, i + 1, certsignRequestRetryCount, ex);
             } catch (IOException ex) {
-                LOGGER.error("Unable to process x509 certificate request to url {}",
-                        x509CertUri, ex);
-                break;
+                LOGGER.error("Unable to process x509 certificate request to url {}, try: {}",
+                        x509CertUri, i + 1, ex);
+                if (retryConnFailuresOnly) {
+                    break;
+                }
             }
         }
         

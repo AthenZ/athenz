@@ -47,7 +47,7 @@ public class HttpCertSignerTest {
         certSigner.close();
     }
 
-    private CloseableHttpResponse mockRequest(int expectedStatusCode, String expectedReponseContent) throws Exception {
+    private CloseableHttpResponse mockRequest(int expectedStatusCode, String expectedResponseContent) throws Exception {
         CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
         StatusLine statusLine = Mockito.mock(StatusLine.class);
         Mockito.when(response.getStatusLine()).thenReturn(statusLine);
@@ -56,8 +56,8 @@ public class HttpCertSignerTest {
         HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
         Mockito.when(response.getEntity()).thenReturn(httpEntity);
 
-        if (expectedReponseContent != null) {
-            InputStream stream = new ByteArrayInputStream(expectedReponseContent.getBytes(StandardCharsets.UTF_8));
+        if (expectedResponseContent != null) {
+            InputStream stream = new ByteArrayInputStream(expectedResponseContent.getBytes(StandardCharsets.UTF_8));
             Mockito.when(httpEntity.getContent()).thenReturn(stream);
         }
         
@@ -78,6 +78,24 @@ public class HttpCertSignerTest {
         Mockito.verify(httpClient, times(1)).execute(Mockito.any(HttpPost.class));
         
         certSigner.close();
+    }
+
+    @Test
+    public void testGenerateX509CertificateExceptionIOExceptionRetry() throws Exception {
+
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+        System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_RETRY_CONN_ONLY, "false");
+
+        HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
+        HttpCertSigner certSigner = (HttpCertSigner) certFactory.create();
+        certSigner.setHttpClient(httpClient);
+
+        Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenThrow(new IOException());
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
+        Mockito.verify(httpClient, times(2)).execute(Mockito.any(HttpPost.class));
+
+        certSigner.close();
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERTSIGN_RETRY_CONN_ONLY);
     }
 
     @Test
