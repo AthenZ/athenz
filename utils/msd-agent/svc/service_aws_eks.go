@@ -5,8 +5,9 @@ package svc
 
 import (
 	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
-	"github.com/AthenZ/athenz/provider/aws/sia-eks/util"
+	"os"
 )
 
 type EKSFetcher struct {
@@ -26,7 +27,7 @@ func (fetcher *EKSFetcher) Fetch(host MsdHost, accountId string) (ServicesData, 
 }
 
 func (fetcher *EKSFetcher) GetAccountId() (string, error) {
-	accountId, _, _, _, err := util.GetMetaDetailsFromCreds()
+	accountId, _, _, _, err := stssession.GetMetaDetailsFromCreds("-service", false, os.Stderr)
 	if err != nil {
 		log.Fatalf("Unable to get account id from available credentials, error: %v", err)
 	}

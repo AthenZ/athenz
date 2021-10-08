@@ -39,7 +39,9 @@ type AttestationData struct {
 	TaskId    string `json:"taskid,omitempty"`    //for ECS Task Id
 }
 
-// New creates a new AttestationData with values fed to it and from the result of STS Assume Role
+// New creates a new AttestationData with values fed to it and from the result of STS Assume Role.
+// This requires an identity document along with its signature. The aws account and region will
+// be extracted from the identity document.
 func New(domain, service string, document, signature []byte, useRegionalSTS bool, sysLogger io.Writer) (*AttestationData, error) {
 
 	role := fmt.Sprintf("%s.%s", domain, service)
@@ -52,24 +54,10 @@ func New(domain, service string, document, signature []byte, useRegionalSTS bool
 		return nil, err
 	}
 	account := docMap["accountId"].(string)
-
-	// Attempt STS AssumeRole
-	stsSession, err := stssession.New(useRegionalSTS, docMap["region"].(string), sysLogger)
-	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to create new session: %v\n", err)
-		return nil, err
-	}
-	stsService := sts.New(stsSession)
-	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", account, role)
-	logutil.LogInfo(sysLogger, "trying to assume role: %v\n", roleArn)
-	tok, err := stsService.AssumeRole(&sts.AssumeRoleInput{
-		RoleArn:         &roleArn,
-		RoleSessionName: &role,
-	})
+	tok, err := getSTSToken(useRegionalSTS, docMap["region"].(string), account, role, sysLogger)
 	if err != nil {
 		return nil, err
 	}
-
 	return &AttestationData{
 		Role:      role,
 		Document:  string(document),
@@ -79,6 +67,39 @@ func New(domain, service string, document, signature []byte, useRegionalSTS bool
 		Token:     *tok.Credentials.SessionToken,
 		TaskId:    getECSTaskId(),
 	}, nil
+}
+
+// NewWithCredsOnly creates a new AttestationData with values fed to it and from the result of STS Assume Role.
+// The caller must specify the account and region for the STS session
+func NewWithCredsOnly(domain, service, account string, useRegionalSTS bool, region string, sysLogger io.Writer) (*AttestationData, error) {
+
+	role := fmt.Sprintf("%s.%s", domain, service)
+	tok, err := getSTSToken(useRegionalSTS, region, account, role, sysLogger)
+	if err != nil {
+		return nil, err
+	}
+	return &AttestationData{
+		Role:      role,
+		Access:    *tok.Credentials.AccessKeyId,
+		Secret:    *tok.Credentials.SecretAccessKey,
+		Token:     *tok.Credentials.SessionToken,
+	}, nil
+}
+
+func getSTSToken(useRegionalSTS bool, region, account, role string, sysLogger io.Writer) (*sts.AssumeRoleOutput, error) {
+	// Attempt STS AssumeRole
+	stsSession, err := stssession.New(useRegionalSTS, region, sysLogger)
+	if err != nil {
+		logutil.LogInfo(sysLogger, "unable to create new session: %v\n", err)
+		return nil, err
+	}
+	stsService := sts.New(stsSession)
+	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", account, role)
+	logutil.LogInfo(sysLogger, "trying to assume role: %v\n", roleArn)
+	return stsService.AssumeRole(&sts.AssumeRoleInput{
+		RoleArn:         &roleArn,
+		RoleSessionName: &role,
+	})
 }
 
 func getECSTaskId() string {

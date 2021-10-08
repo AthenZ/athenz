@@ -22,10 +22,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/data/doc"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/data/meta"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/logutil"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/util"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"io"
 )
 

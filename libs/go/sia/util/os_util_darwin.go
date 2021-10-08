@@ -2,7 +2,7 @@ package util
 
 import (
 	"fmt"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/logutil"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"io"
 	"io/ioutil"
 	"log/syslog"
@@ -114,7 +114,7 @@ func gidForGroup(groupname string, sysLogger io.Writer) int {
 	cmdStr := fmt.Sprintf("^%s:", groupname)
 	out, err := exec.Command("/usr/bin/grep", cmdStr, "/etc/group").Output()
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Cannot exec '/usr/bin/grep %s /etc/group': %v\n", groupname, err)
+		logutil.LogInfo(sysLogger, "Cannot exec '/usr/bin/grep %s '/etc/group': %v\n", groupname, err)
 		return -1
 	}
 	s := strings.Trim(string(out), "\n\r ")
@@ -129,7 +129,6 @@ func gidForGroup(groupname string, sysLogger io.Writer) int {
 		logutil.LogInfo(sysLogger, "Invalid response from getent group command: %s\n", s)
 		return -1
 	}
-	logutil.LogInfo(sysLogger, "Group %s id: %d\n", groupname, id)
 	return id
 }
 
