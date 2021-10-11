@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * EC2 instance must provide to ZTS to authenticate.
  */
 @JsonInclude(JsonInclude.Include.ALWAYS)
-class AWSAttestationData {
+public class AWSAttestationData {
     private String document;
     private String signature;
     private String role;

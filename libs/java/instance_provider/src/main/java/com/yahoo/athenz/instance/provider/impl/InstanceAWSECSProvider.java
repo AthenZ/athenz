@@ -41,7 +41,7 @@ public class InstanceAWSECSProvider extends InstanceAWSProvider {
     }
     
     @Override
-    String getInstanceId(AWSAttestationData info, Struct instanceDocument) {
+    protected String getInstanceId(AWSAttestationData info, Struct instanceDocument) {
         
         // we're going to look for container task id first
         // only if that's not present (as backup), we'll

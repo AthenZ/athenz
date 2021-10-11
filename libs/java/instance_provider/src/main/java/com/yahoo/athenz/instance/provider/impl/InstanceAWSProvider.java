@@ -186,7 +186,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         return valid;
     }
     
-    boolean validateAWSDocument(final String provider, AWSAttestationData info,
+    protected boolean validateAWSDocument(final String provider, AWSAttestationData info,
             final String awsAccount, final String instanceId, boolean checkTime,
             StringBuilder privateIp, StringBuilder errMsg) {
         
@@ -233,7 +233,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         return !checkTime || validateInstanceBootTime(instanceDocument, errMsg);
     }
     
-    String getInstanceId(AWSAttestationData info, Struct instanceDocument) {
+    protected String getInstanceId(AWSAttestationData info, Struct instanceDocument) {
         return instanceDocument.getString(ATTR_INSTANCE_ID);
     }
     
@@ -248,7 +248,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         Timestamp bootTime = Timestamp.fromString(instanceDocument.getString(ATTR_PENDING_TIME));
         if (bootTime.millis() < System.currentTimeMillis() - bootTimeOffset) {
             errMsg.append("Instance boot time is not recent enough: ");
-            errMsg.append(bootTime.toString());
+            errMsg.append(bootTime);
             return false;
         }
         
@@ -300,8 +300,8 @@ public class InstanceAWSProvider implements InstanceProvider {
             StringBuilder errMsg = new StringBuilder(256);
             if (!validateAWSDocument(confirmation.getProvider(), info, awsAccount,
                     instanceId.toString(), true, privateIp, errMsg)) {
-                LOGGER.error("validateAWSDocument: {}", errMsg.toString());
-                throw error("Unable to validate AWS document: " + errMsg.toString());
+                LOGGER.error("validateAWSDocument: {}", errMsg);
+                throw error("Unable to validate AWS document: " + errMsg);
             }
         }
             
@@ -373,8 +373,8 @@ public class InstanceAWSProvider implements InstanceProvider {
             StringBuilder errMsg = new StringBuilder(256);
             if (!validateAWSDocument(confirmation.getProvider(), info, awsAccount,
                     instanceId, false, privateIp, errMsg)) {
-                LOGGER.error("validateAWSDocument: {}", errMsg.toString());
-                throw error("Unable to validate AWS document: " + errMsg.toString());
+                LOGGER.error("validateAWSDocument: {}", errMsg);
+                throw error("Unable to validate AWS document: " + errMsg);
             }
         }
 
@@ -393,7 +393,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         return confirmation;
     }
     
-    void setConfirmationAttributes(InstanceConfirmation confirmation, boolean instanceDocumentCreds,
+    protected void setConfirmationAttributes(InstanceConfirmation confirmation, boolean instanceDocumentCreds,
                                    final String privateIp) {
 
         Map<String, String> attributes = new HashMap<>();
