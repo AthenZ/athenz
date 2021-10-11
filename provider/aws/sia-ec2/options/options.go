@@ -183,11 +183,11 @@ func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCer
 	// Parse config bytes first, and if that fails, load values from Instance Profile and IAM info
 	config, account, err := initFileConfig(bytes, accountId)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to parse configuration file, error: %v", err)
+		logutil.LogInfo(sysLogger, "unable to parse configuration file, error: %v\n", err)
 		// if we do not have a configuration file, we're going
 		// to use fallback to <domain>.<service>-service
 		// naming structure
-		logutil.LogInfo(sysLogger, "trying to determine service name from profile arn...")
+		logutil.LogInfo(sysLogger, "trying to determine service name from profile arn...\n")
 		account, err = initProfileConfig(metaEndPoint)
 		if err != nil {
 			return nil, fmt.Errorf("config non-parsable and unable to determine service name from profile arn, error: %v", err)

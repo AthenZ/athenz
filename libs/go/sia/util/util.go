@@ -35,7 +35,6 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"unicode"
 )
 
 type CertReqDetails struct {
@@ -240,34 +239,41 @@ func PrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 	return x509.ParsePKCS1PrivateKey(block.Bytes)
 }
 
-func GenerateCSR(key *rsa.PrivateKey, domain, service, commonName, instanceId, provider, spiffe, ztsAwsDomain string, rfc822 bool) (string, error) {
+func GenerateCSR(key *rsa.PrivateKey, countryName, domain, service, commonName, instanceId, provider, spiffeUri, ztsDomain string, principalEmail bool) (string, error) {
 	//note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
 	//it is used, not the CN. So, we will always put the Athenz name in the CN
 	//(it is *not* a DNS domain name), and put the host name into the SAN.
 
 	var csrDetails CertReqDetails
 	csrDetails.CommonName = commonName
-	csrDetails.Country = "US"
+	csrDetails.Country = countryName
 	csrDetails.OrgUnit = provider
 
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
-	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsAwsDomain)
+	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
 	csrDetails.HostList = []string{host}
+	csrDetails.URIs = []*url.URL{}
 	if instanceId != "" {
-		instanceIdHost := fmt.Sprintf("%s.instanceid.athenz.%s", instanceId, ztsAwsDomain)
-		csrDetails.HostList = append(csrDetails.HostList, instanceIdHost)
+		// athenz://instanceid/<provider>/<instance-id>
+		instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/%s", provider, instanceId)
+		csrDetails.URIs = appendUri(csrDetails.URIs, instanceIdUri)
 	}
-	if rfc822 {
-		email := fmt.Sprintf("%s.%s@%s", domain, service, ztsAwsDomain)
+	if spiffeUri != "" {
+		csrDetails.URIs = appendUri(csrDetails.URIs, spiffeUri)
+	}
+	if principalEmail {
+		email := fmt.Sprintf("%s.%s@%s", domain, service, ztsDomain)
 		csrDetails.EmailList = []string{email}
 	}
-	if spiffe != "" && !unicode.IsDigit(rune(domain[0])) {
-		uri, err := url.Parse(spiffe)
-		if err == nil {
-			csrDetails.URIs = []*url.URL{uri}
-		}
-	}
 	return GenerateX509CSR(key, csrDetails)
+}
+
+func appendUri(uriList []*url.URL, uriValue string) []*url.URL {
+	uri, err := url.Parse(uriValue)
+	if err == nil {
+		uriList = append(uriList, uri)
+	}
+	return uriList
 }
 
 func GetRoleCertFileName(certDir, fileName, certName string) string {

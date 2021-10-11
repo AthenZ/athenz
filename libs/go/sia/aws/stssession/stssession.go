@@ -18,7 +18,7 @@ package stssession
 
 import (
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/logutil"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"

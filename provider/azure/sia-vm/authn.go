@@ -22,10 +22,10 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
-	"github.com/AthenZ/athenz/provider/azure/sia-vm/logutil"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/options"
-	"github.com/AthenZ/athenz/provider/azure/sia-vm/util"
 	"io"
 	"io/ioutil"
 	"os/exec"
@@ -90,7 +90,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 
 		// we have the role certificate
 		// write the cert to pem file using Role.Filename
-		err = util.UpdateFile(certFilePem, roleToken.Token, 0, 0, 0444, sysLogger)
+		err = util.UpdateFile(certFilePem, []byte(roleToken.Token), 0, 0, 0444, sysLogger)
 		if err != nil {
 			failures += 1
 			continue
@@ -155,18 +155,18 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 		return err
 	}
 	svcKeyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
-	err = util.UpdateFile(svcKeyFile, util.PrivatePem(key), svc.Uid, svc.Gid, 0440, sysLogger)
+	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440, sysLogger)
 	if err != nil {
 		return err
 	}
 	certFile := getCertFileName(svc.Filename, opts.Domain, svc.Name, opts.CertDir)
-	err = util.UpdateFile(certFile, instIdent.X509Certificate, svc.Uid, svc.Gid, 0444, sysLogger)
+	err = util.UpdateFile(certFile, []byte(instIdent.X509Certificate), svc.Uid, svc.Gid, 0444, sysLogger)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, instIdent.X509CertificateSigner, svc.Uid, svc.Gid, 0444, sysLogger)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(instIdent.X509CertificateSigner), svc.Uid, svc.Gid, 0444, sysLogger)
 		if err != nil {
 			return err
 		}
@@ -236,13 +236,13 @@ func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, iden
 		return err
 	}
 
-	err = util.UpdateFile(certFile, ident.X509Certificate, svc.Uid, svc.Gid, 0444, sysLogger)
+	err = util.UpdateFile(certFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444, sysLogger)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, ident.X509CertificateSigner, svc.Uid, svc.Gid, 0444, sysLogger)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444, sysLogger)
 		if err != nil {
 			return err
 		}
@@ -265,7 +265,7 @@ func updateSSH(hostCert, hostSigner string, sysLogger io.Writer) error {
 	}
 
 	// write the host cert file
-	err := util.UpdateFile(sshCertFile, hostCert, 0, 0, 0644, sysLogger)
+	err := util.UpdateFile(sshCertFile, []byte(hostCert), 0, 0, 0644, sysLogger)
 	if err != nil {
 		return err
 	}
@@ -279,7 +279,7 @@ func updateSSH(hostCert, hostSigner string, sysLogger io.Writer) error {
 	i := strings.Index(conf, "#HostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub")
 	if i >= 0 {
 		conf = conf[:i] + conf[i+1:]
-		err = util.UpdateFile(sshConfigFile, conf, 0, 0, 0644, sysLogger)
+		err = util.UpdateFile(sshConfigFile, []byte(conf), 0, 0, 0644, sysLogger)
 		if err != nil {
 			return err
 		}

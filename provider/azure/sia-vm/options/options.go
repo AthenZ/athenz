@@ -23,9 +23,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
-	"github.com/AthenZ/athenz/provider/azure/sia-vm/logutil"
-	"github.com/AthenZ/athenz/provider/azure/sia-vm/util"
+	vmutil "github.com/AthenZ/athenz/provider/azure/sia-vm/util"
 	"io"
 	"strings"
 )
@@ -114,7 +115,7 @@ func initProfileConfig(identityDocument *attestation.IdentityDocument) (*ConfigA
 	if identityDocument.Tags == "" {
 		return nil, fmt.Errorf("no tags available in the identity document")
 	}
-	domain, service, err := util.ExtractServiceName(identityDocument.Tags)
+	domain, service, err := vmutil.ExtractServiceName(identityDocument.Tags)
 	if err != nil {
 		return nil, err
 	}
