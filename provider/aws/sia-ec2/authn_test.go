@@ -20,10 +20,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
+	"github.com/AthenZ/athenz/provider/aws/sia-ec2/devel/driver"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/devel/metamock"
+	"github.com/AthenZ/athenz/provider/aws/sia-ec2/devel/testserver"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/devel/ztsmock"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/internal/driver"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/internal/testserver"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
 	"github.com/dimfeld/httptreemux"
 	"github.com/stretchr/testify/assert"
@@ -59,10 +59,6 @@ var (
 const ztsBaseUrl = "zts/v1"
 
 var caKeyStr, caCertStr string
-
-const (
-	metaEndPoint = "http://127.0.0.1:5080"
-)
 
 func setup() {
 	go metamock.StartMetaServer("127.0.0.1:5080")
@@ -128,7 +124,7 @@ func TestRegisterInstance(test *testing.T) {
 	opts := &options.Options{
 		Domain: "athenz",
 		Services: []options.Service{
-			options.Service{
+			{
 				Name: "hockey",
 			},
 		},
@@ -139,7 +135,7 @@ func TestRegisterInstance(test *testing.T) {
 	}
 
 	var docMap map[string]string
-	json.Unmarshal([]byte(instanceIdentityJson), &docMap)
+	_ = json.Unmarshal([]byte(instanceIdentityJson), &docMap)
 	docMap["pendingTime"] = time.Now().Format(time.RFC3339)
 	attestDataDoc, err := json.Marshal(docMap)
 
@@ -153,7 +149,7 @@ func TestRegisterInstance(test *testing.T) {
 	ztsRouter.POST("/zts/v1/instance", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		log.Printf("Called /zts/v1/instance")
 		w.WriteHeader(http.StatusCreated)
-		io.WriteString(w, driver.GenerateRegisterIdentity(r, caKeyStr, caCertStr))
+		_, _ = io.WriteString(w, driver.GenerateRegisterIdentity(r, caKeyStr, caCertStr))
 	})
 
 	ztsServer := &testserver.S{}
@@ -185,8 +181,8 @@ func TestRegisterInstanceMultiple(test *testing.T) {
 	opts := &options.Options{
 		Domain: "athenz",
 		Services: []options.Service{
-			options.Service{Name: "hockey"},
-			options.Service{Name: "soccer"},
+			{Name: "hockey"},
+			{Name: "soccer"},
 		},
 		KeyDir:               siaDir,
 		CertDir:              siaDir,
@@ -195,13 +191,13 @@ func TestRegisterInstanceMultiple(test *testing.T) {
 	}
 
 	var docMap map[string]string
-	json.Unmarshal([]byte(instanceIdentityJson), &docMap)
+	_ = json.Unmarshal([]byte(instanceIdentityJson), &docMap)
 	docMap["pendingTime"] = time.Now().Format(time.RFC3339)
 	attestDataDoc, err := json.Marshal(docMap)
 
 	data := []*attestation.AttestationData{
-		&attestation.AttestationData{Document: string(attestDataDoc), Role: "athenz.hockey"},
-		&attestation.AttestationData{Document: string(attestDataDoc), Role: "athenz.soccer"},
+		{Document: string(attestDataDoc), Role: "athenz.hockey"},
+		{Document: string(attestDataDoc), Role: "athenz.soccer"},
 	}
 
 	// Mock ZTS PostInstanceRegistrationInformation for creation of certs
@@ -209,7 +205,7 @@ func TestRegisterInstanceMultiple(test *testing.T) {
 	ztsRouter.POST("/zts/v1/instance", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		log.Printf("Called /zts/v1/instance")
 		w.WriteHeader(http.StatusCreated)
-		io.WriteString(w, driver.GenerateRegisterIdentity(r, caKeyStr, caCertStr))
+		_, _ = io.WriteString(w, driver.GenerateRegisterIdentity(r, caKeyStr, caCertStr))
 	})
 
 	ztsServer := &testserver.S{}
@@ -274,7 +270,7 @@ func TestRefreshInstance(test *testing.T) {
 	opts := &options.Options{
 		Domain: domain,
 		Services: []options.Service{
-			options.Service{
+			{
 				Name: service,
 			},
 		},
@@ -285,7 +281,7 @@ func TestRefreshInstance(test *testing.T) {
 	}
 
 	var docMap map[string]string
-	json.Unmarshal([]byte(instanceIdentityJson), &docMap)
+	_ = json.Unmarshal([]byte(instanceIdentityJson), &docMap)
 	docMap["pendingTime"] = time.Now().Format(time.RFC3339)
 	attestDataDoc, err := json.Marshal(docMap)
 
@@ -299,7 +295,7 @@ func TestRefreshInstance(test *testing.T) {
 	ztsRouter.POST(fmt.Sprintf("/zts/v1/instance/athenz.aws.us-west-2/%s/%s/i-03d1ae7035f931a90", domain, service), func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		log.Printf("Called /zts/v1/instance")
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, driver.GenerateRefreshIdentity(r, domain, service, caKeyStr, caCertStr))
+		_, _ = io.WriteString(w, driver.GenerateRefreshIdentity(r, domain, service, caKeyStr, caCertStr))
 	})
 
 	ztsServer := &testserver.S{}
@@ -339,7 +335,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 	opts := &options.Options{
 		Domain: "athenz",
 		Services: []options.Service{
-			options.Service{
+			{
 				Name: "hockey",
 			},
 		},
@@ -358,7 +354,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 	ztsRouter.POST("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		log.Printf("Called /zts/v1/instance")
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
+		_, _ = io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
 	})
 
 	ztsServer := &testserver.S{}
@@ -399,19 +395,19 @@ func TestIsDocumentExpired(test *testing.T) {
 	var docMap map[string]interface{}
 	//current time is valid
 	jsonDoc := fmt.Sprintf("{\"privateIp\" : \"172.31.30.74\",\n\"pendingTime\" : \"%s\"}", time.Now().Format(time.RFC3339))
-	json.Unmarshal([]byte(jsonDoc), &docMap)
+	_ = json.Unmarshal([]byte(jsonDoc), &docMap)
 	if isDocumentExpired(docMap) {
 		test.Errorf("Current time is considered expired incorrectly")
 	}
 	//generate time stamp 29 mins ago - valid
 	jsonDoc = fmt.Sprintf("{\"privateIp\" : \"172.31.30.74\",\n\"pendingTime\" : \"%s\"}", time.Now().Add(time.Minute*29*-1).Format(time.RFC3339))
-	json.Unmarshal([]byte(jsonDoc), &docMap)
+	_ = json.Unmarshal([]byte(jsonDoc), &docMap)
 	if isDocumentExpired(docMap) {
 		test.Errorf("29 mins ago time is considered expired incorrectly")
 	}
 	//generate time stamp 31 mins ago - expired
 	jsonDoc = fmt.Sprintf("{\"privateIp\" : \"172.31.30.74\",\n\"pendingTime\" : \"%s\"}", time.Now().Add(time.Minute*31*-1).Format(time.RFC3339))
-	json.Unmarshal([]byte(jsonDoc), &docMap)
+	_ = json.Unmarshal([]byte(jsonDoc), &docMap)
 	if !isDocumentExpired(docMap) {
 		test.Errorf("31 mins ago time is considered not expired incorrectly")
 	}
@@ -496,7 +492,7 @@ func TestGenerateRoleKey(test *testing.T) {
 	opts := &options.Options{
 		Domain: "athenz",
 		Services: []options.Service{
-			options.Service{
+			{
 				Name: "hockey",
 			},
 		},
@@ -514,7 +510,7 @@ func TestGenerateRoleKey(test *testing.T) {
 	ztsRouter.POST("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		log.Printf("Called /zts/v1/instance")
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
+		_, _ = io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
 	})
 
 	ztsServer := &testserver.S{}
@@ -568,7 +564,7 @@ func TestGenerateRoleKeyWithFileName(test *testing.T) {
 	opts := &options.Options{
 		Domain: "athenz",
 		Services: []options.Service{
-			options.Service{
+			{
 				Name: "hockey",
 			},
 		},
@@ -588,7 +584,7 @@ func TestGenerateRoleKeyWithFileName(test *testing.T) {
 	ztsRouter.POST("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		log.Printf("Called /zts/v1/instance")
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
+		_, _ = io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
 	})
 
 	ztsServer := &testserver.S{}
@@ -665,7 +661,7 @@ func TestRotateRoleKey(test *testing.T) {
 	ztsRouter.POST("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		log.Printf("Called /zts/v1/instance")
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
+		_, _ = io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
 	})
 
 	ztsServer := &testserver.S{}
@@ -744,7 +740,7 @@ func TestRefreshInstanceWithRotateKey(test *testing.T) {
 	opts := &options.Options{
 		Domain: domain,
 		Services: []options.Service{
-			options.Service{
+			{
 				Name:     service,
 				FileMode: 0440,
 			},
@@ -758,7 +754,7 @@ func TestRefreshInstanceWithRotateKey(test *testing.T) {
 	}
 
 	var docMap map[string]string
-	json.Unmarshal([]byte(instanceIdentityJson), &docMap)
+	_ = json.Unmarshal([]byte(instanceIdentityJson), &docMap)
 	docMap["pendingTime"] = time.Now().Format(time.RFC3339)
 	attestDataDoc, err := json.Marshal(docMap)
 
@@ -772,7 +768,7 @@ func TestRefreshInstanceWithRotateKey(test *testing.T) {
 	ztsRouter.POST(fmt.Sprintf("/zts/v1/instance/athenz.aws.us-west-2/%s/%s/i-03d1ae7035f931a90", domain, service), func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		log.Printf("Called /zts/v1/instance")
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, driver.GenerateRefreshIdentity(r, domain, service, caKeyStr, caCertStr))
+		_, _ = io.WriteString(w, driver.GenerateRefreshIdentity(r, domain, service, caKeyStr, caCertStr))
 	})
 
 	ztsServer := &testserver.S{}

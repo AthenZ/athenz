@@ -18,9 +18,9 @@ package options
 
 import (
 	"fmt"
+	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
 	"io/ioutil"
 	"log"
 	"os"

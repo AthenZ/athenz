@@ -33,8 +33,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/gorilla/mux"
 )
 
 var caKeyStr string
@@ -229,7 +229,6 @@ func createCACert(key *rsa.PrivateKey, country, locality, province, org, unit, c
 		Subject:               subj,
 		SerialNumber:          serialNumber,
 		PublicKeyAlgorithm:    x509.RSA,
-		PublicKey:             key.PublicKey,
 		SignatureAlgorithm:    algo,
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,
@@ -316,7 +315,6 @@ func generateCertInMemory(csrPem string, caKey *rsa.PrivateKey, caCert *x509.Cer
 		Subject:               csr.Subject,
 		SerialNumber:          serialNumber,
 		PublicKeyAlgorithm:    csr.PublicKeyAlgorithm,
-		PublicKey:             csr.PublicKey,
 		SignatureAlgorithm:    algo,
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,

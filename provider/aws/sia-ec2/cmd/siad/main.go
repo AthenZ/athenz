@@ -18,6 +18,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
@@ -30,12 +31,10 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
-	"time"
-
-	"flag"
 	"os/signal"
+	"strings"
 	"syscall"
+	"time"
 )
 
 var MetaEndPoint = "http://169.254.169.254:80"

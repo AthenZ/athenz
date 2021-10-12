@@ -17,22 +17,21 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
-	"github.com/AthenZ/athenz/provider/azure/sia-vm/logutil"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/options"
-	"github.com/AthenZ/athenz/provider/azure/sia-vm/util"
 	"io"
 	"io/ioutil"
 	"log"
 	"log/syslog"
 	"os"
-	"time"
-
-	"flag"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 var MetaEndPoint = "http://169.254.169.254"

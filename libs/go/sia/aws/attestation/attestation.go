@@ -19,8 +19,8 @@ package attestation
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"io"
 	"io/ioutil"

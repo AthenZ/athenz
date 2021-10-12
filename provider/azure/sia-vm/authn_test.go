@@ -18,11 +18,11 @@ package sia
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/devel/ztsmock"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/options"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"testing"

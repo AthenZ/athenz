@@ -21,6 +21,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
+	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
+	"github.com/AthenZ/athenz/provider/aws/sia-eks"
 	"io"
 	"io/ioutil"
 	"log"
@@ -30,13 +36,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/logutil"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
-	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
-	"github.com/AthenZ/athenz/provider/aws/sia-eks"
 )
 
 // Following can be set by the build script using LDFLAGS
