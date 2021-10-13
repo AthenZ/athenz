@@ -22,6 +22,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
@@ -129,8 +130,8 @@ func main() {
 	}
 
 	logutil.LogInfo(sysLogger, "Using ZTS: %s with DNS domain: %s & Provider prefix: %s\n", ZtsEndPoint, DnsDomain, ProviderPrefix)
-
-	accountId, domain, service, region, err := stssession.GetMetaDetailsFromCreds("-service", *useRegionalSTS, sysLogger)
+	region := meta.GetRegion(MetaEndPoint, sysLogger)
+	accountId, domain, service, err := stssession.GetMetaDetailsFromCreds("-service", *useRegionalSTS, region, sysLogger)
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to get account id from available credentials, error: %v\n", err)
 	}

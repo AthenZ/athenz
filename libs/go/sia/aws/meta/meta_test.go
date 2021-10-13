@@ -23,6 +23,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"testing"
 )
 
@@ -58,12 +59,12 @@ func TestGetMetadata(test *testing.T) {
 	router := httptreemux.New()
 	router.GET("/latest/dynamic/instance-identity/document", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		log.Printf("Called /latest/dynamic/instance-identity/document")
-		io.WriteString(w, string("{ \"test\": \"document\"}"))
+		io.WriteString(w, "{ \"test\": \"document\" }")
 	})
 
 	router.GET("/latest/dynamic/instance-identity/pkcs7", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		log.Printf("Called /latest/dynamic/instance-identity/pkcs7")
-		io.WriteString(w, string("{ \"test\": \"pkcs7\"}"))
+		io.WriteString(w, "{ \"test\": \"pkcs7\"}")
 	})
 
 	metaServer := &testServer{}
@@ -80,5 +81,50 @@ func TestGetMetadata(test *testing.T) {
 	if err != nil {
 		test.Errorf("Unable to retrieve document signature - %v", err)
 		return
+	}
+}
+
+func TestGetRegionFromDoc(test *testing.T) {
+	// Mock the metadata endpoints
+	router := httptreemux.New()
+	router.GET("/latest/dynamic/instance-identity/document", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /latest/dynamic/instance-identity/document")
+		io.WriteString(w, "{ \"test\": \"document\", \"region\": \"us-west-1\"}")
+	})
+
+	metaServer := &testServer{}
+	metaServer.start(router)
+	defer metaServer.stop()
+
+	region := GetRegion(metaServer.httpUrl(), os.Stdout)
+	if region != "us-west-1" {
+		test.Errorf("Unable to expected region: %s", region)
+	}
+}
+
+func TestGetRegionFromEnv(test *testing.T) {
+
+	os.Setenv("AWS_REGION", "us-east-1")
+	// Mock the metadata endpoints
+	router := httptreemux.New()
+	router.GET("/latest/dynamic/instance-identity/document", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /latest/dynamic/instance-identity/document")
+		io.WriteString(w, "{ \"test\": \"document\"}")
+	})
+
+	metaServer := &testServer{}
+	metaServer.start(router)
+	defer metaServer.stop()
+
+	region := GetRegion(metaServer.httpUrl(), os.Stdout)
+	if region != "us-east-1" {
+		test.Errorf("Unable to expected region: %s", region)
+	}
+	os.Setenv("AWS_REGION", "")
+
+	//without doc/env we should default to us-west-2
+	region = GetRegion(metaServer.httpUrl(), os.Stdout)
+	if region != "us-west-2" {
+		test.Errorf("Unable to expected region: %s", region)
 	}
 }
