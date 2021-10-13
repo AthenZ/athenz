@@ -123,7 +123,11 @@ public class InstanceAWSProvider implements InstanceProvider {
         LOGGER.error(message);
         return new ResourceException(errorCode, message);
     }
-    
+
+    protected String getDnsSuffix() {
+        return dnsSuffix;
+    }
+
     boolean validateAWSAccount(final String awsAccount, final String docAccount, StringBuilder errMsg) {
         
         if (!awsAccount.equalsIgnoreCase(docAccount)) {
@@ -285,7 +289,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, dnsSuffix, instanceId)) {
+                instanceService, getDnsSuffix(), instanceId)) {
             throw error("Unable to validate certificate request hostnames");
         }
         
