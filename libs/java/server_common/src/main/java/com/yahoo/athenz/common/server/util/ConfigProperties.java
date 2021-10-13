@@ -39,6 +39,7 @@ public class ConfigProperties {
      *                      .addConfigSource("aws-param-store://config-2.conf");
      *         }</pre>
      */
+    @Deprecated
     public static void loadProperties(String propFile) {
         
         Properties prop = new Properties();

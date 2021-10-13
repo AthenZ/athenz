@@ -20,7 +20,7 @@ import com.yahoo.athenz.common.server.util.config.ConfigEntry;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-/** Knows to build config-stores for relevant source-descriptions */
+/** Knows to build config-sources for relevant source-descriptions */
 public abstract class ConfigProvider {
 
     /** Given a source-description - if it is relevant for this provider - build a config-source */
