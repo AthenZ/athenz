@@ -79,10 +79,10 @@ func NewWithCredsOnly(domain, service, account string, useRegionalSTS bool, regi
 		return nil, err
 	}
 	return &AttestationData{
-		Role:      role,
-		Access:    *tok.Credentials.AccessKeyId,
-		Secret:    *tok.Credentials.SecretAccessKey,
-		Token:     *tok.Credentials.SessionToken,
+		Role:   role,
+		Access: *tok.Credentials.AccessKeyId,
+		Secret: *tok.Credentials.SecretAccessKey,
+		Token:  *tok.Credentials.SessionToken,
 	}, nil
 }
 

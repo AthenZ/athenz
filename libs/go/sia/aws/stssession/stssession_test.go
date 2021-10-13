@@ -22,7 +22,7 @@ import (
 )
 
 func TestParseRoleArnInvalidPrefix(test *testing.T) {
-	_, _, _, _, err := parseRoleArn("arn:aws::123456789012:assumed-role/athenz.zts-service/i-0662a0226f2d9dc2b", "-service", "us-west-2")
+	_, _, _, err := parseRoleArn("arn:aws::123456789012:assumed-role/athenz.zts-service/i-0662a0226f2d9dc2b", "-service")
 	if err == nil {
 		test.Errorf("Unable to verify proper role arn prefix")
 	}
@@ -32,7 +32,7 @@ func TestParseRoleArnInvalidPrefix(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidNumberOfComponents(test *testing.T) {
-	_, _, _, _, err := parseRoleArn("arn:aws:sts::assumed-role/athenz.zts-service/i-0662a0226f2d9dc2b", "-service", "us-west-2")
+	_, _, _, err := parseRoleArn("arn:aws:sts::assumed-role/athenz.zts-service/i-0662a0226f2d9dc2b", "-service")
 	if err == nil {
 		test.Errorf("Unable to verify proper role arn number of components")
 	}
@@ -42,7 +42,7 @@ func TestParseRoleArnInvalidNumberOfComponents(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidRoleComponent(test *testing.T) {
-	_, _, _, _, err := parseRoleArn("arn:aws:sts::123456789012:assumed-role/i-0662a0226f2d9dc2b", "-service", "us-west-2")
+	_, _, _, err := parseRoleArn("arn:aws:sts::123456789012:assumed-role/i-0662a0226f2d9dc2b", "-service")
 	if err == nil {
 		test.Errorf("Unable to verify proper role arn number of role components")
 	}
@@ -52,7 +52,7 @@ func TestParseRoleArnInvalidRoleComponent(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidAssumedRoleComponent(test *testing.T) {
-	_, _, _, _, err := parseRoleArn("arn:aws:sts::123456789012:athenz.zts-service/athenz.zts-service/i-0662a0226f2d9dc2b", "-service", "us-west-2")
+	_, _, _, err := parseRoleArn("arn:aws:sts::123456789012:athenz.zts-service/athenz.zts-service/i-0662a0226f2d9dc2b", "-service")
 	if err == nil {
 		test.Errorf("Unable to verify proper role assumed-role prefix")
 	}
@@ -62,7 +62,7 @@ func TestParseRoleArnInvalidAssumedRoleComponent(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidSuffix(test *testing.T) {
-	_, _, _, _, err := parseRoleArn("arn:aws:sts::123456789012:assumed-role/athenz.zts-sdbuild/i-0662a0226f2d9dc2b", "-service", "us-west-2")
+	_, _, _, err := parseRoleArn("arn:aws:sts::123456789012:assumed-role/athenz.zts-sdbuild/i-0662a0226f2d9dc2b", "-service")
 	if err == nil {
 		test.Errorf("Unable to verify proper role suffix")
 	}
@@ -72,7 +72,7 @@ func TestParseRoleArnInvalidSuffix(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidAthenzService(test *testing.T) {
-	_, _, _, _, err := parseRoleArn("arn:aws:sts::123456789012:assumed-role/athenz-service/i-0662a0226f2d9dc2b", "-service", "us-west-2")
+	_, _, _, err := parseRoleArn("arn:aws:sts::123456789012:assumed-role/athenz-service/i-0662a0226f2d9dc2b", "-service")
 	if err == nil {
 		test.Errorf("Unable to verify proper athenz service name")
 	}
@@ -82,7 +82,7 @@ func TestParseRoleArnInvalidAthenzService(test *testing.T) {
 }
 
 func TestParseRoleArnValid(test *testing.T) {
-	account, domain, service, region, err := parseRoleArn("arn:aws:sts::123456789012:assumed-role/athenz.zts-service/i-0662a0226f2d9dc2b", "-service", "us-west-2")
+	account, domain, service, err := parseRoleArn("arn:aws:sts::123456789012:assumed-role/athenz.zts-service/i-0662a0226f2d9dc2b", "-service")
 	if err != nil {
 		test.Errorf("Unable to parse valid arn, error %v", err)
 	}
@@ -94,8 +94,5 @@ func TestParseRoleArnValid(test *testing.T) {
 	}
 	if service != "zts" {
 		test.Errorf("Unable to parse valid arn, invalid service: %s", service)
-	}
-	if region != "us-west-2" {
-		test.Errorf("Unable to parse valid arn, invalid region: %s", region)
 	}
 }
