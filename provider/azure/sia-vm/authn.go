@@ -72,7 +72,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		}
 		certFilePem := util.GetRoleCertFileName(mkDirPath(opts.CertDir), role.Filename, roleName)
 		spiffe := fmt.Sprintf("spiffe://%s/ra/%s", domainNameRequest, roleNameRequest)
-		csr, err := util.GenerateCSR(key, opts.CountryName, opts.Domain, opts.Services[0].Name, roleName, "", provider, spiffe, opts.ZTSAzureDomain, true)
+		csr, err := util.GenerateCSR(key, opts.CountryName, "", opts.Domain, opts.Services[0].Name, roleName, "", provider, spiffe, opts.ZTSAzureDomain, true)
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
@@ -126,7 +126,7 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 	provider := getProviderName(opts.Provider, identityDocument.Location)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
 	commonName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateCSR(key, opts.CountryName, opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, spiffe, opts.ZTSAzureDomain, false)
+	csr, err := util.GenerateCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, spiffe, opts.ZTSAzureDomain, false)
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, iden
 	provider := getProviderName(opts.Provider, identityDocument.Location)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
 	commonName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateCSR(key, opts.CountryName, opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, spiffe, opts.ZTSAzureDomain, false)
+	csr, err := util.GenerateCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, spiffe, opts.ZTSAzureDomain, false)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err

@@ -239,7 +239,7 @@ func PrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 	return x509.ParsePKCS1PrivateKey(block.Bytes)
 }
 
-func GenerateCSR(key *rsa.PrivateKey, countryName, domain, service, commonName, instanceId, provider, spiffeUri, ztsDomain string, principalEmail bool) (string, error) {
+func GenerateCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider, spiffeUri, ztsDomain string, principalEmail bool) (string, error) {
 	//note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
 	//it is used, not the CN. So, we will always put the Athenz name in the CN
 	//(it is *not* a DNS domain name), and put the host name into the SAN.
@@ -247,19 +247,21 @@ func GenerateCSR(key *rsa.PrivateKey, countryName, domain, service, commonName, 
 	var csrDetails CertReqDetails
 	csrDetails.CommonName = commonName
 	csrDetails.Country = countryName
+	csrDetails.Org = orgName
 	csrDetails.OrgUnit = provider
 
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
 	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
 	csrDetails.HostList = []string{host}
 	csrDetails.URIs = []*url.URL{}
+	// spiffe uri must always be the first one
+	if spiffeUri != "" {
+		csrDetails.URIs = appendUri(csrDetails.URIs, spiffeUri)
+	}
 	if instanceId != "" {
 		// athenz://instanceid/<provider>/<instance-id>
 		instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/%s", provider, instanceId)
 		csrDetails.URIs = appendUri(csrDetails.URIs, instanceIdUri)
-	}
-	if spiffeUri != "" {
-		csrDetails.URIs = appendUri(csrDetails.URIs, spiffeUri)
 	}
 	if principalEmail {
 		email := fmt.Sprintf("%s.%s@%s", domain, service, ztsDomain)
