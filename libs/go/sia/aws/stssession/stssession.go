@@ -45,8 +45,8 @@ func New(useRegionalSTS bool, region string, sysLogger io.Writer) (*session.Sess
 func GetMetaDetailsFromCreds(serviceSuffix string, useRegionalSTS bool, region string, sysLogger io.Writer) (string, string, string, error) {
 	stsSession, err := New(useRegionalSTS, region, sysLogger)
 	if err != nil {
-			return "", "", "", fmt.Errorf("unable to create new session: %v", err)
-		}
+		return "", "", "", fmt.Errorf("unable to create new session: %v", err)
+	}
 	stsService := sts.New(stsSession)
 	input := &sts.GetCallerIdentityInput{}
 
