@@ -3,6 +3,16 @@ planning to work on. At Verizon Media, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
+# Q4 2021
+
+- Micro Segmentation: Service Identity based ACLs
+- Support publishing domain change events through an interface (Pulsar integration)
+- Introduce priority support for certificate signing requests
+- Tag support for groups and capability to disable member expire/review notifications
+- Support MDS v2 in Athenz AWS SIA Agent
+- Improve operability of Athenz with EKS Service Mesh by introducing Envoy SDS support 
+- Extend fine-grained authorization support in domain management by providing a separate action for modifying role metadata only
+
 # Q3 2021
 
 - Micro Segmentation: Service Identity based ACLs (IP Table update)
