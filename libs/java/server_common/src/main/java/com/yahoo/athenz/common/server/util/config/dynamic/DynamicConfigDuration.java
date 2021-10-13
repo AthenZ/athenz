@@ -65,7 +65,7 @@ public class DynamicConfigDuration extends DynamicConfigLong {
 
     /** Get the up-to-date value - converted to milliseconds */
     public long getMilliseconds() {
-        Long value =  super.get();
+        Long value = super.get();
         if (value == null) {
             throw new RuntimeException("DynamicConfigDuration.get() returned null - this is unexpected");
         }
@@ -82,8 +82,8 @@ public class DynamicConfigDuration extends DynamicConfigLong {
 
     /**
      * Like {@link #sleep()} - but with some arbitrary "translation" of the return value of {@link #getMilliseconds()}.
-     * Example: sleep the configured time - but at least one second:      sleep(sleepMilliseconds -> Math.max(sleepMilliseconds, 1000L))
-     * Example: sleep the configured time - minus 1 second:               sleep(sleepMilliseconds -> sleepMilliseconds - 1000L)
+     * Example: sleep the configured time - but at least one second:   {@code   sleep(sleepMilliseconds -> Math.max(sleepMilliseconds, 1000L)) }
+     * Example: sleep the configured time - minus 1 second:            {@code   sleep(sleepMilliseconds -> sleepMilliseconds - 1000L) }
      */
     public void sleep(@Nullable Function<Long, Long> translateSleepTime) throws InterruptedException {
 
@@ -127,6 +127,24 @@ public class DynamicConfigDuration extends DynamicConfigLong {
             }
         } finally {
             unregisterChangeCallback(callback);
+        }
+    }
+
+    /** Like {@link #sleep()} - only when {@link InterruptedException} happens - stop the sleep and don't throw */
+    public void sleepAndStopOnInterrupt() {
+        try {
+            sleep();
+        } catch (InterruptedException ignored) {
+            LOG.trace("DynamicConfigDuration: Sleep interrupted");
+        }
+    }
+
+    /** Like {@link #sleep(Function)} - only when {@link InterruptedException} happens - stop the sleep and don't throw */
+    public void sleepAndStopOnInterrupt(@Nullable Function<Long, Long> translateSleepTime) {
+        try {
+            sleep(translateSleepTime);
+        } catch (InterruptedException ignored) {
+            LOG.trace("DynamicConfigDuration: Sleep interrupted");
         }
     }
 }

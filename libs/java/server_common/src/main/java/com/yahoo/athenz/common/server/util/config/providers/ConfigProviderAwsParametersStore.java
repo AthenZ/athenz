@@ -37,6 +37,26 @@ import java.util.List;
  * The simplest provider-description is "aws-param-store://" - which gets all parameters. <br>
  * To get parameters under the path "/my/project" - use provider-description is "aws-param-store:///my/project"
  *  (the config-names will not include the "/my/project/" prefix).
+ * <br><br>
+ * NOTE: To grant access for a relevant IAM role, add this to the policy
+ *  (in this example we use "arn:aws:ssm:*:*:parameter/*" to grant all paths): <pre>
+ *        {
+ *            "Version": "2012-10-17",
+ *            "Statement": [
+ *                ...,
+ *                {
+ *                    "Effect": "Allow",
+ *                    "Action": [
+ *                        "ssm:GetParametersByPath"
+ *                    ],
+ *                    "Resource": [
+ *                        "arn:aws:ssm:*:*:parameter/*"
+ *                    ]
+ *                },
+ *                ...
+ *            ]
+ *        }
+ * </pre>
  */
 public class ConfigProviderAwsParametersStore extends ConfigProvider {
 
