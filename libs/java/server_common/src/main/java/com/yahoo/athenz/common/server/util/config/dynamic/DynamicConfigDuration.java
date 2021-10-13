@@ -36,8 +36,8 @@ public class DynamicConfigDuration extends DynamicConfigLong {
     /**
      * Calling {@link #sleep()} is slightly more expensive than calling {@link Thread#sleep(long)}.
      * When sleeping for short durations (less than SHORT_SLEEP_DURATION_MILLISECONDS),
-     * where it is unlikely/unimportant to adjust to configuration changes -
-     * {@link #sleep()} will simply call {@link Thread#sleep(long)}.
+     *  where it is unlikely/unimportant to adjust to configuration changes -
+     *  {@link #sleep()} will simply call {@link Thread#sleep(long)}.
      */
     public static long SHORT_SLEEP_DURATION_MILLISECONDS = 10000;
 
@@ -52,7 +52,7 @@ public class DynamicConfigDuration extends DynamicConfigLong {
     /**
      * Construct a dynamic value - that may automatically change.
      * @param configTimeUnit the time-unit of the config-value.
-     *                       For example, if this is {@link TimeUnit#SECONDS}, and the config-value is "5" - then {@link #getMilliseconds()} would return 5000.
+     *   For example, if this is {@link TimeUnit#SECONDS}, and the config-value is "5" - then {@link #getMilliseconds()} would return 5000.
      */
     public DynamicConfigDuration(
             ConfigManager configManager,
