@@ -27,7 +27,7 @@ func (fetcher *EKSFetcher) Fetch(host MsdHost, accountId string) (ServicesData, 
 }
 
 func (fetcher *EKSFetcher) GetAccountId() (string, error) {
-	accountId, _, _, _, err := stssession.GetMetaDetailsFromCreds("-service", false, os.Stderr)
+	accountId, _, _, err := stssession.GetMetaDetailsFromCreds("-service", false, "", os.Stderr)
 	if err != nil {
 		log.Fatalf("Unable to get account id from available credentials, error: %v", err)
 	}
