@@ -51,18 +51,42 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
 
     @Override
     public List<Notification> getNotifications() {
-        Map<String, DomainRoleMember> expiryMembers = dbService.getRoleExpiryMembers(1);
+        Map<String, DomainRoleMember> expiryMembers = dbService.getRoleExpiryMembers(1, false);
         if (expiryMembers == null || expiryMembers.isEmpty()) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No expiry members available to send notifications");
+                LOGGER.debug("No expiry members available to send email notifications");
             }
+            return getMetricNotificationDetails();
+        }
+
+        List<Notification> metricNotificationDetails = getMetricNotificationDetails();
+        List<Notification> metricAndEmailNotificationDetails = roleMemberNotificationCommon.getNotificationDetails(
+                expiryMembers,
+                roleExpiryPrincipalNotificationToEmailConverter,
+                roleExpiryDomainNotificationToEmailConverter,
+                new ExpiryRoleMemberDetailStringer(),
+                roleExpiryPrincipalNotificationToMetricConverter,
+                roleExpiryDomainNotificationToMetricConverter,
+                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(0));
+
+        metricNotificationDetails.addAll(metricAndEmailNotificationDetails);
+        return metricNotificationDetails;
+    }
+
+    private List<Notification> getMetricNotificationDetails() {
+        Map<String, DomainRoleMember> expiryMembers = dbService.getRoleExpiryMembers(1, true);
+        if (expiryMembers == null || expiryMembers.isEmpty()) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("No expiry members available to send metric notifications");
+            }
+
             return new ArrayList<>();
         }
 
         return roleMemberNotificationCommon.getNotificationDetails(
                 expiryMembers,
-                roleExpiryPrincipalNotificationToEmailConverter,
-                roleExpiryDomainNotificationToEmailConverter,
+                null,
+                null,
                 new ExpiryRoleMemberDetailStringer(),
                 roleExpiryPrincipalNotificationToMetricConverter,
                 roleExpiryDomainNotificationToMetricConverter,

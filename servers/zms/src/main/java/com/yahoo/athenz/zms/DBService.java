@@ -6693,10 +6693,10 @@ public class DBService implements RolesProvider {
         return null;
     }
 
-    public Map<String, DomainRoleMember> getRoleExpiryMembers(int delayDays) {
+    public Map<String, DomainRoleMember> getRoleExpiryMembers(int delayDays, boolean metricsOnly) {
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
             long updateTs = System.currentTimeMillis();
-            if (con.updateRoleMemberExpirationNotificationTimestamp(zmsConfig.getServerHostName(), updateTs, delayDays)) {
+            if (con.updateRoleMemberExpirationNotificationTimestamp(zmsConfig.getServerHostName(), updateTs, delayDays, metricsOnly)) {
                 return con.getNotifyTemporaryRoleMembers(zmsConfig.getServerHostName(), updateTs);
             }
         }

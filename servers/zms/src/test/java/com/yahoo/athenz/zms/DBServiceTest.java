@@ -98,7 +98,7 @@ public class DBServiceTest {
 
         MockitoAnnotations.openMocks(this);
         mysqld = ZMSTestUtils.startMemoryMySQL(DB_USER, DB_PASS);
-        System.setProperty(ZMSImplTest.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
+        System.setProperty(ZMSTestInitializer.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zms_private.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
 
@@ -6978,7 +6978,7 @@ public class DBServiceTest {
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName2, "role3", role3, "test", "putrole");
 
         Map<String, DomainRoleMember> domainRoleMembers = isRoleExpire ?
-                zms.dbService.getRoleExpiryMembers(0) : zms.dbService.getRoleReviewMembers(0);
+                zms.dbService.getRoleExpiryMembers(0, false) : zms.dbService.getRoleReviewMembers(0);
         assertNotNull(domainRoleMembers);
         assertEquals(domainRoleMembers.size(), 3);
 
@@ -7075,9 +7075,9 @@ public class DBServiceTest {
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
-        Mockito.when(mockConn.updateRoleMemberExpirationNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(false);
+        Mockito.when(mockConn.updateRoleMemberExpirationNotificationTimestamp(anyString(), anyLong(), anyInt(), anyBoolean())).thenReturn(false);
 
-        assertNull(zms.dbService.getRoleExpiryMembers(1));
+        assertNull(zms.dbService.getRoleExpiryMembers(1, false));
         zms.dbService.store = saveStore;
     }
 
