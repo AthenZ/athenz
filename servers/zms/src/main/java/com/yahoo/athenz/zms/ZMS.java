@@ -24,6 +24,6 @@ class ZMS extends ResourceConfig {
         register(JsonParseExceptionMapper.class, 1);
         register(JsonProcessingExceptionMapper.class, 1);
         register(ZMSResources.class);
-        register(new ZMSBinder());
+        register(ZMSBinder.getInstance());
     }
 }

@@ -19,8 +19,21 @@ import org.glassfish.jersey.internal.inject.AbstractBinder;
 
 class ZMSBinder extends AbstractBinder {
 
+    private final static ZMSBinder ZMS_BINDER_INSTANCE = new ZMSBinder();
+
+    private final ZMSImpl zmsImpl;
+
+    private ZMSBinder() {
+        this.zmsImpl = ZMSImplFactory.getZmsInstance();
+    }
+
     @Override
     protected void configure() {
-        bind(ZMSImplFactory.getZmsInstance()).to(ZMSHandler.class);
+        bind(zmsImpl).to(ZMSHandler.class);
     }
+
+    public static ZMSBinder getInstance() {
+        return ZMS_BINDER_INSTANCE;
+    }
+
 }

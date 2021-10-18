@@ -15,42 +15,39 @@
  */
 package com.yahoo.athenz.zts;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
-import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_FILE_NAME;
-import static org.testng.Assert.assertNotNull;
-
 import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_FILE_NAME;
+import static org.testng.Assert.assertNotNull;
+
 public class ZTSTest {
 
     private static final String ZTS_DATA_STORE_PATH = "/tmp/zts_server_unit_tests/zts_root";
-
-    @Test
-    public void testZTS() {
-        ZTS zts = new ZTS();
-        assertNotNull(zts);
-    }
-
-    @Test
-    public void testZTSBinder() {
+    
+    @BeforeClass
+    public void setUp() {
         System.setProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_DIR, ZTS_DATA_STORE_PATH);
         System.setProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS,
-                "com.yahoo.athenz.zts.store.MockZMSFileChangeLogStoreFactory");
+            "com.yahoo.athenz.zts.store.MockZMSFileChangeLogStoreFactory");
         System.setProperty(ZTSConsts.ZTS_PROP_CERTSIGN_BASE_URI, "https://localhost:443/certsign/v2");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
         System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         System.setProperty(ZTS_PROP_FILE_NAME, "src/test/resources/zts.properties");
         System.setProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
-                "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
+            "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
-                "src/test/resources/unit_test_zts_private.pem");
+            "src/test/resources/unit_test_zts_private.pem");
         System.setProperty(ZTSConsts.ZTS_PROP_WORKLOAD_FILE_STORE_PATH, "/tmp/zts_server_workloads_store");
-
-        ZTSBinder binder = new ZTSBinder();
-        binder.configure();
+    }
+    
+    @AfterClass
+    public void tearDown() {
         ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         System.clearProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_DIR);
         System.clearProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS);
@@ -60,5 +57,17 @@ public class ZTSTest {
         ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_workloads_store"));
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH);
         System.clearProperty(ZTSConsts.ZTS_PROP_WORKLOAD_FILE_STORE_PATH);
+    }
+    
+    @Test
+    public void testZTS() {
+        ZTS zts = new ZTS();
+        assertNotNull(zts);
+    }
+
+    @Test
+    public void testZTSBinder() {
+        ZTSBinder binder = ZTSBinder.getInstance();
+        binder.configure();
     }
 }
