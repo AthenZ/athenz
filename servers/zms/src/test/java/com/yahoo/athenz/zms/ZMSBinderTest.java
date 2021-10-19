@@ -36,7 +36,7 @@ public class ZMSBinderTest {
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zms_private.pem");
 
-        ZMSBinder binder = new ZMSBinder();
+        ZMSBinder binder = ZMSBinder.getInstance();
         binder.configure();
     }
 }

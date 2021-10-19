@@ -19,8 +19,20 @@ import org.glassfish.jersey.internal.inject.AbstractBinder;
 
 public class ZTSBinder extends AbstractBinder  {
 
+    private final static ZTSBinder ZTS_BINDER_INSTANCE = new ZTSBinder();
+
+    private final ZTSImpl ztsImpl;
+
+    private ZTSBinder() {
+        this.ztsImpl = ZTSImplFactory.getZtsInstance();
+    }
+
     @Override
     protected void configure() {
-        bind(ZTSImplFactory.getZtsInstance()).to(ZTSHandler.class);
+        bind(ztsImpl).to(ZTSHandler.class);
+    }
+
+    public static ZTSBinder getInstance() {
+        return ZTS_BINDER_INSTANCE;
     }
 }
