@@ -487,7 +487,13 @@ const Api = (req) => {
             });
         },
 
-        addServiceHost(domain, service, detail, auditRef, _csrf) {
+        addServiceHost(
+            domainName,
+            serviceName,
+            staticWorkload,
+            auditRef,
+            _csrf
+        ) {
             return new Promise((resolve, reject) => {
                 fetchr.updateOptions({
                     context: {
@@ -495,9 +501,9 @@ const Api = (req) => {
                     },
                 });
                 var params = {
-                    domain,
-                    service,
-                    detail,
+                    domainName,
+                    serviceName,
+                    staticWorkload,
                     auditRef,
                 };
 
@@ -1756,7 +1762,7 @@ const Api = (req) => {
                 fetchr
                     .read('instances')
                     .params({ domainName, serviceName, category })
-                    .end((err, data) => {
+                    .end((err, workloadList) => {
                         if (err) {
                             reject(err);
                         } else {
@@ -1770,38 +1776,27 @@ const Api = (req) => {
                                 totalHealthyDynamic: 0,
                             };
                             let totalHealthyDynamicCount = 0;
-                            if (data && data.workloadList != null) {
-                                workLoadMeta.totalRecords =
-                                    data.workloadList.length;
+                            if (workloadList != null) {
+                                workLoadMeta.totalRecords = workloadList.length;
                                 if (category === SERVICE_TYPE_STATIC) {
-                                    data.workloadList.forEach((workload) => {
-                                        if (
-                                            workload.provider ===
-                                            SERVICE_TYPE_STATIC_LABEL
-                                        ) {
-                                            result.workLoadData.push(workload);
-                                        }
+                                    workloadList.forEach((workload) => {
+                                        result.workLoadData.push(workload);
                                     });
                                     workLoadMeta.totalStatic =
                                         result.workLoadData.length;
                                     result.workLoadMeta = workLoadMeta;
                                     resolve(result);
                                 } else {
-                                    data.workloadList.forEach((workload) => {
+                                    workloadList.forEach((workload) => {
+                                        result.workLoadData.push(workload);
                                         if (
-                                            workload.provider !==
-                                            SERVICE_TYPE_STATIC_LABEL
+                                            workload.hostname !== 'NA' &&
+                                            localDate.isRefreshedinLastSevenDays(
+                                                workload.updateTime,
+                                                'UTC'
+                                            )
                                         ) {
-                                            result.workLoadData.push(workload);
-                                            if (
-                                                workload.hostname !== 'NA' &&
-                                                localDate.isRefreshedinLastSevenDays(
-                                                    workload.updateTime,
-                                                    'UTC'
-                                                )
-                                            ) {
-                                                totalHealthyDynamicCount++;
-                                            }
+                                            totalHealthyDynamicCount++;
                                         }
                                     });
                                     workLoadMeta.totalHealthyDynamic =

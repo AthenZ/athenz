@@ -183,7 +183,7 @@ export default class InstanceList extends React.Component {
 
         let searchInput;
         if (this.state.instances.length > 0) {
-            if (this.props.category != 'static') {
+            if (this.props.category !== 'static') {
                 searchInput = (
                     <SearchDiv>
                         <DropDownDiv>
@@ -247,7 +247,11 @@ export default class InstanceList extends React.Component {
                     <StyledSearchInputDiv>{searchInput}</StyledSearchInputDiv>
                     {this.props.category == 'static' && (
                         <div>
-                            <Button secondary onClick={this.toggleAddInstance}>
+                            <Button
+                                secondary
+                                onClick={this.toggleAddInstance}
+                                disabled={true}
+                            >
                                 Add Static Instance
                             </Button>
                             {addStaticInstance}

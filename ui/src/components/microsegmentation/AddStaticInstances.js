@@ -16,15 +16,13 @@
 import React from 'react';
 import Input from '../denali/Input';
 import InputLabel from '../denali/InputLabel';
-import Member from '../member/Member';
 import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
 import AddModal from '../modal/AddModal';
 import RequestUtils from '../utils/RequestUtils';
 import InputDropdown from '../denali/InputDropdown';
-import Icon from '../denali/icons/Icon';
-import { STATIC_INSTANCES_RESOURCE_TYPES } from '../constants/constants';
-import NameUtils from '../utils/NameUtils';
+import { StaticWorkloadType } from '../constants/constants';
+import RegexUtils from '../utils/RegexUtils';
 
 const SectionDiv = styled.div`
     align-items: center;
@@ -46,11 +44,6 @@ const StyledInput = styled(Input)`
     padding: 0 12px;
 `;
 
-const AddCircleDiv = styled.div`
-    margin-top: 5px;
-    margin-left: 5px;
-`;
-
 const StyledIncludedMembersDiv = styled.div`
     width: 65%;
 `;
@@ -65,13 +58,13 @@ export default class AddStaticInstances extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
-        this.addMember = this.addMember.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.resourceTypeChanged = this.resourceTypeChanged.bind(this);
-        this.inputChanged = this.inputChanged.bind(this);
+        this.inputChanged = this.inputChanged.bind(this, 'resourceValue');
         this.state = {
-            members: [],
             resourceValue: '',
+            resourceType: '',
+            pattern: '',
         };
     }
 
@@ -79,47 +72,15 @@ export default class AddStaticInstances extends React.Component {
         if (chosen && chosen.value != null) {
             this.setState({
                 resourceType: chosen.value,
+                pattern: chosen.pattern,
             });
         }
-    }
-
-    addMember() {
-        let resourceVal = this.state.resourceValue;
-        let members = this.state.members;
-
-        if (!resourceVal) {
-            return;
-        }
-        let names = NameUtils.splitNames(resourceVal);
-
-        for (let i = 0; i < names.length; i++) {
-            members.push({
-                memberName: names[i],
-            });
-        }
-        this.setState({
-            members,
-            resourceValue: '',
-        });
-    }
-
-    deleteMember(idx) {
-        let members = this.state.members;
-        // this if is done to avoid [null] condition
-        if (members.length === 1) {
-            members = [];
-        } else {
-            delete members[idx];
-        }
-        this.setState({ members });
     }
 
     onSubmit() {
         this.setState({
             errorMessage: '',
         });
-
-        this.addMember();
 
         //Input field validation
 
@@ -130,50 +91,43 @@ export default class AddStaticInstances extends React.Component {
             return;
         }
 
-        if (this.state.members <= 0) {
+        if (this.state.resourceValue || this.state.resourceValue === '') {
             this.setState({
-                errorMessage: 'Atlease one resource value is required.',
+                errorMessage: 'At least one resource value is required.',
             });
             return;
         }
 
-        var urlParts = window.location.pathname.split('/');
-        var serviceName = this.props.service;
-        var fullServiceName = this.props.domain + '.' + serviceName;
-        var auditRef = 'adding static ips for microsegmentation';
-        var hostDetails = [];
-        let detail = { name: fullServiceName };
-        this.state.members.forEach((member) => {
-            hostDetails.push(member.memberName);
-        });
+        if (
+            !RegexUtils.validate(this.state.resourceValue, this.state.pattern)
+        ) {
+            this.setState({
+                errorMessage:
+                    'Input validation failed, the allowed pattern is ' +
+                    this.state.pattern,
+            });
+            return;
+        }
+
+        const auditRef = 'adding static ips for microsegmentation';
+        let detail = {
+            domainName: this.props.domain,
+            serviceName: this.props.service,
+            type: this.state.resourceType,
+            name: this.state.resourceValue,
+        };
         this.api
-            .getServiceHost(this.props.domain, serviceName)
-            .then((data) => {
-                if (!data.hosts) {
-                    detail.hosts = hostDetails;
-                } else {
-                    detail.hosts = [
-                        ...new Set([...hostDetails, ...data.hosts]),
-                    ];
+            .addServiceHost(
+                this.props.domain,
+                this.props.service,
+                detail,
+                auditRef,
+                this.props._csrf
+            )
+            .then(() => {
+                if (!this.state.errorMessage) {
+                    this.props.onSubmit();
                 }
-                this.api
-                    .addServiceHost(
-                        this.props.domain,
-                        serviceName,
-                        detail,
-                        auditRef,
-                        this.props._csrf
-                    )
-                    .then(() => {
-                        if (!this.state.errorMessage) {
-                            this.props.onSubmit();
-                        }
-                    })
-                    .catch((err) => {
-                        this.setState({
-                            errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                        });
-                    });
             })
             .catch((err) => {
                 this.setState({
@@ -192,22 +146,6 @@ export default class AddStaticInstances extends React.Component {
         this.setState({ [key]: value });
     }
     render() {
-        let typeChanged = this.inputChanged.bind(this, 'resourceValue');
-        let members = this.state.members
-            ? this.state.members.map((item, idx) => {
-                  // dummy place holder so that it can be be used in the form
-                  item.approved = true;
-                  let remove = this.deleteMember.bind(this, idx);
-                  return (
-                      <Member
-                          key={idx}
-                          item={item}
-                          onClickRemove={remove}
-                          noanim
-                      />
-                  );
-              })
-            : '';
         let sections = (
             <SectionsDiv>
                 <SectionDiv>
@@ -215,40 +153,23 @@ export default class AddStaticInstances extends React.Component {
                     <InputDropdown
                         name='resourceType'
                         defaultSelectedValue={this.state.resourceType}
-                        options={STATIC_INSTANCES_RESOURCE_TYPES}
+                        options={StaticWorkloadType}
                         onChange={this.resourceTypeChanged}
                         placeholder='Select Resourcetype'
                         noclear
                         noanim
                         filterable
                     />
-
                     <StyledInput
                         placeholder='Enter value'
                         value={this.state.resourceValue}
-                        onChange={typeChanged}
+                        onChange={this.inputChanged}
                         noanim
                         fluid
                     />
-                    <AddCircleDiv>
-                        <Icon
-                            icon={'add-circle'}
-                            isLink
-                            color={colors.icons}
-                            size='1.75em'
-                            onClick={this.addMember}
-                        />
-                    </AddCircleDiv>
-                </SectionDiv>
-                <SectionDiv>
-                    <StyledInputLabel />
-                    <StyledIncludedMembersDiv>
-                        {members}
-                    </StyledIncludedMembersDiv>
                 </SectionDiv>
             </SectionsDiv>
         );
-
         return (
             <div data-testid='add-segment'>
                 <AddModal

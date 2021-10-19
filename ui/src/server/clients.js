@@ -32,6 +32,14 @@ function refreshCertClients(config, options) {
         },
     });
 
+    CLIENTS.msd = rdlRest({
+        apiHost: config.msd,
+        rdl: require('../config/msd.json'),
+        requestOpts: {
+            strictSSL: config.strictSSL,
+        },
+    });
+
     userService.refreshUserData(config);
 
     return Promise.resolve();
@@ -68,6 +76,7 @@ module.exports.middleware = function middleware() {
     return (req, res, next) => {
         req.clients = {
             zms: CLIENTS.zms(req, setCookieinClients(req)),
+            msd: CLIENTS.msd(req, setCookieinClients(req)),
         };
         next();
     };

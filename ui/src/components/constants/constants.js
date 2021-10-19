@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as data from '../../config/zms.json';
 
 export const MODAL_TIME_OUT = 2000;
-export const GROUP_NAME_REGEX = data.types[3].StringTypeDef.pattern;
-export const GROUP_MEMBER_NAME_REGEX = data.types[14].StringTypeDef.pattern;
+export const GROUP_NAME_REGEX =
+    '([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
+export const GROUP_MEMBER_NAME_REGEX =
+    '([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
 export const GROUP_ROLES_CATEGORY = 'group-roles';
 export const GROUP_MEMBER_PLACEHOLDER = 'user.<userid> or <domain>.<service>';
 export const DISPLAY_SPACE = '\u23b5';
@@ -82,13 +83,32 @@ export const SEGMENTATION_PROTOCOL = [
     },
 ];
 
-export const INSTANCE_RESOURCE_TYPE_IP_ADDRESS = 'IP Address';
+export const DELETE_AUDIT_REFERENCE = 'deleted using Athenz UI';
 
-export const STATIC_INSTANCES_RESOURCE_TYPES = [
+export const StaticWorkloadType = [
     {
-        name: INSTANCE_RESOURCE_TYPE_IP_ADDRESS,
-        value: INSTANCE_RESOURCE_TYPE_IP_ADDRESS,
+        name: 'VIP',
+        value: 'VIP',
+        pattern: '([a-zA-Z0-9][a-zA-Z0-9-]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-]*',
+    },
+    {
+        name: 'Enterprise Appliance',
+        value: 'ENTERPRISE_APPLIANCE',
+        pattern: '[A-Za-z_0-9:]+',
+    },
+    {
+        name: 'Cloud Load Balancer',
+        value: 'CLOUD_LB',
+        pattern: '([a-zA-Z0-9][a-zA-Z0-9-]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-]*',
+    },
+    {
+        name: 'Cloud NAT Gateway',
+        value: 'CLOUD_NAT',
+        pattern: '([a-zA-Z0-9][a-zA-Z0-9-]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-]*',
+    },
+    {
+        name: 'External Appliance',
+        value: 'EXTERNAL_APPLIANCE',
+        pattern: '^(?=.*[^.]$)((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).?){4}$',
     },
 ];
-
-export const DELETE_AUDIT_REFERENCE = 'deleted using Athenz UI';

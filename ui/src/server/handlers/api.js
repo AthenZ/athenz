@@ -1291,7 +1291,7 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'add-service-host',
     update(req, resource, params, body, config, callback) {
-        req.clients.zms.putServiceIdentity(
+        req.clients.msd.putStaticWorkload(
             params,
             responseHandler.bind({ caller: 'add-service-host', callback, req })
         );
@@ -2414,11 +2414,23 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'instances',
     read(req, resource, params, config, callback) {
-        req.clients.zts.getWorkloadsByService(
+        req.clients.msd.getWorkloadsByService(
             { domainName: params.domainName, serviceName: params.serviceName },
             (err, data) => {
-                if (data && data.workloadList != null) {
-                    return callback(null, data);
+                if (data) {
+                    if (
+                        data.dynamicWorkloadList &&
+                        params.category !== 'static'
+                    ) {
+                        return callback(null, data.dynamicWorkloadList);
+                    } else if (
+                        data.staticWorkloadList &&
+                        params.category === 'static'
+                    ) {
+                        return callback(null, data.staticWorkloadList);
+                    } else {
+                        return callback(null, new Map());
+                    }
                 } else {
                     return callback(errorHandler.fetcherError(err));
                 }

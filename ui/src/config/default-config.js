@@ -22,6 +22,7 @@ const config = {
         zms: process.env.ZMS_SERVER_URL || 'https://localhost:4443/zms/v1/',
         zmsLoginUrl:
             process.env.ZMS_LOGIN_URL || 'https://localhost:4443/zms/v1/',
+        msd: process.env.MSD_LOGIN_URL || 'https://localhost:4443/msd/v1/',
         authHeader: 'Athenz-Principal-Auth',
         strictSSL: false,
         user: 'ui-server',

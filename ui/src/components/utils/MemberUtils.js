@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import RegexUtils from './RegexUtils';
+
 export default class MemberUtils {
     static getUserNames(name, regex) {
         let names = (name || '')
@@ -24,7 +26,7 @@ export default class MemberUtils {
         let invalidUsers = [];
         let validUsers = [];
         names.forEach((name) => {
-            if (MemberUtils.matchRegexName(name, regex)) {
+            if (RegexUtils.validate(name, regex)) {
                 validUsers.push(name);
             } else {
                 invalidUsers.push(name);
@@ -35,10 +37,5 @@ export default class MemberUtils {
             invalidUsers,
             validUsers,
         };
-    }
-
-    static matchRegexName(name, regex) {
-        let match = name.match(regex);
-        return match && name === match[0];
     }
 }
