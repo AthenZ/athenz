@@ -3955,33 +3955,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return getMemberDueDate(cfgExpiryMillis, memberDueDate);
     }
 
-    @Override
-    public void putMembership(ResourceContext ctx, String domainName, String roleName,
-            String memberName, String auditRef, Membership membership) {
-
-        final String caller = ctx.getApiName();
-        logPrincipal(ctx);
-
-        if (readOnlyMode) {
-            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
-        }
-
-        validateRequest(ctx.request(), caller);
-
-        validate(domainName, TYPE_DOMAIN_NAME, caller);
-        setRequestDomain(ctx, domainName);
-        validate(roleName, TYPE_ENTITY_NAME, caller);
-        validate(memberName, TYPE_MEMBER_NAME, caller);
-        validate(membership, TYPE_MEMBERSHIP, caller);
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
-
-        domainName = domainName.toLowerCase();
-        roleName = roleName.toLowerCase();
-        memberName = memberName.toLowerCase();
-        AthenzObject.MEMBERSHIP.convertToLowerCase(membership);
+    private void putMembershipImpl(ResourceContext ctx, String domainName, String roleName,
+                               String memberName, String auditRef, Membership membership, String attribute, String caller) {
 
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
 
@@ -4010,13 +3985,27 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("Invalid role name specified", caller);
         }
 
-        // create and normalize the role member object
+        // normalize member name
+        String normalizedMemberName = normalizeDomainAliasUser(memberName);
 
         RoleMember roleMember = new RoleMember();
-        roleMember.setMemberName(normalizeDomainAliasUser(memberName));
-        roleMember.setPrincipalType(principalType(roleMember.getMemberName()));
-        setRoleMemberExpiration(domain, role, roleMember, membership, caller);
-        setRoleMemberReview(role, roleMember, membership);
+        // If attribute specified - get existing member and update it
+        if (!StringUtil.isEmpty(attribute)) {
+            roleMember = role.getRoleMembers()
+                    .stream()
+                    .filter(member -> member.getMemberName().equals(normalizedMemberName))
+                    .findAny()
+                    .orElseThrow(() -> ZMSUtils.notFoundError("Role member doesn't exist", caller));
+
+            // update the attribute
+            roleMember = updateRoleMemberAttribute(roleMember, membership, attribute, caller);
+        } else {
+            // create the role member object
+            roleMember.setMemberName(normalizedMemberName);
+            roleMember.setPrincipalType(principalType(roleMember.getMemberName()));
+            setRoleMemberExpiration(domain, role, roleMember, membership, caller);
+            setRoleMemberReview(role, roleMember, membership);
+        }
 
         // check to see if we need to validate the principal
 
@@ -4043,6 +4032,78 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             sendMembershipApprovalNotification(domainName, domain.getDomain().getOrg(), roleName,
                     roleMember.getMemberName(), auditRef, principal.getFullName(), role);
         }
+    }
+    @Override
+    public void putMembership(ResourceContext ctx, String domainName, String roleName,
+            String memberName, String auditRef, Membership membership) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        setRequestDomain(ctx, domainName);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(memberName, TYPE_MEMBER_NAME, caller);
+        validate(membership, TYPE_MEMBERSHIP, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        roleName = roleName.toLowerCase();
+        memberName = memberName.toLowerCase();
+        AthenzObject.MEMBERSHIP.convertToLowerCase(membership);
+
+        putMembershipImpl(ctx, domainName, roleName, memberName, auditRef, membership, null, caller);
+    }
+
+    @Override
+    public void putMembershipAttribute(ResourceContext ctx, String domainName, String roleName, String memberName, String attribute, String auditRef, Membership membership) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        setRequestDomain(ctx, domainName);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validate(memberName, TYPE_MEMBER_NAME, caller);
+        validate(membership, TYPE_MEMBERSHIP, caller);
+        validate(attribute, TYPE_SIMPLE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        roleName = roleName.toLowerCase();
+        memberName = memberName.toLowerCase();
+        AthenzObject.MEMBERSHIP.convertToLowerCase(membership);
+        attribute = attribute.toLowerCase();
+
+        putMembershipImpl(ctx, domainName, roleName, memberName, auditRef, membership, attribute, caller);
+    }
+
+    private RoleMember updateRoleMemberAttribute(RoleMember roleMember, Membership membership, String attribute, String caller) {
+        if (attribute.equals("expiration")) {
+            roleMember.setExpiration(membership.getExpiration());
+        } else if (attribute.equals("reviewreminder")) {
+            roleMember.setReviewReminder(membership.getReviewReminder());
+        } else {
+            throw ZMSUtils.requestError("Invalid attribute: " + attribute, caller);
+        }
+        return roleMember;
     }
 
     String enforcedUserAuthorityFilter(final String roleUserAuthorityFilter, final String domainUserAuthorityFilter) {

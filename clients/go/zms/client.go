@@ -1271,6 +1271,40 @@ func (client ZMSClient) PutMembership(domainName DomainName, roleName EntityName
 	}
 }
 
+func (client ZMSClient) PutMembershipAttribute(domainName DomainName, roleName EntityName, memberName MemberName, attribute SimpleName, auditRef string, membership *Membership) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName) + "/member/" + fmt.Sprint(memberName) + "/attribute/" + fmt.Sprint(attribute)
+	contentBytes, err := json.Marshal(membership)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client ZMSClient) DeleteMembership(domainName DomainName, roleName EntityName, memberName MemberName, auditRef string) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,

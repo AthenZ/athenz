@@ -1168,6 +1168,30 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("Membership", "PUT", "/domain/{domainName}/role/{roleName}/member/{memberName}/attribute/{attribute}")
+            .comment("Update membership attribute for specific user If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )")
+            .name("putMembershipAttribute")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("roleName", "EntityName", "name of the role")
+            .pathParam("memberName", "MemberName", "name of the user")
+            .pathParam("attribute", "SimpleName", "Attribute in Membership to update")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("membership", "Membership", "Membership object (must contain role/member names and attribute as specified in the URI)")
+            .auth("", "", true)
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("Membership", "DELETE", "/domain/{domainName}/role/{roleName}/member/{memberName}")
             .comment("Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\")")
             .pathParam("domainName", "DomainName", "name of the domain")

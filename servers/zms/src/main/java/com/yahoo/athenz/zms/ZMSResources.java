@@ -1125,6 +1125,49 @@ public class ZMSResources {
         }
     }
 
+    @PUT
+    @Path("/domain/{domainName}/role/{roleName}/member/{memberName}/attribute/{attribute}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Update membership attribute for specific user If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )")
+    public void putMembershipAttribute(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "name of the user", required = true) @PathParam("memberName") String memberName,
+        @Parameter(description = "Attribute in Membership to update", required = true) @PathParam("attribute") String attribute,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Membership object (must contain role/member names and attribute as specified in the URI)", required = true) Membership membership) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "putMembershipAttribute");
+            context.authenticate();
+            this.delegate.putMembershipAttribute(context, domainName, roleName, memberName, attribute, auditRef, membership);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putMembershipAttribute");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
     @DELETE
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)

@@ -3400,6 +3400,133 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testPutMembershipAttribute() {
+        long currentTimeMillis = System.currentTimeMillis();
+        TopLevelDomain dom1 = createTopLevelDomainObject("MbrAddDom1",
+                "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject("MbrAddDom1", "Role1", null,
+                "user.joe", "user.jane");
+        zms.putRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", auditRef, role1);
+
+        Membership mbr = generateMembership("Role1", "user.doe");
+        zms.putMembership(mockDomRsrcCtx, "MbrAddDom1", "Role1", "user.doe", auditRef, mbr);
+
+        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", false, false, false);
+        List<RoleMember> members = role.getRoleMembers();
+
+        RoleMember roleMember = members.stream().filter(member -> member.getMemberName().equals("user.doe")).findAny().get();
+        assertNull(roleMember.getExpiration());
+        assertNull(roleMember.getReviewReminder());
+
+        // Now update expiration for the member
+        Membership attributeMembership = new Membership();
+        attributeMembership.setRoleName("Role1");
+        attributeMembership.setMemberName("user.doe");
+        attributeMembership.setExpiration(Timestamp.fromMillis(currentTimeMillis + 3600 * 1000));
+        zms.putMembershipAttribute(mockDomRsrcCtx, "MbrAddDom1", "Role1", "user.doe", "expiration", auditRef, attributeMembership);
+
+        members = zms.getRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", false, false, false).getRoleMembers();
+        roleMember = members.stream().filter(member -> member.getMemberName().equals("user.doe")).findAny().get();
+        assertEquals(roleMember.getExpiration(), Timestamp.fromMillis(currentTimeMillis + 3600 * 1000));
+        assertNull(roleMember.getReviewReminder());
+
+        // Now update reviewReminder for member
+        attributeMembership = new Membership();
+        attributeMembership.setRoleName("Role1");
+        attributeMembership.setMemberName("user.doe");
+        attributeMembership.setReviewReminder(Timestamp.fromMillis(currentTimeMillis + 2 * 3600 * 1000));
+        zms.putMembershipAttribute(mockDomRsrcCtx, "MbrAddDom1", "Role1", "user.doe", "reviewReminder", auditRef, attributeMembership);
+        members = zms.getRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", false, false, false).getRoleMembers();
+        roleMember = members.stream().filter(member -> member.getMemberName().equals("user.doe")).findAny().get();
+        assertEquals(roleMember.getExpiration(), Timestamp.fromMillis(currentTimeMillis + 3600 * 1000));
+        assertEquals(roleMember.getReviewReminder(), Timestamp.fromMillis(currentTimeMillis + 2 * 3600 * 1000));
+
+        // Now update both expiration and reviewReminder in membership structure but we'll pass
+        // the attribute expiration so reviewReminder will be ignored
+        attributeMembership = new Membership();
+        attributeMembership.setRoleName("Role1");
+        attributeMembership.setMemberName("user.doe");
+        attributeMembership.setReviewReminder(Timestamp.fromMillis(currentTimeMillis + 5 * 3600 * 1000));
+        attributeMembership.setExpiration(Timestamp.fromMillis(currentTimeMillis + 6 * 3600 * 1000));
+        zms.putMembershipAttribute(mockDomRsrcCtx, "MbrAddDom1", "Role1", "user.doe", "expiration", auditRef, attributeMembership);
+        members = zms.getRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", false, false, false).getRoleMembers();
+        roleMember = members.stream().filter(member -> member.getMemberName().equals("user.doe")).findAny().get();
+        assertEquals(roleMember.getExpiration(), Timestamp.fromMillis(currentTimeMillis + 6 * 3600 * 1000));
+        assertEquals(roleMember.getReviewReminder(), Timestamp.fromMillis(currentTimeMillis + 2 * 3600 * 1000));
+
+        // Now remove reviewReminder only
+        attributeMembership = new Membership();
+        attributeMembership.setRoleName("Role1");
+        attributeMembership.setMemberName("user.doe");
+        attributeMembership.setReviewReminder(null);
+        attributeMembership.setExpiration(null);
+        zms.putMembershipAttribute(mockDomRsrcCtx, "MbrAddDom1", "Role1", "user.doe", "reviewReminder", auditRef, attributeMembership);
+        members = zms.getRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", false, false, false).getRoleMembers();
+        roleMember = members.stream().filter(member -> member.getMemberName().equals("user.doe")).findAny().get();
+        assertEquals(roleMember.getExpiration(), Timestamp.fromMillis(currentTimeMillis + 6 * 3600 * 1000));
+        assertNull(roleMember.getReviewReminder());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,"MbrAddDom1", auditRef);
+    }
+
+    @Test
+    public void testPutMembershipAttributeException() {
+        long currentTimeMillis = System.currentTimeMillis();
+        TopLevelDomain dom1 = createTopLevelDomainObject("MbrAddDom1",
+                "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject("MbrAddDom1", "Role1", null,
+                "user.joe", "user.jane");
+        zms.putRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", auditRef, role1);
+
+        Membership mbr = generateMembership("Role1", "user.doe");
+        zms.putMembership(mockDomRsrcCtx, "MbrAddDom1", "Role1", "user.doe", auditRef, mbr);
+
+        Role role = zms.getRole(mockDomRsrcCtx, "MbrAddDom1", "Role1", false, false, false);
+
+        // Try update expiration for non-existing user
+        Membership attributeMembership = new Membership();
+        attributeMembership.setRoleName("Role1");
+        attributeMembership.setMemberName("user.noneexisting");
+        attributeMembership.setExpiration(Timestamp.fromMillis(currentTimeMillis + 3600 * 1000));
+        try {
+            zms.putMembershipAttribute(mockDomRsrcCtx, "MbrAddDom1", "Role1", "user.noneexisting", "expiration", auditRef, attributeMembership);
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"Role member doesn't exist\"}");
+        }
+
+        // Try update expiration for non-existing role
+        attributeMembership = new Membership();
+        attributeMembership.setRoleName("UnknownRole");
+        attributeMembership.setMemberName("user.doe");
+        attributeMembership.setExpiration(Timestamp.fromMillis(currentTimeMillis + 3600 * 1000));
+        try {
+            zms.putMembershipAttribute(mockDomRsrcCtx, "MbrAddDom1", "UnknownRole", "user.doe", "expiration", auditRef, attributeMembership);
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (400): {code: 400, message: \"Invalid role name specified\"}");
+        }
+
+        // Try updating expiration using incorrect attribute name
+        attributeMembership = new Membership();
+        attributeMembership.setRoleName("Role1");
+        attributeMembership.setMemberName("user.doe");
+        attributeMembership.setExpiration(Timestamp.fromMillis(currentTimeMillis + 3600 * 1000));
+        try {
+            zms.putMembershipAttribute(mockDomRsrcCtx, "MbrAddDom1", "Role1", "user.doe", "expiry", auditRef, attributeMembership);
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (400): {code: 400, message: \"Invalid attribute: expiry\"}");
+        }
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx,"MbrAddDom1", auditRef);
+    }
+
+    @Test
     public void testPutMembership() {
 
         TestAuditLogger alogger = new TestAuditLogger();

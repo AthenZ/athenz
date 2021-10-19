@@ -168,6 +168,30 @@ resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName
     }
 }
 
+//Update membership attribute for specific user
+//If the role is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:role.{roleName}")
+//or ("update_members", "{domainName}:role.{roleName}"). This only allows access to members and not role attributes.
+//otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to
+//domain admins ( in case of selfserve roles )
+resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName}/attribute/{attribute}" (name=putMembershipAttribute) {
+    DomainName domainName; //name of the domain
+    EntityName roleName; //name of the role
+    MemberName memberName; //name of the user
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Membership membership; //Membership object (must contain role/member names and attribute as specified in the URI)
+    SimpleName attribute; //Attribute in Membership to update
+    authenticate;
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
 //Delete the specified role membership. Upon successful completion of this delete
 //request, the server will return NO_CONTENT status code without any data (no
 //object will be returned). The required authorization includes two options:

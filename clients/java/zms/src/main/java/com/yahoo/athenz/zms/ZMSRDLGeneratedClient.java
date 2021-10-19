@@ -754,6 +754,31 @@ public class ZMSRDLGeneratedClient {
 
     }
 
+    public Membership putMembershipAttribute(String domainName, String roleName, String memberName, String attribute, String auditRef, Membership membership) {
+        WebTarget target = base.path("/domain/{domainName}/role/{roleName}/member/{memberName}/attribute/{attribute}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("roleName", roleName)
+            .resolveTemplate("memberName", memberName)
+            .resolveTemplate("attribute", attribute);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
+        }
+        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(membership, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 204:
+            return null;
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public Membership deleteMembership(String domainName, String roleName, String memberName, String auditRef) {
         WebTarget target = base.path("/domain/{domainName}/role/{roleName}/member/{memberName}")
             .resolveTemplate("domainName", domainName)

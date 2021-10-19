@@ -42,6 +42,7 @@ public interface ZMSHandler {
     DomainRoleMembers getDomainRoleMembers(ResourceContext context, String domainName);
     DomainRoleMember getPrincipalRoles(ResourceContext context, String principal, String domainName);
     void putMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef, Membership membership);
+    void putMembershipAttribute(ResourceContext context, String domainName, String roleName, String memberName, String attribute, String auditRef, Membership membership);
     void deleteMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef);
     void deletePendingMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef);
     void putDefaultAdmins(ResourceContext context, String domainName, String auditRef, DefaultAdmins defaultAdmins);
