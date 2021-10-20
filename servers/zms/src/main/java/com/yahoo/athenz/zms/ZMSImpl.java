@@ -8407,9 +8407,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // make sure to fetch our domain and role objects
 
-        Role role = dbService.getRole(domainName, roleName, false, false, false);
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        Role role = getRoleFromDomain(roleName, domain);
+
         if (role == null) {
-            throw ZMSUtils.notFoundError("Invalid role name specified", caller);
+            throw ZMSUtils.notFoundError("Invalid domain/role name specified", caller);
+        }
+
+        // authorization check since we have 2 actions: update and update_meta
+        // that allow access callers to manage metadata in a role
+
+        if (!isAllowedPutRoleMetaAccess(principal, domain, role.getName())) {
+            throw ZMSUtils.forbiddenError("putRoleMeta: principal is not authorized to update metadata", caller);
         }
 
         // we need to validate that if the role contains groups then the
@@ -8719,8 +8728,33 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // action is allowed for the given role (update allows access to manage both members
         // and metadata while update_members only allows access to manage members).
 
-        return evaluateAccess(domain, principal.getFullName(), "update", roleName, null, null, principal) == AccessStatus.ALLOWED ||
-                evaluateAccess(domain, principal.getFullName(), "update_members", roleName, null, null, principal) == AccessStatus.ALLOWED;
+        return isAllowedActionOnRole(principal, domain, roleName, "update", "update_members");
+    }
+
+    boolean isAllowedPutRoleMetaAccess(Principal principal, final AthenzDomain domain, final String roleName) {
+
+        // evaluate our domain's roles and policies to see if either update or update_meta
+        // action is allowed for the given role (update allows access to manage both members
+        // and metadata while update_meta only allows access to manage metadata).
+
+        return isAllowedActionOnRole(principal, domain, roleName, "update", "update_meta");
+    }
+
+    private boolean isAllowedActionOnRole(Principal principal, final AthenzDomain domain, final String roleName, String... actions) {
+
+        // evaluate our domain's roles and policies to see if one of the actions specified
+        // is allowed for the given role:
+        // update - allows access to manage both members and metadata
+        // update_members - only allows access to manage members
+        // update_meta - only allows access to manage metadata
+
+        for (String action : actions) {
+            if (evaluateAccess(domain, principal.getFullName(), action, roleName, null, null, principal) == AccessStatus.ALLOWED) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     boolean isAllowedPutMembership(Principal principal, final AthenzDomain domain, final Role role,

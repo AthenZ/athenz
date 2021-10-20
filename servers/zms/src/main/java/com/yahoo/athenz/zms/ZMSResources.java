@@ -1299,7 +1299,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "putRoleMeta");
-            context.authorize("update", "" + domainName + ":role." + roleName + "", null);
+            context.authenticate();
             this.delegate.putRoleMeta(context, domainName, roleName, auditRef, detail);
         } catch (ResourceException e) {
             code = e.getCode();
