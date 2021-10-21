@@ -561,6 +561,7 @@ func (cli Zms) showDomainOld(dn string) (*string, error) {
 	cli.dumpDomain(&buf, domain)
 	cli.dumpTags(&buf, true, "  ", indentLevel1, domain.Tags)
 	cli.dumpRoles(&buf, dn, "", "")
+	cli.dumpGroups(&buf, dn, "", "")
 	cli.dumpPolicies(&buf, dn)
 	cli.dumpServices(&buf, dn)
 

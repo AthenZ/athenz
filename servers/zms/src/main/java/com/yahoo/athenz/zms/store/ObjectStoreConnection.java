@@ -30,7 +30,7 @@ public interface ObjectStoreConnection extends Closeable {
     void rollbackChanges();
     void close();
     void setOperationTimeout(int opTimout);
-    void setTagLimit(int domainLimit, int roleLimit);
+    void setTagLimit(int domainLimit, int roleLimit, int groupLimit);
 
     // Domain commands
 
@@ -201,6 +201,10 @@ public interface ObjectStoreConnection extends Closeable {
     boolean insertRoleTags(String roleName, String domainName, Map<String, TagValueList> roleTags);
     boolean deleteRoleTags(String roleName, String domainName, Set<String> tagKeys);
     Map<String, TagValueList> getRoleTags(String domainName, String roleName);
+
+    boolean insertGroupTags(String groupName, String domainName, Map<String, TagValueList> groupTags);
+    boolean deleteGroupTags(String groupName, String domainName, Set<String> tagKeys);
+    Map<String, TagValueList> getGroupTags(String domainName, String groupName);
 
     int countAssertionConditions(long assertionId);
     int getNextConditionId(long assertionId, String caller);

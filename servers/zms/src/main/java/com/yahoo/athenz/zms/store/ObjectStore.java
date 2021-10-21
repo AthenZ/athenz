@@ -38,8 +38,9 @@ public interface ObjectStore {
      * Set limitation for number of role and domain tags
      * @param domainLimit domain tags limit
      * @param roleLimit role tags limit
+     * @param groupLimit group tags limit
      */
-    void setTagLimit(int domainLimit, int roleLimit);
+    void setTagLimit(int domainLimit, int roleLimit, int groupLimit);
     
     /**
      * Clear all connections to the object store. This is called when

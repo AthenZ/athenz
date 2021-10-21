@@ -216,6 +216,19 @@ func (cli Zms) dumpRoles(buf *bytes.Buffer, dn string, tagKey string, tagValue s
 	}
 }
 
+func (cli Zms) dumpGroups(buf *bytes.Buffer, dn string, tagKey string, tagValue string) {
+	buf.WriteString(indentLevel1)
+	buf.WriteString("groups:\n")
+	members := true
+	groups, err := cli.Zms.GetGroups(zms.DomainName(dn), &members, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
+	if err != nil {
+		log.Fatalf("Unable to get group list - error: %v", err)
+	}
+	for _, group := range groups.List {
+		cli.dumpGroup(buf, *group, false, indentLevel2Dash, indentLevel2DashLvl)
+	}
+}
+
 func (cli Zms) dumpGroup(buf *bytes.Buffer, group zms.Group, auditLog bool, indent1 string, indent2 string) {
 	cli.displayObjectName(buf, string(group.Name), ":group.", indent1)
 	dumpInt32Value(buf, indent2, "member_expiry_days", group.MemberExpiryDays)
@@ -246,6 +259,7 @@ func (cli Zms) dumpGroup(buf *bytes.Buffer, group zms.Group, auditLog bool, inde
 			buf.WriteString("\n")
 		}
 	}
+	cli.dumpTags(buf, true, "", indent2, group.Tags)
 	if auditLog {
 		buf.WriteString(indent2)
 		buf.WriteString("changes: \n")

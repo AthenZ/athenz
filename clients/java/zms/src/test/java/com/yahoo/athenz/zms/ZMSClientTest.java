@@ -4185,7 +4185,7 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
 
-        Mockito.when(c.getGroups(domainName, true))
+        Mockito.when(c.getGroups(domainName, true, null, null))
                 .thenThrow(new NullPointerException())
                 .thenThrow(new ResourceException(401));
 
@@ -4197,6 +4197,33 @@ public class ZMSClientTest {
         }
         try {
             client.getGroups(domainName, true);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+    }
+
+    @Test
+    public void testGetGroupsTags() {
+
+        final String domainName = "get-groups-tags";
+
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        Mockito.when(c.getGroups(domainName, true, "key", "value"))
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ResourceException(401));
+
+        try {
+            client.getGroups(domainName, true, "key", "value");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        try {
+            client.getGroups(domainName, true, "key", "value");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 401);

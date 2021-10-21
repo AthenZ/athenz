@@ -1415,13 +1415,15 @@ public class ZMSResources {
     @Operation(description = "Get the list of all groups in a domain with optional flag whether or not include members")
     public Groups getGroups(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
-        @Parameter(description = "return list of members in the group", required = false) @QueryParam("members") @DefaultValue("false") Boolean members) {
+        @Parameter(description = "return list of members in the group", required = false) @QueryParam("members") @DefaultValue("false") Boolean members,
+        @Parameter(description = "flag to query all groups that have a given tagName", required = false) @QueryParam("tagKey") String tagKey,
+        @Parameter(description = "flag to query all groups that have a given tag name and value", required = false) @QueryParam("tagValue") String tagValue) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getGroups");
             context.authenticate();
-            return this.delegate.getGroups(context, domainName, members);
+            return this.delegate.getGroups(context, domainName, members, tagKey, tagValue);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

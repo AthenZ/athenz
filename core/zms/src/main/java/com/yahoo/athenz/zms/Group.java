@@ -6,6 +6,7 @@ package com.yahoo.athenz.zms;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
+import java.util.Map;
 import com.yahoo.rdl.*;
 
 //
@@ -34,6 +35,9 @@ public class Group {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer serviceExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Map<String, TagValueList> tags;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -99,6 +103,13 @@ public class Group {
     }
     public Integer getServiceExpiryDays() {
         return serviceExpiryDays;
+    }
+    public Group setTags(Map<String, TagValueList> tags) {
+        this.tags = tags;
+        return this;
+    }
+    public Map<String, TagValueList> getTags() {
+        return tags;
     }
     public Group setName(String name) {
         this.name = name;
@@ -169,6 +180,9 @@ public class Group {
                 return false;
             }
             if (serviceExpiryDays == null ? a.serviceExpiryDays != null : !serviceExpiryDays.equals(a.serviceExpiryDays)) {
+                return false;
+            }
+            if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

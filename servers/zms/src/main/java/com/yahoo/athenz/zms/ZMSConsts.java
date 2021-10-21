@@ -145,6 +145,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_GROUP_MEMBER = "athenz.zms.quota_group_member";
     public static final String ZMS_PROP_QUOTA_ROLE_TAG     = "athenz.zms.quota_role_tag";
     public static final String ZMS_PROP_QUOTA_DOMAIN_TAG   = "athenz.zms.quota_domain_tag";
+    public static final String ZMS_PROP_QUOTA_GROUP_TAG   = "athenz.zms.quota_group_tag";
     
     public static final String ZMS_PROP_MYSQL_SERVER_TIMEZONE = "athenz.zms.mysql_server_timezone";
 

@@ -5752,7 +5752,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         // one-domain, 2 roles, 2 members altogether
-        // 1 group with 1 member
+        // 2 group with 2 member
         // 2 policies, 2 assertions
         // 1 service, 1 public key
         Mockito.when(mockResultSet.next()).thenReturn(true) // domain
@@ -5760,8 +5760,9 @@ public class JDBCConnectionTest {
             .thenReturn(true).thenReturn(true).thenReturn(false) // 2 roles
             .thenReturn(true).thenReturn(true).thenReturn(false) // 1 member each
             .thenReturn(true).thenReturn(true).thenReturn(false)// roles tags
-            .thenReturn(true).thenReturn(false) // 1 group
-            .thenReturn(true).thenReturn(false) // 1 member
+            .thenReturn(true).thenReturn(true).thenReturn(false) // 2 groups
+            .thenReturn(true).thenReturn(true).thenReturn(false) // 1 member each
+            .thenReturn(true).thenReturn(true).thenReturn(false)// groups tags
             .thenReturn(true).thenReturn(true).thenReturn(false) // 2 policies
             // 1 assertion each. true for first assertion, false for assertion condition for that assertion
             // true for second assertion, false for assertion condition for second assertion, last false to get out
@@ -5773,14 +5774,15 @@ public class JDBCConnectionTest {
 
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
             .thenReturn("role1").thenReturn("role2") // role names
-            .thenReturn("group1") // group name
+            .thenReturn("group1").thenReturn("group2") // group names
             .thenReturn("service1"); // service name
 
         Mockito.when(mockResultSet.getString(1))
             .thenReturn("tag-key")  // tag key
             .thenReturn("role1").thenReturn("role2") // role names
             .thenReturn("role1").thenReturn( "role2") // roles tags
-            .thenReturn("group1") // group name
+            .thenReturn("group1").thenReturn("group2") // group names
+            .thenReturn("group1").thenReturn( "group2") // groups tags
             .thenReturn("service1"); // service names
 
         Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_POLICY_ID))
@@ -5791,13 +5793,13 @@ public class JDBCConnectionTest {
             .thenReturn("tag-val")  // tag value
             .thenReturn("user").thenReturn("user") // role member domain names
             .thenReturn("role1-tag-key").thenReturn("role2-tag-key") // roles tags
-            .thenReturn("user") // group member domain names
+            .thenReturn("user").thenReturn("user") // group member domain names
+            .thenReturn("group1-tag-key").thenReturn("group2-tag-key") // group tags
             .thenReturn("host1"); // service host name
 
         Mockito.when(mockResultSet.getString(3))
             .thenReturn("role1-tag-val").thenReturn("role2-tag-val") //tag values
-            .thenReturn("user1").thenReturn("user2") // role member local names
-            .thenReturn("user3"); // group member local names
+            .thenReturn("group1-tag-val").thenReturn("group2-tag-val"); //tag values
 
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
         Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_ENABLED);
@@ -5815,6 +5817,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn("http://server.athenzcompany.com").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_PROVIDER_ENDPOINT);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
             .thenReturn("role1").thenReturn("role2");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_PRINCIPAL_GROUP))
+                .thenReturn("group1").thenReturn("group2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_RESOURCE))
             .thenReturn("my-domain:*").thenReturn("my-domain:service.*");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACTION))
@@ -5840,8 +5844,9 @@ public class JDBCConnectionTest {
         assertEquals(2, athenzDomain.getRoles().size());
         assertEquals(1, athenzDomain.getRoles().get(0).getRoleMembers().size());
         assertEquals(1, athenzDomain.getRoles().get(1).getRoleMembers().size());
-        assertEquals(1, athenzDomain.getGroups().size());
+        assertEquals(2, athenzDomain.getGroups().size());
         assertEquals(1, athenzDomain.getGroups().get(0).getGroupMembers().size());
+        assertEquals(1, athenzDomain.getGroups().get(1).getGroupMembers().size());
         assertEquals(2, athenzDomain.getPolicies().size());
         assertEquals(1, athenzDomain.getPolicies().get(0).getAssertions().size());
         assertEquals(1, athenzDomain.getPolicies().get(1).getAssertions().size());
@@ -5854,6 +5859,10 @@ public class JDBCConnectionTest {
 
         assertEquals(athenzDomain.getRoles().get(0).getTags().get("role1-tag-key").getList().get(0), "role1-tag-val");
         assertEquals(athenzDomain.getRoles().get(1).getTags().get("role2-tag-key").getList().get(0), "role2-tag-val");
+
+        assertEquals(athenzDomain.getGroups().get(0).getTags().get("group2-tag-key").getList().get(0), "group2-tag-val");
+        assertEquals(athenzDomain.getGroups().get(1).getTags().get("group1-tag-key").getList().get(0), "group1-tag-val");
+
         jdbcConn.close();
     }
 
@@ -12507,6 +12516,265 @@ public class JDBCConnectionTest {
             jdbcConn.deleteDomainTags("domain", tagKeys);
             fail();
         } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetGroupTags() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("tagKey");
+        Mockito.when(mockResultSet.getString(2))
+                .thenReturn("tagVal1", "tagVal2");
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true, true, false);
+
+        Map<String, TagValueList> groupTags = jdbcConn.getGroupTags("domain", "group");
+        assertNotNull(groupTags);
+
+        TagValueList tagValues = groupTags.get("tagKey");
+
+        assertNotNull(tagValues);
+        assertTrue(tagValues.getList().containsAll(Arrays.asList("tagVal1", "tagVal2")));
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetGroupTagsEmpty() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false);
+
+        Map<String, TagValueList> groupTags = jdbcConn.getGroupTags("domain", "group");
+        assertNull(groupTags);
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetGroupTagsError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true).thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getGroupTags("domain", "group");
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupTags() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for group id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        Map<String, TagValueList> groupTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+        );
+
+        assertTrue(jdbcConn.insertGroupTags("group", "domain", groupTags));
+
+        // domain
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "domain");
+        // group
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group");
+        // tag
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "tagKey");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "tagVal");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupTagsInvalid() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for group id
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        Map<String, TagValueList> groupTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+        );
+        assertFalse(jdbcConn.insertGroupTags("group", "domain", groupTags));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupTagsError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for group id
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            Map<String, TagValueList> groupTags = Collections.singletonMap(
+                    "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+            );
+            jdbcConn.insertGroupTags("group", "domain", groupTags);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteGroupTags() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for group id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
+
+        assertTrue(jdbcConn.deleteGroupTags("group", "domain", tagKeys));
+
+        // domain
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "domain");
+        // role
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group");
+        // tag
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "tagKey");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteGroupTagsInvalid() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for group id
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
+        assertFalse(jdbcConn.deleteGroupTags("group", "domain", tagKeys));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteGroupTagsError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for group id
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
+            jdbcConn.deleteGroupTags("group", "domain", tagKeys);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetDomainGroupTags() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("group");
+        Mockito.when(mockResultSet.getString(2))
+                .thenReturn("tagKey");
+        Mockito.when(mockResultSet.getString(3))
+                .thenReturn("tagVal1", "tagVal2");
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true, true, false);
+
+        Map<String, Map<String, TagValueList>> domainGroupTags = jdbcConn.getDomainGroupTags("sys.auth");
+        assertNotNull(domainGroupTags);
+
+        Map<String, TagValueList> groupTags = domainGroupTags.get("group");
+        TagValueList tagValues = groupTags.get("tagKey");
+
+        assertNotNull(tagValues);
+        assertTrue(tagValues.getList().containsAll(Arrays.asList("tagVal1", "tagVal2")));
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "sys.auth");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetDomainGroupTagsEmpty() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false);
+
+        Map<String, Map<String, TagValueList>> domainGroupTags = jdbcConn.getDomainGroupTags("sys.auth");
+        assertNull(domainGroupTags);
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "sys.auth");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetDomainGroupTagsError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true).thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getDomainGroupTags("sys.auth");
+            fail();
+        } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("sql error"));
         }
         jdbcConn.close();

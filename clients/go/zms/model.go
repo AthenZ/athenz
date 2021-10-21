@@ -5149,6 +5149,11 @@ type GroupMeta struct {
 	// all services in the group will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 //
@@ -5247,6 +5252,11 @@ type Group struct {
 	// all services in the group will have specified max expiry days
 	//
 	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the group

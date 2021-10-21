@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"log"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/ardielle/ardielle-go/rdl"
@@ -17,7 +18,7 @@ import (
 func (cli Zms) groupNames(dn string) ([]string, error) {
 	groups := make([]string, 0)
 	members := false
-	lst, err := cli.Zms.GetGroups(zms.DomainName(dn), &members)
+	lst, err := cli.Zms.GetGroups(zms.DomainName(dn), &members, "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (cli Zms) ListGroups(dn string) (*string, error) {
 	return cli.dumpByFormat(groups, oldYamlConverter)
 }
 
-func (cli Zms) ShowGroup(dn string, gn string, auditLog, pending bool) (*string, error) {
+func (cli Zms) ShowGroup(dn string, gn string, auditLog, pending bool) (*zms.Group, *string, error) {
 	var log *bool
 	if auditLog {
 		log = &auditLog
@@ -59,7 +60,7 @@ func (cli Zms) ShowGroup(dn string, gn string, auditLog, pending bool) (*string,
 	}
 	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), log, pend)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	oldYamlConverter := func(res interface{}) (*string, error) {
@@ -70,7 +71,8 @@ func (cli Zms) ShowGroup(dn string, gn string, auditLog, pending bool) (*string,
 		return &s, nil
 	}
 
-	return cli.dumpByFormat(group, oldYamlConverter)
+	output, err := cli.dumpByFormat(group, oldYamlConverter)
+	return group, output, err
 }
 
 func (cli Zms) SetGroupMemberExpiryDays(dn string, rn string, days int32) (*string, error) {
@@ -140,13 +142,13 @@ func (cli Zms) AddGroup(dn string, gn string, groupMembers []*zms.GroupMember) (
 		s := ""
 		return &s, nil
 	}
-	output, err := cli.ShowGroup(dn, gn, false, false)
+	_, output, err := cli.ShowGroup(dn, gn, false, false)
 	if err != nil {
 		// due to mysql read after write issue it's possible that
 		// we'll get 404 after writing our object so in that
 		// case we're going to do a quick sleep and retry request
 		time.Sleep(500 * time.Millisecond)
-		output, err = cli.ShowGroup(dn, gn, false, false)
+		_, output, err = cli.ShowGroup(dn, gn, false, false)
 	}
 	return output, err
 }
@@ -298,6 +300,7 @@ func getGroupMetaObject(group *zms.Group) zms.GroupMeta {
 		UserAuthorityFilter:     group.UserAuthorityFilter,
 		MemberExpiryDays:        group.MemberExpiryDays,
 		ServiceExpiryDays:       group.ServiceExpiryDays,
+		Tags:                    group.Tags,
 	}
 }
 
@@ -448,4 +451,126 @@ func (cli Zms) ListPendingDomainGroupMembers(principal string) (*string, error) 
 	}
 
 	return cli.dumpByFormat(domainMembership, oldYamlConverter)
+}
+
+func (cli Zms) AddGroupTags(dn string, gn, tagKey string, tagValues []string) (*string, error) {
+	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	tagValueArr := make([]zms.TagCompoundValue, 0)
+
+	if group.Tags == nil {
+		group.Tags = map[zms.CompoundName]*zms.TagValueList{}
+	} else {
+		// append current tags
+		currentTagValues := group.Tags[zms.CompoundName(tagKey)]
+		if currentTagValues != nil {
+			tagValueArr = append(tagValueArr, currentTagValues.List...)
+		}
+	}
+
+	for _, tagValue := range tagValues {
+		tagValueArr = append(tagValueArr, zms.TagCompoundValue(tagValue))
+	}
+
+	group.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+
+	err = cli.Zms.PutGroup(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, group)
+	if err != nil {
+		return nil, err
+	}
+
+	group, output, err := cli.ShowGroup(dn, gn, false, false)
+	if err != nil || !verifyTagExists(group, tagKey, tagValues...) {
+		// due to mysql read after write issue it's possible that
+		// the group will not be updated after the put command.
+		// In this case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		_, output, err = cli.ShowGroup(dn, gn, false, false)
+	}
+	return output, err
+}
+
+func verifyTagExists(group *zms.Group, tagKey string, tagValues ...string) bool {
+	// Verify key exists
+	if group.Tags == nil || group.Tags[zms.CompoundName(tagKey)] == nil {
+		return false
+	}
+
+	// Make set of current tag values
+	tagCurrentTagValues := make(map[string]bool)
+	for _, value := range group.Tags[zms.CompoundName(tagKey)].List {
+		tagCurrentTagValues[string(value)] = true
+	}
+
+	// Check if requested tag values appear
+	for _, value := range tagValues {
+		_,exist := tagCurrentTagValues[value]
+		if (!exist) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+func (cli Zms) DeleteGroupTags(dn string, gn, tagKey string, tagValue string) (*string, error) {
+	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	tagValueArr := make([]zms.TagCompoundValue, 0)
+
+	if group.Tags == nil {
+		group.Tags = map[zms.CompoundName]*zms.TagValueList{}
+	}
+
+	// except given tagValue, set the same tags map
+	if tagValue != "" && group.Tags != nil {
+		currentTagValues := group.Tags[zms.CompoundName(tagKey)]
+		if currentTagValues != nil {
+			for _, curTagValue := range currentTagValues.List {
+				if tagValue != string(curTagValue) {
+					tagValueArr = append(tagValueArr, curTagValue)
+				}
+			}
+		}
+	}
+
+	group.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+
+	err = cli.Zms.PutGroup(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, group)
+	if err != nil {
+		return nil, err
+	}
+
+	group, output, err := cli.ShowGroup(dn, gn, false, false)
+	if err != nil || verifyTagExists(group, tagKey, tagValue) {
+		// due to mysql read after write issue it's possible that
+		// the group will not be updated after the put command.
+		// In this case we're going to do a quick sleep and retry request
+		time.Sleep(500 * time.Millisecond)
+		_, output, err = cli.ShowGroup(dn, gn, false, false)
+	}
+
+	return output, err
+}
+
+func (cli Zms) ShowGroups(dn string, tagKey string, tagValue string) (*string, error) {
+	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
+		members := true
+		groups, err := cli.Zms.GetGroups(zms.DomainName(dn), &members, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
+		if err != nil {
+			log.Fatalf("Unable to get group list - error: %v", err)
+		}
+		return cli.dumpByFormat(groups, cli.buildYAMLOutput)
+	} else {
+		var buf bytes.Buffer
+		cli.dumpGroups(&buf, dn, tagKey, tagValue)
+		s := buf.String()
+		return &s, nil
+	}
 }

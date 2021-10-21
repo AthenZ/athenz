@@ -21,6 +21,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.rdl.Struct;
@@ -397,6 +398,70 @@ public class ZMSClientMockTest {
         }
         assertTrue(groupRoleCheck);
         assertTrue(trustRoleCheck);
+    }
+
+    @Test
+    public void testGetGroups() throws Exception {
+
+        String domName  = "group-members";
+
+        Group groupRoleWithMembers = new Group();
+        groupRoleWithMembers.setName(domName + ":group.group-role");
+        List<GroupMember> members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName("user.user1"));
+        members.add(new GroupMember().setMemberName("coretech.service"));
+        groupRoleWithMembers.setGroupMembers(members);
+
+        Group groupRoleWithoutMembers = new Group();
+        groupRoleWithoutMembers.setName(domName + ":group.group-role");
+
+        List<Group> retListWithMembers = new ArrayList<>();
+        retListWithMembers.add(groupRoleWithMembers);
+        Groups retGroupsWithMembers = new Groups().setList(retListWithMembers);
+
+        List<Group> retListWithoutMembers = new ArrayList<>();
+        retListWithoutMembers.add(groupRoleWithoutMembers);
+        Groups retGroupsWithoutMembers = new Groups().setList(retListWithoutMembers);
+
+        Mockito.doReturn(retGroupsWithMembers).when(mockZMS).getGroups(domName, true, null, null);
+        Mockito.doReturn(retGroupsWithoutMembers).when(mockZMS).getGroups(domName, false, null, null);
+
+        // first request with members option set
+
+        Groups groups = zclt.getGroups(domName, true, null, null);
+        assertNotNull(groups);
+        assertNotNull(groups.getList());
+
+        boolean groupCheck = false;
+        for (Group group : groups.getList()) {
+            switch (group.getName()) {
+                case "group-members:group.group-role":
+                    assertNotNull(group.getGroupMembers());
+                    assertEquals(group.getGroupMembers().size(), 2);
+                    assertTrue(group.getGroupMembers().stream().map(member -> member.getMemberName()).collect(Collectors.toList()).contains("user.user1"));
+                    assertTrue(group.getGroupMembers().stream().map(member -> member.getMemberName()).collect(Collectors.toList()).contains("coretech.service"));
+                    groupCheck = true;
+                    break;
+            }
+        }
+        assertTrue(groupCheck);
+
+        // next without members option
+
+        groups = zclt.getGroups(domName, false, null, null);
+        assertNotNull(groups);
+        assertNotNull(groups.getList());
+
+        groupCheck = false;
+        for (Group group : groups.getList()) {
+            switch (group.getName()) {
+                case "group-members:group.group-role":
+                    assertNull(group.getGroupMembers());
+                    groupCheck = true;
+                    break;
+            }
+        }
+        assertTrue(groupCheck);
     }
 
     @Test

@@ -456,7 +456,8 @@ public class ZMSSchema {
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
             .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute")
             .field("memberExpiryDays", "Int32", true, "all user members in the group will have specified max expiry days")
-            .field("serviceExpiryDays", "Int32", true, "all services in the group will have specified max expiry days");
+            .field("serviceExpiryDays", "Int32", true, "all services in the group will have specified max expiry days")
+            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
 
         sb.structType("Group", "GroupMeta")
             .comment("The representation for a Group with set of members.")
@@ -1321,6 +1322,8 @@ public class ZMSSchema {
             .comment("Get the list of all groups in a domain with optional flag whether or not include members")
             .pathParam("domainName", "DomainName", "name of the domain")
             .queryParam("members", "members", "Bool", false, "return list of members in the group")
+            .queryParam("tagKey", "tagKey", "CompoundName", null, "flag to query all groups that have a given tagName")
+            .queryParam("tagValue", "tagValue", "CompoundName", null, "flag to query all groups that have a given tag name and value")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

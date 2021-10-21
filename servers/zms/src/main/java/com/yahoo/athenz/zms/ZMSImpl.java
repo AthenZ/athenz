@@ -3246,19 +3246,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // filter roles by their tags
         if (tagKey != null) {
             roles = roles.stream()
-                    .filter(role -> filterByTag(tagKey, tagValue, role))
+                    .filter(role -> filterByTag(tagKey, tagValue, role, collection -> collection.getTags()))
                     .collect(Collectors.toList());
         }
 
         return roles;
     }
 
-    private boolean filterByTag(String tagKey, String tagValue, Role role) {
-        boolean result = role.getTags() != null && role.getTags().get(tagKey) != null;
+    private <T> boolean filterByTag(String tagKey, String tagValue, T tagCollection, Function<T, Map<String, TagValueList>> tagsGetter) {
+        Map<String, TagValueList> tags = tagsGetter.apply(tagCollection);
+        boolean result = tags != null && tags.get(tagKey) != null;
 
         // if tagValue is present we should filter tag values
         if (result && tagValue != null) {
-            List<String> tagValues = role.getTags().get(tagKey).getList();
+            List<String> tagValues = tags.get(tagKey).getList();
             result = tagValues != null && tagValues.contains(tagValue);
         }
         return result;
@@ -8912,7 +8913,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 memberReminderDueDays, auditRef, caller);
     }
 
-    List<Group> setupGroupList(AthenzDomain domain, Boolean members) {
+    List<Group> setupGroupList(AthenzDomain domain, Boolean members, String tagKey, String tagValue) {
 
         // if we're asked to return the members as well then we
         // just need to return the data as is without any modifications
@@ -8931,16 +8932,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         .setMemberExpiryDays(group.getMemberExpiryDays())
                         .setServiceExpiryDays(group.getServiceExpiryDays())
                         .setReviewEnabled(group.getReviewEnabled())
-                        .setLastReviewedDate(group.getLastReviewedDate());
+                        .setLastReviewedDate(group.getLastReviewedDate())
+                        .setTags(group.getTags());
                 groups.add(newGroup);
             }
+        }
+
+        // filter groups by their tags
+        if (tagKey != null) {
+            groups = groups.stream()
+                    .filter(group -> filterByTag(tagKey, tagValue, group, collection -> collection.getTags()))
+                    .collect(Collectors.toList());
         }
 
         return groups;
     }
 
     @Override
-    public Groups getGroups(ResourceContext ctx, String domainName, Boolean members) {
+    public Groups getGroups(ResourceContext ctx, String domainName, Boolean members, String tagKey, String tagValue) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -8962,7 +8971,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Domain not found: '" + domainName + "'", caller);
         }
 
-        result.setList(setupGroupList(domain, members));
+        result.setList(setupGroupList(domain, members, tagKey, tagValue));
         return result;
     }
 
