@@ -9276,7 +9276,7 @@ public class JDBCConnectionTest {
                 .thenReturn(3); // 3 members updated
         long timestamp = System.currentTimeMillis();
         boolean result = isRoleExpire ?
-                jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", timestamp, 1) :
+                jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", timestamp, 1, false) :
                 jdbcConn.updateRoleMemberReviewNotificationTimestamp("localhost", timestamp, 1);
         java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(1, ts);
@@ -9301,7 +9301,7 @@ public class JDBCConnectionTest {
                 .thenThrow(new SQLException("sql error"));
         try {
             if (isRoleExpire) {
-                jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", System.currentTimeMillis(), 1);
+                jdbcConn.updateRoleMemberExpirationNotificationTimestamp("localhost", System.currentTimeMillis(), 1, false);
             } else {
                 jdbcConn.updateRoleMemberReviewNotificationTimestamp("localhost", System.currentTimeMillis(), 1);
             }

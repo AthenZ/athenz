@@ -43,7 +43,7 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         // we're going to throw an exception when called
 
-        Mockito.when(dbsvc.getRoleExpiryMembers(1)).thenThrow(new IllegalArgumentException());
+        Mockito.when(dbsvc.getRoleExpiryMembers(1, false)).thenThrow(new IllegalArgumentException());
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
         RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
@@ -101,7 +101,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         // run during init call and then the real data for the second
         // call
 
-        Mockito.when(dbsvc.getRoleExpiryMembers(1))
+        Mockito.when(dbsvc.getRoleExpiryMembers(1, false))
                 .thenReturn(null)
                 .thenReturn(expiryMembers);
 
@@ -167,7 +167,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         // run during init call and then the real data for the second
         // call
 
-        Mockito.when(dbsvc.getRoleExpiryMembers(1))
+        Mockito.when(dbsvc.getRoleExpiryMembers(1, false))
                 .thenReturn(null)
                 .thenReturn(expiryMembers);
 
