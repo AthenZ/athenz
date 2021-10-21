@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,13 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Button from '../denali/Button';
 import Modal from '../denali/Modal';
-import Color from '../denali/Color';
 import Loader from '../denali/Loader';
 
 const MessageDiv = styled.div`
     text-align: left;
     font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
     padding-bottom: 15px;
-    max-height: ${(props) => props.height};
+    height: ${(props) => props.height};
     overflow-y: ${(props) => props.overflowY};
 `;
 
@@ -37,7 +36,7 @@ const ModifiedButton = styled(Button)`
     min-height: 1em;
 `;
 
-const StyledAddModal = styled(Modal)`
+const StyledModal = styled(Modal)`
     width: ${(props) => props.width};
     height: ${(props) => props.height};
 `;
@@ -46,7 +45,7 @@ const StyledLoaderSpan = styled.span`
     margin-left: 10px;
 `;
 
-export default class AddModal extends React.Component {
+export default class MicrosegmentationValidationModal extends React.Component {
     render() {
         let width = '805px';
         let height = 'auto';
@@ -57,14 +56,14 @@ export default class AddModal extends React.Component {
         if (this.props.width) {
             width = this.props.width;
         }
-        if (this.props.bodyMaxHeight) {
-            height = this.props.bodyMaxHeight;
+        if (this.props.bodyHeight) {
+            height = this.props.bodyHeight;
         }
         if (this.props.overflowY) {
             overflowY = this.props.overflowY;
         }
         return (
-            <StyledAddModal
+            <StyledModal
                 isOpen={this.props.isOpen}
                 noanim={true}
                 onClose={this.props.cancel}
@@ -72,42 +71,33 @@ export default class AddModal extends React.Component {
                 width={width}
                 height={modalHeight}
             >
-                {this.props.header != null && this.props.header && (
-                    <MessageDiv
-                        data-testid='add-modal-message'
-                        overflowY={overflowY}
-                    >
-                        This update requires you to enter the following
-                        parameters
-                    </MessageDiv>
-                )}
                 <MessageDiv
-                    data-testid='add-modal-message'
+                    data-testid='validation-modal-message'
                     height={height}
                     overflowY={overflowY}
                 >
                     {this.props.sections}
                 </MessageDiv>
-                {this.props.errorMessage && (
-                    <Color name={'red600'}>{this.props.errorMessage}</Color>
-                )}
                 <ButtonDiv>
                     <ModifiedButton
-                        onClick={this.props.submit}
+                        onClick={this.props.editPolicy}
                         disabled={this.props.saving === 'saving'}
                     >
-                        Submit
+                        Edit Policy
+                    </ModifiedButton>
+                    <ModifiedButton
+                        secondary
+                        nClick={(event) => this.props.submit(event, true)}
+                    >
+                        Create Policy
                         <StyledLoaderSpan>
                             {this.props.saving === 'saving' && (
                                 <Loader size={'15px'} color={'#ffffff'} />
                             )}
                         </StyledLoaderSpan>
                     </ModifiedButton>
-                    <ModifiedButton secondary onClick={this.props.cancel}>
-                        Cancel
-                    </ModifiedButton>
                 </ButtonDiv>
-            </StyledAddModal>
+            </StyledModal>
         );
     }
 }

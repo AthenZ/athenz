@@ -31,12 +31,18 @@ import {
 } from '../constants/constants';
 import NameUtils from '../utils/NameUtils';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
+import CheckBox from '../denali/CheckBox';
+import MicrosegmentationValidationModal from '../modal/MicrosegmentationValidationModal';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
     display: flex;
     flex-flow: row nowrap;
     padding: 10px 10px;
+`;
+
+const CheckBoxSectionDiv = styled.div`
+    padding-top: 15px;
 `;
 
 const StyledInputLabel = styled(InputLabel)`
@@ -87,6 +93,22 @@ const ContentDiv = styled.div`
     margin-right: 1px;
 `;
 
+const ValidationErrorDiv = styled.div`
+    flex: 1 1;
+    margin-right: 1px;
+    padding-top: 8px;
+`;
+
+const ValidationErrorStatusDiv = styled.div`
+    flex: 1 1;
+    margin-right: 1px;
+    padding-top: 20px;
+`;
+
+const ValidationErrorSpan = styled.span`
+    font: 300 16px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
+`;
+
 const AddMemberDiv = styled.div`
     display: flex;
 `;
@@ -110,6 +132,8 @@ const StyledInputDropdown = styled(InputDropdown)`
     padding-top: 12px;
 `;
 
+const StyledCheckBox = styled(CheckBox)``;
+
 export default class AddSegmentation extends React.Component {
     constructor(props) {
         super(props);
@@ -121,12 +145,16 @@ export default class AddSegmentation extends React.Component {
         this.loadServices = this.loadServices.bind(this);
         this.changeService = this.changeService.bind(this);
         this.protocolChanged = this.protocolChanged.bind(this);
-        this.handlePolicy = this.handlePolicy.bind(this);
+        this.createPolicy = this.createPolicy.bind(this);
         this.validatePort = this.validatePort.bind(this);
         this.inputChanged = this.inputChanged.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleAddClick = this.handleAddClick.bind(this);
         this.handleRemoveClick = this.handleRemoveClick.bind(this);
+        this.editValidationPolicy = this.editValidationPolicy.bind(this);
+        this.validateMicrosegmentationPolicy =
+            this.validateMicrosegmentationPolicy.bind(this);
+
         this.state = {
             category: this.props.editMode
                 ? this.props.data['category']
@@ -181,6 +209,10 @@ export default class AddSegmentation extends React.Component {
                       )
                     : [{ enforcementstate: 'report', instances: '', id: 1 }],
             data: props.data,
+            validationCheckbox: false,
+            saving: 'todo',
+            validationError: 'none',
+            validationStatus: 'valid',
         };
     }
 
@@ -194,6 +226,7 @@ export default class AddSegmentation extends React.Component {
                 category: button.name,
                 isCategory: !this.state.isCategory, //Setting isCategory true for inbound and false for outbound through out the code
                 errorMessage: '',
+                saving: 'todo',
             });
         }
     }
@@ -213,13 +246,23 @@ export default class AddSegmentation extends React.Component {
 
     inputChanged(evt, key) {
         let value = '';
-        if (evt.target) {
+
+        if (key === 'validationCheckbox') {
+            value = evt.target.checked;
+        } else if (evt.target) {
             value = evt.target.value;
         } else {
             value = evt ? evt : '';
         }
         this.setState({
             [key]: value,
+        });
+    }
+
+    editValidationPolicy() {
+        this.setState({
+            validationStatus: '',
+            validationError: 'none',
         });
     }
 
@@ -266,153 +309,143 @@ export default class AddSegmentation extends React.Component {
         this.setState({ members });
     }
 
-    handlePolicy(policyName, roleName, resource, action, roleCreated) {
+    createPolicy(policyName, roleName, resource, action, roleCreated) {
         //Validating ACL policy and adding/updating assertion. if get policy threw a 404 then create a new policy
         var foundAssertionMatch = false;
-        this.api
-            .getPolicy(this.props.domain, policyName)
-            .then((data) => {
-                data.assertions.forEach((element) => {
-                    if (element.action.localeCompare(action) === 0) {
-                        foundAssertionMatch = true;
-                    }
-                });
-                if (foundAssertionMatch && roleCreated) {
-                    this.api
-                        .deleteRole(
-                            this.props.domain,
-                            roleName,
-                            'deleted using Microsegmentation UI because of same assertion',
-                            this.props._csrf
-                        )
-                        .then(() => {
-                            this.setState({
-                                errorMessage:
-                                    'Same policy already exists with a different identifier',
+
+        return new Promise((resolve, reject) => {
+            this.api
+                .getPolicy(this.props.domain, policyName)
+                .then((data) => {
+                    data.assertions.forEach((element) => {
+                        if (element.action.localeCompare(action) === 0) {
+                            foundAssertionMatch = true;
+                        }
+                    });
+                    if (foundAssertionMatch && roleCreated) {
+                        this.api
+                            .deleteRole(
+                                this.props.domain,
+                                roleName,
+                                'deleted using Microsegmentation UI because of same assertion',
+                                this.props._csrf
+                            )
+                            .then(() => {
+                                reject(
+                                    'Same policy already exists with a different identifier'
+                                );
+                            })
+                            .catch((err) => {
+                                reject(RequestUtils.xhrErrorCheckHelper(err));
                             });
-                        })
-                        .catch((err) => {
-                            this.setState({
-                                errorMessage:
-                                    RequestUtils.xhrErrorCheckHelper(err),
-                            });
-                        });
-                } else if (foundAssertionMatch) {
-                    if (!this.state.errorMessage) {
-                        this.props.onSubmit();
-                    }
-                } else {
-                    this.api
-                        .addAssertion(
-                            this.props.domain,
-                            policyName,
-                            roleName,
-                            resource,
-                            action,
-                            'ALLOW',
-                            true,
-                            this.props._csrf
-                        )
-                        .then((data) => {
-                            this.api
-                                .addAssertionConditions(
-                                    this.props.domain,
-                                    policyName,
-                                    data.id,
-                                    this.state.PESList,
-                                    this.state.justification
-                                        ? this.state.justification
-                                        : 'Microsegmentaion Assertion Condition using Athenz UI',
-                                    this.props._csrf
-                                )
-                                .then((conditionData) => {
-                                    this.props.onSubmit();
-                                })
-                                .catch((err) => {
-                                    this.setState({
-                                        errorMessage:
+                    } else if (foundAssertionMatch) {
+                        if (!this.state.errorMessage) {
+                            this.props.onSubmit();
+                        }
+                    } else {
+                        this.api
+                            .addAssertion(
+                                this.props.domain,
+                                policyName,
+                                roleName,
+                                resource,
+                                action,
+                                'ALLOW',
+                                true,
+                                this.props._csrf
+                            )
+                            .then((data) => {
+                                this.api
+                                    .addAssertionConditions(
+                                        this.props.domain,
+                                        policyName,
+                                        data.id,
+                                        this.state.PESList,
+                                        this.state.justification
+                                            ? this.state.justification
+                                            : 'Microsegmentaion Assertion Condition using Athenz UI',
+                                        this.props._csrf
+                                    )
+                                    .then((conditionData) => {
+                                        this.props.onSubmit();
+                                    })
+                                    .catch((err) => {
+                                        reject(
                                             RequestUtils.xhrErrorCheckHelper(
                                                 err
-                                            ),
+                                            )
+                                        );
                                     });
-                                });
-                        })
-                        .catch((err) => {
-                            this.setState({
-                                errorMessage:
-                                    RequestUtils.xhrErrorCheckHelper(err),
+                            })
+                            .catch((err) => {
+                                reject(RequestUtils.xhrErrorCheckHelper(err));
                             });
-                        });
-                }
-            })
-            .catch((err) => {
-                if (err && err.statusCode === 404) {
-                    this.api
-                        .addPolicy(
-                            this.props.domain,
-                            policyName,
-                            roleName,
-                            resource,
-                            action,
-                            'ALLOW',
-                            true,
-                            this.props._csrf
-                        )
-                        .then(() => {
-                            this.api
-                                .getAssertionId(
-                                    this.props.domain,
-                                    policyName,
-                                    roleName,
-                                    resource,
-                                    action,
-                                    'ALLOW'
-                                )
-                                .then((assertionId) => {
-                                    this.api
-                                        .addAssertionConditions(
-                                            this.props.domain,
-                                            policyName,
-                                            assertionId,
-                                            this.state.PESList,
-                                            this.state.justification
-                                                ? this.state.justification
-                                                : 'Microsegmentaion Assertion Condition using Athenz UI',
-                                            this.props._csrf
-                                        )
-                                        .then((conditionData) => {
-                                            this.props.onSubmit();
-                                        })
-                                        .catch((err) => {
-                                            this.setState({
-                                                errorMessage:
+                    }
+                })
+                .catch((err) => {
+                    if (err && err.statusCode === 404) {
+                        this.api
+                            .addPolicy(
+                                this.props.domain,
+                                policyName,
+                                roleName,
+                                resource,
+                                action,
+                                'ALLOW',
+                                true,
+                                this.props._csrf
+                            )
+                            .then(() => {
+                                this.api
+                                    .getAssertionId(
+                                        this.props.domain,
+                                        policyName,
+                                        roleName,
+                                        resource,
+                                        action,
+                                        'ALLOW'
+                                    )
+                                    .then((assertionId) => {
+                                        this.api
+                                            .addAssertionConditions(
+                                                this.props.domain,
+                                                policyName,
+                                                assertionId,
+                                                this.state.PESList,
+                                                this.state.justification
+                                                    ? this.state.justification
+                                                    : 'Microsegmentaion Assertion Condition using Athenz UI',
+                                                this.props._csrf
+                                            )
+                                            .then((conditionData) => {
+                                                this.props.onSubmit();
+                                            })
+                                            .catch((err) => {
+                                                reject(
                                                     RequestUtils.xhrErrorCheckHelper(
                                                         err
-                                                    ),
+                                                    )
+                                                );
                                             });
-                                        });
-                                })
-                                .catch((err) => {
-                                    this.setState({
-                                        errorMessage:
+                                    })
+                                    .catch((err) => {
+                                        reject(
                                             RequestUtils.fetcherErrorCheckHelper(
                                                 err
-                                            ),
+                                            )
+                                        );
                                     });
-                                });
-                        })
-                        .catch((err) => {
-                            this.setState({
-                                errorMessage:
-                                    RequestUtils.fetcherErrorCheckHelper(err),
+                            })
+                            .catch((err) => {
+                                reject(
+                                    RequestUtils.fetcherErrorCheckHelper(err)
+                                );
                             });
-                        });
-                } else {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                }
-            });
+                    } else {
+                        reject(RequestUtils.xhrErrorCheckHelper(err));
+                    }
+                });
+        });
     }
 
     validatePort(port) {
@@ -425,6 +458,7 @@ export default class AddSegmentation extends React.Component {
         if (!regex.test(port)) {
             this.setState({
                 errorMessage: "Port can only contain numbers, '-' and ','",
+                saving: 'todo',
             });
             result.error = 1;
             return result;
@@ -451,6 +485,7 @@ export default class AddSegmentation extends React.Component {
                             'Invalid port: ' +
                             ports[i] +
                             '. Valid range of port numbers: 1-65535',
+                        saving: 'todo',
                     });
                     result.error = 1;
                     return result;
@@ -461,9 +496,12 @@ export default class AddSegmentation extends React.Component {
                         'Invalid port: ' +
                         ports[i] +
                         'Valid range of port numbers: 1-65535',
+                    saving: 'todo',
                 });
                 result.error = 1;
                 return result;
+            } else {
+                ports[i] = ports[i] + '-' + ports[i];
             }
         }
 
@@ -479,6 +517,7 @@ export default class AddSegmentation extends React.Component {
             ) {
                 this.setState({
                     errorMessage: 'Destination service is required.',
+                    saving: 'todo',
                 });
                 return 1;
             }
@@ -489,6 +528,7 @@ export default class AddSegmentation extends React.Component {
             ) {
                 this.setState({
                     errorMessage: 'Destination Port is required.',
+                    saving: 'todo',
                 });
                 return 1;
             }
@@ -499,6 +539,7 @@ export default class AddSegmentation extends React.Component {
             ) {
                 this.setState({
                     errorMessage: 'At least one source service is required.',
+                    saving: 'todo',
                 });
                 return 1;
             }
@@ -508,6 +549,7 @@ export default class AddSegmentation extends React.Component {
                     this.setState({
                         errorMessage:
                             'Service name cannot contain wildcard (*) characters',
+                        saving: 'todo',
                     });
                     return 1;
                 }
@@ -517,6 +559,7 @@ export default class AddSegmentation extends React.Component {
                 this.setState({
                     errorMessage:
                         'Service name cannot contain wildcard (*) characters',
+                    saving: 'todo',
                 });
                 return 1;
             }
@@ -524,6 +567,7 @@ export default class AddSegmentation extends React.Component {
             if (!this.state.sourcePort || this.state.sourcePort === '') {
                 this.setState({
                     errorMessage: 'Source port is required.',
+                    saving: 'todo',
                 });
                 return 1;
             }
@@ -531,6 +575,7 @@ export default class AddSegmentation extends React.Component {
             if (!this.state.protocol || this.state.protocol === '') {
                 this.setState({
                     errorMessage: 'Protocol is required.',
+                    saving: 'todo',
                 });
                 return 1;
             }
@@ -541,6 +586,7 @@ export default class AddSegmentation extends React.Component {
             ) {
                 this.setState({
                     errorMessage: 'Source service is required.',
+                    saving: 'todo',
                 });
                 return 1;
             }
@@ -548,6 +594,7 @@ export default class AddSegmentation extends React.Component {
             if (!this.state.sourcePort || this.state.sourcePort === '') {
                 this.setState({
                     errorMessage: 'Source port is required.',
+                    saving: 'todo',
                 });
                 return 1;
             }
@@ -559,6 +606,7 @@ export default class AddSegmentation extends React.Component {
                 this.setState({
                     errorMessage:
                         'At least one destination service is required.',
+                    saving: 'todo',
                 });
                 return 1;
             }
@@ -568,6 +616,7 @@ export default class AddSegmentation extends React.Component {
                     this.setState({
                         errorMessage:
                             'Service name cannot contain wildcard (*) characters',
+                        saving: 'todo',
                     });
                     return 1;
                 }
@@ -577,6 +626,7 @@ export default class AddSegmentation extends React.Component {
                 this.setState({
                     errorMessage:
                         'Service name cannot contain wildcard (*) characters',
+                    saving: 'todo',
                 });
                 return 1;
             }
@@ -587,6 +637,7 @@ export default class AddSegmentation extends React.Component {
             ) {
                 this.setState({
                     errorMessage: 'Destination Port is required.',
+                    saving: 'todo',
                 });
                 return 1;
             }
@@ -594,6 +645,7 @@ export default class AddSegmentation extends React.Component {
             if (!this.state.protocol || this.state.protocol === '') {
                 this.setState({
                     errorMessage: 'Protocol is required.',
+                    saving: 'todo',
                 });
                 return 1;
             }
@@ -606,6 +658,7 @@ export default class AddSegmentation extends React.Component {
         ) {
             this.setState({
                 errorMessage: 'Justification is required to add a member.',
+                saving: 'todo',
             });
             return 1;
         }
@@ -613,15 +666,96 @@ export default class AddSegmentation extends React.Component {
         return 0;
     }
 
-    onSubmit() {
+    validateMicrosegmentationPolicy(
+        category,
+        roleMembers,
+        inboundDestinationService,
+        outboundSourceService,
+        sourcePort,
+        destinationPort,
+        protocol,
+        skipValidation
+    ) {
+        return new Promise((resolve, reject) => {
+            if (this.state.validationCheckbox === true && !skipValidation) {
+                this.api
+                    .validateMicrosegmentationPolicy(
+                        category,
+                        roleMembers,
+                        inboundDestinationService,
+                        outboundSourceService,
+                        sourcePort,
+                        destinationPort,
+                        protocol,
+                        this.props.domain,
+                        this.props._csrf
+                    )
+                    .then((data) => {
+                        if (data.status !== 'VALID') {
+                            this.setState({
+                                validationError: data.errors.join('\r\n'),
+                                validationStatus: data.status,
+                                saving: 'todo',
+                            });
+                            reject();
+                        } else {
+                            resolve();
+                        }
+                    })
+                    .catch((err) => {
+                        reject(RequestUtils.fetcherErrorCheckHelper(err));
+                    });
+            } else {
+                resolve();
+            }
+        });
+    }
+
+    createRole(role) {
+        return new Promise((resolve, reject) => {
+            this.api
+                .getRole(this.props.domain, role.name)
+                .then((existingRole) => {
+                    reject(
+                        'The identifier is already being used for this service. Please use a new identifier.'
+                    );
+                })
+                .catch((err) => {
+                    if (err && err.statusCode === 404) {
+                        this.api
+                            .addRole(
+                                this.props.domain,
+                                role.name,
+                                role,
+                                this.state.justification
+                                    ? this.state.justification
+                                    : 'Microsegmentaion Role creation',
+                                this.props._csrf
+                            )
+                            .then((data) => {
+                                resolve();
+                            })
+                            .catch((err) => {
+                                reject(RequestUtils.xhrErrorCheckHelper(err));
+                            });
+                    } else {
+                        reject(RequestUtils.fetcherErrorCheckHelper(err));
+                    }
+                });
+        });
+    }
+
+    onSubmit(evt, skipValidation = false) {
         this.setState({
-            errorMessage: '',
+            saving: 'saving',
         });
 
+        // validate fields
         if (this.validateFields()) {
             return;
         }
 
+        // add all members to one list
         this.addMember();
 
         let source = this.validatePort(this.state.sourcePort);
@@ -692,52 +826,51 @@ export default class AddSegmentation extends React.Component {
                 );
             }) || [];
 
-        //Check for the role and if it is missing add it otherwise contniue with policy aseertion update
-        this.api
-            .getRole(this.props.domain, role.name)
-            .then((existingRole) => {
-                this.setState({
-                    errorMessage:
-                        'The identifier is already being used for this service. Please use a new identifier.',
-                });
+        // check if validation of policy has been enabled
+        // if enbaled then validate microsegmentation policy against network policy
+
+        this.validateMicrosegmentationPolicy(
+            this.state.category,
+            role.roleMembers,
+            this.state.inboundDestinationService,
+            this.state.outboundSourceService,
+            sourcePort,
+            destinationPort,
+            this.state.protocol,
+            skipValidation
+        )
+            .then(() => {
+                return this.createRole(role);
+            })
+            .then(() => {
+                return this.createPolicy(
+                    policyName,
+                    role.name,
+                    resource,
+                    action,
+                    true
+                );
             })
             .catch((err) => {
-                if (err && err.statusCode === 404) {
-                    let roleCreated = true;
-                    this.api
-                        .addRole(
-                            this.props.domain,
-                            role.name,
-                            role,
-                            this.state.justification
-                                ? this.state.justification
-                                : 'Microsegmentaion Role creation',
-                            this.props._csrf
-                        )
-                        .then((data) => {
-                            this.handlePolicy(
-                                policyName,
-                                role.name,
-                                resource,
-                                action,
-                                roleCreated
-                            );
-                        })
-                        .catch((err) => {
-                            this.setState({
-                                errorMessage:
-                                    RequestUtils.xhrErrorCheckHelper(err),
-                            });
-                        });
+                if (skipValidation) {
+                    this.setState({
+                        errorMessage: err,
+                        saving: 'todo',
+                        validationError: 'none',
+                    });
                 } else {
                     this.setState({
-                        errorMessage: RequestUtils.fetcherErrorCheckHelper(err),
+                        errorMessage: err,
+                        saving: 'todo',
                     });
                 }
             });
     }
 
-    onEditSubmit() {
+    onEditSubmit(evt, skipValidation = false) {
+        this.setState({
+            saving: 'saving',
+        });
         if (this.validateFields()) {
             return;
         }
@@ -839,27 +972,41 @@ export default class AddSegmentation extends React.Component {
             }
         }
 
-        if (roleChanged || assertionChanged || assertionConditionChanged) {
-            this.api
-                .editMicrosegmentation(
-                    this.props.domain,
-                    roleChanged,
-                    assertionChanged,
-                    assertionConditionChanged,
-                    updatedData,
-                    this.props._csrf
-                )
-                .then(() => {
-                    this.props.onSubmit();
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.fetcherErrorCheckHelper(err),
+        this.validateMicrosegmentationPolicy(
+            this.props.category,
+            this.state.members,
+            this.state.inboundDestinationService,
+            this.state.outboundSourceService,
+            source.port,
+            destination.port,
+            this.state.protocol,
+            skipValidation
+        ).then(() => {
+            if (roleChanged || assertionChanged || assertionConditionChanged) {
+                this.api
+                    .editMicrosegmentation(
+                        this.props.domain,
+                        roleChanged,
+                        assertionChanged,
+                        assertionConditionChanged,
+                        updatedData,
+                        this.props._csrf
+                    )
+                    .then(() => {
+                        this.props.onSubmit();
+                    })
+                    .catch((err) => {
+                        this.setState({
+                            errorMessage:
+                                RequestUtils.fetcherErrorCheckHelper(err),
+                            saving: 'todo',
+                            validationError: 'none',
+                        });
                     });
-                });
-        } else {
-            this.props.onCancel();
-        }
+            } else {
+                this.props.onCancel();
+            }
+        });
     }
 
     loadServices() {
@@ -886,6 +1033,7 @@ export default class AddSegmentation extends React.Component {
             .catch((err) => {
                 this.setState({
                     errorMessage: RequestUtils.fetcherErrorCheckHelper(err),
+                    saving: 'todo',
                 });
             });
     }
@@ -1188,6 +1336,30 @@ export default class AddSegmentation extends React.Component {
                         filterable
                     />
                 </SectionDiv>
+                <SectionDiv>
+                    <StyledInputLabel>Validation</StyledInputLabel>
+                    <CheckBoxSectionDiv>
+                        <StyledCheckBox
+                            checked={this.state.validationCheckbox}
+                            name={
+                                'checkbox-validate-policy' +
+                                this.state.isCategory
+                            }
+                            id={
+                                'checkbox-validate-policy' +
+                                this.state.isCategory
+                            }
+                            key={
+                                'checkbox-validate-policy' +
+                                this.state.isCategory
+                            }
+                            label='Validate Microsegmentation policy against PES network policy'
+                            onChange={(event) =>
+                                this.inputChanged(event, 'validationCheckbox')
+                            }
+                        />
+                    </CheckBoxSectionDiv>
+                </SectionDiv>
                 {this.props.justificationRequired && (
                     <SectionDiv>
                         <StyledInputLabel>Justification</StyledInputLabel>
@@ -1204,25 +1376,70 @@ export default class AddSegmentation extends React.Component {
                 )}
             </SectionsDiv>
         );
+
+        let validationResponseSections = (
+            <SectionsDiv>
+                <SectionDiv>
+                    <StyledInputLabel>Status</StyledInputLabel>
+                    <ValidationErrorStatusDiv>
+                        {this.state.validationStatus}
+                    </ValidationErrorStatusDiv>
+                </SectionDiv>
+                <SectionDiv>
+                    <StyledInputLabel>Errors</StyledInputLabel>
+                    <ValidationErrorDiv>
+                        <pre>
+                            <ValidationErrorSpan>
+                                {this.state.validationError}
+                            </ValidationErrorSpan>
+                        </pre>
+                    </ValidationErrorDiv>
+                </SectionDiv>
+            </SectionsDiv>
+        );
+
         return (
             <div data-testid='add-segment'>
-                <AddModal
-                    isOpen={this.props.showAddSegment}
-                    cancel={this.props.onCancel}
-                    submit={
-                        this.props.editMode ? this.onEditSubmit : this.onSubmit
-                    }
-                    title={
-                        this.props.editMode
-                            ? `Edit Microsegmentation ACL Policy`
-                            : `Add Microsegmentation ACL Policy`
-                    }
-                    errorMessage={this.state.errorMessage}
-                    sections={sections}
-                    width={'1050px'}
-                    bodyMaxHeight={'90%'}
-                    modalHeight={'85vh'}
-                />
+                {this.state.validationError === 'none' && (
+                    <AddModal
+                        isOpen={this.props.showAddSegment}
+                        cancel={this.props.onCancel}
+                        submit={
+                            this.props.editMode
+                                ? this.onEditSubmit
+                                : this.onSubmit
+                        }
+                        title={
+                            this.props.editMode
+                                ? `Edit Microsegmentation ACL Policy`
+                                : `Add Microsegmentation ACL Policy`
+                        }
+                        errorMessage={this.state.errorMessage}
+                        saving={this.state.saving}
+                        sections={sections}
+                        width={'1050px'}
+                        bodyMaxHeight={'90%'}
+                        modalHeight={'85vh'}
+                    />
+                )}
+                {this.state.validationError !== 'none' && (
+                    <MicrosegmentationValidationModal
+                        isOpen={this.props.showAddSegment}
+                        editPolicy={this.editValidationPolicy}
+                        submit={
+                            this.props.editMode
+                                ? this.onEditSubmit
+                                : this.onSubmit
+                        }
+                        title={`Validation Errors`}
+                        editMode={this.props.editMode}
+                        saving={this.state.saving}
+                        sections={validationResponseSections}
+                        width={'1050px'}
+                        bodyHeight={'90%'}
+                        modalHeight={'85vh'}
+                    />
+                )}
             </div>
         );
     }

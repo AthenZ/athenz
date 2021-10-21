@@ -539,6 +539,122 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   display: flex;
 }
 
+.emotion-103 {
+  padding-top: 15px;
+}
+
+.emotion-105 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 3px;
+  outline: 0;
+  position: relative;
+  vertical-align: middle;
+}
+
+.emotion-105>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-105>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 10px 0 0;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.emotion-105>input[type='checkbox']+label:before {
+  background: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  line-height: 16px;
+  margin: 0px 3px -3px 0px;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  width: 16px;
+}
+
+.emotion-105>input[type='checkbox']:hover+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-105>input[type='checkbox']:focus+label:before {
+  border: 2px solid rgba(54,151,242,0.5);
+}
+
+.emotion-105>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-105>input[type='checkbox']:checked+label:before {
+  border: 2px solid #3697f2;
+}
+
+.emotion-105>input[type='checkbox']:disabled+label {
+  color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-105>input[type='checkbox']:disabled+label:before {
+  border: 2px solid #d5d5d5;
+}
+
+.emotion-105>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+  background: #3697f2;
+}
+
+.emotion-105>input[type='checkbox'][data-partial='true']+label:after {
+  border: solid #3697f2;
+  border-width: 2px 0 0 0;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  height: 16px;
+  line-height: 16px;
+  left: 4px;
+  opacity: 1;
+  position: absolute;
+  top: 7px;
+  width: 8px;
+}
+
+.emotion-105>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: block;
+  height: 9px;
+  line-height: 16px;
+  left: 6px;
+  opacity: 1;
+  position: absolute;
+  top: 3px;
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+  width: 4.5px;
+}
+
 <div
   class="emotion-0 emotion-1"
   data-testid="add-modal-message"
@@ -702,12 +818,12 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         </div>
       </div>
       <label
-        class="emotion-6 denali-input-label emotion-43 emotion-391"
+        class="emotion-6 denali-input-label emotion-43 emotion-295"
       >
         Hosts
       </label>
       <div
-        class="emotion-19 denali-input emotion-46 emotion-47"
+        class="emotion-19 denali-input emotion-46 emotion-292"
         data-testid="input-wrapper"
       >
         <input
@@ -723,7 +839,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         />
       </div>
       <div
-        class="emotion-48 emotion-49"
+        class="emotion-48 emotion-291"
       >
         <svg
           class="emotion-50"
@@ -893,6 +1009,35 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
             class="message"
             data-testid="message"
           />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      >
+        Validation
+      </label>
+      <div
+        class="emotion-103 emotion-297"
+      >
+        <div
+          class="emotion-105 denali-checkbox emotion-106 emotion-107"
+          data-testid="checkbox-wrapper"
+        >
+          <input
+            data-partial="false"
+            id="checkbox-validate-policytrue"
+            name="checkbox-validate-policytrue"
+            type="checkbox"
+          />
+          <label
+            for="checkbox-validate-policytrue"
+          >
+            Validate Microsegmentation policy against PES network policy
+          </label>
         </div>
       </div>
     </div>
