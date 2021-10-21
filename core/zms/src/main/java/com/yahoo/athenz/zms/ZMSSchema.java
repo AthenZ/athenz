@@ -1257,7 +1257,7 @@ public class ZMSSchema {
             .pathParam("roleName", "EntityName", "name of the role")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "RoleMeta", "RoleMeta object with updated attribute values")
-            .auth("update", "{domainName}:role.{roleName}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

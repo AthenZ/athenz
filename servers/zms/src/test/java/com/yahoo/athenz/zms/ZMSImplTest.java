@@ -16197,7 +16197,7 @@ public class ZMSImplTest {
 
         String domainName = "setuprolelistwithoutmembers";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
-                "Test Domain1", "testOrg", adminUser);
+                "Test Domain1", "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Role role1 = createRoleObject(domainName, "Role1", null, "user.joe",
@@ -19811,7 +19811,7 @@ public class ZMSImplTest {
     public void testPutRoleMeta() {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("rolemetadom1",
-                "Role Meta Test Domain1", "testOrg", adminUser);
+                "Role Meta Test Domain1", "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         Role role1 = createRoleObject("rolemetadom1", "role1", null,
@@ -19972,7 +19972,7 @@ public class ZMSImplTest {
     @Test
     public void testPutRoleMetaMissingAuditRef() {
 
-        TopLevelDomain dom1 = createTopLevelDomainObject("rolemetadom1", "Role Meta Test Domain1", "testOrg", adminUser);
+        TopLevelDomain dom1 = createTopLevelDomainObject("rolemetadom1", "Role Meta Test Domain1", "testOrg", "user.user1");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         DomainMeta meta = createDomainMetaObject("Domain Meta for Role Meta test", "NewOrg",
@@ -20120,6 +20120,54 @@ public class ZMSImplTest {
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
         assertFalse(zms.isAllowedPutMembershipAccess(rsrcPrince, domain, role.getName()));// some random user does not have access
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
+    }
+
+    @Test
+    public void testIsAllowedPutRoleMetaAccess(){
+        TopLevelDomain dom1 = createTopLevelDomainObject("testdomain1",
+                "Role Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Role role1 = createRoleObject("testdomain1", "testrole1", null,"user.user1", "user.john");
+        zms.putRole(mockDomRsrcCtx, "testdomain1", "testrole1", auditRef, role1);
+
+        AthenzDomain domain = zms.getAthenzDomain("testdomain1", false);
+        Role role = zms.getRoleFromDomain("testrole1", domain);
+
+        assertTrue(zms.isAllowedPutRoleMetaAccess(mockDomRestRsrcCtx.principal(), domain, role.getName()));
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=john";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+
+        assertFalse(zms.isAllowedPutRoleMetaAccess(rsrcPrince, domain, role.getName()));// some random user does not have access
+
+        // create policy that allows the user something other than "update" or "update_meta" - will still be denied
+        Policy policy = createPolicyObject(domain.getName(), "testupdatemta", "testrole1",
+                "update_somethingelse", role.getName(), AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domain.getName(), "testupdatemta", auditRef, policy);
+        domain = zms.getAthenzDomain("testdomain1", false);
+        assertFalse(zms.isAllowedPutRoleMetaAccess(rsrcPrince, domain, role.getName()));
+
+        // Finally create policy with "update_meta" which will allow access
+        policy = createPolicyObject(domain.getName(), "testupdatemta", "testrole1",
+                "update_meta", role.getName(), AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domain.getName(), "testupdatemta", auditRef, policy);
+        domain = zms.getAthenzDomain("testdomain1", false);
+
+        // Will now be allowed
+        assertTrue(zms.isAllowedPutRoleMetaAccess(rsrcPrince, domain, role.getName()));
+
+        // Same thing with "update" instead of "update_meta"
+        policy = createPolicyObject(domain.getName(), "testupdatemta", "testrole1",
+                "update", role.getName(), AssertionEffect.ALLOW);
+        zms.putPolicy(mockDomRsrcCtx, domain.getName(), "testupdatemta", auditRef, policy);
+        domain = zms.getAthenzDomain("testdomain1", false);
+        assertTrue(zms.isAllowedPutRoleMetaAccess(rsrcPrince, domain, role.getName()));
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, "testdomain1", auditRef);
     }
@@ -26367,7 +26415,7 @@ public class ZMSImplTest {
         when(authority.booleanAttributesSupported()).thenReturn(attrs);
         zms.userAuthority = authority;
 
-        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
         dom1.setAuditEnabled(true);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
@@ -26426,7 +26474,7 @@ public class ZMSImplTest {
         zms.userAuthority = authority;
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
-        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
         dom1.setAuditEnabled(true);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
@@ -26949,9 +26997,13 @@ public class ZMSImplTest {
 
     @Test
     public void testUpdateRoleMetaWithoutTags() {
-        final String domainName = "sys.auth";
+        final String domainName = "update-role-meta-without-tags";
         final String updateRoleMetaTag = "tag-key-update-role-meta";
         final List<String> updateRoleMetaTagValues = Collections.singletonList("update-meta-value");
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         // put role without tags
         final String roleName = "roleTagsUpdateMeta";
@@ -26972,14 +27024,20 @@ public class ZMSImplTest {
         // assert that updateRoleMetaTag is in role tags
         roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, updateRoleMetaTag, null);
         hasRoleWithTags(roleList, roleName, updateRoleMetaTag, updateRoleMetaTagValues, 1);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
     public void testUpdateRoleMetaWithExistingTag() {
-        final String domainName = "sys.auth";
+        final String domainName = "update-role-meta-with-existing-tag";
         final String tagKey = "tag-key";
         final String updateRoleMetaTag = "tag-key-update-role-meta-exist-tag";
         final List<String> updateRoleMetaTagValues = Collections.singletonList("update-meta-value");
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         // put role with tag
         final String roleName = "roleWithTagUpdateMeta";
@@ -27002,6 +27060,8 @@ public class ZMSImplTest {
         // role should contain only the new tag
         roleList = zms.getRoles(mockDomRsrcCtx, domainName, Boolean.TRUE, updateRoleMetaTag, null);
         hasRoleWithTags(roleList, roleName, updateRoleMetaTag, updateRoleMetaTagValues, 1);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     private void hasRoleWithTags(Roles roleList, String roleName, String tagKey, List<String> tagValues, int tagValuesLength) {

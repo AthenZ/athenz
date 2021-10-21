@@ -1203,7 +1203,7 @@ func init() {
 	mPutRoleMeta.Input("roleName", "EntityName", true, "", "", false, nil, "name of the role")
 	mPutRoleMeta.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit param required(not empty) if domain auditEnabled is true.")
 	mPutRoleMeta.Input("detail", "RoleMeta", false, "", "", false, nil, "RoleMeta object with updated attribute values")
-	mPutRoleMeta.Auth("update", "{domainName}:role.{roleName}", false, "")
+	mPutRoleMeta.Auth("", "", true, "")
 	mPutRoleMeta.Expected("NO_CONTENT")
 	mPutRoleMeta.Exception("BAD_REQUEST", "ResourceError", "")
 	mPutRoleMeta.Exception("CONFLICT", "ResourceError", "")
