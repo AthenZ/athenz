@@ -20,6 +20,9 @@ import com.yahoo.athenz.msd.TransportPolicyValidationResponse;
 
 public interface TransportPolicyValidator {
 
+    default public void init() {
+    }
+
     /**
      * validateTransportPolicy validates the transport policy against other pre-defined policies
      * @param transportPolicy transport policy to be validated

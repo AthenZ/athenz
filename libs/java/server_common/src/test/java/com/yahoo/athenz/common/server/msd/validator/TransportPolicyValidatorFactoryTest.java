@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.msd.validator;
 
+import com.yahoo.athenz.common.server.msd.MsdStore;
+import com.yahoo.athenz.common.server.msd.MsdStoreConnection;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -23,10 +25,17 @@ import static org.testng.Assert.assertNotNull;
 public class TransportPolicyValidatorFactoryTest {
     @Test
     public void createTest() {
-        TransportPolicyValidator mockTransportPolicyValidator = Mockito.mock(TransportPolicyValidator.class);
-        TransportPolicyValidatorFactory factory = () -> mockTransportPolicyValidator;
+        MsdStore store = new MsdStore() {
+            @Override
+            public MsdStoreConnection getConnection() {
+                return MsdStore.super.getConnection();
+            }
+        };
 
-        TransportPolicyValidator transportPolicyValidator = factory.create();
+        TransportPolicyValidator mockTransportPolicyValidator = Mockito.mock(TransportPolicyValidator.class);
+        TransportPolicyValidatorFactory factory = (msdStore) -> mockTransportPolicyValidator;
+
+        TransportPolicyValidator transportPolicyValidator = factory.create(store);
         assertNotNull(transportPolicyValidator);
     }
 }
