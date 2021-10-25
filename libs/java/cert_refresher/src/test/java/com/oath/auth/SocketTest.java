@@ -137,6 +137,7 @@ public class SocketTest {
 
         SSLSocketFactory factory = sslContext.getSocketFactory();
         SSLSocket s = (SSLSocket) factory.createSocket("localhost", listenPort);
+
         //send first call
         s.getOutputStream().write("ping\n".getBytes());
         String response = new BufferedReader(new InputStreamReader(s.getInputStream())).readLine();
@@ -154,9 +155,10 @@ public class SocketTest {
         sslContext2.init(null, new TrustManager[] { tm }, null);
         SSLSocketFactory factory2 = sslContext2.getSocketFactory();
         SSLSocket s2 = (SSLSocket) factory2.createSocket("localhost",listenPort);
+
         //send second call
-        s.getOutputStream().write("ping\n".getBytes());
-        response = new BufferedReader(new InputStreamReader(s.getInputStream())).readLine();
+        s2.getOutputStream().write("ping\n".getBytes());
+        response = new BufferedReader(new InputStreamReader(s2.getInputStream())).readLine();
         assertEquals("pong", response);
         assertEquals("athenz.production", getCN(s2.getSession().getPeerCertificates()));
 
