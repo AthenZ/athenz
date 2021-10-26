@@ -1501,9 +1501,9 @@ func (client ZMSClient) PutRoleReview(domainName DomainName, roleName EntityName
 	}
 }
 
-func (client ZMSClient) GetGroups(domainName DomainName, members *bool) (*Groups, error) {
+func (client ZMSClient) GetGroups(domainName DomainName, members *bool, tagKey CompoundName, tagValue CompoundName) (*Groups, error) {
 	var data *Groups
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/groups" + encodeParams(encodeOptionalBoolParam("members", members))
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/groups" + encodeParams(encodeOptionalBoolParam("members", members), encodeStringParam("tagKey", string(tagKey), ""), encodeStringParam("tagValue", string(tagValue), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

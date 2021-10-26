@@ -560,13 +560,16 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 		case "list-group", "list-groups":
 			return cli.ListGroups(dn)
 		case "show-group":
+			var output *string
+			var err error
 			if argc == 1 {
-				return cli.ShowGroup(dn, args[0], false, false)
+				_, output, err = cli.ShowGroup(dn, args[0], false, false)
 			} else if argc == 2 && args[1] == "log" {
-				return cli.ShowGroup(dn, args[0], true, false)
+				_, output, err = cli.ShowGroup(dn, args[0], true, false)
 			} else if argc == 2 && args[1] == "pending" {
-				return cli.ShowGroup(dn, args[0], false, true)
+				_, output, err = cli.ShowGroup(dn, args[0], false, true)
 			}
+			return output, err
 		case "add-group":
 			if argc >= 1 {
 				groupMembers := cli.convertGroupMembers(args[1:])
@@ -1039,6 +1042,24 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.ShowRoles(dn, args[0], "")
 			} else if argc == 2 {
 				return cli.ShowRoles(dn, args[0], args[1])
+			}
+		case "add-group-tag":
+			if argc >= 3 {
+				return cli.AddGroupTags(dn, args[0], args[1], args[2:])
+			}
+		case "delete-group-tag":
+			if argc == 2 {
+				return cli.DeleteGroupTags(dn, args[0], args[1], "")
+			} else if argc == 3 {
+				return cli.DeleteGroupTags(dn, args[0], args[1], args[2])
+			}
+		case "show-groups":
+			if argc == 0 {
+				return cli.ShowGroups(dn, "", "")
+			} else if argc == 1 {
+				return cli.ShowGroups(dn, args[0], "")
+			} else if argc == 2 {
+				return cli.ShowGroups(dn, args[0], args[1])
 			}
 		case "add-domain-tag":
 			if argc >= 2 {
@@ -1969,7 +1990,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that role belongs to\n")
 		}
-		buf.WriteString("   group-role      : name of the standard group role to add members to\n")
+		buf.WriteString("   group-role      : name of the standard group role to add tag to\n")
 		buf.WriteString("   tag_key         : tag key to be added to this role\n")
 		buf.WriteString("   tag_value       : tag values to be added to this role, multiple values are allowed\n")
 		buf.WriteString(" examples:\n")
@@ -1981,7 +2002,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that role belongs to\n")
 		}
-		buf.WriteString("   group-role      : name of the standard group role to add members to\n")
+		buf.WriteString("   group-role      : name of the standard group role to delete tag from\n")
 		buf.WriteString("   tag_key         : tag key to be removed from to this role\n")
 		buf.WriteString("   tag_value       : optional, tag value to be removed from this tag value list\n")
 		buf.WriteString(" examples:\n")
@@ -1997,6 +2018,41 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   tag_value       : optional, query all roles with given tag key and value\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " show-roles readers readers-tag-key reader-tag-value\n")
+	case "add-group-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-group-tag group tag_key tag_value [tag_value ...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain       : name of the domain that group belongs to\n")
+		}
+		buf.WriteString("   group      : name of the standard group to add tag to\n")
+		buf.WriteString("   tag_key    : tag key to be added to this group\n")
+		buf.WriteString("   tag_value  : tag values to be added to this group, multiple values are allowed\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-group-tag readers readers-tag-key reader-tag-value-1 reader-tag-value-2\n")
+	case "delete-group-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-group-tag group tag_key [tag_value]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain       : name of the domain that group belongs to\n")
+		}
+		buf.WriteString("   group      : name of the standard group to delete tag from\n")
+		buf.WriteString("   tag_key    : tag key to be removed from to this group\n")
+		buf.WriteString("   tag_value  : optional, tag value to be removed from this tag value list\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-group-tag readers readers-tag-key reader-tag-value-1\n")
+	case "show-groups":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " show-groups [tag_key] [tag_value]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain     : name of the domain that group belongs to\n")
+		}
+		buf.WriteString("   tag_key    : optional, query all groups with given tag name\n")
+		buf.WriteString("   tag_value      : optional, query all groups with given tag key and value\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " show-groups readers readers-tag-key reader-tag-value\n")
 	case "list-service":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " list-service\n")
@@ -2865,6 +2921,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString(" Group commands:\n")
 	buf.WriteString("   list-group\n")
 	buf.WriteString("   show-group group [log | pending]\n")
+	buf.WriteString("   show-groups [tag_key] [tag_value]\n")
 	buf.WriteString("   show-groups-principal\n")
 	buf.WriteString("   add-group group member [member ... ]\n")
 	buf.WriteString("   add-group-member group user_or_service [user_or_service ...]\n")
@@ -2881,6 +2938,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-group-notify-roles group rolename[,rolename...]\n")
 	buf.WriteString("   set-group-user-authority-filter group attribute[,attribute...]\n")
 	buf.WriteString("   set-group-user-authority-expiration group attribute\n")
+	buf.WriteString("   add-group-tag group tag_key tag_value [tag_value ...]\n")
+	buf.WriteString("   delete-group-tag group tag_key [tag_value]\n")
 	buf.WriteString("   put-group-membership-decision group user_or_service [expiration] decision\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Service commands:\n")

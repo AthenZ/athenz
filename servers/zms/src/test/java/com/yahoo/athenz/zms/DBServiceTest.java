@@ -11086,4 +11086,243 @@ public class DBServiceTest {
         zms.dbService.defaultRetryCount = savedRetryCount;
         zms.dbService.store = savedStore;
     }
+
+    @Test
+    public void testProcessGroupWithTagsInsert() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        Map<String, TagValueList> groupTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+        );
+        Group group = new Group().setName("newGroup").setTags(groupTags);
+        Mockito.when(conn.insertGroup("sys.auth", group)).thenReturn(true);
+        Mockito.when(conn.insertGroupTags("newGroup", "sys.auth", groupTags)).thenReturn(true);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processGroup(conn, null, "sys.auth", "newGroup",
+                group, adminUser, auditRef, auditDetails);
+
+        assertTrue(success);
+    }
+
+    @Test
+    public void testProcessGroupWithTagsUpdate() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        Map<String, TagValueList> groupTags = new HashMap<>();
+        groupTags.put("tagToBeRemoved", new TagValueList().setList(Collections.singletonList("val0")));
+        groupTags.put("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
+
+        Group group = new Group().setName("newGroup").setTags(groupTags);
+        Mockito.when(conn.insertGroup(anyString(), any())).thenReturn(true);
+        Mockito.when(conn.insertGroupTags("newGroup", "sys.auth", groupTags)).thenReturn(true);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processGroup(conn, null, "sys.auth", "newGroup",
+                group, adminUser, auditRef, auditDetails);
+
+        assertTrue(success);
+
+        // new group
+        Map<String, TagValueList> newGroupTags = new HashMap<>();
+        newGroupTags.put("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
+        newGroupTags.put("newTagKey", new TagValueList().setList(Arrays.asList("val3", "val4")));
+        newGroupTags.put("newTagKey2", new TagValueList().setList(Arrays.asList("val5", "val6")));
+
+        Group newGroup = new Group().setName("newGroup").setTags(newGroupTags);
+
+        Mockito.when(conn.updateGroup("sys.auth", newGroup)).thenReturn(true);
+        Mockito.when(conn.deleteGroupTags(anyString(), anyString(), anySet())).thenReturn(true);
+        Mockito.when(conn.insertGroupTags(anyString(), anyString(), anyMap())).thenReturn(true);
+
+        success = zms.dbService.processGroup(conn, group, "sys.auth", "newGroup",
+                newGroup, adminUser, auditRef, auditDetails);
+
+        assertTrue(success);
+
+        // assert tags to remove
+        Set<String> expectedTagsToBeRemoved = new HashSet<>(Collections.singletonList("tagToBeRemoved")) ;
+
+        ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
+        ArgumentCaptor<String> groupCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
+
+        Mockito.verify(conn, times(1)).deleteGroupTags(groupCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        assertEquals("newGroup", groupCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        assertTrue(tagCapture.getValue().containsAll(expectedTagsToBeRemoved));
+
+        // assert tags to add
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        Mockito.verify(conn, times(2)).insertGroupTags(groupCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
+        assertEquals("newGroup", groupCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
+        assertTrue(resultInsertTags.keySet().containsAll(Arrays.asList("newTagKey", "newTagKey2")));
+        assertTrue(resultInsertTags.values().stream()
+                .flatMap(l -> l.getList().stream())
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList("val3", "val4", "val5", "val6")));
+
+        // assert first tag insertion
+        Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
+        assertTrue(resultFirstInsertTags.keySet().containsAll(Arrays.asList("tagKey", "tagToBeRemoved")));
+        assertTrue(resultFirstInsertTags.values().stream()
+                .flatMap(l -> l.getList().stream())
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList("val0", "val1", "val2")));
+    }
+
+    @Test
+    public void testGroupSameTagKeyValues() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        Map<String, TagValueList> groupTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+        );
+        Group group = new Group().setName("group").setTags(groupTags);
+        Mockito.when(conn.insertGroup(anyString(), any())).thenReturn(true);
+        Mockito.when(conn.insertGroupTags(anyString(), anyString(), any())).thenReturn(true);
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processGroup(conn, null, "sys.auth", "newGroup",
+                group, adminUser, auditRef, auditDetails);
+        assertTrue(success);
+
+        // process the same group again with the same tags
+        Group newGroup = new Group().setName("group").setTags(groupTags);
+
+        Mockito.when(conn.updateGroup("sys.auth", newGroup)).thenReturn(true);
+        Mockito.when(conn.deleteGroupTags(anyString(), anyString(), anySet())).thenReturn(true);
+        Mockito.when(conn.insertGroupTags(anyString(), anyString(), anyMap())).thenReturn(true);
+
+        success = zms.dbService.processGroup(conn, group, "sys.auth", "newGroup",
+                newGroup, adminUser, auditRef, auditDetails);
+
+        assertTrue(success);
+
+        // assert tags to remove should be empty
+        ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
+        ArgumentCaptor<String> groupCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
+
+        Mockito.verify(conn, times(1)).deleteGroupTags(groupCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        assertEquals("newGroup", groupCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        assertTrue(tagCapture.getValue().isEmpty());
+
+        // assert tags to add should be empty
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        Mockito.verify(conn, times(2)).insertGroupTags(groupCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
+        assertEquals("newGroup", groupCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
+        assertTrue(resultInsertTags.isEmpty());
+
+        // asert first tag insertion
+        Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
+        assertTrue(resultFirstInsertTags.containsKey("tagKey"));
+        assertTrue(resultFirstInsertTags.values().stream()
+                .flatMap(l -> l.getList().stream())
+                .collect(Collectors.toList())
+                .contains("tagVal"));
+
+    }
+
+    @Test
+    public void testUpdateGroupMetaWithoutTag() {
+        final String domainName = "sys.auth";
+        final String updateGroupMetaTag = "tag-key-update-group-meta-without-tag";
+        final List<String> updateGroupMetaTagValues = Collections.singletonList("update-meta-value");
+        final String groupName = "groupWithTagUpdateMeta";
+        ObjectStore savedStore = zms.dbService.store;
+
+        Group group = new Group().setName(groupName);
+        GroupMeta rm = new GroupMeta()
+                .setTags(Collections.singletonMap(updateGroupMetaTag,
+                        new TagValueList().setList(updateGroupMetaTagValues)));
+
+        // mock dbService store
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.updateGroup(any(), any())).thenReturn(true);
+        Mockito.when(conn.getGroup(domainName, groupName)).thenReturn(group);
+        Mockito.when(conn.insertGroupTags(anyString(), anyString(), anyMap())).thenReturn(true);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
+        zms.dbService.store = mockObjStore;
+
+        // update group meta
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName , groupName, rm, auditRef);
+
+        // assert tags to add contains group meta tags
+        ArgumentCaptor<String> groupCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+
+        Mockito.verify(conn, times(1)).insertGroupTags(groupCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
+        assertEquals(groupName, groupCapture.getValue());
+        assertEquals(domainName, domainCapture.getValue());
+
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(0);
+        TagValueList tagValues = resultInsertTags.get(updateGroupMetaTag);
+        assertNotNull(tagValues);
+        assertTrue(tagValues.getList().containsAll(updateGroupMetaTagValues));
+        zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testUpdateGroupMetaWithExistingTag() {
+        final String domainName = "sys.auth";
+        final String initialTagKey = "initial-tag-key";
+        final List<String> initialTagValues = Collections.singletonList("initial-tag-value");
+        final String updateGroupMetaTag = "tag-key-update-group-meta-exist-tag";
+        final List<String> updateGroupMetaTagValues = Collections.singletonList("update-meta-value");
+        final String groupName = "groupWithTagUpdateMeta";
+        ObjectStore savedStore = zms.dbService.store;
+
+        // initial group with tags
+        Group group = new Group().setName(groupName);
+
+        // initial group tags
+        Map<String, TagValueList> initialGroupTag = Collections.singletonMap(initialTagKey,
+                new TagValueList().setList(initialTagValues));
+
+        // group meta with updated tags
+        GroupMeta rm = new GroupMeta()
+                .setTags(Collections.singletonMap(updateGroupMetaTag,
+                        new TagValueList().setList(updateGroupMetaTagValues)));
+
+        // mock dbService store
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.updateGroup(any(), any())).thenReturn(true);
+        Mockito.when(conn.deleteGroupTags(anyString(), anyString(), anySet())).thenReturn(true);
+        Mockito.when(conn.insertGroupTags(anyString(), anyString(), anyMap())).thenReturn(true);
+        Mockito.when(conn.getGroup(domainName, groupName)).thenReturn(group);
+        Mockito.when(conn.getGroupTags(domainName, groupName)).thenReturn(initialGroupTag);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
+        zms.dbService.store = mockObjStore;
+
+        // update group meta
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName , groupName, rm, auditRef);
+
+        // assert tags to removed
+        ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
+        ArgumentCaptor<String> groupCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
+
+        Mockito.verify(conn, times(1)).deleteGroupTags(groupCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        assertEquals(groupName, groupCapture.getValue());
+        assertEquals(domainName, domainCapture.getValue());
+        assertTrue(tagCapture.getValue().contains(initialTagKey));
+
+        // assert tags to add
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        Mockito.verify(conn, times(1)).insertGroupTags(groupCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
+        assertEquals(groupName, groupCapture.getValue());
+        assertEquals(domainName, domainCapture.getValue());
+
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(0);
+        TagValueList tagValues = resultInsertTags.get(updateGroupMetaTag);
+        assertNotNull(tagValues);
+        assertTrue(tagValues.getList().containsAll(updateGroupMetaTagValues));
+        zms.dbService.store = savedStore;
+    }
 }

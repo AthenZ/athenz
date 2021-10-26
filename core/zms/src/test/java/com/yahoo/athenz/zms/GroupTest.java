@@ -59,7 +59,8 @@ public class GroupTest {
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
-                .setServiceExpiryDays(20);
+                .setServiceExpiryDays(20)
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         Result result = validator.validate(r, "Group");
         assertTrue(result.valid);
@@ -77,6 +78,7 @@ public class GroupTest {
         assertEquals(r.getUserAuthorityFilter(), "attr2,attr3");
         assertEquals(r.getMemberExpiryDays().intValue(), 10);
         assertEquals(r.getServiceExpiryDays().intValue(), 20);
+        assertEquals(r.getTags().get("tagKey").getList().get(0), "tagValue");
 
         Group r2 = new Group()
                 .setName("sys.auth:group.admin")
@@ -91,7 +93,8 @@ public class GroupTest {
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
-                .setServiceExpiryDays(20);
+                .setServiceExpiryDays(20)
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(r2.equals(r));
         assertTrue(r.equals(r));
@@ -168,6 +171,11 @@ public class GroupTest {
         r2.setName(null);
         assertFalse(r2.equals(r));
         assertFalse(r.equals(new String()));
+
+        r2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue1"))));
+        assertFalse(r2.equals(r));
+        r2.setTags(null);
+        assertFalse(r2.equals(r));
 
         List<Group> rl = Arrays.asList(r);
 
@@ -462,7 +470,8 @@ public class GroupTest {
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
-                .setServiceExpiryDays(20);
+                .setServiceExpiryDays(20)
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));;
         assertTrue(rm.equals(rm));
 
         assertFalse(rm.getSelfServe());
@@ -472,6 +481,7 @@ public class GroupTest {
         assertEquals(rm.getUserAuthorityFilter(), "attr2,attr3");
         assertEquals(rm.getMemberExpiryDays().intValue(), 10);
         assertEquals(rm.getServiceExpiryDays().intValue(), 20);
+        assertEquals(rm.getTags().get("tagKey").getList().get(0), "tagValue");
 
         GroupMeta rm2 = new GroupMeta()
                 .setSelfServe(false)
@@ -480,7 +490,8 @@ public class GroupTest {
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
-                .setServiceExpiryDays(20);
+                .setServiceExpiryDays(20)
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertTrue(rm2.equals(rm));
 
         rm2.setNotifyRoles("role1");
@@ -530,6 +541,16 @@ public class GroupTest {
         rm2.setServiceExpiryDays(null);
         assertFalse(rm2.equals(rm));
         rm2.setServiceExpiryDays(20);
+        assertTrue(rm2.equals(rm));
+
+        assertFalse(rm2.equals(null));
+        assertFalse(rm.equals(new String()));
+
+        rm2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue1"))));
+        assertFalse(rm2.equals(rm));
+        rm2.setTags(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertTrue(rm2.equals(rm));
 
         assertFalse(rm2.equals(null));

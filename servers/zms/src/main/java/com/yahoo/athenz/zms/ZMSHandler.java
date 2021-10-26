@@ -49,7 +49,7 @@ public interface ZMSHandler {
     void putRoleMeta(ResourceContext context, String domainName, String roleName, String auditRef, RoleMeta detail);
     void putMembershipDecision(ResourceContext context, String domainName, String roleName, String memberName, String auditRef, Membership membership);
     void putRoleReview(ResourceContext context, String domainName, String roleName, String auditRef, Role role);
-    Groups getGroups(ResourceContext context, String domainName, Boolean members);
+    Groups getGroups(ResourceContext context, String domainName, Boolean members, String tagKey, String tagValue);
     Group getGroup(ResourceContext context, String domainName, String groupName, Boolean auditLog, Boolean pending);
     void putGroup(ResourceContext context, String domainName, String groupName, String auditRef, Group group);
     void deleteGroup(ResourceContext context, String domainName, String groupName, String auditRef);

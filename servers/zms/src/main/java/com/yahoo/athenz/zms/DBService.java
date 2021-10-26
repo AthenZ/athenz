@@ -96,9 +96,10 @@ public class DBService implements RolesProvider {
         }
         int roleTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int domainTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
+        int groupTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_GROUP_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         if (this.store != null) {
             this.store.setOperationTimeout(defaultOpTimeout);
-            this.store.setTagLimit(domainTagsLimit, roleTagsLimit);
+            this.store.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit);
         }
 
         // retrieve the concurrent update retry count. If we're given an invalid negative
@@ -669,12 +670,14 @@ public class DBService implements RolesProvider {
 
             // we are just going to process all members as new inserts
 
-            for (GroupMember member : groupMembers) {
-                if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
-                    return false;
+            if (groupMembers != null) {
+                for (GroupMember member : groupMembers) {
+                    if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
+                        return false;
+                    }
                 }
+                auditLogGroupMembers(auditDetails, "added-members", groupMembers);
             }
-            auditLogGroupMembers(auditDetails, "added-members", groupMembers);
 
         } else {
 
@@ -684,8 +687,51 @@ public class DBService implements RolesProvider {
             }
         }
 
+        if (!processGroupTags(group, groupName, domainName, originalGroup, con)) {
+            return false;
+        }
+
         auditDetails.append('}');
         return true;
+    }
+
+    private boolean processGroupTags(Group group, String groupName, String domainName,
+                                    Group originalGroup, ObjectStoreConnection con) {
+        if (group.getTags() != null && !group.getTags().isEmpty()) {
+            if (originalGroup == null) {
+                return con.insertGroupTags(groupName, domainName, group.getTags());
+            } else {
+                return processUpdateGroupTags(group, originalGroup, con, groupName, domainName);
+            }
+        }
+        return true;
+    }
+
+    private boolean processUpdateGroupTags(Group group, Group originalGroup, ObjectStoreConnection con, String groupName, String domainName) {
+        if (originalGroup.getTags() == null || originalGroup.getTags().isEmpty()) {
+            if (group.getTags() == null || group.getTags().isEmpty()) {
+                // no tags to process..
+                return true;
+            }
+            return con.insertGroupTags(groupName, domainName, group.getTags());
+        }
+        Map<String, TagValueList> originalGroupTags = originalGroup.getTags();
+        Map<String, TagValueList> currentTags = group.getTags();
+
+        Set<String> tagsToRemove = originalGroupTags.entrySet().stream()
+                .filter(curTag -> currentTags.get(curTag.getKey()) == null
+                        || !currentTags.get(curTag.getKey()).equals(curTag.getValue()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        Map<String, TagValueList> tagsToAdd = currentTags.entrySet().stream()
+                .filter(curTag -> originalGroupTags.get(curTag.getKey()) == null
+                        || !originalGroupTags.get(curTag.getKey()).equals(curTag.getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        boolean res = con.deleteGroupTags(groupName, domainName, tagsToRemove);
+
+        return res && con.insertGroupTags(groupName, domainName, tagsToAdd);
     }
 
     void mergeOriginalRoleAndMetaRoleAttributes(Role originalRole, Role templateRole) {
@@ -781,9 +827,9 @@ public class DBService implements RolesProvider {
         // first we need to retrieve the current set of members
 
         List<GroupMember> originalMembers = originalGroup.getGroupMembers();
-        List<GroupMember> curMembers = new ArrayList<>(originalMembers);
+        List<GroupMember> curMembers = (null == originalMembers) ? new ArrayList<>() : new ArrayList<>(originalMembers);
         List<GroupMember> delMembers = new ArrayList<>(curMembers);
-        ArrayList<GroupMember> newMembers = new ArrayList<>(groupMembers);
+        ArrayList<GroupMember> newMembers = (null == groupMembers) ? new ArrayList<>() : new ArrayList<>(groupMembers);
 
         // remove current members from new members
 
@@ -2901,6 +2947,11 @@ public class DBService implements RolesProvider {
 
         if (auditLog == Boolean.TRUE) {
             group.setAuditLog(con.listGroupAuditLogs(domainName, groupName));
+        }
+
+        Map<String, TagValueList> groupTags = con.getGroupTags(domainName, groupName);
+        if (groupTags != null) {
+            group.setTags(groupTags);
         }
 
         return group;
@@ -5571,6 +5622,9 @@ public class DBService implements RolesProvider {
         if (meta.getServiceExpiryDays() != null) {
             group.setServiceExpiryDays(meta.getServiceExpiryDays());
         }
+        if (meta.getTags() != null) {
+            group.setTags(meta.getTags());
+        }
     }
 
     public void executePutGroupMeta(ResourceContext ctx, final String domainName, final String groupName,
@@ -5605,7 +5659,8 @@ public class DBService implements RolesProvider {
                         .setReviewEnabled(originalGroup.getReviewEnabled())
                         .setNotifyRoles(originalGroup.getNotifyRoles())
                         .setUserAuthorityFilter(originalGroup.getUserAuthorityFilter())
-                        .setUserAuthorityExpiration(originalGroup.getUserAuthorityExpiration());
+                        .setUserAuthorityExpiration(originalGroup.getUserAuthorityExpiration())
+                        .setTags(originalGroup.getTags());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -5620,6 +5675,9 @@ public class DBService implements RolesProvider {
                 // update the group in the database
 
                 con.updateGroup(domainName, updatedGroup);
+
+                processUpdateGroupTags(updatedGroup, originalGroup, con, groupName, domainName);
+
                 saveChanges(con, domainName);
 
                 // audit log the request

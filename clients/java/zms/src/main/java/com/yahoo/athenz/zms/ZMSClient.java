@@ -3142,19 +3142,34 @@ public class ZMSClient implements Closeable {
      * will contain their attributes and, if specified, the list of members.
      *
      * @param domainName name of the domain
-     * @param members    include all members for group groups as well
+     * @param members    include all members for group as well
+     * @param tagKey     query all groups with given tag name
+     * @param tagValue   query all groups with given tag key and value
      * @return list of groups
      * @throws ZMSClientException in case of failure
      */
-    public Groups getGroups(String domainName, Boolean members) {
+    public Groups getGroups(String domainName, Boolean members, String tagKey, String tagValue) {
         updatePrincipal();
         try {
-            return client.getGroups(domainName, members);
+            return client.getGroups(domainName, members, tagKey, tagValue);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
+    }
+
+    /**
+     * Retrieve the list of groups defined for the specified domain. The groups
+     * will contain their attributes and, if specified, the list of members.
+     *
+     * @param domainName name of the domain
+     * @param members    include all members for group groups as well
+     * @return list of groups
+     * @throws ZMSClientException in case of failure
+     */
+    public Groups getGroups(String domainName, Boolean members) {
+        return getGroups(domainName, members, null, null);
     }
 
     /**

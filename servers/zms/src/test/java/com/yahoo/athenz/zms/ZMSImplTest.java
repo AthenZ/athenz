@@ -23368,7 +23368,7 @@ public class ZMSImplTest {
                 ResourceUtils.groupResourceName(domainName1, groupName2));
         zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName2, roleName2, zmsTestInitializer.getAuditRef(), role2);
 
-        Groups groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName1, false);
+        Groups groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName1, false, null, null);
         assertNotNull(groupList);
 
         assertEquals(groupList.getList().size(), 2);
@@ -23378,7 +23378,8 @@ public class ZMSImplTest {
 
         zmsTestInitializer.getZms().deleteGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName1, groupName1, zmsTestInitializer.getAuditRef());
 
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName1, false);
+        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName1, false, null, null);
+
         assertNotNull(groupList);
 
         assertEquals(groupList.getList().size(), 1);
@@ -23430,7 +23431,8 @@ public class ZMSImplTest {
         Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName1, "user.joe", "user.jane");
         zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName1, zmsTestInitializer.getAuditRef(), group1);
 
-        Groups groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, true);
+        Groups groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, true, null, null);
+
         assertNotNull(groupList);
 
         assertEquals(groupList.getList().size(), 1);
@@ -23446,7 +23448,7 @@ public class ZMSImplTest {
         // get groups on unknown domain
 
         try {
-            zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), "unknown-domain", true);
+            zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), "unknown-domain", true, null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -26327,7 +26329,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testRoleTagsLimit() throws Exception {
+    public void testRoleTagsLimit() {
         // define limit of 3 role tags
         System.setProperty(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG, "3");
         ZMSImpl zmsTest = zmsTestInitializer.zmsInit();

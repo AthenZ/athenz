@@ -6,9 +6,11 @@ include "Group.tdl";
 
 // Get the list of all groups in a domain with optional flag
 // whether or not include members
-resource Groups GET "/domain/{domainName}/groups?members={members}" {
+resource Groups GET "/domain/{domainName}/groups?members={members}&tagKey={tagKey}&tagValue={tagValue}" {
     DomainName domainName; // name of the domain
     Bool members (optional, default=false); // return list of members in the group
+    CompoundName tagKey (optional); //flag to query all groups that have a given tagName
+    CompoundName tagValue (optional); //flag to query all groups that have a given tag name and value
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;

@@ -538,6 +538,17 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_LOOKUP_DOMAIN_BY_TAG_KEY_VAL = "SELECT d.name FROM domain d "
         + "JOIN domain_tags dt ON dt.domain_id = d.domain_id WHERE dt.key=? AND dt.value=?";
 
+    private static final String SQL_INSERT_GROUP_TAG = "INSERT INTO group_tags"
+            + "(group_id, group_tags.key, group_tags.value) VALUES (?,?,?);";
+    private static final String SQL_GROUP_TAG_COUNT = "SELECT COUNT(*) FROM group_tags WHERE group_id=?";
+    private static final String SQL_DELETE_GROUP_TAG = "DELETE FROM group_tags WHERE group_id=? AND group_tags.key=?;";
+    private static final String SQL_GET_GROUP_TAGS = "SELECT gt.key, gt.value FROM group_tags gt "
+            + "JOIN principal_group g ON gt.group_id = g.group_id JOIN domain ON domain.domain_id=g.domain_id "
+            + "WHERE domain.name=? AND g.name=?";
+    private static final String SQL_GET_DOMAIN_GROUP_TAGS = "SELECT g.name, gt.key, gt.value FROM group_tags gt "
+            + "JOIN principal_group g ON gt.group_id = g.group_id JOIN domain ON domain.domain_id=g.domain_id "
+            + "WHERE domain.name=?";
+
     private static final String SQL_GET_ASSERTION_CONDITIONS = "SELECT assertion_condition.condition_id, "
             + "assertion_condition.key, assertion_condition.operator, assertion_condition.value "
             + "FROM assertion_condition WHERE assertion_condition.assertion_id=? ORDER BY assertion_condition.condition_id;";
@@ -568,6 +579,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String MYSQL_SERVER_TIMEZONE = System.getProperty(ZMSConsts.ZMS_PROP_MYSQL_SERVER_TIMEZONE, "GMT");
 
     private int roleTagsLimit = ZMSConsts.ZMS_DEFAULT_TAG_LIMIT;
+    private int groupTagsLimit = ZMSConsts.ZMS_DEFAULT_TAG_LIMIT;
     private int domainTagsLimit = ZMSConsts.ZMS_DEFAULT_TAG_LIMIT;
 
     Connection con;
@@ -588,9 +600,10 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public void setTagLimit(int domainLimit, int roleLimit) {
+    public void setTagLimit(int domainLimit, int roleLimit, int groupLimit) {
         this.domainTagsLimit = domainLimit;
         this.roleTagsLimit = roleLimit;
+        this.groupTagsLimit = groupLimit;
     }
 
     @Override
@@ -3612,6 +3625,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
 
+        // add group tags
+        addTagsToGroups(groupMap, athenzDomain.getName());
+
         athenzDomain.getGroups().addAll(groupMap.values());
     }
 
@@ -6183,6 +6199,147 @@ public class JDBCConnection implements ObjectStoreConnection {
         for (String tagKey : tagKeys) {
             try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_ROLE_TAG)) {
                 ps.setInt(1, roleId);
+                ps.setString(2, processInsertValue(tagKey));
+                res &= (executeUpdate(ps, caller) > 0);
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
+        }
+        return res;
+    }
+
+    private void addTagsToGroups(Map<String, Group> groupMap, String domainName) {
+
+        Map<String, Map<String, TagValueList>> domainGroupTags = getDomainGroupTags(domainName);
+        if (domainGroupTags != null) {
+            for (Map.Entry<String, Group> groupEntry : groupMap.entrySet()) {
+                Map<String, TagValueList> groupTag = domainGroupTags.get(groupEntry.getKey());
+                if (groupTag != null) {
+                    groupEntry.getValue().setTags(groupTag);
+                }
+            }
+        }
+    }
+
+    Map<String, Map<String, TagValueList>> getDomainGroupTags(String domainName) {
+        final String caller = "getDomainGroupTags";
+        Map<String, Map<String, TagValueList>> domainGroupTags = null;
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_GROUP_TAGS)) {
+            ps.setString(1, domainName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    String groupName = rs.getString(1);
+                    String tagKey = rs.getString(2);
+                    String tagValue = rs.getString(3);
+                    if (domainGroupTags == null) {
+                        domainGroupTags = new HashMap<>();
+                    }
+                    Map<String, TagValueList> groupTag = domainGroupTags.computeIfAbsent(groupName, tags -> new HashMap<>());
+                    TagValueList tagValues = groupTag.computeIfAbsent(tagKey, k -> new TagValueList().setList(new ArrayList<>()));
+                    tagValues.getList().add(tagValue);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return domainGroupTags;
+    }
+
+    @Override
+    public Map<String, TagValueList> getGroupTags(String domainName, String groupName) {
+        final String caller = "getGroupTags";
+        Map<String, TagValueList> groupTag = null;
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_GROUP_TAGS)) {
+            ps.setString(1, domainName);
+            ps.setString(2, groupName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    String tagKey = rs.getString(1);
+                    String tagValue = rs.getString(2);
+                    if (groupTag == null) {
+                        groupTag = new HashMap<>();
+                    }
+                    TagValueList tagValues = groupTag.computeIfAbsent(tagKey, k -> new TagValueList().setList(new ArrayList<>()));
+                    tagValues.getList().add(tagValue);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return groupTag;
+    }
+
+    @Override
+    public boolean insertGroupTags(String groupName, String domainName, Map<String, TagValueList> groupTags) {
+
+        final String caller = "insertGroupTags";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int groupId = getGroupId(domainId, groupName);
+        if (groupId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_GROUP, ResourceUtils.groupResourceName(domainName, groupName));
+        }
+        int curTagCount = getGroupTagsCount(groupId);
+        int newTagCount = calculateTagCount(groupTags);
+        if (curTagCount + newTagCount > groupTagsLimit) {
+            throw requestError(caller, "group tag quota exceeded - limit: "
+                    + groupTagsLimit + ", current tags count: " + curTagCount + ", new tags count: " + newTagCount);
+        }
+
+        boolean res = true;
+        for (Map.Entry<String, TagValueList> e : groupTags.entrySet()) {
+            for (String tagValue : e.getValue().getList()) {
+                try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_GROUP_TAG)) {
+                    ps.setInt(1, groupId);
+                    ps.setString(2, processInsertValue(e.getKey()));
+                    ps.setString(3, processInsertValue(tagValue));
+                    res &= (executeUpdate(ps, caller) > 0);
+                } catch (SQLException ex) {
+                    throw sqlError(ex, caller);
+                }
+            }
+        }
+        return res;
+
+    }
+
+    private int getGroupTagsCount(int groupId) {
+        final String caller = "getGroupTagsCount";
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_GROUP_TAG_COUNT)) {
+            ps.setInt(1, groupId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+
+    @Override
+    public boolean deleteGroupTags(String groupName, String domainName, Set<String> tagKeys) {
+        final String caller = "deleteGroupTags";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int groupId = getGroupId(domainId, groupName);
+        if (groupId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_GROUP, ResourceUtils.roleResourceName(domainName, groupName));
+        }
+        boolean res = true;
+        for (String tagKey : tagKeys) {
+            try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_GROUP_TAG)) {
+                ps.setInt(1, groupId);
                 ps.setString(2, processInsertValue(tagKey));
                 res &= (executeUpdate(ps, caller) > 0);
             } catch (SQLException ex) {

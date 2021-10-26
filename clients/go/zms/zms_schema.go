@@ -531,6 +531,7 @@ func init() {
 	tGroupMeta.Field("userAuthorityExpiration", "String", true, nil, "expiration enforced by a user authority configured attribute")
 	tGroupMeta.Field("memberExpiryDays", "Int32", true, nil, "all user members in the group will have specified max expiry days")
 	tGroupMeta.Field("serviceExpiryDays", "Int32", true, nil, "all services in the group will have specified max expiry days")
+	tGroupMeta.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	sb.AddType(tGroupMeta.Build())
 
 	tGroup := rdl.NewStructTypeBuilder("GroupMeta", "Group")
@@ -1252,6 +1253,8 @@ func init() {
 	mGetGroups.Comment("Get the list of all groups in a domain with optional flag whether or not include members")
 	mGetGroups.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mGetGroups.Input("members", "Bool", false, "members", "", true, false, "return list of members in the group")
+	mGetGroups.Input("tagKey", "CompoundName", false, "tagKey", "", true, nil, "flag to query all groups that have a given tagName")
+	mGetGroups.Input("tagValue", "CompoundName", false, "tagValue", "", true, nil, "flag to query all groups that have a given tag name and value")
 	mGetGroups.Auth("", "", true, "")
 	mGetGroups.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetGroups.Exception("NOT_FOUND", "ResourceError", "")
