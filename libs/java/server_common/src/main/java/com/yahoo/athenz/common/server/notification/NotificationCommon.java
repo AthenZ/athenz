@@ -23,6 +23,7 @@ import com.yahoo.athenz.common.server.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -117,5 +118,19 @@ public class NotificationCommon {
                 addDomainRoleRecipients(notification, domainName, ResourceUtils.roleResourceName(domainName, ServerCommonConsts.ADMIN_ROLE_NAME));
             }
         }
+    }
+
+    public List<Notification> printNotificationDetailsToLog(List<Notification> notificationDetails, String description, Logger logger) {
+        if (notificationDetails != null && notificationDetails.size() > 0) {
+            StringBuilder detailsForLog = new StringBuilder();
+            detailsForLog.append("Notifications details for " + description + " :\n");
+            for (Notification notification : notificationDetails) {
+                detailsForLog.append(notification + "\n");
+            }
+            logger.info(detailsForLog.toString());
+        } else {
+            logger.info("No notifications details for " + description);
+        }
+        return notificationDetails;
     }
 }

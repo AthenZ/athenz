@@ -50,7 +50,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(0));
+                memberRole -> DisableNotificationEnum.getEnumSet(0));
 
         assertEquals(0, notification.size());
 
@@ -63,7 +63,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(0));
+                memberRole -> DisableNotificationEnum.getEnumSet(0));
 
         assertEquals(0, notification.size());
 
@@ -82,7 +82,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(0));
+                memberRole -> DisableNotificationEnum.getEnumSet(0));
 
         assertEquals(1, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
@@ -103,7 +103,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(0));
+                memberRole -> DisableNotificationEnum.getEnumSet(0));
 
         assertEquals(1, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
@@ -134,7 +134,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(0));
+                memberRole -> DisableNotificationEnum.getEnumSet(0));
 
         assertEquals(0, notification.size());
 
@@ -147,7 +147,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(0));
+                memberRole -> DisableNotificationEnum.getEnumSet(0));
         assertEquals(0, notification.size());
 
         final Timestamp expirationTs = Timestamp.fromMillis(100);
@@ -165,7 +165,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(0));
+                memberRole -> DisableNotificationEnum.getEnumSet(0));
 
         assertEquals(2, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
@@ -191,7 +191,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(0));
+                memberRole -> DisableNotificationEnum.getEnumSet(0));
 
         assertEquals(2, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
@@ -239,7 +239,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(1));
+                memberRole -> DisableNotificationEnum.getEnumSet(1));
 
         assertEquals(1, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
@@ -256,7 +256,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(2));
+                memberRole -> DisableNotificationEnum.getEnumSet(2));
 
         assertEquals(1, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
@@ -273,7 +273,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(3));
+                memberRole -> DisableNotificationEnum.getEnumSet(3));
 
         assertEquals(0, notification.size());
     }

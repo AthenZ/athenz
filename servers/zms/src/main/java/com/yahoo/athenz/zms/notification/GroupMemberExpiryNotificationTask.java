@@ -59,12 +59,13 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
             return new ArrayList<>();
         }
 
-        return getNotificationDetails(
+        List<Notification> notificationDetails = getNotificationDetails(
                 expiryMembers,
                 groupExpiryPrincipalNotificationToEmailConverter,
                 groupExpiryDomainNotificationToEmailConverter,
                 groupExpiryPrincipalNotificationToToMetricConverter,
                 groupExpiryDomainNotificationToMetricConverter);
+        return notificationCommon.printNotificationDetailsToLog(notificationDetails, DESCRIPTION, LOGGER);
     }
 
     public StringBuilder getDetailString(GroupMember memberGroup) {
@@ -98,28 +99,51 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
 
         StringBuilder memberGroupsDetails = new StringBuilder(256);
         for (GroupMember memberGroup : memberGroups) {
-
+            EnumSet<DisableNotificationEnum> disabledNotificationState = getDisabledNotificationState(memberGroup);
+            if (disabledNotificationState.containsAll(Arrays.asList(DisableNotificationEnum.ADMIN, DisableNotificationEnum.USER))) {
+                LOGGER.info("Notification disabled for group {}, domain {}", memberGroup.getGroupName(), memberGroup.getDomainName());
+                continue;
+            }
             final String domainName = memberGroup.getDomainName();
 
             // first we're going to update our expiry details string
 
-            if (memberGroupsDetails.length() != 0) {
-                memberGroupsDetails.append('|');
-            }
+            if (!disabledNotificationState.contains(DisableNotificationEnum.USER)) {
+                if (memberGroupsDetails.length() != 0) {
+                    memberGroupsDetails.append('|');
+                }
 
-            memberGroupsDetails.append(domainName).append(';');
-            memberGroupsDetails.append(getDetailString(memberGroup));
+                memberGroupsDetails.append(domainName).append(';');
+                memberGroupsDetails.append(getDetailString(memberGroup));
+            }
 
             // next we're going to update our domain admin map
 
-            List<GroupMember> domainGroupMembers = domainAdminMap.computeIfAbsent(domainName, k -> new ArrayList<>());
-            domainGroupMembers.add(memberGroup);
+            if (!disabledNotificationState.contains(DisableNotificationEnum.ADMIN)) {
+                List<GroupMember> domainGroupMembers = domainAdminMap.computeIfAbsent(domainName, k -> new ArrayList<>());
+                domainGroupMembers.add(memberGroup);
+            }
+        }
+        if (memberGroupsDetails.length() > 0) {
+            details.put(NOTIFICATION_DETAILS_ROLES_LIST, memberGroupsDetails.toString());
+            details.put(NOTIFICATION_DETAILS_MEMBER, member.getMemberName());
         }
 
-        details.put(NOTIFICATION_DETAILS_ROLES_LIST, memberGroupsDetails.toString());
-        details.put(NOTIFICATION_DETAILS_MEMBER, member.getMemberName());
-
         return details;
+    }
+
+    private EnumSet<DisableNotificationEnum> getDisabledNotificationState(GroupMember memberGroup) {
+        Group group = dbService.getGroup(memberGroup.getDomainName(), memberGroup.getGroupName(), false, false);
+
+        try {
+            return DisableNotificationEnum.getDisabledNotificationState(group, g -> g.getTags());
+        } catch (NumberFormatException ex) {
+            LOGGER.warn("Invalid mask value for zms.DisableReminderNotifications in domain {}, group {}",
+                    memberGroup.getDomainName(),
+                    memberGroup.getGroupName());
+        }
+
+        return DisableNotificationEnum.getEnumSet(0);
     }
 
     private Map<String, String> processMemberReminder(final String domainName, List<GroupMember> memberGroups) {
@@ -171,10 +195,12 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
             // notification agent for processing
 
             Map<String, String> details = processGroupReminder(domainAdminMap, groupMember);
-            Notification notification = notificationCommon.createNotification(
-                    groupMember.getMemberName(), details, principalNotificationToEmailConverter, principalNotificationToMetricConverter);
-            if (notification != null) {
-                notificationList.add(notification);
+            if (details.size() > 0) {
+                Notification notification = notificationCommon.createNotification(
+                        groupMember.getMemberName(), details, principalNotificationToEmailConverter, principalNotificationToMetricConverter);
+                if (notification != null) {
+                    notificationList.add(notification);
+                }
             }
         }
 

@@ -26,31 +26,31 @@ import java.util.EnumSet;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-public class DisableRoleMemberNotificationEnumTest {
+public class DisableNotificationEnumTest {
 
     @Test
     public void testEnum() {
         // None disabled
         long mask = 0;
-        EnumSet<DisableRoleMemberNotificationEnum> enumSet = DisableRoleMemberNotificationEnum.getEnumSet(mask);
+        EnumSet<DisableNotificationEnum> enumSet = DisableNotificationEnum.getEnumSet(mask);
         assertTrue(enumSet.isEmpty());
 
         // User disabled
         mask = 1;
-        enumSet = DisableRoleMemberNotificationEnum.getEnumSet(mask);
+        enumSet = DisableNotificationEnum.getEnumSet(mask);
         assertEquals(enumSet.size(), 1);
-        assertTrue(enumSet.contains(DisableRoleMemberNotificationEnum.USER));
+        assertTrue(enumSet.contains(DisableNotificationEnum.USER));
 
         // Admin disabled
         mask = 2;
-        enumSet = DisableRoleMemberNotificationEnum.getEnumSet(mask);
+        enumSet = DisableNotificationEnum.getEnumSet(mask);
         assertEquals(enumSet.size(), 1);
-        assertTrue(enumSet.contains(DisableRoleMemberNotificationEnum.ADMIN));
+        assertTrue(enumSet.contains(DisableNotificationEnum.ADMIN));
 
         // Both disabled
         mask = 3;
-        enumSet = DisableRoleMemberNotificationEnum.getEnumSet(mask);
+        enumSet = DisableNotificationEnum.getEnumSet(mask);
         assertEquals(enumSet.size(), 2);
-        assertTrue(enumSet.containsAll(Arrays.asList(DisableRoleMemberNotificationEnum.ADMIN, DisableRoleMemberNotificationEnum.USER)));
+        assertTrue(enumSet.containsAll(Arrays.asList(DisableNotificationEnum.ADMIN, DisableNotificationEnum.USER)));
     }
 }

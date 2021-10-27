@@ -116,8 +116,8 @@ public class RoleMemberNotificationCommon {
 
         StringBuilder memberRolesDetails = new StringBuilder(256);
         for (MemberRole memberRole : memberRoles) {
-            EnumSet<DisableRoleMemberNotificationEnum> disabledNotificationState = disableRoleMemberNotificationFilter.getDisabledNotificationState(memberRole);
-            if (disabledNotificationState.containsAll(Arrays.asList(DisableRoleMemberNotificationEnum.ADMIN, DisableRoleMemberNotificationEnum.USER))) {
+            EnumSet<DisableNotificationEnum> disabledNotificationState = disableRoleMemberNotificationFilter.getDisabledNotificationState(memberRole);
+            if (disabledNotificationState.containsAll(Arrays.asList(DisableNotificationEnum.ADMIN, DisableNotificationEnum.USER))) {
                 LOGGER.info("Notification disabled for role {}, domain {}", memberRole.getRoleName(), memberRole.getDomainName());
                 continue;
             }
@@ -125,7 +125,7 @@ public class RoleMemberNotificationCommon {
 
             // first we're going to update our expiry details string
 
-            if (!disabledNotificationState.contains(DisableRoleMemberNotificationEnum.USER)) {
+            if (!disabledNotificationState.contains(DisableNotificationEnum.USER)) {
                 if (memberRolesDetails.length() != 0) {
                     memberRolesDetails.append('|');
                 }
@@ -136,7 +136,7 @@ public class RoleMemberNotificationCommon {
 
             // next we're going to update our domain admin map
 
-            if (!disabledNotificationState.contains(DisableRoleMemberNotificationEnum.ADMIN)) {
+            if (!disabledNotificationState.contains(DisableNotificationEnum.ADMIN)) {
                 List<MemberRole> domainRoleMembers = domainAdminMap.computeIfAbsent(domainName, k -> new ArrayList<>());
                 domainRoleMembers.add(memberRole);
             }
@@ -182,6 +182,10 @@ public class RoleMemberNotificationCommon {
         return details;
     }
 
+    List<Notification> printNotificationDetailsToLog(List<Notification> notificationDetails, String description, Logger logger) {
+        return notificationCommon.printNotificationDetailsToLog(notificationDetails, description, logger);
+    }
+
     /**
      * Extract attributes from memberRole and convert them to a detail string.
      */
@@ -202,8 +206,8 @@ public class RoleMemberNotificationCommon {
         /**
          * Gets disabled notifications state for memberRole
          * @param memberRole - principal / domain / role to check
-         * @return DisableRoleMemberNotificationEnum enum set
+         * @return DisableNotificationEnum enum set
          */
-        EnumSet<DisableRoleMemberNotificationEnum> getDisabledNotificationState(MemberRole memberRole);
+        EnumSet<DisableNotificationEnum> getDisabledNotificationState(MemberRole memberRole);
     }
 }
