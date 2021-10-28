@@ -62,7 +62,7 @@ public class InstanceZTSProviderTest {
     public void testInitializeDefaults() {
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
-        assertEquals("zts.athenz.cloud", provider.dnsSuffix);
+        assertTrue(provider.dnsSuffixes.contains("zts.athenz.cloud"));
         assertEquals(InstanceProvider.Scheme.CLASS, provider.getProviderScheme());
         assertNull(provider.keyStore);
         assertNull(provider.principals);
@@ -77,7 +77,7 @@ public class InstanceZTSProviderTest {
 
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
-        assertEquals("zts.cloud", provider.dnsSuffix);
+        assertTrue(provider.dnsSuffixes.contains("zts.cloud"));
         assertNull(provider.keyStore);
         assertEquals(provider.principals.size(), 2);
         assertTrue(provider.principals.contains("athenz.api"));
@@ -89,7 +89,7 @@ public class InstanceZTSProviderTest {
 
         provider = new InstanceZTSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
-        assertEquals("zts.athenz.cloud", provider.dnsSuffix);
+        assertTrue(provider.dnsSuffixes.contains("zts.athenz.cloud"));
         assertNull(provider.keyStore);
         assertNull(provider.principals);
         provider.close();

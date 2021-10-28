@@ -18,8 +18,7 @@ package com.yahoo.athenz.instance.provider.impl;
 import java.io.File;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jetty.util.StringUtil;
@@ -67,7 +66,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     long certValidityTime;              // cert validity for STS creds only case
     boolean supportRefresh = false;
     String awsRegion;
-    String dnsSuffix = null;
+    Set<String> dnsSuffixes = null;
 
     @Override
     public Scheme getProviderScheme() {
@@ -97,11 +96,14 @@ public class InstanceAWSProvider implements InstanceProvider {
                 System.getProperty(AWS_PROP_BOOT_TIME_OFFSET, Long.toString(timeout)));
         
         // determine the dns suffix. if this is not specified we'll
-        // rejecting all entries
-        
-        dnsSuffix = System.getProperty(AWS_PROP_DNS_SUFFIX);
-        if (dnsSuffix == null || dnsSuffix.isEmpty()) {
+        // be rejecting all entries
+
+        dnsSuffixes = new HashSet<>();
+        final String dnsSuffix = System.getProperty(AWS_PROP_DNS_SUFFIX);
+        if (StringUtil.isEmpty(dnsSuffix)) {
             LOGGER.error("AWS DNS Suffix not specified - no instance requests will be authorized");
+        } else {
+            dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
         }
 
         // default certificate expiry for requests without instance
@@ -124,8 +126,8 @@ public class InstanceAWSProvider implements InstanceProvider {
         return new ResourceException(errorCode, message);
     }
 
-    protected String getDnsSuffix() {
-        return dnsSuffix;
+    protected Set<String> getDnsSuffixes() {
+        return dnsSuffixes;
     }
 
     boolean validateAWSAccount(final String awsAccount, final String docAccount, StringBuilder errMsg) {
@@ -289,7 +291,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, getDnsSuffix(), instanceId)) {
+                instanceService, getDnsSuffixes(), instanceId)) {
             throw error("Unable to validate certificate request hostnames");
         }
         

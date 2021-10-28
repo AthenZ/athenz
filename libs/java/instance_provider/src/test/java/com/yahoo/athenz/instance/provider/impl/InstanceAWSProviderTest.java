@@ -81,13 +81,21 @@ public class InstanceAWSProviderTest {
         InstanceAWSProvider provider = new InstanceAWSProvider();
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
-        assertNull(provider.dnsSuffix);
+        assertTrue(provider.dnsSuffixes.isEmpty());
         provider.close();
 
         provider = new InstanceAWSProvider();
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
-        assertEquals("", provider.dnsSuffix);
+        assertTrue(provider.dnsSuffixes.isEmpty());
+        provider.close();
+
+        provider = new InstanceAWSProvider();
+        System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz1.cloud,athenz2.cloud");
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+        assertEquals(provider.dnsSuffixes.size(), 2);
+        assertTrue(provider.dnsSuffixes.contains("athenz1.cloud"));
+        assertTrue(provider.dnsSuffixes.contains("athenz2.cloud"));
         provider.close();
     }
 
@@ -375,7 +383,70 @@ public class InstanceAWSProviderTest {
         assertNull(attrs.get("certExpiryTime"));
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
-    
+
+    @Test
+    public void testConfirmInstanceMultipleSANDNSes() {
+
+        System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz1.cloud,athenz2.cloud");
+        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
+        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
+        String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("{\"document\": \"{\\\"accountId\\\": \\\"1234\\\",\\\"pendingTime\\\": \\\""
+                        + bootTime + "\\\",\\\"region\\\": \\\"us-west-2\\\",\\\"instanceId\\\": \\\"i-1234\\\","
+                        + "\\\"privateIp\\\": \\\"10.10.10.11\\\"}\","
+                        + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
+                .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("awsAccount", "1234");
+        attributes.put("sanDNS", "service.athenz.athenz1.cloud,service.athenz.athenz2.cloud,i-1234.instanceid.athenz.athenz1.cloud");
+        confirmation.setAttributes(attributes);
+
+        InstanceConfirmation result = provider.confirmInstance(confirmation);
+        assertEquals(result.getDomain(), "athenz");
+        Map<String, String> attrs = result.getAttributes();
+        assertNotNull(attrs);
+        assertEquals(attrs.get("certSSH"), "true");
+        assertEquals(attrs.get("instancePrivateIp"), "10.10.10.11");
+        assertNull(attrs.get("certExpiryTime"));
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+    }
+
+    @Test
+    public void testConfirmInstanceMultipleSANDNSesURIInstance() {
+
+        System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz1.cloud,athenz2.cloud");
+        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
+        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
+        String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("{\"document\": \"{\\\"accountId\\\": \\\"1234\\\",\\\"pendingTime\\\": \\\""
+                        + bootTime + "\\\",\\\"region\\\": \\\"us-west-2\\\",\\\"instanceId\\\": \\\"i-1234\\\","
+                        + "\\\"privateIp\\\": \\\"10.10.10.11\\\"}\","
+                        + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
+                .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("awsAccount", "1234");
+        attributes.put("sanDNS", "service.athenz.athenz1.cloud,service.athenz.athenz2.cloud");
+        attributes.put("sanURI", "athenz://instanceid/athenz.aws.us-west-2/i-1234");
+        confirmation.setAttributes(attributes);
+
+        InstanceConfirmation result = provider.confirmInstance(confirmation);
+        assertEquals(result.getDomain(), "athenz");
+        Map<String, String> attrs = result.getAttributes();
+        assertNotNull(attrs);
+        assertEquals(attrs.get("certSSH"), "true");
+        assertEquals(attrs.get("instancePrivateIp"), "10.10.10.11");
+        assertNull(attrs.get("certExpiryTime"));
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+    }
+
     @Test
     public void testConfirmInstanceEmptyDocument() {
         
