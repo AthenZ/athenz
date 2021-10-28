@@ -2432,6 +2432,13 @@ Fetchr.registerService({
                         return callback(null, new Map());
                     }
                 } else {
+                    debug(
+                        `principal: ${req.session.shortId} rid: ${
+                            req.headers.rid
+                        } Error from MSD while calling getInstances API: ${JSON.stringify(
+                            err
+                        )}`
+                    );
                     return callback(errorHandler.fetcherError(err));
                 }
             }
