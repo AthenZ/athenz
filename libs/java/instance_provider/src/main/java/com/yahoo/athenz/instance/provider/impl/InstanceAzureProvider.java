@@ -32,8 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +59,7 @@ public class InstanceAzureProvider implements InstanceProvider {
     static final String AZURE_OPENID_CONFIG_URI = "https://login.microsoftonline.com/common/.well-known/openid-configuration";
 
     String azureProvider = null;
-    String dnsSuffix = null;
+    Set<String> dnsSuffixes = null;
     String azureJwksUri = null;
     HttpDriver httpDriver = null;
     ObjectMapper jsonMapper = null;
@@ -103,14 +102,17 @@ public class InstanceAzureProvider implements InstanceProvider {
             LOGGER.error("No Azure public keys available - no instance requests will be authorized");
             enabled = false;
         }
-        
+
         // determine the dns suffix. if this is not specified we'll
-        // rejecting all entries
-        
-        dnsSuffix = System.getProperty(AZURE_PROP_DNS_SUFFIX);
+        // be rejecting all entries
+
+        dnsSuffixes = new HashSet<>();
+        final String dnsSuffix = System.getProperty(AZURE_PROP_DNS_SUFFIX);
         if (StringUtil.isEmpty(dnsSuffix)) {
-            LOGGER.error("Azure DNS Suffix not specified - no instance requests will be authorized");
+            LOGGER.error("Azure Suffix not specified - no instance requests will be authorized");
             enabled = false;
+        } else {
+            dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
         }
 
         ztsResourceUri = System.getProperty(AZURE_PROP_ZTS_RESOURCE_URI);
@@ -208,7 +210,7 @@ public class InstanceAzureProvider implements InstanceProvider {
         
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, dnsSuffix, instanceId)) {
+                instanceService, dnsSuffixes, instanceId)) {
             throw error("Unable to validate certificate request hostnames");
         }
 

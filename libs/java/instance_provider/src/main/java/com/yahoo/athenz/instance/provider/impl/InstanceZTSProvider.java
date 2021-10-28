@@ -64,7 +64,7 @@ public class InstanceZTSProvider implements InstanceProvider {
     public static final String CLAIM_INSTANCE_ID = "instance_id";
 
     KeyStore keyStore = null;
-    String dnsSuffix = null;
+    Set<String> dnsSuffixes = null;
     String provider = null;
     String keyId = null;
     PrivateKey key = null;
@@ -95,13 +95,15 @@ public class InstanceZTSProvider implements InstanceProvider {
             principals = new HashSet<>(Arrays.asList(principalList.split(",")));
         }
 
-        // determine the dns suffix. if this is not specified we'll be
-        // rejecting all entries
-        
-        dnsSuffix = System.getProperty(ZTS_PROP_PROVIDER_DNS_SUFFIX, "zts.athenz.cloud");
-        if (dnsSuffix.isEmpty()) {
+        // determine the dns suffix. if this is not specified we'll just default to zts.athenz.cloud
+
+        dnsSuffixes = new HashSet<>();
+        String dnsSuffix = System.getProperty(ZTS_PROP_PROVIDER_DNS_SUFFIX, "zts.athenz.cloud");
+        if (StringUtil.isEmpty(dnsSuffix)) {
             dnsSuffix = "zts.athenz.cloud";
         }
+        dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
+
         this.keyStore = keyStore;
 
         // get expiry time for any generated tokens - default 30 mins
@@ -238,7 +240,7 @@ public class InstanceZTSProvider implements InstanceProvider {
 
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, dnsSuffix, instanceId)) {
+                instanceService, dnsSuffixes, instanceId)) {
             throw forbiddenError("Unable to validate certificate request DNS");
         }
 

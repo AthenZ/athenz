@@ -68,7 +68,7 @@ public class InstanceAzureProviderTest {
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
 
         assertEquals(provider.getProviderScheme(), InstanceProvider.Scheme.HTTP);
-        assertEquals(provider.dnsSuffix, "azure.cloud");
+        assertTrue(provider.dnsSuffixes.contains("azure.cloud"));
         assertEquals(provider.azureJwksUri, "file://src/test/resources/keys.json");
         provider.close();
 
@@ -85,7 +85,7 @@ public class InstanceAzureProviderTest {
         InstanceAzureProvider provider = new InstanceAzureProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
 
-        assertNull(provider.dnsSuffix);
+        assertTrue(provider.dnsSuffixes.isEmpty());
         assertNull(provider.azureJwksUri);
         provider.close();
 

@@ -19,7 +19,9 @@ import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class InstanceUtils {
 
@@ -45,13 +47,12 @@ public class InstanceUtils {
         return value;
     }
 
-    public static boolean validateCertRequestSanDnsNames(final Map<String, String> attributes,
-                                                         final String domain, final String service, final String dnsSuffix,
-                                                         StringBuilder instanceId) {
+    public static boolean validateCertRequestSanDnsNames(final Map<String, String> attributes, final String domain,
+            final String service, final Set<String> dnsSuffixes, StringBuilder instanceId) {
 
         // make sure we have valid dns suffix specified
 
-        if (dnsSuffix == null || dnsSuffix.isEmpty()) {
+        if (dnsSuffixes == null || dnsSuffixes.isEmpty()) {
             LOGGER.error("No Cloud Provider DNS suffix specified for validation");
             return false;
         }
@@ -66,9 +67,13 @@ public class InstanceUtils {
             return false;
         }
 
-        // generate the expected hostname for check
+        // generate the expected hostname(s) for check
 
-        final String hostNameCheck = service + "." + domain.replace('.', '-') + "." + dnsSuffix;
+        Set<String> hostNameChecks = new HashSet<>();
+        final String dashDomain = domain.replace('.', '-');
+        for (String dnsSuffix : dnsSuffixes) {
+            hostNameChecks.add(service + "." + dashDomain + "." + dnsSuffix);
+        }
 
         // validate the entries
 
@@ -76,31 +81,19 @@ public class InstanceUtils {
         boolean instanceIdCheck = false;
 
         String[] hosts = hostnames.split(",");
-
-        // we only allow up to two hostnames in our AWS CSR:
-        // service.<domain-with-dashes>.<dns-suffix>
-        // <instance-id>.instanceid.athenz.<dns-suffix>
-        // instance id can be specified as URI
-
-        if (hosts.length > 2) {
-            LOGGER.error("Request does not contain expected number of SAN DNS entries: {}",
-                    hosts.length);
-            return false;
-        }
-
         for (String host : hosts) {
 
             int idx = host.indexOf(ZTS_CERT_INSTANCE_ID);
             if (idx != -1) {
                 instanceId.append(host, 0, idx);
-                if (!dnsSuffix.equals(host.substring(idx + ZTS_CERT_INSTANCE_ID.length()))) {
+                if (!dnsSuffixes.contains(host.substring(idx + ZTS_CERT_INSTANCE_ID.length()))) {
                     LOGGER.error("Host: {} does not have expected instance id format", host);
                     return false;
                 }
 
                 instanceIdCheck = true;
             } else {
-                if (!hostNameCheck.equals(host)) {
+                if (!hostNameChecks.contains(host)) {
                     LOGGER.error("Unable to verify SAN DNS entry: {}", host);
                     return false;
                 }
