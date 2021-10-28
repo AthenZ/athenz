@@ -60,7 +60,7 @@ export default class AddStaticInstances extends React.Component {
         this.api = props.api;
         this.onSubmit = this.onSubmit.bind(this);
         this.resourceTypeChanged = this.resourceTypeChanged.bind(this);
-        this.inputChanged = this.inputChanged.bind(this, 'resourceValue');
+        this.inputChanged = this.inputChanged.bind(this);
         this.state = {
             resourceValue: '',
             resourceType: '',
@@ -91,7 +91,7 @@ export default class AddStaticInstances extends React.Component {
             return;
         }
 
-        if (this.state.resourceValue || this.state.resourceValue === '') {
+        if (!this.state.resourceValue || this.state.resourceValue === '') {
             this.setState({
                 errorMessage: 'At least one resource value is required.',
             });
@@ -136,14 +136,8 @@ export default class AddStaticInstances extends React.Component {
             });
     }
 
-    inputChanged(key, evt) {
-        let value = '';
-        if (evt.target) {
-            value = evt.target.value;
-        } else {
-            value = evt ? evt : '';
-        }
-        this.setState({ [key]: value });
+    inputChanged(evt) {
+        this.setState({ resourceValue: evt.target.value });
     }
     render() {
         let sections = (
