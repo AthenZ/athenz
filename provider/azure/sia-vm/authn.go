@@ -72,7 +72,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		}
 		certFilePem := util.GetRoleCertFileName(mkDirPath(opts.CertDir), role.Filename, roleName)
 		spiffe := fmt.Sprintf("spiffe://%s/ra/%s", domainNameRequest, roleNameRequest)
-		csr, err := util.GenerateCSR(key, opts.CountryName, "", opts.Domain, opts.Services[0].Name, roleName, "", provider, spiffe, opts.ZTSAzureDomain, true)
+		csr, err := util.GenerateCSR(key, opts.CountryName, "", opts.Domain, opts.Services[0].Name, roleName, "", provider, spiffe, opts.ZTSAzureDomains, false, true)
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
@@ -118,7 +118,7 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 	}
 
 	// include a csr for the host ssh certificate if requested
-	ssh, err := generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, identityDocument.PrivateIp, opts.ZTSAzureDomain, sysLogger)
+	ssh, err := generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, identityDocument.PrivateIp, opts.ZTSAzureDomains, sysLogger)
 	if err != nil {
 		return err
 	}
@@ -126,7 +126,7 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 	provider := getProviderName(opts.Provider, identityDocument.Location)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
 	commonName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, spiffe, opts.ZTSAzureDomain, false)
+	csr, err := util.GenerateCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, spiffe, opts.ZTSAzureDomains, opts.SanDnsWildcard, false)
 	if err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, iden
 	certFile := fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, svc.Name)
 
 	// include a csr for the host ssh certificate if requested
-	ssh, err := generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, identityDocument.PrivateIp, opts.ZTSAzureDomain, sysLogger)
+	ssh, err := generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, identityDocument.PrivateIp, opts.ZTSAzureDomains, sysLogger)
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, iden
 	provider := getProviderName(opts.Provider, identityDocument.Location)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
 	commonName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, spiffe, opts.ZTSAzureDomain, false)
+	csr, err := util.GenerateCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, spiffe, opts.ZTSAzureDomains, opts.SanDnsWildcard, false)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
@@ -293,7 +293,7 @@ func restartSshdService() error {
 	return exec.Command("systemctl", "restart", "sshd").Run()
 }
 
-// SSHKeyReq
+// SSHKeyReq ssh key request object
 type SSHKeyReq struct {
 	Principals []string `json:"principals"`
 	Ips        []string `json:"ips,omitempty" rdl:"optional"`
@@ -305,7 +305,7 @@ type SSHKeyReq struct {
 	Command    string   `json:"command,omitempty" rdl:"optional"`
 }
 
-func generateSSHHostCSR(sshCert bool, domain, service, ip, ZTSAzureDomain string, sysLogger io.Writer) (string, error) {
+func generateSSHHostCSR(sshCert bool, domain, service, ip string, ztsAzureDomains []string, sysLogger io.Writer) (string, error) {
 	if !sshCert {
 		return "", nil
 	}
@@ -317,9 +317,13 @@ func generateSSHHostCSR(sshCert bool, domain, service, ip, ZTSAzureDomain string
 	identity := domain + "." + service
 	transId := fmt.Sprintf("%x", time.Now().Unix())
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
-	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ZTSAzureDomain)
+	principals := []string{}
+	for _, ztsDomain := range ztsAzureDomains {
+		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
+		principals = append(principals, host)
+	}
 	req := &SSHKeyReq{
-		Principals: []string{host},
+		Principals: principals,
 		Pubkey:     string(pubkey),
 		Reqip:      ip,
 		Requser:    identity,

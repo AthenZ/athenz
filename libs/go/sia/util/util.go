@@ -239,7 +239,7 @@ func PrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 	return x509.ParsePKCS1PrivateKey(block.Bytes)
 }
 
-func GenerateCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider, spiffeUri, ztsDomain string, principalEmail bool) (string, error) {
+func GenerateCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider, spiffeUri string, ztsDomains []string, wildCardDnsName, roleCertificate bool) (string, error) {
 	//note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
 	//it is used, not the CN. So, we will always put the Athenz name in the CN
 	//(it is *not* a DNS domain name), and put the host name into the SAN.
@@ -251,8 +251,15 @@ func GenerateCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, com
 	csrDetails.OrgUnit = provider
 
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
-	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
-	csrDetails.HostList = []string{host}
+	csrDetails.HostList = []string{}
+	for _, ztsDomain := range ztsDomains {
+		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
+		csrDetails.HostList = append(csrDetails.HostList, host)
+		if wildCardDnsName {
+			host = fmt.Sprintf("*.%s.%s.%s", service, hyphenDomain, ztsDomain)
+			csrDetails.HostList = append(csrDetails.HostList, host)
+		}
+	}
 	csrDetails.URIs = []*url.URL{}
 	// spiffe uri must always be the first one
 	if spiffeUri != "" {
@@ -263,8 +270,13 @@ func GenerateCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, com
 		instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/%s", provider, instanceId)
 		csrDetails.URIs = appendUri(csrDetails.URIs, instanceIdUri)
 	}
-	if principalEmail {
-		email := fmt.Sprintf("%s.%s@%s", domain, service, ztsDomain)
+	// if this csr for a role certificate then we're going to
+	// include an uri for athenz principal and for backward
+	// compatibility an email with the principal as the local part
+	if roleCertificate {
+		principalUri := fmt.Sprintf("athenz://principal/%s.%s", domain, service)
+		csrDetails.URIs = appendUri(csrDetails.URIs, principalUri)
+		email := fmt.Sprintf("%s.%s@%s", domain, service, ztsDomains[0])
 		csrDetails.EmailList = []string{email}
 	}
 	return GenerateX509CSR(key, csrDetails)

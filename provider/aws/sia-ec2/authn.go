@@ -86,7 +86,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			}
 		}
 
-		csr, err := util.GenerateCSR(key, "US", "", opts.Domain, opts.Services[0].Name, roleName, "", provider, spiffe, opts.ZTSAWSDomain, true)
+		csr, err := util.GenerateCSR(key, "US", "", opts.Domain, opts.Services[0].Name, roleName, "", provider, spiffe, opts.ZTSAWSDomains, false, true)
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
@@ -166,7 +166,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	//include a csr for the host ssh certificate
 	var ssh string
 	if data.TaskId == "" {
-		ssh, err = generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, ip, opts.ZTSAWSDomain, sysLogger)
+		ssh, err = generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, ip, opts.ZTSAWSDomains, sysLogger)
 		if err != nil {
 			return err
 		}
@@ -174,7 +174,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 
 	provider, ec2Provider := getProviderName(opts.Provider, region, data.TaskId, opts.ProviderParentDomain)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateCSR(key, "US", "", opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomain, false)
+	csr, err := util.GenerateCSR(key, "US", "", opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomains, opts.SanDnsWildcard, false)
 	if err != nil {
 		return err
 	}
@@ -280,7 +280,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	//include a csr for the host ssh certificate
 	var ssh string
 	if data.TaskId == "" {
-		ssh, err = generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, ip, opts.ZTSAWSDomain, sysLogger)
+		ssh, err = generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, ip, opts.ZTSAWSDomains, sysLogger)
 		if err != nil {
 			return err
 		}
@@ -298,7 +298,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		return err
 	}
 
-	csr, err := util.GenerateCSR(key, "US", "", opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomain, false)
+	csr, err := util.GenerateCSR(key, "US", "", opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomains, opts.SanDnsWildcard, false)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
@@ -383,7 +383,7 @@ type SSHKeyReq struct {
 	Command    string   `json:"command,omitempty" rdl:"optional"` //not used
 }
 
-func generateSSHHostCSR(sshCert bool, domain, service, ip, ztsAwsDomain string, sysLogger io.Writer) (string, error) {
+func generateSSHHostCSR(sshCert bool, domain, service, ip string, ztsAwsDomains []string, sysLogger io.Writer) (string, error) {
 	if !sshCert {
 		return "", nil
 	}
@@ -395,9 +395,13 @@ func generateSSHHostCSR(sshCert bool, domain, service, ip, ztsAwsDomain string, 
 	identity := domain + "." + service
 	transId := fmt.Sprintf("%x", time.Now().Unix())
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
-	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsAwsDomain)
+	principals := []string{}
+	for _, ztsDomain := range ztsAwsDomains {
+		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
+		principals = append(principals, host)
+	}
 	req := &SSHKeyReq{
-		Principals: []string{host},
+		Principals: principals,
 		Pubkey:     string(pubkey),
 		Reqip:      ip,
 		Requser:    identity,
@@ -459,14 +463,6 @@ func getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix string) (st
 	} else {
 		return fmt.Sprintf("%s/%s.cert.pem", certDir, certPrefix), fmt.Sprintf("%s/%s.key.pem", keyDir, keyPrefix)
 	}
-}
-
-// mkDirPath appends "/" if missing at the end
-func mkDirPath(dir string) string {
-	if !strings.HasSuffix(dir, "/") {
-		return fmt.Sprintf("%s/", dir)
-	}
-	return dir
 }
 
 func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options, sysLogger io.Writer) error {

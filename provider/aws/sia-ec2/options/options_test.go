@@ -73,14 +73,15 @@ func TestOptionsNoConfig(t *testing.T) {
 	router := httptreemux.New()
 	router.GET("/latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
 		log.Printf("Called /latest/dynamic/instance-identity/document")
-		io.WriteString(w, string(iamJson))
+		io.WriteString(w, iamJson)
 	})
 
 	metaServer := &testServer{}
 	metaServer.start(router)
 	defer metaServer.stop()
 
-	opts, e := NewOptions([]byte{}, "123456789012", metaServer.httpUrl(), "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
+	ztsDomains := []string{"zts-aws-domain"}
+	opts, e := NewOptions([]byte{}, "123456789012", metaServer.httpUrl(), "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -113,7 +114,8 @@ func TestOptionsWithConfig(t *testing.T) {
   		]
 	}`
 
-	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
+	ztsDomains := []string{"zts-aws-domain"}
+	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -145,7 +147,8 @@ func TestOptionsNoService(t *testing.T) {
   		]
 	}`
 
-	_, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
+	ztsDomains := []string{"zts-aws-domain"}
+	_, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 
 	config = `{
@@ -163,7 +166,7 @@ func TestOptionsNoService(t *testing.T) {
   		]
 	}`
 
-	_, e = NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
+	_, e = NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 }
 
@@ -181,7 +184,8 @@ func TestOptionsNoServices(t *testing.T) {
   		]
 	}`
 
-	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
+	ztsDomains := []string{"zts-aws-domain"}
+	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 
 	// Make sure one service is set
@@ -231,7 +235,7 @@ func getGid(t *testing.T, group string) int {
 	require.Nil(t, err)
 
 	for _, line := range strings.Split(string(out), "\n") {
-		parts := strings.Split(strings.Trim(string(line), "\r"), ":")
+		parts := strings.Split(strings.Trim(line, "\r"), ":")
 		if parts[0] == group {
 			gid, err := strconv.Atoi(parts[2])
 			require.Nil(t, err)
@@ -257,7 +261,8 @@ func TestOptionsWithGenerateRoleKeyConfig(t *testing.T) {
   		]
 	}`
 
-	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
+	ztsDomains := []string{"zts-aws-domain"}
+	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.GenerateRoleKey == true)
 }
@@ -276,7 +281,8 @@ func TestOptionsWithRotateKeyConfig(t *testing.T) {
   		]
 	}`
 
-	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", "zts-aws-domain", "", os.Stdout)
+	ztsDomains := []string{"zts-aws-domain"}
+	opts, e := NewOptions([]byte(config), "123456789012", "http://localhost:80", "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.RotateKey == true)
 }

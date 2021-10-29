@@ -29,15 +29,6 @@ import (
 	"io"
 )
 
-const (
-	CentOS7 = iota
-	CentOS6
-	Ubuntu14
-	Ubuntu16
-	Ubuntu18
-	Unknown
-)
-
 // ConfigService represents a service to be specified by user, and specify User/Group attributes for the service
 type ConfigService struct {
 	Filename string `json:"filename,omitempty"`
@@ -50,11 +41,11 @@ type ConfigRole struct {
 	Filename string `json:"filename,omitempty"`
 }
 
-// ConfigAccount represts each of the accounts that can be specified in the config file
+// ConfigAccount represents each of the accounts that can be specified in the config file
 type ConfigAccount struct {
 	Provider string                `json:"provider,omitempty"` //name of the provider
 	Name     string                `json:"name,omitempty"`     //name of the service identity
-	User     string                `json:"user,omitempty"`     //the user name to chown the cert/key dirs to. If absent, then root.
+	User     string                `json:"user,omitempty"`     //the username to chown the cert/key dirs to. If absent, then root.
 	Group    string                `json:"group,omitempty"`    //the group name to chown the cert/key dirs to. If absent, then athenz.
 	Domain   string                `json:"domain,omitempty"`   //name of the domain for the identity
 	Account  string                `json:"account,omitempty"`  //name of the account
@@ -62,7 +53,6 @@ type ConfigAccount struct {
 	Zts      string                `json:"zts,omitempty"`      //the ZTS to contact
 	Filename string                `json:"filename,omitempty"` //filename to put the service certificate
 	Roles    map[string]ConfigRole `json:"roles,omitempty"`    //map of roles to retrieve certificates for
-	OsType   int                   `json:"ostype,omitempty"`   //current operating system
 	Version  string                `json:"version,omitempty"`  // sia version number
 }
 
@@ -72,6 +62,7 @@ type Config struct {
 	Service         string                   `json:"service,omitempty"`           //name of the service for the identity
 	Services        map[string]ConfigService `json:"services,omitempty"`          //names of the multiple services for the identity
 	Ssh             *bool                    `json:"ssh,omitempty"`               //ssh certificate support
+	SanDnsWildcard  bool                     `json:"sandns_wildcard,omitempty"`   //san dns wildcard support
 	UseRegionalSTS  bool                     `json:"regionalsts,omitempty"`       //whether to use a regional STS endpoint (default is false)
 	Accounts        []ConfigAccount          `json:"accounts,omitempty"`          //array of configured accounts
 	GenerateRoleKey bool                     `json:"generate_role_key,omitempty"` //private key to be generated for role certificate
@@ -111,6 +102,7 @@ type Options struct {
 	Services             []Service
 	Ssh                  bool
 	UseRegionalSTS       bool
+	SanDnsWildcard       bool
 	Zts                  string
 	Filename             string
 	Roles                map[string]ConfigRole
@@ -121,7 +113,7 @@ type Options struct {
 	AthenzCACertFile     string
 	ZTSCACertFile        string
 	ZTSServerName        string
-	ZTSAWSDomain         string
+	ZTSAWSDomains        []string
 	GenerateRoleKey      bool
 	RotateKey            bool
 	BackUpDir            string
@@ -179,7 +171,7 @@ func initFileConfig(bytes []byte, accountId string) (*Config, *ConfigAccount, er
 
 // NewOptions takes in sia_config bytes and returns a pointer to Options after parsing and initializing the defaults
 // It uses profile arn for defaults when sia_config is empty or non-parsable. It populates "services" array
-func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCert, ztsServerName, ztsAwsDomain, providerParentDomain string, sysLogger io.Writer) (*Options, error) {
+func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCert, ztsServerName string, ztsAwsDomains []string, providerParentDomain string, sysLogger io.Writer) (*Options, error) {
 	// Parse config bytes first, and if that fails, load values from Instance Profile and IAM info
 	config, account, err := initFileConfig(bytes, accountId)
 	if err != nil {
@@ -200,8 +192,10 @@ func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCer
 	}
 
 	useRegionalSTS := false
+	sanDnsWildcard := false
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
+		sanDnsWildcard = config.SanDnsWildcard
 	}
 
 	var services []Service
@@ -247,7 +241,7 @@ func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCer
 				first.User = s.User
 				first.Group = s.Group
 				// If User/Group are not specified, apply the User/Group settings from Config Account
-				// This is for backwards compatibility - For other multiple services, the User/Group need to be explicityly mentioned in config
+				// This is for backwards compatibility - For other multiple services, the User/Group need to be explicitly mentioned in config
 				if first.User == "" {
 					first.User = account.User
 				}
@@ -293,10 +287,10 @@ func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCer
 		Account:              account.Account,
 		Zts:                  account.Zts,
 		Filename:             account.Filename,
-		OsType:               GetOSType(),
 		Version:              fmt.Sprintf("SIA-AWS %s", version),
 		Ssh:                  ssh,
 		UseRegionalSTS:       useRegionalSTS,
+		SanDnsWildcard:       sanDnsWildcard,
 		Services:             services,
 		Roles:                account.Roles,
 		CertDir:              fmt.Sprintf("%s/certs", siaDir),
@@ -304,20 +298,10 @@ func NewOptions(bytes []byte, accountId, metaEndPoint, siaDir, version, ztsCaCer
 		AthenzCACertFile:     fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
 		ZTSCACertFile:        ztsCaCert,
 		ZTSServerName:        ztsServerName,
-		ZTSAWSDomain:         ztsAwsDomain,
+		ZTSAWSDomains:        ztsAwsDomains,
 		GenerateRoleKey:      generateRoleKey,
 		RotateKey:            rotateKey,
 		BackUpDir:            fmt.Sprintf("%s/backup", siaDir),
 		ProviderParentDomain: providerParentDomain,
 	}, nil
-}
-
-func GetOSType() int {
-	// this is only needed if sshd on the given os
-	// needs something special for the restart
-	// typically one would parse the /etc/os-release
-	// for now we have a single method for restarting
-	// sshd so we'll just return unknown os type
-
-	return Unknown
 }
