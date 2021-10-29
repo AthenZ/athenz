@@ -20,6 +20,7 @@ package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.common.server.notification.Notification;
+import com.yahoo.athenz.zms.notification.GroupMemberExpiryNotificationTask;
 import com.yahoo.athenz.zms.notification.RoleMemberExpiryNotificationTask;
 import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.*;
@@ -99,6 +100,8 @@ public class ZMSNotificationsTest {
                 assertNotNull(notification.getNotificationAsMetrics(currentTimestamp));
             }
         }
+
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", zmsTestInitializer.getAuditRef());
     }
 
     private void verifyAdminNotifications(Set<String> emailNotificationMembers, Notification notification) {
@@ -114,5 +117,169 @@ public class ZMSNotificationsTest {
                 assertFalse(membersList.contains(member + ";"));
             }
         }
+    }
+
+    @Test
+    public void testGroupExpiryNotification() {
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("test-domain1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+
+        long currentTimeMillis = System.currentTimeMillis();
+        Timestamp currentTimestamp = Timestamp.fromMillis(currentTimeMillis);
+
+        // Create 29 group members which will be expired in the next 29 days. Each day exactly one member will be expired.
+        List<GroupMember> groupMembers = new ArrayList<>();
+        for (int i = 0; i <= 28; ++i) {
+            Timestamp timestamp = Timestamp.fromMillis(currentTimeMillis + TimeUnit.MILLISECONDS.convert(i, TimeUnit.DAYS));
+            groupMembers.add(new GroupMember().setMemberName("user.expireddays" + i).setExpiration(timestamp));
+        }
+
+        Group group1 = zmsTestInitializer.createGroupObject("test-domain1", "Group1", groupMembers);
+
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", "Group1", zmsTestInitializer.getAuditRef(), group1);
+        GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(zmsTestInitializer.getZms().dbService, zmsTestInitializer.getZms().userDomainPrefix, zmsTestInitializer.getZms().notificationToEmailConverterCommon);
+        List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
+
+        // Email notifications should be sent every 7 days
+        Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList(new String[]{
+                "user.expireddays0",
+                "user.expireddays1",
+                "user.expireddays7",
+                "user.expireddays14",
+                "user.expireddays21",
+                "user.expireddays28"}));
+        assertEquals(notifications.size(), 7);
+        for (Notification notification : notifications) {
+            String recipient = notification.getRecipients().stream().findFirst().get();
+            if (recipient.equals("user.testadminuser")) {
+                verifyAdminNotifications(emailNotificationMembers, notification);
+            } else {
+                if (emailNotificationMembers.contains(recipient)) {
+                    assertNotNull(notification.getNotificationAsEmail());
+                } else {
+                    assertNull(notification.getNotificationAsEmail());
+                }
+                assertNotNull(notification.getNotificationAsMetrics(currentTimestamp));
+            }
+        }
+
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", zmsTestInitializer.getAuditRef());
+    }
+
+    @Test
+    public void testDisableUserGroupExpiryNotification() {
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("test-domain1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+
+        long currentTimeMillis = System.currentTimeMillis();
+
+        // Create 29 group members which will be expired in the next 29 days. Each day exactly one member will be expired.
+        List<GroupMember> groupMembers = new ArrayList<>();
+        for (int i = 0; i <= 28; ++i) {
+            Timestamp timestamp = Timestamp.fromMillis(currentTimeMillis + TimeUnit.MILLISECONDS.convert(i, TimeUnit.DAYS));
+            groupMembers.add(new GroupMember().setMemberName("user.expireddays" + i).setExpiration(timestamp));
+        }
+
+        Group group1 = zmsTestInitializer.createGroupObject("test-domain1", "Group1", groupMembers);
+        // Now disable notification for users
+        Map<String, TagValueList> disableUserTags = new HashMap<>();
+        disableUserTags.put("zms.DisableReminderNotifications", new TagValueList().setList(Arrays.asList("1")));
+        group1.setTags(disableUserTags);
+
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", "Group1", zmsTestInitializer.getAuditRef(), group1);
+        GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(zmsTestInitializer.getZms().dbService, zmsTestInitializer.getZms().userDomainPrefix, zmsTestInitializer.getZms().notificationToEmailConverterCommon);
+        List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
+
+        // Email notifications should be sent every 7 days
+        Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList(new String[]{
+                "user.expireddays0",
+                "user.expireddays1",
+                "user.expireddays7",
+                "user.expireddays14",
+                "user.expireddays21",
+                "user.expireddays28"}));
+        assertEquals(notifications.size(), 1);
+        Notification notification = notifications.get(0);
+        assertEquals(notification.getRecipients().size(), 1);
+        String recipient = notification.getRecipients().stream().findFirst().get();
+        assertEquals(recipient, "user.testadminuser");
+        verifyAdminNotifications(emailNotificationMembers, notification);
+
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", zmsTestInitializer.getAuditRef());
+    }
+
+    @Test
+    public void testDisableAdminGroupExpiryNotification() {
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("test-domain1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+
+        long currentTimeMillis = System.currentTimeMillis();
+
+        // Create 29 group members which will be expired in the next 29 days. Each day exactly one member will be expired.
+        List<GroupMember> groupMembers = new ArrayList<>();
+        for (int i = 0; i <= 28; ++i) {
+            Timestamp timestamp = Timestamp.fromMillis(currentTimeMillis + TimeUnit.MILLISECONDS.convert(i, TimeUnit.DAYS));
+            groupMembers.add(new GroupMember().setMemberName("user.expireddays" + i).setExpiration(timestamp));
+        }
+
+        Group group1 = zmsTestInitializer.createGroupObject("test-domain1", "Group1", groupMembers);
+        // Now disable notification for admins
+        Map<String, TagValueList> disableUserTags = new HashMap<>();
+        disableUserTags.put("zms.DisableReminderNotifications", new TagValueList().setList(Arrays.asList("2")));
+        group1.setTags(disableUserTags);
+
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", "Group1", zmsTestInitializer.getAuditRef(), group1);
+        GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(zmsTestInitializer.getZms().dbService, zmsTestInitializer.getZms().userDomainPrefix, zmsTestInitializer.getZms().notificationToEmailConverterCommon);
+        List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
+
+        // Email notifications should be sent every 7 days
+        Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList(new String[]{
+                "user.expireddays0",
+                "user.expireddays1",
+                "user.expireddays7",
+                "user.expireddays14",
+                "user.expireddays21",
+                "user.expireddays28"}));
+        assertEquals(notifications.size(), 6);
+        for (Notification notification : notifications) {
+            assertEquals(notification.getRecipients().size(), 1);
+            String recipient = notification.getRecipients().stream().findFirst().get();
+            assertTrue(emailNotificationMembers.contains(recipient));
+            emailNotificationMembers.remove(recipient);
+        }
+        assertTrue(emailNotificationMembers.isEmpty());
+
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", zmsTestInitializer.getAuditRef());
+    }
+
+    @Test
+    public void testDisableAllGroupExpiryNotification() {
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("test-domain1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+
+        long currentTimeMillis = System.currentTimeMillis();
+
+        // Create 29 group members which will be expired in the next 29 days. Each day exactly one member will be expired.
+        List<GroupMember> groupMembers = new ArrayList<>();
+        for (int i = 0; i <= 28; ++i) {
+            Timestamp timestamp = Timestamp.fromMillis(currentTimeMillis + TimeUnit.MILLISECONDS.convert(i, TimeUnit.DAYS));
+            groupMembers.add(new GroupMember().setMemberName("user.expireddays" + i).setExpiration(timestamp));
+        }
+
+        Group group1 = zmsTestInitializer.createGroupObject("test-domain1", "Group1", groupMembers);
+        // Now disable all notifications
+        Map<String, TagValueList> disableUserTags = new HashMap<>();
+        disableUserTags.put("zms.DisableReminderNotifications", new TagValueList().setList(Arrays.asList("3")));
+        group1.setTags(disableUserTags);
+
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", "Group1", zmsTestInitializer.getAuditRef(), group1);
+        GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(zmsTestInitializer.getZms().dbService, zmsTestInitializer.getZms().userDomainPrefix, zmsTestInitializer.getZms().notificationToEmailConverterCommon);
+        List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
+        assertEquals(notifications.size(), 0);
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", zmsTestInitializer.getAuditRef());
     }
 }

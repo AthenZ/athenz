@@ -372,20 +372,20 @@ public class RoleMemberReviewNotificationTaskTest {
 
         RoleMemberReviewNotificationTask roleMemberReviewNotificationTask = new RoleMemberReviewNotificationTask(dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon);
         RoleMemberReviewNotificationTask.ReviewDisableRoleMemberNotificationFilter notificationFilter = roleMemberReviewNotificationTask.new ReviewDisableRoleMemberNotificationFilter();
-        EnumSet<DisableRoleMemberNotificationEnum> disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRole);
+        EnumSet<DisableNotificationEnum> disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRole);
         assertTrue(disabledNotificationState.isEmpty());
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledUserNotif);
         assertEquals(1, disabledNotificationState.size());
-        assertTrue(disabledNotificationState.contains(DisableRoleMemberNotificationEnum.USER));
+        assertTrue(disabledNotificationState.contains(DisableNotificationEnum.USER));
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledAdminNotif);
         assertEquals(1, disabledNotificationState.size());
-        assertTrue(disabledNotificationState.contains(DisableRoleMemberNotificationEnum.ADMIN));
+        assertTrue(disabledNotificationState.contains(DisableNotificationEnum.ADMIN));
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledNotifs);
         assertEquals(2, disabledNotificationState.size());
-        assertTrue(disabledNotificationState.containsAll(Arrays.asList(DisableRoleMemberNotificationEnum.ADMIN, DisableRoleMemberNotificationEnum.USER)));
+        assertTrue(disabledNotificationState.containsAll(Arrays.asList(DisableNotificationEnum.ADMIN, DisableNotificationEnum.USER)));
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleInvalid);
         assertTrue(disabledNotificationState.isEmpty());

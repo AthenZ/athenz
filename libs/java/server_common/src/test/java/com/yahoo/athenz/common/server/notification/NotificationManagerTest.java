@@ -19,6 +19,8 @@ package com.yahoo.athenz.common.server.notification;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -31,6 +33,8 @@ import static com.yahoo.athenz.common.server.notification.NotificationServiceCon
 import static org.testng.Assert.*;
 
 public class NotificationManagerTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationManagerTest.class);
 
     @BeforeClass
     public void setUp() {
@@ -253,5 +257,20 @@ public class NotificationManagerTest {
         // going to get null notification
 
         assertNull(notificationCommon.createNotification("athenz.service", details, converter, metricConverter));
+    }
+
+    @Test
+    public void testPrintNotificationDetailsToLog() {
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(rolesProvider, USER_DOMAIN_PREFIX);
+        NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
+        assertNull(notificationCommon.printNotificationDetailsToLog(null, "descrition", LOGGER));
+        assertNotNull(notificationCommon.printNotificationDetailsToLog(new ArrayList<>(), "descrition", LOGGER));
+        List<Notification> notifications = new ArrayList<>();
+
+        Map<String, String> details = new HashMap<>();
+        details.put("test", "test");
+        notifications.add(new Notification().setDetails(details));
+        assertNotNull(notificationCommon.printNotificationDetailsToLog(notifications, "descrition", LOGGER));
     }
 }

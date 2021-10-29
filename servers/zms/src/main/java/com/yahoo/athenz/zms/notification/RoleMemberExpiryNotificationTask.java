@@ -67,7 +67,7 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
                 new ExpiryRoleMemberDetailStringer(),
                 roleExpiryPrincipalNotificationToMetricConverter,
                 roleExpiryDomainNotificationToMetricConverter,
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(0));
+                memberRole -> DisableNotificationEnum.getEnumSet(0));
 
         metricNotificationDetails.addAll(metricAndEmailNotificationDetails);
         return metricNotificationDetails;
@@ -90,7 +90,7 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
                 new ExpiryRoleMemberDetailStringer(),
                 roleExpiryPrincipalNotificationToMetricConverter,
                 roleExpiryDomainNotificationToMetricConverter,
-                memberRole -> DisableRoleMemberNotificationEnum.getEnumSet(0));
+                memberRole -> DisableNotificationEnum.getEnumSet(0));
     }
 
     static class ExpiryRoleMemberDetailStringer implements RoleMemberNotificationCommon.RoleMemberDetailStringer {

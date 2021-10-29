@@ -67,17 +67,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                 roleReviewPrincipalNotificationToMetricConverter,
                 roleReviewDomainNotificationToMetricConverter,
                 new ReviewDisableRoleMemberNotificationFilter());
-        if (notificationDetails != null & notificationDetails.size() > 0) {
-            StringBuilder detailsForLog = new StringBuilder();
-            detailsForLog.append("Notifications details for " + DESCRIPTION + " :\n");
-            for (Notification notification : notificationDetails) {
-                detailsForLog.append(notification + "\n");
-            }
-            LOGGER.info(detailsForLog.toString());
-        } else {
-            LOGGER.info("No notifications details for " + DESCRIPTION);
-        }
-        return notificationDetails;
+        return roleMemberNotificationCommon.printNotificationDetailsToLog(notificationDetails, DESCRIPTION, LOGGER);
     }
 
     static class ReviewRoleMemberDetailStringer implements RoleMemberNotificationCommon.RoleMemberDetailStringer {
@@ -92,29 +82,20 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
     }
 
     class ReviewDisableRoleMemberNotificationFilter implements RoleMemberNotificationCommon.DisableRoleMemberNotificationFilter {
-        private static final String DISABLE_NOTIFICATIONS_TAG = "zms.DisableReminderNotifications";
 
         @Override
-        public EnumSet<DisableRoleMemberNotificationEnum> getDisabledNotificationState(MemberRole memberRole) {
+        public EnumSet<DisableNotificationEnum> getDisabledNotificationState(MemberRole memberRole) {
             Role role = dbService.getRole(memberRole.getDomainName(), memberRole.getRoleName(), false, false, false);
 
-            if (role != null &&
-                    role.getTags() != null &&
-                    role.getTags().get(DISABLE_NOTIFICATIONS_TAG) != null &&
-                    role.getTags().get(DISABLE_NOTIFICATIONS_TAG).getList() != null &&
-                    role.getTags().get(DISABLE_NOTIFICATIONS_TAG).getList().size() > 0) {
-                String value = role.getTags().get(DISABLE_NOTIFICATIONS_TAG).getList().get(0);
-                try {
-                    int mask = Integer.parseInt(value);
-                    return DisableRoleMemberNotificationEnum.getEnumSet(mask);
-                } catch (NumberFormatException ex) {
-                    LOGGER.warn("Invalid mask value for zms.DisableReminderNotifications in domain {}, role {}: {}",
-                            memberRole.getDomainName(),
-                            memberRole.getRoleName(),
-                            value);
-                }
+            try {
+                return DisableNotificationEnum.getDisabledNotificationState(role, r -> r.getTags());
+            } catch (NumberFormatException ex) {
+                LOGGER.warn("Invalid mask value for zms.DisableReminderNotifications in domain {}, role {}",
+                        memberRole.getDomainName(),
+                        memberRole.getRoleName());
             }
-            return DisableRoleMemberNotificationEnum.getEnumSet(0);
+
+            return DisableNotificationEnum.getEnumSet(0);
         }
     }
 
