@@ -64,7 +64,6 @@ COPY ./libs/go/athenzconf/pom.xml ./libs/go/athenzconf/pom.xml
 COPY ./utils/zms-cli/pom.xml ./utils/zms-cli/pom.xml
 COPY ./utils/athenz-conf/pom.xml ./utils/athenz-conf/pom.xml
 COPY ./utils/zms-svctoken/pom.xml ./utils/zms-svctoken/pom.xml
-COPY ./utils/zpe_policy_updater/pom.xml ./utils/zpe_policy_updater/pom.xml
 COPY ./utils/zpe-updater/pom.xml ./utils/zpe-updater/pom.xml
 COPY ./utils/zts-roletoken/pom.xml ./utils/zts-roletoken/pom.xml
 COPY ./utils/zts-accesstoken/pom.xml ./utils/zts-accesstoken/pom.xml
