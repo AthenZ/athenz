@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"log"
+	"net/url"
 	"strings"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
@@ -49,7 +50,7 @@ func getLambdaAttestationData(domain, service, account string) (*attestation.Att
 	return data, nil
 }
 
-func GetAWSLambdaServiceCertificate(ztsUrl, domain, service, account, region, ztsAwsDomain string) (tls.Certificate, error) {
+func GetAWSLambdaServiceCertificate(ztsUrl, domain, service, account, region string, ztsDomains[] string) (tls.Certificate, error) {
 	key, err := util.GenerateKeyPair(2048)
 	if err != nil {
 		return tls.Certificate{}, err
@@ -61,10 +62,18 @@ func GetAWSLambdaServiceCertificate(ztsUrl, domain, service, account, region, zt
 	csrDetails.Country = "US"
 	csrDetails.OrgUnit = provider
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
-	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsAwsDomain)
-	instanceIdHost := fmt.Sprintf("lambda-%s-%s.instanceid.athenz.%s", account, service, ztsAwsDomain)
-	csrDetails.HostList = []string{host}
-	csrDetails.HostList = append(csrDetails.HostList, instanceIdHost)
+	csrDetails.HostList = []string{}
+	for _, ztsDomain := range ztsDomains {
+		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
+		csrDetails.HostList = append(csrDetails.HostList, host)
+	}
+	csrDetails.URIs = []*url.URL{}
+	spiffeUri := fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
+	csrDetails.URIs = util.AppendUri(csrDetails.URIs, spiffeUri)
+	// athenz://instanceid/<provider>/<instance-id>
+	instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/lambda-%s-%s", provider, account, service)
+	csrDetails.URIs = util.AppendUri(csrDetails.URIs, instanceIdUri)
+
 	csr, err := util.GenerateX509CSR(key, csrDetails)
 	if err != nil {
 		return tls.Certificate{}, err
