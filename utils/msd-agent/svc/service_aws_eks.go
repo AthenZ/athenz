@@ -15,7 +15,7 @@ type EKSFetcher struct {
 
 func (fetcher *EKSFetcher) Fetch(host MsdHost, accountId string) (ServicesData, error) {
 
-	opts, err := options.NewOptions(host.SiaConfig, accountId, "", SIA_DIR, "", "", "", "", "", nil)
+	opts, err := options.NewOptions(host.SiaConfig, accountId, "", SIA_DIR, "", "", "", nil, "", nil)
 	if err != nil {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}
