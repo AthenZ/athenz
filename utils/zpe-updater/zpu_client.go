@@ -38,34 +38,17 @@ func PolicyUpdater(config *ZpuConfiguration) error {
 	success := true
 	domains := strings.Split(config.DomainList, ",")
 
-	ztsURL := formatURL(config.Zts, "zts/v1")
-	var ztsClient zts.ZTSClient
-	if config.PrivateKeyFile != "" && config.CertFile != "" {
-		ztsCli, err := athenzutils.ZtsClient(ztsURL, config.PrivateKeyFile, config.CertFile, config.CaCertFile, config.Proxy)
-		if err != nil {
-			return fmt.Errorf("failed to create Zts Client, Error:%v", err)
-		}
-		ztsClient = *ztsCli
-	} else if config.PrivateKeyFile == "" && config.CertFile != "" {
-		return errors.New("both private key and cert file are required, missing private key file")
-	} else if config.PrivateKeyFile != "" && config.CertFile == "" {
-		return errors.New("both private key and cert file are required, missing certificate file")
-	} else {
-		ztsClient = zts.NewClient(ztsURL, nil)
+	ztsClient, err := getZTSClient(config)
+	if err != nil {
+		return err
 	}
-
-	policyFileDir := config.PolicyFileDir
 
 	failedDomains := ""
 	for _, domain := range domains {
-		err := GetPolicies(config, ztsClient, policyFileDir, domain)
+		err := GetPolicies(config, ztsClient, domain)
 		if err != nil {
-			if success {
-				success = false
-			}
-			failedDomains += `"`
-			failedDomains += domain
-			failedDomains += `" `
+			success = false
+			failedDomains += `"` + domain + `" `
 			log.Printf("failed to get policies for domain: %v, Error:%v\n", domain, err)
 		}
 	}
@@ -75,17 +58,36 @@ func PolicyUpdater(config *ZpuConfiguration) error {
 	return nil
 }
 
-func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDir, domain string) error {
-	if config.JWSPolicySupport {
-		return GetJWSPolicies(config, ztsClient, policyFileDir, domain)
+func getZTSClient(config *ZpuConfiguration) (zts.ZTSClient, error) {
+	ztsURL := formatURL(config.Zts, "zts/v1")
+	var ztsClient zts.ZTSClient
+	if config.PrivateKeyFile != "" && config.CertFile != "" {
+		ztsCli, err := athenzutils.ZtsClient(ztsURL, config.PrivateKeyFile, config.CertFile, config.CaCertFile, config.Proxy)
+		if err != nil {
+			return ztsClient, fmt.Errorf("failed to create Zts Client, Error:%v", err)
+		}
+		ztsClient = *ztsCli
+	} else if config.PrivateKeyFile == "" && config.CertFile != "" {
+		return ztsClient, errors.New("both private key and cert file are required, missing private key file")
+	} else if config.PrivateKeyFile != "" && config.CertFile == "" {
+		return ztsClient, errors.New("both private key and cert file are required, missing certificate file")
 	} else {
-		return GetSignedPolicies(config, ztsClient, policyFileDir, domain)
+		ztsClient = zts.NewClient(ztsURL, nil)
+	}
+	return ztsClient, nil
+}
+
+func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, domain string) error {
+	if config.JWSPolicySupport {
+		return GetJWSPolicies(config, ztsClient, domain)
+	} else {
+		return GetSignedPolicies(config, ztsClient, domain)
 	}
 }
 
-func GetJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDir, domain string) error {
+func GetJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, domain string) error {
 	log.Printf("Getting policies for domain: %v\n", domain)
-	etag := GetEtagForExistingPolicy(config, ztsClient, domain, policyFileDir)
+	etag := GetEtagForExistingPolicy(config, ztsClient, domain)
 	signedPolicyRequest := zts.SignedPolicyRequest{
 		PolicyVersions: config.PolicyVersions,
 		SignatureP1363Format: true,
@@ -107,7 +109,7 @@ func GetJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFil
 	if err != nil {
 		return fmt.Errorf("failed to validate policy data for domain: %v, Error: %v", domain, err)
 	}
-	err = WritePolicies(config, bytes, domain, policyFileDir)
+	err = WritePolicies(config, bytes, domain)
 	if err != nil {
 		return fmt.Errorf("unable to write Policies for domain:\"%v\" to file, Error:%v", domain, err)
 	}
@@ -115,9 +117,9 @@ func GetJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFil
 	return nil
 }
 
-func GetSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDir, domain string) error {
+func GetSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, domain string) error {
 	log.Printf("Getting policies for domain: %v\n", domain)
-	etag := GetEtagForExistingPolicy(config, ztsClient, domain, policyFileDir)
+	etag := GetEtagForExistingPolicy(config, ztsClient, domain)
 	data, _, err := ztsClient.GetDomainSignedPolicyData(zts.DomainName(domain), etag)
 	if err != nil {
 		return fmt.Errorf("failed to get domain signed policy data for domain: %v, Error:%v", domain, err)
@@ -135,7 +137,7 @@ func GetSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policy
 	if err != nil {
 		return fmt.Errorf("failed to validate policy data for domain: %v, Error: %v", domain, err)
 	}
-	err = WritePolicies(config, bytes, domain, policyFileDir)
+	err = WritePolicies(config, bytes, domain)
 	if err != nil {
 		return fmt.Errorf("unable to write Policies for domain:\"%v\" to file, Error:%v", domain, err)
 	}
@@ -178,10 +180,10 @@ func GetSignedPolicyDataFromJws(config *ZpuConfiguration, ztsClient zts.ZTSClien
 	return signedPolicyData, nil
 }
 
-func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient, domain, policyFileDir string) string {
+func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient, domain string) string {
 	var etag string
 	var err error
-	policyFile := fmt.Sprintf("%s/%s.pol", policyFileDir, domain)
+	policyFile := fmt.Sprintf("%s/%s.pol", config.PolicyFileDir, domain)
 
 	// First check if we're asked to force refresh the policy
 	if config.ForceRefresh {
@@ -354,12 +356,12 @@ func expired(expires rdl.Timestamp, offset int) bool {
 
 // WritePolicies If domain policy file is not found, create the policy file and write policies in it.
 // Else delete the existing file and write the modified policies to new file.
-func WritePolicies(config *ZpuConfiguration, bytes []byte, domain, policyFileDir string) error {
+func WritePolicies(config *ZpuConfiguration, bytes []byte, domain string) error {
 	tempPolicyFileDir := config.TempPolicyFileDir
 	if tempPolicyFileDir == "" || bytes == nil {
 		return errors.New("empty parameters are not valid arguments")
 	}
-	policyFile := fmt.Sprintf("%s/%s.pol", policyFileDir, domain)
+	policyFile := fmt.Sprintf("%s/%s.pol", config.PolicyFileDir, domain)
 	tempPolicyFile := fmt.Sprintf("%s/%s.tmp", tempPolicyFileDir, domain)
 	if util.Exists(tempPolicyFile) {
 		err := os.Remove(tempPolicyFile)
@@ -394,4 +396,47 @@ func formatURL(url, suffix string) string {
 		url += suffix
 	}
 	return url
+}
+
+func PolicyView(config *ZpuConfiguration, domainName string) error {
+	if config == nil {
+		return errors.New("nil configuration")
+	}
+
+	ztsClient, err := getZTSClient(config)
+	if err != nil {
+		return err
+	}
+
+	policyFile := fmt.Sprintf("%s/%s.pol", config.PolicyFileDir, domainName)
+
+	// If Policies file is not found, return empty etag the first time.
+	// Otherwise, load the file contents, if data has expired return empty etag,
+	// else construct etag from modified field in JSON.
+	exists := util.Exists(policyFile)
+	if !exists {
+		return errors.New("domain policy file does not exist")
+	}
+
+	readFile, err := os.OpenFile(policyFile, os.O_RDONLY, 0444)
+	if err != nil {
+		return err
+	}
+	defer readFile.Close()
+
+	var signedPolicyData *zts.SignedPolicyData
+	if config.JWSPolicySupport {
+		signedPolicyData, err = GetSignedPolicyDataFromJws(config, ztsClient, readFile)
+	} else {
+		signedPolicyData, err = GetSignedPolicyDataFromJson(config, ztsClient, readFile)
+	}
+	if err != nil {
+		return errors.New("unable to get domain policy data")
+	}
+	jsonPolicyBytes, err := json.MarshalIndent(signedPolicyData, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Print(string(jsonPolicyBytes))
+	return nil
 }

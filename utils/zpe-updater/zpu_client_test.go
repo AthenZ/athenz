@@ -54,10 +54,73 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+func getTestConfiguration() (*ZpuConfiguration, error) {
+	zmsURL := fmt.Sprintf("http://localhost:%s/zms/v1", port)
+	ztsURL := fmt.Sprintf("http://localhost:%s/zts/v1", port)
+	athenzConf := `{"zmsURL":"` + zmsURL + `","ztsURL":"` + ztsURL + `","ztsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}],"zmsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}]}`
+	_ = devel.CreateFile(ConfPath+"/athenz.conf", athenzConf)
+	zpuConf := `{"domains":"test"}`
+	_ = devel.CreateFile(ConfPath+"/zpu.conf", zpuConf)
+	config, err := NewZpuConfiguration("", ConfPath+"/athenz.conf", ConfPath+"/zpu.conf")
+	config.PolicyFileDir = PoliciesDir
+	config.TempPolicyFileDir = TempPoliciesDir
+	config.MetricsDir = MetricDir
+	if err != nil {
+		return nil, fmt.Errorf("failed to return test configuration object, Error:%v", err)
+	}
+	return config, nil
+}
+
+func setUp() error {
+	var err error
+	testConfig, err = getTestConfiguration()
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(PoliciesDir, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create directory for policy files, Error:%v", err)
+	}
+	err = os.MkdirAll(TempPoliciesDir, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create temporary directory for policy files, Error:%v", err)
+	}
+	err = os.MkdirAll(MetricDir, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create directory for metric files, Error:%v", err)
+	}
+	ztsClient = zts.NewClient((*testConfig).Zts, nil)
+	return nil
+}
+
+func cleanUp() error {
+	err := os.RemoveAll(PoliciesDir)
+	if err != nil {
+		return fmt.Errorf("failed to delete directory for policy files, Error:%v", err)
+	}
+	err = os.RemoveAll(TempPoliciesDir)
+	if err != nil {
+		return fmt.Errorf("failed to delete temporary directory for policy files, Error:%v", err)
+	}
+	err = os.RemoveAll(MetricDir)
+	if err != nil {
+		return fmt.Errorf("failed to delete directory for metric files, Error:%v", err)
+	}
+	err = os.Remove(ConfPath + "/athenz.conf")
+	if err != nil {
+		return fmt.Errorf("failed to delete athenz conf file, Error:%v", err)
+	}
+	err = os.Remove(ConfPath + "/zpu.conf")
+	if err != nil {
+		return fmt.Errorf("failed to delete zpu conf file, Error:%v", err)
+	}
+	return nil
+}
+
 func TestWritePolicies(t *testing.T) {
 	a := assert.New(t)
 	policyJSON, _ := ioutil.ReadFile("test_data/data_domain.json")
-	err := WritePolicies(testConfig, policyJSON, Domain, PoliciesDir)
+	err := WritePolicies(testConfig, policyJSON, Domain)
 	a.Nil(err)
 	policyFile := fmt.Sprintf("%s/%s.pol", PoliciesDir, Domain)
 	tempPolicyFile := fmt.Sprintf("%s/%s.tmp", TempPoliciesDir, Domain)
@@ -73,9 +136,11 @@ func TestWritePolicies(t *testing.T) {
 func TestWritePoliciesEmptyPolicyDir(t *testing.T) {
 	a := assert.New(t)
 	policyJSON, _ := ioutil.ReadFile("test_data/data_domain.json")
-	err := WritePolicies(testConfig, policyJSON, Domain, "/random")
+	testConfig.PolicyFileDir = "/random"
+	err := WritePolicies(testConfig, policyJSON, Domain)
 	fmt.Print(err)
 	a.NotNil(err)
+	testConfig.PolicyFileDir = PoliciesDir
 }
 
 func TestGetEtagForExistingPolicyJson(test *testing.T) {
@@ -108,7 +173,7 @@ func TestGetEtagForExistingPolicyJson(test *testing.T) {
 
 			testConfig.PutZtsPublicKey("0", string(ecdsaPublicKeyPEM))
 			testConfig.PutZmsPublicKey("0", string(ecdsaPublicKeyPEM))
-			etag := GetEtagForExistingPolicy(testConfig, ztsClient, "test", PoliciesDir)
+			etag := GetEtagForExistingPolicy(testConfig, ztsClient, "test")
 			_, err = ValidateSignedPolicies(testConfig, ztsClient, policyData)
 			a.Nil(err)
 			if tt.response {
@@ -150,7 +215,7 @@ func TestGetEtagForExistingPolicyJws(test *testing.T) {
 			a.Nil(err)
 
 			testConfig.PutZtsPublicKey("0", string(ecdsaPublicKeyPEM))
-			etag := GetEtagForExistingPolicy(testConfig, ztsClient, "test", PoliciesDir)
+			etag := GetEtagForExistingPolicy(testConfig, ztsClient, "test")
 			_, err = ValidateJWSPolicies(testConfig, ztsClient, policyData)
 			a.Nil(err)
 			if tt.response {
@@ -258,64 +323,4 @@ func TestFormatUrl(t *testing.T) {
 	a.Equal(url, "zmsURL/zms/v1")
 	url = formatURL("zmsURL", "zms/v1")
 	a.Equal(url, "zmsURL/zms/v1")
-}
-
-func setUp() error {
-	var err error
-	testConfig, err = getTestConfiguration()
-	if err != nil {
-		return err
-	}
-	err = os.MkdirAll(PoliciesDir, 0755)
-	if err != nil {
-		return fmt.Errorf("failed to create directory for policy files, Error:%v", err)
-	}
-	err = os.MkdirAll(TempPoliciesDir, 0755)
-	if err != nil {
-		return fmt.Errorf("failed to create temporary directory for policy files, Error:%v", err)
-	}
-	err = os.MkdirAll(MetricDir, 0755)
-	if err != nil {
-		return fmt.Errorf("failed to create directory for metric files, Error:%v", err)
-	}
-	ztsClient = zts.NewClient((*testConfig).Zts, nil)
-	return nil
-}
-
-func cleanUp() error {
-	err := os.RemoveAll(PoliciesDir)
-	if err != nil {
-		return fmt.Errorf("failed to delete directory for policy files, Error:%v", err)
-	}
-	err = os.RemoveAll(TempPoliciesDir)
-	if err != nil {
-		return fmt.Errorf("failed to delete temporary directory for policy files, Error:%v", err)
-	}
-	err = os.RemoveAll(MetricDir)
-	if err != nil {
-		return fmt.Errorf("failed to delete directory for metric files, Error:%v", err)
-	}
-	err = os.Remove(ConfPath + "/athenz.conf")
-	if err != nil {
-		return fmt.Errorf("failed to delete athenz conf file, Error:%v", err)
-	}
-	err = os.Remove(ConfPath + "/zpu.conf")
-	if err != nil {
-		return fmt.Errorf("failed to delete zpu conf file, Error:%v", err)
-	}
-	return nil
-}
-
-func getTestConfiguration() (*ZpuConfiguration, error) {
-	zmsURL := fmt.Sprintf("http://localhost:%s/zms/v1", port)
-	ztsURL := fmt.Sprintf("http://localhost:%s/zts/v1", port)
-	athenzConf := `{"zmsURL":"` + zmsURL + `","ztsURL":"` + ztsURL + `","ztsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}],"zmsPublicKeys":[{"id":"0","key":"LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"}]}`
-	_ = devel.CreateFile(ConfPath+"/athenz.conf", athenzConf)
-	zpuConf := `{"domains":"test"}`
-	_ = devel.CreateFile(ConfPath+"/zpu.conf", zpuConf)
-	config, err := NewZpuConfiguration("", ConfPath+"/athenz.conf", ConfPath+"/zpu.conf")
-	if err != nil {
-		return nil, fmt.Errorf("failed to return test configuration object, Error:%v", err)
-	}
-	return config, nil
 }

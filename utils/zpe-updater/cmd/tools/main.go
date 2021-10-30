@@ -21,7 +21,7 @@ func main() {
 	if root == "" {
 		root = "/home/athenz"
 	}
-	var athenzConf, zpuConf, logFile, ztsURL, privateKeyFile, certFile, caCertFile string
+	var athenzConf, zpuConf, logFile, ztsURL, privateKeyFile, certFile, caCertFile, viewDomain string
 	var forceRefresh bool
 	flag.StringVar(&athenzConf, "athenzConf", fmt.Sprintf("%s/conf/athenz/athenz.conf", root), "Athenz configuration file path for ZMS/ZTS urls and public keys")
 	flag.StringVar(&zpuConf, "zpuConf", fmt.Sprintf("%s/conf/zpu/zpu.conf", root), "ZPU utility configuration path")
@@ -31,6 +31,7 @@ func main() {
 	flag.StringVar(&privateKeyFile, "private-key", "", "private key file")
 	flag.StringVar(&certFile, "cert-file", "", "certificate file")
 	flag.BoolVar(&forceRefresh, "force-refresh", false, "Force refresh of policy files")
+	flag.StringVar(&viewDomain, "view-domain", "", "view policy domain")
 
 	flag.Parse()
 
@@ -43,7 +44,6 @@ func main() {
 	}
 
 	if logFile != "" {
-
 		f, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			log.Fatalf("The log file:%v cannot be opened, Error:%v. \n "+
@@ -63,15 +63,12 @@ func main() {
 	if !zpuConfig.LogCompression {
 		logger.Compress = false
 	}
-
 	if zpuConfig.LogBackups != 0 {
 		logger.MaxBackups = zpuConfig.LogBackups
 	}
-
 	if zpuConfig.LogAge != 0 {
 		logger.MaxAge = zpuConfig.LogAge
 	}
-
 	if zpuConfig.LogSize != 0 {
 		logger.MaxSize = zpuConfig.LogSize
 	}
@@ -79,7 +76,6 @@ func main() {
 	if privateKeyFile != "" {
 		zpuConfig.PrivateKeyFile = privateKeyFile
 	}
-
 	if caCertFile != "" {
 		zpuConfig.CaCertFile = caCertFile
 	}
@@ -91,6 +87,17 @@ func main() {
 		zpuConfig.Zts = ztsURL
 	}
 
+	// first check if we're just asked to view a local domain
+	// this option is mutually exclusive with running the updater
+	if viewDomain != "" {
+		err = zpu.PolicyView(zpuConfig, viewDomain)
+		if err != nil {
+			log.Fatalf("Unable to view policy file for domain %s, %v", viewDomain, err)
+		}
+		os.Exit(0)
+	}
+
+	// process regular zpu update process
 	if zpuConfig.StartUpDelay > 0 {
 		rand.Seed(time.Now().Unix())
 		randmonSleepInterval := rand.Intn(zpuConfig.StartUpDelay)
@@ -101,7 +108,7 @@ func main() {
 	}
 	err = zpu.PolicyUpdater(zpuConfig)
 	if err != nil {
-		log.Fatalf("Policy updator failed, %v", err)
+		log.Fatalf("Policy updater failed, %v", err)
 	}
-	log.Println("Policy updator finished successfully")
+	log.Println("Policy updater finished successfully")
 }
