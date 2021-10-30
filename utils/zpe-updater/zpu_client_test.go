@@ -48,16 +48,16 @@ oT44uYj+Hfa0BDpvxvT12d/2WRM+Q7mL
 `)
 
 func TestMain(m *testing.M) {
+	setUp()
+	code := m.Run()
+	cleanUp()
+	os.Exit(code)
 }
 
 func TestWritePolicies(t *testing.T) {
 	a := assert.New(t)
-	policyData, _, err := ztsClient.GetDomainSignedPolicyData(Domain, "")
-	a.Nil(err)
-	policyJSON, err := json.Marshal(policyData)
-	a.Nil(err)
-
-	err = WritePolicies(testConfig, policyJSON, Domain, PoliciesDir)
+	policyJSON, _ := ioutil.ReadFile("test_data/data_domain.json")
+	err := WritePolicies(testConfig, policyJSON, Domain, PoliciesDir)
 	a.Nil(err)
 	policyFile := fmt.Sprintf("%s/%s.pol", PoliciesDir, Domain)
 	tempPolicyFile := fmt.Sprintf("%s/%s.tmp", TempPoliciesDir, Domain)
@@ -72,11 +72,8 @@ func TestWritePolicies(t *testing.T) {
 
 func TestWritePoliciesEmptyPolicyDir(t *testing.T) {
 	a := assert.New(t)
-	policyData, _, err := ztsClient.GetDomainSignedPolicyData(Domain, "")
-	a.Nil(err)
-	policyJSON, err := json.Marshal(policyData)
-	a.Nil(err)
-	err = WritePolicies(testConfig, policyJSON, Domain, "/random")
+	policyJSON, _ := ioutil.ReadFile("test_data/data_domain.json")
+	err := WritePolicies(testConfig, policyJSON, Domain, "/random")
 	fmt.Print(err)
 	a.NotNil(err)
 }
@@ -86,10 +83,12 @@ func TestGetEtagForExistingPolicyJson(test *testing.T) {
 	tests := []struct {
 		name         string
 		expiryOffset float64
+		forceRefresh bool
 		response     bool
 	}{
-		{"valid-test", 3600 * 60, true},
-		{"expired-test", 1200 * 60, false},
+		{"valid-test", 3600 * 60, false, true},
+		{"expired-test", 1200 * 60, false, false},
+		{"forced-refresh-test", 3600 * 60, true, false},
 	}
 	for _, tt := range tests {
 		test.Run(tt.name, func(t *testing.T) {
@@ -97,6 +96,7 @@ func TestGetEtagForExistingPolicyJson(test *testing.T) {
 			ztsClient := zts.NewClient((*testConfig).Zts, nil)
 			testConfig.JWSPolicySupport = false
 			testConfig.CheckZMSSignature = true
+			testConfig.ForceRefresh = tt.forceRefresh
 
 			//Correct Policy File Exist - expiry check is 2880 * 60, so we'll use 3600 * 60
 			policyData, err := devel.GenerateSignedPolicyData("./test_data/data_domain.json", ecdsaPrivateKeyPEM, "0", tt.expiryOffset)
@@ -127,16 +127,19 @@ func TestGetEtagForExistingPolicyJws(test *testing.T) {
 	tests := []struct {
 		name         string
 		expiryOffset float64
+		forceRefresh bool
 		response     bool
 	}{
-		{"valid-test", 3600 * 60, true},
-		{"expired-test", 1200 * 60, false},
+		{"valid-test", 3600 * 60, false, true},
+		{"expired-test", 1200 * 60, false, false},
+		{"forced-refresh-test", 3600 * 60, true, false},
 	}
 	for _, tt := range tests {
 		test.Run(tt.name, func(t *testing.T) {
 			a := assert.New(t)
 			ztsClient := zts.NewClient((*testConfig).Zts, nil)
 			testConfig.JWSPolicySupport = true
+			testConfig.ForceRefresh = tt.forceRefresh
 
 			//Correct Policy File Exist - expiry check is 2880 * 60, so we'll use 3600 * 60
 			policyData, err := devel.GenerateJWSPolicyData("./test_data/data_domain.json", ecdsaPrivateKeyPEM, "0", "ES384", tt.expiryOffset)

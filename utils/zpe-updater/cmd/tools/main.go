@@ -22,23 +22,15 @@ func main() {
 		root = "/home/athenz"
 	}
 	var athenzConf, zpuConf, logFile, ztsURL, privateKeyFile, certFile, caCertFile string
-	flag.StringVar(&athenzConf, "athenzConf",
-		fmt.Sprintf("%s/conf/athenz/athenz.conf", root),
-		"Athenz configuration file path for ZMS/ZTS urls and public keys")
-	flag.StringVar(&zpuConf, "zpuConf",
-		fmt.Sprintf("%s/conf/zpu/zpu.conf", root),
-		"ZPU utility configuration path")
-	flag.StringVar(&logFile, "logFile",
-		fmt.Sprintf("%s/logs/zpu/zpu.log", root),
-		"Log file name")
-	flag.StringVar(&ztsURL, "zts",
-		"", "url of the ZTS Service")
-	flag.StringVar(&caCertFile, "cacert",
-		"", "CA certificate file")
-	flag.StringVar(&privateKeyFile, "private-key",
-		"", "private key file")
-	flag.StringVar(&certFile, "cert-file",
-		"", "certificate file")
+	var forceRefresh bool
+	flag.StringVar(&athenzConf, "athenzConf", fmt.Sprintf("%s/conf/athenz/athenz.conf", root), "Athenz configuration file path for ZMS/ZTS urls and public keys")
+	flag.StringVar(&zpuConf, "zpuConf", fmt.Sprintf("%s/conf/zpu/zpu.conf", root), "ZPU utility configuration path")
+	flag.StringVar(&logFile, "logFile", fmt.Sprintf("%s/logs/zpu/zpu.log", root), "Log file name")
+	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
+	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
+	flag.StringVar(&privateKeyFile, "private-key", "", "private key file")
+	flag.StringVar(&certFile, "cert-file", "", "certificate file")
+	flag.BoolVar(&forceRefresh, "force-refresh", false, "Force refresh of policy files")
 
 	flag.Parse()
 
@@ -66,6 +58,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to get zpu configuration, Error: %v", err)
 	}
+	zpuConfig.ForceRefresh = forceRefresh
+
 	if !zpuConfig.LogCompression {
 		logger.Compress = false
 	}
@@ -100,7 +94,7 @@ func main() {
 	if zpuConfig.StartUpDelay > 0 {
 		rand.Seed(time.Now().Unix())
 		randmonSleepInterval := rand.Intn(zpuConfig.StartUpDelay)
-		log.Printf("Launching zpe_policy_updater in %v seconds", randmonSleepInterval)
+		log.Printf("Launching zpe_policy_updater in %v seconds\n", randmonSleepInterval)
 		time.Sleep(time.Duration(randmonSleepInterval) * time.Second)
 	} else {
 		log.Println("Launching zpe_policy_updater without delay")

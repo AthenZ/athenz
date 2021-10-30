@@ -66,7 +66,7 @@ func PolicyUpdater(config *ZpuConfiguration) error {
 			failedDomains += `"`
 			failedDomains += domain
 			failedDomains += `" `
-			log.Printf("failed to get policies for domain: %v, Error:%v", domain, err)
+			log.Printf("failed to get policies for domain: %v, Error:%v\n", domain, err)
 		}
 	}
 	if !success {
@@ -84,7 +84,7 @@ func GetPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDi
 }
 
 func GetJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDir, domain string) error {
-	log.Printf("Getting policies for domain: %v", domain)
+	log.Printf("Getting policies for domain: %v\n", domain)
 	etag := GetEtagForExistingPolicy(config, ztsClient, domain, policyFileDir)
 	signedPolicyRequest := zts.SignedPolicyRequest{
 		PolicyVersions: config.PolicyVersions,
@@ -97,7 +97,7 @@ func GetJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFil
 
 	if data == nil {
 		if etag != "" {
-			log.Printf("Policies not updated since last fetch for domain: %v", domain)
+			log.Printf("Policies not updated since last fetch for domain: %v\n", domain)
 			return nil
 		}
 		return fmt.Errorf("empty policies data returned for domain: %v", domain)
@@ -111,12 +111,12 @@ func GetJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFil
 	if err != nil {
 		return fmt.Errorf("unable to write Policies for domain:\"%v\" to file, Error:%v", domain, err)
 	}
-	log.Printf("Policies for domain: %v successfully written", domain)
+	log.Printf("Policies for domain: %v successfully written\n", domain)
 	return nil
 }
 
 func GetSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policyFileDir, domain string) error {
-	log.Printf("Getting policies for domain: %v", domain)
+	log.Printf("Getting policies for domain: %v\n", domain)
 	etag := GetEtagForExistingPolicy(config, ztsClient, domain, policyFileDir)
 	data, _, err := ztsClient.GetDomainSignedPolicyData(zts.DomainName(domain), etag)
 	if err != nil {
@@ -125,7 +125,7 @@ func GetSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policy
 
 	if data == nil {
 		if etag != "" {
-			log.Printf("Policies not updated since last fetch for domain: %v", domain)
+			log.Printf("Policies not updated since last fetch for domain: %v\n", domain)
 			return nil
 		}
 		return fmt.Errorf("empty policies data returned for domain: %v", domain)
@@ -139,7 +139,7 @@ func GetSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, policy
 	if err != nil {
 		return fmt.Errorf("unable to write Policies for domain:\"%v\" to file, Error:%v", domain, err)
 	}
-	log.Printf("Policies for domain: %v successfully written", domain)
+	log.Printf("Policies for domain: %v successfully written\n", domain)
 	return nil
 }
 
@@ -182,6 +182,11 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient,
 	var etag string
 	var err error
 	policyFile := fmt.Sprintf("%s/%s.pol", policyFileDir, domain)
+
+	// First check if we're asked to force refresh the policy
+	if config.ForceRefresh {
+		return ""
+	}
 
 	// If Policies file is not found, return empty etag the first time.
 	// Otherwise, load the file contents, if data has expired return empty etag,
@@ -370,8 +375,7 @@ func WritePolicies(config *ZpuConfiguration, bytes []byte, domain, policyFileDir
 	if err != nil {
 		return err
 	}
-	err = os.Rename(tempPolicyFile, policyFile)
-	return err
+	return os.Rename(tempPolicyFile, policyFile)
 }
 
 func verifyTmpDirSetup(TempPolicyFileDir string) error {
