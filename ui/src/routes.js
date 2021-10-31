@@ -44,6 +44,7 @@ module.exports = routes()
     .add('group-history', '/domain/:domain/group/:group/history')
     .add('group-roles', '/domain/:domain/group/:group/roles')
     .add('group-review', '/domain/:domain/group/:group/review')
+    .add('group-tags', '/domain/:domain/group/:group/tags')
     .add('microsegmentation', '/domain/:domain/microsegmentation')
     .add('domain-settings', '/domain/:domain/domain-settings')
     .add(
