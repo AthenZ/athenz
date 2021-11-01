@@ -45,6 +45,7 @@ type ZpuConfiguration struct {
 	CheckZMSSignature bool
 	JWSPolicySupport  bool
 	PolicyVersions    map[string]string
+	ForceRefresh      bool
 }
 
 type AthenzConf struct {
@@ -94,7 +95,7 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 
 	for _, publicKey := range athenzConf.ZtsPublicKeys {
 		if _, exists := ztsKeysmap[publicKey.Id]; exists {
-			log.Printf("Zts public Key with id: %v already existed, overwriting it with new value", publicKey.Id)
+			log.Printf("Zts public Key with id: %v already existed, overwriting it with new value\n", publicKey.Id)
 		}
 		key, err := new(zmssvctoken.YBase64).DecodeString(publicKey.Key)
 		if err != nil {
@@ -105,7 +106,7 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 
 	for _, publicKey := range athenzConf.ZmsPublicKeys {
 		if _, exists := zmsKeysmap[publicKey.Id]; exists {
-			log.Printf("Zms public Key with id: %v already existed, overwriting it with new value", publicKey.Id)
+			log.Printf("Zms public Key with id: %v already existed, overwriting it with new value\n", publicKey.Id)
 		}
 		key, err := new(zmssvctoken.YBase64).DecodeString(publicKey.Key)
 		if err != nil {
