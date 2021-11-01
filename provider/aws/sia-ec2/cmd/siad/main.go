@@ -44,7 +44,7 @@ const siaLinkDir = "/var/run/sia"
 
 var siaVersion string
 var ztsEndPointStr string
-var ztsAwsDomainStr string
+var ztsAwsDomainsStr string
 var providerParentDomain string
 
 func main() {
@@ -53,7 +53,7 @@ func main() {
 	ztsEndPoint := flag.String("zts", "", "optional zts endpoint")
 	ztsServerName := flag.String("ztsservername", "", "zts server name for tls connections")
 	ztsCACert := flag.String("ztscacert", "", "zts CA certificate file")
-	ztsAwsDomain := flag.String("ztsawsdomain", "", "ZTS AWS Domain")
+	ztsAwsDomains := flag.String("ztsawsdomain", "", "ZTS AWS Domain")
 	providrPntDomain := flag.String("providerParentDomain", "athenz", "providerParentDomain")
 
 	ztsPort := flag.Int("ztsport", 4443, "ZTS port number")
@@ -67,12 +67,13 @@ func main() {
 		sysLogger = os.Stdout
 	}
 
-	if ztsAwsDomainStr == "" {
-		ztsAwsDomainStr = *ztsAwsDomain
-		if ztsAwsDomainStr == "" {
+	if ztsAwsDomainsStr == "" {
+		ztsAwsDomainsStr = *ztsAwsDomains
+		if ztsAwsDomainsStr == "" {
 			logutil.LogFatal(sysLogger, "ztsawsdomain argument must be specified")
 		}
 	}
+	ztsAwsDomainList := strings.Split(ztsAwsDomainsStr, ",")
 
 	if ztsEndPointStr == "" {
 		ztsEndPointStr = *ztsEndPoint
@@ -112,7 +113,7 @@ func main() {
 	}
 
 	confBytes, _ := ioutil.ReadFile(*pConf)
-	opts, err := options.NewOptions(confBytes, accountId, MetaEndPoint, siaMainDir, siaVersion, *ztsCACert, *ztsServerName, ztsAwsDomainStr, providerParentDomain, sysLogger)
+	opts, err := options.NewOptions(confBytes, accountId, MetaEndPoint, siaMainDir, siaVersion, *ztsCACert, *ztsServerName, ztsAwsDomainList, providerParentDomain, sysLogger)
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v", err)
 	}

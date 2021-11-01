@@ -75,6 +75,7 @@ func TestRegisterInstance(test *testing.T) {
 		KeyDir:           siaDir,
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
+		ZTSAzureDomains:  []string{"zts-azure-domain"},
 	}
 
 	a := &attestation.Data{
@@ -130,6 +131,7 @@ func TestRegisterInstanceMultiple(test *testing.T) {
 		KeyDir:           siaDir,
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
+		ZTSAzureDomains:  []string{"zts-azure-domain"},
 	}
 
 	data := []*attestation.Data{
@@ -213,6 +215,7 @@ func TestRefreshInstance(test *testing.T) {
 		KeyDir:           siaDir,
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
+		ZTSAzureDomains:  []string{"zts-azure-domain"},
 	}
 
 	a := &attestation.Data{
@@ -277,6 +280,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 		KeyDir:           siaDir,
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
+		ZTSAzureDomains:  []string{"zts-azure-domain"},
 	}
 
 	result := GetRoleCertificate("http://127.0.0.1:5081/zts/v1", keyFile, certFile, opts, os.Stdout)

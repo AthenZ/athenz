@@ -43,7 +43,7 @@ import (
 
 var Version string
 var ZtsEndPoint string
-var DnsDomain string
+var DnsDomains string
 var ProviderPrefix string
 
 // End
@@ -109,7 +109,7 @@ func main() {
 	ztsEndPoint := flag.String("zts", "", "Athenz Token Service (ZTS) endpoint")
 	ztsServerName := flag.String("ztsservername", "", "zts server name for tls connections")
 	ztsCACert := flag.String("ztscacert", "", "zts CA certificate file")
-	dnsDomain := flag.String("dnsdomain", "", "DNS Domain associated with the provider")
+	dnsDomains := flag.String("dnsdomain", "", "DNS Domain associated with the provider")
 	ztsPort := flag.Int("ztsport", 4443, "Athenz Token Service (ZTS) port number")
 	pConf := flag.String("config", "/etc/sia/sia_config", "The config file to run against")
 	useRegionalSTS := flag.Bool("regionalsts", false, "Use regional STS endpoint instead of global")
@@ -139,14 +139,15 @@ func main() {
 		ZtsEndPoint = *ztsEndPoint
 	}
 
-	if DnsDomain == "" && *dnsDomain == "" {
+	if DnsDomains == "" && *dnsDomains == "" {
 		logutil.LogFatal(sysLogger, "missing dnsdomain!\n")
 	}
 
-	if *dnsDomain != "" {
-		// run time param takes precedence over build time
-		DnsDomain = *dnsDomain
+	// run time param takes precedence over build time
+	if *dnsDomains != "" {
+		DnsDomains = *dnsDomains
 	}
+	ztsAwsDomainList := strings.Split(DnsDomains, ",")
 
 	if ProviderPrefix == "" && *providerPrefix == "" {
 		logutil.LogFatal(sysLogger, "missing providerprefix!\n")
@@ -162,7 +163,7 @@ func main() {
 		MetaEndPoint = *metaEndPoint
 	}
 
-	logutil.LogInfo(sysLogger, "Using ZTS: %s with DNS domain: %s & Provider prefix: %s\n", ZtsEndPoint, DnsDomain, ProviderPrefix)
+	logutil.LogInfo(sysLogger, "Using ZTS: %s with DNS domain: %s & Provider prefix: %s\n", ZtsEndPoint, DnsDomains, ProviderPrefix)
 
 	accountId, taskId, region, err := getTaskConfig(MetaEndPoint)
 	if err != nil {
@@ -183,7 +184,7 @@ func main() {
 		config.Accounts[0] = options.ConfigAccount{Domain: domain, Account: accountId}
 		confBytes, _ = json.Marshal(config)
 	}
-	opts, err := options.NewOptions(confBytes, accountId, MetaEndPoint, siaMainDir, Version, *ztsCACert, *ztsServerName, DnsDomain, "", sysLogger)
+	opts, err := options.NewOptions(confBytes, accountId, MetaEndPoint, siaMainDir, Version, *ztsCACert, *ztsServerName, ztsAwsDomainList, "", sysLogger)
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v\n", err)
 	}

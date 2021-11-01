@@ -348,6 +348,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 		CertDir:              siaDir,
 		AthenzCACertFile:     caCertFile,
 		ProviderParentDomain: "athenz",
+		ZTSAWSDomains:        []string{"zts-aws-cloud"},
 	}
 
 	ztsRouter := httptreemux.New()
@@ -504,6 +505,7 @@ func TestGenerateRoleKey(test *testing.T) {
 		AthenzCACertFile:     caCertFile,
 		GenerateRoleKey:      true,
 		ProviderParentDomain: "athenz",
+		ZTSAWSDomains:        []string{"zts-aws-cloud"},
 	}
 
 	ztsRouter := httptreemux.New()
@@ -578,6 +580,7 @@ func TestGenerateRoleKeyWithFileName(test *testing.T) {
 		AthenzCACertFile:     caCertFile,
 		GenerateRoleKey:      true,
 		ProviderParentDomain: "athenz",
+		ZTSAWSDomains:        []string{"zts-aws-cloud"},
 	}
 
 	ztsRouter := httptreemux.New()
@@ -654,6 +657,7 @@ func TestRotateRoleKey(test *testing.T) {
 		GenerateRoleKey:      true,
 		RotateKey:            true,
 		ProviderParentDomain: "athenz",
+		ZTSAWSDomains:        []string{"zts-aws-cloud"},
 	}
 
 	// Mock ZTS PostInstanceRegistrationInformation for creation of certs

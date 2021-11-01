@@ -276,6 +276,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 		KeyDir:           siaDir,
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
+		ZTSAWSDomains:    []string{"zts-aws-cloud"},
 	}
 
 	result := GetRoleCertificate("http://127.0.0.1:5081/zts/v1", keyFile, certFile, opts, os.Stdout)

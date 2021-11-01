@@ -22,7 +22,7 @@ func (fetcher *AzureVmFetcher) Fetch(host MsdHost, accountId string) (ServicesDa
 		log.Fatalf("Unable to get the instance identity document, error: %v", err)
 	}
 
-	opts, err := options.NewOptions(host.SiaConfig, identityDocument, "", SIA_DIR, "", "", "", "", "", nil)
+	opts, err := options.NewOptions(host.SiaConfig, identityDocument, "", SIA_DIR, "", "", nil, "", "", nil)
 	if err != nil {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}

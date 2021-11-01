@@ -30,6 +30,7 @@ import (
 	"log/syslog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -47,7 +48,7 @@ func main() {
 	ztsEndPoint := flag.String("zts", "", "optional zts endpoint")
 	ztsServerName := flag.String("ztsservername", "", "zts server name for tls connections")
 	ztsCACert := flag.String("ztscacert", "", "zts CA certificate file")
-	ztsAzureDomain := flag.String("ztsazuredomain", "", "ZTS Azure Domain")
+	ztsAzureDomains := flag.String("ztsazuredomain", "", "ZTS Azure Domain")
 	ztsResourceUri := flag.String("ztsresourceuri", "", "ZTS AD App Resource URI")
 	azureProvider := flag.String("azureProvider", "", "Azure Provider Service Name")
 	countryName := flag.String("countryname", "US", "X.509 Certificate Country Value")
@@ -71,9 +72,11 @@ func main() {
 	if *ztsEndPoint == "" {
 		logutil.LogFatal(sysLogger, "ztsEndPoint argument must be specified\n")
 	}
-	if *ztsAzureDomain == "" {
+	if *ztsAzureDomains == "" {
 		logutil.LogFatal(sysLogger, "ztsazuredomain argument must be specified\n")
 	}
+	ztsAzureDomainList := strings.Split(*ztsAzureDomains, ",")
+
 	if *ztsResourceUri == "" {
 		logutil.LogFatal(sysLogger, "ztsresourceuri argument must be specified\n")
 	}
@@ -87,7 +90,7 @@ func main() {
 	}
 
 	confBytes, _ := ioutil.ReadFile(*pConf)
-	opts, err := options.NewOptions(confBytes, identityDocument, siaMainDir, siaVersion, *ztsCACert, *ztsServerName, *ztsAzureDomain, *countryName, *azureProvider, sysLogger)
+	opts, err := options.NewOptions(confBytes, identityDocument, siaMainDir, siaVersion, *ztsCACert, *ztsServerName, ztsAzureDomainList, *countryName, *azureProvider, sysLogger)
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v\n", err)
 	}

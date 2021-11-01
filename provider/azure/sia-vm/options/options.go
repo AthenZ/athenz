@@ -60,11 +60,12 @@ type ConfigAccount struct {
 
 // Config represents entire sia_config file
 type Config struct {
-	Version  string                   `json:"version,omitempty"`  //name of the provider
-	Service  string                   `json:"service,omitempty"`  //name of the service for the identity
-	Services map[string]ConfigService `json:"services,omitempty"` //names of the multiple services for the identity
-	Ssh      *bool                    `json:"ssh,omitempty"`      //ssh certificate support
-	Accounts []ConfigAccount          `json:"accounts,omitempty"` //array of configured accounts
+	Version        string                   `json:"version,omitempty"`         //name of the provider
+	Service        string                   `json:"service,omitempty"`         //name of the service for the identity
+	Services       map[string]ConfigService `json:"services,omitempty"`        //names of the multiple services for the identity
+	Ssh            *bool                    `json:"ssh,omitempty"`             //ssh certificate support
+	Accounts       []ConfigAccount          `json:"accounts,omitempty"`        //array of configured accounts
+	SanDnsWildcard bool                     `json:"sandns_wildcard,omitempty"` //san dns wildcard support
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -106,8 +107,9 @@ type Options struct {
 	AthenzCACertFile string
 	ZTSCACertFile    string
 	ZTSServerName    string
-	ZTSAzureDomain   string
+	ZTSAzureDomains  []string
 	CountryName      string
+	SanDnsWildcard   bool
 }
 
 func initProfileConfig(identityDocument *attestation.IdentityDocument) (*ConfigAccount, error) {
@@ -156,7 +158,7 @@ func initFileConfig(bytes []byte, identityDocument *attestation.IdentityDocument
 
 // NewOptions takes in sia_config bytes and returns a pointer to Options after parsing and initializing the defaults
 // It uses identity document defaults when sia_config is empty or non-parsable. It populates "services" array
-func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, siaDir, version, ztsCaCert, ztsServerName, ztsAzureDomain, countryName, azureProvider string, sysLogger io.Writer) (*Options, error) {
+func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, siaDir, version, ztsCaCert, ztsServerName string, ztsAzureDomains []string, countryName, azureProvider string, sysLogger io.Writer) (*Options, error) {
 	// Parse config bytes first, and if that fails, load values from Identity document
 	config, account, err := initFileConfig(bytes, identityDocument)
 	if err != nil {
@@ -171,6 +173,11 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 	ssh := true
 	if config != nil && config.Ssh != nil && *config.Ssh == false {
 		ssh = false
+	}
+
+	sanDnsWildcard := false
+	if config != nil {
+		sanDnsWildcard = config.SanDnsWildcard
 	}
 
 	var services []Service
@@ -242,8 +249,9 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 		AthenzCACertFile: fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
 		ZTSCACertFile:    ztsCaCert,
 		ZTSServerName:    ztsServerName,
-		ZTSAzureDomain:   ztsAzureDomain,
+		ZTSAzureDomains:  ztsAzureDomains,
 		CountryName:      countryName,
+		SanDnsWildcard:   sanDnsWildcard,
 	}, nil
 }
 
