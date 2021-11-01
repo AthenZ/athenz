@@ -1,0 +1,21 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+// NetworkPolicy types
+include "NetworkPolicy.tdl";
+include "Names.tdl";
+
+// API to evaluate network policies change impact on transport policies
+
+resource NetworkPolicyChangeImpactResponse POST "/transportpolicy/evaluatenetworkpolicychange" (name=evaluateNetworkPolicyChange) {
+    NetworkPolicyChangeImpactRequest detail; // Struct representing a network policy present in the system
+    expected OK;
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

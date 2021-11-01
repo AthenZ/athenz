@@ -23,6 +23,8 @@ import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
 import org.testng.annotations.Test;
 
+import java.util.Collections;
+
 public class MSDSchemaTest {
 
   @Test

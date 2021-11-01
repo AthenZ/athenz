@@ -193,4 +193,22 @@ public class MSDRDLGeneratedClient {
 
     }
 
+    public NetworkPolicyChangeImpactResponse evaluateNetworkPolicyChange(NetworkPolicyChangeImpactRequest detail) {
+        WebTarget target = base.path("/transportpolicy/evaluatenetworkpolicychange");
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(NetworkPolicyChangeImpactResponse.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
 }

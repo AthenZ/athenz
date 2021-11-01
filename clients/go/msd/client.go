@@ -496,3 +496,39 @@ func (client MSDClient) PutStaticWorkload(domainName DomainName, serviceName Ent
 		return errobj
 	}
 }
+
+func (client MSDClient) EvaluateNetworkPolicyChange(detail *NetworkPolicyChangeImpactRequest) (*NetworkPolicyChangeImpactResponse, error) {
+	var data *NetworkPolicyChangeImpactResponse
+	url := client.URL + "/transportpolicy/evaluatenetworkpolicychange"
+	contentBytes, err := json.Marshal(detail)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPost(url, nil, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}

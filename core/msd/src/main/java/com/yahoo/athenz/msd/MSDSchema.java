@@ -97,10 +97,13 @@ public class MSDSchema {
             .field("enforcementState", "TransportPolicyEnforcementState", false, "State of transport policy enforcement ( ENFORCE / REPORT )")
             .arrayField("instances", "String", true, "Acts as restrictions. If present, this transport policy should be restricted to only mentioned instances.");
 
-        sb.structType("TransportPolicyPort")
-            .comment("Transport policy port")
+        sb.structType("PolicyPort")
+            .comment("generic policy port. Will be used by TransportPolicyPort and NetworkPolicyPort structs")
             .field("port", "Int32", false, "Start port of the port range. port and endPort will have same values for a single port definition.")
-            .field("endPort", "Int32", false, "End port of the port range. port and endPort will have same values for a single port definition.")
+            .field("endPort", "Int32", false, "End port of the port range. port and endPort will have same values for a single port definition.");
+
+        sb.structType("TransportPolicyPort", "PolicyPort")
+            .comment("Transport policy port")
             .field("protocol", "TransportPolicyProtocol", false, "Protocol for this transport policy");
 
         sb.structType("TransportPolicyMatch")
@@ -188,6 +191,36 @@ public class MSDSchema {
             .arrayField("workloadList", "Workload", false, "list of workloads")
             .arrayField("dynamicWorkloadList", "DynamicWorkload", true, "list of dynamic workloads")
             .arrayField("staticWorkloadList", "StaticWorkload", true, "list of static workloads");
+
+        sb.enumType("NetworkPolicyChangeEffect")
+            .comment("IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMAPCT indicates that a change in network policy will not interfere with workings of any transport policy")
+            .element("IMPACT")
+            .element("NO_IMPACT");
+
+        sb.structType("IPBlock")
+            .comment("Struct representing ip blocks used by network policy in CIDR (Classless inter-domain routing) format")
+            .field("cidr", "String", false, "cidr notation. can be used for ipv4 or ipv6");
+
+        sb.structType("NetworkPolicyPort", "PolicyPort")
+            .comment("network policy port.")
+            .field("protocol", "TransportPolicyProtocol", false, "protocol used by the network policy");
+
+        sb.structType("NetworkPolicyChangeImpactRequest")
+            .comment("struct representing input details for evaluating network policies change impact on transport policies")
+            .arrayField("from", "IPBlock", false, "from ip address range list in cidr format")
+            .arrayField("to", "IPBlock", false, "to ip address range list in cidr format")
+            .arrayField("sourcePorts", "NetworkPolicyPort", false, "list of source ports")
+            .arrayField("destinationPorts", "NetworkPolicyPort", false, "list of destination ports");
+
+        sb.structType("NetworkPolicyChangeImpactDetail")
+            .field("domain", "DomainName", false, "Name of the domain of the corresponding transport policy")
+            .field("policy", "EntityName", false, "Name of the Athenz policy corresponding to transport policy")
+            .field("transportPolicyId", "Int64", false, "Unique id of the transport policy");
+
+        sb.structType("NetworkPolicyChangeImpactResponse")
+            .comment("struct representing response of evaluating network policies change impact on transport policies")
+            .field("effect", "NetworkPolicyChangeEffect", false, "enum indicating effect of network policy change on one or more transport policies")
+            .arrayField("details", "NetworkPolicyChangeImpactDetail", true, "if the above enum value is IMPACT then this optional object contains more details about the impacted transport policies");
 
 
         sb.resource("TransportPolicyRules", "GET", "/transportpolicies")
@@ -288,6 +321,23 @@ public class MSDSchema {
             .input("staticWorkload", "StaticWorkload", "Struct representing static workload entered by the user")
             .auth("update", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("NetworkPolicyChangeImpactRequest", "POST", "/transportpolicy/evaluatenetworkpolicychange")
+            .comment("API to evaluate network policies change impact on transport policies")
+            .name("evaluateNetworkPolicyChange")
+            .input("detail", "NetworkPolicyChangeImpactRequest", "Struct representing a network policy present in the system")
+            .auth("", "", true)
+            .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")

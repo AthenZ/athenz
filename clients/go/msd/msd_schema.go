@@ -115,10 +115,14 @@ func init() {
 	tTransportPolicyCondition.ArrayField("instances", "String", true, "Acts as restrictions. If present, this transport policy should be restricted to only mentioned instances.")
 	sb.AddType(tTransportPolicyCondition.Build())
 
-	tTransportPolicyPort := rdl.NewStructTypeBuilder("Struct", "TransportPolicyPort")
+	tPolicyPort := rdl.NewStructTypeBuilder("Struct", "PolicyPort")
+	tPolicyPort.Comment("generic policy port. Will be used by TransportPolicyPort and NetworkPolicyPort structs")
+	tPolicyPort.Field("port", "Int32", false, nil, "Start port of the port range. port and endPort will have same values for a single port definition.")
+	tPolicyPort.Field("endPort", "Int32", false, nil, "End port of the port range. port and endPort will have same values for a single port definition.")
+	sb.AddType(tPolicyPort.Build())
+
+	tTransportPolicyPort := rdl.NewStructTypeBuilder("PolicyPort", "TransportPolicyPort")
 	tTransportPolicyPort.Comment("Transport policy port")
-	tTransportPolicyPort.Field("port", "Int32", false, nil, "Start port of the port range. port and endPort will have same values for a single port definition.")
-	tTransportPolicyPort.Field("endPort", "Int32", false, nil, "End port of the port range. port and endPort will have same values for a single port definition.")
 	tTransportPolicyPort.Field("protocol", "TransportPolicyProtocol", false, nil, "Protocol for this transport policy")
 	sb.AddType(tTransportPolicyPort.Build())
 
@@ -222,6 +226,42 @@ func init() {
 	tWorkloads.ArrayField("staticWorkloadList", "StaticWorkload", true, "list of static workloads")
 	sb.AddType(tWorkloads.Build())
 
+	tNetworkPolicyChangeEffect := rdl.NewEnumTypeBuilder("Enum", "NetworkPolicyChangeEffect")
+	tNetworkPolicyChangeEffect.Comment("IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMAPCT indicates that a change in network policy will not interfere with workings of any transport policy")
+	tNetworkPolicyChangeEffect.Element("IMPACT", "")
+	tNetworkPolicyChangeEffect.Element("NO_IMPACT", "")
+	sb.AddType(tNetworkPolicyChangeEffect.Build())
+
+	tIPBlock := rdl.NewStructTypeBuilder("Struct", "IPBlock")
+	tIPBlock.Comment("Struct representing ip blocks used by network policy in CIDR (Classless inter-domain routing) format")
+	tIPBlock.Field("cidr", "String", false, nil, "cidr notation. can be used for ipv4 or ipv6")
+	sb.AddType(tIPBlock.Build())
+
+	tNetworkPolicyPort := rdl.NewStructTypeBuilder("PolicyPort", "NetworkPolicyPort")
+	tNetworkPolicyPort.Comment("network policy port.")
+	tNetworkPolicyPort.Field("protocol", "TransportPolicyProtocol", false, nil, "protocol used by the network policy")
+	sb.AddType(tNetworkPolicyPort.Build())
+
+	tNetworkPolicyChangeImpactRequest := rdl.NewStructTypeBuilder("Struct", "NetworkPolicyChangeImpactRequest")
+	tNetworkPolicyChangeImpactRequest.Comment("struct representing input details for evaluating network policies change impact on transport policies")
+	tNetworkPolicyChangeImpactRequest.ArrayField("from", "IPBlock", false, "from ip address range list in cidr format")
+	tNetworkPolicyChangeImpactRequest.ArrayField("to", "IPBlock", false, "to ip address range list in cidr format")
+	tNetworkPolicyChangeImpactRequest.ArrayField("sourcePorts", "NetworkPolicyPort", false, "list of source ports")
+	tNetworkPolicyChangeImpactRequest.ArrayField("destinationPorts", "NetworkPolicyPort", false, "list of destination ports")
+	sb.AddType(tNetworkPolicyChangeImpactRequest.Build())
+
+	tNetworkPolicyChangeImpactDetail := rdl.NewStructTypeBuilder("Struct", "NetworkPolicyChangeImpactDetail")
+	tNetworkPolicyChangeImpactDetail.Field("domain", "DomainName", false, nil, "Name of the domain of the corresponding transport policy")
+	tNetworkPolicyChangeImpactDetail.Field("policy", "EntityName", false, nil, "Name of the Athenz policy corresponding to transport policy")
+	tNetworkPolicyChangeImpactDetail.Field("transportPolicyId", "Int64", false, nil, "Unique id of the transport policy")
+	sb.AddType(tNetworkPolicyChangeImpactDetail.Build())
+
+	tNetworkPolicyChangeImpactResponse := rdl.NewStructTypeBuilder("Struct", "NetworkPolicyChangeImpactResponse")
+	tNetworkPolicyChangeImpactResponse.Comment("struct representing response of evaluating network policies change impact on transport policies")
+	tNetworkPolicyChangeImpactResponse.Field("effect", "NetworkPolicyChangeEffect", false, nil, "enum indicating effect of network policy change on one or more transport policies")
+	tNetworkPolicyChangeImpactResponse.ArrayField("details", "NetworkPolicyChangeImpactDetail", true, "if the above enum value is IMPACT then this optional object contains more details about the impacted transport policies")
+	sb.AddType(tNetworkPolicyChangeImpactResponse.Build())
+
 	mGetTransportPolicyRules := rdl.NewResourceBuilder("TransportPolicyRules", "GET", "/transportpolicies")
 	mGetTransportPolicyRules.Comment("API endpoint to get the transport policy rules defined in Athenz")
 	mGetTransportPolicyRules.Input("matchingTag", "String", false, "", "If-None-Match", false, nil, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
@@ -302,6 +342,18 @@ func init() {
 	mPutStaticWorkload.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mPutStaticWorkload.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPutStaticWorkload.Build())
+
+	mEvaluateNetworkPolicyChange := rdl.NewResourceBuilder("NetworkPolicyChangeImpactResponse", "POST", "/transportpolicy/evaluatenetworkpolicychange")
+	mEvaluateNetworkPolicyChange.Comment("API to evaluate network policies change impact on transport policies")
+	mEvaluateNetworkPolicyChange.Name("evaluateNetworkPolicyChange")
+	mEvaluateNetworkPolicyChange.Input("detail", "NetworkPolicyChangeImpactRequest", false, "", "", false, nil, "Struct representing a network policy present in the system")
+	mEvaluateNetworkPolicyChange.Auth("", "", true, "")
+	mEvaluateNetworkPolicyChange.Exception("BAD_REQUEST", "ResourceError", "")
+	mEvaluateNetworkPolicyChange.Exception("FORBIDDEN", "ResourceError", "")
+	mEvaluateNetworkPolicyChange.Exception("NOT_FOUND", "ResourceError", "")
+	mEvaluateNetworkPolicyChange.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mEvaluateNetworkPolicyChange.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mEvaluateNetworkPolicyChange.Build())
 
 	var err error
 	schema, err = sb.BuildParanoid()
