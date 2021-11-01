@@ -546,6 +546,61 @@ func (self *TransportPolicyCondition) Validate() error {
 }
 
 //
+// PolicyPort - generic policy port. Will be used by TransportPolicyPort and
+// NetworkPolicyPort structs
+//
+type PolicyPort struct {
+
+	//
+	// Start port of the port range. port and endPort will have same values for a
+	// single port definition.
+	//
+	Port int32 `json:"port"`
+
+	//
+	// End port of the port range. port and endPort will have same values for a
+	// single port definition.
+	//
+	EndPort int32 `json:"endPort"`
+}
+
+//
+// NewPolicyPort - creates an initialized PolicyPort instance, returns a pointer to it
+//
+func NewPolicyPort(init ...*PolicyPort) *PolicyPort {
+	var o *PolicyPort
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(PolicyPort)
+	}
+	return o
+}
+
+type rawPolicyPort PolicyPort
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a PolicyPort
+//
+func (self *PolicyPort) UnmarshalJSON(b []byte) error {
+	var m rawPolicyPort
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := PolicyPort(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *PolicyPort) Validate() error {
+	return nil
+}
+
+//
 // TransportPolicyPort - Transport policy port
 //
 type TransportPolicyPort struct {
@@ -1772,5 +1827,429 @@ func (self *Workloads) Validate() error {
 	if self.WorkloadList == nil {
 		return fmt.Errorf("Workloads: Missing required field: workloadList")
 	}
+	return nil
+}
+
+//
+// NetworkPolicyChangeEffect - IMPACT indicates that a change in network policy
+// will interfere with workings of one or more transport policies NO_IMAPCT
+// indicates that a change in network policy will not interfere with workings of
+// any transport policy
+//
+type NetworkPolicyChangeEffect int
+
+//
+// NetworkPolicyChangeEffect constants
+//
+const (
+	_ NetworkPolicyChangeEffect = iota
+	IMPACT
+	NO_IMPACT
+)
+
+var namesNetworkPolicyChangeEffect = []string{
+	IMPACT:    "IMPACT",
+	NO_IMPACT: "NO_IMPACT",
+}
+
+//
+// NewNetworkPolicyChangeEffect - return a string representation of the enum
+//
+func NewNetworkPolicyChangeEffect(init ...interface{}) NetworkPolicyChangeEffect {
+	if len(init) == 1 {
+		switch v := init[0].(type) {
+		case NetworkPolicyChangeEffect:
+			return v
+		case int:
+			return NetworkPolicyChangeEffect(v)
+		case int32:
+			return NetworkPolicyChangeEffect(v)
+		case string:
+			for i, s := range namesNetworkPolicyChangeEffect {
+				if s == v {
+					return NetworkPolicyChangeEffect(i)
+				}
+			}
+		default:
+			panic("Bad init value for NetworkPolicyChangeEffect enum")
+		}
+	}
+	return NetworkPolicyChangeEffect(0) //default to the first enum value
+}
+
+//
+// String - return a string representation of the enum
+//
+func (e NetworkPolicyChangeEffect) String() string {
+	return namesNetworkPolicyChangeEffect[e]
+}
+
+//
+// SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
+func (e NetworkPolicyChangeEffect) SymbolSet() []string {
+	return namesNetworkPolicyChangeEffect
+}
+
+//
+// MarshalJSON is defined for proper JSON encoding of a NetworkPolicyChangeEffect
+//
+func (e NetworkPolicyChangeEffect) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a NetworkPolicyChangeEffect
+//
+func (e *NetworkPolicyChangeEffect) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err == nil {
+		s := string(j)
+		for v, s2 := range namesNetworkPolicyChangeEffect {
+			if s == s2 {
+				*e = NetworkPolicyChangeEffect(v)
+				return nil
+			}
+		}
+		err = fmt.Errorf("Bad enum symbol for type NetworkPolicyChangeEffect: %s", s)
+	}
+	return err
+}
+
+//
+// IPBlock - Struct representing ip blocks used by network policy in CIDR
+// (Classless inter-domain routing) format
+//
+type IPBlock struct {
+
+	//
+	// cidr notation. can be used for ipv4 or ipv6
+	//
+	Cidr string `json:"cidr"`
+}
+
+//
+// NewIPBlock - creates an initialized IPBlock instance, returns a pointer to it
+//
+func NewIPBlock(init ...*IPBlock) *IPBlock {
+	var o *IPBlock
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(IPBlock)
+	}
+	return o
+}
+
+type rawIPBlock IPBlock
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a IPBlock
+//
+func (self *IPBlock) UnmarshalJSON(b []byte) error {
+	var m rawIPBlock
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := IPBlock(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *IPBlock) Validate() error {
+	if self.Cidr == "" {
+		return fmt.Errorf("IPBlock.cidr is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Cidr)
+		if !val.Valid {
+			return fmt.Errorf("IPBlock.cidr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// NetworkPolicyPort - network policy port.
+//
+type NetworkPolicyPort struct {
+
+	//
+	// Start port of the port range. port and endPort will have same values for a
+	// single port definition.
+	//
+	Port int32 `json:"port"`
+
+	//
+	// End port of the port range. port and endPort will have same values for a
+	// single port definition.
+	//
+	EndPort int32 `json:"endPort"`
+
+	//
+	// protocol used by the network policy
+	//
+	Protocol TransportPolicyProtocol `json:"protocol"`
+}
+
+//
+// NewNetworkPolicyPort - creates an initialized NetworkPolicyPort instance, returns a pointer to it
+//
+func NewNetworkPolicyPort(init ...*NetworkPolicyPort) *NetworkPolicyPort {
+	var o *NetworkPolicyPort
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(NetworkPolicyPort)
+	}
+	return o
+}
+
+type rawNetworkPolicyPort NetworkPolicyPort
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a NetworkPolicyPort
+//
+func (self *NetworkPolicyPort) UnmarshalJSON(b []byte) error {
+	var m rawNetworkPolicyPort
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := NetworkPolicyPort(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *NetworkPolicyPort) Validate() error {
+	return nil
+}
+
+//
+// NetworkPolicyChangeImpactRequest - struct representing input details for
+// evaluating network policies change impact on transport policies
+//
+type NetworkPolicyChangeImpactRequest struct {
+
+	//
+	// from ip address range list in cidr format
+	//
+	From []*IPBlock `json:"from"`
+
+	//
+	// to ip address range list in cidr format
+	//
+	To []*IPBlock `json:"to"`
+
+	//
+	// list of source ports
+	//
+	SourcePorts []*NetworkPolicyPort `json:"sourcePorts"`
+
+	//
+	// list of destination ports
+	//
+	DestinationPorts []*NetworkPolicyPort `json:"destinationPorts"`
+}
+
+//
+// NewNetworkPolicyChangeImpactRequest - creates an initialized NetworkPolicyChangeImpactRequest instance, returns a pointer to it
+//
+func NewNetworkPolicyChangeImpactRequest(init ...*NetworkPolicyChangeImpactRequest) *NetworkPolicyChangeImpactRequest {
+	var o *NetworkPolicyChangeImpactRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(NetworkPolicyChangeImpactRequest)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *NetworkPolicyChangeImpactRequest) Init() *NetworkPolicyChangeImpactRequest {
+	if self.From == nil {
+		self.From = make([]*IPBlock, 0)
+	}
+	if self.To == nil {
+		self.To = make([]*IPBlock, 0)
+	}
+	if self.SourcePorts == nil {
+		self.SourcePorts = make([]*NetworkPolicyPort, 0)
+	}
+	if self.DestinationPorts == nil {
+		self.DestinationPorts = make([]*NetworkPolicyPort, 0)
+	}
+	return self
+}
+
+type rawNetworkPolicyChangeImpactRequest NetworkPolicyChangeImpactRequest
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a NetworkPolicyChangeImpactRequest
+//
+func (self *NetworkPolicyChangeImpactRequest) UnmarshalJSON(b []byte) error {
+	var m rawNetworkPolicyChangeImpactRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := NetworkPolicyChangeImpactRequest(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *NetworkPolicyChangeImpactRequest) Validate() error {
+	if self.From == nil {
+		return fmt.Errorf("NetworkPolicyChangeImpactRequest: Missing required field: from")
+	}
+	if self.To == nil {
+		return fmt.Errorf("NetworkPolicyChangeImpactRequest: Missing required field: to")
+	}
+	if self.SourcePorts == nil {
+		return fmt.Errorf("NetworkPolicyChangeImpactRequest: Missing required field: sourcePorts")
+	}
+	if self.DestinationPorts == nil {
+		return fmt.Errorf("NetworkPolicyChangeImpactRequest: Missing required field: destinationPorts")
+	}
+	return nil
+}
+
+//
+// NetworkPolicyChangeImpactDetail -
+//
+type NetworkPolicyChangeImpactDetail struct {
+
+	//
+	// Name of the domain of the corresponding transport policy
+	//
+	Domain DomainName `json:"domain"`
+
+	//
+	// Name of the Athenz policy corresponding to transport policy
+	//
+	Policy EntityName `json:"policy"`
+
+	//
+	// Unique id of the transport policy
+	//
+	TransportPolicyId int64 `json:"transportPolicyId"`
+}
+
+//
+// NewNetworkPolicyChangeImpactDetail - creates an initialized NetworkPolicyChangeImpactDetail instance, returns a pointer to it
+//
+func NewNetworkPolicyChangeImpactDetail(init ...*NetworkPolicyChangeImpactDetail) *NetworkPolicyChangeImpactDetail {
+	var o *NetworkPolicyChangeImpactDetail
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(NetworkPolicyChangeImpactDetail)
+	}
+	return o
+}
+
+type rawNetworkPolicyChangeImpactDetail NetworkPolicyChangeImpactDetail
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a NetworkPolicyChangeImpactDetail
+//
+func (self *NetworkPolicyChangeImpactDetail) UnmarshalJSON(b []byte) error {
+	var m rawNetworkPolicyChangeImpactDetail
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := NetworkPolicyChangeImpactDetail(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *NetworkPolicyChangeImpactDetail) Validate() error {
+	if self.Domain == "" {
+		return fmt.Errorf("NetworkPolicyChangeImpactDetail.domain is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "DomainName", self.Domain)
+		if !val.Valid {
+			return fmt.Errorf("NetworkPolicyChangeImpactDetail.domain does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Policy == "" {
+		return fmt.Errorf("NetworkPolicyChangeImpactDetail.policy is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.Policy)
+		if !val.Valid {
+			return fmt.Errorf("NetworkPolicyChangeImpactDetail.policy does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// NetworkPolicyChangeImpactResponse - struct representing response of
+// evaluating network policies change impact on transport policies
+//
+type NetworkPolicyChangeImpactResponse struct {
+
+	//
+	// enum indicating effect of network policy change on one or more transport
+	// policies
+	//
+	Effect NetworkPolicyChangeEffect `json:"effect"`
+
+	//
+	// if the above enum value is IMPACT then this optional object contains more
+	// details about the impacted transport policies
+	//
+	Details []*NetworkPolicyChangeImpactDetail `json:"details,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+//
+// NewNetworkPolicyChangeImpactResponse - creates an initialized NetworkPolicyChangeImpactResponse instance, returns a pointer to it
+//
+func NewNetworkPolicyChangeImpactResponse(init ...*NetworkPolicyChangeImpactResponse) *NetworkPolicyChangeImpactResponse {
+	var o *NetworkPolicyChangeImpactResponse
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(NetworkPolicyChangeImpactResponse)
+	}
+	return o
+}
+
+type rawNetworkPolicyChangeImpactResponse NetworkPolicyChangeImpactResponse
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a NetworkPolicyChangeImpactResponse
+//
+func (self *NetworkPolicyChangeImpactResponse) UnmarshalJSON(b []byte) error {
+	var m rawNetworkPolicyChangeImpactResponse
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := NetworkPolicyChangeImpactResponse(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *NetworkPolicyChangeImpactResponse) Validate() error {
 	return nil
 }

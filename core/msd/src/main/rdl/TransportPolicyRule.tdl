@@ -40,10 +40,14 @@ type TransportPolicyCondition Struct {
     Array<String> instances (optional); // Acts as restrictions. If present, this transport policy should be restricted to only mentioned instances.
 }
 
-// Transport policy port
-type TransportPolicyPort Struct {
+// generic policy port. Will be used by TransportPolicyPort and NetworkPolicyPort structs
+type PolicyPort Struct {
     Int32 port; // Start port of the port range. port and endPort will have same values for a single port definition.
     Int32 endPort; // End port of the port range. port and endPort will have same values for a single port definition.
+}
+
+// Transport policy port
+type TransportPolicyPort PolicyPort {
     TransportPolicyProtocol protocol; // Protocol for this transport policy
 }
 

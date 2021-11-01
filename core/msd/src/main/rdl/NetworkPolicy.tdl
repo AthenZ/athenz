@@ -1,0 +1,43 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+include "TransportPolicyRule.tdl";
+
+// IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies
+// NO_IMAPCT indicates that a change in network policy will not interfere with workings of any transport policy
+
+type NetworkPolicyChangeEffect Enum {
+    IMPACT,
+    NO_IMPACT
+}
+
+// Struct representing ip blocks used by network policy in CIDR (Classless inter-domain routing) format
+type IPBlock Struct {
+    String cidr; // cidr notation. can be used for ipv4 or ipv6
+}
+
+// network policy port.
+type NetworkPolicyPort PolicyPort {
+    TransportPolicyProtocol protocol; // protocol used by the network policy
+}
+
+// struct representing input details for evaluating network policies change impact on transport policies
+type NetworkPolicyChangeImpactRequest Struct {
+    Array<IPBlock> from; // from ip address range list in cidr format
+    Array<IPBlock> to; // to ip address range list in cidr format
+    Array<NetworkPolicyPort> sourcePorts; // list of source ports
+    Array<NetworkPolicyPort> destinationPorts; // list of destination ports
+}
+
+type NetworkPolicyChangeImpactDetail Struct {
+    DomainName domain; // Name of the domain of the corresponding transport policy
+    EntityName policy; // Name of the Athenz policy corresponding to transport policy
+    Int64 transportPolicyId; // Unique id of the transport policy
+}
+
+// struct representing response of evaluating network policies change impact on transport policies
+type NetworkPolicyChangeImpactResponse Struct {
+    NetworkPolicyChangeEffect effect; // enum indicating effect of network policy change on one or more transport policies
+    Array<NetworkPolicyChangeImpactDetail> details (optional); // if the above enum value is IMPACT then this optional object contains more details about the impacted transport policies
+}
