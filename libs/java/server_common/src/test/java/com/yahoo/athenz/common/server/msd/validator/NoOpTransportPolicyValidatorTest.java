@@ -17,10 +17,11 @@
 
 package com.yahoo.athenz.common.server.msd.validator;
 
+import com.yahoo.athenz.common.server.msd.MsdStore;
+import com.yahoo.athenz.common.server.msd.MsdStoreConnection;
 import com.yahoo.athenz.msd.TransportPolicyValidationRequest;
 import com.yahoo.athenz.msd.TransportPolicyValidationStatus;
 import org.testng.annotations.Test;
-
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -28,8 +29,15 @@ public class NoOpTransportPolicyValidatorTest {
 
     @Test
     public void testNoOpValidator() {
-        TransportPolicyValidatorFactory factory = () -> new NoOpTransportPolicyValidator();
-        TransportPolicyValidator validator = factory.create();
+        MsdStore store = new MsdStore() {
+            @Override
+            public MsdStoreConnection getConnection() {
+                return MsdStore.super.getConnection();
+            }
+        };
+
+        TransportPolicyValidatorFactory factory = (msdStore) -> new NoOpTransportPolicyValidator();
+        TransportPolicyValidator validator = factory.create(store);
         assertTrue(validator instanceof NoOpTransportPolicyValidator);
         TransportPolicyValidationRequest request = new TransportPolicyValidationRequest();
         assertEquals(validator.validateTransportPolicy(request).getStatus(), TransportPolicyValidationStatus.VALID);

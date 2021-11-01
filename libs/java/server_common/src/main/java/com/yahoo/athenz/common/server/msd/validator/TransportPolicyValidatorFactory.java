@@ -17,6 +17,8 @@
 
 package com.yahoo.athenz.common.server.msd.validator;
 
+import com.yahoo.athenz.common.server.msd.MsdStore;
+
 /**
  * Factory to create transport policy validator
  */
@@ -25,5 +27,5 @@ public interface TransportPolicyValidatorFactory {
     /**
      * Creates the transport policy validator
      */
-    TransportPolicyValidator create();
+    TransportPolicyValidator create(MsdStore store);
 }
