@@ -787,6 +787,7 @@ exports[`DomainSettingsPage should render 1`] = `
 
 .emotion-88 {
   text-align: left;
+  width: auto;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
@@ -1386,11 +1387,13 @@ exports[`DomainSettingsPage should render 1`] = `
                 >
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     User Expiry (Days)
                   </td>
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     <div
                       class="emotion-92 emotion-93"
@@ -1416,6 +1419,7 @@ exports[`DomainSettingsPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     All user members in the domain will have specified max expiry days
                   </td>
@@ -1426,11 +1430,13 @@ exports[`DomainSettingsPage should render 1`] = `
                 >
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     Group Expiry (Days)
                   </td>
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     <div
                       class="emotion-92 emotion-93"
@@ -1456,6 +1462,7 @@ exports[`DomainSettingsPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     All group members in the domain will have specified max expiry days
                   </td>
@@ -1466,11 +1473,13 @@ exports[`DomainSettingsPage should render 1`] = `
                 >
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     Service Expiry (Days)
                   </td>
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     <div
                       class="emotion-92 emotion-93"
@@ -1496,6 +1505,7 @@ exports[`DomainSettingsPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     All services in the domain will have specified max expiry days
                   </td>
@@ -1506,11 +1516,13 @@ exports[`DomainSettingsPage should render 1`] = `
                 >
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     Token Expiry (Mins)
                   </td>
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     <div
                       class="emotion-92 emotion-93"
@@ -1536,6 +1548,7 @@ exports[`DomainSettingsPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     Tokens issued for this domain will have specified max timeout in mins
                   </td>
@@ -1546,11 +1559,13 @@ exports[`DomainSettingsPage should render 1`] = `
                 >
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     Role Certificate Expiry (Mins)
                   </td>
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     <div
                       class="emotion-92 emotion-93"
@@ -1576,6 +1591,7 @@ exports[`DomainSettingsPage should render 1`] = `
                   </td>
                   <td
                     class="emotion-88 emotion-89"
+                    width="auto"
                   >
                     Role Certs issued for this domain will have specified max timeout in mins
                   </td>

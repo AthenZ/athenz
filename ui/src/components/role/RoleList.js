@@ -158,6 +158,8 @@ export default class RoleList extends React.Component {
                 _csrf={this.props._csrf}
                 showAddRole={this.state.showAddRole}
                 justificationRequired={this.props.isDomainAuditEnabled}
+                userAuthorityAttributes={this.props.userAuthorityAttributes}
+                userProfileLink={this.props.userProfileLink}
             />
         ) : (
             ''

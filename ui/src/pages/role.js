@@ -91,11 +91,12 @@ export default class RolePage extends React.Component {
             api.getFeatureFlag(),
             api.getMeta(bServicesParams),
             api.getMeta(bServicesParamsAll),
+            api.getAuthorityAttributes(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
         });
         let businessServiceOptions = [];
         if (domains[9] && domains[9].validValues) {
@@ -149,6 +150,7 @@ export default class RolePage extends React.Component {
             featureFlag: domains[8],
             validBusinessServices: businessServiceOptions,
             validBusinessServicesAll: businessServiceOptionsAll,
+            userAuthorityAttributes: domains[11],
         };
     }
 
@@ -225,6 +227,9 @@ export default class RolePage extends React.Component {
                                         userProfileLink={
                                             this.props.headerDetails.userData
                                                 .userLink
+                                        }
+                                        userAuthorityAttributes={
+                                            this.props.userAuthorityAttributes
                                         }
                                     />
                                 </RolesContentDiv>
