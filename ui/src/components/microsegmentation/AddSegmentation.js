@@ -1123,7 +1123,7 @@ export default class AddSegmentation extends React.Component {
                             : 'Destination Service'}
                     </StyledInputLabel>
                     <StyledInput
-                        placeholder='eg: yamas.api, sys.auth.zms (click + button to add)'
+                        placeholder='eg: yamas.api, sys.auth.zms'
                         value={
                             this.state.isCategory
                                 ? this.state.sourceServiceMembers
@@ -1140,16 +1140,6 @@ export default class AddSegmentation extends React.Component {
                         noanim
                         fluid
                     />
-
-                    <AddCircleDiv>
-                        <Icon
-                            icon={'add-circle'}
-                            isLink
-                            color={colors.icons}
-                            size='1.75em'
-                            onClick={this.addMember}
-                        />
-                    </AddCircleDiv>
                 </SectionDiv>
                 <SectionDiv>
                     <StyledInputLabel />
