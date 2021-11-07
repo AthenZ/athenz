@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.yahoo.athenz.common.server.cert.Priority;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
 public class X509CertificateSigningRequest {
@@ -68,5 +69,16 @@ public class X509CertificateSigningRequest {
 
     public void setKeyMeta(KeyMeta keyMeta) {
         this.keyMeta = keyMeta;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Priority priority;
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
+    public Priority getPriority() {
+        return priority;
     }
 }

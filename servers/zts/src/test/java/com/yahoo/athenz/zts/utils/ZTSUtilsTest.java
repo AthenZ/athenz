@@ -25,8 +25,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 import com.google.common.io.Resources;
+import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
@@ -168,7 +171,7 @@ public class ZTSUtilsTest {
         
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
         Mockito.when(certManager.generateX509Certificate(Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.anyInt())).thenReturn(null);
+                Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any())).thenReturn(null);
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -639,5 +642,40 @@ public class ZTSUtilsTest {
         assertTrue(ZTSUtils.parseBoolean("true", false));
         assertFalse(ZTSUtils.parseBoolean("false", true));
         assertFalse(ZTSUtils.parseBoolean("unknown", false));
+    }
+
+    @Test
+    public void testGetCertRequestPriority() {
+        Date currentDate = new Date();
+        Priority certRequestPriority = ZTSUtils.getCertRequestPriority(
+                Date.from(currentDate.toInstant().minus(1, ChronoUnit.DAYS)),
+                Date.from(currentDate.toInstant().plus(29, ChronoUnit.DAYS))
+        );
+        assertEquals(certRequestPriority, Priority.Low);
+
+        certRequestPriority = ZTSUtils.getCertRequestPriority(
+                Date.from(currentDate.toInstant().minus(10, ChronoUnit.DAYS)),
+                Date.from(currentDate.toInstant().plus(20, ChronoUnit.DAYS))
+        );
+        assertEquals(certRequestPriority, Priority.Medium);
+
+        certRequestPriority = ZTSUtils.getCertRequestPriority(
+                Date.from(currentDate.toInstant().minus(20, ChronoUnit.DAYS)),
+                Date.from(currentDate.toInstant().plus(10, ChronoUnit.DAYS))
+        );
+        assertEquals(certRequestPriority, Priority.Medium);
+
+        certRequestPriority = ZTSUtils.getCertRequestPriority(
+                Date.from(currentDate.toInstant().minus(25, ChronoUnit.DAYS)),
+                Date.from(currentDate.toInstant().plus(5, ChronoUnit.DAYS))
+        );
+        assertEquals(certRequestPriority, Priority.High);
+
+        // Cert expired, return High priority
+        certRequestPriority = ZTSUtils.getCertRequestPriority(
+                Date.from(currentDate.toInstant().minus(33, ChronoUnit.DAYS)),
+                Date.from(currentDate.toInstant().minus(3, ChronoUnit.DAYS))
+        );
+        assertEquals(certRequestPriority, Priority.High);
     }
 }

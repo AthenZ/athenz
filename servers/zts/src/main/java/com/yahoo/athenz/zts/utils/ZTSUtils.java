@@ -18,10 +18,12 @@ package com.yahoo.athenz.zts.utils;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.List;
 
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.Utils;
+import com.yahoo.athenz.common.server.cert.Priority;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -58,6 +60,9 @@ public class ZTSUtils {
     static final String ZTS_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
     public static final String ZTS_CERT_DNS_SUFFIX =
             System.getProperty(ZTSConsts.ZTS_PROP_CERT_DNS_SUFFIX, ZTSConsts.ZTS_CERT_DNS_SUFFIX);
+
+    public static final long CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY = Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY, ZTSConsts.ZTS_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY_DEFAULT));
+    public static final long CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY = Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY, ZTSConsts.ZTS_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY_DEFAULT));
 
     private static final String ATHENZ_PROP_KEYSTORE_PASSWORD                   = "athenz.ssl_key_store_password";
     private static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD                 = "athenz.ssl_trust_store_password";
@@ -303,7 +308,7 @@ public class ZTSUtils {
         
         // generate a certificate for this certificate request
 
-        String pemCert = certManager.generateX509Certificate(provider, certIssuer, csr, certUsage, expiryTime);
+        String pemCert = certManager.generateX509Certificate(provider, certIssuer, csr, certUsage, expiryTime, Priority.Unspecified);
         if (pemCert == null || pemCert.isEmpty()) {
             return null;
         }
@@ -444,5 +449,24 @@ public class ZTSUtils {
         }
 
         return data;
+    }
+
+    public static Priority getCertRequestPriority(Date notBefore, Date notAfter) {
+        long certDuration = notAfter.getTime() - notBefore.getTime();
+        long howLongStillValid = notAfter.getTime() - System.currentTimeMillis();
+
+        // If certificate expired, high priority
+        if (howLongStillValid <= 0) {
+            return Priority.High;
+        }
+
+        long validityDurationPercantage = howLongStillValid * 100 / certDuration;
+        if (validityDurationPercantage >= CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY) {
+            return Priority.Low;
+        } else if (validityDurationPercantage <= CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY) {
+            return Priority.High;
+        } else {
+            return Priority.Medium;
+        }
     }
 }

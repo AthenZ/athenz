@@ -24,6 +24,7 @@ import java.util.concurrent.TimeoutException;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -169,9 +170,14 @@ public class HttpCertSigner implements CertSigner {
         }
         return response;
     }
-    
+
     @Override
     public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int expireMins) {
+        return generateX509Certificate(provider, certIssuer, csr, keyUsage, expireMins, Priority.Unspecified);
+    }
+
+    @Override
+    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int expireMins, Priority priority) {
         
         // Key Usage value used in Go - https://golang.org/src/crypto/x509/x509.go?s=18153:18173#L558
         // we're only interested in ExtKeyUsageClientAuth - with value of 2

@@ -28,6 +28,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
+	"github.com/ardielle/ardielle-go/rdl"
 	"io"
 	"io/ioutil"
 	"log"
@@ -45,6 +46,38 @@ type Identity struct {
 	Name       string
 	InstanceId string
 	Ip         string
+}
+
+func GetPrevRoleCertDates(role options.Role, opts *options.Options) (*rdl.Timestamp, *rdl.Timestamp, error) {
+	certPrefix := role.Name
+	if role.Filename != "" {
+		certPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
+	}
+	keyPrefix := fmt.Sprintf("%s.%s", opts.Domain, role.Service)
+	if opts.GenerateRoleKey == true {
+		keyPrefix = role.Name
+		if role.Filename != "" {
+			keyPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
+		}
+	}
+
+	certFile, _ := getCertKeyFileName(role.Filename, opts.KeyDir, opts.CertDir, keyPrefix, certPrefix)
+
+	prevRolCert, err := readCertificate(certFile)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	notBefore := &rdl.Timestamp{
+		Time: prevRolCert.NotBefore,
+	}
+
+	notAfter := &rdl.Timestamp{
+		Time: prevRolCert.NotAfter,
+	}
+
+	log.Printf("Existing role cert %s, not before: %s, not after: %s", certFile, notBefore.String(), notAfter.String())
+	return notBefore, notAfter, nil
 }
 
 func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Options, sysLogger io.Writer) bool {
@@ -93,6 +126,24 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			continue
 		}
 		roleRequest.Csr = csr
+
+		optsRole := options.Role{
+			Name:     roleName,
+			Service:  opts.Services[0].Name,
+			Filename: role.Filename,
+			User:     "",
+			Uid:      opts.Services[0].Uid,
+			Gid:      opts.Services[0].Gid,
+			FileMode: 0444,
+		}
+
+		notBefore, notAfter, _ := GetPrevRoleCertDates(optsRole, opts)
+		roleRequest.PrevCertNotBefore = notBefore
+		roleRequest.PrevCertNotAfter = notAfter
+		if notBefore != nil && notAfter != nil {
+			logutil.LogInfo(sysLogger, "Previous Role Cert Not Before date: %s, Not After date: %s", notBefore, notAfter)
+		}
+
 		//"rolename": "athenz.fp:role.readers"
 		//from the rolename, domain is athenz.fp
 		//role is readers
@@ -106,15 +157,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		//we have the roletoken
 		//write the cert to pem file using Role.Filename
 		roleKeyBytes := util.PrivatePem(key)
-		optsRole := options.Role{
-			Name:     roleName,
-			Service:  opts.Services[0].Name,
-			Filename: role.Filename,
-			User:     "",
-			Uid:      opts.Services[0].Uid,
-			Gid:      opts.Services[0].Gid,
-			FileMode: 0444,
-		}
+
 		err = SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleToken.Token), optsRole, opts, sysLogger)
 		if err != nil {
 			failures += 1
@@ -427,23 +470,27 @@ func getProviderName(provider, region, taskId, providerParentDomain string) (str
 }
 
 func extractProviderFromCert(certFile string) string {
-	data, err := ioutil.ReadFile(certFile)
-	if err != nil {
-		return ""
-	}
-	var block *pem.Block
-	block, _ = pem.Decode(data)
-	if block == nil {
-		return ""
-	}
-	cert, err := x509.ParseCertificate(block.Bytes)
-	if err != nil {
+	cert, err := readCertificate(certFile)
+	if err != nil || cert == nil {
 		return ""
 	}
 	if len(cert.Subject.OrganizationalUnit) > 0 {
 		return cert.Subject.OrganizationalUnit[0]
 	}
 	return ""
+}
+
+func readCertificate(certFile string) (*x509.Certificate, error) {
+	data, err := ioutil.ReadFile(certFile)
+	if err != nil {
+		return nil, err
+	}
+	var block *pem.Block
+	block, _ = pem.Decode(data)
+	if block == nil {
+		return nil, nil
+	}
+	return x509.ParseCertificate(block.Bytes)
 }
 
 func getCertFileName(file, domain, service, certDir string) string {

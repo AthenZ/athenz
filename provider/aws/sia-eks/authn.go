@@ -21,16 +21,16 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
+	"github.com/ardielle/ardielle-go/rdl"
+	"io"
+	"io/ioutil"
+	"os"
 
 	"github.com/aws/aws-sdk-go/service/sts"
 )
@@ -75,23 +75,45 @@ func GetAttestationData(domain, service, account, region string, useRegionalSTS 
 }
 
 func extractProviderFromCert(certFile string) string {
-	data, err := ioutil.ReadFile(certFile)
-	if err != nil {
-		return ""
-	}
-	var block *pem.Block
-	block, _ = pem.Decode(data)
-	if block == nil {
-		return ""
-	}
-	cert, err := x509.ParseCertificate(block.Bytes)
-	if err != nil {
+	cert, err := readCertificate(certFile)
+	if err != nil || cert == nil {
 		return ""
 	}
 	if len(cert.Subject.OrganizationalUnit) > 0 {
 		return cert.Subject.OrganizationalUnit[0]
 	}
 	return ""
+}
+
+func readCertificate(certFile string) (*x509.Certificate, error) {
+	data, err := ioutil.ReadFile(certFile)
+	if err != nil {
+		return nil, err
+	}
+	var block *pem.Block
+	block, _ = pem.Decode(data)
+	if block == nil {
+		return nil, nil
+	}
+	return x509.ParseCertificate(block.Bytes)
+}
+
+func GetPrevRoleCertDates(certFile string, sysLogger io.Writer) (*rdl.Timestamp, *rdl.Timestamp, error) {
+	prevRolCert, err := readCertificate(certFile)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	notBefore := &rdl.Timestamp{
+		Time: prevRolCert.NotBefore,
+	}
+
+	notAfter := &rdl.Timestamp{
+		Time: prevRolCert.NotAfter,
+	}
+
+	logutil.LogInfo(sysLogger, "Existing role cert %s, not before: %s, not after: %s", certFile, notBefore.String(), notAfter.String())
+	return notBefore, notAfter, nil
 }
 
 func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Options, sysLogger io.Writer) bool {
@@ -130,6 +152,14 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			continue
 		}
 		roleRequest.Csr = csr
+
+		notBefore, notAfter, _ := GetPrevRoleCertDates(certFilePem, sysLogger)
+		roleRequest.PrevCertNotBefore = notBefore
+		roleRequest.PrevCertNotAfter = notAfter
+		if notBefore != nil && notAfter != nil {
+			logutil.LogInfo(sysLogger, "Previous Role Cert Not Before date: %s, Not After date: %s", notBefore, notAfter)
+		}
+
 		//"rolename": "athenz.fp:role.readers"
 		//from the rolename, domain is athenz.fp
 		//role is readers

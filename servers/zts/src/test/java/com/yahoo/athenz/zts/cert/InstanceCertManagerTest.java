@@ -10,9 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yahoo.athenz.common.server.cert.CertRecordStore;
-import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
-import com.yahoo.athenz.common.server.cert.X509CertRecord;
+import com.yahoo.athenz.common.server.cert.*;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
@@ -40,7 +38,6 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.zts.utils.IPBlock;
 import com.yahoo.athenz.auth.Principal;
 
@@ -66,12 +63,12 @@ public class InstanceCertManagerTest {
         final String cert = "cert";
         final String caCert = "caCert";
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
-        when(certSigner.generateX509Certificate(any(), any(), any(), any(), Mockito.anyInt())).thenReturn(cert);
+        when(certSigner.generateX509Certificate(any(), any(), any(), any(), Mockito.anyInt(), Mockito.any())).thenReturn(cert);
         when(certSigner.getCACertificate(any())).thenReturn(caCert);
         
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false, null);
         instanceManager.setCertSigner(certSigner);
-        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0);
+        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0, Priority.Unspecified);
         
         assertNotNull(identity);
         assertEquals(identity.getName(), "cn");
@@ -175,7 +172,7 @@ public class InstanceCertManagerTest {
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false, null);
         instanceManager.setCertSigner(certSigner);
-        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0);
+        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0, Priority.Unspecified);
         assertNull(identity);
         instanceManager.shutdown();
     }
@@ -188,7 +185,7 @@ public class InstanceCertManagerTest {
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false, null);
         instanceManager.setCertSigner(certSigner);
-        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0);
+        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0, Priority.Unspecified);
         assertNull(identity);
         instanceManager.shutdown();
     }
