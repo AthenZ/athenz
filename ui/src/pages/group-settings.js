@@ -72,11 +72,12 @@ export default class GroupSettings extends React.Component {
             api.getGroup(props.query.domain, props.query.group),
             api.getPendingDomainMembersList(),
             api.getForm(),
+            api.getAuthorityAttributes(),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             reload = response.reload;
             error = response.error;
-            return [{}, {}, {}, {}, {}, {}];
+            return [{}, {}, {}, {}, {}, {}, {}];
         });
         return {
             api,
@@ -92,6 +93,7 @@ export default class GroupSettings extends React.Component {
             domain: props.query.domain,
             pending: groups[4],
             _csrf: groups[5],
+            userAuthorityAttributes: groups[6],
             nonce: props.req.headers.rid,
         };
     }
@@ -165,6 +167,9 @@ export default class GroupSettings extends React.Component {
                                                 .userLink
                                         }
                                         category={'group'}
+                                        userAuthorityAttributes={
+                                            this.props.userAuthorityAttributes
+                                        }
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>
