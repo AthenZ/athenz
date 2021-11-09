@@ -359,6 +359,38 @@ func (client MSDClient) ValidateTransportPolicy(transportPolicy *TransportPolicy
 	}
 }
 
+func (client MSDClient) GetTransportPolicyValidationStatus(domainName DomainName) (*TransportPolicyValidationResponseList, error) {
+	var data *TransportPolicyValidationResponseList
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/transportpolicy/validationStatus"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client MSDClient) GetWorkloadsByService(domainName DomainName, serviceName EntityName, matchingTag string) (*Workloads, string, error) {
 	var data *Workloads
 	headers := map[string]string{

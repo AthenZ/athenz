@@ -16,13 +16,11 @@
 
 package com.yahoo.athenz.common.server.msd;
 
-import com.yahoo.athenz.msd.DynamicWorkload;
-import com.yahoo.athenz.msd.StaticWorkload;
-import com.yahoo.athenz.msd.WorkloadOptions;
-import com.yahoo.athenz.msd.Workloads;
+import com.yahoo.athenz.msd.*;
 
 import java.io.Closeable;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Storage interface for storing MicroSegmentation Daemon data
@@ -42,6 +40,13 @@ public interface MsdStoreConnection extends Closeable {
      * @param options workload options to be passed to the api
      */
     default void putDynamicWorkload(DynamicWorkload workload, WorkloadOptions options) {
+    };
+
+    /**
+     * putTransportPolicyValidationStatus stores the validation status into the underlying storage that can be an RDMS or NoSQL
+     * @param validationResponse response object to be stored in the underlying storage
+     */
+    default void putTransportPolicyValidationStatus(TransportPolicyValidationResponse validationResponse) {
     };
 
     /**
@@ -65,6 +70,17 @@ public interface MsdStoreConnection extends Closeable {
         Workloads workloads = new Workloads();
         workloads.setWorkloadList(new ArrayList<>());
         return workloads;
+    }
+
+    /**
+     * getTransportPolicyValidationStatus looks up validation status
+     * @param assertionIdList list of assertion IDs to  lookup
+     * @return TransportPolicyValidationResponseList object containing list of TransportPolicyValidationResponse
+     */
+    default TransportPolicyValidationResponseList getTransportPolicyValidationStatus(List<Integer> assertionIdList) {
+        TransportPolicyValidationResponseList responseList = new TransportPolicyValidationResponseList();
+        responseList.setResponseList(new ArrayList<>());
+        return responseList;
     }
 
     /**

@@ -17,6 +17,7 @@
 package com.yahoo.athenz.common.server.msd;
 
 import com.yahoo.athenz.msd.DynamicWorkload;
+import com.yahoo.athenz.msd.TransportPolicyValidationResponseList;
 import com.yahoo.athenz.msd.WorkloadOptions;
 import com.yahoo.athenz.msd.Workloads;
 import com.yahoo.rdl.Timestamp;
@@ -25,8 +26,7 @@ import org.testng.annotations.Test;
 import java.util.Collections;
 import java.util.List;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.*;
 
 public class MsdStoreConnectionTest {
 
@@ -63,5 +63,8 @@ public class MsdStoreConnectionTest {
 
         String tag = msdStoreConnection.getServiceModifiedTag("athenz", "httpd");
         assertEquals(tag, "");
+
+        TransportPolicyValidationResponseList responseList = msdStoreConnection.getTransportPolicyValidationStatus(null);
+        assertEquals(responseList.getResponseList().size(), 0);
     }
 }

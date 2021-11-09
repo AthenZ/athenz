@@ -170,6 +170,7 @@ func init() {
 	tTransportPolicyValidationRequest.Comment("Transport policy request object to be validated")
 	tTransportPolicyValidationRequest.Field("entitySelector", "TransportPolicyEntitySelector", false, nil, "Describes the entity to which this transport policy applies")
 	tTransportPolicyValidationRequest.Field("peer", "TransportPolicyPeer", false, nil, "source or destination of the network traffic depending on direction")
+	tTransportPolicyValidationRequest.Field("id", "Int64", true, nil, "If present, assertion id associated with this transport policy")
 	tTransportPolicyValidationRequest.Field("trafficDirection", "TransportPolicyTrafficDirection", false, nil, "")
 	sb.AddType(tTransportPolicyValidationRequest.Build())
 
@@ -177,7 +178,13 @@ func init() {
 	tTransportPolicyValidationResponse.Comment("Response object of transport policy rule validation")
 	tTransportPolicyValidationResponse.Field("status", "TransportPolicyValidationStatus", false, nil, "")
 	tTransportPolicyValidationResponse.ArrayField("errors", "String", true, "")
+	tTransportPolicyValidationResponse.Field("updateTime", "Timestamp", true, nil, "most recent update timestamp in the backend")
 	sb.AddType(tTransportPolicyValidationResponse.Build())
+
+	tTransportPolicyValidationResponseList := rdl.NewStructTypeBuilder("Struct", "TransportPolicyValidationResponseList")
+	tTransportPolicyValidationResponseList.Comment("List of TransportPolicyValidationResponse")
+	tTransportPolicyValidationResponseList.ArrayField("responseList", "TransportPolicyValidationResponse", false, "list of transport policy validation response")
+	sb.AddType(tTransportPolicyValidationResponseList.Build())
 
 	tStaticWorkloadType := rdl.NewEnumTypeBuilder("Enum", "StaticWorkloadType")
 	tStaticWorkloadType.Comment("Enum representing defined types of static workloads.")
@@ -285,6 +292,18 @@ func init() {
 	mValidateTransportPolicy.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mValidateTransportPolicy.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mValidateTransportPolicy.Build())
+
+	mGetTransportPolicyValidationStatus := rdl.NewResourceBuilder("TransportPolicyValidationResponseList", "GET", "/domain/{domainName}/transportpolicy/validationStatus")
+	mGetTransportPolicyValidationStatus.Comment("API to get transport policy validation response for transport policies of a domain")
+	mGetTransportPolicyValidationStatus.Name("getTransportPolicyValidationStatus")
+	mGetTransportPolicyValidationStatus.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
+	mGetTransportPolicyValidationStatus.Auth("", "", true, "")
+	mGetTransportPolicyValidationStatus.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetTransportPolicyValidationStatus.Exception("FORBIDDEN", "ResourceError", "")
+	mGetTransportPolicyValidationStatus.Exception("NOT_FOUND", "ResourceError", "")
+	mGetTransportPolicyValidationStatus.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetTransportPolicyValidationStatus.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetTransportPolicyValidationStatus.Build())
 
 	mGetWorkloadsByService := rdl.NewResourceBuilder("Workloads", "GET", "/domain/{domainName}/service/{serviceName}/workloads")
 	mGetWorkloadsByService.Name("getWorkloadsByService")

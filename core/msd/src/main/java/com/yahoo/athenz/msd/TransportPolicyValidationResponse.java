@@ -18,6 +18,9 @@ public class TransportPolicyValidationResponse {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> errors;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Timestamp updateTime;
 
     public TransportPolicyValidationResponse setStatus(TransportPolicyValidationStatus status) {
         this.status = status;
@@ -33,6 +36,13 @@ public class TransportPolicyValidationResponse {
     public List<String> getErrors() {
         return errors;
     }
+    public TransportPolicyValidationResponse setUpdateTime(Timestamp updateTime) {
+        this.updateTime = updateTime;
+        return this;
+    }
+    public Timestamp getUpdateTime() {
+        return updateTime;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -45,6 +55,9 @@ public class TransportPolicyValidationResponse {
                 return false;
             }
             if (errors == null ? a.errors != null : !errors.equals(a.errors)) {
+                return false;
+            }
+            if (updateTime == null ? a.updateTime != null : !updateTime.equals(a.updateTime)) {
                 return false;
             }
         }

@@ -36,8 +36,8 @@ public class NoOpTransportPolicyValidatorTest {
             }
         };
 
-        TransportPolicyValidatorFactory factory = (msdStore) -> new NoOpTransportPolicyValidator();
-        TransportPolicyValidator validator = factory.create(store);
+        TransportPolicyValidatorFactory factory = () -> new NoOpTransportPolicyValidator();
+        TransportPolicyValidator validator = factory.create();
         assertTrue(validator instanceof NoOpTransportPolicyValidator);
         TransportPolicyValidationRequest request = new TransportPolicyValidationRequest();
         assertEquals(validator.validateTransportPolicy(request).getStatus(), TransportPolicyValidationStatus.VALID);

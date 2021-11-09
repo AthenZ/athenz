@@ -4,6 +4,7 @@
 
 package com.yahoo.athenz.msd;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
@@ -14,6 +15,9 @@ import com.yahoo.rdl.*;
 public class TransportPolicyValidationRequest {
     public TransportPolicyEntitySelector entitySelector;
     public TransportPolicyPeer peer;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Long id;
     public TransportPolicyTrafficDirection trafficDirection;
 
     public TransportPolicyValidationRequest setEntitySelector(TransportPolicyEntitySelector entitySelector) {
@@ -29,6 +33,13 @@ public class TransportPolicyValidationRequest {
     }
     public TransportPolicyPeer getPeer() {
         return peer;
+    }
+    public TransportPolicyValidationRequest setId(Long id) {
+        this.id = id;
+        return this;
+    }
+    public Long getId() {
+        return id;
     }
     public TransportPolicyValidationRequest setTrafficDirection(TransportPolicyTrafficDirection trafficDirection) {
         this.trafficDirection = trafficDirection;
@@ -49,6 +60,9 @@ public class TransportPolicyValidationRequest {
                 return false;
             }
             if (peer == null ? a.peer != null : !peer.equals(a.peer)) {
+                return false;
+            }
+            if (id == null ? a.id != null : !id.equals(a.id)) {
                 return false;
             }
             if (trafficDirection == null ? a.trafficDirection != null : !trafficDirection.equals(a.trafficDirection)) {
