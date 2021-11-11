@@ -19,14 +19,16 @@ package attestation
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
-	"github.com/aws/aws-sdk-go/service/sts"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
+	"github.com/aws/aws-sdk-go/service/sts"
 )
 
 type AttestationData struct {
@@ -134,4 +136,17 @@ func getECSTaskId() string {
 		return ""
 	}
 	return taskId
+}
+
+//GetAttestationData fetches attestation data for all the services mentioned in the config file
+func GetAttestationData(opts *options.Options, sysLogger io.Writer) ([]*AttestationData, error) {
+	data := []*AttestationData{}
+	for _, svc := range opts.Services {
+		a, err := NewWithCredsOnly(opts.Domain, svc.Name, opts.Account, opts.UseRegionalSTS, opts.Region, sysLogger)
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, a)
+	}
+	return data, nil
 }

@@ -540,7 +540,7 @@ func TestParseAssumedRoleArnValid(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidPrefix(test *testing.T) {
-	_, _, _, err := ParseRoleArn("arn:aws:sts:123456789012:role/athenz.zts-service")
+	_, _, _, err := ParseRoleArn("arn:aws:sts:123456789012:role/athenz.zts-service", "role/", "")
 	if err == nil {
 		test.Errorf("Unable to verify proper role arn prefix")
 	}
@@ -550,7 +550,7 @@ func TestParseRoleArnInvalidPrefix(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidNumberOfComponents(test *testing.T) {
-	_, _, _, err := ParseRoleArn("arn:aws:iam::role/athenz.zts-service")
+	_, _, _, err := ParseRoleArn("arn:aws:iam::role/athenz.zts-service", "role/", "-service")
 	if err == nil {
 		test.Errorf("Unable to verify proper role arn number of components")
 	}
@@ -560,7 +560,7 @@ func TestParseRoleArnInvalidNumberOfComponents(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidAssumedRoleComponent(test *testing.T) {
-	_, _, _, err := ParseRoleArn("arn:aws:iam::123456789012:assumed-role/athenz.zts-service")
+	_, _, _, err := ParseRoleArn("arn:aws:iam::123456789012:assumed-role/athenz.zts-service", "role/", "-service")
 	if err == nil {
 		test.Errorf("Unable to verify proper role assumed-role prefix")
 	}
@@ -570,7 +570,7 @@ func TestParseRoleArnInvalidAssumedRoleComponent(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidAthenzService(test *testing.T) {
-	_, _, _, err := ParseRoleArn("arn:aws:iam::123456789012:role/athenz-service")
+	_, _, _, err := ParseRoleArn("arn:aws:iam::123456789012:role/athenz-service", "role/", "-service")
 	if err == nil {
 		test.Errorf("Unable to verify proper athenz service name")
 	}
@@ -580,7 +580,7 @@ func TestParseRoleArnInvalidAthenzService(test *testing.T) {
 }
 
 func TestParseRoleArnValid(test *testing.T) {
-	account, domain, service, err := ParseRoleArn("arn:aws:iam::123456789012:role/athenz.zts-service")
+	account, domain, service, err := ParseRoleArn("arn:aws:iam::123456789012:role/athenz.zts-service", "role/", "-service")
 	if err != nil {
 		test.Errorf("Unable to parse valid arn, error %v", err)
 	}
@@ -590,7 +590,20 @@ func TestParseRoleArnValid(test *testing.T) {
 	if domain != "athenz" {
 		test.Errorf("Unable to parse valid arn, invalid domain: %s", domain)
 	}
-	if service != "zts-service" {
+	if service != "zts" {
+		test.Errorf("Unable to parse valid arn, invalid service: %s", service)
+	}
+	account, domain, service, err = ParseRoleArn("arn:aws:iam::123456789012:instance-profile/sys.auth.zms", "instance-profile/", "")
+	if err != nil {
+		test.Errorf("Unable to parse valid arn, error %v", err)
+	}
+	if account != "123456789012" {
+		test.Errorf("Unable to parse valid arn, invalid account: %s", account)
+	}
+	if domain != "sys.auth" {
+		test.Errorf("Unable to parse valid arn, invalid domain: %s", domain)
+	}
+	if service != "zms" {
 		test.Errorf("Unable to parse valid arn, invalid service: %s", service)
 	}
 }

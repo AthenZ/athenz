@@ -81,7 +81,7 @@ func TestOptionsNoConfig(t *testing.T) {
 	defer metaServer.stop()
 
 	ztsDomains := []string{"zts-aws-domain"}
-	config, configAccount, _ := GetConfig([]byte{}, "123456789012", metaServer.httpUrl(), os.Stdout)
+	config, configAccount, _ := GetConfig("data/sia_empty_config", "-service", metaServer.httpUrl(), os.Stdout)
 	opts, e := NewOptions(config, configAccount, "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
@@ -90,33 +90,13 @@ func TestOptionsNoConfig(t *testing.T) {
 	assert.True(t, len(opts.Services) == 1)
 	assert.True(t, opts.Domain == "athenz")
 	assert.True(t, opts.Name == "athenz.hockey")
-	assert.True(t, assertService(opts.Services[0], Service{Name: "hockey", Uid: 0, Gid: 0}))
+	assert.True(t, assertService(opts.Services[0], Service{Name: "hockey", Uid: 0, Gid: 0, FileMode: 288}))
 }
 
 // TestOptionsWithConfig test the scenario when /etc/sia/sia_config is present
 func TestOptionsWithConfig(t *testing.T) {
-	configBytes := `{
-		"version": "1.0.0",
-  		"service": "api",
-  		"services": {
-    		"api": {},
-    		"ui": {},
-			"yamas": {
-				"user": "nobody",
-				"group": "sys"
-			}
-  		},
-  		"accounts": [
-  			{
-  			    "domain": "athenz",
-    			"user": "nobody",
-    	  		"account": "123456789012"
-    		}
-  		]
-	}`
-
 	ztsDomains := []string{"zts-aws-domain"}
-	config, configAccount, _ := GetConfig([]byte(configBytes), "123456789012", "http://localhost:80", os.Stdout)
+	config, configAccount, _ := GetConfig("data/sia_config",  "-service", "http://localhost:80", os.Stdout)
 	opts, e := NewOptions(config, configAccount, "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
@@ -127,68 +107,26 @@ func TestOptionsWithConfig(t *testing.T) {
 	assert.True(t, opts.Name == "athenz.api")
 
 	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
-	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody")}))
+	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288}))
 	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui"}))
 	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys")}))
 }
 
 // TestOptionsNoService test the scenario when /etc/sia/sia_config is present, but service is not repeated in services
 func TestOptionsNoService(t *testing.T) {
-	configBytes := `{
-		"version": "1.0.0",
-  		"services": {
-    		"api": {},
-    		"ui": {}
-  		},
-  		"accounts": [
-  			{
-  			    "domain": "athenz",
-    			"user": "nobody",
-    	  		"account": "123456789012"
-    		}
-  		]
-	}`
-
 	ztsDomains := []string{"zts-aws-domain"}
-	config, configAccount, e := GetConfig([]byte(configBytes), "123456789012", "http://localhost:80", os.Stdout)
+	config, configAccount, e := GetConfig("data/sia_no_service",  "-service", "http://localhost:80", os.Stdout)
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 
-	configBytes = `{
-		"version": "1.0.0",
-		"service": "api",
-  		"services": {
-    		"ui": {}
-  		},
-  		"accounts": [
-  			{
-  			    "domain": "athenz",
-    			"user": "nobody",
-    	  		"account": "123456789012"
-    		}
-  		]
-	}`
-
-	config, configAccount, _ = GetConfig([]byte(configBytes), "123456789012", "http://localhost:80", os.Stdout)
+	config, configAccount, _ = GetConfig("data/sia_no_service2",  "-service", "http://localhost:80", os.Stdout)
 	_, e = NewOptions(config, configAccount, "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 }
 
 // TestOptionsNoServices test the scenario when only "service" is mentioned and there are no multiple "services"
 func TestOptionsNoServices(t *testing.T) {
-	configBytes := `{
-		"version": "1.0.0",
-		"service": "api",
-  		"accounts": [
-  			{
-  			    "domain": "athenz",
-    			"user": "nobody",
-    	  		"account": "123456789012"
-    		}
-  		]
-	}`
-
 	ztsDomains := []string{"zts-aws-domain"}
-	config, configAccount, _ := GetConfig([]byte(configBytes), "123456789012", "http://localhost:80", os.Stdout)
+	config, configAccount, _ := GetConfig("data/sia_no_services",  "-service", "http://localhost:80", os.Stdout)
 	opts, e := NewOptions(config, configAccount, "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 
@@ -196,7 +134,7 @@ func TestOptionsNoServices(t *testing.T) {
 	assert.True(t, len(opts.Services) == 1)
 	assert.True(t, opts.Domain == "athenz")
 	assert.True(t, opts.Name == "athenz.api")
-	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody")}))
+	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288}))
 }
 
 func assertService(expected Service, actual Service) bool {
@@ -252,42 +190,16 @@ func getGid(t *testing.T, group string) int {
 }
 
 func TestOptionsWithGenerateRoleKeyConfig(t *testing.T) {
-	configBytes := `{
-		"version": "1.0.0",
-		"service": "api",
-		"generate_role_key": true,
-  		"accounts": [
-  			{
-  			    "domain": "athenz",
-    			"user": "nobody",
-    	  		"account": "123456789012"
-    		}
-  		]
-	}`
-
 	ztsDomains := []string{"zts-aws-domain"}
-	config, configAccount, _ := GetConfig([]byte(configBytes), "123456789012", "http://localhost:80", os.Stdout)
+	config, configAccount, _ := GetConfig("data/sia_generate_role_key", "-service", "http://localhost:80", os.Stdout)
 	opts, e := NewOptions(config, configAccount, "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.GenerateRoleKey == true)
 }
 
 func TestOptionsWithRotateKeyConfig(t *testing.T) {
-	configBytes := `{
-		"version": "1.0.0",
-		"service": "api",
-		"rotate_key": true,
-  		"accounts": [
-  			{
-  			    "domain": "athenz",
-    			"user": "nobody",
-    	  		"account": "123456789012"
-    		}
-  		]
-	}`
-
 	ztsDomains := []string{"zts-aws-domain"}
-	config, configAccount, _ := GetConfig([]byte(configBytes), "123456789012", "http://localhost:80", os.Stdout)
+	config, configAccount, _ := GetConfig("data/sia_rotate_key", "-service", "http://localhost:80", os.Stdout)
 	opts, e := NewOptions(config, configAccount, "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.RotateKey == true)

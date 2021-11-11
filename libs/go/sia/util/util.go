@@ -414,22 +414,35 @@ func ParseAssumedRoleArn(roleArn, serviceSuffix string) (string, string, string,
 		return "", "", "", fmt.Errorf("unable to parse role arn (assumed-role): %s", roleArn)
 	}
 	// second component is our athenz service name with the requested service suffix
-	if !strings.HasSuffix(roleComps[1], serviceSuffix) {
-		return "", "", "", fmt.Errorf("service name does not have '%s' suffix: %s", serviceSuffix, roleArn)
+	// if the service suffix is empty then we don't need any parsing of the requested
+	// domain/service values and we'll just parse the values as is
+	var domain, service string
+	if serviceSuffix == "" {
+		roleName := roleComps[1]
+		idx := strings.LastIndex(roleName, ".")
+		if idx > 0 {
+			domain = roleName[:idx]
+			service = roleName[idx+1:]
+		}
+	} else {
+		if !strings.HasSuffix(roleComps[1], serviceSuffix) {
+			return "", "", "", fmt.Errorf("service name does not have '%s' suffix: %s", serviceSuffix, roleArn)
+		}
+		roleName := roleComps[1][0 : len(roleComps[1])-len(serviceSuffix)]
+		idx := strings.LastIndex(roleName, ".")
+		if idx < 0 {
+			return "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
+		}
+		domain = roleName[:idx]
+		service = roleName[idx+1:]
 	}
-	roleName := roleComps[1][0 : len(roleComps[1])-len(serviceSuffix)]
-	idx := strings.LastIndex(roleName, ".")
-	if idx < 0 {
-		return "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
-	}
-	domain := roleName[:idx]
-	service := roleName[idx+1:]
 	account := arn[4]
 	return account, domain, service, nil
 }
 
-func ParseRoleArn(roleArn string) (string, string, string, error) {
+func ParseRoleArn(roleArn, rolePrefix, roleSuffix string) (string, string, string, error) {
 	//arn:aws:iam::123456789012:role/athenz.zts
+	//arn:aws:iam::123456789012:instance-profile/athenz.zts
 	if !strings.HasPrefix(roleArn, "arn:aws:iam:") {
 		return "", "", "", fmt.Errorf("unable to parse role arn (prefix): %s", roleArn)
 	}
@@ -439,10 +452,13 @@ func ParseRoleArn(roleArn string) (string, string, string, error) {
 		return "", "", "", fmt.Errorf("unable to parse role arn (number of components): %s", roleArn)
 	}
 	// our role part must start with role/
-	if !strings.HasPrefix(arn[5], "role/") {
-		return "", "", "", fmt.Errorf("role name does not have 'role/' prefix: %s", roleArn)
+	if !strings.HasPrefix(arn[5], rolePrefix) {
+		return "", "", "", fmt.Errorf("role name does not have '%s' prefix: %s", rolePrefix, roleArn)
 	}
-	roleName := arn[5][5:]
+	if roleSuffix != "" && !strings.HasSuffix(arn[5][len(rolePrefix):], roleSuffix) {
+		return "", "", "", fmt.Errorf("role name does not have '%s' suffix: %s", roleSuffix, roleArn)
+	}
+	roleName := arn[5][len(rolePrefix):len(arn[5])-len(roleSuffix)]
 	idx := strings.LastIndex(roleName, ".")
 	if idx < 0 {
 		return "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
@@ -466,7 +482,7 @@ func getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix string) (st
 	}
 }
 
-func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid, fileMode int, createKey, rotateKey bool, keyDir, certDir, backupDir string, sysLogger io.Writer, ) error {
+func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid, fileMode int, createKey, rotateKey bool, keyDir, certDir, backupDir string, sysLogger io.Writer) error {
 
 	certFile, keyFile := getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix)
 

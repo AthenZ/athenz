@@ -19,15 +19,21 @@ package options
 // package options contains types for parsing sia_config file and options to carry those config values
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"strings"
+
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"io"
-	"os"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sts"
 )
 
 // ConfigService represents a service to be specified by user, and specify User/Group attributes for the service
@@ -124,7 +130,44 @@ type Options struct {
 	ProviderParentDomain string                //provider domain name, if not specified using athenz
 }
 
-func InitProfileConfig(metaEndPoint string) (*ConfigAccount, error) {
+func GetAccountId(metaEndPoint string) (string, error) {
+	// first try to get the account from our creds and if
+	// fails we'll fall back to identity document
+	configAccount, err := InitCredsConfig("")
+	if err == nil {
+		return configAccount.Account, nil
+	}
+	document, err := meta.GetData(metaEndPoint, "/latest/dynamic/instance-identity/document")
+	if err != nil {
+		return "", err
+	}
+	return doc.GetDocumentEntry(document, "accountId")
+}
+
+func InitCredsConfig(roleSuffix string) (*ConfigAccount, error) {
+	stsSession, err := session.NewSession()
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new session: %v", err)
+	}
+	stsService := sts.New(stsSession)
+	input := &sts.GetCallerIdentityInput{}
+	result, err := stsService.GetCallerIdentity(input)
+	if err != nil {
+		return nil, err
+	}
+	account, domain, service, err := util.ParseAssumedRoleArn(*result.Arn, roleSuffix)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse role arn: %v", err)
+	}
+	return &ConfigAccount{
+		Domain:  domain,
+		Service: service,
+		Account: account,
+		Name:    fmt.Sprintf("%s.%s", domain, service),
+	}, nil
+}
+
+func InitProfileConfig(metaEndPoint, roleSuffix string) (*ConfigAccount, error) {
 	info, err := meta.GetData(metaEndPoint, "/latest/meta-data/iam/info")
 	if err != nil {
 		return nil, err
@@ -133,7 +176,7 @@ func InitProfileConfig(metaEndPoint string) (*ConfigAccount, error) {
 	if err != nil {
 		return nil, err
 	}
-	domain, service, err := util.ExtractServiceName(arn, ":instance-profile/")
+	account, domain, service, err := util.ParseRoleArn(arn, "instance-profile/", roleSuffix)
 	if err != nil {
 		return nil, err
 	}
@@ -141,21 +184,32 @@ func InitProfileConfig(metaEndPoint string) (*ConfigAccount, error) {
 	return &ConfigAccount{
 		Domain:  domain,
 		Service: service,
+		Account: account,
 		Name:    fmt.Sprintf("%s.%s", domain, service),
 	}, nil
 }
 
-func InitFileConfig(bytes []byte, accountId string) (*Config, *ConfigAccount, error) {
+func InitFileConfig(fileName, metaEndPoint string) (*Config, *ConfigAccount, error) {
+	bytes, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return nil, nil, err
+	}
 	if len(bytes) == 0 {
 		return nil, nil, errors.New("empty config bytes")
 	}
 	var config Config
-	err := json.Unmarshal(bytes, &config)
+	err = json.Unmarshal(bytes, &config)
 	if err != nil {
 		return nil, nil, err
 	}
 	if config.Service == "" {
 		return nil, nil, fmt.Errorf("missing required Service field from the config file")
+	}
+	// if we have more than one account block defined (not recommended)
+	// then we need to determine our account id
+	var accountId string
+	if len(config.Accounts) > 1 {
+		accountId, _ = GetAccountId(metaEndPoint)
 	}
 	for _, configAccount := range config.Accounts {
 		if configAccount.Account == accountId || len(config.Accounts) == 1 {
@@ -194,7 +248,7 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if roleArn == "" {
 		return config, nil, fmt.Errorf("athenz role arn env variable not configured")
 	}
-	account, domain, service, err := util.ParseRoleArn(roleArn)
+	account, domain, service, err := util.ParseRoleArn(roleArn, "role/", "")
 	if err != nil {
 		return config, nil, fmt.Errorf("unable to parse athenz role arn: %v", err)
 	}
@@ -209,16 +263,16 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	}, nil
 }
 
-func GetConfig(bytes []byte, accountId, metaEndPoint string, sysLogger io.Writer) (*Config, *ConfigAccount, error) {
+func GetConfig(fileName, roleSuffix, metaEndPoint string, sysLogger io.Writer) (*Config, *ConfigAccount, error) {
 	// Parse config bytes first, and if that fails, load values from Instance Profile and IAM info
-	config, configAccount, err := InitFileConfig(bytes, accountId)
+	config, configAccount, err := InitFileConfig(fileName, metaEndPoint)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "unable to parse configuration file, error: %v\n", err)
 		// if we do not have a configuration file, we're going
 		// to use fallback to <domain>.<service>-service
 		// naming structure
 		logutil.LogInfo(sysLogger, "trying to determine service name from profile arn...\n")
-		configAccount, err = InitProfileConfig(metaEndPoint)
+		configAccount, err = InitProfileConfig(metaEndPoint, roleSuffix)
 		if err != nil {
 			return nil, nil, fmt.Errorf("config non-parsable and unable to determine service name from profile arn, error: %v", err)
 		}
@@ -348,4 +402,13 @@ func NewOptions(config *Config, account *ConfigAccount, siaDir, version, ztsCaCe
 		BackUpDir:            fmt.Sprintf("%s/backup", siaDir),
 		ProviderParentDomain: providerParentDomain,
 	}, nil
+}
+
+//GetSvcNames returns comma separated list of service names
+func GetSvcNames(svcs []Service) string {
+	var b bytes.Buffer
+	for _, svc := range svcs {
+		b.WriteString(fmt.Sprintf("%s,", svc.Name))
+	}
+	return strings.TrimSuffix(b.String(), ",")
 }
