@@ -291,13 +291,24 @@ func AppendUri(uriList []*url.URL, uriValue string) []*url.URL {
 }
 
 func GetRoleCertFileName(certDir, fileName, certName string) string {
-	if fileName == "" {
-		return certDir + certName + ".cert.pem"
-	}
-	if fileName[0] == '/' {
+	switch {
+	case fileName == "":
+		return fmt.Sprintf("%s/%s.cert.pem", certDir, certName)
+	case fileName[0] == '/':
 		return fileName
-	} else {
-		return certDir + fileName
+	default:
+		return fmt.Sprintf("%s/%s", certDir, fileName)
+	}
+}
+
+func GetSvcCertFileName(certDir, fileName, domain, service string) string {
+	switch {
+	case fileName == "":
+		return fmt.Sprintf("%s/%s.%s.cert.pem", certDir, domain, service)
+	case fileName[0] == '/':
+		return fileName
+	default:
+		return fmt.Sprintf("%s/%s", certDir, fileName)
 	}
 }
 
@@ -383,24 +394,147 @@ func UpdateKey(keyFile string, uid, gid int) {
 	}
 }
 
-func UidGidForUserGroup(username, groupname string, sysLogger io.Writer) (int, int) {
-	// Get uid and gid for the username.
-	uid, gid := uidGidForUser(username, sysLogger)
+func ParseAssumedRoleArn(roleArn, serviceSuffix string) (string, string, string, error) {
+	//arn:aws:sts::123456789012:assumed-role/athenz.zts-service/i-0662a0226f2d9dc2b
+	if !strings.HasPrefix(roleArn, "arn:aws:sts:") {
+		return "", "", "", fmt.Errorf("unable to parse role arn (prefix): %s", roleArn)
+	}
+	arn := strings.Split(roleArn, ":")
+	// make sure we have correct number of components
+	if len(arn) < 6 {
+		return "", "", "", fmt.Errorf("unable to parse role arn (number of components): %s", roleArn)
+	}
+	// our role part as 3 components separated by /
+	roleComps := strings.Split(arn[5], "/")
+	if len(roleComps) != 3 {
+		return "", "", "", fmt.Errorf("unable to parse role arn (role components): %s", roleArn)
+	}
+	// the first component must be assumed-role
+	if roleComps[0] != "assumed-role" {
+		return "", "", "", fmt.Errorf("unable to parse role arn (assumed-role): %s", roleArn)
+	}
+	// second component is our athenz service name with the requested service suffix
+	if !strings.HasSuffix(roleComps[1], serviceSuffix) {
+		return "", "", "", fmt.Errorf("service name does not have '%s' suffix: %s", serviceSuffix, roleArn)
+	}
+	roleName := roleComps[1][0 : len(roleComps[1])-len(serviceSuffix)]
+	idx := strings.LastIndex(roleName, ".")
+	if idx < 0 {
+		return "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
+	}
+	domain := roleName[:idx]
+	service := roleName[idx+1:]
+	account := arn[4]
+	return account, domain, service, nil
+}
 
-	// Override the group id if user explicitly specified the group.
-	ggid := -1
-	if groupname != "" {
-		ggid = gidForGroup(groupname, sysLogger)
+func ParseRoleArn(roleArn string) (string, string, string, error) {
+	//arn:aws:iam::123456789012:role/athenz.zts
+	if !strings.HasPrefix(roleArn, "arn:aws:iam:") {
+		return "", "", "", fmt.Errorf("unable to parse role arn (prefix): %s", roleArn)
 	}
-	// if the group is not specified or invalid then we'll default
-	// to our unix group name called athenz
-	if ggid == -1 {
-		ggid = gidForGroup(siaUnixGroup, sysLogger)
+	arn := strings.Split(roleArn, ":")
+	// make sure we have correct number of components
+	if len(arn) != 6 {
+		return "", "", "", fmt.Errorf("unable to parse role arn (number of components): %s", roleArn)
 	}
-	// if we have a valid value then update the gid
-	// otherwise use the user group id value
-	if ggid != -1 {
-		gid = ggid
+	// our role part must start with role/
+	if !strings.HasPrefix(arn[5], "role/") {
+		return "", "", "", fmt.Errorf("role name does not have 'role/' prefix: %s", roleArn)
 	}
-	return uid, gid
+	roleName := arn[5][5:]
+	idx := strings.LastIndex(roleName, ".")
+	if idx < 0 {
+		return "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
+	}
+	domain := roleName[:idx]
+	service := roleName[idx+1:]
+	account := arn[4]
+	return account, domain, service, nil
+}
+
+func ParseEnvBooleanFlag(varName string) bool {
+	value := os.Getenv(varName)
+	return value == "true" || value == "1"
+}
+
+func getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix string) (string, string) {
+	if file != "" && file[0] == '/' {
+		return file, fmt.Sprintf("%s/%s.key.pem", keyDir, keyPrefix)
+	} else {
+		return fmt.Sprintf("%s/%s.cert.pem", certDir, certPrefix), fmt.Sprintf("%s/%s.key.pem", keyDir, keyPrefix)
+	}
+}
+
+func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid, fileMode int, createKey, rotateKey bool, keyDir, certDir, backupDir string, sysLogger io.Writer, ) error {
+
+	certFile, keyFile := getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix)
+
+	// perform validation of x509KeyPair pair match before writing to disk
+	x509KeyPair, err := tls.X509KeyPair(cert, key)
+	if err != nil {
+		return fmt.Errorf("x509KeyPair and key for: %s do not match, error: %v", keyPrefix, err)
+	}
+	_, err = x509.ParseCertificate(x509KeyPair.Certificate[0])
+	if err != nil {
+		return fmt.Errorf("x509KeyPair and key for: %s unable to parse cert, error: %v", keyPrefix, err)
+	}
+
+	backUpKeyFile := fmt.Sprintf("%s/%s.key.pem", backupDir, keyPrefix)
+	backUpCertFile := fmt.Sprintf("%s/%s.cert.pem", backupDir, certPrefix)
+
+	if rotateKey == true {
+		err = EnsureBackUpDir(backupDir)
+		if err != nil {
+			return err
+		}
+		// taking back up of key and cert
+		log.Printf("taking back up of cert: %s to %s and key: %s to %s", certFile, backUpCertFile,
+			keyFile, backUpKeyFile)
+		err = CopyCertKeyFile(keyFile, backUpKeyFile, certFile, backUpCertFile, 0400)
+		if err != nil {
+			return err
+		}
+		//write the new key and x509KeyPair to disk
+		log.Printf("writing new key file: %s to disk", keyFile)
+		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode), nil)
+		if err != nil {
+			return err
+		}
+	} else if createKey == true && !FileExists(keyFile) {
+		//write the new key and x509KeyPair to disk
+		log.Printf("writing new key file: %s to disk", keyFile)
+		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode), nil)
+		if err != nil {
+			return err
+		}
+	} else if FileExists(keyFile) {
+		UpdateKey(keyFile, uid, gid)
+	}
+
+	err = UpdateFile(certFile, cert, uid, gid, os.FileMode(0444), sysLogger)
+	if err != nil {
+		return err
+	}
+
+	// perform 2nd validation of x509KeyPair pair match after writing to disk
+	x509KeyPair, err = tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		log.Printf("x509KeyPair: %s, key: %s do not match, error: %v", certFile, keyFile, err)
+		err = CopyCertKeyFile(backUpKeyFile, keyFile, backUpCertFile, certFile, fileMode)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = x509.ParseCertificate(x509KeyPair.Certificate[0])
+	if err != nil {
+		log.Printf("x509KeyPair: %s, key: %s, unable to parse cert, error: %v", certFile, keyFile, err)
+		err = CopyCertKeyFile(backUpKeyFile, keyFile, backUpCertFile, certFile, fileMode)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
