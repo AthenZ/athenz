@@ -613,9 +613,9 @@ public class InstanceCertManager {
     }
 
     public String generateX509Certificate(final String provider, final String certIssuer,
-            final String csr, final String keyUsage, int expiryTime) {
+            final String csr, final String keyUsage, int expiryTime, Priority priority) {
 
-        String pemCert = certSigner.generateX509Certificate(provider, certIssuer, csr, keyUsage, expiryTime);
+        String pemCert = certSigner.generateX509Certificate(provider, certIssuer, csr, keyUsage, expiryTime, priority);
         if (pemCert == null || pemCert.isEmpty()) {
             LOGGER.error("generateX509Certificate: CertSigner was unable to generate X509 certificate");
         }
@@ -627,11 +627,11 @@ public class InstanceCertManager {
     }
 
     public InstanceIdentity generateIdentity(final String provider, final String certIssuer,
-            final String csr, final String cn, final String keyUsage, int expiryTime) {
+            final String csr, final String cn, final String keyUsage, int expiryTime, Priority priority) {
         
         // generate a certificate for this certificate request
 
-        final String pemCert = generateX509Certificate(provider, certIssuer, csr, keyUsage, expiryTime);
+        final String pemCert = generateX509Certificate(provider, certIssuer, csr, keyUsage, expiryTime, priority);
         if (pemCert == null || pemCert.isEmpty()) {
             return null;
         }

@@ -31,6 +31,7 @@ import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsEntityList;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
+import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
@@ -2305,9 +2306,26 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Unable to validate cert request", caller, domainName, principalDomain);
         }
 
+        // If no previous cert before / after specified, process in high priority.
+        // Otherwise priority depends on the duration of the previous certificate.
+        Priority priority = Priority.High;
+        if (req.getPrevCertNotAfter() != null && req.getPrevCertNotBefore() != null) {
+            priority = ZTSUtils.getCertRequestPriority(req.getPrevCertNotBefore().toDate(), req.getPrevCertNotAfter().toDate());
+        }
         int expiryTime = determineRoleCertTimeout(data, roles, (int) req.getExpiryTime());
+        if (LOGGER.isDebugEnabled()) {
+            String prevCertNotBefore = "";
+            if (req.getPrevCertNotBefore() != null) {
+                prevCertNotBefore = req.getPrevCertNotBefore().toString();
+            }
+            String prevCertNotAfter = "";
+            if (req.getPrevCertNotAfter() != null) {
+                prevCertNotAfter = req.getPrevCertNotAfter().toString();
+            }
+            LOGGER.debug("PrevCertNotBefore: {}, PrevCertNotAfter: {}, Priority: {}, expiryTime: {}. ", prevCertNotBefore, prevCertNotAfter, priority, expiryTime);
+        }
         final String x509Cert = instanceCertManager.generateX509Certificate(null, null, req.getCsr(),
-                InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime);
+                InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime, priority);
         if (null == x509Cert || x509Cert.isEmpty()) {
             throw serverError("Unable to create certificate from the cert signer", caller, domainName, principalDomain);
         }
@@ -3127,9 +3145,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // generate certificate for the instance
 
+        Priority priority = Priority.High; // Initial request from the workload gets highest priority
         Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null, principalDomain);
         InstanceIdentity identity = instanceCertManager.generateIdentity(provider, null, info.getCsr(),
-                cn, certUsage, certExpiryTime);
+                cn, certUsage, certExpiryTime, priority);
         metric.stopTiming(timerX509CertMetric, null, principalDomain);
 
         if (identity == null) {
@@ -3594,9 +3613,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // generate identity with the certificate
 
+        Priority priority = ZTSUtils.getCertRequestPriority(cert.getNotBefore(), cert.getNotAfter());
         Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null, principalDomain);
         InstanceIdentity identity = instanceCertManager.generateIdentity(provider, null, info.getCsr(),
-                principalName, certUsage, certExpiryTime);
+                principalName, certUsage, certExpiryTime, priority);
         metric.stopTiming(timerX509CertMetric, null, principalDomain);
 
         if (identity == null) {

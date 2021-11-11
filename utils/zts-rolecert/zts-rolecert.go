@@ -12,6 +12,7 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
+	"github.com/ardielle/ardielle-go/rdl"
 	"io/ioutil"
 	"log"
 	"net"
@@ -45,7 +46,7 @@ func printVersion() {
 
 func main() {
 
-	var ztsURL, svcKeyFile, svcCertFile, roleKeyFile, dom, svc string
+	var ztsURL, svcKeyFile, svcCertFile, roleKeyFile, dom, svc, oldRoleCertFile string
 	var caCertFile, roleCertFile, roleDomain, roleName, dnsDomain string
 	var subjC, subjO, subjOU, ip, uri string
 	var spiffe, csr, proxy, showVersion bool
@@ -66,6 +67,7 @@ func main() {
 	flag.StringVar(&subjO, "subj-o", "Oath Inc.", "Subject O/Organization field")
 	flag.StringVar(&subjOU, "subj-ou", "Athenz", "Subject OU/OrganizationalUnit field")
 	flag.StringVar(&ip, "ip", "", "IP address")
+	flag.StringVar(&oldRoleCertFile, "old-role-cert", "", "optional old role cert path to determin priority")
 	flag.BoolVar(&spiffe, "spiffe", true, "include spiffe uri in csr")
 	flag.BoolVar(&csr, "csr", false, "request csr only")
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes")
@@ -143,7 +145,7 @@ func main() {
 		log.Fatalf("Unable to initialize ZTS Client for %s, err: %v\n", ztsURL, err)
 	}
 
-	getRoleCertificate(client, csrData, roleDomain, roleName, roleCertFile, int64(expiryTime))
+	getRoleCertificate(client, csrData, roleDomain, roleName, roleCertFile, int64(expiryTime), oldRoleCertFile)
 }
 
 func extractServiceDetailsFromCert(certFile string) (string, string, error) {
@@ -213,12 +215,54 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, principal, dnsDomain, 
 	return buf.String(), nil
 }
 
-func getRoleCertificate(client *zts.ZTSClient, csr, roleDomain, roleName, roleCertFile string, expiryTime int64) {
+func CertFromFile(filename string) (*x509.Certificate, error) {
+	pemBytes, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return CertFromPEMBytes(pemBytes)
+}
+
+func CertFromPEMBytes(pemBytes []byte) (*x509.Certificate, error) {
+	var derBytes []byte
+	block, _ := pem.Decode(pemBytes)
+	if block == nil {
+		return nil, fmt.Errorf("Cannot parse cert (empty pem)")
+	}
+	derBytes = block.Bytes
+	cert, err := x509.ParseCertificate(derBytes)
+	if err != nil {
+		return nil, err
+	}
+	return cert, nil
+}
+
+func getRoleCertificate(client *zts.ZTSClient, csr, roleDomain, roleName, roleCertFile string, expiryTime int64, oldRoleCertFile string) {
+
+	var notBefore *rdl.Timestamp
+	var notAfter *rdl.Timestamp
+
+	if oldRoleCertFile != "" {
+		// Extract before / after dates from old certificate
+		prevRolCert, err := CertFromFile(oldRoleCertFile)
+		if err != nil {
+			log.Fatalf("Unable to read cert %s, err: %v\n", oldRoleCertFile, err)
+		}
+		notBefore = &rdl.Timestamp{
+			Time: prevRolCert.NotBefore,
+		}
+		notAfter = &rdl.Timestamp{
+			Time: prevRolCert.NotAfter,
+		}
+	}
 
 	roleRequest := &zts.RoleCertificateRequest{
-		Csr:        csr,
-		ExpiryTime: expiryTime,
+		Csr:        		csr,
+		ExpiryTime: 		expiryTime,
+		PrevCertNotBefore: 	notBefore,
+		PrevCertNotAfter: 	notAfter,
 	}
+
 	roleCertificate, err := client.PostRoleCertificateRequestExt(roleRequest)
 	if err != nil {
 		log.Fatalf("PostRoleCertificateRequestExt failed for %s:role.%s, err: %v\n", roleDomain, roleName, err)

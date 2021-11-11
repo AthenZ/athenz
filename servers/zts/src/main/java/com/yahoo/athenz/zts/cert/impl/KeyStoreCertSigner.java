@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.common.server.cert.Priority;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import java.security.PrivateKey;
@@ -36,6 +37,11 @@ public class KeyStoreCertSigner implements CertSigner, AutoCloseable {
 
     @Override
     public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int certExpiryMins) {
+        return generateX509Certificate(provider, certIssuer, csr, keyUsage, certExpiryMins, Priority.Unspecified);
+    }
+
+    @Override
+    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int certExpiryMins, Priority priority) {
         int certExpiryTime = (certExpiryMins == 0) ? this.maxCertExpiryTimeMins : certExpiryMins;
 
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);

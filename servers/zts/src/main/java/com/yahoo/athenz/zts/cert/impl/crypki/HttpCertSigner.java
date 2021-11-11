@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -56,6 +57,11 @@ public class HttpCertSigner extends AbstractHttpCertSigner {
 
     @Override
     public Object getX509CertSigningRequest(String provider, String csr, String keyUsage, int expireMins) {
+        return getX509CertSigningRequest(provider, csr, keyUsage, expireMins, Priority.Unspecified);
+    }
+
+    @Override
+    public Object getX509CertSigningRequest(String provider, String csr, String keyUsage, int expireMins, Priority priority) {
 
         // Key Usage value used in Go - https://golang.org/src/crypto/x509/x509.go?s=18153:18173#L558
         // we're only interested in ExtKeyUsageClientAuth - with value of 2
@@ -71,6 +77,7 @@ public class HttpCertSigner extends AbstractHttpCertSigner {
         csrCert.setCsr(csr);
         csrCert.setExtKeyUsage(extKeyUsage);
         csrCert.setValidity(DEFAULT_CERT_EXPIRE_SECS);
+        csrCert.setPriority(priority);
         
         if (expireMins > 0 && expireMins < getMaxCertExpiryTimeMins()) {
             //Validity period of the certificate in seconds in Crypki API.  Convert mins to seconds
@@ -78,8 +85,8 @@ public class HttpCertSigner extends AbstractHttpCertSigner {
         }
             
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("keyMeta: {} keyUsage: {} expireSec: {}", csrCert.getKeyMeta(),
-                    csrCert.getExtKeyUsage(), csrCert.getValidity());
+            LOGGER.debug("keyMeta: {} keyUsage: {} expireSec: {} priority: {}", csrCert.getKeyMeta(),
+                    csrCert.getExtKeyUsage(), csrCert.getValidity(), priority.getPriorityValue());
         }
         return csrCert;
     }

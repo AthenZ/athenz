@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
+import com.yahoo.athenz.common.server.cert.Priority;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -190,6 +191,17 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
     public abstract Object getX509CertSigningRequest(String provider, String csr, String keyUsage, int expireMins);
 
     /**
+     * Return object based on given csr, usage and expiry
+     * @param provider provider service name
+     * @param csr certificate signing request
+     * @param keyUsage client or server usage for the certificate
+     * @param expireMins expiry time in minutes for the certificate
+     * @param priority requested priority for processing the request by crypki
+     * @return CSR Object
+     */
+    public abstract Object getX509CertSigningRequest(String provider, String csr, String keyUsage, int expireMins, Priority priority);
+
+    /**
      * Parse the response from certificate sisnger
      * @param response input stream
      * @return response as string
@@ -277,10 +289,15 @@ public abstract class AbstractHttpCertSigner implements CertSigner {
 
     @Override
     public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int expireMins) {
+        return generateX509Certificate(provider, certIssuer, csr, keyUsage, expireMins, Priority.Unspecified);
+    }
+
+    @Override
+    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int expireMins, Priority priority) {
 
         StringEntity entity;
         try {
-            String requestContent = JACKSON_MAPPER.writeValueAsString(getX509CertSigningRequest(provider, csr, keyUsage, expireMins));
+            String requestContent = JACKSON_MAPPER.writeValueAsString(getX509CertSigningRequest(provider, csr, keyUsage, expireMins, priority));
             entity = new StringEntity(requestContent);
         } catch (Throwable t) {
             LOGGER.error("unable to generate csr", t);
