@@ -259,6 +259,10 @@ export default class SettingTable extends React.Component {
                 this.state.copyCollectionDetails.memberExpiryDays;
             collectionMeta.serviceExpiryDays =
                 this.state.copyCollectionDetails.serviceExpiryDays;
+            collectionMeta.userAuthorityFilter =
+                this.state.copyCollectionDetails.userAuthorityFilter;
+            collectionMeta.userAuthorityExpiration =
+                this.state.copyCollectionDetails.userAuthorityExpiration;
         } else if (this.props.category === 'domain') {
             collectionMeta.memberExpiryDays =
                 this.state.copyCollectionDetails.memberExpiryDays;
