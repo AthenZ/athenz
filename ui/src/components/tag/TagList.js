@@ -69,6 +69,7 @@ export default class TagList extends React.Component {
             tags: props.tags || {},
             roleObj: props.roleObj,
             domainObj: props.domainObj,
+            groupObj: props.groupObj,
             successMessage: '',
         };
     }
@@ -155,6 +156,11 @@ export default class TagList extends React.Component {
                 AppUtils.deepClone(this.state.roleObj)
             );
             this.updateMetaOnAdd(roleMeta, tagKey, tagValues, csrf);
+        } else if (this.state.category === 'group') {
+            let groupMeta = this.groupMetaObject(
+                AppUtils.deepClone(this.state.groupObj)
+            );
+            this.updateMetaOnAdd(groupMeta, tagKey, tagValues, csrf);
         }
     }
 
@@ -180,6 +186,11 @@ export default class TagList extends React.Component {
                 AppUtils.deepClone(this.state.roleObj)
             );
             this.updateMetaOnDelete(roleMeta, csrf);
+        } else if (this.state.category === 'group') {
+            let groupMeta = this.groupMetaObject(
+                AppUtils.deepClone(this.state.groupObj)
+            );
+            this.updateMetaOnDelete(groupMeta, csrf);
         }
     }
 
@@ -235,15 +246,39 @@ export default class TagList extends React.Component {
         };
     }
 
+    groupMetaObject(group) {
+        return {
+            selfServe: group.selfServe,
+            reviewEnabled: group.reviewEnabled,
+            notifyRoles: group.notifyRoles,
+            serviceExpiryDays: group.serviceExpiryDays,
+            userAuthorityExpiration: group.userAuthorityExpiration,
+            userAuthorityFilter: group.userAuthorityFilter,
+            memberExpiryDays: group.memberExpiryDays,
+            tags: group.tags,
+        };
+    }
+
     updateMeta(meta, csrf, successMessage, showSuccess = true) {
+        var categoryObject = this.props.domain;
+        var categoryType = 'domain';
+        if (this.state.category === 'role') {
+            categoryObject = this.props.role;
+            categoryType = this.state.category;
+        } else if (this.state.category === 'group') {
+            categoryObject = this.props.group;
+            categoryType = this.state.category;
+        }
         this.api
             .putMeta(
                 this.props.domain,
-                this.state.category === 'domain'
-                    ? this.props.domain
-                    : this.props.role,
+                categoryObject,
                 meta,
-                'Updated ' + this.props.domain + ' Meta using Athenz UI',
+                'Updated ' +
+                    categoryType +
+                    ' ' +
+                    categoryObject +
+                    ' Meta using Athenz UI',
                 csrf,
                 this.state.category
             )
@@ -279,6 +314,22 @@ export default class TagList extends React.Component {
                 .getRole(this.props.domain, this.props.role)
                 .then((data) => {
                     this.setState({ roleObj: data });
+                    this.updateStateAfterReload(
+                        data,
+                        successMessage,
+                        showSuccess
+                    );
+                })
+                .catch((err) => {
+                    this.setState({
+                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    });
+                });
+        } else if (this.state.category === 'group') {
+            this.props.api
+                .getGroup(this.props.domain, this.props.group)
+                .then((data) => {
+                    this.setState({ groupObj: data });
                     this.updateStateAfterReload(
                         data,
                         successMessage,
@@ -331,6 +382,12 @@ export default class TagList extends React.Component {
         const center = 'center';
         let rows = '';
         const clonedTags = AppUtils.deepClone(this.state.tags);
+        var categoryObject = this.props.domain;
+        if (this.state.category === 'role') {
+            categoryObject = this.props.role;
+        } else if (this.state.category === 'group') {
+            categoryObject = this.props.group;
+        }
         rows = Object.entries(clonedTags).map((item, i) => {
             const tagKey = item[0];
             const tagValues = item[1];
@@ -362,11 +419,7 @@ export default class TagList extends React.Component {
                 showAddTag={this.state.showAddTag}
                 editMode={this.state.editMode}
                 onCancel={this.closeAddTag}
-                resource={
-                    this.state.category === 'domain'
-                        ? this.props.domain
-                        : this.props.role
-                }
+                resource={categoryObject}
                 api={this.api}
                 _csrf={this.props._csrf}
                 addNewTag={this.addNewTag}

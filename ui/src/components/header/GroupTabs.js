@@ -36,6 +36,10 @@ class GroupTabs extends React.Component {
             name: 'roles',
         },
         {
+            label: 'Tags',
+            name: 'tags',
+        },
+        {
             label: 'Settings',
             name: 'settings',
         },
@@ -80,6 +84,13 @@ class GroupTabs extends React.Component {
                 this.props.router.push(
                     `/domain/${domain}/group/${group}/history`,
                     `/domain/${domain}/group/${group}/history`,
+                    { getInitialProps: true }
+                );
+                break;
+            case 'tags':
+                this.props.router.push(
+                    `/domain/${domain}/group/${group}/tags`,
+                    `/domain/${domain}/group/${group}/tags`,
                     { getInitialProps: true }
                 );
                 break;
