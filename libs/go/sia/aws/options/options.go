@@ -128,6 +128,8 @@ type Options struct {
 	RotateKey            bool                  //rotate the private key when refreshing certificates
 	BackUpDir            string                //backup directory for key/cert rotation
 	ProviderParentDomain string                //provider domain name, if not specified using athenz
+	CertCountryName      string                //generated x.509 certificate country name
+	CertOrgName          string                //generated x.509 certificate organization name
 }
 
 func GetAccountId(metaEndPoint string) (string, error) {
@@ -280,9 +282,9 @@ func GetConfig(fileName, roleSuffix, metaEndPoint string, sysLogger io.Writer) (
 	return config, configAccount, nil
 }
 
-// NewOptions takes in sia_config bytes and returns a pointer to Options after parsing and initializing the defaults
+// setOptions takes in sia_config objects and returns a pointer to Options after parsing and initializing the defaults
 // It uses profile arn for defaults when sia_config is empty or non-parsable. It populates "services" array
-func NewOptions(config *Config, account *ConfigAccount, siaDir, version, ztsCaCert, ztsServerName string, ztsAwsDomains []string, providerParentDomain string, sysLogger io.Writer) (*Options, error) {
+func setOptions(config *Config, account *ConfigAccount, siaDir, version string, sysLogger io.Writer) (*Options, error) {
 
 	ssh := true
 	if config != nil && config.Ssh != nil && *config.Ssh == false {
@@ -394,13 +396,9 @@ func NewOptions(config *Config, account *ConfigAccount, siaDir, version, ztsCaCe
 		CertDir:              fmt.Sprintf("%s/certs", siaDir),
 		KeyDir:               fmt.Sprintf("%s/keys", siaDir),
 		AthenzCACertFile:     fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
-		ZTSCACertFile:        ztsCaCert,
-		ZTSServerName:        ztsServerName,
-		ZTSAWSDomains:        ztsAwsDomains,
 		GenerateRoleKey:      generateRoleKey,
 		RotateKey:            rotateKey,
 		BackUpDir:            fmt.Sprintf("%s/backup", siaDir),
-		ProviderParentDomain: providerParentDomain,
 	}, nil
 }
 
@@ -411,4 +409,42 @@ func GetSvcNames(svcs []Service) string {
 		b.WriteString(fmt.Sprintf("%s,", svc.Name))
 	}
 	return strings.TrimSuffix(b.String(), ",")
+}
+
+func NewOptions(configFile, metaEndpoint, siaDir, siaVersion string, useRegionalSTS bool, sysLogger io.Writer) (*Options, error) {
+
+	config, configAccount, err := InitFileConfig(configFile, metaEndpoint)
+	if err != nil {
+		logutil.LogInfo(sysLogger, "Unable to process configuration file '%s': %v\n", configFile, err)
+		logutil.LogInfo(sysLogger, "Trying to determine service details from the environment variables...\n")
+		config, configAccount, err = InitEnvConfig(config)
+		if err != nil {
+			logutil.LogInfo(sysLogger, "Unable to process environment settings: %v\n", err)
+			// if we do not have settings in our environment, we're going
+			// to use fallback to <domain>.<service>-service naming structure
+			logutil.LogInfo(sysLogger, "Trying to determine service name security credentials...\n")
+			configAccount, err = InitCredsConfig("-service")
+			if err != nil {
+				logutil.LogInfo(sysLogger, "Unable to process security credentials: %v\n", err)
+				logutil.LogInfo(sysLogger, "Trying to determine service name from profile arn...\n")
+				configAccount, err = InitProfileConfig(metaEndpoint, "-service")
+				if err != nil {
+					logutil.LogInfo(sysLogger, "Unable to determine service name: %v\n", err)
+					return nil, err
+				}
+			}
+		}
+	}
+
+	opts, err := setOptions(config, configAccount, siaDir, siaVersion, sysLogger)
+	if err != nil {
+		logutil.LogInfo(sysLogger, "Unable to formulate options, error: %v", err)
+		return nil, err
+	}
+
+	opts.Region = meta.GetRegion(metaEndpoint, sysLogger)
+	if useRegionalSTS {
+		opts.UseRegionalSTS = true
+	}
+	return opts, nil
 }

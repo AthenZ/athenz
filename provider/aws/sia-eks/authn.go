@@ -17,22 +17,25 @@
 package sia
 
 import (
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
-	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
-	"github.com/ardielle/ardielle-go/rdl"
 	"io"
 	"io/ioutil"
 	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+	"time"
 
-	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
+	"github.com/ardielle/ardielle-go/rdl"
 )
 
 func GetEKSPodId() string {
@@ -41,37 +44,6 @@ func GetEKSPodId() string {
 		podId = "eksPod"
 	}
 	return podId
-}
-
-// New creates a new AttestationData with values fed to it and from the result of STS Assume Role
-func GetAttestationData(domain, service, account, region string, useRegionalSTS bool, sysLogger io.Writer) (*attestation.AttestationData, error) {
-
-	role := fmt.Sprintf("%s.%s", domain, service)
-
-	// Attempt STS AssumeRole
-	stsSession, err := stssession.New(useRegionalSTS, region, sysLogger)
-	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to create new session: %v\n", err)
-		return nil, err
-	}
-	stsService := sts.New(stsSession)
-	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", account, role)
-	logutil.LogInfo(sysLogger, "trying to assume role: %v\n", roleArn)
-	tok, err := stsService.AssumeRole(&sts.AssumeRoleInput{
-		RoleArn:         &roleArn,
-		RoleSessionName: &role,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &attestation.AttestationData{
-		Role:   role,
-		Access: *tok.Credentials.AccessKeyId,
-		Secret: *tok.Credentials.SecretAccessKey,
-		Token:  *tok.Credentials.SessionToken,
-		TaskId: GetEKSPodId(),
-	}, nil
 }
 
 func extractProviderFromCert(certFile string) string {
@@ -116,6 +88,13 @@ func GetPrevRoleCertDates(certFile string, sysLogger io.Writer) (*rdl.Timestamp,
 	return notBefore, notAfter, nil
 }
 
+func RoleKey(rotateKey bool, svcKey string) (*rsa.PrivateKey, error) {
+	if rotateKey == true {
+		return util.GenerateKeyPair(2048)
+	}
+	return util.PrivateKeyFromFile(svcKey)
+}
+
 func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Options, sysLogger io.Writer) bool {
 	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, svcKeyFile, svcCertFile, opts.ZTSCACertFile, sysLogger)
 	if err != nil {
@@ -143,9 +122,21 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			failures += 1
 			continue
 		}
-		certFilePem := util.GetRoleCertFileName(opts.CertDir, role.Filename, roleName)
 		spiffe := fmt.Sprintf("spiffe://%s/ra/%s", domainNameRequest, roleNameRequest)
-		csr, err := util.GenerateCSR(key, "US", "", opts.Domain, opts.Services[0].Name, roleName, "", provider, spiffe, opts.ZTSAWSDomains, false, true)
+
+		if opts.GenerateRoleKey {
+			var err error
+			key, err = RoleKey(opts.RotateKey, svcKeyFile)
+			if err != nil {
+				logutil.LogInfo(sysLogger, "unable to read generate/read key from %s, err: %v\n", role.Filename, err)
+				failures += 1
+				continue
+			}
+		}
+
+		certFilePem := util.GetRoleCertFileName(opts.CertDir, role.Filename, roleName)
+
+		csr, err := util.GenerateCSR(key, "US", "", opts.Domain, opts.Services[0].Name, roleName, opts.TaskId, provider, spiffe, opts.ZTSAWSDomains, false, true)
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
@@ -163,18 +154,24 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		//"rolename": "athenz.fp:role.readers"
 		//from the rolename, domain is athenz.fp
 		//role is readers
-		roleToken, err := client.PostRoleCertificateRequest(zts.DomainName(domainNameRequest), zts.EntityName(roleNameRequest), roleRequest)
+		roleCert, err := client.PostRoleCertificateRequestExt(roleRequest)
 		if err != nil {
 			logutil.LogInfo(sysLogger, "PostRoleCertificateRequest failed for %s, err: %v\n", roleName, err)
 			failures += 1
 			continue
 		}
 
-		// get the Uid and Gid
-		uid, gid := util.UidGidForUserGroup(opts.User, opts.Group, sysLogger)
-		//we have the roletoken
-		//write the cert to pem file using Role.Filename
-		err = util.UpdateFile(certFilePem, []byte(roleToken.Token), uid, gid, 0444, sysLogger)
+		roleKeyBytes := util.PrivatePem(key)
+		optsRole := options.Role{
+			Name:     roleName,
+			Service:  opts.Services[0].Name,
+			Filename: role.Filename,
+			User:     "",
+			Uid:      opts.Services[0].Uid,
+			Gid:      opts.Services[0].Gid,
+			FileMode: 0444,
+		}
+		err = SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleCert.X509Certificate), optsRole, opts, sysLogger)
 		if err != nil {
 			failures += 1
 			continue
@@ -184,9 +181,9 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 	return failures == 0
 }
 
-func RegisterInstance(data []*attestation.AttestationData, ztsUrl string, opts *options.Options, region string, sysLogger io.Writer) error {
+func RegisterInstance(data []*attestation.AttestationData, ztsUrl string, opts *options.Options, sysLogger io.Writer) error {
 	for i, svc := range opts.Services {
-		err := registerSvc(svc, data[i], ztsUrl, opts, region, sysLogger)
+		err := registerSvc(svc, data[i], ztsUrl, opts, sysLogger)
 		if err != nil {
 			return fmt.Errorf("unable to register identity for svc: %q, error: %v", svc.Name, err)
 		}
@@ -194,9 +191,9 @@ func RegisterInstance(data []*attestation.AttestationData, ztsUrl string, opts *
 	return nil
 }
 
-func RefreshInstance(data []*attestation.AttestationData, ztsUrl string, opts *options.Options, region string, sysLogger io.Writer) error {
+func RefreshInstance(data []*attestation.AttestationData, ztsUrl string, opts *options.Options, sysLogger io.Writer) error {
 	for i, svc := range opts.Services {
-		err := refreshSvc(svc, data[i], ztsUrl, opts, region, sysLogger)
+		err := refreshSvc(svc, data[i], ztsUrl, opts, sysLogger)
 		if err != nil {
 			return fmt.Errorf("unable to refresh identity for svc: %q, error: %v", svc.Name, err)
 		}
@@ -212,29 +209,16 @@ func getProviderName(providerPrefix, region string) string {
 	}
 }
 
-func getCertFileName(file, domain, service, certDir string) string {
-	switch {
-	case file == "":
-		return fmt.Sprintf("%s/%s.%s.cert.pem", certDir, domain, service)
-	case file[0] == '/':
-		return file
-	default:
-		return fmt.Sprintf("%s/%s", certDir, file)
-	}
-}
-
-func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl string, opts *options.Options, region string, sysLogger io.Writer) error {
-
-	instanceId := data.TaskId
+func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl string, opts *options.Options, sysLogger io.Writer) error {
 
 	key, err := util.GenerateKeyPair(2048)
 	if err != nil {
 		return err
 	}
 
-	provider := getProviderName(opts.Provider, region)
+	provider := getProviderName(opts.ProviderParentDomain, opts.Region)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateCSR(key, "US", "", opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomains, false, false)
+	csr, err := util.GenerateCSR(key, "US", "Oath Inc.", opts.Domain, svc.Name, data.Role, opts.TaskId, provider, spiffe, opts.ZTSAWSDomains, opts.SanDnsWildcard, false)
 	if err != nil {
 		return err
 	}
@@ -266,7 +250,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	if err != nil {
 		return err
 	}
-	certFile := getCertFileName(svc.Filename, opts.Domain, svc.Name, opts.CertDir)
+	certFile := util.GetSvcCertFileName(opts.CertDir, svc.Filename, opts.Domain, svc.Name)
 	err = util.UpdateFile(certFile, []byte(instIdent.X509Certificate), svc.Uid, svc.Gid, 0444, sysLogger)
 	if err != nil {
 		return err
@@ -281,14 +265,8 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	return nil
 }
 
-func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl string, opts *options.Options, region string, sysLogger io.Writer) error {
+func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl string, opts *options.Options, sysLogger io.Writer) error {
 	keyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
-	key, err := util.PrivateKeyFromFile(keyFile)
-	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to read private key from %s, err: %v\n", keyFile, err)
-		return err
-	}
-
 	certFile := fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, svc.Name)
 
 	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, keyFile, certFile, opts.ZTSCACertFile, sysLogger)
@@ -298,27 +276,34 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	}
 	client.AddCredentials("User-Agent", opts.Version)
 
-	instanceId := data.TaskId
-
 	attestData, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
-	provider := getProviderName(opts.Provider, region)
+	provider := getProviderName(opts.ProviderParentDomain, opts.Region)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateCSR(key, "US", "", opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomains, false, false)
+
+	key, err := util.PrivateKey(keyFile, opts.RotateKey)
+	if err != nil {
+		logutil.LogInfo(sysLogger, "Unable to read private key from %s, err: %v\n", keyFile, err)
+		return err
+	}
+
+	csr, err := util.GenerateCSR(key, "US", "Oath Inc.", opts.Domain, svc.Name, data.Role, opts.TaskId, provider, spiffe, opts.ZTSAWSDomains, opts.SanDnsWildcard, false)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
 	}
 	info := &zts.InstanceRefreshInformation{AttestationData: string(attestData), Csr: csr}
-	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(provider), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(instanceId), info)
+	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(provider), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(opts.TaskId), info)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to refresh instance service certificate for %s, err: %v\n", opts.Name, err)
 		return err
 	}
 
-	err = util.UpdateFile(certFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444, sysLogger)
+	svcKeyBytes := util.PrivatePem(key)
+	svcCertBytes := []byte(ident.X509Certificate)
+	err = SaveSvcCertKey([]byte(svcKeyBytes), svcCertBytes, svc, opts, sysLogger)
 	if err != nil {
 		return err
 	}
@@ -330,4 +315,138 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		}
 	}
 	return nil
+}
+
+func SaveSvcCertKey(key, cert []byte, svc options.Service, opts *options.Options, sysLogger io.Writer) error {
+	prefix := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
+	return util.SaveCertKey(key, cert, svc.Filename, prefix, prefix, svc.Uid, svc.Gid, svc.FileMode, false, false, opts.KeyDir, opts.CertDir, opts.BackUpDir, sysLogger)
+}
+
+func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options, sysLogger io.Writer) error {
+	certPrefix := role.Name
+	if role.Filename != "" {
+		certPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
+	}
+	keyPrefix := fmt.Sprintf("%s.%s", opts.Domain, role.Service)
+	if opts.GenerateRoleKey == true {
+		keyPrefix = role.Name
+		if role.Filename != "" {
+			keyPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
+		}
+	}
+	return util.SaveCertKey(key, cert, role.Filename, keyPrefix, certPrefix, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackUpDir, sysLogger)
+}
+
+func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io.Writer) {
+
+	_ = util.SetupSIADirs(siaDir, "", sysLogger)
+
+	//for now we're going to rotate once every day
+	//since our server and role certs are valid for
+	//30 days by default
+	rotationInterval := 24 * 60 * time.Minute
+
+	data, err := attestation.GetAttestationData(opts, sysLogger)
+	if err != nil {
+		logutil.LogFatal(sysLogger, "Cannot determine identity to run as, err:%v\n", err)
+	}
+	svcs := options.GetSvcNames(opts.Services)
+
+	switch siaCmd {
+	case "rolecert":
+		GetRoleCertificate(ztsUrl,
+			fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, opts.Services[0].Name),
+			fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
+			opts,
+			sysLogger,
+		)
+	case "post":
+	case "register":
+		err := RegisterInstance(data, ztsUrl, opts, sysLogger)
+		if err != nil {
+			logutil.LogFatal(sysLogger, "Unable to register identity, err: %v\n", err)
+		}
+		logutil.LogInfo(sysLogger, "identity registered for services: %s\n", svcs)
+	case "rotate":
+	case "refresh":
+		err = RefreshInstance(data, ztsUrl, opts, sysLogger)
+		if err != nil {
+			logutil.LogFatal(sysLogger, "Refresh identity failed, err: %v\n", err)
+		}
+		logutil.LogInfo(sysLogger, "Identity successfully refreshed for services: %s\n", svcs)
+	default:
+		// if we already have a cert file then we're not going to
+		// prove our identity since most likely it will not succeed
+		// due to boot time check (this could be just a regular
+		// service restart for any reason). Instead, we'll just skip
+		// over and try to rotate the certs
+
+		initialSetup := true
+		if files, err := ioutil.ReadDir(opts.CertDir); err != nil || len(files) <= 0 {
+			err := RegisterInstance(data, ztsUrl, opts, sysLogger)
+			if err != nil {
+				logutil.LogFatal(sysLogger, "Register identity failed, error: %v\n", err)
+			}
+		} else {
+			initialSetup = false
+			logutil.LogInfo(sysLogger, "Identity certificate file already exists. Retrieving identity details...\n")
+		}
+		logutil.LogInfo(sysLogger, "Identity established for services: %s\n", svcs)
+
+		stop := make(chan bool, 1)
+		errors := make(chan error, 1)
+
+		go func() {
+			for {
+				logutil.LogInfo(sysLogger, "Identity being used: %s\n", opts.Name)
+
+				// if we just did our initial setup there is no point
+				// to refresh the certs again. so we are going to skip
+				// this time around and refresh certs next time
+
+				if !initialSetup {
+					data, err := attestation.GetAttestationData(opts, sysLogger)
+					if err != nil {
+						errors <- fmt.Errorf("Cannot get attestation data: %v\n", err)
+						return
+					}
+					err = RefreshInstance(data, ztsUrl, opts, sysLogger)
+					if err != nil {
+						errors <- fmt.Errorf("refresh identity failed: %v\n", err)
+						return
+					}
+					logutil.LogInfo(sysLogger, "identity successfully refreshed for services: %s\n", svcs)
+				} else {
+					initialSetup = false
+				}
+				GetRoleCertificate(ztsUrl,
+					fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, opts.Services[0].Name),
+					fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
+					opts,
+					sysLogger,
+				)
+				select {
+				case <-stop:
+					errors <- nil
+					return
+				case <-time.After(rotationInterval):
+					break
+				}
+			}
+		}()
+
+		go func() {
+			signals := make(chan os.Signal, 2)
+			signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+			sig := <-signals
+			logutil.LogInfo(sysLogger, "Received signal %v, stopping rotation\n", sig)
+			stop <- true
+		}()
+
+		err = <-errors
+		if err != nil {
+			logutil.LogInfo(sysLogger, "%v", err)
+		}
+	}
+	os.Exit(0)
 }

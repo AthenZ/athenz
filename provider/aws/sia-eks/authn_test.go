@@ -27,8 +27,8 @@ import (
 	"time"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
 	"github.com/AthenZ/athenz/provider/aws/sia-eks/devel/metamock"
 	"github.com/AthenZ/athenz/provider/aws/sia-eks/devel/ztsmock"
 
@@ -145,14 +145,15 @@ func TestRegisterInstance(test *testing.T) {
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
 		ZTSAWSDomains:    []string{"zts-aws-cloud"},
+		Region:           "us-west-2",
+		TaskId:           "pod-1234",
 	}
 
 	a := &attestation.AttestationData{
-		Role:   "athenz.hockey",
-		TaskId: "pod-1234",
+		Role: "athenz.hockey",
 	}
 
-	err = RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, "us-west-2", os.Stdout)
+	err = RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, os.Stdout)
 	assert.Nil(test, err, "unable to register instance")
 
 	if err != nil {
@@ -171,7 +172,6 @@ func TestRegisterInstance(test *testing.T) {
 	if err != nil {
 		test.Errorf("Unable to validate CA certificate file: %v", err)
 	}
-
 }
 
 func copyFile(src, dst string) error {
@@ -220,14 +220,15 @@ func TestRefreshInstance(test *testing.T) {
 		AthenzCACertFile: caCertFile,
 		Provider:         "athenz.aws",
 		ZTSAWSDomains:    []string{"zts-aws-cloud"},
+		Region:           "us-west-2",
+		TaskId:           "pod-1234",
 	}
 
 	a := &attestation.AttestationData{
-		Role:   "athenz.hockey",
-		TaskId: "pod-1234",
+		Role: "athenz.hockey",
 	}
 
-	err = RefreshInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, "us-west-2", os.Stdout)
+	err = RefreshInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, os.Stdout)
 	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
 
 	oldCert, _ := ioutil.ReadFile("devel/data/cert.pem")
