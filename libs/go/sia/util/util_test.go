@@ -225,7 +225,7 @@ func localIdCommand(arg string) int {
 	return id
 }
 
-func TestGenerateCSR(test *testing.T) {
+func TestGenerateSvcCertCSR(test *testing.T) {
 
 	key, err := GenerateKeyPair(2048)
 	if err != nil {
@@ -233,7 +233,7 @@ func TestGenerateCSR(test *testing.T) {
 		return
 	}
 
-	csr, err := GenerateCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", "spiffe://domain/sa/service", []string{"athenz.cloud"}, false, true)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", []string{"athenz.cloud"}, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -246,8 +246,8 @@ func TestGenerateCSR(test *testing.T) {
 		return
 	}
 
-	if parsedcertreq.EmailAddresses[0] != "domain.service@athenz.cloud" {
-		test.Errorf("CSR does not have expected email address: %s", parsedcertreq.EmailAddresses[0])
+	if parsedcertreq.EmailAddresses != nil {
+		test.Errorf("CSR has unexpected email address: %s", parsedcertreq.EmailAddresses[0])
 		return
 	}
 	if len(parsedcertreq.DNSNames) != 1 {
@@ -262,16 +262,16 @@ func TestGenerateCSR(test *testing.T) {
 		test.Errorf("CSR does not have expected dns name: %s", parsedcertreq.DNSNames[0])
 		return
 	}
+	if len(parsedcertreq.URIs) != 2 {
+		test.Errorf("CSR does not have expected number of URI fields: %d", len(parsedcertreq.URIs))
+		return
+	}
 	if parsedcertreq.URIs[0].String() != "spiffe://domain/sa/service" {
 		test.Errorf("CSR does not have expected spiffe uri: %s", parsedcertreq.URIs[0].String())
 		return
 	}
 	if parsedcertreq.URIs[1].String() != "athenz://instanceid/Athenz/instance001" {
 		test.Errorf("CSR does not have expected instance uri: %s", parsedcertreq.URIs[1].String())
-		return
-	}
-	if parsedcertreq.URIs[2].String() != "athenz://principal/domain.service" {
-		test.Errorf("CSR does not have expected role principal uri: %s", parsedcertreq.URIs[2].String())
 		return
 	}
 	if parsedcertreq.Subject.CommonName != "domain.service" {
@@ -288,14 +288,73 @@ func TestGenerateCSR(test *testing.T) {
 	}
 }
 
-func TestGenerateCSRWithWildCardHostname(test *testing.T) {
+func TestGenerateRoleCertCSR(test *testing.T) {
 
 	key, err := GenerateKeyPair(2048)
 	if err != nil {
 		test.Errorf("Cannot generate private key: %v", err)
 		return
 	}
-	csr, err := GenerateCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", "spiffe://domain/sa/service", []string{"athenz.cloud"}, true, false)
+
+	csr, err := GenerateRoleCertCSR(key, "US", "", "domain", "service", "athenz:role.readers", "instance001", "Athenz", "athenz.cloud")
+	if err != nil {
+		test.Errorf("Cannot create CSR: %v", err)
+		return
+	}
+
+	block, _ := pem.Decode([]byte(csr))
+	parsedcertreq, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		test.Errorf("Cannot parse CSR: %v", err)
+		return
+	}
+
+	if parsedcertreq.EmailAddresses[0] != "domain.service@athenz.cloud" {
+		test.Errorf("CSR does not have expected email address: %s", parsedcertreq.EmailAddresses[0])
+		return
+	}
+	if parsedcertreq.DNSNames != nil {
+		test.Errorf("CSR has unexpected san dns names: %d", len(parsedcertreq.DNSNames))
+		return
+	}
+	if len(parsedcertreq.URIs) != 3 {
+		test.Errorf("CSR does not have expected number of URI fields: %d", len(parsedcertreq.URIs))
+		return
+	}
+	if parsedcertreq.URIs[0].String() != "spiffe://athenz/ra/readers" {
+		test.Errorf("CSR does not have expected spiffe uri: %s", parsedcertreq.URIs[0].String())
+		return
+	}
+	if parsedcertreq.URIs[1].String() != "athenz://instanceid/Athenz/instance001" {
+		test.Errorf("CSR does not have expected instance uri: %s", parsedcertreq.URIs[1].String())
+		return
+	}
+	if parsedcertreq.URIs[2].String() != "athenz://principal/domain.service" {
+		test.Errorf("CSR does not have expected role principal uri: %s", parsedcertreq.URIs[2].String())
+		return
+	}
+	if parsedcertreq.Subject.CommonName != "athenz:role.readers" {
+		test.Errorf("CSR does not have expected common name: %s", parsedcertreq.Subject.CommonName)
+		return
+	}
+	if parsedcertreq.Subject.OrganizationalUnit[0] != "Athenz" {
+		test.Errorf("CSR does not have expected org unit: %s", parsedcertreq.Subject.OrganizationalUnit)
+		return
+	}
+	if parsedcertreq.Subject.Organization != nil {
+		test.Errorf("CSR does not have expected org")
+		return
+	}
+}
+
+func TestGenerateWithWildCardHostname(test *testing.T) {
+
+	key, err := GenerateKeyPair(2048)
+	if err != nil {
+		test.Errorf("Cannot generate private key: %v", err)
+		return
+	}
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", []string{"athenz.cloud"}, true)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -321,7 +380,6 @@ func TestGenerateCSRWithWildCardHostname(test *testing.T) {
 	}
 }
 
-
 func TestGenerateCSRWithMultipleHostname(test *testing.T) {
 
 	key, err := GenerateKeyPair(2048)
@@ -331,7 +389,7 @@ func TestGenerateCSRWithMultipleHostname(test *testing.T) {
 	}
 	ztsDomains := []string{"athenz1.cloud"}
 	ztsDomains = append(ztsDomains, "athenz2.cloud")
-	csr, err := GenerateCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", "spiffe://domain/sa/service", ztsDomains, true, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", ztsDomains, true)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return

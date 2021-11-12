@@ -116,13 +116,6 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 
 	var roleRequest = new(zts.RoleCertificateRequest)
 	for roleName, role := range opts.Roles {
-		domainNameRequest, roleNameRequest, err := util.SplitRoleName(roleName)
-		if err != nil {
-			logutil.LogInfo(sysLogger, "invalid role name: %s, err: %v\n", roleName, err)
-			failures += 1
-			continue
-		}
-		spiffe := fmt.Sprintf("spiffe://%s/ra/%s", domainNameRequest, roleNameRequest)
 
 		if opts.GenerateRoleKey {
 			var err error
@@ -136,7 +129,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 
 		certFilePem := util.GetRoleCertFileName(opts.CertDir, role.Filename, roleName)
 
-		csr, err := util.GenerateCSR(key, "US", "", opts.Domain, opts.Services[0].Name, roleName, opts.TaskId, provider, spiffe, opts.ZTSAWSDomains, false, true)
+		csr, err := util.GenerateRoleCertCSR(key, "US", "", opts.Domain, opts.Services[0].Name, roleName, opts.TaskId, provider, opts.ZTSAWSDomains[0])
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
@@ -217,8 +210,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	}
 
 	provider := getProviderName(opts.ProviderDomain, opts.Region)
-	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateCSR(key, "US", "Oath Inc.", opts.Domain, svc.Name, data.Role, opts.TaskId, provider, spiffe, opts.ZTSAWSDomains, opts.SanDnsWildcard, false)
+	csr, err := util.GenerateSvcCertCSR(key, "US", "Oath Inc.", opts.Domain, svc.Name, data.Role, opts.TaskId, provider, opts.ZTSAWSDomains, opts.SanDnsWildcard)
 	if err != nil {
 		return err
 	}
@@ -281,7 +273,6 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		return err
 	}
 	provider := getProviderName(opts.ProviderDomain, opts.Region)
-	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
 
 	key, err := util.PrivateKey(keyFile, opts.RotateKey)
 	if err != nil {
@@ -289,7 +280,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		return err
 	}
 
-	csr, err := util.GenerateCSR(key, "US", "Oath Inc.", opts.Domain, svc.Name, data.Role, opts.TaskId, provider, spiffe, opts.ZTSAWSDomains, opts.SanDnsWildcard, false)
+	csr, err := util.GenerateSvcCertCSR(key, "US", "Oath Inc.", opts.Domain, svc.Name, data.Role, opts.TaskId, provider, opts.ZTSAWSDomains, opts.SanDnsWildcard)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err

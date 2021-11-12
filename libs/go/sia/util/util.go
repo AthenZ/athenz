@@ -239,7 +239,8 @@ func PrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 	return x509.ParsePKCS1PrivateKey(block.Bytes)
 }
 
-func GenerateCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider, spiffeUri string, ztsDomains []string, wildCardDnsName, roleCertificate bool) (string, error) {
+func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider string, ztsDomains []string, wildCardDnsName bool) (string, error) {
+
 	//note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
 	//it is used, not the CN. So, we will always put the Athenz name in the CN
 	//(it is *not* a DNS domain name), and put the host name into the SAN.
@@ -260,25 +261,48 @@ func GenerateCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, com
 			csrDetails.HostList = append(csrDetails.HostList, host)
 		}
 	}
+
 	csrDetails.URIs = []*url.URL{}
 	// spiffe uri must always be the first one
-	if spiffeUri != "" {
-		csrDetails.URIs = AppendUri(csrDetails.URIs, spiffeUri)
+	spiffeUri := fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
+	csrDetails.URIs = AppendUri(csrDetails.URIs, spiffeUri)
+
+	// athenz://instanceid/<provider>/<instance-id>
+	instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/%s", provider, instanceId)
+	csrDetails.URIs = AppendUri(csrDetails.URIs, instanceIdUri)
+
+	return GenerateX509CSR(key, csrDetails)
+}
+
+func GenerateRoleCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, roleName, instanceId, provider, emailDomain string) (string, error) {
+
+	// for role certificates we're putting the role name in the CN
+	var csrDetails CertReqDetails
+	csrDetails.CommonName = roleName
+	csrDetails.Country = countryName
+	csrDetails.Org = orgName
+	csrDetails.OrgUnit = provider
+
+	csrDetails.URIs = []*url.URL{}
+	// spiffe uri must always be the first one
+	domainNameRequest, roleNameRequest, err := SplitRoleName(roleName)
+	if err != nil {
+		return "", err
 	}
-	if instanceId != "" {
-		// athenz://instanceid/<provider>/<instance-id>
-		instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/%s", provider, instanceId)
-		csrDetails.URIs = AppendUri(csrDetails.URIs, instanceIdUri)
-	}
-	// if this csr for a role certificate then we're going to
+	spiffeUri := fmt.Sprintf("spiffe://%s/ra/%s", domainNameRequest, roleNameRequest)
+	csrDetails.URIs = AppendUri(csrDetails.URIs, spiffeUri)
+
+	// athenz://instanceid/<provider>/<instance-id>
+	instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/%s", provider, instanceId)
+	csrDetails.URIs = AppendUri(csrDetails.URIs, instanceIdUri)
+
 	// include an uri for athenz principal and for backward
 	// compatibility an email with the principal as the local part
-	if roleCertificate {
-		principalUri := fmt.Sprintf("athenz://principal/%s.%s", domain, service)
-		csrDetails.URIs = AppendUri(csrDetails.URIs, principalUri)
-		email := fmt.Sprintf("%s.%s@%s", domain, service, ztsDomains[0])
-		csrDetails.EmailList = []string{email}
-	}
+	principalUri := fmt.Sprintf("athenz://principal/%s.%s", domain, service)
+	csrDetails.URIs = AppendUri(csrDetails.URIs, principalUri)
+	email := fmt.Sprintf("%s.%s@%s", domain, service, emailDomain)
+	csrDetails.EmailList = []string{email}
+
 	return GenerateX509CSR(key, csrDetails)
 }
 

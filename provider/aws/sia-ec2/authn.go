@@ -101,13 +101,6 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 
 	var roleRequest = new(zts.RoleCertificateRequest)
 	for roleName, role := range opts.Roles {
-		domainNameRequest, roleNameRequest, err := util.SplitRoleName(roleName)
-		if err != nil {
-			logutil.LogInfo(sysLogger, "invalid role name: %s, err: %v\n", roleName, err)
-			failures += 1
-			continue
-		}
-		spiffe := fmt.Sprintf("spiffe://%s/ra/%s", domainNameRequest, roleNameRequest)
 
 		if opts.GenerateRoleKey {
 			var err error
@@ -119,7 +112,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			}
 		}
 
-		csr, err := util.GenerateCSR(key, "US", "", opts.Domain, opts.Services[0].Name, roleName, "", provider, spiffe, opts.ZTSAWSDomains, false, true)
+		csr, err := util.GenerateRoleCertCSR(key, "US", "", opts.Domain, opts.Services[0].Name, roleName, opts.TaskId, provider, opts.ZTSAWSDomains[0])
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
@@ -141,13 +134,13 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		roleRequest.PrevCertNotBefore = notBefore
 		roleRequest.PrevCertNotAfter = notAfter
 		if notBefore != nil && notAfter != nil {
-			logutil.LogInfo(sysLogger, "Previous Role Cert Not Before date: %s, Not After date: %s", notBefore, notAfter)
+			logutil.LogInfo(sysLogger, "Previous Role Cert Not Before date: %s, Not After date: %s\n", notBefore, notAfter)
 		}
 
 		//"rolename": "athenz.fp:role.readers"
 		//from the rolename, domain is athenz.fp
 		//role is readers
-		roleToken, err := client.PostRoleCertificateRequest(zts.DomainName(domainNameRequest), zts.EntityName(roleNameRequest), roleRequest)
+		roleCert, err := client.PostRoleCertificateRequestExt(roleRequest)
 		if err != nil {
 			logutil.LogInfo(sysLogger, "PostRoleCertificateRequest failed for %s, err: %v\n", roleName, err)
 			failures += 1
@@ -158,7 +151,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		//write the cert to pem file using Role.Filename
 		roleKeyBytes := util.PrivatePem(key)
 
-		err = SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleToken.Token), optsRole, opts, sysLogger)
+		err = SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleCert.X509Certificate), optsRole, opts, sysLogger)
 		if err != nil {
 			failures += 1
 			continue
@@ -216,8 +209,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	}
 
 	provider, ec2Provider := getProviderName(opts.Provider, region, opts.TaskId, opts.ProviderParentDomain)
-	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateCSR(key, "US", "", opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomains, opts.SanDnsWildcard, false)
+	csr, err := util.GenerateSvcCertCSR(key, "US", "", opts.Domain, svc.Name, data.Role, instanceId, provider, opts.ZTSAWSDomains, opts.SanDnsWildcard)
 	if err != nil {
 		return err
 	}
@@ -333,7 +325,6 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		return err
 	}
 	provider, _ := getProviderName(opts.Provider, region, opts.TaskId, opts.ProviderParentDomain)
-	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
 
 	key, err := util.PrivateKey(keyFile, opts.RotateKey)
 	if err != nil {
@@ -341,7 +332,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		return err
 	}
 
-	csr, err := util.GenerateCSR(key, "US", "", opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomains, opts.SanDnsWildcard, false)
+	csr, err := util.GenerateSvcCertCSR(key, "US", "", opts.Domain, svc.Name, data.Role, instanceId, provider, opts.ZTSAWSDomains, opts.SanDnsWildcard)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err

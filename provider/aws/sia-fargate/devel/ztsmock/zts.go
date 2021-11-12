@@ -152,7 +152,7 @@ func StartZtsServer(endPoint string) {
 		}
 	}).Methods("POST")
 
-	router.HandleFunc("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/zts/v1/rolecert", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("role certificate handler called")
 
 		body, err := ioutil.ReadAll(r.Body)
@@ -180,9 +180,8 @@ func StartZtsServer(endPoint string) {
 			log.Fatalf("Could not generate cert in memory: %v", err)
 		}
 
-		identity := &zts.RoleToken{
-			ExpiryTime: 10000,
-			Token:      cert,
+		identity := &zts.RoleCertificate{
+			X509Certificate: cert,
 		}
 		identityBytes, err := json.Marshal(identity)
 		if err == nil {

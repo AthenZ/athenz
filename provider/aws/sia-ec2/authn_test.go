@@ -352,8 +352,8 @@ func TestRoleCertificateRequest(test *testing.T) {
 	}
 
 	ztsRouter := httptreemux.New()
-	ztsRouter.POST("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /zts/v1/instance")
+	ztsRouter.POST("/zts/v1/rolecert", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/rolecert")
 		w.WriteHeader(http.StatusOK)
 		_, _ = io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
 	})
@@ -510,8 +510,8 @@ func TestGenerateRoleKey(test *testing.T) {
 	}
 
 	ztsRouter := httptreemux.New()
-	ztsRouter.POST("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /zts/v1/instance")
+	ztsRouter.POST("/zts/v1/rolecert", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/rolecert")
 		w.WriteHeader(http.StatusOK)
 		_, _ = io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
 	})
@@ -585,8 +585,8 @@ func TestGenerateRoleKeyWithFileName(test *testing.T) {
 	}
 
 	ztsRouter := httptreemux.New()
-	ztsRouter.POST("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /zts/v1/instance")
+	ztsRouter.POST("/zts/v1/rolecert", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/rolecert")
 		w.WriteHeader(http.StatusOK)
 		_, _ = io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
 	})
@@ -661,10 +661,10 @@ func TestRotateRoleKey(test *testing.T) {
 		ZTSAWSDomains:        []string{"zts-aws-cloud"},
 	}
 
-	// Mock ZTS PostInstanceRegistrationInformation for creation of certs
+	// Mock ZTS RoleCert for creation of certs
 	ztsRouter := httptreemux.New()
-	ztsRouter.POST("/zts/v1/domain/athenz/role/writers/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /zts/v1/instance")
+	ztsRouter.POST("/zts/v1/rolecert", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/rolecert")
 		w.WriteHeader(http.StatusOK)
 		_, _ = io.WriteString(w, driver.GenerateRoleCertificate(r, caKeyStr, caCertStr))
 	})
@@ -771,7 +771,6 @@ func TestRefreshInstanceWithRotateKey(test *testing.T) {
 	// Mock ZTS PostInstanceRegistrationInformation for creation of certs
 	ztsRouter := httptreemux.New()
 	ztsRouter.POST(fmt.Sprintf("/zts/v1/instance/athenz.aws.us-west-2/%s/%s/i-03d1ae7035f931a90", domain, service), func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /zts/v1/instance")
 		w.WriteHeader(http.StatusOK)
 		_, _ = io.WriteString(w, driver.GenerateRefreshIdentity(r, domain, service, caKeyStr, caCertStr))
 	})

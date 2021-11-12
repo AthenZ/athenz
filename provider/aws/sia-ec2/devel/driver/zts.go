@@ -284,9 +284,8 @@ func GenerateRoleCertificate(r *http.Request, caKeyStr, caCertStr string) string
 		log.Fatalf("Could not generate cert in memory: %v", err)
 	}
 
-	identity := &zts.RoleToken{
-		ExpiryTime: 10000,
-		Token:      cert,
+	identity := &zts.RoleCertificate{
+		X509Certificate: cert,
 	}
 	identityBytes, err := json.Marshal(identity)
 
