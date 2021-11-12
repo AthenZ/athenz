@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.32.6
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dimfeld/httptreemux v5.0.1+incompatible
-	github.com/golang-jwt/jwt v3.2.1+incompatible
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/mock v1.4.3
 	github.com/google/go-cmp v0.5.1
 	github.com/gorilla/mux v1.7.4

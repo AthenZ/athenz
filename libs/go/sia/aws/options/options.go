@@ -30,10 +30,9 @@ import (
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sts"
 )
 
 // ConfigService represents a service to be specified by user, and specify User/Group attributes for the service
@@ -132,10 +131,10 @@ type Options struct {
 	CertOrgName          string                //generated x.509 certificate organization name
 }
 
-func GetAccountId(metaEndPoint string) (string, error) {
+func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (string, error) {
 	// first try to get the account from our creds and if
 	// fails we'll fall back to identity document
-	configAccount, err := InitCredsConfig("")
+	configAccount, err := InitCredsConfig("", useRegionalSTS, region, sysLogger)
 	if err == nil {
 		return configAccount.Account, nil
 	}
@@ -146,18 +145,8 @@ func GetAccountId(metaEndPoint string) (string, error) {
 	return doc.GetDocumentEntry(document, "accountId")
 }
 
-func InitCredsConfig(roleSuffix string) (*ConfigAccount, error) {
-	stsSession, err := session.NewSession()
-	if err != nil {
-		return nil, fmt.Errorf("unable to create new session: %v", err)
-	}
-	stsService := sts.New(stsSession)
-	input := &sts.GetCallerIdentityInput{}
-	result, err := stsService.GetCallerIdentity(input)
-	if err != nil {
-		return nil, err
-	}
-	account, domain, service, err := util.ParseAssumedRoleArn(*result.Arn, roleSuffix)
+func InitCredsConfig(roleSuffix string, useRegionalSTS bool, region string, sysLogger io.Writer) (*ConfigAccount, error) {
+	account, domain, service, err := stssession.GetMetaDetailsFromCreds(roleSuffix, useRegionalSTS, region, sysLogger)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse role arn: %v", err)
 	}
@@ -191,7 +180,7 @@ func InitProfileConfig(metaEndPoint, roleSuffix string) (*ConfigAccount, error) 
 	}, nil
 }
 
-func InitFileConfig(fileName, metaEndPoint string) (*Config, *ConfigAccount, error) {
+func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (*Config, *ConfigAccount, error) {
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil, nil, err
@@ -211,7 +200,7 @@ func InitFileConfig(fileName, metaEndPoint string) (*Config, *ConfigAccount, err
 	// then we need to determine our account id
 	var accountId string
 	if len(config.Accounts) > 1 {
-		accountId, _ = GetAccountId(metaEndPoint)
+		accountId, _ = GetAccountId(metaEndPoint, useRegionalSTS || config.UseRegionalSTS, region, sysLogger)
 	}
 	for _, configAccount := range config.Accounts {
 		if configAccount.Account == accountId || len(config.Accounts) == 1 {
@@ -265,9 +254,9 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	}, nil
 }
 
-func GetConfig(fileName, roleSuffix, metaEndPoint string, sysLogger io.Writer) (*Config, *ConfigAccount, error) {
+func GetConfig(fileName, roleSuffix, metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (*Config, *ConfigAccount, error) {
 	// Parse config bytes first, and if that fails, load values from Instance Profile and IAM info
-	config, configAccount, err := InitFileConfig(fileName, metaEndPoint)
+	config, configAccount, err := InitFileConfig(fileName, metaEndPoint, useRegionalSTS, region, sysLogger)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "unable to parse configuration file, error: %v\n", err)
 		// if we do not have a configuration file, we're going
@@ -411,9 +400,9 @@ func GetSvcNames(svcs []Service) string {
 	return strings.TrimSuffix(b.String(), ",")
 }
 
-func NewOptions(configFile, metaEndpoint, siaDir, siaVersion string, useRegionalSTS bool, sysLogger io.Writer) (*Options, error) {
+func NewOptions(configFile, metaEndpoint, siaDir, siaVersion string, useRegionalSTS bool, region string, sysLogger io.Writer) (*Options, error) {
 
-	config, configAccount, err := InitFileConfig(configFile, metaEndpoint)
+	config, configAccount, err := InitFileConfig(configFile, metaEndpoint, useRegionalSTS, region, sysLogger)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to process configuration file '%s': %v\n", configFile, err)
 		logutil.LogInfo(sysLogger, "Trying to determine service details from the environment variables...\n")
@@ -423,7 +412,7 @@ func NewOptions(configFile, metaEndpoint, siaDir, siaVersion string, useRegional
 			// if we do not have settings in our environment, we're going
 			// to use fallback to <domain>.<service>-service naming structure
 			logutil.LogInfo(sysLogger, "Trying to determine service name security credentials...\n")
-			configAccount, err = InitCredsConfig("-service")
+			configAccount, err = InitCredsConfig("-service", useRegionalSTS, region, sysLogger)
 			if err != nil {
 				logutil.LogInfo(sysLogger, "Unable to process security credentials: %v\n", err)
 				logutil.LogInfo(sysLogger, "Trying to determine service name from profile arn...\n")
@@ -442,7 +431,7 @@ func NewOptions(configFile, metaEndpoint, siaDir, siaVersion string, useRegional
 		return nil, err
 	}
 
-	opts.Region = meta.GetRegion(metaEndpoint, sysLogger)
+	opts.Region = region
 	if useRegionalSTS {
 		opts.UseRegionalSTS = true
 	}

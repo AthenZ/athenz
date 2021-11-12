@@ -22,6 +22,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/provider/aws/sia-eks"
@@ -68,7 +69,8 @@ func main() {
 
 	sysLogger := os.Stderr
 
-	opts, err := options.NewOptions(*pConf, *eksMetaEndPoint, siaMainDir, Version, *useRegionalSTS, sysLogger)
+	region := meta.GetRegion(*eksMetaEndPoint, sysLogger)
+	opts, err := options.NewOptions(*pConf, *eksMetaEndPoint, siaMainDir, Version, *useRegionalSTS, region, sysLogger)
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v", err)
 	}
