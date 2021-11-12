@@ -194,7 +194,7 @@ func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region s
 		return nil, nil, err
 	}
 	if config.Service == "" {
-		return nil, nil, fmt.Errorf("missing required Service field from the config file")
+		return &config, nil, fmt.Errorf("missing required Service field from the config file")
 	}
 	// if we have more than one account block defined (not recommended)
 	// then we need to determine our account id
