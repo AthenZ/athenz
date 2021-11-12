@@ -54,10 +54,10 @@ var MetaEndPoint = os.Getenv("ECS_CONTAINER_METADATA_URI_V4")
 const siaMainDir = "/var/lib/sia"
 
 // getAttestationData fetches attestation data for all the services mentioned in the config file
-func getAttestationData(opts *options.Options, region, taskId string, sysLogger io.Writer) ([]*attestation.AttestationData, error) {
+func getAttestationData(opts *options.Options, region string, sysLogger io.Writer) ([]*attestation.AttestationData, error) {
 	data := []*attestation.AttestationData{}
 	for _, svc := range opts.Services {
-		a, err := sia.GetAttestationData(opts.Domain, svc.Name, opts.Account, region, taskId, opts.UseRegionalSTS, sysLogger)
+		a, err := sia.GetAttestationData(opts.Domain, svc.Name, opts.Account, region, opts.UseRegionalSTS, sysLogger)
 		if err != nil {
 			return nil, err
 		}
@@ -188,7 +188,7 @@ func main() {
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v\n", err)
 	}
-
+	opts.TaskId = taskId
 	// if useRegionalSTS flag is provided then override config value
 	if useRegionalSTS != nil && *useRegionalSTS {
 		opts.UseRegionalSTS = *useRegionalSTS
@@ -203,7 +203,7 @@ func main() {
 
 	log.Printf("options: %+v", opts)
 
-	data, err := getAttestationData(opts, region, taskId, sysLogger)
+	data, err := getAttestationData(opts, region, sysLogger)
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to formulate attestation data, error: %v\n", err)
 	}
@@ -273,7 +273,7 @@ func main() {
 				// this time around and refresh certs next time
 
 				if !initialSetup {
-					data, err = getAttestationData(opts, region, taskId, sysLogger)
+					data, err = getAttestationData(opts, region, sysLogger)
 					if err != nil {
 						errors <- fmt.Errorf("Cannot get attestation data: %v\n", err)
 						return

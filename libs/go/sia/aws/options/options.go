@@ -127,7 +127,7 @@ type Options struct {
 	GenerateRoleKey      bool                  //option to generate a separate key for role certificates
 	RotateKey            bool                  //rotate the private key when refreshing certificates
 	BackUpDir            string                //backup directory for key/cert rotation
-	ProviderParentDomain string                //provider domain name, if not specified using athenz
+	ProviderDomain       string                //provider domain name, if not specified using athenz
 	CertCountryName      string                //generated x.509 certificate country name
 	CertOrgName          string                //generated x.509 certificate organization name
 }
@@ -402,7 +402,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 	}, nil
 }
 
-//GetSvcNames returns comma separated list of service names
+// GetSvcNames returns comma separated list of service names
 func GetSvcNames(svcs []Service) string {
 	var b bytes.Buffer
 	for _, svc := range svcs {

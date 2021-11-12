@@ -375,17 +375,18 @@ func TestRoleCertificateRequest(test *testing.T) {
 }
 
 func TestGetInstanceId(test *testing.T) {
-	data := &attestation.AttestationData{}
-	data.TaskId = "task1234"
+	opts := &options.Options{
+		TaskId: "task1234",
+	}
 	docMap := make(map[string]interface{})
-	id := getInstanceId(data, docMap)
+	id := getInstanceId(opts, docMap)
 	if id != "task1234" {
 		test.Errorf("Unable to verify task id value")
 		return
 	}
-	data.TaskId = ""
+	opts.TaskId = ""
 	docMap["instanceId"] = "ec2"
-	id = getInstanceId(data, docMap)
+	id = getInstanceId(opts, docMap)
 	if id != "ec2" {
 		test.Errorf("Unable to verify ec2 id value")
 		return

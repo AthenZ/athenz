@@ -118,6 +118,7 @@ type Options struct {
 	RotateKey            bool
 	BackUpDir            string
 	ProviderParentDomain string
+	TaskId               string
 }
 
 func initProfileConfig(metaEndPoint string) (*ConfigAccount, error) {

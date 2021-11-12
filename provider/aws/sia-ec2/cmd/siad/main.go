@@ -117,6 +117,7 @@ func main() {
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v", err)
 	}
+	opts.TaskId = attestation.GetECSTaskId()
 
 	log.Printf("options: %+v", opts)
 

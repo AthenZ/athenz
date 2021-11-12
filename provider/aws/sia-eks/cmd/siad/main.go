@@ -76,7 +76,7 @@ func main() {
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
 	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
-	opts.ProviderParentDomain = *providerPrefix
+	opts.ProviderDomain = *providerPrefix
 	opts.TaskId = sia.GetEKSPodId()
 
 	sia.RunAgent(*cmd, siaMainDir, ztsUrl, opts, sysLogger)

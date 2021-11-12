@@ -168,11 +168,11 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 	return failures == 0
 }
 
-func getInstanceId(data *attestation.AttestationData, docMap map[string]interface{}) string {
+func getInstanceId(opts *options.Options, docMap map[string]interface{}) string {
 	//if we're running within ecs we're going to use task id
 	//otherwise we'll use our instance id for the csr
-	if data.TaskId != "" {
-		return data.TaskId
+	if opts.TaskId != "" {
+		return opts.TaskId
 	}
 	return docMap["instanceId"].(string)
 }
@@ -198,7 +198,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	}
 	ip := docMap["privateIp"].(string)
 	region := docMap["region"].(string)
-	instanceId := getInstanceId(data, docMap)
+	instanceId := getInstanceId(opts, docMap)
 
 	key, err := util.GenerateKeyPair(2048)
 	if err != nil {
@@ -208,14 +208,14 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	//if we're running within ecs then we're not going
 	//include a csr for the host ssh certificate
 	var ssh string
-	if data.TaskId == "" {
+	if opts.TaskId == "" {
 		ssh, err = generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, ip, opts.ZTSAWSDomains, sysLogger)
 		if err != nil {
 			return err
 		}
 	}
 
-	provider, ec2Provider := getProviderName(opts.Provider, region, data.TaskId, opts.ProviderParentDomain)
+	provider, ec2Provider := getProviderName(opts.Provider, region, opts.TaskId, opts.ProviderParentDomain)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
 	csr, err := util.GenerateCSR(key, "US", "", opts.Domain, svc.Name, data.Role, instanceId, provider, spiffe, opts.ZTSAWSDomains, opts.SanDnsWildcard, false)
 	if err != nil {
@@ -318,11 +318,11 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	}
 	ip := docMap["privateIp"].(string)
 	region := docMap["region"].(string)
-	instanceId := getInstanceId(data, docMap)
+	instanceId := getInstanceId(opts, docMap)
 	//if we're running within ecs then we're not going
 	//include a csr for the host ssh certificate
 	var ssh string
-	if data.TaskId == "" {
+	if opts.TaskId == "" {
 		ssh, err = generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, ip, opts.ZTSAWSDomains, sysLogger)
 		if err != nil {
 			return err
@@ -332,7 +332,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	if err != nil {
 		return err
 	}
-	provider, _ := getProviderName(opts.Provider, region, data.TaskId, opts.ProviderParentDomain)
+	provider, _ := getProviderName(opts.Provider, region, opts.TaskId, opts.ProviderParentDomain)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
 
 	key, err := util.PrivateKey(keyFile, opts.RotateKey)

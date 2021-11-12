@@ -80,9 +80,9 @@ func TestOptionsNoConfig(t *testing.T) {
 	metaServer.start(router)
 	defer metaServer.stop()
 
-	ztsDomains := []string{"zts-aws-domain"}
+	//ztsDomains := []string{"zts-aws-domain"}
 	config, configAccount, _ := GetConfig("data/sia_empty_config", "-service", metaServer.httpUrl(), os.Stdout)
-	opts, e := NewOptions(config, configAccount, "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -95,9 +95,9 @@ func TestOptionsNoConfig(t *testing.T) {
 
 // TestOptionsWithConfig test the scenario when /etc/sia/sia_config is present
 func TestOptionsWithConfig(t *testing.T) {
-	ztsDomains := []string{"zts-aws-domain"}
+	//ztsDomains := []string{"zts-aws-domain"}
 	config, configAccount, _ := GetConfig("data/sia_config",  "-service", "http://localhost:80", os.Stdout)
-	opts, e := NewOptions(config, configAccount, "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -114,20 +114,20 @@ func TestOptionsWithConfig(t *testing.T) {
 
 // TestOptionsNoService test the scenario when /etc/sia/sia_config is present, but service is not repeated in services
 func TestOptionsNoService(t *testing.T) {
-	ztsDomains := []string{"zts-aws-domain"}
+	//ztsDomains := []string{"zts-aws-domain"}
 	config, configAccount, e := GetConfig("data/sia_no_service",  "-service", "http://localhost:80", os.Stdout)
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 
 	config, configAccount, _ = GetConfig("data/sia_no_service2",  "-service", "http://localhost:80", os.Stdout)
-	_, e = NewOptions(config, configAccount, "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
+	_, e = setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 }
 
 // TestOptionsNoServices test the scenario when only "service" is mentioned and there are no multiple "services"
 func TestOptionsNoServices(t *testing.T) {
-	ztsDomains := []string{"zts-aws-domain"}
+	//ztsDomains := []string{"zts-aws-domain"}
 	config, configAccount, _ := GetConfig("data/sia_no_services",  "-service", "http://localhost:80", os.Stdout)
-	opts, e := NewOptions(config, configAccount, "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 
 	// Make sure one service is set
@@ -190,17 +190,17 @@ func getGid(t *testing.T, group string) int {
 }
 
 func TestOptionsWithGenerateRoleKeyConfig(t *testing.T) {
-	ztsDomains := []string{"zts-aws-domain"}
+	//ztsDomains := []string{"zts-aws-domain"}
 	config, configAccount, _ := GetConfig("data/sia_generate_role_key", "-service", "http://localhost:80", os.Stdout)
-	opts, e := NewOptions(config, configAccount, "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.GenerateRoleKey == true)
 }
 
 func TestOptionsWithRotateKeyConfig(t *testing.T) {
-	ztsDomains := []string{"zts-aws-domain"}
+	//ztsDomains := []string{"zts-aws-domain"}
 	config, configAccount, _ := GetConfig("data/sia_rotate_key", "-service", "http://localhost:80", os.Stdout)
-	opts, e := NewOptions(config, configAccount, "/tmp", "1.0.0", "", "", ztsDomains, "", os.Stdout)
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.RotateKey == true)
 }

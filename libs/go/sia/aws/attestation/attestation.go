@@ -38,7 +38,6 @@ type AttestationData struct {
 	Token     string `json:"token,omitempty"`     //the temp creds session token
 	Document  string `json:"document,omitempty"`  //for EC2 instance document
 	Signature string `json:"signature,omitempty"` //for EC2 instance document pkcs7 signature
-	TaskId    string `json:"taskid,omitempty"`    //for ECS Task Id
 }
 
 // New creates a new AttestationData with values fed to it and from the result of STS Assume Role.
@@ -67,7 +66,6 @@ func New(domain, service string, document, signature []byte, useRegionalSTS bool
 		Access:    *tok.Credentials.AccessKeyId,
 		Secret:    *tok.Credentials.SecretAccessKey,
 		Token:     *tok.Credentials.SessionToken,
-		TaskId:    getECSTaskId(),
 	}, nil
 }
 
@@ -104,7 +102,7 @@ func getSTSToken(useRegionalSTS bool, region, account, role string, sysLogger io
 	})
 }
 
-func getECSTaskId() string {
+func GetECSTaskId() string {
 	ecs := os.Getenv("ECS_CONTAINER_METADATA_FILE")
 	if ecs == "" {
 		return ""

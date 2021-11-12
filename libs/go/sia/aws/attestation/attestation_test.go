@@ -23,20 +23,20 @@ import (
 
 func TestGetECSTaskId(test *testing.T) {
 	os.Setenv("ECS_CONTAINER_METADATA_FILE", "data/task.json")
-	taskId := getECSTaskId()
+	taskId := GetECSTaskId()
 	if taskId != "776b2c2e-6bfb-4328-bd04-204536cfb7f2" {
 		test.Errorf("Unable to extract task id")
 		return
 	}
 	os.Setenv("ECS_CONTAINER_METADATA_FILE", "data/task-new-arn.json")
-	taskId = getECSTaskId()
+	taskId = GetECSTaskId()
 	if taskId != "776b2c2e-6bfb-4328-bd04-204536cfb7f2" {
 		test.Errorf("Unable to extract task id")
 		return
 	}
 	//invalid file
 	os.Setenv("ECS_CONTAINER_METADATA_FILE", "data/nonexistent-task.json")
-	taskId = getECSTaskId()
+	taskId = GetECSTaskId()
 	if taskId != "" {
 		test.Errorf("Invalid file returned valid task id: %s", taskId)
 		return

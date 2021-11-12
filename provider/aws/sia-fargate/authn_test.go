@@ -142,11 +142,11 @@ func TestRegisterInstance(test *testing.T) {
 		KeyDir:           siaDir,
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
+		TaskId:           "task-1234",
 	}
 
 	a := &attestation.AttestationData{
-		Role:   "athenz.hockey",
-		TaskId: "task-1234",
+		Role: "athenz.hockey",
 	}
 
 	err = RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, "us-west-2", os.Stdout)
@@ -168,7 +168,6 @@ func TestRegisterInstance(test *testing.T) {
 	if err != nil {
 		test.Errorf("Unable to validate CA certificate file: %v", err)
 	}
-
 }
 
 func copyFile(src, dst string) error {
@@ -216,11 +215,11 @@ func TestRefreshInstance(test *testing.T) {
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
 		Provider:         "athenz.aws",
+		TaskId:           "task-1234",
 	}
 
 	a := &attestation.AttestationData{
-		Role:   "athenz.hockey",
-		TaskId: "task-1234",
+		Role: "athenz.hockey",
 	}
 
 	err = RefreshInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, "us-west-2", os.Stdout)

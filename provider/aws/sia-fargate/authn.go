@@ -81,7 +81,7 @@ func GetECSFargateData(metaEndPoint string) (string, string, string, error) {
 
 // New creates a new AttestationData with values fed to it and from the result of STS Assume Role
 
-func GetAttestationData(domain, service, account, region, taskId string, useRegionalSTS bool, sysLogger io.Writer) (*attestation.AttestationData, error) {
+func GetAttestationData(domain, service, account, region string, useRegionalSTS bool, sysLogger io.Writer) (*attestation.AttestationData, error) {
 
 	role := fmt.Sprintf("%s.%s", domain, service)
 
@@ -107,7 +107,6 @@ func GetAttestationData(domain, service, account, region, taskId string, useRegi
 		Access: *tok.Credentials.AccessKeyId,
 		Secret: *tok.Credentials.SecretAccessKey,
 		Token:  *tok.Credentials.SessionToken,
-		TaskId: taskId,
 	}, nil
 }
 
@@ -262,7 +261,7 @@ func getCertFileName(file, domain, service, certDir string) string {
 
 func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl string, opts *options.Options, region string, sysLogger io.Writer) error {
 
-	instanceId := data.TaskId
+	instanceId := opts.TaskId
 
 	key, err := util.GenerateKeyPair(2048)
 	if err != nil {
@@ -335,7 +334,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	}
 	client.AddCredentials("User-Agent", opts.Version)
 
-	instanceId := data.TaskId
+	instanceId := opts.TaskId
 
 	attestData, err := json.Marshal(data)
 	if err != nil {

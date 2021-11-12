@@ -216,7 +216,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 		return err
 	}
 
-	provider := getProviderName(opts.ProviderParentDomain, opts.Region)
+	provider := getProviderName(opts.ProviderDomain, opts.Region)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
 	csr, err := util.GenerateCSR(key, "US", "Oath Inc.", opts.Domain, svc.Name, data.Role, opts.TaskId, provider, spiffe, opts.ZTSAWSDomains, opts.SanDnsWildcard, false)
 	if err != nil {
@@ -280,7 +280,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	if err != nil {
 		return err
 	}
-	provider := getProviderName(opts.ProviderParentDomain, opts.Region)
+	provider := getProviderName(opts.ProviderDomain, opts.Region)
 	spiffe := fmt.Sprintf("spiffe://%s/sa/%s", opts.Domain, svc.Name)
 
 	key, err := util.PrivateKey(keyFile, opts.RotateKey)
