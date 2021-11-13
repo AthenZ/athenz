@@ -39,7 +39,7 @@ const siaMainDir = "/var/lib/sia"
 
 func main() {
 	cmd := flag.String("cmd", "", "optional sub command to run")
-	ecsMetaEndPoint := flag.String("meta", os.Getenv("ECS_CONTAINER_METADATA_URI_V4"), "meta endpoint")
+	ecsMetaEndPoint := flag.String("meta", "http://169.254.170.2", "meta endpoint")
 	ztsEndPoint := flag.String("zts", "", "Athenz Token Service (ZTS) endpoint")
 	ztsServerName := flag.String("ztsservername", "", "ZTS server name for tls connections (optional)")
 	ztsCACert := flag.String("ztscacert", "", "Athenz Token Service (ZTS) CA certificate file (optional)")
