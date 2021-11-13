@@ -4,15 +4,13 @@
 package svc
 
 import (
-	"os"
-
 	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
 	"github.com/AthenZ/athenz/provider/aws/sia-fargate"
 )
 
-var FargateMetaEndPoint = os.Getenv("ECS_CONTAINER_METADATA_URI_V4")
+var FargateMetaEndPoint = "http://169.254.170.2"
 
 type FargateFetcher struct {
 }
@@ -31,7 +29,7 @@ func (fetcher *FargateFetcher) Fetch(host MsdHost, accountId string) (ServicesDa
 }
 
 func (fetcher *FargateFetcher) GetAccountId() (string, error) {
-	account, _, _, err := sia.GetECSFargateData(FargateMetaEndPoint)
+	account, _, _, err := sia.GetFargateData(FargateMetaEndPoint)
 	if err != nil {
 		return "", err
 	}

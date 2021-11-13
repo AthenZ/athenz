@@ -32,10 +32,17 @@ import (
 func GetFargateData(metaEndPoint string) (string, string, string, error) {
 	// now we're going to check if we're running within
 	// ECS Fargate and retrieve our account number and
-	// task id from our data
-	document, err := meta.GetData(metaEndPoint, "/v2/metadata")
+	// task id from our data. we're going to use v4 and
+	// then fallback to v3 and v2 endpoints
+	document, err := meta.GetData(os.Getenv("ECS_CONTAINER_METADATA_URI_V4"), "task")
 	if err != nil {
-		return "", "", "", err
+		document, err = meta.GetData(os.Getenv("ECS_CONTAINER_METADATA_URI"), "task")
+		if err != nil {
+			document, err = meta.GetData(metaEndPoint, "/v2/metadata")
+			if err != nil {
+				return "", "", "", err
+			}
+		}
 	}
 	taskArn, err := doc.GetDocumentEntry(document, "TaskARN")
 	if err != nil {
