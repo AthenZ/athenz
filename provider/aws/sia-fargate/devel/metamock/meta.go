@@ -34,7 +34,7 @@ var (
 )
 
 func StartMetaServer(EndPoint string) {
-	http.HandleFunc("/task", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/v2/metadata", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, taskMetaData)
 	})
 

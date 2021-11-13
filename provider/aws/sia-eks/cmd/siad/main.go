@@ -22,6 +22,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/AthenZ/athenz/libs/go/sia/aws/agent"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/libs/go/sia/logutil"
@@ -70,7 +71,13 @@ func main() {
 	sysLogger := os.Stderr
 
 	region := meta.GetRegion(*eksMetaEndPoint, sysLogger)
-	opts, err := options.NewOptions(*pConf, *eksMetaEndPoint, siaMainDir, Version, *useRegionalSTS, region, sysLogger)
+
+	config, configAccount, err := sia.GetEKSConfig(*pConf, *eksMetaEndPoint, *useRegionalSTS, region, sysLogger)
+	if err != nil {
+		logutil.LogFatal(sysLogger, "Unable to formulate configuration objects, error: %v", err)
+	}
+
+	opts, err := options.NewOptions(config, configAccount, siaMainDir, Version, *useRegionalSTS, region, sysLogger)
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v", err)
 	}
@@ -81,5 +88,5 @@ func main() {
 	opts.ProviderDomain = *providerPrefix
 	opts.TaskId = sia.GetEKSPodId()
 
-	sia.RunAgent(*cmd, siaMainDir, ztsUrl, opts, sysLogger)
+	agent.RunAgent(*cmd, siaMainDir, ztsUrl, opts, sysLogger)
 }

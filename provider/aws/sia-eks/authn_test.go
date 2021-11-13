@@ -17,29 +17,18 @@
 package sia
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
-	"log"
-	"log/syslog"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
-	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/aws/sia-eks/devel/metamock"
-	"github.com/AthenZ/athenz/provider/aws/sia-eks/devel/ztsmock"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func setup() {
-
-	go metamock.StartMetaServer("127.0.0.1:5080")
-	go ztsmock.StartZtsServer("127.0.0.1:5081")
+	go metamock.StartMetaServer("127.0.0.1:5082")
+	time.Sleep(3 * time.Second)
 }
 
 func teardown() {}
@@ -51,265 +40,71 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestUpdateFileNew(test *testing.T) {
-
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
-	}
-
-	//make sure our temp file does not exist
-	timeNano := time.Now().UnixNano()
-	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
-	_ = os.Remove(fileName)
-	testContents := "sia-unit-test"
-	err = util.UpdateFile(fileName, []byte(testContents), 0, 0, 0644, sysLogger)
-	if err != nil {
-		test.Errorf("Cannot create new file: %v", err)
-		return
-	}
-	data, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		test.Errorf("Cannot read new created file: %v", err)
-		_ = os.Remove(fileName)
-		return
-	}
-	if string(data) != testContents {
-		test.Errorf("Read %s data not the same as stored %s data", data, testContents)
-		_ = os.Remove(fileName)
-		return
-	}
-	_ = os.Remove(fileName)
+// TestGetConfigNoConfig tests the scenario when there is no /etc/sia/sia_config, the system uses profile arn
+func TestGetConfigNoConfig(t *testing.T) {
+	config, configAccount, err := GetEKSConfig("devel/data/sia_empty_config", "http://127.0.0.1:5082", false, "us-west-2", os.Stdout)
+	require.Nil(t, err)
+	require.NotNil(t, config)
+	require.NotNil(t, configAccount)
+	assert.True(t, configAccount.Domain == "athenz")
+	assert.True(t, configAccount.Service == "hockey")
 }
 
-func TestUpdateFileExisting(test *testing.T) {
+// TestGetConfigWithConfig test the scenario when /etc/sia/sia_config is present
+func TestGetConfigWithConfig(t *testing.T) {
+	config, configAccount, err := GetEKSConfig("devel/data/sia_config", "http://127.0.0.1:5082", false, "us-west-2", os.Stdout)
+	require.Nilf(t, err, "error should be empty, error: %v", err)
+	require.NotNil(t, config, "should be able to get config")
+	require.NotNil(t, configAccount, "should be able to get config")
 
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
-	}
-
-	//create our temporary file
-	timeNano := time.Now().UnixNano()
-	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
-	testContents := "sia-unit-test"
-	err = ioutil.WriteFile(fileName, []byte(testContents), 0644)
-	if err != nil {
-		test.Errorf("Cannot create new file: %v", err)
-		return
-	}
-	testNewContents := "sia-unit"
-	err = util.UpdateFile(fileName, []byte(testNewContents), 0, 0, 0644, sysLogger)
-	if err != nil {
-		test.Errorf("Cannot create new file: %v", err)
-		return
-	}
-	data, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		test.Errorf("Cannot read new created file: %v", err)
-		_ = os.Remove(fileName)
-		return
-	}
-	if string(data) != testNewContents {
-		test.Errorf("Read %s data not the same as stored %s data", data, testNewContents)
-		_ = os.Remove(fileName)
-		return
-	}
-	_ = os.Remove(fileName)
+	// Make sure services are set
+	assert.True(t, config.Service == "api")
+	assert.True(t, configAccount.Domain == "athenz")
+	assert.True(t, configAccount.Service == "api")
 }
 
-func TestRegisterInstance(test *testing.T) {
+// TestGetConfigNoService test the scenario when /etc/sia/sia_config is present, but service is not repeated in services
+func TestGetConfigNoService(t *testing.T) {
+	config, _, err := GetEKSConfig("devel/data/sia_no_service", "http://127.0.0.1:5082", false, "us-west-2", os.Stdout)
+	require.Nilf(t, err, "error should not be thrown, error: %v", err)
+	assert.True(t, len(config.Services) == 2)
 
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(test, err)
-	defer os.RemoveAll(siaDir)
-
-	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
-	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
-	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
-
-	require.Nil(test, err)
-
-	opts := &options.Options{
-		Domain: "athenz",
-		Services: []options.Service{
-			{
-				Name: "hockey",
-			},
-		},
-		KeyDir:           siaDir,
-		CertDir:          siaDir,
-		AthenzCACertFile: caCertFile,
-		ZTSAWSDomains:    []string{"zts-aws-cloud"},
-		Region:           "us-west-2",
-		TaskId:           "pod-1234",
-	}
-
-	a := &attestation.AttestationData{
-		Role: "athenz.hockey",
-	}
-
-	err = RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, os.Stdout)
-	assert.Nil(test, err, "unable to register instance")
-
-	if err != nil {
-		test.Errorf("Unable to register instance: %v", err)
-		return
-	}
-	_, err = os.Stat(keyFile)
-	if err != nil {
-		test.Errorf("Unable to validate private key file: %v", err)
-	}
-	_, err = os.Stat(certFile)
-	if err != nil {
-		test.Errorf("Unable to validate x509 certificate file: %v", err)
-	}
-	_, err = os.Stat(caCertFile)
-	if err != nil {
-		test.Errorf("Unable to validate CA certificate file: %v", err)
-	}
+	config, _, err = GetEKSConfig("devel/data/sia_no_service2", "http://127.0.0.1:5082", false, "us-west-2", os.Stdout)
+	require.Nilf(t, err, "error should not be thrown, error: %v", err)
+	assert.True(t, config.Service == "api")
+	assert.True(t, len(config.Services) == 1)
+	assert.NotNil(t, config.Services["ui"])
 }
 
-func copyFile(src, dst string) error {
-	data, err := ioutil.ReadFile(src)
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(dst, data, 0644)
+// TestGetConfigNoServices test the scenario when only "service" is mentioned and there are no multiple "services"
+func TestGetConfigNoServices(t *testing.T) {
+	config, configAccount, err := GetEKSConfig("devel/data/sia_no_services", "http://127.0.0.1:5082", false, "us-west-2", os.Stdout)
+	require.Nilf(t, err, "error should not be thrown, error: %v", err)
+
+	// Make sure one service is set
+	assert.True(t, len(config.Services) == 0)
+	assert.True(t, config.Service == "api")
+	assert.True(t, configAccount.Domain == "athenz")
+	assert.True(t, configAccount.Name == "athenz.api")
 }
 
-func TestRefreshInstance(test *testing.T) {
-
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(test, err)
-	defer os.RemoveAll(siaDir)
-
-	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
-	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
-	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
-
-	err = copyFile("devel/data/key.pem", keyFile)
-	if err != nil {
-		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/key.pem", keyFile, err)
-		return
-	}
-	err = copyFile("devel/data/cert.pem", certFile)
-	if err != nil {
-		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/cert.pem", certFile, err)
-		return
-	}
-	err = copyFile("devel/data/ca.cert.pem", caCertFile)
-	if err != nil {
-		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/ca.cert..pem", caCertFile, err)
-		return
-	}
-
-	opts := &options.Options{
-		Domain: "athenz",
-		Services: []options.Service{
-			{
-				Name: "hockey",
-			},
-		},
-		KeyDir:           siaDir,
-		CertDir:          siaDir,
-		AthenzCACertFile: caCertFile,
-		Provider:         "athenz.aws",
-		ZTSAWSDomains:    []string{"zts-aws-cloud"},
-		Region:           "us-west-2",
-		TaskId:           "pod-1234",
-	}
-
-	a := &attestation.AttestationData{
-		Role: "athenz.hockey",
-	}
-
-	err = RefreshInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, os.Stdout)
-	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
-
-	oldCert, _ := ioutil.ReadFile("devel/data/cert.pem")
-	newCert, _ := ioutil.ReadFile(certFile)
-	if string(oldCert) == string(newCert) {
-		test.Errorf("Certificate was not refreshed")
-		return
-	}
+func TestGetConfigWithGenerateRoleKeyConfig(t *testing.T) {
+	config, _, err := GetEKSConfig("devel/data/sia_generate_role_key", "http://127.0.0.1:5082", false, "us-west-2", os.Stdout)
+	require.Nilf(t, err, "error should not be thrown, error: %v", err)
+	assert.True(t, config.GenerateRoleKey == true)
 }
 
-func TestRoleCertificateRequest(test *testing.T) {
-
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(test, err)
-	defer os.RemoveAll(siaDir)
-
-	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
-	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
-	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
-	roleCertFile := fmt.Sprintf("%s/testrole.cert.pem", siaDir)
-
-	err = copyFile("devel/data/key.pem", keyFile)
-	if err != nil {
-		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/key.pem", keyFile, err)
-		return
-	}
-	err = copyFile("devel/data/cert.pem", certFile)
-	if err != nil {
-		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/cert.pem", certFile, err)
-		return
-	}
-	err = copyFile("devel/data/ca.cert.pem", caCertFile)
-	if err != nil {
-		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/ca.cert..pem", caCertFile, err)
-		return
-	}
-
-	opts := &options.Options{
-		Domain: "athenz",
-		Services: []options.Service{
-			{
-				Name: "hockey",
-			},
-		},
-		Roles: map[string]options.ConfigRole{
-			"athenz:role.writers": {
-				Filename: roleCertFile,
-			},
-		},
-		KeyDir:           siaDir,
-		CertDir:          siaDir,
-		AthenzCACertFile: caCertFile,
-		ZTSAWSDomains:    []string{"zts-aws-cloud"},
-	}
-
-	result := GetRoleCertificate("http://127.0.0.1:5081/zts/v1", keyFile, certFile, opts, os.Stdout)
-	if !result {
-		test.Errorf("Unable to get role certificate: %v", err)
-		return
-	}
-
-	_, err = os.Stat(roleCertFile)
-	if err != nil {
-		test.Errorf("Unable to validate role certificate file: %v", err)
-	}
+func TestGetConfigWithRotateKeyConfig(t *testing.T) {
+	config, _, err := GetEKSConfig("devel/data/sia_rotate_key", "http://127.0.0.1:5082", false, "us-west-2", os.Stdout)
+	require.Nilf(t, err, "error should not be thrown, error: %v", err)
+	assert.True(t, config.RotateKey == true)
 }
 
-func TestExtractProviderFromCertInvalidFile(test *testing.T) {
-	if extractProviderFromCert("invalid-file") != "" {
-		test.Error("Invalid file returned valid provider")
-	}
-}
-
-func TestExtractProviderFromCertWithoutOU(test *testing.T) {
-	if extractProviderFromCert("devel/data/cert_wout_ou.pem") != "" {
-		test.Error("Provider returned from cert_wout_ou.pem")
-	}
-}
-
-func TestExtractProviderFromCert(test *testing.T) {
-	if extractProviderFromCert("devel/data/cert.pem") != "Athenz" {
-		test.Error("Unable to extract Athenz ou provider from cert.pem")
-	}
+func TestGetEKSPodId(t *testing.T) {
+	hostname := os.Getenv("HOSTNAME")
+	os.Setenv("HOSTNAME", "localhost")
+	assert.True(t, GetEKSPodId() == "localhost")
+	os.Setenv("HOSTNAME", "")
+	assert.True(t, GetEKSPodId() == "eksPod")
+	os.Setenv("HOSTNAME", hostname)
 }

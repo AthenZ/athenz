@@ -1,0 +1,14 @@
+{
+    "version": "1.0.0",
+    "services": {
+        "api": {},
+        "ui": {}
+    },
+    "accounts": [
+        {
+            "domain": "athenz",
+            "user": "nobody",
+            "account": "123456789012"
+        }
+    ]
+}

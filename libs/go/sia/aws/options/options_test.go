@@ -18,9 +18,6 @@ package options
 
 import (
 	"fmt"
-	"github.com/dimfeld/httptreemux"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"io/ioutil"
 	"log"
@@ -31,6 +28,11 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
+	"github.com/dimfeld/httptreemux"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const iamJson = `{
@@ -67,74 +69,21 @@ func (t *testServer) httpUrl() string {
 	return fmt.Sprintf("http://%s", t.addr)
 }
 
-// TestOptionsNoConfig tests the scenario when there is no /etc/sia/sia_config, the system uses profile arn
-func TestOptionsNoConfig(t *testing.T) {
-	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /latest/dynamic/instance-identity/document")
-		io.WriteString(w, iamJson)
-	})
-
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
-
-	//ztsDomains := []string{"zts-aws-domain"}
-	config, configAccount, _ := GetConfig("data/sia_empty_config", "-service", metaServer.httpUrl(), os.Stdout)
-	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
-	require.Nilf(t, e, "error should be empty, error: %v", e)
-	require.NotNil(t, opts, "should be able to get Options")
-
-	// Make sure one service is set
-	assert.True(t, len(opts.Services) == 1)
-	assert.True(t, opts.Domain == "athenz")
-	assert.True(t, opts.Name == "athenz.hockey")
-	assert.True(t, assertService(opts.Services[0], Service{Name: "hockey", Uid: 0, Gid: 0, FileMode: 288}))
-}
-
-// TestOptionsWithConfig test the scenario when /etc/sia/sia_config is present
-func TestOptionsWithConfig(t *testing.T) {
-	//ztsDomains := []string{"zts-aws-domain"}
-	config, configAccount, _ := GetConfig("data/sia_config",  "-service", "http://localhost:80", os.Stdout)
-	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
-	require.Nilf(t, e, "error should be empty, error: %v", e)
-	require.NotNil(t, opts, "should be able to get Options")
-
-	// Make sure services are set
-	assert.True(t, len(opts.Services) == 3)
-	assert.True(t, opts.Domain == "athenz")
-	assert.True(t, opts.Name == "athenz.api")
-
-	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
-	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288}))
-	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui"}))
-	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys")}))
-}
-
-// TestOptionsNoService test the scenario when /etc/sia/sia_config is present, but service is not repeated in services
-func TestOptionsNoService(t *testing.T) {
-	//ztsDomains := []string{"zts-aws-domain"}
-	config, configAccount, e := GetConfig("data/sia_no_service",  "-service", "http://localhost:80", os.Stdout)
-	require.NotNilf(t, e, "error should be thrown, error: %v", e)
-
-	config, configAccount, _ = GetConfig("data/sia_no_service2",  "-service", "http://localhost:80", os.Stdout)
-	_, e = setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
-	require.NotNilf(t, e, "error should be thrown, error: %v", e)
-}
-
-// TestOptionsNoServices test the scenario when only "service" is mentioned and there are no multiple "services"
-func TestOptionsNoServices(t *testing.T) {
-	//ztsDomains := []string{"zts-aws-domain"}
-	config, configAccount, _ := GetConfig("data/sia_no_services",  "-service", "http://localhost:80", os.Stdout)
-	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
-	require.Nilf(t, e, "error should not be thrown, error: %v", e)
-
-	// Make sure one service is set
-	assert.True(t, len(opts.Services) == 1)
-	assert.True(t, opts.Domain == "athenz")
-	assert.True(t, opts.Name == "athenz.api")
-	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288}))
+func getConfig(fileName, roleSuffix, metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (*Config, *ConfigAccount, error) {
+	// Parse config bytes first, and if that fails, load values from Instance Profile and IAM info
+	config, configAccount, err := InitFileConfig(fileName, metaEndPoint, useRegionalSTS, region, "", sysLogger)
+	if err != nil {
+		logutil.LogInfo(sysLogger, "unable to parse configuration file, error: %v\n", err)
+		// if we do not have a configuration file, we're going
+		// to use fallback to <domain>.<service>-service
+		// naming structure
+		logutil.LogInfo(sysLogger, "trying to determine service name from profile arn...\n")
+		configAccount, err = InitProfileConfig(metaEndPoint, roleSuffix)
+		if err != nil {
+			return nil, nil, fmt.Errorf("config non-parsable and unable to determine service name from profile arn, error: %v", err)
+		}
+	}
+	return config, configAccount, nil
 }
 
 func assertService(expected Service, actual Service) bool {
@@ -189,17 +138,81 @@ func getGid(t *testing.T, group string) int {
 	return 0
 }
 
+// TestOptionsNoConfig tests the scenario when there is no /etc/sia/sia_config, the system uses profile arn
+func TestOptionsNoConfig(t *testing.T) {
+	// Mock the metadata endpoints
+	router := httptreemux.New()
+	router.GET("/latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /latest/dynamic/instance-identity/document")
+		io.WriteString(w, iamJson)
+	})
+
+	metaServer := &testServer{}
+	metaServer.start(router)
+	defer metaServer.stop()
+
+	config, configAccount, _ := getConfig("data/sia_empty_config", "-service", metaServer.httpUrl(), false, "us-west-2", os.Stdout)
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
+	require.Nilf(t, e, "error should be empty, error: %v", e)
+	require.NotNil(t, opts, "should be able to get Options")
+
+	// Make sure one service is set
+	assert.True(t, len(opts.Services) == 1)
+	assert.True(t, opts.Domain == "athenz")
+	assert.True(t, opts.Name == "athenz.hockey")
+	assert.True(t, assertService(opts.Services[0], Service{Name: "hockey", Uid: 0, Gid: 0, FileMode: 288}))
+}
+
+// TestOptionsWithConfig test the scenario when /etc/sia/sia_config is present
+func TestOptionsWithConfig(t *testing.T) {
+	config, configAccount, _ := getConfig("data/sia_config", "-service", "http://localhost:80", false, "us-west-2", os.Stdout)
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
+	require.Nilf(t, e, "error should be empty, error: %v", e)
+	require.NotNil(t, opts, "should be able to get Options")
+
+	// Make sure services are set
+	assert.True(t, len(opts.Services) == 3)
+	assert.True(t, opts.Domain == "athenz")
+	assert.True(t, opts.Name == "athenz.api")
+
+	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
+	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui"}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys")}))
+}
+
+// TestOptionsNoService test the scenario when /etc/sia/sia_config is present, but service is not repeated in services
+func TestOptionsNoService(t *testing.T) {
+	config, configAccount, e := getConfig("data/sia_no_service", "-service", "http://localhost:80", false, "us-west-2", os.Stdout)
+	require.NotNilf(t, e, "error should be thrown, error: %v", e)
+
+	config, configAccount, _ = getConfig("data/sia_no_service2", "-service", "http://localhost:80", false, "us-west-2", os.Stdout)
+	_, e = setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
+	require.NotNilf(t, e, "error should be thrown, error: %v", e)
+}
+
+// TestOptionsNoServices test the scenario when only "service" is mentioned and there are no multiple "services"
+func TestOptionsNoServices(t *testing.T) {
+	config, configAccount, _ := getConfig("data/sia_no_services", "-service", "http://localhost:80", false, "us-west-2", os.Stdout)
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
+	require.Nilf(t, e, "error should not be thrown, error: %v", e)
+
+	// Make sure one service is set
+	assert.True(t, len(opts.Services) == 1)
+	assert.True(t, opts.Domain == "athenz")
+	assert.True(t, opts.Name == "athenz.api")
+	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288}))
+}
+
 func TestOptionsWithGenerateRoleKeyConfig(t *testing.T) {
-	//ztsDomains := []string{"zts-aws-domain"}
-	config, configAccount, _ := GetConfig("data/sia_generate_role_key", "-service", "http://localhost:80", os.Stdout)
+	config, configAccount, _ := getConfig("data/sia_generate_role_key", "-service", "http://localhost:80", false, "us-west-2", os.Stdout)
 	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.GenerateRoleKey == true)
 }
 
 func TestOptionsWithRotateKeyConfig(t *testing.T) {
-	//ztsDomains := []string{"zts-aws-domain"}
-	config, configAccount, _ := GetConfig("data/sia_rotate_key", "-service", "http://localhost:80", os.Stdout)
+	config, configAccount, _ := getConfig("data/sia_rotate_key", "-service", "http://localhost:80", false, "us-west-2", os.Stdout)
 	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.RotateKey == true)

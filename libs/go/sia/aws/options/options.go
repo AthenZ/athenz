@@ -180,16 +180,16 @@ func InitProfileConfig(metaEndPoint, roleSuffix string) (*ConfigAccount, error) 
 	}, nil
 }
 
-func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (*Config, *ConfigAccount, error) {
-	bytes, err := ioutil.ReadFile(fileName)
+func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, account string, sysLogger io.Writer) (*Config, *ConfigAccount, error) {
+	confBytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil, nil, err
 	}
-	if len(bytes) == 0 {
+	if len(confBytes) == 0 {
 		return nil, nil, errors.New("empty config bytes")
 	}
 	var config Config
-	err = json.Unmarshal(bytes, &config)
+	err = json.Unmarshal(confBytes, &config)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -198,12 +198,11 @@ func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region s
 	}
 	// if we have more than one account block defined (not recommended)
 	// then we need to determine our account id
-	var accountId string
-	if len(config.Accounts) > 1 {
-		accountId, _ = GetAccountId(metaEndPoint, useRegionalSTS || config.UseRegionalSTS, region, sysLogger)
+	if len(config.Accounts) > 1 && account == "" {
+		account, _ = GetAccountId(metaEndPoint, useRegionalSTS || config.UseRegionalSTS, region, sysLogger)
 	}
 	for _, configAccount := range config.Accounts {
-		if configAccount.Account == accountId || len(config.Accounts) == 1 {
+		if configAccount.Account == account || len(config.Accounts) == 1 {
 			if configAccount.Domain == "" || configAccount.Account == "" {
 				return &config, nil, fmt.Errorf("missing required Domain/Account from the config file")
 			}
@@ -212,7 +211,7 @@ func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region s
 			return &config, &configAccount, nil
 		}
 	}
-	return nil, nil, fmt.Errorf("missing account %s details from config file", accountId)
+	return nil, nil, fmt.Errorf("missing account %s details from config file", account)
 }
 
 func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
@@ -252,23 +251,6 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 		Service: service,
 		Name:    fmt.Sprintf("%s.%s", domain, service),
 	}, nil
-}
-
-func GetConfig(fileName, roleSuffix, metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (*Config, *ConfigAccount, error) {
-	// Parse config bytes first, and if that fails, load values from Instance Profile and IAM info
-	config, configAccount, err := InitFileConfig(fileName, metaEndPoint, useRegionalSTS, region, sysLogger)
-	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to parse configuration file, error: %v\n", err)
-		// if we do not have a configuration file, we're going
-		// to use fallback to <domain>.<service>-service
-		// naming structure
-		logutil.LogInfo(sysLogger, "trying to determine service name from profile arn...\n")
-		configAccount, err = InitProfileConfig(metaEndPoint, roleSuffix)
-		if err != nil {
-			return nil, nil, fmt.Errorf("config non-parsable and unable to determine service name from profile arn, error: %v", err)
-		}
-	}
-	return config, configAccount, nil
 }
 
 // setOptions takes in sia_config objects and returns a pointer to Options after parsing and initializing the defaults
@@ -400,30 +382,7 @@ func GetSvcNames(svcs []Service) string {
 	return strings.TrimSuffix(b.String(), ",")
 }
 
-func NewOptions(configFile, metaEndpoint, siaDir, siaVersion string, useRegionalSTS bool, region string, sysLogger io.Writer) (*Options, error) {
-
-	config, configAccount, err := InitFileConfig(configFile, metaEndpoint, useRegionalSTS, region, sysLogger)
-	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to process configuration file '%s': %v\n", configFile, err)
-		logutil.LogInfo(sysLogger, "Trying to determine service details from the environment variables...\n")
-		config, configAccount, err = InitEnvConfig(config)
-		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to process environment settings: %v\n", err)
-			// if we do not have settings in our environment, we're going
-			// to use fallback to <domain>.<service>-service naming structure
-			logutil.LogInfo(sysLogger, "Trying to determine service name security credentials...\n")
-			configAccount, err = InitCredsConfig("-service", useRegionalSTS, region, sysLogger)
-			if err != nil {
-				logutil.LogInfo(sysLogger, "Unable to process security credentials: %v\n", err)
-				logutil.LogInfo(sysLogger, "Trying to determine service name from profile arn...\n")
-				configAccount, err = InitProfileConfig(metaEndpoint, "-service")
-				if err != nil {
-					logutil.LogInfo(sysLogger, "Unable to determine service name: %v\n", err)
-					return nil, err
-				}
-			}
-		}
-	}
+func NewOptions(config *Config, configAccount *ConfigAccount, siaDir, siaVersion string, useRegionalSTS bool, region string, sysLogger io.Writer) (*Options, error) {
 
 	opts, err := setOptions(config, configAccount, siaDir, siaVersion, sysLogger)
 	if err != nil {
