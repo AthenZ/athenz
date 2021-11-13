@@ -19,9 +19,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
-	"log"
-	"log/syslog"
 	"os"
 	"strings"
 
@@ -57,12 +54,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
-	}
+	sysLogger := os.Stderr
 
 	if *ztsEndPoint == "" {
 		logutil.LogFatal(os.Stderr, "missing zts argument\n")
