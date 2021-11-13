@@ -86,7 +86,7 @@ func main() {
 	opts.ZTSServerName = *ztsServerName
 	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
 	opts.ProviderDomain = *providerPrefix
-	opts.TaskId = sia.GetEKSPodId()
+	opts.InstanceId = sia.GetEKSPodId()
 
 	agent.RunAgent(*cmd, siaMainDir, ztsUrl, opts, sysLogger)
 }

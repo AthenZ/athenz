@@ -108,7 +108,7 @@ type Options struct {
 	Service              string                //name of the service for the identity
 	Zts                  string                //the ZTS to contact
 	Filename             string                //filename to put the service certificate
-	TaskId               string                //task id if running within eks/ecs
+	InstanceId           string                //instance id if ec2, task id if running within eks/ecs
 	Roles                map[string]ConfigRole //map of roles to retrieve certificates for
 	Region               string                //region name
 	SanDnsWildcard       bool                  //san dns wildcard support

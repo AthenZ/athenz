@@ -121,7 +121,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 
 		certFilePem := util.GetRoleCertFileName(opts.CertDir, role.Filename, roleName)
 
-		csr, err := util.GenerateRoleCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, opts.Services[0].Name, roleName, opts.TaskId, provider, opts.ZTSAWSDomains[0])
+		csr, err := util.GenerateRoleCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, opts.Services[0].Name, roleName, opts.InstanceId, provider, opts.ZTSAWSDomains[0])
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
@@ -202,7 +202,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	}
 
 	provider := getProviderName(opts.ProviderDomain, opts.Region)
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.TaskId, provider, opts.ZTSAWSDomains, opts.SanDnsWildcard)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, provider, opts.ZTSAWSDomains, opts.SanDnsWildcard)
 	if err != nil {
 		return err
 	}
@@ -272,13 +272,13 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		return err
 	}
 
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.TaskId, provider, opts.ZTSAWSDomains, opts.SanDnsWildcard)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, provider, opts.ZTSAWSDomains, opts.SanDnsWildcard)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
 	}
 	info := &zts.InstanceRefreshInformation{AttestationData: string(attestData), Csr: csr}
-	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(provider), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(opts.TaskId), info)
+	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(provider), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(opts.InstanceId), info)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to refresh instance service certificate for %s, err: %v\n", opts.Name, err)
 		return err

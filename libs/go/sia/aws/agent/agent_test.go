@@ -131,7 +131,7 @@ func TestRegisterInstance(test *testing.T) {
 		AthenzCACertFile: caCertFile,
 		ZTSAWSDomains:    []string{"zts-aws-cloud"},
 		Region:           "us-west-2",
-		TaskId:           "pod-1234",
+		InstanceId:       "pod-1234",
 	}
 
 	a := &attestation.AttestationData{
@@ -206,7 +206,7 @@ func TestRefreshInstance(test *testing.T) {
 		Provider:         "athenz.aws",
 		ZTSAWSDomains:    []string{"zts-aws-cloud"},
 		Region:           "us-west-2",
-		TaskId:           "pod-1234",
+		InstanceId:       "pod-1234",
 	}
 
 	a := &attestation.AttestationData{
