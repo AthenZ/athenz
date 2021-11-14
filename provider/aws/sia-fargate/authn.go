@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
@@ -48,30 +47,7 @@ func GetFargateData(metaEndPoint string) (string, string, string, error) {
 	if err != nil {
 		return "", "", "", err
 	}
-	// fargate task arn has the following format (old and new):
-	// arn:aws:ecs:us-west-2:012345678910:task/9781c248-0edd-4cdb-9a93-f63cb662a5d3
-	// arn:aws:ecs:us-west-2:012345678910:task/cluster-name/9781c248-0edd-4cdb-9a93-f63cb662a5d3
-	if !strings.HasPrefix(taskArn, "arn:aws:ecs:") {
-		return "", "", "", fmt.Errorf("unable to parse task arn (ecs prefix error): %s", taskArn)
-	}
-	arn := strings.Split(taskArn, ":")
-	if len(arn) < 6 {
-		return "", "", "", fmt.Errorf("unable to parse task arn (number of components): %s", taskArn)
-	}
-	region := arn[3]
-	account := arn[4]
-	taskComps := strings.Split(arn[5], "/")
-	if taskComps[0] != "task" {
-		return "", "", "", fmt.Errorf("unable to parse task arn (task prefix): %s", taskArn)
-	}
-	var taskId string
-	lenComps := len(taskComps)
-	if lenComps == 2 || lenComps == 3 {
-		taskId = taskComps[lenComps-1]
-	} else {
-		return "", "", "", fmt.Errorf("unable to parse task arn (task prefix): %s", taskArn)
-	}
-	return account, taskId, region, nil
+	return util.ParseTaskArn(taskArn)
 }
 
 func initTaskConfig(config *options.Config, metaEndpoint string) (*options.Config, *options.ConfigAccount, error) {

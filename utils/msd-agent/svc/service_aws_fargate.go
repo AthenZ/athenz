@@ -5,9 +5,9 @@ package svc
 
 import (
 	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
-
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/provider/aws/sia-fargate"
+	"os"
 )
 
 var FargateMetaEndPoint = "http://169.254.170.2"
@@ -17,7 +17,13 @@ type FargateFetcher struct {
 
 func (fetcher *FargateFetcher) Fetch(host MsdHost, accountId string) (ServicesData, error) {
 
-	opts, err := options.NewOptions(host.SiaConfig, accountId, "", SIA_DIR, "", "", "", nil, "", nil)
+	sysLogger := os.Stderr
+	config, configAccount, err := sia.GetFargateConfig(SIA_CONFIG, FargateMetaEndPoint, false, accountId, "", sysLogger)
+	if err != nil {
+		log.Fatalf("Unable to formulate config, error: %v\n", err)
+	}
+
+	opts, err := options.NewOptions(config, configAccount, SIA_DIR, "", false, "", sysLogger)
 	if err != nil {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}

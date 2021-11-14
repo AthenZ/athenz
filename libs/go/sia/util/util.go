@@ -23,10 +23,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"io"
 	"io/ioutil"
 	"log"
@@ -35,6 +34,10 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 )
 
 type CertReqDetails struct {
@@ -48,6 +51,18 @@ type CertReqDetails struct {
 	HostList   []string
 	EmailList  []string
 	URIs       []*url.URL
+}
+
+// SSHKeyReq - congruent with certsign-rdl/certsign.rdl
+type SSHKeyReq struct {
+	Principals []string `json:"principals"`
+	Ips        []string `json:"ips,omitempty" rdl:"optional"`
+	Pubkey     string   `json:"pubkey"`
+	Reqip      string   `json:"reqip"`
+	Requser    string   `json:"requser"`
+	Certtype   string   `json:"certtype"`
+	Transid    string   `json:"transid"`
+	Command    string   `json:"command,omitempty" rdl:"optional"`
 }
 
 func SplitRoleName(roleName string) (string, string, error) {
@@ -306,6 +321,35 @@ func GenerateRoleCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, serv
 	return GenerateX509CSR(key, csrDetails)
 }
 
+func GenerateSSHHostCSR(sshPubKeyFile string, domain, service, ip string, ztsAwsDomains []string, sysLogger io.Writer) (string, error) {
+	pubkey, err := ioutil.ReadFile(sshPubKeyFile)
+	if err != nil {
+		logutil.LogInfo(sysLogger, "Skipping SSH CSR Request - Unable to read SSH Public Key File: %v\n", err)
+		return "", nil
+	}
+	identity := domain + "." + service
+	transId := fmt.Sprintf("%x", time.Now().Unix())
+	hyphenDomain := strings.Replace(domain, ".", "-", -1)
+	principals := []string{}
+	for _, ztsDomain := range ztsAwsDomains {
+		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
+		principals = append(principals, host)
+	}
+	req := &SSHKeyReq{
+		Principals: principals,
+		Pubkey:     string(pubkey),
+		Reqip:      ip,
+		Requser:    identity,
+		Certtype:   "host",
+		Transid:    transId,
+	}
+	csr, err := json.Marshal(req)
+	if err != nil {
+		return "", err
+	}
+	return string(csr), err
+}
+
 func AppendUri(uriList []*url.URL, uriValue string) []*url.URL {
 	uri, err := url.Parse(uriValue)
 	if err == nil {
@@ -462,6 +506,33 @@ func ParseAssumedRoleArn(roleArn, serviceSuffix string) (string, string, string,
 	}
 	account := arn[4]
 	return account, domain, service, nil
+}
+
+func ParseTaskArn(taskArn string) (string, string, string, error) {
+	// fargate task arn has the following format (old and new):
+	// arn:aws:ecs:us-west-2:012345678910:task/9781c248-0edd-4cdb-9a93-f63cb662a5d3
+	// arn:aws:ecs:us-west-2:012345678910:task/cluster-name/9781c248-0edd-4cdb-9a93-f63cb662a5d3
+	if !strings.HasPrefix(taskArn, "arn:aws:ecs:") {
+		return "", "", "", fmt.Errorf("unable to parse task arn (ecs prefix error): %s", taskArn)
+	}
+	arn := strings.Split(taskArn, ":")
+	if len(arn) < 6 {
+		return "", "", "", fmt.Errorf("unable to parse task arn (number of components): %s", taskArn)
+	}
+	region := arn[3]
+	account := arn[4]
+	taskComps := strings.Split(arn[5], "/")
+	if taskComps[0] != "task" {
+		return "", "", "", fmt.Errorf("unable to parse task arn (task prefix): %s", taskArn)
+	}
+	var taskId string
+	lenComps := len(taskComps)
+	if lenComps == 2 || lenComps == 3 {
+		taskId = taskComps[lenComps-1]
+	} else {
+		return "", "", "", fmt.Errorf("unable to parse task arn (task prefix): %s", taskArn)
+	}
+	return account, taskId, region, nil
 }
 
 func ParseRoleArn(roleArn, rolePrefix, roleSuffix string) (string, string, string, error) {

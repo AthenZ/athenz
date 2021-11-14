@@ -43,46 +43,20 @@ type AttestationData struct {
 // New creates a new AttestationData with values fed to it and from the result of STS Assume Role.
 // This requires an identity document along with its signature. The aws account and region will
 // be extracted from the identity document.
-func New(domain, service string, document, signature []byte, useRegionalSTS bool, sysLogger io.Writer) (*AttestationData, error) {
+func New(opts *options.Options, service string, sysLogger io.Writer) (*AttestationData, error) {
 
-	role := fmt.Sprintf("%s.%s", domain, service)
-
-	// Extract the accountId from document
-	var docMap map[string]interface{}
-	err := json.Unmarshal(document, &docMap)
-	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to parse host info document: %v\n", err)
-		return nil, err
-	}
-	account := docMap["accountId"].(string)
-	tok, err := getSTSToken(useRegionalSTS, docMap["region"].(string), account, role, sysLogger)
+	role := fmt.Sprintf("%s.%s", opts.Domain, service)
+	tok, err := getSTSToken(opts.UseRegionalSTS, opts.Region, opts.Account, role, sysLogger)
 	if err != nil {
 		return nil, err
 	}
 	return &AttestationData{
 		Role:      role,
-		Document:  string(document),
-		Signature: string(signature),
+		Document:  opts.EC2Document,
+		Signature: opts.EC2Signature,
 		Access:    *tok.Credentials.AccessKeyId,
 		Secret:    *tok.Credentials.SecretAccessKey,
 		Token:     *tok.Credentials.SessionToken,
-	}, nil
-}
-
-// NewWithCredsOnly creates a new AttestationData with values fed to it and from the result of STS Assume Role.
-// The caller must specify the account and region for the STS session
-func NewWithCredsOnly(domain, service, account string, useRegionalSTS bool, region string, sysLogger io.Writer) (*AttestationData, error) {
-
-	role := fmt.Sprintf("%s.%s", domain, service)
-	tok, err := getSTSToken(useRegionalSTS, region, account, role, sysLogger)
-	if err != nil {
-		return nil, err
-	}
-	return &AttestationData{
-		Role:   role,
-		Access: *tok.Credentials.AccessKeyId,
-		Secret: *tok.Credentials.SecretAccessKey,
-		Token:  *tok.Credentials.SessionToken,
 	}, nil
 }
 
@@ -140,7 +114,7 @@ func GetECSTaskId() string {
 func GetAttestationData(opts *options.Options, sysLogger io.Writer) ([]*AttestationData, error) {
 	data := []*AttestationData{}
 	for _, svc := range opts.Services {
-		a, err := NewWithCredsOnly(opts.Domain, svc.Name, opts.Account, opts.UseRegionalSTS, opts.Region, sysLogger)
+		a, err := New(opts, svc.Name, sysLogger)
 		if err != nil {
 			return nil, err
 		}

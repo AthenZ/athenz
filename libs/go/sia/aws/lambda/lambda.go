@@ -50,13 +50,12 @@ func getLambdaAttestationData(domain, service, account string) (*attestation.Att
 	return data, nil
 }
 
-func GetAWSLambdaServiceCertificate(ztsUrl, domain, service, account, region string, ztsDomains[] string) (tls.Certificate, error) {
+func GetAWSLambdaServiceCertificate(ztsUrl, provider, domain, service, account string, ztsDomains[] string) (tls.Certificate, error) {
 	key, err := util.GenerateKeyPair(2048)
 	if err != nil {
 		return tls.Certificate{}, err
 	}
 
-	provider := "athenz.aws-lambda." + region
 	var csrDetails util.CertReqDetails
 	csrDetails.CommonName = fmt.Sprintf("%s.%s", domain, service)
 	csrDetails.Country = "US"

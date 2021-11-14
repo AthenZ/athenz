@@ -665,3 +665,21 @@ func TestParseRoleArnValid(test *testing.T) {
 		test.Errorf("Unable to parse valid arn, invalid service: %s", service)
 	}
 }
+
+func TestParseEnvBooleanFlag(test *testing.T) {
+	if ParseEnvBooleanFlag("unknown") {
+		test.Errorf("Unknown env variable returned true")
+	}
+	os.Setenv("TEST-ENV1", "true")
+	if !ParseEnvBooleanFlag("TEST-ENV1") {
+		test.Errorf("True value env variable did not return true")
+	}
+	os.Setenv("TEST-ENV2", "1")
+	if !ParseEnvBooleanFlag("TEST-ENV2") {
+		test.Errorf("1 value env variable did not return true")
+	}
+	os.Setenv("TEST-ENV3", "false")
+	if ParseEnvBooleanFlag("TEST-ENV3") {
+		test.Errorf("false value env variable returned true")
+	}
+}

@@ -27,6 +27,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
@@ -49,7 +50,6 @@ type ConfigRole struct {
 
 // ConfigAccount represents each of the accounts that can be specified in the config file
 type ConfigAccount struct {
-	Provider string                `json:"provider,omitempty"` //name of the provider
 	Name     string                `json:"name,omitempty"`     //name of the service identity
 	User     string                `json:"user,omitempty"`     //the username to chown the cert/key dirs to. If absent, then root.
 	Group    string                `json:"group,omitempty"`    //the group name to chown the cert/key dirs to. If absent, then athenz.
@@ -126,9 +126,15 @@ type Options struct {
 	GenerateRoleKey      bool                  //option to generate a separate key for role certificates
 	RotateKey            bool                  //rotate the private key when refreshing certificates
 	BackUpDir            string                //backup directory for key/cert rotation
-	ProviderDomain       string                //provider domain name, if not specified using athenz
 	CertCountryName      string                //generated x.509 certificate country name
 	CertOrgName          string                //generated x.509 certificate organization name
+	SshPubKeyFile        string                //ssh host public key file path
+	SshCertFile          string                //ssh host certificate file path
+	SshConfigFile        string                //sshd config file path
+	PrivateIp            string                //instance private ip
+	EC2Document          string                //EC2 instance identity document
+	EC2Signature         string                //EC2 instance identity document pkcs7 signature
+	EC2StartTime         *time.Time            //EC2 instance start time
 }
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (string, error) {
@@ -257,11 +263,6 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 // It uses profile arn for defaults when sia_config is empty or non-parsable. It populates "services" array
 func setOptions(config *Config, account *ConfigAccount, siaDir, version string, sysLogger io.Writer) (*Options, error) {
 
-	ssh := true
-	if config != nil && config.Ssh != nil && *config.Ssh == false {
-		ssh = false
-	}
-
 	useRegionalSTS := false
 	sanDnsWildcard := false
 	if config != nil {
@@ -350,7 +351,6 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 	}
 
 	return &Options{
-		Provider:             account.Provider,
 		Name:                 account.Name,
 		User:                 account.User,
 		Group:                account.Group,
@@ -359,7 +359,6 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 		Zts:                  account.Zts,
 		Filename:             account.Filename,
 		Version:              fmt.Sprintf("SIA-AWS %s", version),
-		Ssh:                  ssh,
 		UseRegionalSTS:       useRegionalSTS,
 		SanDnsWildcard:       sanDnsWildcard,
 		Services:             services,

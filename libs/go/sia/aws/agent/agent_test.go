@@ -132,13 +132,14 @@ func TestRegisterInstance(test *testing.T) {
 		ZTSAWSDomains:    []string{"zts-aws-cloud"},
 		Region:           "us-west-2",
 		InstanceId:       "pod-1234",
+		Provider:         "athenz.aws.us-west-2",
 	}
 
 	a := &attestation.AttestationData{
 		Role: "athenz.hockey",
 	}
 
-	err = RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, os.Stdout)
+	err = RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, false, os.Stdout)
 	assert.Nil(test, err, "unable to register instance")
 
 	if err != nil {
@@ -203,7 +204,7 @@ func TestRefreshInstance(test *testing.T) {
 		KeyDir:           siaDir,
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
-		Provider:         "athenz.aws",
+		Provider:         "athenz.aws.us-west-2",
 		ZTSAWSDomains:    []string{"zts-aws-cloud"},
 		Region:           "us-west-2",
 		InstanceId:       "pod-1234",
@@ -267,6 +268,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
 		ZTSAWSDomains:    []string{"zts-aws-cloud"},
+		Provider:         "athenz.aws.us-west-2",
 	}
 
 	result := GetRoleCertificate("http://127.0.0.1:5081/zts/v1", keyFile, certFile, opts, os.Stdout)
@@ -281,20 +283,26 @@ func TestRoleCertificateRequest(test *testing.T) {
 	}
 }
 
-func TestExtractProviderFromCertInvalidFile(test *testing.T) {
-	if extractProviderFromCert("invalid-file") != "" {
-		test.Error("Invalid file returned valid provider")
+func TestShouldSkipRegister(test *testing.T) {
+	startTime := time.Now()
+	opts := &options.Options{
+		EC2StartTime: &startTime,
+	}
+	//current time is valid
+	if shouldSkipRegister(opts) {
+		test.Errorf("Current time is considered expired incorrectly")
+	}
+	//generate time stamp 29 mins ago - valid
+	startTime = time.Now().Add(time.Minute*29*-1)
+	opts.EC2StartTime = &startTime
+	if shouldSkipRegister(opts) {
+		test.Errorf("29 mins ago time is considered expired incorrectly")
+	}
+	//generate time stamp 31 mins ago - expired
+	startTime = time.Now().Add(time.Minute*31*-1)
+	opts.EC2StartTime = &startTime
+	if !shouldSkipRegister(opts) {
+		test.Errorf("31 mins ago time is considered not expired incorrectly")
 	}
 }
 
-func TestExtractProviderFromCertWithoutOU(test *testing.T) {
-	if extractProviderFromCert("devel/data/cert_wout_ou.pem") != "" {
-		test.Error("Provider returned from cert_wout_ou.pem")
-	}
-}
-
-func TestExtractProviderFromCert(test *testing.T) {
-	if extractProviderFromCert("devel/data/cert.pem") != "Athenz" {
-		test.Error("Unable to extract Athenz ou provider from cert.pem")
-	}
-}

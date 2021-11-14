@@ -84,10 +84,11 @@ func main() {
 		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v", err)
 	}
 
+	opts.Ssh = false
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
 	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
-	opts.ProviderDomain = *providerPrefix
+	opts.Provider = fmt.Sprintf("%s.%s", *providerPrefix, region)
 	opts.InstanceId = taskId
 
 	agent.RunAgent(*cmd, siaMainDir, ztsUrl, opts, sysLogger)
