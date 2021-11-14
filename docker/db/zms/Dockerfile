@@ -1,4 +1,4 @@
-FROM mariadb:10.5.2
+FROM mariadb:10.5.13
 # date -u +'%Y-%m-%dT%H:%M:%SZ'
 ARG BUILD_DATE
 # git rev-parse --short HEAD
