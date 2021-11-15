@@ -95,7 +95,7 @@ public class MSDRDLGeneratedClient {
     }
 
     public TransportPolicyValidationResponseList getTransportPolicyValidationStatus(String domainName) {
-        WebTarget target = base.path("/domain/{domainName}/transportpolicy/validationStatus")
+        WebTarget target = base.path("/domain/{domainName}/transportpolicy/validationstatus")
             .resolveTemplate("domainName", domainName);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {

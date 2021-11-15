@@ -83,6 +83,18 @@ type AuthorityName string
 type PathElement string
 
 //
+// TransportPolicySubjectDomainName - DomainName in TransportPolicySubject
+// should allow * to indicate ANY
+//
+type TransportPolicySubjectDomainName string
+
+//
+// TransportPolicySubjectServiceName - ServiceName in TransportPolicySubject
+// should allow * to indicate ANY
+//
+type TransportPolicySubjectServiceName string
+
+//
 // TransportPolicyEnforcementState - Types of transport policy enforcement
 // states
 //
@@ -431,12 +443,12 @@ type TransportPolicySubject struct {
 	//
 	// Name of the domain
 	//
-	DomainName DomainName `json:"domainName"`
+	DomainName TransportPolicySubjectDomainName `json:"domainName"`
 
 	//
 	// Name of the service
 	//
-	ServiceName EntityName `json:"serviceName"`
+	ServiceName TransportPolicySubjectServiceName `json:"serviceName"`
 }
 
 //
@@ -475,17 +487,17 @@ func (self *TransportPolicySubject) Validate() error {
 	if self.DomainName == "" {
 		return fmt.Errorf("TransportPolicySubject.domainName is missing but is a required field")
 	} else {
-		val := rdl.Validate(MSDSchema(), "DomainName", self.DomainName)
+		val := rdl.Validate(MSDSchema(), "TransportPolicySubjectDomainName", self.DomainName)
 		if !val.Valid {
-			return fmt.Errorf("TransportPolicySubject.domainName does not contain a valid DomainName (%v)", val.Error)
+			return fmt.Errorf("TransportPolicySubject.domainName does not contain a valid TransportPolicySubjectDomainName (%v)", val.Error)
 		}
 	}
 	if self.ServiceName == "" {
 		return fmt.Errorf("TransportPolicySubject.serviceName is missing but is a required field")
 	} else {
-		val := rdl.Validate(MSDSchema(), "EntityName", self.ServiceName)
+		val := rdl.Validate(MSDSchema(), "TransportPolicySubjectServiceName", self.ServiceName)
 		if !val.Valid {
-			return fmt.Errorf("TransportPolicySubject.serviceName does not contain a valid EntityName (%v)", val.Error)
+			return fmt.Errorf("TransportPolicySubject.serviceName does not contain a valid TransportPolicySubjectServiceName (%v)", val.Error)
 		}
 	}
 	return nil

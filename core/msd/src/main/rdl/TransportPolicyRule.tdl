@@ -30,8 +30,8 @@ type TransportPolicyTrafficDirection Enum {
 
 // Subject for a transport policy
 type TransportPolicySubject Struct {
-    DomainName domainName; // Name of the domain
-    EntityName serviceName; // Name of the service
+    TransportPolicySubjectDomainName domainName; // Name of the domain
+    TransportPolicySubjectServiceName serviceName; // Name of the service
 }
 
 // Transport policy condition. Used to specify additional restrictions for the subject of a transport policy

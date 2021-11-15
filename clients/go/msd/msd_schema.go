@@ -78,6 +78,16 @@ func init() {
 	tPathElement.Pattern("[a-zA-Z0-9-\\._~=+@$,:]*")
 	sb.AddType(tPathElement.Build())
 
+	tTransportPolicySubjectDomainName := rdl.NewStringTypeBuilder("TransportPolicySubjectDomainName")
+	tTransportPolicySubjectDomainName.Comment("DomainName in TransportPolicySubject should allow * to indicate ANY")
+	tTransportPolicySubjectDomainName.Pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	sb.AddType(tTransportPolicySubjectDomainName.Build())
+
+	tTransportPolicySubjectServiceName := rdl.NewStringTypeBuilder("TransportPolicySubjectServiceName")
+	tTransportPolicySubjectServiceName.Comment("ServiceName in TransportPolicySubject should allow * to indicate ANY")
+	tTransportPolicySubjectServiceName.Pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	sb.AddType(tTransportPolicySubjectServiceName.Build())
+
 	tTransportPolicyEnforcementState := rdl.NewEnumTypeBuilder("Enum", "TransportPolicyEnforcementState")
 	tTransportPolicyEnforcementState.Comment("Types of transport policy enforcement states")
 	tTransportPolicyEnforcementState.Element("ENFORCE", "")
@@ -105,8 +115,8 @@ func init() {
 
 	tTransportPolicySubject := rdl.NewStructTypeBuilder("Struct", "TransportPolicySubject")
 	tTransportPolicySubject.Comment("Subject for a transport policy")
-	tTransportPolicySubject.Field("domainName", "DomainName", false, nil, "Name of the domain")
-	tTransportPolicySubject.Field("serviceName", "EntityName", false, nil, "Name of the service")
+	tTransportPolicySubject.Field("domainName", "TransportPolicySubjectDomainName", false, nil, "Name of the domain")
+	tTransportPolicySubject.Field("serviceName", "TransportPolicySubjectServiceName", false, nil, "Name of the service")
 	sb.AddType(tTransportPolicySubject.Build())
 
 	tTransportPolicyCondition := rdl.NewStructTypeBuilder("Struct", "TransportPolicyCondition")
@@ -293,7 +303,7 @@ func init() {
 	mValidateTransportPolicy.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mValidateTransportPolicy.Build())
 
-	mGetTransportPolicyValidationStatus := rdl.NewResourceBuilder("TransportPolicyValidationResponseList", "GET", "/domain/{domainName}/transportpolicy/validationStatus")
+	mGetTransportPolicyValidationStatus := rdl.NewResourceBuilder("TransportPolicyValidationResponseList", "GET", "/domain/{domainName}/transportpolicy/validationstatus")
 	mGetTransportPolicyValidationStatus.Comment("API to get transport policy validation response for transport policies of a domain")
 	mGetTransportPolicyValidationStatus.Name("getTransportPolicyValidationStatus")
 	mGetTransportPolicyValidationStatus.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
