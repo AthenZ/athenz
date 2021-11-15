@@ -73,6 +73,8 @@ type Config struct {
 	Accounts        []ConfigAccount          `json:"accounts,omitempty"`          //array of configured accounts
 	GenerateRoleKey bool                     `json:"generate_role_key,omitempty"` //private key to be generated for role certificate
 	RotateKey       bool                     `json:"rotate_key,omitempty"`        //rotate private key support
+	User            string                   `json:"user,omitempty"`              //the user name to chown the cert/key dirs to. If absent, then root
+	Group           string                   `json:"group,omitempty"`             //the group name to chown the cert/key dirs to. If absent, then athenz
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -239,6 +241,12 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if !config.RotateKey {
 		config.RotateKey = util.ParseEnvBooleanFlag("ATHENZ_SIA_ROTATE_KEY")
 	}
+	if config.User == "" {
+		config.User = os.Getenv("ATHENZ_SIA_USER")
+	}
+	if config.Group == "" {
+		config.Group = os.Getenv("ATHENZ_SIA_GROUP")
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -263,6 +271,7 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 // It uses profile arn for defaults when sia_config is empty or non-parsable. It populates "services" array
 func setOptions(config *Config, account *ConfigAccount, siaDir, version string, sysLogger io.Writer) (*Options, error) {
 
+	//update regional sts and wildcard settings based on config settings
 	useRegionalSTS := false
 	sanDnsWildcard := false
 	if config != nil {
@@ -270,11 +279,19 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 		sanDnsWildcard = config.SanDnsWildcard
 	}
 
-	var services []Service
+	//update account user/group settings if override provided at the config level
+	if config != nil {
+		if account.User == "" && config.User != "" {
+			account.User = config.User
+		}
+		if account.Group == "" && config.Group != "" {
+			account.Group = config.Group
+		}
+	}
 
+	//update generate role and rotate key options if config is provided
 	generateRoleKey := false
 	rotateKey := false
-
 	if config != nil {
 		generateRoleKey = config.GenerateRoleKey
 		rotateKey = config.RotateKey
@@ -286,6 +303,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 		}
 	}
 
+	var services []Service
 	if config == nil || len(config.Services) == 0 {
 		// There is no sia_config, or multiple services are not configured. Populate services with the account information we gathered
 		s := Service{
