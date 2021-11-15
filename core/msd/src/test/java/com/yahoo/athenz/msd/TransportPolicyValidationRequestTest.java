@@ -56,18 +56,25 @@ public class TransportPolicyValidationRequestTest {
         List<TransportPolicyCondition> tpcList2 = Collections.singletonList(tpc2);
         TransportPolicyMatch tpm2 = new TransportPolicyMatch().setAthenzService(tps1).setConditions(tpcList2);
         TransportPolicyEntitySelector tpes2 = new TransportPolicyEntitySelector().setPorts(Collections.singletonList(tpp2)).setMatch(tpm2);
+        long id1 = 1;
+        long id2 = 2;
 
-        TransportPolicyValidationRequest tpvr1 = new TransportPolicyValidationRequest().setTrafficDirection(TransportPolicyTrafficDirection.EGRESS).setPeer(tppeer1).setEntitySelector(tpes1);
+        TransportPolicyValidationRequest tpvr1 = new TransportPolicyValidationRequest().setTrafficDirection(TransportPolicyTrafficDirection.EGRESS).setPeer(tppeer1).setEntitySelector(tpes1).setId(id1);
         assertEquals(tpvr1.getEntitySelector(), tpes1);
         assertEquals(tpvr1.getPeer(), tppeer1);
         assertEquals(tpvr1.getTrafficDirection(), TransportPolicyTrafficDirection.EGRESS);
+        assertEquals((long)tpvr1.getId(), id1);
 
-        TransportPolicyValidationRequest tpvr2 = new TransportPolicyValidationRequest().setTrafficDirection(TransportPolicyTrafficDirection.EGRESS).setPeer(tppeer1).setEntitySelector(tpes1);
+        TransportPolicyValidationRequest tpvr2 = new TransportPolicyValidationRequest().setTrafficDirection(TransportPolicyTrafficDirection.EGRESS).setPeer(tppeer1).setEntitySelector(tpes1).setId(id1);
         assertTrue(tpvr2.equals(tpvr1));
 
         tpvr2.setTrafficDirection(TransportPolicyTrafficDirection.INGRESS);
         assertFalse(tpvr2.equals(tpvr1));
         tpvr2.setTrafficDirection(TransportPolicyTrafficDirection.EGRESS);
+
+        tpvr2.setId(id2);
+        assertFalse(tpvr2.equals(tpvr1));
+        tpvr2.setId(id1);
 
         tpvr2.setPeer(null);
         assertFalse(tpvr2.equals(tpvr1));

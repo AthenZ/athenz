@@ -96,6 +96,7 @@ type TransportPolicyRules Struct {
 type TransportPolicyValidationRequest Struct {
    TransportPolicyEntitySelector entitySelector; // Describes the entity to which this transport policy applies
    TransportPolicyPeer peer; // source or destination of the network traffic depending on direction
+   Int64 id (optional); // If present, assertion id associated with this transport policy
    TransportPolicyTrafficDirection trafficDirection;
 }
 
@@ -103,4 +104,10 @@ type TransportPolicyValidationRequest Struct {
 type TransportPolicyValidationResponse Struct {
   TransportPolicyValidationStatus status;
   Array<string> errors (optional);
+  Timestamp updateTime (optional); // most recent update timestamp in the backend
+}
+
+// List of TransportPolicyValidationResponse
+type TransportPolicyValidationResponseList Struct {
+    Array<TransportPolicyValidationResponse> responseList; //list of transport policy validation response
 }

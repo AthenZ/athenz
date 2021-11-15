@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.msd;
 
+import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class TransportPolicyValidationResponseTest {
         List<String> errors = new ArrayList<String>();
         errors.add("error1");
 
-        TransportPolicyValidationResponse tpvr1 = new TransportPolicyValidationResponse().setStatus(TransportPolicyValidationStatus.INVALID).setErrors(null);
+        TransportPolicyValidationResponse tpvr1 = new TransportPolicyValidationResponse().setStatus(TransportPolicyValidationStatus.INVALID).setErrors(null).setUpdateTime(Timestamp.fromMillis(123456789124L));
         assertEquals(tpvr1.getStatus(), TransportPolicyValidationStatus.INVALID);
         assertEquals(tpvr1.getErrors(), null);
         assertNotEquals(tpvr1.getErrors(), errors);
@@ -44,9 +45,12 @@ public class TransportPolicyValidationResponseTest {
         tpvr1.setStatus(TransportPolicyValidationStatus.VALID);
         assertNotEquals(tpvr1.getStatus(), TransportPolicyValidationStatus.INVALID);
         assertEquals(tpvr1.getStatus(), TransportPolicyValidationStatus.VALID);
-
-        TransportPolicyValidationResponse tpvr2 = new TransportPolicyValidationResponse().setStatus(TransportPolicyValidationStatus.VALID).setErrors(errors);
+        assertEquals(tpvr1.getUpdateTime(), Timestamp.fromMillis(123456789124L));
+        TransportPolicyValidationResponse tpvr2 = new TransportPolicyValidationResponse().setStatus(TransportPolicyValidationStatus.VALID).setErrors(errors).setUpdateTime(Timestamp.fromMillis(123456789124L));
         assertTrue(tpvr2.equals(tpvr1));
+
+        tpvr2.setUpdateTime(Timestamp.fromMillis(123456789123L));
+        assertFalse(tpvr2.equals(tpvr1));
 
         tpvr2.setErrors(null);
         assertFalse(tpvr2.equals(tpvr1));

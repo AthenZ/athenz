@@ -15,12 +15,13 @@
  */
 package com.yahoo.athenz.common.server.msd.validator;
 
+import com.yahoo.athenz.common.server.msd.MsdStore;
 import com.yahoo.athenz.msd.TransportPolicyValidationRequest;
 import com.yahoo.athenz.msd.TransportPolicyValidationResponse;
 
 public interface TransportPolicyValidator {
 
-    default public void init() {
+    default public void init(MsdStore store) {
     }
 
     /**

@@ -1127,7 +1127,12 @@ type TransportPolicyValidationRequest struct {
 	//
 	// source or destination of the network traffic depending on direction
 	//
-	Peer             *TransportPolicyPeer            `json:"peer"`
+	Peer *TransportPolicyPeer `json:"peer"`
+
+	//
+	// If present, assertion id associated with this transport policy
+	//
+	Id               *int64                          `json:"id,omitempty" rdl:"optional" yaml:",omitempty"`
 	TrafficDirection TransportPolicyTrafficDirection `json:"trafficDirection"`
 }
 
@@ -1193,6 +1198,11 @@ func (self *TransportPolicyValidationRequest) Validate() error {
 type TransportPolicyValidationResponse struct {
 	Status TransportPolicyValidationStatus `json:"status"`
 	Errors []string                        `json:"errors,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// most recent update timestamp in the backend
+	//
+	UpdateTime *rdl.Timestamp `json:"updateTime,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 //
@@ -1228,6 +1238,67 @@ func (self *TransportPolicyValidationResponse) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 //
 func (self *TransportPolicyValidationResponse) Validate() error {
+	return nil
+}
+
+//
+// TransportPolicyValidationResponseList - List of
+// TransportPolicyValidationResponse
+//
+type TransportPolicyValidationResponseList struct {
+
+	//
+	// list of transport policy validation response
+	//
+	ResponseList []*TransportPolicyValidationResponse `json:"responseList"`
+}
+
+//
+// NewTransportPolicyValidationResponseList - creates an initialized TransportPolicyValidationResponseList instance, returns a pointer to it
+//
+func NewTransportPolicyValidationResponseList(init ...*TransportPolicyValidationResponseList) *TransportPolicyValidationResponseList {
+	var o *TransportPolicyValidationResponseList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicyValidationResponseList)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *TransportPolicyValidationResponseList) Init() *TransportPolicyValidationResponseList {
+	if self.ResponseList == nil {
+		self.ResponseList = make([]*TransportPolicyValidationResponse, 0)
+	}
+	return self
+}
+
+type rawTransportPolicyValidationResponseList TransportPolicyValidationResponseList
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyValidationResponseList
+//
+func (self *TransportPolicyValidationResponseList) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicyValidationResponseList
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicyValidationResponseList(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *TransportPolicyValidationResponseList) Validate() error {
+	if self.ResponseList == nil {
+		return fmt.Errorf("TransportPolicyValidationResponseList: Missing required field: responseList")
+	}
 	return nil
 }
 

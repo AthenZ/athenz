@@ -33,9 +33,9 @@ public class TransportPolicyValidatorFactoryTest {
         };
 
         TransportPolicyValidator mockTransportPolicyValidator = Mockito.mock(TransportPolicyValidator.class);
-        TransportPolicyValidatorFactory factory = (msdStore) -> mockTransportPolicyValidator;
+        TransportPolicyValidatorFactory factory = () -> mockTransportPolicyValidator;
 
-        TransportPolicyValidator transportPolicyValidator = factory.create(store);
+        TransportPolicyValidator transportPolicyValidator = factory.create();
         assertNotNull(transportPolicyValidator);
     }
 }

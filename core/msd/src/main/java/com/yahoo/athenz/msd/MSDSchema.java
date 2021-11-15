@@ -144,12 +144,18 @@ public class MSDSchema {
             .comment("Transport policy request object to be validated")
             .field("entitySelector", "TransportPolicyEntitySelector", false, "Describes the entity to which this transport policy applies")
             .field("peer", "TransportPolicyPeer", false, "source or destination of the network traffic depending on direction")
+            .field("id", "Int64", true, "If present, assertion id associated with this transport policy")
             .field("trafficDirection", "TransportPolicyTrafficDirection", false, "");
 
         sb.structType("TransportPolicyValidationResponse")
             .comment("Response object of transport policy rule validation")
             .field("status", "TransportPolicyValidationStatus", false, "")
-            .arrayField("errors", "String", true, "");
+            .arrayField("errors", "String", true, "")
+            .field("updateTime", "Timestamp", true, "most recent update timestamp in the backend");
+
+        sb.structType("TransportPolicyValidationResponseList")
+            .comment("List of TransportPolicyValidationResponse")
+            .arrayField("responseList", "TransportPolicyValidationResponse", false, "list of transport policy validation response");
 
         sb.enumType("StaticWorkloadType")
             .comment("Enum representing defined types of static workloads.")
@@ -244,6 +250,23 @@ public class MSDSchema {
             .comment("API to validate microsegmentation policies against network policies")
             .name("validateTransportPolicy")
             .input("transportPolicy", "TransportPolicyValidationRequest", "Struct representing microsegmentation policy entered by the user")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicyValidationResponseList", "GET", "/domain/{domainName}/transportpolicy/validationStatus")
+            .comment("API to get transport policy validation response for transport policies of a domain")
+            .name("getTransportPolicyValidationStatus")
+            .pathParam("domainName", "DomainName", "name of the domain")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

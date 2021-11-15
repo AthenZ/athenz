@@ -94,6 +94,25 @@ public class MSDRDLGeneratedClient {
 
     }
 
+    public TransportPolicyValidationResponseList getTransportPolicyValidationStatus(String domainName) {
+        WebTarget target = base.path("/domain/{domainName}/transportpolicy/validationStatus")
+            .resolveTemplate("domainName", domainName);
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(TransportPolicyValidationResponseList.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public Workloads getWorkloadsByService(String domainName, String serviceName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
         WebTarget target = base.path("/domain/{domainName}/service/{serviceName}/workloads")
             .resolveTemplate("domainName", domainName)

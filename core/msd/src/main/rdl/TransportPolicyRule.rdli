@@ -34,3 +34,17 @@ resource TransportPolicyValidationResponse POST "/transportpolicy/validate" (nam
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+// API to get transport policy validation response for transport policies of a domain
+resource TransportPolicyValidationResponseList GET "/domain/{domainName}/transportpolicy/validationstatus" (name=getTransportPolicyValidationStatus) {
+    DomainName domainName; //name of the domain
+    expected OK;
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
