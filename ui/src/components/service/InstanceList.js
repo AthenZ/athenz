@@ -247,11 +247,7 @@ export default class InstanceList extends React.Component {
                     <StyledSearchInputDiv>{searchInput}</StyledSearchInputDiv>
                     {this.props.category == 'static' && (
                         <div>
-                            <Button
-                                secondary
-                                onClick={this.toggleAddInstance}
-                                disabled={true}
-                            >
+                            <Button secondary onClick={this.toggleAddInstance}>
                                 Add Static Instance
                             </Button>
                             {addStaticInstance}
