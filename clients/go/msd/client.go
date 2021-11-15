@@ -361,7 +361,7 @@ func (client MSDClient) ValidateTransportPolicy(transportPolicy *TransportPolicy
 
 func (client MSDClient) GetTransportPolicyValidationStatus(domainName DomainName) (*TransportPolicyValidationResponseList, error) {
 	var data *TransportPolicyValidationResponseList
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/transportpolicy/validationStatus"
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/transportpolicy/validationstatus"
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

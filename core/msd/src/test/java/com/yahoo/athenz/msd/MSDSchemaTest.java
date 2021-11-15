@@ -39,5 +39,9 @@ public class MSDSchemaTest {
     tps1.setDomainName("dom1").setServiceName("svc1");
     Result result = validator.validate(tps1, "TransportPolicySubject");
     assertTrue(result.valid);
+
+    tps1.setDomainName("*").setServiceName("*");
+    result = validator.validate(tps1, "TransportPolicySubject");
+    assertTrue(result.valid);
   }
 }

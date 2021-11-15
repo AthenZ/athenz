@@ -44,3 +44,9 @@ type AuthorityName String (pattern="{CompoundName}");
 
 //A uri-safe path element
 type PathElement String (pattern="[a-zA-Z0-9-\\._~=+@$,:]*");
+
+// DomainName in TransportPolicySubject should allow * to indicate ANY
+type TransportPolicySubjectDomainName String (pattern="\\*|{DomainName}");
+
+// ServiceName in TransportPolicySubject should allow * to indicate ANY
+type TransportPolicySubjectServiceName String (pattern="\\*|{EntityName}");

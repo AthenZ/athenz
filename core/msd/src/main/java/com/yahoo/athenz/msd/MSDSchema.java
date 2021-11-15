@@ -66,6 +66,14 @@ public class MSDSchema {
             .comment("A uri-safe path element")
             .pattern("[a-zA-Z0-9-\\._~=+@$,:]*");
 
+        sb.stringType("TransportPolicySubjectDomainName")
+            .comment("DomainName in TransportPolicySubject should allow * to indicate ANY")
+            .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+
+        sb.stringType("TransportPolicySubjectServiceName")
+            .comment("ServiceName in TransportPolicySubject should allow * to indicate ANY")
+            .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+
         sb.enumType("TransportPolicyEnforcementState")
             .comment("Types of transport policy enforcement states")
             .element("ENFORCE")
@@ -89,8 +97,8 @@ public class MSDSchema {
 
         sb.structType("TransportPolicySubject")
             .comment("Subject for a transport policy")
-            .field("domainName", "DomainName", false, "Name of the domain")
-            .field("serviceName", "EntityName", false, "Name of the service");
+            .field("domainName", "TransportPolicySubjectDomainName", false, "Name of the domain")
+            .field("serviceName", "TransportPolicySubjectServiceName", false, "Name of the service");
 
         sb.structType("TransportPolicyCondition")
             .comment("Transport policy condition. Used to specify additional restrictions for the subject of a transport policy")
@@ -263,7 +271,7 @@ public class MSDSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("TransportPolicyValidationResponseList", "GET", "/domain/{domainName}/transportpolicy/validationStatus")
+        sb.resource("TransportPolicyValidationResponseList", "GET", "/domain/{domainName}/transportpolicy/validationstatus")
             .comment("API to get transport policy validation response for transport policies of a domain")
             .name("getTransportPolicyValidationStatus")
             .pathParam("domainName", "DomainName", "name of the domain")
