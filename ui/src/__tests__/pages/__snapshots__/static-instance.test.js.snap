@@ -1304,7 +1304,6 @@ exports[`StaticInstancePage should render 1`] = `
               <div>
                 <button
                   class="emotion-63 denali-button"
-                  disabled=""
                 >
                   Add Static Instance
                 </button>
@@ -3135,7 +3134,6 @@ exports[`StaticInstancePage should render for categoryType 1`] = `
               <div>
                 <button
                   class="emotion-63 denali-button"
-                  disabled=""
                 >
                   Add Static Instance
                 </button>
