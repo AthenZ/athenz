@@ -17,49 +17,57 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
+	"log"
+	"os"
+	"strings"
+
+	"github.com/AthenZ/athenz/libs/go/sia/aws/agent"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2/options"
-	"io"
-	"io/ioutil"
-	"log"
-	"os"
-	"os/signal"
-	"strings"
-	"syscall"
-	"time"
 )
 
-var MetaEndPoint = "http://169.254.169.254:80"
+// Following can be set by the build script using LDFLAGS
+
+var Version string
 
 const siaMainDir = "/var/lib/sia"
-const siaLinkDir = "/var/run/sia"
-
-var siaVersion string
-var ztsEndPointStr string
-var ztsAwsDomainsStr string
-var providerParentDomain string
 
 func main() {
 	cmd := flag.String("cmd", "", "optional sub command to run")
-	metaEndPoint := flag.String("meta", "", "optional meta endpoint to use for debugging")
-	ztsEndPoint := flag.String("zts", "", "optional zts endpoint")
-	ztsServerName := flag.String("ztsservername", "", "zts server name for tls connections")
-	ztsCACert := flag.String("ztscacert", "", "zts CA certificate file")
-	ztsAwsDomains := flag.String("ztsawsdomain", "", "ZTS AWS Domain")
-	providrPntDomain := flag.String("providerParentDomain", "athenz", "providerParentDomain")
-
-	ztsPort := flag.Int("ztsport", 4443, "ZTS port number")
+	ec2MetaEndPoint := flag.String("meta", "http://169.254.169.254:80", "meta endpoint")
+	ztsEndPoint := flag.String("zts", "", "Athenz Token Service (ZTS) endpoint")
+	ztsServerName := flag.String("ztsservername", "", "ZTS server name for tls connections (optional)")
+	ztsCACert := flag.String("ztscacert", "", "Athenz Token Service (ZTS) CA certificate file (optional)")
+	dnsDomains := flag.String("dnsdomains", "", "DNS Domains associated with the provider")
+	ztsPort := flag.Int("ztsport", 4443, "Athenz Token Service (ZTS) port number")
 	pConf := flag.String("config", "/etc/sia/sia_config", "The config file to run against")
+	useRegionalSTS := flag.Bool("regionalsts", false, "Use regional STS endpoint instead of global")
+	providerPrefix := flag.String("providerprefix", "", "Provider name prefix e.g athenz.aws")
+	displayVersion := flag.Bool("version", false, "Display version information")
 
 	flag.Parse()
+
+	if *displayVersion {
+		fmt.Println(Version)
+		os.Exit(0)
+	}
+
+	if *ztsEndPoint == "" {
+		logutil.LogFatal(os.Stderr, "missing zts argument\n")
+	}
+	ztsUrl := fmt.Sprintf("https://%s:%d/zts/v1", *ztsEndPoint, *ztsPort)
+
+	if *dnsDomains == "" {
+		logutil.LogFatal(os.Stderr, "missing dnsdomains argument\n")
+	}
+
+	if *providerPrefix == "" {
+		logutil.LogFatal(os.Stderr, "missing providerprefix argument\n")
+	}
 
 	sysLogger, err := util.NewSysLogger()
 	if err != nil {
@@ -67,195 +75,40 @@ func main() {
 		sysLogger = os.Stdout
 	}
 
-	if ztsAwsDomainsStr == "" {
-		ztsAwsDomainsStr = *ztsAwsDomains
-		if ztsAwsDomainsStr == "" {
-			logutil.LogFatal(sysLogger, "ztsawsdomain argument must be specified")
-		}
-	}
-	ztsAwsDomainList := strings.Split(ztsAwsDomainsStr, ",")
-
-	if ztsEndPointStr == "" {
-		ztsEndPointStr = *ztsEndPoint
-		if ztsEndPointStr == "" {
-			logutil.LogFatal(sysLogger, "zts argument must be specified")
-		}
-	}
-
-	if providerParentDomain == "" {
-		providerParentDomain = *providrPntDomain
-		if providerParentDomain == "" {
-			logutil.LogFatal(sysLogger, "providerParentDomain argument must be specified")
-		}
-	}
-
-	if siaVersion == "" {
-		siaVersion = "1.0"
-	}
-
-	document, err := meta.GetData(MetaEndPoint, "/latest/dynamic/instance-identity/document")
+	//obtain the ec2 document details
+	document, signature, account, instanceId, region, startTime, err := sia.GetEC2DocumentDetails(*ec2MetaEndPoint)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to get the instance identity document, error: %v", err)
+		logutil.LogFatal(sysLogger, "Unable to extract document details: %v", err)
 	}
 
-	signature, err := meta.GetData(MetaEndPoint, "/latest/dynamic/instance-identity/pkcs7")
+	config, configAccount, err := sia.GetEC2Config(*pConf, *ec2MetaEndPoint, *useRegionalSTS, region, account, sysLogger)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to get the instance document signature, error: %v", err)
+		logutil.LogFatal(sysLogger, "Unable to formulate configuration objects, error: %v", err)
 	}
 
-	accountId, err := doc.GetAccountId(document)
-	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to get the instance account id, error: %v", err)
-	}
-
-	if *metaEndPoint != "" {
-		MetaEndPoint = *metaEndPoint
-	}
-
-	confBytes, _ := ioutil.ReadFile(*pConf)
-	opts, err := options.NewOptions(confBytes, accountId, MetaEndPoint, siaMainDir, siaVersion, *ztsCACert, *ztsServerName, ztsAwsDomainList, providerParentDomain, sysLogger)
+	opts, err := options.NewOptions(config, configAccount, siaMainDir, Version, *useRegionalSTS, region, sysLogger)
 	if err != nil {
 		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v", err)
 	}
 
-	log.Printf("options: %+v", opts)
+	opts.Ssh = false
+	opts.EC2Document = string(document)
+	opts.EC2Signature = string(signature)
+	opts.ZTSCACertFile = *ztsCACert
+	opts.ZTSServerName = *ztsServerName
+	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
+	opts.Provider = fmt.Sprintf("%s.%s", *providerPrefix, region)
 
-	data, err := getAttestationData(document, signature, opts, sysLogger)
-	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to formulate attestation data, error: %v", err)
+	//check to see if this is ecs on ec2 and update instance id
+	//for ec2 instances we also need to set the start time so
+	//can check the expiry check if requested
+	taskId := sia.GetECSOnEC2TaskId(sysLogger)
+	if taskId != "" {
+		opts.InstanceId = taskId
+	} else {
+		opts.EC2StartTime = startTime
+		opts.InstanceId = instanceId
 	}
 
-	//for now we're going to rotate once every day
-	//since our server and role certs are valid for
-	//30 days by default
-	rotationInterval := 24 * 60 * time.Minute
-
-	ztsUrl := fmt.Sprintf("https://%s:%d/zts/v1", ztsEndPointStr, *ztsPort)
-
-	err = util.SetupSIADirs(siaMainDir, siaLinkDir, sysLogger)
-	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to setup sia directories, error: %v", err)
-	}
-
-	logutil.LogInfo(sysLogger, "Request SSH Certificates: %t", opts.Ssh)
-
-	svcs := getSvcNames(opts.Services)
-
-	switch *cmd {
-	case "rolecert":
-		sia.GetRoleCertificate(ztsUrl,
-			fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, opts.Services[0].Name),
-			fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
-			opts,
-			sysLogger,
-		)
-	case "post":
-		err := sia.RegisterInstance(data, document, ztsUrl, opts, false, sysLogger)
-		if err != nil {
-			logutil.LogFatal(sysLogger, "Register identity failed, err: %v", err)
-		}
-		logutil.LogInfo(sysLogger, "identity registered for services: %s", svcs)
-	case "rotate":
-		err = sia.RefreshInstance(data, ztsUrl, opts, sysLogger)
-		if err != nil {
-			logutil.LogFatal(sysLogger, "Refresh identity failed, err: %v", err)
-		}
-		logutil.LogInfo(sysLogger, "Identity successfully refreshed for services: %s", svcs)
-	default:
-		// if we already have a cert file then we're not going to
-		// prove our identity since most likely it will not succeed
-		// due to boot time check (this could be just a regular
-		// service restart for any reason). Instead, we'll just skip
-		// over and try to rotate the certs
-
-		initialSetup := true
-		if files, err := ioutil.ReadDir(opts.CertDir); err != nil || len(files) <= 0 {
-			err := sia.RegisterInstance(data, document, ztsUrl, opts, false, sysLogger)
-			if err != nil {
-				logutil.LogFatal(sysLogger, "Register identity failed, error: %v", err)
-			}
-		} else {
-			initialSetup = false
-			logutil.LogInfo(sysLogger, "Identity certificate file already exists. Retrieving identity details...")
-		}
-		logutil.LogInfo(sysLogger, "Identity established for services: %s", svcs)
-
-		stop := make(chan bool, 1)
-		errors := make(chan error, 1)
-
-		go func() {
-			for {
-				logutil.LogInfo(sysLogger, "Identity being used: %s\n", opts.Name)
-
-				// if we just did our initial setup there is no point
-				// to refresh the certs again. so we are going to skip
-				// this time around and refresh certs next time
-
-				if !initialSetup {
-					data, err := getAttestationData(document, signature, opts, sysLogger)
-					if err != nil {
-						errors <- fmt.Errorf("Cannot get attestation data: %v\n", err)
-						return
-					}
-					err = sia.RefreshInstance(data, ztsUrl, opts, sysLogger)
-					if err != nil {
-						errors <- fmt.Errorf("refresh identity failed, error: %v", err)
-						return
-					}
-					logutil.LogInfo(sysLogger, "identity successfully refreshed for services: %s", svcs)
-				} else {
-					initialSetup = false
-				}
-				sia.GetRoleCertificate(ztsUrl,
-					fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, opts.Services[0].Name),
-					fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
-					opts,
-					sysLogger,
-				)
-				select {
-				case <-stop:
-					errors <- nil
-					return
-				case <-time.After(rotationInterval):
-					break
-				}
-			}
-		}()
-
-		go func() {
-			signals := make(chan os.Signal, 2)
-			signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
-			sig := <-signals
-			logutil.LogInfo(sysLogger, "Received signal %v, stopping rotation", sig)
-			stop <- true
-		}()
-
-		err = <-errors
-		if err != nil {
-			logutil.LogInfo(sysLogger, "%v", err)
-		}
-	}
-	os.Exit(0)
-}
-
-// getSvcNames returns command separated list of service names
-func getSvcNames(svcs []options.Service) string {
-	var b bytes.Buffer
-	for _, svc := range svcs {
-		b.WriteString(fmt.Sprintf("%s,", svc.Name))
-	}
-	return strings.TrimSuffix(b.String(), ",")
-}
-
-// getAttestationData fetches attestation data for all the services mentioned in the config file
-func getAttestationData(document, signature []byte, opts *options.Options, sysLogger io.Writer) ([]*attestation.AttestationData, error) {
-	data := []*attestation.AttestationData{}
-	for _, svc := range opts.Services {
-		a, err := attestation.New(opts.Domain, svc.Name, document, signature, opts.UseRegionalSTS, sysLogger)
-		if err != nil {
-			return nil, err
-		}
-		data = append(data, a)
-	}
-	return data, nil
+	agent.RunAgent(*cmd, siaMainDir, ztsUrl, opts, sysLogger)
 }

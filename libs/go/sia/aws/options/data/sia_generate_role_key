@@ -1,0 +1,12 @@
+{
+    "version": "1.0.0",
+    "service": "api",
+    "generate_role_key": true,
+    "accounts": [
+        {
+            "domain": "athenz",
+            "user": "nobody",
+            "account": "123456789012"
+        }
+    ]
+}

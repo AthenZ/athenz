@@ -1,0 +1,3 @@
+{
+  "RoleArn": "arn:aws:ecs:us-west-2:012345678910:task/cluster-name/1234"
+}

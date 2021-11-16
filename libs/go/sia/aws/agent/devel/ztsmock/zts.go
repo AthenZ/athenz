@@ -1,5 +1,5 @@
 //
-// Copyright 2020 Verizon Media
+// Copyright The Athenz Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ func StartZtsServer(endPoint string) {
 		identity := &zts.InstanceIdentity{
 			Provider:              data.Provider,
 			Name:                  zts.ServiceName(service),
-			InstanceId:            "123456789012-vmid",
+			InstanceId:            "pod-1234",
 			X509CertificateSigner: caCertStr,
 			X509Certificate:       cert,
 		}
@@ -110,7 +110,7 @@ func StartZtsServer(endPoint string) {
 		}
 	}).Methods("POST")
 
-	router.HandleFunc("/zts/v1/instance/athenz.azure.west2/athenz/hockey/123456789012-vmid", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/zts/v1/instance/athenz.aws.us-west-2/athenz/hockey/pod-1234", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("instance refresh handler called")
 
 		body, err := ioutil.ReadAll(r.Body)
@@ -139,9 +139,9 @@ func StartZtsServer(endPoint string) {
 		}
 
 		identity := &zts.InstanceIdentity{
-			Provider:              "athenz.azure.west2",
+			Provider:              "athenz.aws.us-west-2",
 			Name:                  zts.ServiceName("athenz.hockey"),
-			InstanceId:            "123456789012-vmid",
+			InstanceId:            "pod-1234",
 			X509CertificateSigner: caCertStr,
 			X509Certificate:       cert,
 		}

@@ -1,0 +1,19 @@
+{
+    "version": "1.0.0",
+    "service": "api",
+    "services": {
+        "api": {},
+        "ui": {},
+        "yamas": {
+            "user": "nobody",
+            "group": "sys"
+        }
+    },
+    "accounts": [
+        {
+            "domain": "athenz",
+            "user": "nobody",
+            "account": "123456789012"
+        }
+    ]
+}

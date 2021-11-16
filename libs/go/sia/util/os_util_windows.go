@@ -71,6 +71,10 @@ func SvcAttrs(username, groupname string, sysLogger io.Writer) (int, int, int) {
 	return 0, 0, 0440
 }
 
+func UidGidForUserGroup(username, groupname string, sysLogger io.Writer) (int, int) {
+	return 0, 0
+}
+
 func SetupSIADirs(siaMainDir, siaLinkDir string, sysLogger io.Writer) error {
 	// Create the certs directory, if it doesn't exist
 	certDir := fmt.Sprintf("%s/certs", siaMainDir)

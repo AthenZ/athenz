@@ -19,14 +19,16 @@ package attestation
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
-	"github.com/aws/aws-sdk-go/service/sts"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
+	"github.com/AthenZ/athenz/libs/go/sia/logutil"
+	"github.com/aws/aws-sdk-go/service/sts"
 )
 
 type AttestationData struct {
@@ -36,53 +38,25 @@ type AttestationData struct {
 	Token     string `json:"token,omitempty"`     //the temp creds session token
 	Document  string `json:"document,omitempty"`  //for EC2 instance document
 	Signature string `json:"signature,omitempty"` //for EC2 instance document pkcs7 signature
-	TaskId    string `json:"taskid,omitempty"`    //for ECS Task Id
 }
 
 // New creates a new AttestationData with values fed to it and from the result of STS Assume Role.
 // This requires an identity document along with its signature. The aws account and region will
 // be extracted from the identity document.
-func New(domain, service string, document, signature []byte, useRegionalSTS bool, sysLogger io.Writer) (*AttestationData, error) {
+func New(opts *options.Options, service string, sysLogger io.Writer) (*AttestationData, error) {
 
-	role := fmt.Sprintf("%s.%s", domain, service)
-
-	// Extract the accountId from document
-	var docMap map[string]interface{}
-	err := json.Unmarshal(document, &docMap)
-	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to parse host info document: %v\n", err)
-		return nil, err
-	}
-	account := docMap["accountId"].(string)
-	tok, err := getSTSToken(useRegionalSTS, docMap["region"].(string), account, role, sysLogger)
+	role := fmt.Sprintf("%s.%s", opts.Domain, service)
+	tok, err := getSTSToken(opts.UseRegionalSTS, opts.Region, opts.Account, role, sysLogger)
 	if err != nil {
 		return nil, err
 	}
 	return &AttestationData{
 		Role:      role,
-		Document:  string(document),
-		Signature: string(signature),
+		Document:  opts.EC2Document,
+		Signature: opts.EC2Signature,
 		Access:    *tok.Credentials.AccessKeyId,
 		Secret:    *tok.Credentials.SecretAccessKey,
 		Token:     *tok.Credentials.SessionToken,
-		TaskId:    getECSTaskId(),
-	}, nil
-}
-
-// NewWithCredsOnly creates a new AttestationData with values fed to it and from the result of STS Assume Role.
-// The caller must specify the account and region for the STS session
-func NewWithCredsOnly(domain, service, account string, useRegionalSTS bool, region string, sysLogger io.Writer) (*AttestationData, error) {
-
-	role := fmt.Sprintf("%s.%s", domain, service)
-	tok, err := getSTSToken(useRegionalSTS, region, account, role, sysLogger)
-	if err != nil {
-		return nil, err
-	}
-	return &AttestationData{
-		Role:   role,
-		Access: *tok.Credentials.AccessKeyId,
-		Secret: *tok.Credentials.SecretAccessKey,
-		Token:  *tok.Credentials.SessionToken,
 	}, nil
 }
 
@@ -102,7 +76,7 @@ func getSTSToken(useRegionalSTS bool, region, account, role string, sysLogger io
 	})
 }
 
-func getECSTaskId() string {
+func GetECSTaskId() string {
 	ecs := os.Getenv("ECS_CONTAINER_METADATA_FILE")
 	if ecs == "" {
 		return ""
@@ -134,4 +108,17 @@ func getECSTaskId() string {
 		return ""
 	}
 	return taskId
+}
+
+//GetAttestationData fetches attestation data for all the services mentioned in the config file
+func GetAttestationData(opts *options.Options, sysLogger io.Writer) ([]*AttestationData, error) {
+	data := []*AttestationData{}
+	for _, svc := range opts.Services {
+		a, err := New(opts, svc.Name, sysLogger)
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, a)
+	}
+	return data, nil
 }

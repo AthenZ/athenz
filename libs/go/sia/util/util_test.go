@@ -20,10 +20,8 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
-	"log/syslog"
 	"os"
 	"os/exec"
 	"strconv"
@@ -127,126 +125,16 @@ func TestZtsHostName(test *testing.T) {
 	}
 }
 
-func TestGidForGroupCommand(t *testing.T) {
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
-	}
-
-	// Get current group name.
-	grp, err := exec.Command("id", "-gn").Output()
-	if err != nil {
-		t.Errorf("Cannot exec 'id -gn': %v", err)
-		return
-	}
-	group := strings.Trim(string(grp), "\n\r ")
-
-	// Get current group id.
-	gidBytes, err := exec.Command("id", "-g").Output()
-	if err != nil {
-		t.Errorf("Cannot exec 'id -gn': %v", err)
-		return
-	}
-	gid, err := strconv.Atoi(strings.Trim(string(gidBytes), "\n\r "))
-	if err != nil {
-		t.Errorf("Unexpected GID format in user record: %s", string(gidBytes))
-	}
-
-	// Test if function returns expected gid.
-	actualGid := gidForGroup(group, sysLogger)
-	if actualGid != gid {
-		t.Errorf("Unexpected group id: group=%s, expected=%d, got=%d", group, gid, actualGid)
-		return
-	}
-}
-
-func TestGidForInvalidGroupCommand(t *testing.T) {
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
-	}
-
-	// Test if function returns -1
-	gid := gidForGroup("invalid-group-name", sysLogger)
-	if gid != -1 {
-		t.Errorf("Did not get expected -1 for gid, got=%d", gid)
-		return
-	}
-}
-
-func TestUidGidForUserGroupCommand(t *testing.T) {
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
-	}
-
-	// Get current user id
-	usr, err := exec.Command("id", "-un").Output()
-	if err != nil {
-		t.Errorf("Cannot exec 'id -un': %v", err)
-		return
-	}
-	user := strings.Trim(string(usr), "\n\r ")
-
-	// Get current user id.
-	uidBytes, err := exec.Command("id", "-u").Output()
-	if err != nil {
-		t.Errorf("Cannot exec 'id -un': %v", err)
-		return
-	}
-	uid, err := strconv.Atoi(strings.Trim(string(uidBytes), "\n\r "))
-	if err != nil {
-		t.Errorf("Unexpected UID format in user record: %s", string(uidBytes))
-	}
-
-	// Get current group id.
-	gidBytes, err := exec.Command("id", "-g").Output()
-	if err != nil {
-		t.Errorf("Cannot exec 'id -gn': %v", err)
-		return
-	}
-	gid, err := strconv.Atoi(strings.Trim(string(gidBytes), "\n\r "))
-	if err != nil {
-		t.Errorf("Unexpected GID format in user record: %s", string(gidBytes))
-	}
-
-	testUid, testGid := uidGidForUser(user, sysLogger)
-	if testUid != uid {
-		t.Errorf("Unexpected uid value returned: %d, expected: %d", testUid, uid)
-	}
-	if testGid != gid {
-		t.Errorf("Unexpected gid value returned: %d, expected: %d", testGid, gid)
-	}
-	testUid, testGid = uidGidForUser("root", sysLogger)
-	if testUid != 0 {
-		t.Errorf("Unexpected uid value returned: %d, expected: 0", testUid)
-	}
-	if testGid != 0 {
-		t.Errorf("Unexpected gid value returned: %d, expected: 0", testGid)
-	}
-}
-
 func TestUpdateFileNew(test *testing.T) {
 
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
-	}
+	sysLogger := os.Stdout
 
 	//make sure our temp file does not exist
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	os.Remove(fileName)
 	testContents := "sia-unit-test"
-	err = UpdateFile(fileName, []byte(testContents), 0, 0, 0644, sysLogger)
+	err := UpdateFile(fileName, []byte(testContents), 0, 0, 0644, sysLogger)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -267,18 +155,13 @@ func TestUpdateFileNew(test *testing.T) {
 
 func TestUpdateFileExisting(test *testing.T) {
 
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
-	}
+	sysLogger := os.Stdout
 
 	//create our temporary file
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	testContents := "sia-unit-test"
-	err = ioutil.WriteFile(fileName, []byte(testContents), 0644)
+	err := ioutil.WriteFile(fileName, []byte(testContents), 0644)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -305,12 +188,7 @@ func TestUpdateFileExisting(test *testing.T) {
 
 func TestPrivateKeySupport(test *testing.T) {
 
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
-	}
+	sysLogger := os.Stdout
 
 	key, err := GenerateKeyPair(2048)
 	if err != nil {
@@ -347,7 +225,7 @@ func localIdCommand(arg string) int {
 	return id
 }
 
-func TestGenerateCSR(test *testing.T) {
+func TestGenerateSvcCertCSR(test *testing.T) {
 
 	key, err := GenerateKeyPair(2048)
 	if err != nil {
@@ -355,7 +233,7 @@ func TestGenerateCSR(test *testing.T) {
 		return
 	}
 
-	csr, err := GenerateCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", "spiffe://domain/sa/service", []string{"athenz.cloud"}, false, true)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", []string{"athenz.cloud"}, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -368,8 +246,8 @@ func TestGenerateCSR(test *testing.T) {
 		return
 	}
 
-	if parsedcertreq.EmailAddresses[0] != "domain.service@athenz.cloud" {
-		test.Errorf("CSR does not have expected email address: %s", parsedcertreq.EmailAddresses[0])
+	if parsedcertreq.EmailAddresses != nil {
+		test.Errorf("CSR has unexpected email address: %s", parsedcertreq.EmailAddresses[0])
 		return
 	}
 	if len(parsedcertreq.DNSNames) != 1 {
@@ -384,16 +262,16 @@ func TestGenerateCSR(test *testing.T) {
 		test.Errorf("CSR does not have expected dns name: %s", parsedcertreq.DNSNames[0])
 		return
 	}
+	if len(parsedcertreq.URIs) != 2 {
+		test.Errorf("CSR does not have expected number of URI fields: %d", len(parsedcertreq.URIs))
+		return
+	}
 	if parsedcertreq.URIs[0].String() != "spiffe://domain/sa/service" {
 		test.Errorf("CSR does not have expected spiffe uri: %s", parsedcertreq.URIs[0].String())
 		return
 	}
 	if parsedcertreq.URIs[1].String() != "athenz://instanceid/Athenz/instance001" {
 		test.Errorf("CSR does not have expected instance uri: %s", parsedcertreq.URIs[1].String())
-		return
-	}
-	if parsedcertreq.URIs[2].String() != "athenz://principal/domain.service" {
-		test.Errorf("CSR does not have expected role principal uri: %s", parsedcertreq.URIs[2].String())
 		return
 	}
 	if parsedcertreq.Subject.CommonName != "domain.service" {
@@ -410,14 +288,73 @@ func TestGenerateCSR(test *testing.T) {
 	}
 }
 
-func TestGenerateCSRWithWildCardHostname(test *testing.T) {
+func TestGenerateRoleCertCSR(test *testing.T) {
 
 	key, err := GenerateKeyPair(2048)
 	if err != nil {
 		test.Errorf("Cannot generate private key: %v", err)
 		return
 	}
-	csr, err := GenerateCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", "spiffe://domain/sa/service", []string{"athenz.cloud"}, true, false)
+
+	csr, err := GenerateRoleCertCSR(key, "US", "", "domain", "service", "athenz:role.readers", "instance001", "Athenz", "athenz.cloud")
+	if err != nil {
+		test.Errorf("Cannot create CSR: %v", err)
+		return
+	}
+
+	block, _ := pem.Decode([]byte(csr))
+	parsedcertreq, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		test.Errorf("Cannot parse CSR: %v", err)
+		return
+	}
+
+	if parsedcertreq.EmailAddresses[0] != "domain.service@athenz.cloud" {
+		test.Errorf("CSR does not have expected email address: %s", parsedcertreq.EmailAddresses[0])
+		return
+	}
+	if parsedcertreq.DNSNames != nil {
+		test.Errorf("CSR has unexpected san dns names: %d", len(parsedcertreq.DNSNames))
+		return
+	}
+	if len(parsedcertreq.URIs) != 3 {
+		test.Errorf("CSR does not have expected number of URI fields: %d", len(parsedcertreq.URIs))
+		return
+	}
+	if parsedcertreq.URIs[0].String() != "spiffe://athenz/ra/readers" {
+		test.Errorf("CSR does not have expected spiffe uri: %s", parsedcertreq.URIs[0].String())
+		return
+	}
+	if parsedcertreq.URIs[1].String() != "athenz://instanceid/Athenz/instance001" {
+		test.Errorf("CSR does not have expected instance uri: %s", parsedcertreq.URIs[1].String())
+		return
+	}
+	if parsedcertreq.URIs[2].String() != "athenz://principal/domain.service" {
+		test.Errorf("CSR does not have expected role principal uri: %s", parsedcertreq.URIs[2].String())
+		return
+	}
+	if parsedcertreq.Subject.CommonName != "athenz:role.readers" {
+		test.Errorf("CSR does not have expected common name: %s", parsedcertreq.Subject.CommonName)
+		return
+	}
+	if parsedcertreq.Subject.OrganizationalUnit[0] != "Athenz" {
+		test.Errorf("CSR does not have expected org unit: %s", parsedcertreq.Subject.OrganizationalUnit)
+		return
+	}
+	if parsedcertreq.Subject.Organization != nil {
+		test.Errorf("CSR does not have expected org")
+		return
+	}
+}
+
+func TestGenerateWithWildCardHostname(test *testing.T) {
+
+	key, err := GenerateKeyPair(2048)
+	if err != nil {
+		test.Errorf("Cannot generate private key: %v", err)
+		return
+	}
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", []string{"athenz.cloud"}, true)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -443,7 +380,6 @@ func TestGenerateCSRWithWildCardHostname(test *testing.T) {
 	}
 }
 
-
 func TestGenerateCSRWithMultipleHostname(test *testing.T) {
 
 	key, err := GenerateKeyPair(2048)
@@ -453,7 +389,7 @@ func TestGenerateCSRWithMultipleHostname(test *testing.T) {
 	}
 	ztsDomains := []string{"athenz1.cloud"}
 	ztsDomains = append(ztsDomains, "athenz2.cloud")
-	csr, err := GenerateCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", "spiffe://domain/sa/service", ztsDomains, true, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", ztsDomains, true)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -488,18 +424,36 @@ func TestGenerateCSRWithMultipleHostname(test *testing.T) {
 }
 
 func TestGetRoleCertFileName(test *testing.T) {
-	name := GetRoleCertFileName("/var/run/sia/certs/", "/test/file1", "athenz:role.hockey")
+	name := GetRoleCertFileName("/var/run/sia/certs", "/test/file1", "athenz:role.hockey")
 	if name != "/test/file1" {
 		test.Errorf("Unable to verify role cert with given /test/file1 name: %s", name)
 		return
 	}
-	name = GetRoleCertFileName("/var/run/sia/certs/", "test/file1", "athenz:role.hockey")
+	name = GetRoleCertFileName("/var/run/sia/certs", "test/file1", "athenz:role.hockey")
 	if name != "/var/run/sia/certs/test/file1" {
 		test.Errorf("Unable to verify role cert with given test/file1 name: %s", name)
 		return
 	}
-	name = GetRoleCertFileName("/var/run/sia/certs/", "", "athenz:role.hockey")
+	name = GetRoleCertFileName("/var/run/sia/certs", "", "athenz:role.hockey")
 	if name != "/var/run/sia/certs/athenz:role.hockey.cert.pem" {
+		test.Errorf("Unable to verify role cert with given athenz:role.hockey name: %s", name)
+		return
+	}
+}
+
+func TestGetSvcCertFileName(test *testing.T) {
+	name := GetSvcCertFileName("/var/run/sia/certs", "/test/file1", "athenz", "api")
+	if name != "/test/file1" {
+		test.Errorf("Unable to verify role cert with given /test/file1 name: %s", name)
+		return
+	}
+	name = GetSvcCertFileName("/var/run/sia/certs", "test/file1", "athenz", "api")
+	if name != "/var/run/sia/certs/test/file1" {
+		test.Errorf("Unable to verify role cert with given test/file1 name: %s", name)
+		return
+	}
+	name = GetSvcCertFileName("/var/run/sia/certs", "", "athenz", "api")
+	if name != "/var/run/sia/certs/athenz.api.cert.pem" {
 		test.Errorf("Unable to verify role cert with given athenz:role.hockey name: %s", name)
 		return
 	}
@@ -551,5 +505,181 @@ func TestExtractServiceName(test *testing.T) {
 	}
 	if service != "syncer" {
 		test.Errorf("did not get expected service: ui")
+	}
+}
+
+func TestParseAssumedRoleArnInvalidPrefix(test *testing.T) {
+	_, _, _, err := ParseAssumedRoleArn("arn:aws::123456789012:assumed-role/athenz.zts-service/i-0662a0226f2d9dc2b", "-service")
+	if err == nil {
+		test.Errorf("Unable to verify proper role arn prefix")
+	}
+	if !strings.Contains(err.Error(), "(prefix)") {
+		test.Errorf("Error does not contain expected prefix error")
+	}
+}
+
+func TestParseAssumedRoleArnInvalidNumberOfComponents(test *testing.T) {
+	_, _, _, err := ParseAssumedRoleArn("arn:aws:sts::assumed-role/athenz.zts-service/i-0662a0226f2d9dc2b", "-service")
+	if err == nil {
+		test.Errorf("Unable to verify proper role arn number of components")
+	}
+	if !strings.Contains(err.Error(), "(number of components)") {
+		test.Errorf("Error does not contain expected number of components error")
+	}
+}
+
+func TestParseAssumedRoleArnInvalidRoleComponent(test *testing.T) {
+	_, _, _, err := ParseAssumedRoleArn("arn:aws:sts::123456789012:assumed-role/i-0662a0226f2d9dc2b", "-service")
+	if err == nil {
+		test.Errorf("Unable to verify proper role arn number of role components")
+	}
+	if !strings.Contains(err.Error(), "(role components)") {
+		test.Errorf("Error does not contain expected role components error")
+	}
+}
+
+func TestParseAssumedRoleArnInvalidAssumedRoleComponent(test *testing.T) {
+	_, _, _, err := ParseAssumedRoleArn("arn:aws:sts::123456789012:athenz.zts-service/athenz.zts-service/i-0662a0226f2d9dc2b", "-service")
+	if err == nil {
+		test.Errorf("Unable to verify proper role assumed-role prefix")
+	}
+	if !strings.Contains(err.Error(), "(assumed-role)") {
+		test.Errorf("Error does not contain expected assumed-role prefix error")
+	}
+}
+
+func TestParseAssumedRoleArnInvalidSuffix(test *testing.T) {
+	_, _, _, err := ParseAssumedRoleArn("arn:aws:sts::123456789012:assumed-role/athenz.zts-sdbuild/i-0662a0226f2d9dc2b", "-service")
+	if err == nil {
+		test.Errorf("Unable to verify proper role suffix")
+	}
+	if !strings.Contains(err.Error(), "does not have '-service' suffix") {
+		test.Errorf("Error does not contain expected suffix error")
+	}
+}
+
+func TestParseAssumedRoleArnInvalidAthenzService(test *testing.T) {
+	_, _, _, err := ParseAssumedRoleArn("arn:aws:sts::123456789012:assumed-role/athenz-service/i-0662a0226f2d9dc2b", "-service")
+	if err == nil {
+		test.Errorf("Unable to verify proper athenz service name")
+	}
+	if !strings.Contains(err.Error(), "cannot determine domain/service") {
+		test.Errorf("Error does not contain expected domain/service error")
+	}
+}
+
+func TestParseAssumedRoleArnValid(test *testing.T) {
+	account, domain, service, err := ParseAssumedRoleArn("arn:aws:sts::123456789012:assumed-role/athenz.zts-service/i-0662a0226f2d9dc2b", "-service")
+	if err != nil {
+		test.Errorf("Unable to parse valid arn, error %v", err)
+	}
+	if account != "123456789012" {
+		test.Errorf("Unable to parse valid arn, invalid account: %s", account)
+	}
+	if domain != "athenz" {
+		test.Errorf("Unable to parse valid arn, invalid domain: %s", domain)
+	}
+	if service != "zts" {
+		test.Errorf("Unable to parse valid arn, invalid service: %s", service)
+	}
+	account, domain, service, err = ParseAssumedRoleArn("arn:aws:sts::123456789012:assumed-role/athenz.zts-test/i-0662a0226f2d9dc2b", "-test")
+	if err != nil {
+		test.Errorf("Unable to parse valid arn, error %v", err)
+	}
+	if account != "123456789012" {
+		test.Errorf("Unable to parse valid arn, invalid account: %s", account)
+	}
+	if domain != "athenz" {
+		test.Errorf("Unable to parse valid arn, invalid domain: %s", domain)
+	}
+	if service != "zts" {
+		test.Errorf("Unable to parse valid arn, invalid service: %s", service)
+	}
+}
+
+func TestParseRoleArnInvalidPrefix(test *testing.T) {
+	_, _, _, err := ParseRoleArn("arn:aws:sts:123456789012:role/athenz.zts-service", "role/", "")
+	if err == nil {
+		test.Errorf("Unable to verify proper role arn prefix")
+	}
+	if !strings.Contains(err.Error(), "(prefix)") {
+		test.Errorf("Error does not contain expected prefix error")
+	}
+}
+
+func TestParseRoleArnInvalidNumberOfComponents(test *testing.T) {
+	_, _, _, err := ParseRoleArn("arn:aws:iam::role/athenz.zts-service", "role/", "-service")
+	if err == nil {
+		test.Errorf("Unable to verify proper role arn number of components")
+	}
+	if !strings.Contains(err.Error(), "(number of components)") {
+		test.Errorf("Error does not contain expected number of components error")
+	}
+}
+
+func TestParseRoleArnInvalidAssumedRoleComponent(test *testing.T) {
+	_, _, _, err := ParseRoleArn("arn:aws:iam::123456789012:assumed-role/athenz.zts-service", "role/", "-service")
+	if err == nil {
+		test.Errorf("Unable to verify proper role assumed-role prefix")
+	}
+	if !strings.Contains(err.Error(), "'role/' prefix") {
+		test.Errorf("Error does not contain expected assumed-role prefix error")
+	}
+}
+
+func TestParseRoleArnInvalidAthenzService(test *testing.T) {
+	_, _, _, err := ParseRoleArn("arn:aws:iam::123456789012:role/athenz-service", "role/", "-service")
+	if err == nil {
+		test.Errorf("Unable to verify proper athenz service name")
+	}
+	if !strings.Contains(err.Error(), "cannot determine domain/service") {
+		test.Errorf("Error does not contain expected domain/service error")
+	}
+}
+
+func TestParseRoleArnValid(test *testing.T) {
+	account, domain, service, err := ParseRoleArn("arn:aws:iam::123456789012:role/athenz.zts-service", "role/", "-service")
+	if err != nil {
+		test.Errorf("Unable to parse valid arn, error %v", err)
+	}
+	if account != "123456789012" {
+		test.Errorf("Unable to parse valid arn, invalid account: %s", account)
+	}
+	if domain != "athenz" {
+		test.Errorf("Unable to parse valid arn, invalid domain: %s", domain)
+	}
+	if service != "zts" {
+		test.Errorf("Unable to parse valid arn, invalid service: %s", service)
+	}
+	account, domain, service, err = ParseRoleArn("arn:aws:iam::123456789012:instance-profile/sys.auth.zms", "instance-profile/", "")
+	if err != nil {
+		test.Errorf("Unable to parse valid arn, error %v", err)
+	}
+	if account != "123456789012" {
+		test.Errorf("Unable to parse valid arn, invalid account: %s", account)
+	}
+	if domain != "sys.auth" {
+		test.Errorf("Unable to parse valid arn, invalid domain: %s", domain)
+	}
+	if service != "zms" {
+		test.Errorf("Unable to parse valid arn, invalid service: %s", service)
+	}
+}
+
+func TestParseEnvBooleanFlag(test *testing.T) {
+	if ParseEnvBooleanFlag("unknown") {
+		test.Errorf("Unknown env variable returned true")
+	}
+	os.Setenv("TEST-ENV1", "true")
+	if !ParseEnvBooleanFlag("TEST-ENV1") {
+		test.Errorf("True value env variable did not return true")
+	}
+	os.Setenv("TEST-ENV2", "1")
+	if !ParseEnvBooleanFlag("TEST-ENV2") {
+		test.Errorf("1 value env variable did not return true")
+	}
+	os.Setenv("TEST-ENV3", "false")
+	if ParseEnvBooleanFlag("TEST-ENV3") {
+		test.Errorf("false value env variable returned true")
 	}
 }

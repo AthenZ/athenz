@@ -24,10 +24,10 @@ import (
 
 var (
 	iamInfoJson = `{
-		"Code" : "Success",
-		"LastUpdated" : "2016-05-03T21:17:35Z",
-		"InstanceProfileArn" : "arn:aws:iam::149134300625:instance-profile/athenz.api-service",
-		"InstanceProfileId" : "AIPAIPOZZZPUCEDBI5I3E"
+        "Code" : "Success",
+        "LastUpdated" : "2019-05-06T15:35:48Z",
+        "InstanceProfileArn" : "arn:aws:iam::123456789012:instance-profile/athenz.hockey-service",
+        "InstanceProfileId" : "XXXXPROFILEIDYYYY"
 	}`
 
 	instanceIdentityJson = `{
@@ -65,13 +65,13 @@ yEcux31ojNlFqigCFDiVEXqe7vQ5mJ5D+T6bhZz7soavAAAAAAAA`
 
 func StartMetaServer(EndPoint string) {
 	http.HandleFunc("/latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, string(iamInfoJson))
+		io.WriteString(w, iamInfoJson)
 	})
 	http.HandleFunc("/latest/dynamic/instance-identity/document", func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, string(instanceIdentityJson))
+		io.WriteString(w, instanceIdentityJson)
 	})
 	http.HandleFunc("/latest/dynamic/instance-identity/pkcs7", func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, string(signature))
+		io.WriteString(w, signature)
 	})
 
 	log.Println("Starting Meta Mock listening on: " + EndPoint)
