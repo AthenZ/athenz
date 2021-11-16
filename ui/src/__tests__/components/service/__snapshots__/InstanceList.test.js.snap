@@ -508,7 +508,6 @@ exports[`InstanceList should render for static 1`] = `
     <div>
       <button
         class="emotion-6 denali-button"
-        disabled=""
       >
         Add Static Instance
       </button>
