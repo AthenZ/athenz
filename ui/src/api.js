@@ -1871,6 +1871,45 @@ const Api = (req) => {
                     });
             });
         },
+
+        validateMicrosegmentationPolicy(
+            category,
+            roleMembers,
+            inboundDestinationService,
+            outboundSourceService,
+            sourcePort,
+            destinationPort,
+            protocol,
+            domainName,
+            _csrf
+        ) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                fetchr
+                    .read('validateMicrosegmentation')
+                    .params({
+                        category,
+                        roleMembers,
+                        inboundDestinationService,
+                        outboundSourceService,
+                        sourcePort,
+                        destinationPort,
+                        protocol,
+                        domainName,
+                    })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
     };
 };
 
