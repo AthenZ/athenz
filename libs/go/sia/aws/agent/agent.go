@@ -107,7 +107,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			}
 		}
 
-		csr, err := util.GenerateRoleCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, opts.Services[0].Name, roleName, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains[0])
+		csr, err := util.GenerateRoleCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, opts.Services[0].Name, roleName, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains[0], opts.BackwardCompatible)
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
@@ -199,7 +199,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 			return err
 		}
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.BackwardCompatible)
 	if err != nil {
 		return err
 	}
@@ -276,7 +276,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		logutil.LogInfo(sysLogger, "Unable to read private key from %s, err: %v\n", keyFile, err)
 		return err
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.BackwardCompatible)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err

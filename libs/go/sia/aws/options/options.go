@@ -137,6 +137,7 @@ type Options struct {
 	EC2Document          string                //EC2 instance identity document
 	EC2Signature         string                //EC2 instance identity document pkcs7 signature
 	EC2StartTime         *time.Time            //EC2 instance start time
+	BackwardCompatible   bool                  //support backward compatible option in generated certs
 }
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (string, error) {
