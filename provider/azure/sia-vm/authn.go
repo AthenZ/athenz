@@ -84,7 +84,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 	var roleRequest = new(zts.RoleCertificateRequest)
 	for roleName, role := range opts.Roles {
 		certFilePem := util.GetRoleCertFileName(mkDirPath(opts.CertDir), role.Filename, roleName)
-		csr, err := util.GenerateRoleCertCSR(key, opts.CountryName, "", opts.Domain, opts.Services[0].Name, roleName, opts.Services[0].Name, provider, opts.ZTSAzureDomains[0])
+		csr, err := util.GenerateRoleCertCSR(key, opts.CountryName, "", opts.Domain, opts.Services[0].Name, roleName, opts.Services[0].Name, provider, opts.ZTSAzureDomains[0], false)
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
@@ -145,7 +145,7 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 
 	provider := getProviderName(opts.Provider, identityDocument.Location)
 	commonName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, opts.ZTSAzureDomains, opts.SanDnsWildcard)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, opts.ZTSAzureDomains, opts.SanDnsWildcard, false)
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, iden
 	}
 	provider := getProviderName(opts.Provider, identityDocument.Location)
 	commonName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, opts.ZTSAzureDomains, opts.SanDnsWildcard)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, opts.ZTSAzureDomains, opts.SanDnsWildcard, false)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err

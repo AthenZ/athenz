@@ -233,7 +233,7 @@ func TestGenerateSvcCertCSR(test *testing.T) {
 		return
 	}
 
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", []string{"athenz.cloud"}, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", []string{"athenz.cloud"}, false, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -296,7 +296,7 @@ func TestGenerateRoleCertCSR(test *testing.T) {
 		return
 	}
 
-	csr, err := GenerateRoleCertCSR(key, "US", "", "domain", "service", "athenz:role.readers", "instance001", "Athenz", "athenz.cloud")
+	csr, err := GenerateRoleCertCSR(key, "US", "", "domain", "service", "athenz:role.readers", "instance001", "Athenz", "athenz.cloud", true)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -354,7 +354,7 @@ func TestGenerateWithWildCardHostname(test *testing.T) {
 		test.Errorf("Cannot generate private key: %v", err)
 		return
 	}
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", []string{"athenz.cloud"}, true)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", []string{"athenz.cloud"}, true, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -389,7 +389,7 @@ func TestGenerateCSRWithMultipleHostname(test *testing.T) {
 	}
 	ztsDomains := []string{"athenz1.cloud"}
 	ztsDomains = append(ztsDomains, "athenz2.cloud")
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", ztsDomains, true)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", ztsDomains, true, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
