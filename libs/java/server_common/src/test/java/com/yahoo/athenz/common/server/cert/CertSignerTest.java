@@ -41,7 +41,7 @@ public class CertSignerTest {
 
         assertNull(signer.generateX509Certificate("csr", "client", 60));
         assertNull(signer.generateX509Certificate("aws", "us-west-2", "csr", "client", 60));
-        assertNull(signer.generateX509Certificate("aws", "us-west-2", "csr", "client", 60, Priority.Unspecified));
+        assertNull(signer.generateX509Certificate("aws", "us-west-2", "csr", "client", 60, Priority.Unspecified_priority));
         assertNull(signer.getCACertificate());
         assertNull(signer.getCACertificate("aws"));
         assertEquals(signer.getMaxCertExpiryTimeMins(), 0);

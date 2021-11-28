@@ -37,7 +37,7 @@ public class KeyStoreCertSigner implements CertSigner, AutoCloseable {
 
     @Override
     public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int certExpiryMins) {
-        return generateX509Certificate(provider, certIssuer, csr, keyUsage, certExpiryMins, Priority.Unspecified);
+        return generateX509Certificate(provider, certIssuer, csr, keyUsage, certExpiryMins, Priority.Unspecified_priority);
     }
 
     @Override

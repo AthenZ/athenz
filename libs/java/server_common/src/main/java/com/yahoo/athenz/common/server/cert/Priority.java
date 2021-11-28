@@ -19,7 +19,7 @@
 package com.yahoo.athenz.common.server.cert;
 
 public enum Priority {
-    Unspecified(0),
+    Unspecified_priority(0),
     High(5),
     Medium(10),
     Low(15);

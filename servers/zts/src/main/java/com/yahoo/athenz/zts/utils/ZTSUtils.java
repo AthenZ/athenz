@@ -308,7 +308,7 @@ public class ZTSUtils {
         
         // generate a certificate for this certificate request
 
-        String pemCert = certManager.generateX509Certificate(provider, certIssuer, csr, certUsage, expiryTime, Priority.Unspecified);
+        String pemCert = certManager.generateX509Certificate(provider, certIssuer, csr, certUsage, expiryTime, Priority.Unspecified_priority);
         if (pemCert == null || pemCert.isEmpty()) {
             return null;
         }

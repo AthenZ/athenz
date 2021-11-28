@@ -43,7 +43,7 @@ public class SelfCertSigner implements CertSigner {
 
     @Override
     public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int expiryTime) {
-        return generateX509Certificate(provider, certIssuer, csr, keyUsage, expiryTime, Priority.Unspecified);
+        return generateX509Certificate(provider, certIssuer, csr, keyUsage, expiryTime, Priority.Unspecified_priority);
     }
 
     @Override
