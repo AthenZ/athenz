@@ -68,7 +68,7 @@ public class InstanceCertManagerTest {
         
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false, null);
         instanceManager.setCertSigner(certSigner);
-        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0, Priority.Unspecified);
+        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0, Priority.Unspecified_priority);
         
         assertNotNull(identity);
         assertEquals(identity.getName(), "cn");
@@ -172,7 +172,7 @@ public class InstanceCertManagerTest {
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false, null);
         instanceManager.setCertSigner(certSigner);
-        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0, Priority.Unspecified);
+        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0, Priority.Unspecified_priority);
         assertNull(identity);
         instanceManager.shutdown();
     }
@@ -185,7 +185,7 @@ public class InstanceCertManagerTest {
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, false, null);
         instanceManager.setCertSigner(certSigner);
-        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0, Priority.Unspecified);
+        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", null, 0, Priority.Unspecified_priority);
         assertNull(identity);
         instanceManager.shutdown();
     }

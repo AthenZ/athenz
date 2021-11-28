@@ -173,7 +173,7 @@ public class HttpCertSigner implements CertSigner {
 
     @Override
     public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int expireMins) {
-        return generateX509Certificate(provider, certIssuer, csr, keyUsage, expireMins, Priority.Unspecified);
+        return generateX509Certificate(provider, certIssuer, csr, keyUsage, expireMins, Priority.Unspecified_priority);
     }
 
     @Override

@@ -4423,7 +4423,7 @@ public class ZTSImplTest {
 
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
         Mockito.when(certManager.generateIdentity("aws", null, ROLE_CERT_CORETECH_REQUEST,
-                "coretech.weathers", "client", 3600, Priority.Unspecified)).thenReturn(null);
+                "coretech.weathers", "client", 3600, Priority.Unspecified_priority)).thenReturn(null);
         zts.instanceCertManager = certManager;
 
         try {
@@ -10400,7 +10400,7 @@ public class ZTSImplTest {
 
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
         Mockito.when(certManager.generateIdentity("aws", null, ROLE_CERT_CORETECH_REQUEST,
-                "user_domain.user1", "client", 3600, Priority.Unspecified)).thenReturn(null);
+                "user_domain.user1", "client", 3600, Priority.Unspecified_priority)).thenReturn(null);
         zts.instanceCertManager = certManager;
 
         try {

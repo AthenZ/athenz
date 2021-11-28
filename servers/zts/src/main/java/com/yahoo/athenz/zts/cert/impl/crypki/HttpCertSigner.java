@@ -57,7 +57,7 @@ public class HttpCertSigner extends AbstractHttpCertSigner {
 
     @Override
     public Object getX509CertSigningRequest(String provider, String csr, String keyUsage, int expireMins) {
-        return getX509CertSigningRequest(provider, csr, keyUsage, expireMins, Priority.Unspecified);
+        return getX509CertSigningRequest(provider, csr, keyUsage, expireMins, Priority.Unspecified_priority);
     }
 
     @Override
