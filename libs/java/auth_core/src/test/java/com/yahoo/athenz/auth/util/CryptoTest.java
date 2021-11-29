@@ -1291,14 +1291,41 @@ public class CryptoTest {
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("unknown signature size"));
         }
+    }
 
-        // convert invalid size signature
-
+    @Test
+    public void testConvertSignatureFromP1363ToDERFormatInvalidSize() {
         try {
             Crypto.convertSignatureFromP1363ToDERFormat("test".getBytes(StandardCharsets.UTF_8), Crypto.SHA256);
             fail();
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("invalid signature size"));
+        }
+    }
+
+    @Test
+    public void testConvertSignatureFromDERToP1363FormatInvalidData() {
+        try {
+            Crypto.convertSignatureFromDERToP1363Format("test".getBytes(StandardCharsets.UTF_8), Crypto.SHA256);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("failed to construct asn1 sequence"));
+        }
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        assertNotNull(privateKey);
+
+        byte[] derSignature = Crypto.sign(serviceToken.getBytes(StandardCharsets.UTF_8), privateKey, Crypto.SHA256);
+        assertNotNull(derSignature);
+        // make the signature invalid
+        for (int i = 0; i < derSignature.length / 2; i++) {
+            derSignature[i] = 1;
+        }
+        try {
+            Crypto.convertSignatureFromDERToP1363Format(derSignature, Crypto.SHA256);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("failed to construct asn1 sequence"));
         }
     }
 
