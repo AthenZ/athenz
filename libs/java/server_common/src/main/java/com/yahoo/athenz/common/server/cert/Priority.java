@@ -18,7 +18,11 @@
 
 package com.yahoo.athenz.common.server.cert;
 
+/**
+ * Priority for certificate handling by crypki
+ */
 public enum Priority {
+    // The values must match the values in https://github.com/theparanoids/crypki/blob/main/proto/sign.proto#L33
     Unspecified_priority(0),
     High(5),
     Medium(10),
