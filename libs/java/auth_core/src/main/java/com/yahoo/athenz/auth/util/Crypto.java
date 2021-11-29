@@ -367,7 +367,18 @@ public class Crypto {
             throw new CryptoException("unknown signature size");
         }
 
-        ASN1Sequence seq = ASN1Sequence.getInstance(signature);
+        ASN1Sequence seq;
+        try {
+            seq = ASN1Sequence.getInstance(signature);
+        } catch (Exception ex) {
+            LOG.error("failed to construct asn1 sequence from signature", ex);
+            throw new CryptoException("failed to construct asn1 sequence");
+        }
+
+        if (seq.size() != 2) {
+            LOG.error("asn1 sequence does not have expected 2 integers: {}", seq.size());
+            throw new CryptoException("invalid asn1sequence size");
+        }
         BigInteger r = ((ASN1Integer) seq.getObjectAt(0)).getValue();
         BigInteger s = ((ASN1Integer) seq.getObjectAt(1)).getValue();
 
