@@ -76,23 +76,23 @@ exports[`Member should render 1`] = `
   background: #ffffff;
 }
 
-.emotion-3 {
+.emotion-2 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-5 {
+.emotion-3 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 denali-tag emotion-1 emotion-2"
+  class="emotion-0 denali-tag emotion-1"
   data-testid="tag"
 >
   <a
-    class="emotion-3 emotion-4"
+    class="emotion-2"
     style="color: rgb(53, 112, 244);"
   >
      
@@ -104,7 +104,7 @@ exports[`Member should render 1`] = `
     class="tag-remove"
   >
     <svg
-      class="emotion-5"
+      class="emotion-3"
       data-testid="icon"
       height="20px"
       viewBox="0 0 1024 1024"

@@ -5,7 +5,7 @@ exports[`TagList should add new role tag 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -25,7 +25,7 @@ exports[`TagList should add new role tag 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -51,25 +51,25 @@ exports[`TagList should add new role tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -77,7 +77,7 @@ exports[`TagList should add new role tag 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -90,7 +90,7 @@ exports[`TagList should add new role tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-11 {
+.emotion-6 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -103,7 +103,7 @@ exports[`TagList should add new role tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-17 {
+.emotion-9 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -111,7 +111,7 @@ exports[`TagList should add new role tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-21 {
+.emotion-11 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
@@ -134,11 +134,11 @@ exports[`TagList should add new role tag 1`] = `
   white-space: nowrap;
 }
 
-.emotion-21:hover {
+.emotion-11:hover {
   background: #cbd9f9;
 }
 
-.emotion-21 .tag-remove {
+.emotion-11 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -166,13 +166,13 @@ exports[`TagList should add new role tag 1`] = `
   width: 28px;
 }
 
-.emotion-21:hover .tag-remove {
+.emotion-11:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-22 {
+.emotion-12 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -182,22 +182,22 @@ exports[`TagList should add new role tag 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-22:hover {
+.emotion-12:hover {
   background: #ffffff;
 }
 
-.emotion-24 {
+.emotion-13 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-26 {
+.emotion-14 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-33 {
+.emotion-19 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -205,22 +205,22 @@ exports[`TagList should add new role tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-35 {
+.emotion-20 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="tag-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Tag
       </button>
@@ -228,27 +228,27 @@ exports[`TagList should add new role tag 1`] = `
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG NAME
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG VALUES
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           EDIT
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           DELETE
         </th>
@@ -256,25 +256,25 @@ exports[`TagList should add new role tag 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-15 emotion-16"
+        class="emotion-8"
         data-testid="tag-row"
       >
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           tag-exist
         </td>
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -285,7 +285,7 @@ exports[`TagList should add new role tag 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -301,11 +301,11 @@ exports[`TagList should add new role tag 1`] = `
             </div>
           </div>
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -316,7 +316,7 @@ exports[`TagList should add new role tag 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -333,12 +333,12 @@ exports[`TagList should add new role tag 1`] = `
           </div>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -354,12 +354,12 @@ exports[`TagList should add new role tag 1`] = `
           </span>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -388,7 +388,7 @@ exports[`TagList should add new tag 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -408,7 +408,7 @@ exports[`TagList should add new tag 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -434,25 +434,25 @@ exports[`TagList should add new tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -460,7 +460,7 @@ exports[`TagList should add new tag 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -473,7 +473,7 @@ exports[`TagList should add new tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-11 {
+.emotion-6 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -486,7 +486,7 @@ exports[`TagList should add new tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-17 {
+.emotion-9 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -494,7 +494,7 @@ exports[`TagList should add new tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-21 {
+.emotion-11 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
@@ -517,11 +517,11 @@ exports[`TagList should add new tag 1`] = `
   white-space: nowrap;
 }
 
-.emotion-21:hover {
+.emotion-11:hover {
   background: #cbd9f9;
 }
 
-.emotion-21 .tag-remove {
+.emotion-11 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -549,13 +549,13 @@ exports[`TagList should add new tag 1`] = `
   width: 28px;
 }
 
-.emotion-21:hover .tag-remove {
+.emotion-11:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-22 {
+.emotion-12 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -565,22 +565,22 @@ exports[`TagList should add new tag 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-22:hover {
+.emotion-12:hover {
   background: #ffffff;
 }
 
-.emotion-24 {
+.emotion-13 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-26 {
+.emotion-14 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-33 {
+.emotion-19 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -588,22 +588,22 @@ exports[`TagList should add new tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-35 {
+.emotion-20 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="tag-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Tag
       </button>
@@ -611,27 +611,27 @@ exports[`TagList should add new tag 1`] = `
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG NAME
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG VALUES
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           EDIT
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           DELETE
         </th>
@@ -639,25 +639,25 @@ exports[`TagList should add new tag 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-15 emotion-16"
+        class="emotion-8"
         data-testid="tag-row"
       >
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           tag-exist
         </td>
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -668,7 +668,7 @@ exports[`TagList should add new tag 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -684,11 +684,11 @@ exports[`TagList should add new tag 1`] = `
             </div>
           </div>
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -699,7 +699,7 @@ exports[`TagList should add new tag 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -716,12 +716,12 @@ exports[`TagList should add new tag 1`] = `
           </div>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -737,12 +737,12 @@ exports[`TagList should add new tag 1`] = `
           </span>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -771,7 +771,7 @@ exports[`TagList should delete role tag 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -791,7 +791,7 @@ exports[`TagList should delete role tag 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -817,25 +817,25 @@ exports[`TagList should delete role tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -843,7 +843,7 @@ exports[`TagList should delete role tag 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -856,7 +856,7 @@ exports[`TagList should delete role tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-11 {
+.emotion-6 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -869,7 +869,7 @@ exports[`TagList should delete role tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-17 {
+.emotion-9 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -877,7 +877,7 @@ exports[`TagList should delete role tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-21 {
+.emotion-11 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
@@ -900,11 +900,11 @@ exports[`TagList should delete role tag 1`] = `
   white-space: nowrap;
 }
 
-.emotion-21:hover {
+.emotion-11:hover {
   background: #cbd9f9;
 }
 
-.emotion-21 .tag-remove {
+.emotion-11 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -932,13 +932,13 @@ exports[`TagList should delete role tag 1`] = `
   width: 28px;
 }
 
-.emotion-21:hover .tag-remove {
+.emotion-11:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-22 {
+.emotion-12 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -948,22 +948,22 @@ exports[`TagList should delete role tag 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-22:hover {
+.emotion-12:hover {
   background: #ffffff;
 }
 
-.emotion-24 {
+.emotion-13 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-26 {
+.emotion-14 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-33 {
+.emotion-19 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -971,22 +971,22 @@ exports[`TagList should delete role tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-35 {
+.emotion-20 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="tag-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Tag
       </button>
@@ -994,27 +994,27 @@ exports[`TagList should delete role tag 1`] = `
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG NAME
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG VALUES
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           EDIT
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           DELETE
         </th>
@@ -1022,25 +1022,25 @@ exports[`TagList should delete role tag 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-15 emotion-16"
+        class="emotion-8"
         data-testid="tag-row"
       >
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           tag-name
         </td>
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -1051,7 +1051,7 @@ exports[`TagList should delete role tag 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -1067,11 +1067,11 @@ exports[`TagList should delete role tag 1`] = `
             </div>
           </div>
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -1082,7 +1082,7 @@ exports[`TagList should delete role tag 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -1099,12 +1099,12 @@ exports[`TagList should delete role tag 1`] = `
           </div>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -1120,12 +1120,12 @@ exports[`TagList should delete role tag 1`] = `
           </span>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -1154,7 +1154,7 @@ exports[`TagList should delete tag 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1174,7 +1174,7 @@ exports[`TagList should delete tag 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1200,25 +1200,25 @@ exports[`TagList should delete tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -1226,7 +1226,7 @@ exports[`TagList should delete tag 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -1239,7 +1239,7 @@ exports[`TagList should delete tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-11 {
+.emotion-6 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -1252,7 +1252,7 @@ exports[`TagList should delete tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-17 {
+.emotion-9 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -1260,7 +1260,7 @@ exports[`TagList should delete tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-21 {
+.emotion-11 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
@@ -1283,11 +1283,11 @@ exports[`TagList should delete tag 1`] = `
   white-space: nowrap;
 }
 
-.emotion-21:hover {
+.emotion-11:hover {
   background: #cbd9f9;
 }
 
-.emotion-21 .tag-remove {
+.emotion-11 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1315,13 +1315,13 @@ exports[`TagList should delete tag 1`] = `
   width: 28px;
 }
 
-.emotion-21:hover .tag-remove {
+.emotion-11:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-22 {
+.emotion-12 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -1331,22 +1331,22 @@ exports[`TagList should delete tag 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-22:hover {
+.emotion-12:hover {
   background: #ffffff;
 }
 
-.emotion-24 {
+.emotion-13 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-26 {
+.emotion-14 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-33 {
+.emotion-19 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -1354,22 +1354,22 @@ exports[`TagList should delete tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-35 {
+.emotion-20 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="tag-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Tag
       </button>
@@ -1377,27 +1377,27 @@ exports[`TagList should delete tag 1`] = `
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG NAME
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG VALUES
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           EDIT
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           DELETE
         </th>
@@ -1405,25 +1405,25 @@ exports[`TagList should delete tag 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-15 emotion-16"
+        class="emotion-8"
         data-testid="tag-row"
       >
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           tag-name
         </td>
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -1434,7 +1434,7 @@ exports[`TagList should delete tag 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -1450,11 +1450,11 @@ exports[`TagList should delete tag 1`] = `
             </div>
           </div>
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -1465,7 +1465,7 @@ exports[`TagList should delete tag 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -1482,12 +1482,12 @@ exports[`TagList should delete tag 1`] = `
           </div>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -1503,12 +1503,12 @@ exports[`TagList should delete tag 1`] = `
           </span>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -1537,7 +1537,7 @@ exports[`TagList should display add tag 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1557,7 +1557,7 @@ exports[`TagList should display add tag 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1583,34 +1583,34 @@ exports[`TagList should display add tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="tag-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Tag
       </button>
@@ -1626,7 +1626,7 @@ exports[`TagList should display delete tag 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1646,7 +1646,7 @@ exports[`TagList should display delete tag 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1672,25 +1672,25 @@ exports[`TagList should display delete tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -1698,7 +1698,7 @@ exports[`TagList should display delete tag 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -1711,7 +1711,7 @@ exports[`TagList should display delete tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-11 {
+.emotion-6 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -1724,7 +1724,7 @@ exports[`TagList should display delete tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-17 {
+.emotion-9 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -1732,7 +1732,7 @@ exports[`TagList should display delete tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-21 {
+.emotion-11 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
@@ -1755,11 +1755,11 @@ exports[`TagList should display delete tag 1`] = `
   white-space: nowrap;
 }
 
-.emotion-21:hover {
+.emotion-11:hover {
   background: #cbd9f9;
 }
 
-.emotion-21 .tag-remove {
+.emotion-11 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1787,13 +1787,13 @@ exports[`TagList should display delete tag 1`] = `
   width: 28px;
 }
 
-.emotion-21:hover .tag-remove {
+.emotion-11:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-22 {
+.emotion-12 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -1803,22 +1803,22 @@ exports[`TagList should display delete tag 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-22:hover {
+.emotion-12:hover {
   background: #ffffff;
 }
 
-.emotion-24 {
+.emotion-13 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-26 {
+.emotion-14 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-33 {
+.emotion-19 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -1826,22 +1826,22 @@ exports[`TagList should display delete tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-35 {
+.emotion-20 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="tag-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Tag
       </button>
@@ -1849,27 +1849,27 @@ exports[`TagList should display delete tag 1`] = `
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG NAME
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG VALUES
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           EDIT
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           DELETE
         </th>
@@ -1877,25 +1877,25 @@ exports[`TagList should display delete tag 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-15 emotion-16"
+        class="emotion-8"
         data-testid="tag-row"
       >
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           tag-key
         </td>
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -1906,7 +1906,7 @@ exports[`TagList should display delete tag 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -1922,11 +1922,11 @@ exports[`TagList should display delete tag 1`] = `
             </div>
           </div>
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -1937,7 +1937,7 @@ exports[`TagList should display delete tag 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -1954,12 +1954,12 @@ exports[`TagList should display delete tag 1`] = `
           </div>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -1975,12 +1975,12 @@ exports[`TagList should display delete tag 1`] = `
           </span>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -2009,7 +2009,7 @@ exports[`TagList should display delete tag single value 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -2029,7 +2029,7 @@ exports[`TagList should display delete tag single value 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -2055,25 +2055,25 @@ exports[`TagList should display delete tag single value 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -2081,7 +2081,7 @@ exports[`TagList should display delete tag single value 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -2094,7 +2094,7 @@ exports[`TagList should display delete tag single value 1`] = `
   word-break: break-all;
 }
 
-.emotion-11 {
+.emotion-6 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -2107,7 +2107,7 @@ exports[`TagList should display delete tag single value 1`] = `
   word-break: break-all;
 }
 
-.emotion-17 {
+.emotion-9 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -2115,7 +2115,7 @@ exports[`TagList should display delete tag single value 1`] = `
   word-break: break-all;
 }
 
-.emotion-21 {
+.emotion-11 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
@@ -2138,11 +2138,11 @@ exports[`TagList should display delete tag single value 1`] = `
   white-space: nowrap;
 }
 
-.emotion-21:hover {
+.emotion-11:hover {
   background: #cbd9f9;
 }
 
-.emotion-21 .tag-remove {
+.emotion-11 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -2170,13 +2170,13 @@ exports[`TagList should display delete tag single value 1`] = `
   width: 28px;
 }
 
-.emotion-21:hover .tag-remove {
+.emotion-11:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-22 {
+.emotion-12 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -2186,22 +2186,22 @@ exports[`TagList should display delete tag single value 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-22:hover {
+.emotion-12:hover {
   background: #ffffff;
 }
 
-.emotion-24 {
+.emotion-13 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-26 {
+.emotion-14 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-27 {
+.emotion-15 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -2209,22 +2209,22 @@ exports[`TagList should display delete tag single value 1`] = `
   word-break: break-all;
 }
 
-.emotion-29 {
+.emotion-16 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="tag-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Tag
       </button>
@@ -2232,27 +2232,27 @@ exports[`TagList should display delete tag single value 1`] = `
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG NAME
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG VALUES
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           EDIT
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           DELETE
         </th>
@@ -2260,25 +2260,25 @@ exports[`TagList should display delete tag single value 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-15 emotion-16"
+        class="emotion-8"
         data-testid="tag-row"
       >
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           tag-key
         </td>
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -2289,7 +2289,7 @@ exports[`TagList should display delete tag single value 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -2306,12 +2306,12 @@ exports[`TagList should display delete tag single value 1`] = `
           </div>
         </td>
         <td
-          class="emotion-27 emotion-18"
+          class="emotion-15"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-29"
+              class="emotion-16"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -2327,12 +2327,12 @@ exports[`TagList should display delete tag single value 1`] = `
           </span>
         </td>
         <td
-          class="emotion-27 emotion-18"
+          class="emotion-15"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-29"
+              class="emotion-16"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -2361,7 +2361,7 @@ exports[`TagList should display delete tag value 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -2381,7 +2381,7 @@ exports[`TagList should display delete tag value 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -2407,25 +2407,25 @@ exports[`TagList should display delete tag value 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -2433,7 +2433,7 @@ exports[`TagList should display delete tag value 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -2446,7 +2446,7 @@ exports[`TagList should display delete tag value 1`] = `
   word-break: break-all;
 }
 
-.emotion-11 {
+.emotion-6 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -2459,7 +2459,7 @@ exports[`TagList should display delete tag value 1`] = `
   word-break: break-all;
 }
 
-.emotion-17 {
+.emotion-9 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -2467,7 +2467,7 @@ exports[`TagList should display delete tag value 1`] = `
   word-break: break-all;
 }
 
-.emotion-21 {
+.emotion-11 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
@@ -2490,11 +2490,11 @@ exports[`TagList should display delete tag value 1`] = `
   white-space: nowrap;
 }
 
-.emotion-21:hover {
+.emotion-11:hover {
   background: #cbd9f9;
 }
 
-.emotion-21 .tag-remove {
+.emotion-11 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -2522,13 +2522,13 @@ exports[`TagList should display delete tag value 1`] = `
   width: 28px;
 }
 
-.emotion-21:hover .tag-remove {
+.emotion-11:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-22 {
+.emotion-12 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -2538,22 +2538,22 @@ exports[`TagList should display delete tag value 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-22:hover {
+.emotion-12:hover {
   background: #ffffff;
 }
 
-.emotion-24 {
+.emotion-13 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-26 {
+.emotion-14 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-33 {
+.emotion-19 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -2561,22 +2561,22 @@ exports[`TagList should display delete tag value 1`] = `
   word-break: break-all;
 }
 
-.emotion-35 {
+.emotion-20 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="tag-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Tag
       </button>
@@ -2584,27 +2584,27 @@ exports[`TagList should display delete tag value 1`] = `
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG NAME
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG VALUES
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           EDIT
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           DELETE
         </th>
@@ -2612,25 +2612,25 @@ exports[`TagList should display delete tag value 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-15 emotion-16"
+        class="emotion-8"
         data-testid="tag-row"
       >
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           tag-key
         </td>
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -2641,7 +2641,7 @@ exports[`TagList should display delete tag value 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -2657,11 +2657,11 @@ exports[`TagList should display delete tag value 1`] = `
             </div>
           </div>
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -2672,7 +2672,7 @@ exports[`TagList should display delete tag value 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -2689,12 +2689,12 @@ exports[`TagList should display delete tag value 1`] = `
           </div>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -2710,12 +2710,12 @@ exports[`TagList should display delete tag value 1`] = `
           </span>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -2744,7 +2744,7 @@ exports[`TagList should display edit tag 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -2764,7 +2764,7 @@ exports[`TagList should display edit tag 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -2790,25 +2790,25 @@ exports[`TagList should display edit tag 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -2816,7 +2816,7 @@ exports[`TagList should display edit tag 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -2829,7 +2829,7 @@ exports[`TagList should display edit tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-11 {
+.emotion-6 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -2842,7 +2842,7 @@ exports[`TagList should display edit tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-17 {
+.emotion-9 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -2850,7 +2850,7 @@ exports[`TagList should display edit tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-21 {
+.emotion-11 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
@@ -2873,11 +2873,11 @@ exports[`TagList should display edit tag 1`] = `
   white-space: nowrap;
 }
 
-.emotion-21:hover {
+.emotion-11:hover {
   background: #cbd9f9;
 }
 
-.emotion-21 .tag-remove {
+.emotion-11 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -2905,13 +2905,13 @@ exports[`TagList should display edit tag 1`] = `
   width: 28px;
 }
 
-.emotion-21:hover .tag-remove {
+.emotion-11:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-22 {
+.emotion-12 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -2921,22 +2921,22 @@ exports[`TagList should display edit tag 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-22:hover {
+.emotion-12:hover {
   background: #ffffff;
 }
 
-.emotion-24 {
+.emotion-13 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-26 {
+.emotion-14 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-33 {
+.emotion-19 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -2944,22 +2944,22 @@ exports[`TagList should display edit tag 1`] = `
   word-break: break-all;
 }
 
-.emotion-35 {
+.emotion-20 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="tag-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Tag
       </button>
@@ -2967,27 +2967,27 @@ exports[`TagList should display edit tag 1`] = `
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG NAME
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           TAG VALUES
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           EDIT
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           DELETE
         </th>
@@ -2995,25 +2995,25 @@ exports[`TagList should display edit tag 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-15 emotion-16"
+        class="emotion-8"
         data-testid="tag-row"
       >
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           tag-key
         </td>
         <td
-          class="emotion-17 emotion-18"
+          class="emotion-9"
           color="#3570f40D"
         >
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -3024,7 +3024,7 @@ exports[`TagList should display edit tag 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -3040,11 +3040,11 @@ exports[`TagList should display edit tag 1`] = `
             </div>
           </div>
           <div
-            class="emotion-21 denali-tag emotion-22 emotion-23"
+            class="emotion-11 denali-tag emotion-12"
             data-testid="tag"
           >
             <a
-              class="emotion-24 emotion-25"
+              class="emotion-13"
               style="color: rgb(53, 112, 244);"
             >
                
@@ -3055,7 +3055,7 @@ exports[`TagList should display edit tag 1`] = `
               class="tag-remove"
             >
               <svg
-                class="emotion-26"
+                class="emotion-14"
                 data-testid="icon"
                 height="20px"
                 viewBox="0 0 1024 1024"
@@ -3072,12 +3072,12 @@ exports[`TagList should display edit tag 1`] = `
           </div>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -3093,12 +3093,12 @@ exports[`TagList should display edit tag 1`] = `
           </span>
         </td>
         <td
-          class="emotion-33 emotion-18"
+          class="emotion-19"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-35"
+              class="emotion-20"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -3127,7 +3127,7 @@ exports[`TagList should render 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -3147,7 +3147,7 @@ exports[`TagList should render 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -3173,34 +3173,34 @@ exports[`TagList should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="tag-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Tag
       </button>

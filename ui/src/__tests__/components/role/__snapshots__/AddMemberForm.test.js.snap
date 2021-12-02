@@ -9,7 +9,7 @@ exports[`AddMemberForm should render 1`] = `
   grid-template-columns: 23% 20% 20% 20% 10%;
 }
 
-.emotion-2 {
+.emotion-1 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -26,7 +26,7 @@ exports[`AddMemberForm should render 1`] = `
   width: 250px;
 }
 
-.emotion-2 input {
+.emotion-1 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -52,42 +52,42 @@ exports[`AddMemberForm should render 1`] = `
   width: 100%;
 }
 
-.emotion-2.animated input {
+.emotion-1.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-2 input::-webkit-input-placeholder {
+.emotion-1 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-2 input::-moz-placeholder {
+.emotion-1 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-2 input:-ms-input-placeholder {
+.emotion-1 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-2 input::placeholder {
+.emotion-1 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-2 input.focused,
-.emotion-2 input:active,
-.emotion-2 input:focus {
+.emotion-1 input.focused,
+.emotion-1 input:active,
+.emotion-1 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-2 input:invalid {
+.emotion-1 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-2 .message {
+.emotion-1 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -95,23 +95,23 @@ exports[`AddMemberForm should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-2.error input,
-.emotion-2.error input.focused,
-.emotion-2.error input:active,
-.emotion-2.error input:focus {
+.emotion-1.error input,
+.emotion-1.error input.focused,
+.emotion-1.error input:active,
+.emotion-1.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-2.error .message {
+.emotion-1.error .message {
   color: #d01111;
 }
 
-.emotion-3 {
+.emotion-2 {
   width: 100%;
   margin: 5px;
 }
 
-.emotion-5>div input {
+.emotion-3>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   background-color: rgba(53, 112, 244, 0.05);
@@ -138,27 +138,27 @@ exports[`AddMemberForm should render 1`] = `
   width: 80%;
 }
 
-.emotion-7 {
+.emotion-4 {
   margin-left: -7px;
 }
 
-.emotion-9 {
+.emotion-5 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-16 {
+.emotion-10 {
   width: 100%;
   margin: 5px;
   margin-left: 2px;
 }
 
-.emotion-18 {
+.emotion-11 {
   justify-self: end;
 }
 
-.emotion-20 {
+.emotion-12 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -187,17 +187,17 @@ exports[`AddMemberForm should render 1`] = `
   color: #fff;
 }
 
-.emotion-20:first-of-type {
+.emotion-12:first-of-type {
   margin-left: 0;
 }
 
-.emotion-20:disabled {
+.emotion-12:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-20:hover:not(:disabled) {
+.emotion-12:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
                   #3570f4,
@@ -205,19 +205,19 @@ exports[`AddMemberForm should render 1`] = `
               );
 }
 
-.emotion-21 {
+.emotion-13 {
   width: 125px;
 }
 
 <div
   autocomplete="off"
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-member-form"
 >
   <div>
     <div>
       <div
-        class="emotion-2 denali-input animated emotion-3 emotion-4"
+        class="emotion-1 denali-input animated emotion-2"
         data-testid="input-wrapper"
       >
         <input
@@ -237,7 +237,7 @@ exports[`AddMemberForm should render 1`] = `
   </div>
   <div>
     <div
-      class="emotion-5 emotion-6"
+      class="emotion-3"
     >
       <div
         class="fp-roleName"
@@ -258,11 +258,11 @@ exports[`AddMemberForm should render 1`] = `
           type="text"
         />
         <a
-          class="emotion-7 emotion-8"
+          class="emotion-4"
           data-clear=""
         >
           <svg
-            class="emotion-9"
+            class="emotion-5"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -281,7 +281,7 @@ exports[`AddMemberForm should render 1`] = `
   </div>
   <div>
     <div
-      class="emotion-5 emotion-6"
+      class="emotion-3"
     >
       <div
         class="fp-roleName-reminder"
@@ -302,11 +302,11 @@ exports[`AddMemberForm should render 1`] = `
           type="text"
         />
         <a
-          class="emotion-7 emotion-8"
+          class="emotion-4"
           data-clear=""
         >
           <svg
-            class="emotion-9"
+            class="emotion-5"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -326,7 +326,7 @@ exports[`AddMemberForm should render 1`] = `
   <div>
     <div>
       <div
-        class="emotion-2 denali-input animated emotion-16 emotion-17"
+        class="emotion-1 denali-input animated emotion-10"
         data-testid="input-wrapper"
       >
         <input
@@ -345,10 +345,10 @@ exports[`AddMemberForm should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-18 emotion-19"
+    class="emotion-11"
   >
     <button
-      class="emotion-20 denali-button emotion-21 emotion-22"
+      class="emotion-12 denali-button emotion-13"
     >
       Add
     </button>

@@ -6,7 +6,7 @@ exports[`Header should render 1`] = `
   position: relative;
 }
 
-.emotion-2 {
+.emotion-1 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -40,15 +40,15 @@ exports[`Header should render 1`] = `
   z-index: 2;
 }
 
-.emotion-2.scrolled {
+.emotion-1.scrolled {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
 }
 
-.emotion-2 .flush-right {
+.emotion-1 .flush-right {
   margin-left: auto;
 }
 
-.emotion-3 {
+.emotion-2 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -62,7 +62,7 @@ exports[`Header should render 1`] = `
   position: relative;
 }
 
-.emotion-3.simple {
+.emotion-2.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -71,23 +71,23 @@ exports[`Header should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-3.simple.nav-link {
+.emotion-2.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-3.simple.nav-link:hover {
+.emotion-2.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-3.simple.active {
+.emotion-2.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-3.simple.nav-link.active:hover {
+.emotion-2.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-3 .nav-title {
+.emotion-2 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -105,25 +105,25 @@ exports[`Header should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-3.nav-link .nav-title {
+.emotion-2.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-3.active .nav-title,
-.emotion-3 .active.nav-title {
+.emotion-2.active .nav-title,
+.emotion-2 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-3 .nav-title:hover {
+.emotion-2 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-3.nav-link.active .nav-title:hover,
-.emotion-3.nav-link .active.nav-title:hover {
+.emotion-2.nav-link.active .nav-title:hover,
+.emotion-2.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-3 img.nav-logo {
+.emotion-2 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -135,43 +135,43 @@ exports[`Header should render 1`] = `
   height: 34px;
 }
 
-.emotion-3 .nav-icon,
-.emotion-3:hover .nav-icon {
+.emotion-2 .nav-icon,
+.emotion-2:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-3 .nav-icon path,
-.emotion-3:hover .nav-icon path,
-.emotion-3 .nav-icon ellipse,
-.emotion-3:hover .nav-icon ellipse,
-.emotion-3 .nav-icon rect,
-.emotion-3:hover .nav-icon rect,
-.emotion-3 .nav-icon circle,
-.emotion-3:hover .nav-icon circle {
+.emotion-2 .nav-icon path,
+.emotion-2:hover .nav-icon path,
+.emotion-2 .nav-icon ellipse,
+.emotion-2:hover .nav-icon ellipse,
+.emotion-2 .nav-icon rect,
+.emotion-2:hover .nav-icon rect,
+.emotion-2 .nav-icon circle,
+.emotion-2:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-3.nav-link:hover .nav-icon path,
-.emotion-3.nav-link:hover .nav-icon ellipse,
-.emotion-3.nav-link:hover .nav-icon rect,
-.emotion-3.nav-link:hover .nav-icon circle {
+.emotion-2.nav-link:hover .nav-icon path,
+.emotion-2.nav-link:hover .nav-icon ellipse,
+.emotion-2.nav-link:hover .nav-icon rect,
+.emotion-2.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-4 {
+.emotion-3 {
   height: 36px;
   cursor: pointer;
 }
 
-.emotion-6 {
+.emotion-4 {
   margin-left: 10%;
   width: 50%;
 }
 
-.emotion-8 {
+.emotion-5 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -186,7 +186,7 @@ exports[`Header should render 1`] = `
   width: 100%;
 }
 
-.emotion-8.simple {
+.emotion-5.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -195,23 +195,23 @@ exports[`Header should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-8.simple.nav-link {
+.emotion-5.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-8.simple.nav-link:hover {
+.emotion-5.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-8.simple.active {
+.emotion-5.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-8.simple.nav-link.active:hover {
+.emotion-5.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-8 .nav-title {
+.emotion-5 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -229,25 +229,25 @@ exports[`Header should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-8.nav-link .nav-title {
+.emotion-5.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-8.active .nav-title,
-.emotion-8 .active.nav-title {
+.emotion-5.active .nav-title,
+.emotion-5 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-8 .nav-title:hover {
+.emotion-5 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-8.nav-link.active .nav-title:hover,
-.emotion-8.nav-link .active.nav-title:hover {
+.emotion-5.nav-link.active .nav-title:hover,
+.emotion-5.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-8 img.nav-logo {
+.emotion-5 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -259,88 +259,88 @@ exports[`Header should render 1`] = `
   height: 34px;
 }
 
-.emotion-8 .nav-icon,
-.emotion-8:hover .nav-icon {
+.emotion-5 .nav-icon,
+.emotion-5:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-8 .nav-icon path,
-.emotion-8:hover .nav-icon path,
-.emotion-8 .nav-icon ellipse,
-.emotion-8:hover .nav-icon ellipse,
-.emotion-8 .nav-icon rect,
-.emotion-8:hover .nav-icon rect,
-.emotion-8 .nav-icon circle,
-.emotion-8:hover .nav-icon circle {
+.emotion-5 .nav-icon path,
+.emotion-5:hover .nav-icon path,
+.emotion-5 .nav-icon ellipse,
+.emotion-5:hover .nav-icon ellipse,
+.emotion-5 .nav-icon rect,
+.emotion-5:hover .nav-icon rect,
+.emotion-5 .nav-icon circle,
+.emotion-5:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-8.nav-link:hover .nav-icon path,
-.emotion-8.nav-link:hover .nav-icon ellipse,
-.emotion-8.nav-link:hover .nav-icon rect,
-.emotion-8.nav-link:hover .nav-icon circle {
+.emotion-5.nav-link:hover .nav-icon path,
+.emotion-5.nav-link:hover .nav-icon ellipse,
+.emotion-5.nav-link:hover .nav-icon rect,
+.emotion-5.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-10 {
+.emotion-7 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-12 {
+.emotion-8 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-13 {
+.emotion-9 {
   margin-left: 15px;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="header"
 >
   <div
-    class="emotion-2 denali-navbar"
+    class="emotion-1 denali-navbar"
     data-testid="navbar"
   >
     <div
-      class="emotion-3 simple denali-navbar-item"
+      class="emotion-2 simple denali-navbar-item"
       data-testid="navbar-item"
     >
       <a
         href="/"
       >
         <img
-          class="emotion-4 emotion-5"
+          class="emotion-3"
           src="/static/athenz-logo-full.png"
         />
       </a>
     </div>
     <div
-      class="emotion-6 emotion-7"
+      class="emotion-4"
     >
       <div
-        class="emotion-8 simple denali-navbar-item"
+        class="emotion-5 simple denali-navbar-item"
         data-testid="navbar-item"
       />
     </div>
     <div
-      class="emotion-3 simple flush-right denali-navbar-item"
+      class="emotion-2 simple flush-right denali-navbar-item"
       data-testid="navbar-item"
     >
       <div
-        class="emotion-10 emotion-11"
+        class="emotion-7"
         data-testid="header-menu"
       >
         <svg
-          class="emotion-12"
+          class="emotion-8"
           data-testid="icon"
           height="25px"
           viewBox="0 0 1024 1024"
@@ -354,10 +354,10 @@ exports[`Header should render 1`] = `
           />
         </svg>
         <div
-          class="emotion-13 emotion-14"
+          class="emotion-9"
         >
           <svg
-            class="emotion-12"
+            class="emotion-8"
             data-testid="icon"
             height="25px"
             viewBox="0 0 1024 1024"
@@ -389,7 +389,7 @@ exports[`Header should render with search 1`] = `
   position: relative;
 }
 
-.emotion-2 {
+.emotion-1 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -423,15 +423,15 @@ exports[`Header should render with search 1`] = `
   z-index: 2;
 }
 
-.emotion-2.scrolled {
+.emotion-1.scrolled {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
 }
 
-.emotion-2 .flush-right {
+.emotion-1 .flush-right {
   margin-left: auto;
 }
 
-.emotion-3 {
+.emotion-2 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -445,7 +445,7 @@ exports[`Header should render with search 1`] = `
   position: relative;
 }
 
-.emotion-3.simple {
+.emotion-2.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -454,23 +454,23 @@ exports[`Header should render with search 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-3.simple.nav-link {
+.emotion-2.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-3.simple.nav-link:hover {
+.emotion-2.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-3.simple.active {
+.emotion-2.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-3.simple.nav-link.active:hover {
+.emotion-2.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-3 .nav-title {
+.emotion-2 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -488,25 +488,25 @@ exports[`Header should render with search 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-3.nav-link .nav-title {
+.emotion-2.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-3.active .nav-title,
-.emotion-3 .active.nav-title {
+.emotion-2.active .nav-title,
+.emotion-2 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-3 .nav-title:hover {
+.emotion-2 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-3.nav-link.active .nav-title:hover,
-.emotion-3.nav-link .active.nav-title:hover {
+.emotion-2.nav-link.active .nav-title:hover,
+.emotion-2.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-3 img.nav-logo {
+.emotion-2 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -518,43 +518,43 @@ exports[`Header should render with search 1`] = `
   height: 34px;
 }
 
-.emotion-3 .nav-icon,
-.emotion-3:hover .nav-icon {
+.emotion-2 .nav-icon,
+.emotion-2:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-3 .nav-icon path,
-.emotion-3:hover .nav-icon path,
-.emotion-3 .nav-icon ellipse,
-.emotion-3:hover .nav-icon ellipse,
-.emotion-3 .nav-icon rect,
-.emotion-3:hover .nav-icon rect,
-.emotion-3 .nav-icon circle,
-.emotion-3:hover .nav-icon circle {
+.emotion-2 .nav-icon path,
+.emotion-2:hover .nav-icon path,
+.emotion-2 .nav-icon ellipse,
+.emotion-2:hover .nav-icon ellipse,
+.emotion-2 .nav-icon rect,
+.emotion-2:hover .nav-icon rect,
+.emotion-2 .nav-icon circle,
+.emotion-2:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-3.nav-link:hover .nav-icon path,
-.emotion-3.nav-link:hover .nav-icon ellipse,
-.emotion-3.nav-link:hover .nav-icon rect,
-.emotion-3.nav-link:hover .nav-icon circle {
+.emotion-2.nav-link:hover .nav-icon path,
+.emotion-2.nav-link:hover .nav-icon ellipse,
+.emotion-2.nav-link:hover .nav-icon rect,
+.emotion-2.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-4 {
+.emotion-3 {
   height: 36px;
   cursor: pointer;
 }
 
-.emotion-6 {
+.emotion-4 {
   margin-left: 10%;
   width: 50%;
 }
 
-.emotion-8 {
+.emotion-5 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -569,7 +569,7 @@ exports[`Header should render with search 1`] = `
   width: 100%;
 }
 
-.emotion-8.simple {
+.emotion-5.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -578,23 +578,23 @@ exports[`Header should render with search 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-8.simple.nav-link {
+.emotion-5.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-8.simple.nav-link:hover {
+.emotion-5.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-8.simple.active {
+.emotion-5.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-8.simple.nav-link.active:hover {
+.emotion-5.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-8 .nav-title {
+.emotion-5 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -612,25 +612,25 @@ exports[`Header should render with search 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-8.nav-link .nav-title {
+.emotion-5.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-8.active .nav-title,
-.emotion-8 .active.nav-title {
+.emotion-5.active .nav-title,
+.emotion-5 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-8 .nav-title:hover {
+.emotion-5 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-8.nav-link.active .nav-title:hover,
-.emotion-8.nav-link .active.nav-title:hover {
+.emotion-5.nav-link.active .nav-title:hover,
+.emotion-5.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-8 img.nav-logo {
+.emotion-5 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -642,33 +642,33 @@ exports[`Header should render with search 1`] = `
   height: 34px;
 }
 
-.emotion-8 .nav-icon,
-.emotion-8:hover .nav-icon {
+.emotion-5 .nav-icon,
+.emotion-5:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-8 .nav-icon path,
-.emotion-8:hover .nav-icon path,
-.emotion-8 .nav-icon ellipse,
-.emotion-8:hover .nav-icon ellipse,
-.emotion-8 .nav-icon rect,
-.emotion-8:hover .nav-icon rect,
-.emotion-8 .nav-icon circle,
-.emotion-8:hover .nav-icon circle {
+.emotion-5 .nav-icon path,
+.emotion-5:hover .nav-icon path,
+.emotion-5 .nav-icon ellipse,
+.emotion-5:hover .nav-icon ellipse,
+.emotion-5 .nav-icon rect,
+.emotion-5:hover .nav-icon rect,
+.emotion-5 .nav-icon circle,
+.emotion-5:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-8.nav-link:hover .nav-icon path,
-.emotion-8.nav-link:hover .nav-icon ellipse,
-.emotion-8.nav-link:hover .nav-icon rect,
-.emotion-8.nav-link:hover .nav-icon circle {
+.emotion-5.nav-link:hover .nav-icon path,
+.emotion-5.nav-link:hover .nav-icon ellipse,
+.emotion-5.nav-link:hover .nav-icon rect,
+.emotion-5.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-9 {
+.emotion-6 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -685,7 +685,7 @@ exports[`Header should render with search 1`] = `
   width: 100%;
 }
 
-.emotion-9 input {
+.emotion-6 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -711,42 +711,42 @@ exports[`Header should render with search 1`] = `
   width: 100%;
 }
 
-.emotion-9.animated input {
+.emotion-6.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-9 input::-webkit-input-placeholder {
+.emotion-6 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input::-moz-placeholder {
+.emotion-6 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input:-ms-input-placeholder {
+.emotion-6 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input::placeholder {
+.emotion-6 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input.focused,
-.emotion-9 input:active,
-.emotion-9 input:focus {
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-9 input:invalid {
+.emotion-6 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-9 .message {
+.emotion-6 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -754,51 +754,51 @@ exports[`Header should render with search 1`] = `
   top: 2.571rem;
 }
 
-.emotion-9.error input,
-.emotion-9.error input.focused,
-.emotion-9.error input:active,
-.emotion-9.error input:focus {
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-9.error .message {
+.emotion-6.error .message {
   color: #d01111;
 }
 
-.emotion-9 input {
+.emotion-6 input {
   background: rgba(242,242,242,0.1);
   color: #fff;
 }
 
-.emotion-9 input::-webkit-input-placeholder {
+.emotion-6 input::-webkit-input-placeholder {
   color: rgba(255,255,255,0.6);
 }
 
-.emotion-9 input::-moz-placeholder {
+.emotion-6 input::-moz-placeholder {
   color: rgba(255,255,255,0.6);
 }
 
-.emotion-9 input:-ms-input-placeholder {
+.emotion-6 input:-ms-input-placeholder {
   color: rgba(255,255,255,0.6);
 }
 
-.emotion-9 input::placeholder {
+.emotion-6 input::placeholder {
   color: rgba(255,255,255,0.6);
 }
 
-.emotion-9 input.focused,
-.emotion-9 input:active,
-.emotion-9 input:focus {
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
   background: rgba(242,242,242,0.1);
   border-bottom: 2px solid #3570f4;
   color: #fff;
 }
 
-.emotion-9 input {
+.emotion-6 input {
   padding-right: 36px;
 }
 
-.emotion-9 .input-icon {
+.emotion-6 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -812,59 +812,59 @@ exports[`Header should render with search 1`] = `
   right: 6px;
 }
 
-.emotion-10 {
+.emotion-7 {
   fill: #3570f4;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-12 {
+.emotion-9 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-14 {
+.emotion-10 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-15 {
+.emotion-11 {
   margin-left: 15px;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="header"
 >
   <div
-    class="emotion-2 denali-navbar"
+    class="emotion-1 denali-navbar"
     data-testid="navbar"
   >
     <div
-      class="emotion-3 simple denali-navbar-item"
+      class="emotion-2 simple denali-navbar-item"
       data-testid="navbar-item"
     >
       <a
         href="/"
       >
         <img
-          class="emotion-4 emotion-5"
+          class="emotion-3"
           src="/static/athenz-logo-full.png"
         />
       </a>
     </div>
     <div
-      class="emotion-6 emotion-7"
+      class="emotion-4"
     >
       <div
-        class="emotion-8 simple denali-navbar-item"
+        class="emotion-5 simple denali-navbar-item"
         data-testid="navbar-item"
       >
         <div
-          class="emotion-9 denali-input animated"
+          class="emotion-6 denali-input animated"
           data-testid="input-wrapper"
         >
           <input
@@ -878,7 +878,7 @@ exports[`Header should render with search 1`] = `
             class="input-icon"
           >
             <svg
-              class="emotion-10"
+              class="emotion-7"
               data-testid="icon"
               height="24px"
               viewBox="0 0 1024 1024"
@@ -900,15 +900,15 @@ exports[`Header should render with search 1`] = `
       </div>
     </div>
     <div
-      class="emotion-3 simple flush-right denali-navbar-item"
+      class="emotion-2 simple flush-right denali-navbar-item"
       data-testid="navbar-item"
     >
       <div
-        class="emotion-12 emotion-13"
+        class="emotion-9"
         data-testid="header-menu"
       >
         <svg
-          class="emotion-14"
+          class="emotion-10"
           data-testid="icon"
           height="25px"
           viewBox="0 0 1024 1024"
@@ -922,10 +922,10 @@ exports[`Header should render with search 1`] = `
           />
         </svg>
         <div
-          class="emotion-15 emotion-16"
+          class="emotion-11"
         >
           <svg
-            class="emotion-14"
+            class="emotion-10"
             data-testid="icon"
             height="25px"
             viewBox="0 0 1024 1024"

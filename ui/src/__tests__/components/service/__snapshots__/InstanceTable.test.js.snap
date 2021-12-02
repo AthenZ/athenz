@@ -9,7 +9,7 @@ exports[`InstanceTable should render 1`] = `
   border-color: grey;
 }
 
-.emotion-2 {
+.emotion-1 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -22,7 +22,7 @@ exports[`InstanceTable should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-12 {
+.emotion-6 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -34,7 +34,7 @@ exports[`InstanceTable should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-14 {
+.emotion-7 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -42,7 +42,7 @@ exports[`InstanceTable should render 1`] = `
 }
 
 <table
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="instancetable"
 >
   <colgroup>
@@ -65,27 +65,27 @@ exports[`InstanceTable should render 1`] = `
   <thead>
     <tr>
       <th
-        class="emotion-2 emotion-3"
+        class="emotion-1"
       >
         Instance
       </th>
       <th
-        class="emotion-2 emotion-3"
+        class="emotion-1"
       >
         Hostname
       </th>
       <th
-        class="emotion-2 emotion-3"
+        class="emotion-1"
       >
         Provider
       </th>
       <th
-        class="emotion-2 emotion-3"
+        class="emotion-1"
       >
         Expires On
       </th>
       <th
-        class="emotion-2 emotion-3"
+        class="emotion-1"
       >
         Last Certificate Refresh
       </th>
@@ -93,33 +93,33 @@ exports[`InstanceTable should render 1`] = `
   </thead>
   <tbody>
     <tr
-      class="emotion-12 emotion-13"
+      class="emotion-6"
       data-testid="instance-row"
     >
       <td
-        class="emotion-14 emotion-15"
+        class="emotion-7"
         color=""
       >
         host1
       </td>
       <td
-        class="emotion-14 emotion-15"
+        class="emotion-7"
         color=""
       />
       <td
-        class="emotion-14 emotion-15"
+        class="emotion-7"
         color=""
       >
         aws
       </td>
       <td
-        class="emotion-14 emotion-15"
+        class="emotion-7"
         color=""
       >
         Invalid date
       </td>
       <td
-        class="emotion-14 emotion-15"
+        class="emotion-7"
         color=""
       >
         2021-03-28 21:38 UTC

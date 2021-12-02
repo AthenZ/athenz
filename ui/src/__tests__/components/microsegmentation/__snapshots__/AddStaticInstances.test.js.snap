@@ -9,13 +9,13 @@ exports[`AddStaticInstances should render 1`] = `
   overflow-y: scroll;
 }
 
-.emotion-2 {
+.emotion-1 {
   width: 780px;
   text-align: left;
   background-color: #fff;
 }
 
-.emotion-4 {
+.emotion-2 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -31,7 +31,7 @@ exports[`AddStaticInstances should render 1`] = `
   padding: 10px 10px;
 }
 
-.emotion-6 {
+.emotion-3 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -39,7 +39,7 @@ exports[`AddStaticInstances should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-7 {
+.emotion-4 {
   float: left;
   font-size: 14px;
   font-weight: 700;
@@ -47,15 +47,15 @@ exports[`AddStaticInstances should render 1`] = `
   width: 20%;
 }
 
-.emotion-9 {
+.emotion-5 {
   position: relative;
 }
 
-.emotion-9 input {
+.emotion-5 input {
   cursor: inherit;
 }
 
-.emotion-10 {
+.emotion-6 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -72,7 +72,7 @@ exports[`AddStaticInstances should render 1`] = `
   width: 250px;
 }
 
-.emotion-10 input {
+.emotion-6 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -98,42 +98,42 @@ exports[`AddStaticInstances should render 1`] = `
   width: 100%;
 }
 
-.emotion-10.animated input {
+.emotion-6.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-10 input::-webkit-input-placeholder {
+.emotion-6 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-10 input::-moz-placeholder {
+.emotion-6 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-10 input:-ms-input-placeholder {
+.emotion-6 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-10 input::placeholder {
+.emotion-6 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-10 input.focused,
-.emotion-10 input:active,
-.emotion-10 input:focus {
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-10 input:invalid {
+.emotion-6 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-10 .message {
+.emotion-6 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -141,22 +141,22 @@ exports[`AddStaticInstances should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-10.error input,
-.emotion-10.error input.focused,
-.emotion-10.error input:active,
-.emotion-10.error input:focus {
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-10.error .message {
+.emotion-6.error .message {
   color: #d01111;
 }
 
-.emotion-10 input {
+.emotion-6 input {
   padding-right: 36px;
 }
 
-.emotion-10 .input-icon {
+.emotion-6 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -170,13 +170,13 @@ exports[`AddStaticInstances should render 1`] = `
   right: 6px;
 }
 
-.emotion-11 {
+.emotion-7 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-12 {
+.emotion-8 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -193,7 +193,7 @@ exports[`AddStaticInstances should render 1`] = `
   width: 100%;
 }
 
-.emotion-12 input {
+.emotion-8 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -219,42 +219,42 @@ exports[`AddStaticInstances should render 1`] = `
   width: 100%;
 }
 
-.emotion-12.animated input {
+.emotion-8.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-12 input::-webkit-input-placeholder {
+.emotion-8 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-12 input::-moz-placeholder {
+.emotion-8 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-12 input:-ms-input-placeholder {
+.emotion-8 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-12 input::placeholder {
+.emotion-8 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-12 input.focused,
-.emotion-12 input:active,
-.emotion-12 input:focus {
+.emotion-8 input.focused,
+.emotion-8 input:active,
+.emotion-8 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-12 input:invalid {
+.emotion-8 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-12 .message {
+.emotion-8 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -262,35 +262,35 @@ exports[`AddStaticInstances should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-12.error input,
-.emotion-12.error input.focused,
-.emotion-12.error input:active,
-.emotion-12.error input:focus {
+.emotion-8.error input,
+.emotion-8.error input.focused,
+.emotion-8.error input:active,
+.emotion-8.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-12.error .message {
+.emotion-8.error .message {
   color: #d01111;
 }
 
-.emotion-13 {
+.emotion-9 {
   width: 350px;
   padding: 0 12px;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-modal-message"
   height="auto"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
       >
         Type and value:
       </label>
@@ -298,12 +298,12 @@ exports[`AddStaticInstances should render 1`] = `
         aria-expanded="false"
         aria-haspopup="listbox"
         aria-labelledby="downshift-0-label"
-        class="emotion-9 denali-input-dropdown"
+        class="emotion-5 denali-input-dropdown"
         data-testid="input-dropdown"
         role="combobox"
       >
         <div
-          class="emotion-10 denali-input"
+          class="emotion-6 denali-input"
           data-testid="input-wrapper"
         >
           <input
@@ -323,7 +323,7 @@ exports[`AddStaticInstances should render 1`] = `
           >
             
             <svg
-              class="emotion-11"
+              class="emotion-7"
               data-testid="icon"
               height="24px"
               viewBox="0 0 1024 1024"
@@ -344,7 +344,7 @@ exports[`AddStaticInstances should render 1`] = `
         </div>
       </div>
       <div
-        class="emotion-12 denali-input emotion-13 emotion-14"
+        class="emotion-8 denali-input emotion-9"
         data-testid="input-wrapper"
       >
         <input
@@ -372,13 +372,13 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   overflow-y: scroll;
 }
 
-.emotion-2 {
+.emotion-1 {
   width: 780px;
   text-align: left;
   background-color: #fff;
 }
 
-.emotion-4 {
+.emotion-2 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -394,7 +394,7 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   padding: 10px 10px;
 }
 
-.emotion-6 {
+.emotion-3 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -402,7 +402,7 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   white-space: nowrap;
 }
 
-.emotion-7 {
+.emotion-4 {
   float: left;
   font-size: 14px;
   font-weight: 700;
@@ -410,15 +410,15 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   width: 20%;
 }
 
-.emotion-9 {
+.emotion-5 {
   position: relative;
 }
 
-.emotion-9 input {
+.emotion-5 input {
   cursor: inherit;
 }
 
-.emotion-10 {
+.emotion-6 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -435,7 +435,7 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   width: 250px;
 }
 
-.emotion-10 input {
+.emotion-6 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -461,42 +461,42 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   width: 100%;
 }
 
-.emotion-10.animated input {
+.emotion-6.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-10 input::-webkit-input-placeholder {
+.emotion-6 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-10 input::-moz-placeholder {
+.emotion-6 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-10 input:-ms-input-placeholder {
+.emotion-6 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-10 input::placeholder {
+.emotion-6 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-10 input.focused,
-.emotion-10 input:active,
-.emotion-10 input:focus {
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-10 input:invalid {
+.emotion-6 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-10 .message {
+.emotion-6 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -504,22 +504,22 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   top: 2.571rem;
 }
 
-.emotion-10.error input,
-.emotion-10.error input.focused,
-.emotion-10.error input:active,
-.emotion-10.error input:focus {
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-10.error .message {
+.emotion-6.error .message {
   color: #d01111;
 }
 
-.emotion-10 input {
+.emotion-6 input {
   padding-right: 36px;
 }
 
-.emotion-10 .input-icon {
+.emotion-6 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -533,13 +533,13 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   right: 6px;
 }
 
-.emotion-11 {
+.emotion-7 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-12 {
+.emotion-8 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -556,7 +556,7 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   width: 100%;
 }
 
-.emotion-12 input {
+.emotion-8 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -582,42 +582,42 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   width: 100%;
 }
 
-.emotion-12.animated input {
+.emotion-8.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-12 input::-webkit-input-placeholder {
+.emotion-8 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-12 input::-moz-placeholder {
+.emotion-8 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-12 input:-ms-input-placeholder {
+.emotion-8 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-12 input::placeholder {
+.emotion-8 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-12 input.focused,
-.emotion-12 input:active,
-.emotion-12 input:focus {
+.emotion-8 input.focused,
+.emotion-8 input:active,
+.emotion-8 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-12 input:invalid {
+.emotion-8 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-12 .message {
+.emotion-8 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -625,35 +625,35 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   top: 2.571rem;
 }
 
-.emotion-12.error input,
-.emotion-12.error input.focused,
-.emotion-12.error input:active,
-.emotion-12.error input:focus {
+.emotion-8.error input,
+.emotion-8.error input.focused,
+.emotion-8.error input:active,
+.emotion-8.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-12.error .message {
+.emotion-8.error .message {
   color: #d01111;
 }
 
-.emotion-13 {
+.emotion-9 {
   width: 350px;
   padding: 0 12px;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-modal-message"
   height="auto"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
       >
         Type and value:
       </label>
@@ -661,12 +661,12 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
         aria-expanded="false"
         aria-haspopup="listbox"
         aria-labelledby="downshift-1-label"
-        class="emotion-9 denali-input-dropdown"
+        class="emotion-5 denali-input-dropdown"
         data-testid="input-dropdown"
         role="combobox"
       >
         <div
-          class="emotion-10 denali-input"
+          class="emotion-6 denali-input"
           data-testid="input-wrapper"
         >
           <input
@@ -686,7 +686,7 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
           >
             
             <svg
-              class="emotion-11"
+              class="emotion-7"
               data-testid="icon"
               height="24px"
               viewBox="0 0 1024 1024"
@@ -707,7 +707,7 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
         </div>
       </div>
       <div
-        class="emotion-12 denali-input emotion-13 emotion-14"
+        class="emotion-8 denali-input emotion-9"
         data-testid="input-wrapper"
       >
         <input

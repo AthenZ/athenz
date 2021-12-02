@@ -17,30 +17,30 @@ exports[`RoleGroup should render 1`] = `
   padding: 10px 0 10px 0;
 }
 
-.emotion-2 {
+.emotion-1 {
   text-align: left;
   vertical-align: middle;
   word-break: break-all;
   width: 100%;
 }
 
-.emotion-4 {
+.emotion-2 {
   padding-left: 20px;
   width: 100%;
 }
 
-.emotion-6 {
+.emotion-3 {
   margin-right: 10px;
   verticalalign: bottom；;
 }
 
-.emotion-8 {
+.emotion-4 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-9 {
+.emotion-5 {
   text-align: center;
   vertical-align: middle;
   word-break: break-all;
@@ -48,20 +48,20 @@ exports[`RoleGroup should render 1`] = `
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="role-group"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <span
-        class="emotion-6 emotion-7"
+        class="emotion-3"
       >
         <svg
-          class="emotion-8"
+          class="emotion-4"
           data-testid="icon"
           height="1.25em"
           viewBox="0 0 1024 1024"
@@ -82,7 +82,7 @@ exports[`RoleGroup should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-9 emotion-3"
+    class="emotion-5"
   />
 </div>
 `;

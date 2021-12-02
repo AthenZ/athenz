@@ -73,8 +73,7 @@ class GroupMemberList extends React.Component {
         let grp = this.props.groupName.split(':group.')[1];
         this.props.router.push(
             `/domain/${dom}/group/${grp}/members`,
-            `/domain/${dom}/group/${grp}/members`,
-            { getInitialProps: true }
+            `/domain/${dom}/group/${grp}/members`
         );
     }
 

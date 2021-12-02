@@ -7,7 +7,7 @@ exports[`AddRuleForm should render 1`] = `
   background-color: #fff;
 }
 
-.emotion-2 {
+.emotion-1 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -23,7 +23,7 @@ exports[`AddRuleForm should render 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-4 {
+.emotion-2 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -31,21 +31,21 @@ exports[`AddRuleForm should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-5 {
+.emotion-3 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-9 {
+.emotion-5 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -56,17 +56,17 @@ exports[`AddRuleForm should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-9>* {
+.emotion-5>* {
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
 }
 
-.emotion-10 {
+.emotion-6 {
   margin-top: 8px;
 }
 
-.emotion-12 {
+.emotion-7 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -79,7 +79,7 @@ exports[`AddRuleForm should render 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-12>input[type='radio'] {
+.emotion-7>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -88,7 +88,7 @@ exports[`AddRuleForm should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-12>input[type='radio']+label {
+.emotion-7>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -101,7 +101,7 @@ exports[`AddRuleForm should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-12>input[type='radio']+label:before {
+.emotion-7>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -117,29 +117,29 @@ exports[`AddRuleForm should render 1`] = `
   width: 16px;
 }
 
-.emotion-12>input[type='radio']:hover+label:before {
+.emotion-7>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-12>input[type='radio']:focus+label:before {
+.emotion-7>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-12>input[type='radio']:checked+label:before {
+.emotion-7>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-12>input[type='radio']:disabled+label {
+.emotion-7>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-12>input[type='radio']:disabled+label:before {
+.emotion-7>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-12>input[type='radio']:checked+label:after {
+.emotion-7>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -154,11 +154,121 @@ exports[`AddRuleForm should render 1`] = `
   width: 8px;
 }
 
-.emotion-12>input[type='radio']:disabled:checked+label:after {
+.emotion-7>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
+}
+
+.emotion-13 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-13 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-13.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-13 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-13 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-13 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-13 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-13 input.focused,
+.emotion-13 input:active,
+.emotion-13 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-13 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-13 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-13.error input,
+.emotion-13.error input.focused,
+.emotion-13.error input:active,
+.emotion-13.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-13.error .message {
+  color: #d01111;
+}
+
+.emotion-14 {
+  width: 500px;
+}
+
+.emotion-19 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-19 input {
+  cursor: inherit;
 }
 
 .emotion-21 {
@@ -175,7 +285,7 @@ exports[`AddRuleForm should render 1`] = `
   font-size: 14px;
   font-weight: 300;
   position: relative;
-  width: 250px;
+  width: 100%;
 }
 
 .emotion-21 input {
@@ -258,125 +368,11 @@ exports[`AddRuleForm should render 1`] = `
   color: #d01111;
 }
 
-.emotion-22 {
-  width: 500px;
-}
-
-.emotion-31 {
-  position: relative;
-  width: 100%;
-}
-
-.emotion-31 input {
-  cursor: inherit;
-}
-
-.emotion-32 {
-  width: 500px;
-}
-
-.emotion-34 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-34 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-34.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-34 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input.focused,
-.emotion-34 input:active,
-.emotion-34 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-34 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-34 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-34.error input,
-.emotion-34.error input.focused,
-.emotion-34.error input:active,
-.emotion-34.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-34.error .message {
-  color: #d01111;
-}
-
-.emotion-34 input {
+.emotion-21 input {
   padding-right: 36px;
 }
 
-.emotion-34 .input-icon {
+.emotion-21 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -390,13 +386,13 @@ exports[`AddRuleForm should render 1`] = `
   right: 6px;
 }
 
-.emotion-35 {
+.emotion-22 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-50 {
+.emotion-31 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -409,7 +405,7 @@ exports[`AddRuleForm should render 1`] = `
   vertical-align: middle;
 }
 
-.emotion-50>input[type='checkbox'] {
+.emotion-31>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -418,7 +414,7 @@ exports[`AddRuleForm should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-50>input[type='checkbox']+label {
+.emotion-31>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -431,7 +427,7 @@ exports[`AddRuleForm should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-50>input[type='checkbox']+label:before {
+.emotion-31>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -447,33 +443,33 @@ exports[`AddRuleForm should render 1`] = `
   width: 16px;
 }
 
-.emotion-50>input[type='checkbox']:hover+label:before {
+.emotion-31>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-50>input[type='checkbox']:focus+label:before {
+.emotion-31>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-50>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-50>input[type='checkbox']:checked+label:before {
+.emotion-31>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-31>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-50>input[type='checkbox']:disabled+label {
+.emotion-31>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-50>input[type='checkbox']:disabled+label:before {
+.emotion-31>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-50>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-31>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-50>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-31>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -488,7 +484,7 @@ exports[`AddRuleForm should render 1`] = `
   width: 8px;
 }
 
-.emotion-50>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-31>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -510,28 +506,28 @@ exports[`AddRuleForm should render 1`] = `
 
 <div
   autocomplete="off"
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-rule-form"
 >
   
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
       for="rule-effect"
     >
       Rule Effect
     </label>
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
-        class="emotion-9 denali-radiobutton-group emotion-10 emotion-11"
+        class="emotion-5 denali-radiobutton-group emotion-6"
         data-testid="radiobuttongroup"
       >
         <div
-          class="emotion-12 denali-radiobutton"
+          class="emotion-7 denali-radiobutton"
           data-testid="radiobutton-wrapper"
         >
           <input
@@ -548,7 +544,7 @@ exports[`AddRuleForm should render 1`] = `
           </label>
         </div>
         <div
-          class="emotion-12 denali-radiobutton"
+          class="emotion-7 denali-radiobutton"
           data-testid="radiobutton-wrapper"
         >
           <input
@@ -567,19 +563,19 @@ exports[`AddRuleForm should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
       for="rule-action"
     >
       Rule Action
     </label>
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
-        class="emotion-21 denali-input animated emotion-22 emotion-23"
+        class="emotion-13 denali-input animated emotion-14"
         data-testid="input-wrapper"
       >
         <input
@@ -598,27 +594,27 @@ exports[`AddRuleForm should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
       for="rule-role"
     >
       Rule Role
     </label>
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
         aria-expanded="false"
         aria-haspopup="listbox"
         aria-labelledby="downshift-0-label"
-        class="emotion-31 denali-input-dropdown emotion-32 emotion-33"
+        class="emotion-19 denali-input-dropdown emotion-14"
         data-testid="input-dropdown"
         role="combobox"
       >
         <div
-          class="emotion-34 denali-input animated"
+          class="emotion-21 denali-input animated"
           data-testid="input-wrapper"
         >
           <input
@@ -638,7 +634,7 @@ exports[`AddRuleForm should render 1`] = `
           >
             
             <svg
-              class="emotion-35"
+              class="emotion-22"
               data-testid="icon"
               height="24px"
               viewBox="0 0 1024 1024"
@@ -661,19 +657,19 @@ exports[`AddRuleForm should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
       for="rule-resource"
     >
       Rule Resource
     </label>
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
-        class="emotion-21 denali-input animated emotion-22 emotion-23"
+        class="emotion-13 denali-input animated emotion-14"
         data-testid="input-wrapper"
       >
         <input
@@ -692,13 +688,13 @@ exports[`AddRuleForm should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
-        class="emotion-50 denali-checkbox"
+        class="emotion-31 denali-checkbox"
         data-testid="checkbox-wrapper"
       >
         <input
@@ -725,7 +721,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   background-color: #fff;
 }
 
-.emotion-2 {
+.emotion-1 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -741,7 +737,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-4 {
+.emotion-2 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -749,21 +745,21 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   white-space: nowrap;
 }
 
-.emotion-5 {
+.emotion-3 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-9 {
+.emotion-5 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -774,17 +770,17 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-9>* {
+.emotion-5>* {
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
 }
 
-.emotion-10 {
+.emotion-6 {
   margin-top: 8px;
 }
 
-.emotion-12 {
+.emotion-7 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -797,7 +793,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-12>input[type='radio'] {
+.emotion-7>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -806,7 +802,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   visibility: hidden;
 }
 
-.emotion-12>input[type='radio']+label {
+.emotion-7>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -819,7 +815,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   white-space: nowrap;
 }
 
-.emotion-12>input[type='radio']+label:before {
+.emotion-7>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -835,29 +831,29 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   width: 16px;
 }
 
-.emotion-12>input[type='radio']:hover+label:before {
+.emotion-7>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-12>input[type='radio']:focus+label:before {
+.emotion-7>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-12>input[type='radio']:checked+label:before {
+.emotion-7>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-12>input[type='radio']:disabled+label {
+.emotion-7>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-12>input[type='radio']:disabled+label:before {
+.emotion-7>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-12>input[type='radio']:checked+label:after {
+.emotion-7>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -872,11 +868,121 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   width: 8px;
 }
 
-.emotion-12>input[type='radio']:disabled:checked+label:after {
+.emotion-7>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
+}
+
+.emotion-13 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-13 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-13.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-13 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-13 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-13 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-13 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-13 input.focused,
+.emotion-13 input:active,
+.emotion-13 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-13 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-13 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-13.error input,
+.emotion-13.error input.focused,
+.emotion-13.error input:active,
+.emotion-13.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-13.error .message {
+  color: #d01111;
+}
+
+.emotion-14 {
+  width: 500px;
+}
+
+.emotion-19 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-19 input {
+  cursor: inherit;
 }
 
 .emotion-21 {
@@ -893,7 +999,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   font-size: 14px;
   font-weight: 300;
   position: relative;
-  width: 250px;
+  width: 100%;
 }
 
 .emotion-21 input {
@@ -976,125 +1082,11 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   color: #d01111;
 }
 
-.emotion-22 {
-  width: 500px;
-}
-
-.emotion-31 {
-  position: relative;
-  width: 100%;
-}
-
-.emotion-31 input {
-  cursor: inherit;
-}
-
-.emotion-32 {
-  width: 500px;
-}
-
-.emotion-34 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-34 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-34.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-34 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-34 input.focused,
-.emotion-34 input:active,
-.emotion-34 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-34 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-34 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-34.error input,
-.emotion-34.error input.focused,
-.emotion-34.error input:active,
-.emotion-34.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-34.error .message {
-  color: #d01111;
-}
-
-.emotion-34 input {
+.emotion-21 input {
   padding-right: 36px;
 }
 
-.emotion-34 .input-icon {
+.emotion-21 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1108,13 +1100,13 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   right: 6px;
 }
 
-.emotion-35 {
+.emotion-22 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-50 {
+.emotion-31 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -1127,7 +1119,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   vertical-align: middle;
 }
 
-.emotion-50>input[type='checkbox'] {
+.emotion-31>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -1136,7 +1128,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   visibility: hidden;
 }
 
-.emotion-50>input[type='checkbox']+label {
+.emotion-31>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -1149,7 +1141,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   white-space: nowrap;
 }
 
-.emotion-50>input[type='checkbox']+label:before {
+.emotion-31>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -1165,33 +1157,33 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   width: 16px;
 }
 
-.emotion-50>input[type='checkbox']:hover+label:before {
+.emotion-31>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-50>input[type='checkbox']:focus+label:before {
+.emotion-31>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-50>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-50>input[type='checkbox']:checked+label:before {
+.emotion-31>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-31>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-50>input[type='checkbox']:disabled+label {
+.emotion-31>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-50>input[type='checkbox']:disabled+label:before {
+.emotion-31>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-50>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-31>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-50>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-31>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -1206,7 +1198,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   width: 8px;
 }
 
-.emotion-50>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-31>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -1228,28 +1220,28 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
 
 <div
   autocomplete="off"
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-rule-form"
 >
   
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
       for="rule-effect"
     >
       Rule Effect
     </label>
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
-        class="emotion-9 denali-radiobutton-group emotion-10 emotion-11"
+        class="emotion-5 denali-radiobutton-group emotion-6"
         data-testid="radiobuttongroup"
       >
         <div
-          class="emotion-12 denali-radiobutton"
+          class="emotion-7 denali-radiobutton"
           data-testid="radiobutton-wrapper"
         >
           <input
@@ -1266,7 +1258,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
           </label>
         </div>
         <div
-          class="emotion-12 denali-radiobutton"
+          class="emotion-7 denali-radiobutton"
           data-testid="radiobutton-wrapper"
         >
           <input
@@ -1285,19 +1277,19 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
       for="rule-action"
     >
       Rule Action
     </label>
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
-        class="emotion-21 denali-input animated emotion-22 emotion-23"
+        class="emotion-13 denali-input animated emotion-14"
         data-testid="input-wrapper"
       >
         <input
@@ -1316,27 +1308,27 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
       for="rule-role"
     >
       Rule Role
     </label>
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
         aria-expanded="false"
         aria-haspopup="listbox"
         aria-labelledby="downshift-1-label"
-        class="emotion-31 denali-input-dropdown emotion-32 emotion-33"
+        class="emotion-19 denali-input-dropdown emotion-14"
         data-testid="input-dropdown"
         role="combobox"
       >
         <div
-          class="emotion-34 denali-input animated"
+          class="emotion-21 denali-input animated"
           data-testid="input-wrapper"
         >
           <input
@@ -1356,7 +1348,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
           >
             
             <svg
-              class="emotion-35"
+              class="emotion-22"
               data-testid="icon"
               height="24px"
               viewBox="0 0 1024 1024"
@@ -1379,19 +1371,19 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <label
-      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      class="emotion-2 denali-input-label emotion-3"
       for="rule-resource"
     >
       Rule Resource
     </label>
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
-        class="emotion-21 denali-input animated emotion-22 emotion-23"
+        class="emotion-13 denali-input animated emotion-14"
         data-testid="input-wrapper"
       >
         <input
@@ -1410,13 +1402,13 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
     </div>
   </div>
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div
-      class="emotion-7 emotion-8"
+      class="emotion-4"
     >
       <div
-        class="emotion-50 denali-checkbox"
+        class="emotion-31 denali-checkbox"
         data-testid="checkbox-wrapper"
       >
         <input

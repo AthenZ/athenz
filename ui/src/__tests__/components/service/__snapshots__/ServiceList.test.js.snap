@@ -5,7 +5,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -25,7 +25,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -51,25 +51,25 @@ exports[`ServiceList should render add service modal after click 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -77,8 +77,21 @@ exports[`ServiceList should render add service modal after click 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-6 {
+  text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -91,19 +104,6 @@ exports[`ServiceList should render add service modal after click 1`] = `
 }
 
 .emotion-11 {
-  text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-21 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -111,7 +111,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-13 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -119,59 +119,59 @@ exports[`ServiceList should render add service modal after click 1`] = `
   word-break: break-all;
 }
 
-.emotion-27 {
+.emotion-14 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="service-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Service
       </button>
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Service
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Modified Date
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Instances
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Public Keys
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Providers
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Delete
         </th>
@@ -179,27 +179,27 @@ exports[`ServiceList should render add service modal after click 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-19 emotion-20"
+        class="emotion-10"
         data-testid="service-row"
       >
         <td
-          class="emotion-21 emotion-22"
+          class="emotion-11"
           color="#3570f40D"
         >
           openhouse
         </td>
         <td
-          class="emotion-21 emotion-22"
+          class="emotion-11"
           color="#3570f40D"
         >
           2020-02-08 00:02 UTC
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -214,11 +214,11 @@ exports[`ServiceList should render add service modal after click 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -233,11 +233,11 @@ exports[`ServiceList should render add service modal after click 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -252,11 +252,11 @@ exports[`ServiceList should render add service modal after click 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -294,7 +294,7 @@ exports[`ServiceList should render delete service modal error(other) after click
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -314,7 +314,7 @@ exports[`ServiceList should render delete service modal error(other) after click
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -340,25 +340,25 @@ exports[`ServiceList should render delete service modal error(other) after click
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -366,8 +366,21 @@ exports[`ServiceList should render delete service modal error(other) after click
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-6 {
+  text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -380,19 +393,6 @@ exports[`ServiceList should render delete service modal error(other) after click
 }
 
 .emotion-11 {
-  text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-21 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -400,7 +400,7 @@ exports[`ServiceList should render delete service modal error(other) after click
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-13 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -408,22 +408,22 @@ exports[`ServiceList should render delete service modal error(other) after click
   word-break: break-all;
 }
 
-.emotion-27 {
+.emotion-14 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="service-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Service
       </button>
@@ -431,37 +431,37 @@ exports[`ServiceList should render delete service modal error(other) after click
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Service
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Modified Date
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Instances
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Public Keys
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Providers
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Delete
         </th>
@@ -469,27 +469,27 @@ exports[`ServiceList should render delete service modal error(other) after click
     </thead>
     <tbody>
       <tr
-        class="emotion-19 emotion-20"
+        class="emotion-10"
         data-testid="service-row"
       >
         <td
-          class="emotion-21 emotion-22"
+          class="emotion-11"
           color="#3570f40D"
         >
           openhouse
         </td>
         <td
-          class="emotion-21 emotion-22"
+          class="emotion-11"
           color="#3570f40D"
         >
           2020-02-08 00:02 UTC
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -504,11 +504,11 @@ exports[`ServiceList should render delete service modal error(other) after click
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -523,11 +523,11 @@ exports[`ServiceList should render delete service modal error(other) after click
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -542,11 +542,11 @@ exports[`ServiceList should render delete service modal error(other) after click
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -574,7 +574,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -594,7 +594,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -620,25 +620,25 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -646,8 +646,21 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-6 {
+  text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -660,19 +673,6 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
 }
 
 .emotion-11 {
-  text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-21 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -680,7 +680,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-13 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -688,22 +688,22 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   word-break: break-all;
 }
 
-.emotion-27 {
+.emotion-14 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="service-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Service
       </button>
@@ -711,37 +711,37 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Service
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Modified Date
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Instances
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Public Keys
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Providers
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Delete
         </th>
@@ -749,27 +749,27 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
     </thead>
     <tbody>
       <tr
-        class="emotion-19 emotion-20"
+        class="emotion-10"
         data-testid="service-row"
       >
         <td
-          class="emotion-21 emotion-22"
+          class="emotion-11"
           color="#3570f40D"
         >
           openhouse
         </td>
         <td
-          class="emotion-21 emotion-22"
+          class="emotion-11"
           color="#3570f40D"
         >
           2020-02-08 00:02 UTC
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -784,11 +784,11 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -803,11 +803,11 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -822,11 +822,11 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -854,7 +854,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -874,7 +874,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -900,25 +900,25 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -926,8 +926,21 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-6 {
+  text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -940,19 +953,6 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
 }
 
 .emotion-11 {
-  text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-21 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -960,7 +960,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-13 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -968,22 +968,22 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   word-break: break-all;
 }
 
-.emotion-27 {
+.emotion-14 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="service-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Service
       </button>
@@ -991,37 +991,37 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Service
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Modified Date
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Instances
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Public Keys
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Providers
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Delete
         </th>
@@ -1029,27 +1029,27 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-19 emotion-20"
+        class="emotion-10"
         data-testid="service-row"
       >
         <td
-          class="emotion-21 emotion-22"
+          class="emotion-11"
           color="#3570f40D"
         >
           openhouse
         </td>
         <td
-          class="emotion-21 emotion-22"
+          class="emotion-11"
           color="#3570f40D"
         >
           2020-02-08 00:02 UTC
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1064,11 +1064,11 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1083,11 +1083,11 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1102,11 +1102,11 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1134,7 +1134,7 @@ exports[`ServiceList should render serviceList again after confirm delete 1`] = 
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1154,7 +1154,7 @@ exports[`ServiceList should render serviceList again after confirm delete 1`] = 
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1180,25 +1180,25 @@ exports[`ServiceList should render serviceList again after confirm delete 1`] = 
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -1206,7 +1206,7 @@ exports[`ServiceList should render serviceList again after confirm delete 1`] = 
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -1219,7 +1219,7 @@ exports[`ServiceList should render serviceList again after confirm delete 1`] = 
   word-break: break-all;
 }
 
-.emotion-11 {
+.emotion-6 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -1233,15 +1233,15 @@ exports[`ServiceList should render serviceList again after confirm delete 1`] = 
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="service-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Service
       </button>
@@ -1249,37 +1249,37 @@ exports[`ServiceList should render serviceList again after confirm delete 1`] = 
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Service
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Modified Date
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Instances
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Public Keys
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Providers
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Delete
         </th>
@@ -1295,7 +1295,7 @@ exports[`ServiceList should render with services 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1315,7 +1315,7 @@ exports[`ServiceList should render with services 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1341,25 +1341,25 @@ exports[`ServiceList should render with services 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -1367,8 +1367,21 @@ exports[`ServiceList should render with services 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-6 {
+  text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -1381,19 +1394,6 @@ exports[`ServiceList should render with services 1`] = `
 }
 
 .emotion-11 {
-  text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-21 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -1401,7 +1401,7 @@ exports[`ServiceList should render with services 1`] = `
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-13 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -1409,22 +1409,22 @@ exports[`ServiceList should render with services 1`] = `
   word-break: break-all;
 }
 
-.emotion-27 {
+.emotion-14 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="service-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Service
       </button>
@@ -1432,37 +1432,37 @@ exports[`ServiceList should render with services 1`] = `
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Service
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Modified Date
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Instances
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Public Keys
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Providers
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Delete
         </th>
@@ -1470,27 +1470,27 @@ exports[`ServiceList should render with services 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-19 emotion-20"
+        class="emotion-10"
         data-testid="service-row"
       >
         <td
-          class="emotion-21 emotion-22"
+          class="emotion-11"
           color="#3570f40D"
         >
           openhouse
         </td>
         <td
-          class="emotion-21 emotion-22"
+          class="emotion-11"
           color="#3570f40D"
         >
           2020-02-08 00:02 UTC
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1505,11 +1505,11 @@ exports[`ServiceList should render with services 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1524,11 +1524,11 @@ exports[`ServiceList should render with services 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1543,11 +1543,11 @@ exports[`ServiceList should render with services 1`] = `
           </svg>
         </td>
         <td
-          class="emotion-25 emotion-22"
+          class="emotion-13"
           color="#3570f40D"
         >
           <svg
-            class="emotion-27"
+            class="emotion-14"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -1575,7 +1575,7 @@ exports[`ServiceList should render without services 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1595,7 +1595,7 @@ exports[`ServiceList should render without services 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1621,25 +1621,25 @@ exports[`ServiceList should render without services 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -1647,7 +1647,7 @@ exports[`ServiceList should render without services 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -1660,7 +1660,7 @@ exports[`ServiceList should render without services 1`] = `
   word-break: break-all;
 }
 
-.emotion-11 {
+.emotion-6 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -1674,15 +1674,15 @@ exports[`ServiceList should render without services 1`] = `
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="service-list"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Service
       </button>
@@ -1690,37 +1690,37 @@ exports[`ServiceList should render without services 1`] = `
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Service
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Modified Date
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Instances
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Public Keys
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Providers
         </th>
         <th
-          class="emotion-11 emotion-8"
+          class="emotion-6"
         >
           Delete
         </th>

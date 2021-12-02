@@ -19,7 +19,6 @@ const express = require('express');
 const next = require('next');
 const appConfig = require('./src/config/config')();
 const secrets = require('./src/server/secrets');
-const appRoutes = require('./src/routes');
 const handlers = {
     api: require('./src/server/handlers/api'),
     passportAuth: require('./src/server/handlers/passportAuth'),
@@ -45,7 +44,20 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
             handlers.secure(expressApp, appConfig, secrets);
             handlers.passportAuth.auth(expressApp, appConfig, secrets);
             handlers.routes.route(expressApp, appConfig, secrets);
-            expressApp.use(appRoutes.getRequestHandler(nextApp));
+            expressApp.get('/my_special_page/:special_value', (req, res) => {
+                const intValue = parseInt(req.params.special_value)
+                if(intValue) {
+                    return nextApp.render(req, res, `/special_int`, req.query)
+                } else {
+                    return nextApp.render(req, res, `/special_string`, req.query)
+                }
+            });
+            expressApp.get('/', (req, res) => {
+                return nextApp.render(req, res, `/index`, req.query)
+            });
+            expressApp.get('*', (req, res) => {
+                return nextApp.render(req, res, `${req.path}`, req.query)
+            });
 
             const server = https.createServer(
                 {

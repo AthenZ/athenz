@@ -7,7 +7,7 @@ exports[`ServiceList should render 1`] = `
   max-height: 600px;
 }
 
-.emotion-2 {
+.emotion-1 {
   width: 100%;
   text-align: center;
   border-spacing: 0;
@@ -25,49 +25,49 @@ exports[`ServiceList should render 1`] = `
   max-height: 600px;
 }
 
-.emotion-4:nth-child(even) {
+.emotion-2:nth-child(even) {
   background-color: #3570f40d;
 }
 
-.emotion-6 {
+.emotion-3 {
   padding: 6px;
   border: 1px solid #dddddd;
 }
 
-.emotion-10 {
+.emotion-5 {
   border: 1px solid #dddddd;
   padding: 5px;
   color: blue;
 }
 
-.emotion-12 {
+.emotion-6 {
   cursor: pointer;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="segmentation-service-list"
 >
   <table
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <tr
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <th
-        class="emotion-6 emotion-7"
+        class="emotion-3"
       >
          Services 
       </th>
     </tr>
     <tr
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <td
-        class="emotion-10 emotion-11"
+        class="emotion-5"
       >
         <a
-          class="emotion-12 emotion-13"
+          class="emotion-6"
         >
            
           serviceB
@@ -76,13 +76,13 @@ exports[`ServiceList should render 1`] = `
       </td>
     </tr>
     <tr
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <td
-        class="emotion-10 emotion-11"
+        class="emotion-5"
       >
         <a
-          class="emotion-12 emotion-13"
+          class="emotion-6"
         >
            
           serviceC
@@ -91,13 +91,13 @@ exports[`ServiceList should render 1`] = `
       </td>
     </tr>
     <tr
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <td
-        class="emotion-10 emotion-11"
+        class="emotion-5"
       >
         <a
-          class="emotion-12 emotion-13"
+          class="emotion-6"
         >
            
           serviceD

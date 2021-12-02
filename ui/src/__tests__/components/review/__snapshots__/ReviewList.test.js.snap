@@ -6,7 +6,7 @@ exports[`ReviewList should render 1`] = `
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="review-list"
 />
 `;
@@ -17,7 +17,7 @@ exports[`ReviewList should render delegated role 1`] = `
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="review-list"
 />
 `;

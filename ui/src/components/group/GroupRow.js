@@ -96,7 +96,7 @@ class GroupRow extends React.Component {
     }
 
     onClickFunction(route) {
-        this.props.router.push(route, route, { getInitialProps: true });
+        this.props.router.push(route, route);
     }
 
     onSubmitDelete(domain) {

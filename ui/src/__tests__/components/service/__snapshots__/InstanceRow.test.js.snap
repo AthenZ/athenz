@@ -13,7 +13,7 @@ exports[`GroupRow should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-2 {
+.emotion-1 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -22,11 +22,11 @@ exports[`GroupRow should render 1`] = `
 }
 
 <tr
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="instance-row"
 >
   <td
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     color="#3570f40D"
   >
     10.3.1.1

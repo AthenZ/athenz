@@ -9,7 +9,7 @@ exports[`TemplateRow should render templateRow 1`] = `
   word-break: break-all;
 }
 
-.emotion-2 {
+.emotion-1 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -17,13 +17,13 @@ exports[`TemplateRow should render templateRow 1`] = `
   word-break: break-all;
 }
 
-.emotion-4 {
+.emotion-2 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-13 {
+.emotion-7 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -53,17 +53,17 @@ exports[`TemplateRow should render templateRow 1`] = `
   color: #fff;
 }
 
-.emotion-13:first-of-type {
+.emotion-7:first-of-type {
   margin-left: 0;
 }
 
-.emotion-13:disabled {
+.emotion-7:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-13:hover:not(:disabled) {
+.emotion-7:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
                   #3570f4,
@@ -75,16 +75,16 @@ exports[`TemplateRow should render templateRow 1`] = `
   data-testid="template-row"
 >
   <td
-    class="emotion-0 emotion-1"
+    class="emotion-0"
     color="#3570f40D"
   />
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-4"
+        class="emotion-2"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -106,27 +106,27 @@ exports[`TemplateRow should render templateRow 1`] = `
     </span>
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     0
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     1
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   />
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     <button
-      class="emotion-13 denali-button"
+      class="emotion-7 denali-button"
       type="submit"
     >
       Update
@@ -145,7 +145,7 @@ exports[`TemplateRow should render templaterow with pop up 1`] = `
   word-break: break-all;
 }
 
-.emotion-2 {
+.emotion-1 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -153,13 +153,13 @@ exports[`TemplateRow should render templaterow with pop up 1`] = `
   word-break: break-all;
 }
 
-.emotion-4 {
+.emotion-2 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-13 {
+.emotion-7 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -186,21 +186,21 @@ exports[`TemplateRow should render templaterow with pop up 1`] = `
   color: #3697f2;
 }
 
-.emotion-13:first-of-type {
+.emotion-7:first-of-type {
   margin-left: 0;
 }
 
-.emotion-13:disabled {
+.emotion-7:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-13:disabled {
+.emotion-7:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-13:hover:not(:disabled) {
+.emotion-7:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
@@ -208,18 +208,18 @@ exports[`TemplateRow should render templaterow with pop up 1`] = `
   data-testid="template-row"
 >
   <td
-    class="emotion-0 emotion-1"
+    class="emotion-0"
     color="#3570f40D"
   >
     aws
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-4"
+        class="emotion-2"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -241,27 +241,27 @@ exports[`TemplateRow should render templaterow with pop up 1`] = `
     </span>
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     2
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     2
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   />
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     <button
-      class="emotion-13 denali-button"
+      class="emotion-7 denali-button"
       type="submit"
     >
       Update
@@ -280,7 +280,7 @@ exports[`TemplateRow should render with description 1`] = `
   word-break: break-all;
 }
 
-.emotion-2 {
+.emotion-1 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -288,13 +288,13 @@ exports[`TemplateRow should render with description 1`] = `
   word-break: break-all;
 }
 
-.emotion-4 {
+.emotion-2 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-13 {
+.emotion-7 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -321,21 +321,21 @@ exports[`TemplateRow should render with description 1`] = `
   color: #3697f2;
 }
 
-.emotion-13:first-of-type {
+.emotion-7:first-of-type {
   margin-left: 0;
 }
 
-.emotion-13:disabled {
+.emotion-7:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-13:disabled {
+.emotion-7:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-13:hover:not(:disabled) {
+.emotion-7:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
@@ -343,16 +343,16 @@ exports[`TemplateRow should render with description 1`] = `
   data-testid="template-row"
 >
   <td
-    class="emotion-0 emotion-1"
+    class="emotion-0"
     color="#3570f40D"
   />
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-4"
+        class="emotion-2"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -374,27 +374,27 @@ exports[`TemplateRow should render with description 1`] = `
     </span>
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     2
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     2
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   />
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     <button
-      class="emotion-13 denali-button"
+      class="emotion-7 denali-button"
       type="submit"
     >
       Update
@@ -413,7 +413,7 @@ exports[`TemplateRow should render without pop up 1`] = `
   word-break: break-all;
 }
 
-.emotion-2 {
+.emotion-1 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -421,13 +421,13 @@ exports[`TemplateRow should render without pop up 1`] = `
   word-break: break-all;
 }
 
-.emotion-4 {
+.emotion-2 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-13 {
+.emotion-7 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -454,21 +454,21 @@ exports[`TemplateRow should render without pop up 1`] = `
   color: #3697f2;
 }
 
-.emotion-13:first-of-type {
+.emotion-7:first-of-type {
   margin-left: 0;
 }
 
-.emotion-13:disabled {
+.emotion-7:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-13:disabled {
+.emotion-7:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-13:hover:not(:disabled) {
+.emotion-7:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
@@ -476,16 +476,16 @@ exports[`TemplateRow should render without pop up 1`] = `
   data-testid="template-row"
 >
   <td
-    class="emotion-0 emotion-1"
+    class="emotion-0"
     color="#3570f40D"
   />
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-4"
+        class="emotion-2"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -507,27 +507,27 @@ exports[`TemplateRow should render without pop up 1`] = `
     </span>
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     2
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     2
   </td>
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   />
   <td
-    class="emotion-2 emotion-1"
+    class="emotion-1"
     color="#3570f40D"
   >
     <button
-      class="emotion-13 denali-button"
+      class="emotion-7 denali-button"
       type="submit"
     >
       Update

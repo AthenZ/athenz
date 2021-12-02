@@ -54,10 +54,7 @@ class Search extends React.Component {
                                 }/${this.state.searchText.trim()}`,
                                 `/search/${
                                     this.state.selected
-                                }/${this.state.searchText.trim()}`,
-                                {
-                                    getInitialProps: true,
-                                }
+                                }/${this.state.searchText.trim()}`
                             );
                         }
                     }

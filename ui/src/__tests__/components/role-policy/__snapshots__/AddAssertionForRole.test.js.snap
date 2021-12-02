@@ -5,13 +5,13 @@ exports[`AddAssertionForRole should render 1`] = `
   background-color: #fff;
 }
 
-.emotion-2 {
+.emotion-1 {
   width: 100%;
   text-align: left;
   background-color: #fff;
 }
 
-.emotion-4 {
+.emotion-2 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -27,7 +27,7 @@ exports[`AddAssertionForRole should render 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-6 {
+.emotion-3 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -35,21 +35,21 @@ exports[`AddAssertionForRole should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-9 {
+.emotion-5 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-11 {
+.emotion-6 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -60,17 +60,17 @@ exports[`AddAssertionForRole should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-11>* {
+.emotion-6>* {
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
 }
 
-.emotion-12 {
+.emotion-7 {
   margin-top: 8px;
 }
 
-.emotion-14 {
+.emotion-8 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -83,7 +83,7 @@ exports[`AddAssertionForRole should render 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-14>input[type='radio'] {
+.emotion-8>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -92,7 +92,7 @@ exports[`AddAssertionForRole should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-14>input[type='radio']+label {
+.emotion-8>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -105,7 +105,7 @@ exports[`AddAssertionForRole should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-14>input[type='radio']+label:before {
+.emotion-8>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -121,29 +121,29 @@ exports[`AddAssertionForRole should render 1`] = `
   width: 16px;
 }
 
-.emotion-14>input[type='radio']:hover+label:before {
+.emotion-8>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-14>input[type='radio']:focus+label:before {
+.emotion-8>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-14>input[type='radio']:checked+label:before {
+.emotion-8>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-14>input[type='radio']:disabled+label {
+.emotion-8>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-14>input[type='radio']:disabled+label:before {
+.emotion-8>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-14>input[type='radio']:checked+label:after {
+.emotion-8>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -158,14 +158,14 @@ exports[`AddAssertionForRole should render 1`] = `
   width: 8px;
 }
 
-.emotion-14>input[type='radio']:disabled:checked+label:after {
+.emotion-8>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-23 {
+.emotion-14 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -182,7 +182,7 @@ exports[`AddAssertionForRole should render 1`] = `
   width: 250px;
 }
 
-.emotion-23 input {
+.emotion-14 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -208,42 +208,42 @@ exports[`AddAssertionForRole should render 1`] = `
   width: 100%;
 }
 
-.emotion-23.animated input {
+.emotion-14.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-23 input::-webkit-input-placeholder {
+.emotion-14 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-23 input::-moz-placeholder {
+.emotion-14 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-23 input:-ms-input-placeholder {
+.emotion-14 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-23 input::placeholder {
+.emotion-14 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-23 input.focused,
-.emotion-23 input:active,
-.emotion-23 input:focus {
+.emotion-14 input.focused,
+.emotion-14 input:active,
+.emotion-14 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-23 input:invalid {
+.emotion-14 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-23 .message {
+.emotion-14 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -251,22 +251,22 @@ exports[`AddAssertionForRole should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-23.error input,
-.emotion-23.error input.focused,
-.emotion-23.error input:active,
-.emotion-23.error input:focus {
+.emotion-14.error input,
+.emotion-14.error input.focused,
+.emotion-14.error input:active,
+.emotion-14.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-23.error .message {
+.emotion-14.error .message {
   color: #d01111;
 }
 
-.emotion-24 {
+.emotion-15 {
   width: 500px;
 }
 
-.emotion-40 {
+.emotion-24 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -279,7 +279,7 @@ exports[`AddAssertionForRole should render 1`] = `
   vertical-align: middle;
 }
 
-.emotion-40>input[type='checkbox'] {
+.emotion-24>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -288,7 +288,7 @@ exports[`AddAssertionForRole should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-40>input[type='checkbox']+label {
+.emotion-24>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -301,7 +301,7 @@ exports[`AddAssertionForRole should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-40>input[type='checkbox']+label:before {
+.emotion-24>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -317,33 +317,33 @@ exports[`AddAssertionForRole should render 1`] = `
   width: 16px;
 }
 
-.emotion-40>input[type='checkbox']:hover+label:before {
+.emotion-24>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-40>input[type='checkbox']:focus+label:before {
+.emotion-24>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-40>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-40>input[type='checkbox']:checked+label:before {
+.emotion-24>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-24>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-40>input[type='checkbox']:disabled+label {
+.emotion-24>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-40>input[type='checkbox']:disabled+label:before {
+.emotion-24>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-40>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-24>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-40>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-24>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -358,7 +358,7 @@ exports[`AddAssertionForRole should render 1`] = `
   width: 8px;
 }
 
-.emotion-40>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-24>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -378,11 +378,11 @@ exports[`AddAssertionForRole should render 1`] = `
   width: 4.5px;
 }
 
-.emotion-41 {
+.emotion-25 {
   margin-left: 155px;
 }
 
-.emotion-43 {
+.emotion-26 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -411,17 +411,17 @@ exports[`AddAssertionForRole should render 1`] = `
   color: #fff;
 }
 
-.emotion-43:first-of-type {
+.emotion-26:first-of-type {
   margin-left: 0;
 }
 
-.emotion-43:disabled {
+.emotion-26:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-43:hover:not(:disabled) {
+.emotion-26:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
                   #3570f4,
@@ -429,12 +429,12 @@ exports[`AddAssertionForRole should render 1`] = `
               );
 }
 
-.emotion-44 {
+.emotion-27 {
   min-width: 8.5em;
   min-height: 1em;
 }
 
-.emotion-46 {
+.emotion-28 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -460,52 +460,52 @@ exports[`AddAssertionForRole should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-46:first-of-type {
+.emotion-28:first-of-type {
   margin-left: 0;
 }
 
-.emotion-46:disabled {
+.emotion-28:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-46:disabled {
+.emotion-28:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-46:hover:not(:disabled) {
+.emotion-28:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-assertion-for-role"
 >
   <div
     autocomplete="off"
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     data-testid="add-rule-form-for-role"
   >
     
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-effect"
       >
         Rule Effect
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-radiobutton-group emotion-12 emotion-13"
+          class="emotion-6 denali-radiobutton-group emotion-7"
           data-testid="radiobuttongroup"
         >
           <div
-            class="emotion-14 denali-radiobutton"
+            class="emotion-8 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -522,7 +522,7 @@ exports[`AddAssertionForRole should render 1`] = `
             </label>
           </div>
           <div
-            class="emotion-14 denali-radiobutton"
+            class="emotion-8 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -541,19 +541,19 @@ exports[`AddAssertionForRole should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-action"
       >
         Rule Action
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-23 denali-input animated emotion-24 emotion-25"
+          class="emotion-14 denali-input animated emotion-15"
           data-testid="input-wrapper"
         >
           <input
@@ -572,19 +572,19 @@ exports[`AddAssertionForRole should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-resource"
       >
         Rule Resource
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-23 denali-input animated emotion-24 emotion-25"
+          class="emotion-14 denali-input animated emotion-15"
           data-testid="input-wrapper"
         >
           <input
@@ -603,13 +603,13 @@ exports[`AddAssertionForRole should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-40 denali-checkbox"
+          class="emotion-24 denali-checkbox"
           data-testid="checkbox-wrapper"
         >
           <input
@@ -628,15 +628,15 @@ exports[`AddAssertionForRole should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-41 emotion-42"
+    class="emotion-25"
   >
     <button
-      class="emotion-43 denali-button emotion-44 emotion-45"
+      class="emotion-26 denali-button emotion-27"
     >
       Submit
     </button>
     <button
-      class="emotion-46 denali-button emotion-44 emotion-45"
+      class="emotion-28 denali-button emotion-27"
     >
       Cancel
     </button>
@@ -649,13 +649,13 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   background-color: #fff;
 }
 
-.emotion-2 {
+.emotion-1 {
   width: 100%;
   text-align: left;
   background-color: #fff;
 }
 
-.emotion-4 {
+.emotion-2 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -671,7 +671,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   padding: 10px 30px;
 }
 
-.emotion-6 {
+.emotion-3 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -679,21 +679,21 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   white-space: nowrap;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-9 {
+.emotion-5 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-11 {
+.emotion-6 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -704,17 +704,17 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   flex-flow: row nowrap;
 }
 
-.emotion-11>* {
+.emotion-6>* {
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
 }
 
-.emotion-12 {
+.emotion-7 {
   margin-top: 8px;
 }
 
-.emotion-14 {
+.emotion-8 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -727,7 +727,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   vertical-align: bottom;
 }
 
-.emotion-14>input[type='radio'] {
+.emotion-8>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -736,7 +736,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   visibility: hidden;
 }
 
-.emotion-14>input[type='radio']+label {
+.emotion-8>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -749,7 +749,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   white-space: nowrap;
 }
 
-.emotion-14>input[type='radio']+label:before {
+.emotion-8>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -765,29 +765,29 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   width: 16px;
 }
 
-.emotion-14>input[type='radio']:hover+label:before {
+.emotion-8>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-14>input[type='radio']:focus+label:before {
+.emotion-8>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-14>input[type='radio']:checked+label:before {
+.emotion-8>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-14>input[type='radio']:disabled+label {
+.emotion-8>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-14>input[type='radio']:disabled+label:before {
+.emotion-8>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-14>input[type='radio']:checked+label:after {
+.emotion-8>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -802,14 +802,14 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   width: 8px;
 }
 
-.emotion-14>input[type='radio']:disabled:checked+label:after {
+.emotion-8>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-23 {
+.emotion-14 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -826,7 +826,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   width: 250px;
 }
 
-.emotion-23 input {
+.emotion-14 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -852,42 +852,42 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   width: 100%;
 }
 
-.emotion-23.animated input {
+.emotion-14.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-23 input::-webkit-input-placeholder {
+.emotion-14 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-23 input::-moz-placeholder {
+.emotion-14 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-23 input:-ms-input-placeholder {
+.emotion-14 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-23 input::placeholder {
+.emotion-14 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-23 input.focused,
-.emotion-23 input:active,
-.emotion-23 input:focus {
+.emotion-14 input.focused,
+.emotion-14 input:active,
+.emotion-14 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-23 input:invalid {
+.emotion-14 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-23 .message {
+.emotion-14 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -895,22 +895,22 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   top: 2.571rem;
 }
 
-.emotion-23.error input,
-.emotion-23.error input.focused,
-.emotion-23.error input:active,
-.emotion-23.error input:focus {
+.emotion-14.error input,
+.emotion-14.error input.focused,
+.emotion-14.error input:active,
+.emotion-14.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-23.error .message {
+.emotion-14.error .message {
   color: #d01111;
 }
 
-.emotion-24 {
+.emotion-15 {
   width: 500px;
 }
 
-.emotion-40 {
+.emotion-24 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -923,7 +923,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   vertical-align: middle;
 }
 
-.emotion-40>input[type='checkbox'] {
+.emotion-24>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -932,7 +932,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   visibility: hidden;
 }
 
-.emotion-40>input[type='checkbox']+label {
+.emotion-24>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -945,7 +945,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   white-space: nowrap;
 }
 
-.emotion-40>input[type='checkbox']+label:before {
+.emotion-24>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -961,33 +961,33 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   width: 16px;
 }
 
-.emotion-40>input[type='checkbox']:hover+label:before {
+.emotion-24>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-40>input[type='checkbox']:focus+label:before {
+.emotion-24>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-40>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-40>input[type='checkbox']:checked+label:before {
+.emotion-24>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-24>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-40>input[type='checkbox']:disabled+label {
+.emotion-24>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-40>input[type='checkbox']:disabled+label:before {
+.emotion-24>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-40>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-24>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-40>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-24>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -1002,7 +1002,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   width: 8px;
 }
 
-.emotion-40>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-24>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -1022,11 +1022,11 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   width: 4.5px;
 }
 
-.emotion-41 {
+.emotion-25 {
   margin-left: 155px;
 }
 
-.emotion-43 {
+.emotion-26 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1055,17 +1055,17 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   color: #fff;
 }
 
-.emotion-43:first-of-type {
+.emotion-26:first-of-type {
   margin-left: 0;
 }
 
-.emotion-43:disabled {
+.emotion-26:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-43:hover:not(:disabled) {
+.emotion-26:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
                   #3570f4,
@@ -1073,12 +1073,12 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
               );
 }
 
-.emotion-44 {
+.emotion-27 {
   min-width: 8.5em;
   min-height: 1em;
 }
 
-.emotion-46 {
+.emotion-28 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1104,52 +1104,52 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
   color: #3697f2;
 }
 
-.emotion-46:first-of-type {
+.emotion-28:first-of-type {
   margin-left: 0;
 }
 
-.emotion-46:disabled {
+.emotion-28:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-46:disabled {
+.emotion-28:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-46:hover:not(:disabled) {
+.emotion-28:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-assertion-for-role"
 >
   <div
     autocomplete="off"
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     data-testid="add-rule-form-for-role"
   >
     
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-effect"
       >
         Rule Effect
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-radiobutton-group emotion-12 emotion-13"
+          class="emotion-6 denali-radiobutton-group emotion-7"
           data-testid="radiobuttongroup"
         >
           <div
-            class="emotion-14 denali-radiobutton"
+            class="emotion-8 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1166,7 +1166,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
             </label>
           </div>
           <div
-            class="emotion-14 denali-radiobutton"
+            class="emotion-8 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1185,19 +1185,19 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-action"
       >
         Rule Action
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-23 denali-input animated emotion-24 emotion-25"
+          class="emotion-14 denali-input animated emotion-15"
           data-testid="input-wrapper"
         >
           <input
@@ -1216,19 +1216,19 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-resource"
       >
         Rule Resource
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-23 denali-input animated emotion-24 emotion-25"
+          class="emotion-14 denali-input animated emotion-15"
           data-testid="input-wrapper"
         >
           <input
@@ -1247,13 +1247,13 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-40 denali-checkbox"
+          class="emotion-24 denali-checkbox"
           data-testid="checkbox-wrapper"
         >
           <input
@@ -1272,15 +1272,15 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
     </div>
   </div>
   <div
-    class="emotion-41 emotion-42"
+    class="emotion-25"
   >
     <button
-      class="emotion-43 denali-button emotion-44 emotion-45"
+      class="emotion-26 denali-button emotion-27"
     >
       Submit
     </button>
     <button
-      class="emotion-46 denali-button emotion-44 emotion-45"
+      class="emotion-28 denali-button emotion-27"
     >
       Cancel
     </button>

@@ -9,13 +9,13 @@ exports[`AddPolicy should render 1`] = `
   overflow-y: scroll;
 }
 
-.emotion-2 {
+.emotion-1 {
   width: 100%;
   text-align: left;
   background-color: #fff;
 }
 
-.emotion-4 {
+.emotion-2 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -31,7 +31,7 @@ exports[`AddPolicy should render 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-6 {
+.emotion-3 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -39,21 +39,21 @@ exports[`AddPolicy should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-9 {
+.emotion-5 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-11 {
+.emotion-6 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -70,7 +70,7 @@ exports[`AddPolicy should render 1`] = `
   width: 250px;
 }
 
-.emotion-11 input {
+.emotion-6 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -96,42 +96,42 @@ exports[`AddPolicy should render 1`] = `
   width: 100%;
 }
 
-.emotion-11.animated input {
+.emotion-6.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-11 input::-webkit-input-placeholder {
+.emotion-6 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input::-moz-placeholder {
+.emotion-6 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input:-ms-input-placeholder {
+.emotion-6 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input::placeholder {
+.emotion-6 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input.focused,
-.emotion-11 input:active,
-.emotion-11 input:focus {
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-11 input:invalid {
+.emotion-6 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-11 .message {
+.emotion-6 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -139,22 +139,22 @@ exports[`AddPolicy should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-11.error input,
-.emotion-11.error input.focused,
-.emotion-11.error input:active,
-.emotion-11.error input:focus {
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-11.error .message {
+.emotion-6.error .message {
   color: #d01111;
 }
 
-.emotion-12 {
+.emotion-7 {
   width: 500px;
 }
 
-.emotion-21 {
+.emotion-12 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -165,17 +165,17 @@ exports[`AddPolicy should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-21>* {
+.emotion-12>* {
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
 }
 
-.emotion-22 {
+.emotion-13 {
   margin-top: 8px;
 }
 
-.emotion-24 {
+.emotion-14 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -188,7 +188,7 @@ exports[`AddPolicy should render 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-24>input[type='radio'] {
+.emotion-14>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -197,7 +197,7 @@ exports[`AddPolicy should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-24>input[type='radio']+label {
+.emotion-14>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -210,7 +210,7 @@ exports[`AddPolicy should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-24>input[type='radio']+label:before {
+.emotion-14>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -226,29 +226,29 @@ exports[`AddPolicy should render 1`] = `
   width: 16px;
 }
 
-.emotion-24>input[type='radio']:hover+label:before {
+.emotion-14>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-24>input[type='radio']:focus+label:before {
+.emotion-14>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-24>input[type='radio']:checked+label:before {
+.emotion-14>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-24>input[type='radio']:disabled+label {
+.emotion-14>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-24>input[type='radio']:disabled+label:before {
+.emotion-14>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-24>input[type='radio']:checked+label:after {
+.emotion-14>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -263,27 +263,23 @@ exports[`AddPolicy should render 1`] = `
   width: 8px;
 }
 
-.emotion-24>input[type='radio']:disabled:checked+label:after {
+.emotion-14>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-43 {
+.emotion-26 {
   position: relative;
   width: 100%;
 }
 
-.emotion-43 input {
+.emotion-26 input {
   cursor: inherit;
 }
 
-.emotion-44 {
-  width: 500px;
-}
-
-.emotion-46 {
+.emotion-28 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -300,7 +296,7 @@ exports[`AddPolicy should render 1`] = `
   width: 100%;
 }
 
-.emotion-46 input {
+.emotion-28 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -326,42 +322,42 @@ exports[`AddPolicy should render 1`] = `
   width: 100%;
 }
 
-.emotion-46.animated input {
+.emotion-28.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-46 input::-webkit-input-placeholder {
+.emotion-28 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input::-moz-placeholder {
+.emotion-28 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input:-ms-input-placeholder {
+.emotion-28 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input::placeholder {
+.emotion-28 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input.focused,
-.emotion-46 input:active,
-.emotion-46 input:focus {
+.emotion-28 input.focused,
+.emotion-28 input:active,
+.emotion-28 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-46 input:invalid {
+.emotion-28 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-46 .message {
+.emotion-28 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -369,22 +365,22 @@ exports[`AddPolicy should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-46.error input,
-.emotion-46.error input.focused,
-.emotion-46.error input:active,
-.emotion-46.error input:focus {
+.emotion-28.error input,
+.emotion-28.error input.focused,
+.emotion-28.error input:active,
+.emotion-28.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-46.error .message {
+.emotion-28.error .message {
   color: #d01111;
 }
 
-.emotion-46 input {
+.emotion-28 input {
   padding-right: 36px;
 }
 
-.emotion-46 .input-icon {
+.emotion-28 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -398,13 +394,13 @@ exports[`AddPolicy should render 1`] = `
   right: 6px;
 }
 
-.emotion-47 {
+.emotion-29 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-62 {
+.emotion-38 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -417,7 +413,7 @@ exports[`AddPolicy should render 1`] = `
   vertical-align: middle;
 }
 
-.emotion-62>input[type='checkbox'] {
+.emotion-38>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -426,7 +422,7 @@ exports[`AddPolicy should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-62>input[type='checkbox']+label {
+.emotion-38>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -439,7 +435,7 @@ exports[`AddPolicy should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-62>input[type='checkbox']+label:before {
+.emotion-38>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -455,33 +451,33 @@ exports[`AddPolicy should render 1`] = `
   width: 16px;
 }
 
-.emotion-62>input[type='checkbox']:hover+label:before {
+.emotion-38>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-62>input[type='checkbox']:focus+label:before {
+.emotion-38>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-62>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-62>input[type='checkbox']:checked+label:before {
+.emotion-38>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-38>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-62>input[type='checkbox']:disabled+label {
+.emotion-38>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-62>input[type='checkbox']:disabled+label:before {
+.emotion-38>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-62>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-38>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-62>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-38>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -496,7 +492,7 @@ exports[`AddPolicy should render 1`] = `
   width: 8px;
 }
 
-.emotion-62>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-38>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -517,29 +513,29 @@ exports[`AddPolicy should render 1`] = `
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-modal-message"
   height="auto"
 >
   <div
     autocomplete="off"
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     data-testid="add-rule-form"
   >
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="policy-name"
       >
         Policy Name
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -558,23 +554,23 @@ exports[`AddPolicy should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-effect"
       >
         Rule Effect
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-21 denali-radiobutton-group emotion-22 emotion-23"
+          class="emotion-12 denali-radiobutton-group emotion-13"
           data-testid="radiobuttongroup"
         >
           <div
-            class="emotion-24 denali-radiobutton"
+            class="emotion-14 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -591,7 +587,7 @@ exports[`AddPolicy should render 1`] = `
             </label>
           </div>
           <div
-            class="emotion-24 denali-radiobutton"
+            class="emotion-14 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -610,19 +606,19 @@ exports[`AddPolicy should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-action"
       >
         Rule Action
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -641,27 +637,27 @@ exports[`AddPolicy should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-role"
       >
         Rule Role
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
           aria-expanded="false"
           aria-haspopup="listbox"
           aria-labelledby="downshift-0-label"
-          class="emotion-43 denali-input-dropdown emotion-44 emotion-45"
+          class="emotion-26 denali-input-dropdown emotion-7"
           data-testid="input-dropdown"
           role="combobox"
         >
           <div
-            class="emotion-46 denali-input animated"
+            class="emotion-28 denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -681,7 +677,7 @@ exports[`AddPolicy should render 1`] = `
             >
               
               <svg
-                class="emotion-47"
+                class="emotion-29"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -704,19 +700,19 @@ exports[`AddPolicy should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-resource"
       >
         Rule Resource
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -735,13 +731,13 @@ exports[`AddPolicy should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-62 denali-checkbox"
+          class="emotion-38 denali-checkbox"
           data-testid="checkbox-wrapper"
         >
           <input
@@ -771,13 +767,13 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   overflow-y: scroll;
 }
 
-.emotion-2 {
+.emotion-1 {
   width: 100%;
   text-align: left;
   background-color: #fff;
 }
 
-.emotion-4 {
+.emotion-2 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -793,7 +789,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-6 {
+.emotion-3 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -801,21 +797,21 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   white-space: nowrap;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-9 {
+.emotion-5 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-11 {
+.emotion-6 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -832,7 +828,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   width: 250px;
 }
 
-.emotion-11 input {
+.emotion-6 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -858,42 +854,42 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   width: 100%;
 }
 
-.emotion-11.animated input {
+.emotion-6.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-11 input::-webkit-input-placeholder {
+.emotion-6 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input::-moz-placeholder {
+.emotion-6 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input:-ms-input-placeholder {
+.emotion-6 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input::placeholder {
+.emotion-6 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input.focused,
-.emotion-11 input:active,
-.emotion-11 input:focus {
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-11 input:invalid {
+.emotion-6 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-11 .message {
+.emotion-6 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -901,22 +897,22 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   top: 2.571rem;
 }
 
-.emotion-11.error input,
-.emotion-11.error input.focused,
-.emotion-11.error input:active,
-.emotion-11.error input:focus {
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-11.error .message {
+.emotion-6.error .message {
   color: #d01111;
 }
 
-.emotion-12 {
+.emotion-7 {
   width: 500px;
 }
 
-.emotion-21 {
+.emotion-12 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -927,17 +923,17 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-21>* {
+.emotion-12>* {
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
 }
 
-.emotion-22 {
+.emotion-13 {
   margin-top: 8px;
 }
 
-.emotion-24 {
+.emotion-14 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -950,7 +946,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-24>input[type='radio'] {
+.emotion-14>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -959,7 +955,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   visibility: hidden;
 }
 
-.emotion-24>input[type='radio']+label {
+.emotion-14>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -972,7 +968,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   white-space: nowrap;
 }
 
-.emotion-24>input[type='radio']+label:before {
+.emotion-14>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -988,29 +984,29 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   width: 16px;
 }
 
-.emotion-24>input[type='radio']:hover+label:before {
+.emotion-14>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-24>input[type='radio']:focus+label:before {
+.emotion-14>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-24>input[type='radio']:checked+label:before {
+.emotion-14>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-24>input[type='radio']:disabled+label {
+.emotion-14>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-24>input[type='radio']:disabled+label:before {
+.emotion-14>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-24>input[type='radio']:checked+label:after {
+.emotion-14>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -1025,27 +1021,23 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   width: 8px;
 }
 
-.emotion-24>input[type='radio']:disabled:checked+label:after {
+.emotion-14>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-43 {
+.emotion-26 {
   position: relative;
   width: 100%;
 }
 
-.emotion-43 input {
+.emotion-26 input {
   cursor: inherit;
 }
 
-.emotion-44 {
-  width: 500px;
-}
-
-.emotion-46 {
+.emotion-28 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -1062,7 +1054,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   width: 100%;
 }
 
-.emotion-46 input {
+.emotion-28 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -1088,42 +1080,42 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   width: 100%;
 }
 
-.emotion-46.animated input {
+.emotion-28.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-46 input::-webkit-input-placeholder {
+.emotion-28 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input::-moz-placeholder {
+.emotion-28 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input:-ms-input-placeholder {
+.emotion-28 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input::placeholder {
+.emotion-28 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input.focused,
-.emotion-46 input:active,
-.emotion-46 input:focus {
+.emotion-28 input.focused,
+.emotion-28 input:active,
+.emotion-28 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-46 input:invalid {
+.emotion-28 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-46 .message {
+.emotion-28 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1131,22 +1123,22 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   top: 2.571rem;
 }
 
-.emotion-46.error input,
-.emotion-46.error input.focused,
-.emotion-46.error input:active,
-.emotion-46.error input:focus {
+.emotion-28.error input,
+.emotion-28.error input.focused,
+.emotion-28.error input:active,
+.emotion-28.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-46.error .message {
+.emotion-28.error .message {
   color: #d01111;
 }
 
-.emotion-46 input {
+.emotion-28 input {
   padding-right: 36px;
 }
 
-.emotion-46 .input-icon {
+.emotion-28 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1160,13 +1152,13 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   right: 6px;
 }
 
-.emotion-47 {
+.emotion-29 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-62 {
+.emotion-38 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -1179,7 +1171,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   vertical-align: middle;
 }
 
-.emotion-62>input[type='checkbox'] {
+.emotion-38>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -1188,7 +1180,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   visibility: hidden;
 }
 
-.emotion-62>input[type='checkbox']+label {
+.emotion-38>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -1201,7 +1193,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   white-space: nowrap;
 }
 
-.emotion-62>input[type='checkbox']+label:before {
+.emotion-38>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -1217,33 +1209,33 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   width: 16px;
 }
 
-.emotion-62>input[type='checkbox']:hover+label:before {
+.emotion-38>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-62>input[type='checkbox']:focus+label:before {
+.emotion-38>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-62>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-62>input[type='checkbox']:checked+label:before {
+.emotion-38>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-38>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-62>input[type='checkbox']:disabled+label {
+.emotion-38>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-62>input[type='checkbox']:disabled+label:before {
+.emotion-38>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-62>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-38>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-62>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-38>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -1258,7 +1250,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
   width: 8px;
 }
 
-.emotion-62>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-38>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -1279,29 +1271,29 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-modal-message"
   height="auto"
 >
   <div
     autocomplete="off"
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     data-testid="add-rule-form"
   >
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="policy-name"
       >
         Policy Name
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -1320,23 +1312,23 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-effect"
       >
         Rule Effect
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-21 denali-radiobutton-group emotion-22 emotion-23"
+          class="emotion-12 denali-radiobutton-group emotion-13"
           data-testid="radiobuttongroup"
         >
           <div
-            class="emotion-24 denali-radiobutton"
+            class="emotion-14 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1353,7 +1345,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
             </label>
           </div>
           <div
-            class="emotion-24 denali-radiobutton"
+            class="emotion-14 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1372,19 +1364,19 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-action"
       >
         Rule Action
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -1403,27 +1395,27 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-role"
       >
         Rule Role
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
           aria-expanded="false"
           aria-haspopup="listbox"
           aria-labelledby="downshift-1-label"
-          class="emotion-43 denali-input-dropdown emotion-44 emotion-45"
+          class="emotion-26 denali-input-dropdown emotion-7"
           data-testid="input-dropdown"
           role="combobox"
         >
           <div
-            class="emotion-46 denali-input animated"
+            class="emotion-28 denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -1443,7 +1435,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
             >
               
               <svg
-                class="emotion-47"
+                class="emotion-29"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -1466,19 +1458,19 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-resource"
       >
         Rule Resource
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -1497,13 +1489,13 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-62 denali-checkbox"
+          class="emotion-38 denali-checkbox"
           data-testid="checkbox-wrapper"
         >
           <input
@@ -1533,13 +1525,13 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   overflow-y: scroll;
 }
 
-.emotion-2 {
+.emotion-1 {
   width: 100%;
   text-align: left;
   background-color: #fff;
 }
 
-.emotion-4 {
+.emotion-2 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -1555,7 +1547,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-6 {
+.emotion-3 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -1563,21 +1555,21 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   white-space: nowrap;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-9 {
+.emotion-5 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-11 {
+.emotion-6 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -1594,7 +1586,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   width: 250px;
 }
 
-.emotion-11 input {
+.emotion-6 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -1620,42 +1612,42 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   width: 100%;
 }
 
-.emotion-11.animated input {
+.emotion-6.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-11 input::-webkit-input-placeholder {
+.emotion-6 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input::-moz-placeholder {
+.emotion-6 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input:-ms-input-placeholder {
+.emotion-6 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input::placeholder {
+.emotion-6 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input.focused,
-.emotion-11 input:active,
-.emotion-11 input:focus {
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-11 input:invalid {
+.emotion-6 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-11 .message {
+.emotion-6 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1663,22 +1655,22 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   top: 2.571rem;
 }
 
-.emotion-11.error input,
-.emotion-11.error input.focused,
-.emotion-11.error input:active,
-.emotion-11.error input:focus {
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-11.error .message {
+.emotion-6.error .message {
   color: #d01111;
 }
 
-.emotion-12 {
+.emotion-7 {
   width: 500px;
 }
 
-.emotion-21 {
+.emotion-12 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -1689,17 +1681,17 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-21>* {
+.emotion-12>* {
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
 }
 
-.emotion-22 {
+.emotion-13 {
   margin-top: 8px;
 }
 
-.emotion-24 {
+.emotion-14 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -1712,7 +1704,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-24>input[type='radio'] {
+.emotion-14>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -1721,7 +1713,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   visibility: hidden;
 }
 
-.emotion-24>input[type='radio']+label {
+.emotion-14>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -1734,7 +1726,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   white-space: nowrap;
 }
 
-.emotion-24>input[type='radio']+label:before {
+.emotion-14>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -1750,29 +1742,29 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   width: 16px;
 }
 
-.emotion-24>input[type='radio']:hover+label:before {
+.emotion-14>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-24>input[type='radio']:focus+label:before {
+.emotion-14>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-24>input[type='radio']:checked+label:before {
+.emotion-14>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-24>input[type='radio']:disabled+label {
+.emotion-14>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-24>input[type='radio']:disabled+label:before {
+.emotion-14>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-24>input[type='radio']:checked+label:after {
+.emotion-14>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -1787,27 +1779,23 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   width: 8px;
 }
 
-.emotion-24>input[type='radio']:disabled:checked+label:after {
+.emotion-14>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-43 {
+.emotion-26 {
   position: relative;
   width: 100%;
 }
 
-.emotion-43 input {
+.emotion-26 input {
   cursor: inherit;
 }
 
-.emotion-44 {
-  width: 500px;
-}
-
-.emotion-46 {
+.emotion-28 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -1824,7 +1812,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   width: 100%;
 }
 
-.emotion-46 input {
+.emotion-28 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -1850,42 +1838,42 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   width: 100%;
 }
 
-.emotion-46.animated input {
+.emotion-28.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-46 input::-webkit-input-placeholder {
+.emotion-28 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input::-moz-placeholder {
+.emotion-28 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input:-ms-input-placeholder {
+.emotion-28 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input::placeholder {
+.emotion-28 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input.focused,
-.emotion-46 input:active,
-.emotion-46 input:focus {
+.emotion-28 input.focused,
+.emotion-28 input:active,
+.emotion-28 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-46 input:invalid {
+.emotion-28 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-46 .message {
+.emotion-28 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1893,22 +1881,22 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   top: 2.571rem;
 }
 
-.emotion-46.error input,
-.emotion-46.error input.focused,
-.emotion-46.error input:active,
-.emotion-46.error input:focus {
+.emotion-28.error input,
+.emotion-28.error input.focused,
+.emotion-28.error input:active,
+.emotion-28.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-46.error .message {
+.emotion-28.error .message {
   color: #d01111;
 }
 
-.emotion-46 input {
+.emotion-28 input {
   padding-right: 36px;
 }
 
-.emotion-46 .input-icon {
+.emotion-28 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1922,13 +1910,13 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   right: 6px;
 }
 
-.emotion-47 {
+.emotion-29 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-62 {
+.emotion-38 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -1941,7 +1929,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   vertical-align: middle;
 }
 
-.emotion-62>input[type='checkbox'] {
+.emotion-38>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -1950,7 +1938,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   visibility: hidden;
 }
 
-.emotion-62>input[type='checkbox']+label {
+.emotion-38>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -1963,7 +1951,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   white-space: nowrap;
 }
 
-.emotion-62>input[type='checkbox']+label:before {
+.emotion-38>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -1979,33 +1967,33 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   width: 16px;
 }
 
-.emotion-62>input[type='checkbox']:hover+label:before {
+.emotion-38>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-62>input[type='checkbox']:focus+label:before {
+.emotion-38>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-62>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-62>input[type='checkbox']:checked+label:before {
+.emotion-38>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-38>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-62>input[type='checkbox']:disabled+label {
+.emotion-38>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-62>input[type='checkbox']:disabled+label:before {
+.emotion-38>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-62>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-38>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-62>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-38>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -2020,7 +2008,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
   width: 8px;
 }
 
-.emotion-62>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-38>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -2041,29 +2029,29 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-modal-message"
   height="auto"
 >
   <div
     autocomplete="off"
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     data-testid="add-rule-form"
   >
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="policy-name"
       >
         Policy Name
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -2082,23 +2070,23 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-effect"
       >
         Rule Effect
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-21 denali-radiobutton-group emotion-22 emotion-23"
+          class="emotion-12 denali-radiobutton-group emotion-13"
           data-testid="radiobuttongroup"
         >
           <div
-            class="emotion-24 denali-radiobutton"
+            class="emotion-14 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2115,7 +2103,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
             </label>
           </div>
           <div
-            class="emotion-24 denali-radiobutton"
+            class="emotion-14 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2134,19 +2122,19 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-action"
       >
         Rule Action
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -2165,27 +2153,27 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-role"
       >
         Rule Role
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
           aria-expanded="false"
           aria-haspopup="listbox"
           aria-labelledby="downshift-2-label"
-          class="emotion-43 denali-input-dropdown emotion-44 emotion-45"
+          class="emotion-26 denali-input-dropdown emotion-7"
           data-testid="input-dropdown"
           role="combobox"
         >
           <div
-            class="emotion-46 denali-input animated"
+            class="emotion-28 denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -2205,7 +2193,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
             >
               
               <svg
-                class="emotion-47"
+                class="emotion-29"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -2228,19 +2216,19 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-resource"
       >
         Rule Resource
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -2259,13 +2247,13 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-62 denali-checkbox"
+          class="emotion-38 denali-checkbox"
           data-testid="checkbox-wrapper"
         >
           <input
@@ -2295,13 +2283,13 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   overflow-y: scroll;
 }
 
-.emotion-2 {
+.emotion-1 {
   width: 100%;
   text-align: left;
   background-color: #fff;
 }
 
-.emotion-4 {
+.emotion-2 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -2317,7 +2305,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-6 {
+.emotion-3 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -2325,21 +2313,21 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   white-space: nowrap;
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-9 {
+.emotion-5 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-11 {
+.emotion-6 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -2356,7 +2344,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   width: 250px;
 }
 
-.emotion-11 input {
+.emotion-6 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -2382,42 +2370,42 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   width: 100%;
 }
 
-.emotion-11.animated input {
+.emotion-6.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-11 input::-webkit-input-placeholder {
+.emotion-6 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input::-moz-placeholder {
+.emotion-6 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input:-ms-input-placeholder {
+.emotion-6 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input::placeholder {
+.emotion-6 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input.focused,
-.emotion-11 input:active,
-.emotion-11 input:focus {
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-11 input:invalid {
+.emotion-6 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-11 .message {
+.emotion-6 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -2425,22 +2413,22 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   top: 2.571rem;
 }
 
-.emotion-11.error input,
-.emotion-11.error input.focused,
-.emotion-11.error input:active,
-.emotion-11.error input:focus {
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-11.error .message {
+.emotion-6.error .message {
   color: #d01111;
 }
 
-.emotion-12 {
+.emotion-7 {
   width: 500px;
 }
 
-.emotion-21 {
+.emotion-12 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -2451,17 +2439,17 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-21>* {
+.emotion-12>* {
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
 }
 
-.emotion-22 {
+.emotion-13 {
   margin-top: 8px;
 }
 
-.emotion-24 {
+.emotion-14 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -2474,7 +2462,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-24>input[type='radio'] {
+.emotion-14>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -2483,7 +2471,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   visibility: hidden;
 }
 
-.emotion-24>input[type='radio']+label {
+.emotion-14>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -2496,7 +2484,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   white-space: nowrap;
 }
 
-.emotion-24>input[type='radio']+label:before {
+.emotion-14>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -2512,29 +2500,29 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   width: 16px;
 }
 
-.emotion-24>input[type='radio']:hover+label:before {
+.emotion-14>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-24>input[type='radio']:focus+label:before {
+.emotion-14>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-24>input[type='radio']:checked+label:before {
+.emotion-14>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-24>input[type='radio']:disabled+label {
+.emotion-14>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-24>input[type='radio']:disabled+label:before {
+.emotion-14>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-24>input[type='radio']:checked+label:after {
+.emotion-14>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -2549,27 +2537,23 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   width: 8px;
 }
 
-.emotion-24>input[type='radio']:disabled:checked+label:after {
+.emotion-14>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-43 {
+.emotion-26 {
   position: relative;
   width: 100%;
 }
 
-.emotion-43 input {
+.emotion-26 input {
   cursor: inherit;
 }
 
-.emotion-44 {
-  width: 500px;
-}
-
-.emotion-46 {
+.emotion-28 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -2586,7 +2570,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   width: 100%;
 }
 
-.emotion-46 input {
+.emotion-28 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -2612,42 +2596,42 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   width: 100%;
 }
 
-.emotion-46.animated input {
+.emotion-28.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-46 input::-webkit-input-placeholder {
+.emotion-28 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input::-moz-placeholder {
+.emotion-28 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input:-ms-input-placeholder {
+.emotion-28 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input::placeholder {
+.emotion-28 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-46 input.focused,
-.emotion-46 input:active,
-.emotion-46 input:focus {
+.emotion-28 input.focused,
+.emotion-28 input:active,
+.emotion-28 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-46 input:invalid {
+.emotion-28 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-46 .message {
+.emotion-28 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -2655,22 +2639,22 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   top: 2.571rem;
 }
 
-.emotion-46.error input,
-.emotion-46.error input.focused,
-.emotion-46.error input:active,
-.emotion-46.error input:focus {
+.emotion-28.error input,
+.emotion-28.error input.focused,
+.emotion-28.error input:active,
+.emotion-28.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-46.error .message {
+.emotion-28.error .message {
   color: #d01111;
 }
 
-.emotion-46 input {
+.emotion-28 input {
   padding-right: 36px;
 }
 
-.emotion-46 .input-icon {
+.emotion-28 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -2684,13 +2668,13 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   right: 6px;
 }
 
-.emotion-47 {
+.emotion-29 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-62 {
+.emotion-38 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -2703,7 +2687,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   vertical-align: middle;
 }
 
-.emotion-62>input[type='checkbox'] {
+.emotion-38>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -2712,7 +2696,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   visibility: hidden;
 }
 
-.emotion-62>input[type='checkbox']+label {
+.emotion-38>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -2725,7 +2709,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   white-space: nowrap;
 }
 
-.emotion-62>input[type='checkbox']+label:before {
+.emotion-38>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -2741,33 +2725,33 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   width: 16px;
 }
 
-.emotion-62>input[type='checkbox']:hover+label:before {
+.emotion-38>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-62>input[type='checkbox']:focus+label:before {
+.emotion-38>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-62>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-62>input[type='checkbox']:checked+label:before {
+.emotion-38>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-38>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-62>input[type='checkbox']:disabled+label {
+.emotion-38>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-62>input[type='checkbox']:disabled+label:before {
+.emotion-38>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-62>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-38>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-62>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-38>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -2782,7 +2766,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
   width: 8px;
 }
 
-.emotion-62>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-38>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -2803,29 +2787,29 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="add-modal-message"
   height="auto"
 >
   <div
     autocomplete="off"
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     data-testid="add-rule-form"
   >
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="policy-name"
       >
         Policy Name
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -2844,23 +2828,23 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-effect"
       >
         Rule Effect
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-21 denali-radiobutton-group emotion-22 emotion-23"
+          class="emotion-12 denali-radiobutton-group emotion-13"
           data-testid="radiobuttongroup"
         >
           <div
-            class="emotion-24 denali-radiobutton"
+            class="emotion-14 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2877,7 +2861,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
             </label>
           </div>
           <div
-            class="emotion-24 denali-radiobutton"
+            class="emotion-14 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2896,19 +2880,19 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-action"
       >
         Rule Action
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -2927,27 +2911,27 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-role"
       >
         Rule Role
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
           aria-expanded="false"
           aria-haspopup="listbox"
           aria-labelledby="downshift-3-label"
-          class="emotion-43 denali-input-dropdown emotion-44 emotion-45"
+          class="emotion-26 denali-input-dropdown emotion-7"
           data-testid="input-dropdown"
           role="combobox"
         >
           <div
-            class="emotion-46 denali-input animated"
+            class="emotion-28 denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -2967,7 +2951,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
             >
               
               <svg
-                class="emotion-47"
+                class="emotion-29"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -2990,19 +2974,19 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
+        class="emotion-3 denali-input-label emotion-4"
         for="rule-resource"
       >
         Rule Resource
       </label>
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-11 denali-input animated emotion-12 emotion-13"
+          class="emotion-6 denali-input animated emotion-7"
           data-testid="input-wrapper"
         >
           <input
@@ -3021,13 +3005,13 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <div
-        class="emotion-9 emotion-10"
+        class="emotion-5"
       >
         <div
-          class="emotion-62 denali-checkbox"
+          class="emotion-38 denali-checkbox"
           data-testid="checkbox-wrapper"
         >
           <input

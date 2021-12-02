@@ -5,7 +5,7 @@ exports[`RoleList should render 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -24,11 +24,11 @@ exports[`RoleList should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-4 {
+.emotion-2 {
   vertical-align: middle;
 }
 
-.emotion-6 {
+.emotion-3 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -42,7 +42,7 @@ exports[`RoleList should render 1`] = `
   position: relative;
 }
 
-.emotion-6::before {
+.emotion-3::before {
   background: #fff;
   border: 2px solid #0072df;
   border-radius: 2px;
@@ -56,7 +56,7 @@ exports[`RoleList should render 1`] = `
   width: calc(50% + 4px);
 }
 
-.emotion-7 {
+.emotion-4 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -84,11 +84,11 @@ exports[`RoleList should render 1`] = `
   z-index: 1;
 }
 
-.emotion-7:hover {
+.emotion-4:hover {
   color: #303030;
 }
 
-.emotion-8 {
+.emotion-5 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -116,15 +116,15 @@ exports[`RoleList should render 1`] = `
   z-index: 1;
 }
 
-.emotion-8:hover {
+.emotion-5:hover {
   color: #3570f4;
 }
 
-.emotion-9 {
+.emotion-6 {
   width: 50%;
 }
 
-.emotion-11 {
+.emotion-7 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -141,7 +141,7 @@ exports[`RoleList should render 1`] = `
   width: 100%;
 }
 
-.emotion-11 input {
+.emotion-7 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -167,42 +167,42 @@ exports[`RoleList should render 1`] = `
   width: 100%;
 }
 
-.emotion-11.animated input {
+.emotion-7.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-11 input::-webkit-input-placeholder {
+.emotion-7 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input::-moz-placeholder {
+.emotion-7 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input:-ms-input-placeholder {
+.emotion-7 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input::placeholder {
+.emotion-7 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11 input.focused,
-.emotion-11 input:active,
-.emotion-11 input:focus {
+.emotion-7 input.focused,
+.emotion-7 input:active,
+.emotion-7 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-11 input:invalid {
+.emotion-7 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-11 .message {
+.emotion-7 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -210,22 +210,22 @@ exports[`RoleList should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-11.error input,
-.emotion-11.error input.focused,
-.emotion-11.error input:active,
-.emotion-11.error input:focus {
+.emotion-7.error input,
+.emotion-7.error input.focused,
+.emotion-7.error input:active,
+.emotion-7.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-11.error .message {
+.emotion-7.error .message {
   color: #d01111;
 }
 
-.emotion-11 input {
+.emotion-7 input {
   padding-right: 36px;
 }
 
-.emotion-11 .input-icon {
+.emotion-7 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -239,13 +239,13 @@ exports[`RoleList should render 1`] = `
   right: 6px;
 }
 
-.emotion-12 {
+.emotion-8 {
   fill: #3570f4;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-13 {
+.emotion-9 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -271,25 +271,25 @@ exports[`RoleList should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-13:first-of-type {
+.emotion-9:first-of-type {
   margin-left: 0;
 }
 
-.emotion-13:disabled {
+.emotion-9:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-13:disabled {
+.emotion-9:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-13:hover:not(:disabled) {
+.emotion-9:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-15 {
+.emotion-11 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -297,7 +297,7 @@ exports[`RoleList should render 1`] = `
   border-color: grey;
 }
 
-.emotion-17 {
+.emotion-12 {
   border-bottom: 2px solid rgb(213, 213, 213);
   color: rgb(154, 154, 154);
   font-size: 0.8rem;
@@ -311,44 +311,44 @@ exports[`RoleList should render 1`] = `
   display: flex;
 }
 
-.emotion-19 {
+.emotion-13 {
   text-align: left;
   width: 28%;
 }
 
-.emotion-21 {
+.emotion-14 {
   text-align: left;
   width: 15%;
 }
 
-.emotion-25 {
+.emotion-16 {
   text-align: center;
   width: 7%;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="rolelist"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <div
-        class="emotion-6 denali-button-group"
+        class="emotion-3 denali-button-group"
         data-testid="buttongroup"
       >
         <div
-          class="emotion-7"
+          class="emotion-4"
           data-active="true"
           id="button-roles"
         >
           Roles
         </div>
         <div
-          class="emotion-8"
+          class="emotion-5"
           data-active="false"
           id="button-users"
         >
@@ -357,10 +357,10 @@ exports[`RoleList should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-9 emotion-10"
+      class="emotion-6"
     >
       <div
-        class="emotion-11 denali-input animated"
+        class="emotion-7 denali-input animated"
         data-testid="input-wrapper"
       >
         <input
@@ -374,7 +374,7 @@ exports[`RoleList should render 1`] = `
           class="input-icon"
         >
           <svg
-            class="emotion-12"
+            class="emotion-8"
             data-testid="icon"
             height="24px"
             viewBox="0 0 1024 1024"
@@ -396,13 +396,13 @@ exports[`RoleList should render 1`] = `
     </div>
     <div>
       <button
-        class="emotion-13 denali-button"
+        class="emotion-9 denali-button"
       >
         Add Role
       </button>
       
       <button
-        class="emotion-13 denali-button"
+        class="emotion-9 denali-button"
       >
         Add Member
       </button>
@@ -410,59 +410,59 @@ exports[`RoleList should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-15 emotion-16"
+    class="emotion-11"
     data-testid="roletable"
   >
     <div
-      class="emotion-17 emotion-18"
+      class="emotion-12"
     >
       <div
-        class="emotion-19 emotion-20"
+        class="emotion-13"
       >
         Role
       </div>
       <div
-        class="emotion-21 emotion-22"
+        class="emotion-14"
       >
         Modified Date
       </div>
       <div
-        class="emotion-21 emotion-22"
+        class="emotion-14"
       >
         Reviewed Date
       </div>
       <div
-        class="emotion-25 emotion-26"
+        class="emotion-16"
       >
         Members
       </div>
       <div
-        class="emotion-25 emotion-26"
+        class="emotion-16"
       >
         Review
       </div>
       <div
-        class="emotion-25 emotion-26"
+        class="emotion-16"
       >
         Policy Rule
       </div>
       <div
-        class="emotion-25 emotion-26"
+        class="emotion-16"
       >
         Tags
       </div>
       <div
-        class="emotion-25 emotion-26"
+        class="emotion-16"
       >
         Settings
       </div>
       <div
-        class="emotion-25 emotion-26"
+        class="emotion-16"
       >
         History
       </div>
       <div
-        class="emotion-25 emotion-26"
+        class="emotion-16"
       >
         Delete
       </div>

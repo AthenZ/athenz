@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RuleRow should render 1`] = `
-.emotion-2 {
+.emotion-1 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -9,9 +9,25 @@ exports[`RuleRow should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-8 {
+.emotion-4 {
   background-color: #3570f40D;
   text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  -webkit-text-decoration: dashed underline;
+  text-decoration: dashed underline;
+}
+
+.emotion-5 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-8 {
+  background-color: #3570f40D;
+  text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
@@ -20,22 +36,6 @@ exports[`RuleRow should render 1`] = `
 }
 
 .emotion-10 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-15 {
-  background-color: #3570f40D;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-  -webkit-text-decoration: dashed underline;
-  text-decoration: dashed underline;
-}
-
-.emotion-18 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -44,30 +44,30 @@ exports[`RuleRow should render 1`] = `
 }
 
 <tr
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="segmentation-row"
 >
   <td
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     color="#3570f40D"
   />
   <td
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     color="#3570f40D"
   />
   <td
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     color="#3570f40D"
   >
     2222
   </td>
   <td
-    class="emotion-8 emotion-9"
+    class="emotion-4"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-10"
+        class="emotion-5"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -86,24 +86,24 @@ exports[`RuleRow should render 1`] = `
     </span>
   </td>
   <td
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     color="#3570f40D"
   >
     1111
   </td>
   <td
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     color="#3570f40D"
   >
     tcp
   </td>
   <td
-    class="emotion-15 emotion-9"
+    class="emotion-8"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-10"
+        class="emotion-5"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -128,12 +128,12 @@ exports[`RuleRow should render 1`] = `
     </span>
   </td>
   <td
-    class="emotion-18 emotion-3"
+    class="emotion-10"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-10"
+        class="emotion-5"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -150,12 +150,12 @@ exports[`RuleRow should render 1`] = `
   </td>
   
   <td
-    class="emotion-18 emotion-3"
+    class="emotion-10"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-10"
+        class="emotion-5"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"

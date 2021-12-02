@@ -1141,58 +1141,58 @@ exports[`Input should render an input with error 1`] = `
   color: #d01111;
 }
 
-.css-10vcieo-default-default-normal-default-input-subtitle-makeInputBaseClass.error input,
-.css-10vcieo-default-default-normal-default-input-subtitle-makeInputBaseClass.error input.focused,
-.css-10vcieo-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:active,
-.css-10vcieo-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:focus {
+.css-5pc12y-input.error input,
+.css-5pc12y-input.error input.focused,
+.css-5pc12y-input.error input:active,
+.css-5pc12y-input.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-10vcieo-default-default-normal-default-input-subtitle-makeInputBaseClass.error .message {
+.css-5pc12y-input.error .message {
   color: #d01111;
 }
 
-.css-3h9myz-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input,
-.css-3h9myz-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input.focused,
-.css-3h9myz-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input:active,
-.css-3h9myz-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input:focus {
+.css-12d0jtl-input.error input,
+.css-12d0jtl-input.error input.focused,
+.css-12d0jtl-input.error input:active,
+.css-12d0jtl-input.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-3h9myz-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error .message {
+.css-12d0jtl-input.error .message {
   color: #d01111;
 }
 
-.css-1mww8xl-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input,
-.css-1mww8xl-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input.focused,
-.css-1mww8xl-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input:active,
-.css-1mww8xl-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input:focus {
+.css-1o749m2-input.error input,
+.css-1o749m2-input.error input.focused,
+.css-1o749m2-input.error input:active,
+.css-1o749m2-input.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-1mww8xl-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error .message {
+.css-1o749m2-input.error .message {
   color: #d01111;
 }
 
-.css-10oarib-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input,
-.css-10oarib-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input.focused,
-.css-10oarib-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input:active,
-.css-10oarib-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input:focus {
+.css-rouf8h-input.error input,
+.css-rouf8h-input.error input.focused,
+.css-rouf8h-input.error input:active,
+.css-rouf8h-input.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-10oarib-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error .message {
+.css-rouf8h-input.error .message {
   color: #d01111;
 }
 
-.css-z3cfq3-default-default-normal-default-input-subtitle-makeInputBaseClass.error input,
-.css-z3cfq3-default-default-normal-default-input-subtitle-makeInputBaseClass.error input.focused,
-.css-z3cfq3-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:active,
-.css-z3cfq3-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:focus {
+.css-1t9m0j6-input.error input,
+.css-1t9m0j6-input.error input.focused,
+.css-1t9m0j6-input.error input:active,
+.css-1t9m0j6-input.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-z3cfq3-default-default-normal-default-input-subtitle-makeInputBaseClass.error .message {
+.css-1t9m0j6-input.error .message {
   color: #d01111;
 }
 

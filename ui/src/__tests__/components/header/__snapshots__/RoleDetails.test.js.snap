@@ -5,7 +5,7 @@ exports[`RoleDetails should render 1`] = `
   margin: 20px 0;
 }
 
-.emotion-2 {
+.emotion-1 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -16,51 +16,51 @@ exports[`RoleDetails should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-4 {
+.emotion-2 {
   padding-right: 50px;
 }
 
-.emotion-6 {
+.emotion-3 {
   font-weight: 600;
 }
 
-.emotion-8 {
+.emotion-4 {
   color: #9a9a9a;
   font-size: 12px;
   text-transform: uppercase;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="collection-details"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <div
-        class="emotion-6 emotion-7"
+        class="emotion-3"
       >
         2020-02-12 21:44 UTC
       </div>
       <div
-        class="emotion-8 emotion-9"
+        class="emotion-4"
       >
         MODIFIED DATE
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <div
-        class="emotion-6 emotion-7"
+        class="emotion-3"
       >
         N/A
       </div>
       <div
-        class="emotion-8 emotion-9"
+        class="emotion-4"
       >
         REVIEWED DATE
       </div>
@@ -74,7 +74,7 @@ exports[`RoleDetails should render with mock data 1`] = `
   margin: 20px 0;
 }
 
-.emotion-2 {
+.emotion-1 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -85,51 +85,51 @@ exports[`RoleDetails should render with mock data 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-4 {
+.emotion-2 {
   padding-right: 50px;
 }
 
-.emotion-6 {
+.emotion-3 {
   font-weight: 600;
 }
 
-.emotion-8 {
+.emotion-4 {
   color: #9a9a9a;
   font-size: 12px;
   text-transform: uppercase;
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="collection-details"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <div
-        class="emotion-6 emotion-7"
+        class="emotion-3"
       >
         2020-12-01 21:44 UTC
       </div>
       <div
-        class="emotion-8 emotion-9"
+        class="emotion-4"
       >
         MODIFIED DATE
       </div>
     </div>
     <div
-      class="emotion-4 emotion-5"
+      class="emotion-2"
     >
       <div
-        class="emotion-6 emotion-7"
+        class="emotion-3"
       >
         2020-12-01 21:44 UTC
       </div>
       <div
-        class="emotion-8 emotion-9"
+        class="emotion-4"
       >
         REVIEWED DATE
       </div>

@@ -270,8 +270,7 @@ class ReviewTable extends React.Component {
     onClickSettings() {
         this.props.router.push(
             `/domain/${this.props.domain}/role/${this.props.role}/settings`,
-            `/domain/${this.props.domain}/role/${this.props.role}/settings`,
-            { getInitialProps: true }
+            `/domain/${this.props.domain}/role/${this.props.role}/settings`
         );
     }
 

@@ -13,7 +13,7 @@ exports[`ReviewRow should render 1`] = `
   height: 50px;
 }
 
-.emotion-2 {
+.emotion-1 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -22,7 +22,7 @@ exports[`ReviewRow should render 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-6 {
+.emotion-3 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -31,7 +31,7 @@ exports[`ReviewRow should render 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-8 {
+.emotion-4 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -44,7 +44,7 @@ exports[`ReviewRow should render 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-8>input[type='radio'] {
+.emotion-4>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -53,7 +53,7 @@ exports[`ReviewRow should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-8>input[type='radio']+label {
+.emotion-4>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -66,7 +66,7 @@ exports[`ReviewRow should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-8>input[type='radio']+label:before {
+.emotion-4>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -82,29 +82,29 @@ exports[`ReviewRow should render 1`] = `
   width: 16px;
 }
 
-.emotion-8>input[type='radio']:hover+label:before {
+.emotion-4>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-8>input[type='radio']:focus+label:before {
+.emotion-4>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-8>input[type='radio']:checked+label:before {
+.emotion-4>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-8>input[type='radio']:disabled+label {
+.emotion-4>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-8>input[type='radio']:disabled+label:before {
+.emotion-4>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-8>input[type='radio']:checked+label:after {
+.emotion-4>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -119,7 +119,7 @@ exports[`ReviewRow should render 1`] = `
   width: 8px;
 }
 
-.emotion-8>input[type='radio']:disabled:checked+label:after {
+.emotion-4>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
@@ -127,25 +127,25 @@ exports[`ReviewRow should render 1`] = `
 }
 
 <tr
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="review-row"
 >
   <td
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     color="#3570f40D"
   >
     user.member
   </td>
   <td
-    class="emotion-2 emotion-3"
+    class="emotion-1"
     color="#3570f40D"
   />
   <td
-    class="emotion-6 emotion-3"
+    class="emotion-3"
     color="#3570f40D"
   >
     <div
-      class="emotion-8 denali-radiobutton"
+      class="emotion-4 denali-radiobutton"
       data-testid="radiobutton-wrapper"
     >
       <input
@@ -161,11 +161,11 @@ exports[`ReviewRow should render 1`] = `
     </div>
   </td>
   <td
-    class="emotion-6 emotion-3"
+    class="emotion-3"
     color="#3570f40D"
   >
     <div
-      class="emotion-8 denali-radiobutton"
+      class="emotion-4 denali-radiobutton"
       data-testid="radiobutton-wrapper"
     >
       <input
@@ -180,11 +180,11 @@ exports[`ReviewRow should render 1`] = `
     </div>
   </td>
   <td
-    class="emotion-6 emotion-3"
+    class="emotion-3"
     color="#3570f40D"
   >
     <div
-      class="emotion-8 denali-radiobutton"
+      class="emotion-4 denali-radiobutton"
       data-testid="radiobutton-wrapper"
     >
       <input

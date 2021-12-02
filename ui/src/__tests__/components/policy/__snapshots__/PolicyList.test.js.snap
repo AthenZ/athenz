@@ -5,7 +5,7 @@ exports[`PolicyList should render 1`] = `
   margin: 20px;
 }
 
-.emotion-2 {
+.emotion-1 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -25,7 +25,7 @@ exports[`PolicyList should render 1`] = `
   float: right;
 }
 
-.emotion-4 {
+.emotion-2 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -51,25 +51,25 @@ exports[`PolicyList should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-4:first-of-type {
+.emotion-2:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:disabled {
+.emotion-2:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-2:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-5 {
+.emotion-3 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -77,7 +77,7 @@ exports[`PolicyList should render 1`] = `
   border-color: grey;
 }
 
-.emotion-7 {
+.emotion-4 {
   text-align: center;
   border-bottom: 2px solid rgb(213, 213, 213);
   color: rgb(154, 154, 154);
@@ -91,7 +91,7 @@ exports[`PolicyList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-9 {
+.emotion-5 {
   text-align: left;
   border-bottom: 2px solid rgb(213, 213, 213);
   color: rgb(154, 154, 154);
@@ -106,15 +106,15 @@ exports[`PolicyList should render 1`] = `
 }
 
 <div
-  class="emotion-0 emotion-1"
+  class="emotion-0"
   data-testid="policylist"
 >
   <div
-    class="emotion-2 emotion-3"
+    class="emotion-1"
   >
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-2 denali-button"
       >
         Add Policy
       </button>
@@ -122,42 +122,42 @@ exports[`PolicyList should render 1`] = `
     </div>
   </div>
   <table
-    class="emotion-5 emotion-6"
+    class="emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Active
         </th>
         <th
-          class="emotion-9 emotion-8"
+          class="emotion-5"
         >
           Policy
         </th>
         <th
-          class="emotion-9 emotion-8"
+          class="emotion-5"
         >
           Versions
         </th>
         <th
-          class="emotion-9 emotion-8"
+          class="emotion-5"
         >
           Modified Date
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Rules
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Duplicate
         </th>
         <th
-          class="emotion-7 emotion-8"
+          class="emotion-4"
         >
           Delete
         </th>
