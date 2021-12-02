@@ -23,12 +23,13 @@ import Head from 'next/head';
 import RequestUtils from '../../../../../../components/utils/RequestUtils';
 import Error from '../../../../../_error';
 import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
+import {CacheProvider} from '@emotion/react';
 import ServiceTabs from '../../../../../../components/header/ServiceTabs';
 import ServiceNameHeader from '../../../../../../components/header/ServiceNameHeader';
 import InstanceList from '../../../../../../components/service/InstanceList';
 import ServiceInstanceDetails from '../../../../../../components/header/ServiceInstanceDetails';
-import { SERVICE_TYPE_STATIC } from '../../../../../../components/constants/constants';
+import {SERVICE_TYPE_STATIC} from '../../../../../../components/constants/constants';
+import JsonUtils from "../../../../../../components/utils/JsonUtils";
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -60,48 +61,51 @@ const PageHeaderDiv = styled.div`
     padding: 20px 30px 0;
 `;
 
-export default class StaticInstancePage extends React.Component {
-    static async getInitialProps(props) {
-        let api = API(props.req);
-        let reload = false;
-        let notFound = false;
-        let error = undefined;
-        const data = await Promise.all([
-            api.listUserDomains(),
-            api.getHeaderDetails(),
-            api.getDomain(props.query.domain),
-            api.getInstances(props.query.domain, props.query.service, 'static'),
-            api.getPendingDomainMembersList(),
-            api.getForm(),
-            api.getServiceHeaderDetails(),
-        ]).catch((err) => {
-            let response = RequestUtils.errorCheckHelper(err);
-            reload = response.reload;
-            error = response.error;
-            return [{}, {}, {}, {}, {}, {}, {}];
-        });
-        return {
-            api,
+export async function getServerSideProps(context) {
+    let api = API(context.req);
+    let reload = false;
+    let notFound = false;
+    let error = null;
+    const data = await Promise.all([
+        api.listUserDomains(),
+        api.getHeaderDetails(),
+        api.getDomain(context.query.domain),
+        api.getInstances(context.query.domain, context.query.service, 'static'),
+        api.getPendingDomainMembersList(),
+        api.getForm(),
+        api.getServiceHeaderDetails(),
+    ]).catch((err) => {
+        let response = RequestUtils.errorCheckHelper(err);
+        reload = response.reload;
+        error = response.error;
+        return [{}, {}, {}, {}, {}, {}, {}];
+    });
+    return {
+        props: {
             reload,
             notFound,
             error,
             domains: data[0],
-            service: props.query.service,
+            service: context.query.service,
             headerDetails: data[1],
             domainDetails: data[2],
             auditEnabled: data[2].auditEnabled,
-            instanceDetails: data[3],
-            domain: props.query.domain,
+            instanceDetails: JsonUtils.omitUndefined(data[3]),
+            domain: context.query.domain,
             pending: data[4],
             _csrf: data[5],
-            nonce: props.req.headers.rid,
+            nonce: context.req.headers.rid,
             serviceHeaderDetails: data[6].static,
-        };
-    }
+        }
+    };
+}
+
+export default class StaticInstancePage extends React.Component {
+
 
     constructor(props) {
         super(props);
-        this.api = props.api || API();
+        this.api = API();
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
@@ -119,10 +123,10 @@ export default class StaticInstancePage extends React.Component {
         } = this.props;
         if (reload) {
             window.location.reload();
-            return <div />;
+            return <div/>;
         }
         if (this.props.error) {
-            return <Error err={this.props.error} />;
+            return <Error err={this.props.error}/>;
         }
         return (
             <CacheProvider value={this.cache}>
