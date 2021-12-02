@@ -114,6 +114,9 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			continue
 		}
 		roleRequest.Csr = csr
+		if role.ExpiryTime > 0 {
+			roleRequest.ExpiryTime = int64(role.ExpiryTime)
+		}
 
 		certFilePem := util.GetRoleCertFileName(opts.CertDir, role.Filename, roleName)
 		notBefore, notAfter, _ := GetPrevRoleCertDates(certFilePem, sysLogger)
@@ -215,6 +218,10 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 		Ssh:             sshCsr,
 		AttestationData: string(attestData),
 	}
+	if svc.ExpiryTime > 0 {
+		expiryTime := int32(svc.ExpiryTime)
+		info.ExpiryTime = &expiryTime
+	}
 
 	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, "", "", opts.ZTSCACertFile, sysLogger)
 	if err != nil {
@@ -293,9 +300,14 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 
 	info := &zts.InstanceRefreshInformation{
 		AttestationData: string(attestData),
-		Csr:      csr,
-		Ssh:      sshCsr,
+		Csr:             csr,
+		Ssh:             sshCsr,
 	}
+	if svc.ExpiryTime > 0 {
+		expiryTime := int32(svc.ExpiryTime)
+		info.ExpiryTime = &expiryTime
+	}
+
 	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(opts.Provider), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(opts.InstanceId), info)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to refresh instance service certificate for %s, err: %v\n", opts.Name, err)

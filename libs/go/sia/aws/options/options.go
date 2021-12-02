@@ -26,6 +26,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -38,14 +39,16 @@ import (
 
 // ConfigService represents a service to be specified by user, and specify User/Group attributes for the service
 type ConfigService struct {
-	Filename string `json:"filename,omitempty"`
-	User     string `json:"user,omitempty"`
-	Group    string `json:"group,omitempty"`
+	Filename   string `json:"filename,omitempty"`
+	User       string `json:"user,omitempty"`
+	Group      string `json:"group,omitempty"`
+	ExpiryTime int    `json:"expiry_time,omitempty"`
 }
 
 // ConfigRole represents a role to be specified by user, and specify attributes for the role
 type ConfigRole struct {
-	Filename string `json:"filename,omitempty"`
+	Filename   string `json:"filename,omitempty"`
+	ExpiryTime int    `json:"expiry_time,omitempty"`
 }
 
 // ConfigAccount represents each of the accounts that can be specified in the config file
@@ -76,6 +79,7 @@ type Config struct {
 	User            string                   `json:"user,omitempty"`              //the user name to chown the cert/key dirs to. If absent, then root
 	Group           string                   `json:"group,omitempty"`             //the group name to chown the cert/key dirs to. If absent, then athenz
 	UdsPath         string                   `json:"uds_path,omitempty"`          //uds path if the agent should support uds connections
+	ExpiryTime      int                      `json:"expiry_time,omitempty"`       //service and role certificate expiry in minutes
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -91,13 +95,14 @@ type Role struct {
 
 // Service represents service details. Attributes are filled in based on the config values
 type Service struct {
-	Name     string
-	Filename string
-	User     string
-	Group    string
-	Uid      int
-	Gid      int
-	FileMode int
+	Name       string
+	Filename   string
+	User       string
+	Group      string
+	Uid        int
+	Gid        int
+	FileMode   int
+	ExpiryTime int
 }
 
 // Options represents settings that are derived from config file and application defaults
@@ -253,6 +258,15 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if config.UdsPath == "" {
 		config.UdsPath = os.Getenv("ATHENZ_SIA_UDS_PATH")
 	}
+	if config.ExpiryTime == 0 {
+		expiryTime := os.Getenv("ATHENZ_SIA_EXPIRY_TIME")
+		if expiryTime != "" {
+			mins, err := strconv.Atoi(expiryTime)
+			if err == nil && mins > 0 {
+				config.ExpiryTime = mins
+			}
+		}
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -334,6 +348,10 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 		// Populate the remaining into tail
 		tail := []Service{}
 		for name, s := range config.Services {
+			expiryTime := config.ExpiryTime
+			if s.ExpiryTime > 0 {
+				expiryTime = s.ExpiryTime
+			}
 			if name == config.Service {
 				first.Filename = s.Filename
 				first.User = s.User
@@ -347,6 +365,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 					first.Group = account.Group
 				}
 				first.Uid, first.Gid, first.FileMode = util.SvcAttrs(first.User, first.Group, sysLogger)
+				first.ExpiryTime = expiryTime
 			} else {
 				ts := Service{
 					Name:     name,
@@ -355,6 +374,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 					Group:    s.Group,
 				}
 				ts.Uid, ts.Gid, ts.FileMode = util.SvcAttrs(s.User, s.Group, sysLogger)
+				ts.ExpiryTime = expiryTime
 				tail = append(tail, ts)
 			}
 			if s.Filename != "" && s.Filename[0] == '/' {
