@@ -75,6 +75,7 @@ type Config struct {
 	RotateKey       bool                     `json:"rotate_key,omitempty"`        //rotate private key support
 	User            string                   `json:"user,omitempty"`              //the user name to chown the cert/key dirs to. If absent, then root
 	Group           string                   `json:"group,omitempty"`             //the group name to chown the cert/key dirs to. If absent, then athenz
+	UdsPath         string                   `json:"uds_path,omitempty"`          //uds path if the agent should support uds connections
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -101,43 +102,44 @@ type Service struct {
 
 // Options represents settings that are derived from config file and application defaults
 type Options struct {
-	Provider             string                //name of the provider
-	Name                 string                //name of the service identity
-	User                 string                //the user name to chown the cert/key dirs to. If absent, then root
-	Group                string                //the group name to chown the cert/key dirs to. If absent, then athenz
-	Domain               string                //name of the domain for the identity
-	Account              string                //name of the account
-	Service              string                //name of the service for the identity
-	Zts                  string                //the ZTS to contact
-	Filename             string                //filename to put the service certificate
-	InstanceId           string                //instance id if ec2, task id if running within eks/ecs
-	Roles                map[string]ConfigRole //map of roles to retrieve certificates for
-	Region               string                //region name
-	SanDnsWildcard       bool                  //san dns wildcard support
-	Version              string                //sia version number
-	ZTSDomains           []string              //zts domain prefixes
-	Services             []Service             //array of configured services
-	Ssh                  bool                  //ssh certificate support
-	UseRegionalSTS       bool                  //use regional sts endpoint
-	KeyDir               string                //private key directory path
-	CertDir              string                //x.509 certificate directory path
-	AthenzCACertFile     string                //filename to store Athenz CA certs
-	ZTSCACertFile        string                //filename for CA certs when communicating with ZTS
-	ZTSServerName        string                //ZTS server name, if necessary for tls
-	ZTSAWSDomains        []string              //list of domain prefixes for sanDNS entries
-	GenerateRoleKey      bool                  //option to generate a separate key for role certificates
-	RotateKey            bool                  //rotate the private key when refreshing certificates
-	BackUpDir            string                //backup directory for key/cert rotation
-	CertCountryName      string                //generated x.509 certificate country name
-	CertOrgName          string                //generated x.509 certificate organization name
-	SshPubKeyFile        string                //ssh host public key file path
-	SshCertFile          string                //ssh host certificate file path
-	SshConfigFile        string                //sshd config file path
-	PrivateIp            string                //instance private ip
-	EC2Document          string                //EC2 instance identity document
-	EC2Signature         string                //EC2 instance identity document pkcs7 signature
-	EC2StartTime         *time.Time            //EC2 instance start time
-	BackwardCompatible   bool                  //support backward compatible option in generated certs
+	Provider           string                //name of the provider
+	Name               string                //name of the service identity
+	User               string                //the user name to chown the cert/key dirs to. If absent, then root
+	Group              string                //the group name to chown the cert/key dirs to. If absent, then athenz
+	Domain             string                //name of the domain for the identity
+	Account            string                //name of the account
+	Service            string                //name of the service for the identity
+	Zts                string                //the ZTS to contact
+	Filename           string                //filename to put the service certificate
+	InstanceId         string                //instance id if ec2, task id if running within eks/ecs
+	Roles              map[string]ConfigRole //map of roles to retrieve certificates for
+	Region             string                //region name
+	SanDnsWildcard     bool                  //san dns wildcard support
+	Version            string                //sia version number
+	ZTSDomains         []string              //zts domain prefixes
+	Services           []Service             //array of configured services
+	Ssh                bool                  //ssh certificate support
+	UseRegionalSTS     bool                  //use regional sts endpoint
+	KeyDir             string                //private key directory path
+	CertDir            string                //x.509 certificate directory path
+	AthenzCACertFile   string                //filename to store Athenz CA certs
+	ZTSCACertFile      string                //filename for CA certs when communicating with ZTS
+	ZTSServerName      string                //ZTS server name, if necessary for tls
+	ZTSAWSDomains      []string              //list of domain prefixes for sanDNS entries
+	GenerateRoleKey    bool                  //option to generate a separate key for role certificates
+	RotateKey          bool                  //rotate the private key when refreshing certificates
+	BackUpDir          string                //backup directory for key/cert rotation
+	CertCountryName    string                //generated x.509 certificate country name
+	CertOrgName        string                //generated x.509 certificate organization name
+	SshPubKeyFile      string                //ssh host public key file path
+	SshCertFile        string                //ssh host certificate file path
+	SshConfigFile      string                //sshd config file path
+	PrivateIp          string                //instance private ip
+	EC2Document        string                //EC2 instance identity document
+	EC2Signature       string                //EC2 instance identity document pkcs7 signature
+	EC2StartTime       *time.Time            //EC2 instance start time
+	BackwardCompatible bool                  //support backward compatible option in generated certs
+	UdsPath            string                //UDS path if the agent should support uds connections
 }
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (string, error) {
@@ -248,6 +250,9 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if config.Group == "" {
 		config.Group = os.Getenv("ATHENZ_SIA_GROUP")
 	}
+	if config.UdsPath == "" {
+		config.UdsPath = os.Getenv("ATHENZ_SIA_UDS_PATH")
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -275,9 +280,11 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 	//update regional sts and wildcard settings based on config settings
 	useRegionalSTS := false
 	sanDnsWildcard := false
+	udsPath := ""
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
 		sanDnsWildcard = config.SanDnsWildcard
+		udsPath = config.UdsPath
 	}
 
 	//update account user/group settings if override provided at the config level
@@ -370,24 +377,25 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 	}
 
 	return &Options{
-		Name:                 account.Name,
-		User:                 account.User,
-		Group:                account.Group,
-		Domain:               account.Domain,
-		Account:              account.Account,
-		Zts:                  account.Zts,
-		Filename:             account.Filename,
-		Version:              fmt.Sprintf("SIA-AWS %s", version),
-		UseRegionalSTS:       useRegionalSTS,
-		SanDnsWildcard:       sanDnsWildcard,
-		Services:             services,
-		Roles:                account.Roles,
-		CertDir:              fmt.Sprintf("%s/certs", siaDir),
-		KeyDir:               fmt.Sprintf("%s/keys", siaDir),
-		AthenzCACertFile:     fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
-		GenerateRoleKey:      generateRoleKey,
-		RotateKey:            rotateKey,
-		BackUpDir:            fmt.Sprintf("%s/backup", siaDir),
+		Name:             account.Name,
+		User:             account.User,
+		Group:            account.Group,
+		Domain:           account.Domain,
+		Account:          account.Account,
+		Zts:              account.Zts,
+		Filename:         account.Filename,
+		Version:          fmt.Sprintf("SIA-AWS %s", version),
+		UseRegionalSTS:   useRegionalSTS,
+		SanDnsWildcard:   sanDnsWildcard,
+		Services:         services,
+		Roles:            account.Roles,
+		CertDir:          fmt.Sprintf("%s/certs", siaDir),
+		KeyDir:           fmt.Sprintf("%s/keys", siaDir),
+		AthenzCACertFile: fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
+		GenerateRoleKey:  generateRoleKey,
+		RotateKey:        rotateKey,
+		BackUpDir:        fmt.Sprintf("%s/backup", siaDir),
+		UdsPath:          udsPath,
 	}, nil
 }
 
