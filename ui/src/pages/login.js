@@ -23,9 +23,9 @@ import InputLabel from '../components/denali/InputLabel';
 import Input from '../components/denali/Input';
 import Button from '../components/denali/Button';
 import API from '../api';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
-import {withRouter} from 'next/router';
+import { withRouter } from 'next/router';
 import Link from 'next/link';
 import PageUtils from '../components/utils/PageUtils';
 
@@ -60,8 +60,8 @@ const MainContentDiv = styled.div`
     font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
 `;
 
-const Logo = ({className}) => (
-    <img src='/static/athenz-logo-full.png' className={className}/>
+const Logo = ({ className }) => (
+    <img src='/static/athenz-logo-full.png' className={className} />
 );
 
 const LogoStyled = styled(Logo)`
@@ -126,7 +126,7 @@ export async function getServerSideProps(context) {
             options,
             error,
             nonce: context.req.headers.rid,
-        }
+        },
     };
 }
 
@@ -145,7 +145,7 @@ class PageLogin extends React.Component {
     }
 
     inputChanged(key, evt) {
-        this.setState({[key]: evt.target.value});
+        this.setState({ [key]: evt.target.value });
     }
 
     onSubmit() {
@@ -197,7 +197,7 @@ class PageLogin extends React.Component {
                             <NavBarItem>
                                 <Link href={PageUtils.homePage()}>
                                     <a>
-                                        <LogoStyled/>
+                                        <LogoStyled />
                                     </a>
                                 </Link>
                             </NavBarItem>

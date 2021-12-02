@@ -45,16 +45,21 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
             handlers.passportAuth.auth(expressApp, appConfig, secrets);
             handlers.routes.route(expressApp, appConfig, secrets);
             expressApp.get('/athenz/', (req, res) => {
-                return nextApp.render(req, res, `/index`, req.query)
+                return nextApp.render(req, res, `/index`, req.query);
             });
             expressApp.get('/athenz/*', (req, res) => {
-                return nextApp.render(req, res, `${req.path.substring(7)}`, req.query)
+                return nextApp.render(
+                    req,
+                    res,
+                    `${req.path.substring(7)}`,
+                    req.query
+                );
             });
             expressApp.get('/', (req, res) => {
-                return nextApp.render(req, res, `/index`, req.query)
+                return nextApp.render(req, res, `/index`, req.query);
             });
             expressApp.get('*', (req, res) => {
-                return nextApp.render(req, res, `${req.path}`, req.query)
+                return nextApp.render(req, res, `${req.path}`, req.query);
             });
 
             const server = https.createServer(

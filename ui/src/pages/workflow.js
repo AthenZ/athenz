@@ -24,7 +24,7 @@ import PendingApprovalTable from '../components/pending-approval/PendingApproval
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -90,7 +90,7 @@ export async function getServerSideProps(context) {
             pendingData: domains[3],
             _csrf: domains[2],
             nonce: context.req && context.req.headers.rid,
-        }
+        },
     };
 }
 
@@ -111,10 +111,10 @@ export default class Workflow extends React.Component {
     render() {
         if (this.props.reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
         return (
             <CacheProvider value={this.cache}>

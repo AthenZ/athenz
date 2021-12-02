@@ -24,7 +24,7 @@ import Search from '../components/search/Search';
 import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -39,8 +39,8 @@ const HomeContentDiv = styled.div`
     flex-direction: column;
 `;
 
-const Logo = ({className}) => (
-    <img src='/static/athenz-logo.png' className={className}/>
+const Logo = ({ className }) => (
+    <img src='/static/athenz-logo.png' className={className} />
 );
 
 const LogoStyled = styled(Logo)`
@@ -107,7 +107,7 @@ export async function getServerSideProps(context) {
             headerDetails: domains[1],
             pending: domains[2],
             nonce: context.req.headers.rid,
-        }
+        },
     };
 }
 
@@ -124,10 +124,10 @@ export default class PageHome extends React.Component {
     render() {
         if (this.props.reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
         return (
             <CacheProvider value={this.cache}>
@@ -145,7 +145,7 @@ export default class PageHome extends React.Component {
                             <HomeContainerDiv>
                                 <HomeContentDiv>
                                     <MainLogoDiv>
-                                        <LogoStyled/>
+                                        <LogoStyled />
                                     </MainLogoDiv>
                                     <DetailsDiv>
                                         <span>
@@ -167,7 +167,7 @@ export default class PageHome extends React.Component {
                                         </StyledAnchor>
                                     </DetailsDiv>
                                     <SearchContainerDiv>
-                                        <Search/>
+                                        <Search />
                                     </SearchContainerDiv>
                                 </HomeContentDiv>
                             </HomeContainerDiv>
@@ -182,4 +182,3 @@ export default class PageHome extends React.Component {
         );
     }
 }
-

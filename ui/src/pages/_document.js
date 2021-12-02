@@ -35,8 +35,6 @@ export async function getServerSideProps(ctx) {
 }
 
 export default class MyDocument extends Document {
-
-
     render() {
         return (
             <Html>
