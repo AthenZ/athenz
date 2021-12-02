@@ -44,13 +44,11 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
             handlers.secure(expressApp, appConfig, secrets);
             handlers.passportAuth.auth(expressApp, appConfig, secrets);
             handlers.routes.route(expressApp, appConfig, secrets);
-            expressApp.get('/my_special_page/:special_value', (req, res) => {
-                const intValue = parseInt(req.params.special_value)
-                if(intValue) {
-                    return nextApp.render(req, res, `/special_int`, req.query)
-                } else {
-                    return nextApp.render(req, res, `/special_string`, req.query)
-                }
+            expressApp.get('/athenz/', (req, res) => {
+                return nextApp.render(req, res, `/index`, req.query)
+            });
+            expressApp.get('/athenz/*', (req, res) => {
+                return nextApp.render(req, res, `${req.path.substring(7)}`, req.query)
             });
             expressApp.get('/', (req, res) => {
                 return nextApp.render(req, res, `/index`, req.query)
