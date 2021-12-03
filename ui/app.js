@@ -44,6 +44,18 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
             handlers.secure(expressApp, appConfig, secrets);
             handlers.passportAuth.auth(expressApp, appConfig, secrets);
             handlers.routes.route(expressApp, appConfig, secrets);
+            expressApp.use(function (req, res, next) {
+                let err = null;
+                try {
+                    decodeURIComponent(req.path);
+                } catch (e) {
+                    err = e;
+                }
+                if (err) {
+                    return nextApp.render(req, res, `/_error`, req.query);
+                }
+                next();
+            });
             expressApp.get('/athenz/', (req, res) => {
                 return nextApp.render(req, res, `/index`, req.query);
             });
