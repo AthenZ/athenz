@@ -84,7 +84,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 	var roleRequest = new(zts.RoleCertificateRequest)
 	for roleName, role := range opts.Roles {
 		certFilePem := util.GetRoleCertFileName(mkDirPath(opts.CertDir), role.Filename, roleName)
-		csr, err := util.GenerateRoleCertCSR(key, opts.CountryName, "", opts.Domain, opts.Services[0].Name, roleName, opts.Services[0].Name, provider, opts.ZTSAzureDomains[0], false)
+		csr, err := util.GenerateRoleCertCSR(key, opts.CountryName, "", opts.Domain, opts.Services[0].Name, roleName, opts.Services[0].Name, provider, "")
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1

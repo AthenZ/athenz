@@ -143,8 +143,10 @@ type Options struct {
 	EC2Document        string                //EC2 instance identity document
 	EC2Signature       string                //EC2 instance identity document pkcs7 signature
 	EC2StartTime       *time.Time            //EC2 instance start time
-	BackwardCompatible bool                  //support backward compatible option in generated certs
+	InstanceIdSanDNS   bool                  //include instance id in a san dns entry (backward compatible option)
+	RolePrincipalEmail bool                  //include role principal in a san email field (backward compatible option)
 	UdsPath            string                //UDS path if the agent should support uds connections
+	RefreshInterval    int                   //refresh interval for certficates - default 24 hours
 }
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (string, error) {
@@ -416,6 +418,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 		RotateKey:        rotateKey,
 		BackUpDir:        fmt.Sprintf("%s/backup", siaDir),
 		UdsPath:          udsPath,
+		RefreshInterval:  24 * 60,
 	}, nil
 }
 

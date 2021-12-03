@@ -254,7 +254,7 @@ func PrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 	return x509.ParsePKCS1PrivateKey(block.Bytes)
 }
 
-func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider string, ztsDomains []string, wildCardDnsName, backwardCompatible bool) (string, error) {
+func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider string, ztsDomains []string, wildCardDnsName, instanceIdSanDNS bool) (string, error) {
 
 	//note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
 	//it is used, not the CN. So, we will always put the Athenz name in the CN
@@ -277,7 +277,7 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, servi
 		}
 	}
 	// for backward compatibility a sanDNS entry with instance id in the hostname
-	if backwardCompatible {
+	if instanceIdSanDNS {
 		instanceIdHost := fmt.Sprintf("%s.instanceid.athenz.%s", instanceId, ztsDomains[0])
 		csrDetails.HostList = append(csrDetails.HostList, instanceIdHost)
 	}
@@ -294,7 +294,7 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, servi
 	return GenerateX509CSR(key, csrDetails)
 }
 
-func GenerateRoleCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, roleName, instanceId, provider, emailDomain string, backwardCompatible bool) (string, error) {
+func GenerateRoleCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, roleName, instanceId, provider, emailDomain string) (string, error) {
 
 	// for role certificates we're putting the role name in the CN
 	var csrDetails CertReqDetails
@@ -321,7 +321,7 @@ func GenerateRoleCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, serv
 	csrDetails.URIs = AppendUri(csrDetails.URIs, principalUri)
 
 	// for backward compatibility an email with the principal as the local part
-	if backwardCompatible {
+	if emailDomain != "" {
 		email := fmt.Sprintf("%s.%s@%s", domain, service, emailDomain)
 		csrDetails.EmailList = []string{email}
 	}
@@ -561,7 +561,7 @@ func ParseRoleArn(roleArn, rolePrefix, roleSuffix string) (string, string, strin
 	if roleSuffix != "" && !strings.HasSuffix(arn[5][len(rolePrefix):], roleSuffix) {
 		return "", "", "", fmt.Errorf("role name does not have '%s' suffix: %s", roleSuffix, roleArn)
 	}
-	roleName := arn[5][len(rolePrefix):len(arn[5])-len(roleSuffix)]
+	roleName := arn[5][len(rolePrefix) : len(arn[5])-len(roleSuffix)]
 	idx := strings.LastIndex(roleName, ".")
 	if idx < 0 {
 		return "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)

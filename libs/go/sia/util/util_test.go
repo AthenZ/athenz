@@ -296,7 +296,7 @@ func TestGenerateRoleCertCSR(test *testing.T) {
 		return
 	}
 
-	csr, err := GenerateRoleCertCSR(key, "US", "", "domain", "service", "athenz:role.readers", "instance001", "Athenz", "athenz.cloud", true)
+	csr, err := GenerateRoleCertCSR(key, "US", "", "domain", "service", "athenz:role.readers", "instance001", "Athenz", "athenz.cloud")
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -343,6 +343,33 @@ func TestGenerateRoleCertCSR(test *testing.T) {
 	}
 	if parsedcertreq.Subject.Organization != nil {
 		test.Errorf("CSR does not have expected org")
+		return
+	}
+}
+
+func TestGenerateRoleCertCSRNoEmail(test *testing.T) {
+
+	key, err := GenerateKeyPair(2048)
+	if err != nil {
+		test.Errorf("Cannot generate private key: %v", err)
+		return
+	}
+
+	csr, err := GenerateRoleCertCSR(key, "US", "", "domain", "service", "athenz:role.readers", "instance001", "Athenz", "")
+	if err != nil {
+		test.Errorf("Cannot create CSR: %v", err)
+		return
+	}
+
+	block, _ := pem.Decode([]byte(csr))
+	parsedcertreq, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		test.Errorf("Cannot parse CSR: %v", err)
+		return
+	}
+
+	if parsedcertreq.EmailAddresses != nil {
+		test.Errorf("CSR has an unexpected email addresses: %v", parsedcertreq.EmailAddresses)
 		return
 	}
 }
