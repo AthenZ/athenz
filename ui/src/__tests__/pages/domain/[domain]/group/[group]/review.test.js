@@ -15,11 +15,10 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import GroupSettingsPage from '../../../../../../pages/domain/[domain]/group/[group]/settings';
+import GroupReviewPage from '../../../../../../pages/domain/[domain]/group/[group]/review';
 
-describe('GroupSettingPage', () => {
+describe('GroupReviewPage', () => {
     it('should render', () => {
-        let group = 'groupName';
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
@@ -31,8 +30,6 @@ describe('GroupSettingPage', () => {
         };
         let groupDetails = {
             modified: '2020-02-12T21:44:37.792Z',
-            memberExpiryDays: '60',
-            serviceExpiryDays: '50',
         };
         let headerDetails = {
             headerLinks: [
@@ -51,7 +48,7 @@ describe('GroupSettingPage', () => {
             },
         };
         const { getByTestId } = render(
-            <GroupSettingsPage
+            <GroupReviewPage
                 domains={domains}
                 req='req'
                 userId='userid'
@@ -59,13 +56,12 @@ describe('GroupSettingPage', () => {
                 reload={false}
                 domainDetails={domainDetails}
                 groupDetails={groupDetails}
-                role={group}
                 domain='dom'
                 domainResult={[]}
                 headerDetails={headerDetails}
             />
         );
-        const groupSettingsPage = getByTestId('group-settings');
-        expect(groupSettingsPage).toMatchSnapshot();
+        const groupReviewPage = getByTestId('group-review');
+        expect(groupReviewPage).toMatchSnapshot();
     });
 });

@@ -188,7 +188,7 @@ class PageLogin extends React.Component {
     render() {
         return (
             <CacheProvider value={this.cache}>
-                <div data-testid='home'>
+                <div data-testid='login'>
                     <Head>
                         <title>Athenz</title>
                     </Head>

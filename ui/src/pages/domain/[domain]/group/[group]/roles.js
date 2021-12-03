@@ -167,7 +167,7 @@ export default class GroupRolesPage extends React.Component {
         let displayData = this.state.roles && this.state.roles.length > 0;
         return (
             <CacheProvider value={this.cache}>
-                <div data-testid='member'>
+                <div data-testid='group-role'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
