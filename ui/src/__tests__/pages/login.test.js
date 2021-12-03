@@ -15,7 +15,7 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import PageLogin from "../../pages/login";
+import PageLogin from '../../pages/login';
 
 describe('Login', () => {
     it('should render', () => {
