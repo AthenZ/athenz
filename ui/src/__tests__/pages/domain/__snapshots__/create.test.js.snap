@@ -6,7 +6,7 @@ exports[`CreateDomainPage should render 1`] = `
   position: relative;
 }
 
-.emotion-1 {
+.emotion-2 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -40,15 +40,15 @@ exports[`CreateDomainPage should render 1`] = `
   z-index: 2;
 }
 
-.emotion-1.scrolled {
+.emotion-2.scrolled {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
 }
 
-.emotion-1 .flush-right {
+.emotion-2 .flush-right {
   margin-left: auto;
 }
 
-.emotion-2 {
+.emotion-3 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -62,7 +62,7 @@ exports[`CreateDomainPage should render 1`] = `
   position: relative;
 }
 
-.emotion-2.simple {
+.emotion-3.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -71,23 +71,23 @@ exports[`CreateDomainPage should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.simple.nav-link {
+.emotion-3.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-2.simple.nav-link:hover {
+.emotion-3.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-2.simple.active {
+.emotion-3.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-2.simple.nav-link.active:hover {
+.emotion-3.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-2 .nav-title {
+.emotion-3 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -105,25 +105,25 @@ exports[`CreateDomainPage should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.nav-link .nav-title {
+.emotion-3.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-2.active .nav-title,
-.emotion-2 .active.nav-title {
+.emotion-3.active .nav-title,
+.emotion-3 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-2 .nav-title:hover {
+.emotion-3 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-2.nav-link.active .nav-title:hover,
-.emotion-2.nav-link .active.nav-title:hover {
+.emotion-3.nav-link.active .nav-title:hover,
+.emotion-3.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-2 img.nav-logo {
+.emotion-3 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -135,43 +135,43 @@ exports[`CreateDomainPage should render 1`] = `
   height: 34px;
 }
 
-.emotion-2 .nav-icon,
-.emotion-2:hover .nav-icon {
+.emotion-3 .nav-icon,
+.emotion-3:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-2 .nav-icon path,
-.emotion-2:hover .nav-icon path,
-.emotion-2 .nav-icon ellipse,
-.emotion-2:hover .nav-icon ellipse,
-.emotion-2 .nav-icon rect,
-.emotion-2:hover .nav-icon rect,
-.emotion-2 .nav-icon circle,
-.emotion-2:hover .nav-icon circle {
+.emotion-3 .nav-icon path,
+.emotion-3:hover .nav-icon path,
+.emotion-3 .nav-icon ellipse,
+.emotion-3:hover .nav-icon ellipse,
+.emotion-3 .nav-icon rect,
+.emotion-3:hover .nav-icon rect,
+.emotion-3 .nav-icon circle,
+.emotion-3:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.nav-link:hover .nav-icon path,
-.emotion-2.nav-link:hover .nav-icon ellipse,
-.emotion-2.nav-link:hover .nav-icon rect,
-.emotion-2.nav-link:hover .nav-icon circle {
+.emotion-3.nav-link:hover .nav-icon path,
+.emotion-3.nav-link:hover .nav-icon ellipse,
+.emotion-3.nav-link:hover .nav-icon rect,
+.emotion-3.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-3 {
+.emotion-4 {
   height: 36px;
   cursor: pointer;
 }
 
-.emotion-4 {
+.emotion-6 {
   margin-left: 10%;
   width: 50%;
 }
 
-.emotion-5 {
+.emotion-8 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -186,7 +186,7 @@ exports[`CreateDomainPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-5.simple {
+.emotion-8.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -195,23 +195,23 @@ exports[`CreateDomainPage should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.simple.nav-link {
+.emotion-8.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-5.simple.nav-link:hover {
+.emotion-8.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-5.simple.active {
+.emotion-8.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-5.simple.nav-link.active:hover {
+.emotion-8.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-5 .nav-title {
+.emotion-8 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -229,25 +229,25 @@ exports[`CreateDomainPage should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.nav-link .nav-title {
+.emotion-8.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-5.active .nav-title,
-.emotion-5 .active.nav-title {
+.emotion-8.active .nav-title,
+.emotion-8 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-5 .nav-title:hover {
+.emotion-8 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-5.nav-link.active .nav-title:hover,
-.emotion-5.nav-link .active.nav-title:hover {
+.emotion-8.nav-link.active .nav-title:hover,
+.emotion-8.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-5 img.nav-logo {
+.emotion-8 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -259,50 +259,50 @@ exports[`CreateDomainPage should render 1`] = `
   height: 34px;
 }
 
-.emotion-5 .nav-icon,
-.emotion-5:hover .nav-icon {
+.emotion-8 .nav-icon,
+.emotion-8:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-5 .nav-icon path,
-.emotion-5:hover .nav-icon path,
-.emotion-5 .nav-icon ellipse,
-.emotion-5:hover .nav-icon ellipse,
-.emotion-5 .nav-icon rect,
-.emotion-5:hover .nav-icon rect,
-.emotion-5 .nav-icon circle,
-.emotion-5:hover .nav-icon circle {
+.emotion-8 .nav-icon path,
+.emotion-8:hover .nav-icon path,
+.emotion-8 .nav-icon ellipse,
+.emotion-8:hover .nav-icon ellipse,
+.emotion-8 .nav-icon rect,
+.emotion-8:hover .nav-icon rect,
+.emotion-8 .nav-icon circle,
+.emotion-8:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.nav-link:hover .nav-icon path,
-.emotion-5.nav-link:hover .nav-icon ellipse,
-.emotion-5.nav-link:hover .nav-icon rect,
-.emotion-5.nav-link:hover .nav-icon circle {
+.emotion-8.nav-link:hover .nav-icon path,
+.emotion-8.nav-link:hover .nav-icon ellipse,
+.emotion-8.nav-link:hover .nav-icon rect,
+.emotion-8.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-7 {
+.emotion-10 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-8 {
+.emotion-12 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-9 {
+.emotion-13 {
   margin-left: 15px;
 }
 
-.emotion-11 {
+.emotion-16 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -310,7 +310,7 @@ exports[`CreateDomainPage should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-12 {
+.emotion-18 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -330,7 +330,7 @@ exports[`CreateDomainPage should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-13 {
+.emotion-20 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -349,20 +349,20 @@ exports[`CreateDomainPage should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-15 {
+.emotion-24 {
   padding: 20px 30px 0;
 }
 
-.emotion-16 {
+.emotion-26 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
 }
 
-.emotion-17 {
+.emotion-28 {
   margin: 20px;
 }
 
-.emotion-18 {
+.emotion-30 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -378,7 +378,7 @@ exports[`CreateDomainPage should render 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-19 {
+.emotion-32 {
   -webkit-flex: 0 0 150px;
   -ms-flex: 0 0 150px;
   flex: 0 0 150px;
@@ -386,13 +386,13 @@ exports[`CreateDomainPage should render 1`] = `
   line-height: 36px;
 }
 
-.emotion-20 {
+.emotion-34 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
 }
 
-.emotion-21 {
+.emotion-36 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -406,7 +406,7 @@ exports[`CreateDomainPage should render 1`] = `
   position: relative;
 }
 
-.emotion-21::before {
+.emotion-36::before {
   background: #fff;
   border: 2px solid #0072df;
   border-radius: 2px;
@@ -420,7 +420,7 @@ exports[`CreateDomainPage should render 1`] = `
   width: calc(33.333333333333336% + 4px);
 }
 
-.emotion-22 {
+.emotion-37 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -448,11 +448,11 @@ exports[`CreateDomainPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-22:hover {
+.emotion-37:hover {
   color: #303030;
 }
 
-.emotion-23 {
+.emotion-38 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -480,19 +480,19 @@ exports[`CreateDomainPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-23:hover {
+.emotion-38:hover {
   color: #3570f4;
 }
 
-.emotion-28 {
+.emotion-46 {
   color: #9a9a9a;
 }
 
-.emotion-32 {
+.emotion-54 {
   width: 500px;
 }
 
-.emotion-33 {
+.emotion-56 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -509,7 +509,7 @@ exports[`CreateDomainPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-33 input {
+.emotion-56 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -535,42 +535,42 @@ exports[`CreateDomainPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-33.animated input {
+.emotion-56.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-33 input::-webkit-input-placeholder {
+.emotion-56 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-33 input::-moz-placeholder {
+.emotion-56 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-33 input:-ms-input-placeholder {
+.emotion-56 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-33 input::placeholder {
+.emotion-56 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-33 input.focused,
-.emotion-33 input:active,
-.emotion-33 input:focus {
+.emotion-56 input.focused,
+.emotion-56 input:active,
+.emotion-56 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-33 input:invalid {
+.emotion-56 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-33 .message {
+.emotion-56 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -578,29 +578,29 @@ exports[`CreateDomainPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-33.error input,
-.emotion-33.error input.focused,
-.emotion-33.error input:active,
-.emotion-33.error input:focus {
+.emotion-56.error input,
+.emotion-56.error input.focused,
+.emotion-56.error input:active,
+.emotion-56.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-33.error .message {
+.emotion-56.error .message {
   color: #d01111;
 }
 
-.emotion-33 input[disabled] {
+.emotion-56 input[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-37 {
+.emotion-63 {
   vertical-align: middle;
 }
 
-.emotion-38 {
+.emotion-65 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -617,7 +617,7 @@ exports[`CreateDomainPage should render 1`] = `
   position: relative;
 }
 
-.emotion-38>input[type='checkbox'] {
+.emotion-65>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   position: absolute;
@@ -625,7 +625,7 @@ exports[`CreateDomainPage should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-38>input[type='checkbox']+label {
+.emotion-65>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -636,7 +636,7 @@ exports[`CreateDomainPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-38>input[type='checkbox']+label .label-content {
+.emotion-65>input[type='checkbox']+label .label-content {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -645,12 +645,12 @@ exports[`CreateDomainPage should render 1`] = `
 }
 
 @-moz-document url-prefix() {
-  .emotion-38>input[type='checkbox']+label .label-content {
+  .emotion-65>input[type='checkbox']+label .label-content {
     margin-top: 1px;
   }
 }
 
-.emotion-38>input[type='checkbox']+label:before {
+.emotion-65>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
   box-sizing: border-box;
@@ -666,7 +666,7 @@ exports[`CreateDomainPage should render 1`] = `
   width: 34px;
 }
 
-.emotion-38>input[type='checkbox']+label::after {
+.emotion-65>input[type='checkbox']+label::after {
   background-color: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -683,50 +683,50 @@ exports[`CreateDomainPage should render 1`] = `
   width: 18px;
 }
 
-.emotion-38>input[type='checkbox']:checked+label::before {
+.emotion-65>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-38>input[type='checkbox']:checked+label::after {
+.emotion-65>input[type='checkbox']:checked+label::after {
   background-color: #15c046;
   border-color: #15c046;
   left: 16px;
 }
 
-.emotion-38>input[type='checkbox']:disabled+label {
+.emotion-65>input[type='checkbox']:disabled+label {
   color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-38>input[type='checkbox']:disabled+label::before {
+.emotion-65>input[type='checkbox']:disabled+label::before {
   background-color: #e8e8e8;
   cursor: not-allowed;
 }
 
-.emotion-38>input[type='checkbox']:disabled+label::after {
+.emotion-65>input[type='checkbox']:disabled+label::after {
   border-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-38>input[type='checkbox']:checked:disabled+label::after {
+.emotion-65>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-39 {
+.emotion-66 {
   color: #9a9a9a;
   margin-left: 5px;
   white-space: nowrap;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-43 {
+.emotion-74 {
   border-bottom: 1px solid #d5d5d5;
   margin-top: 10px;
   margin-bottom: 10px;
   width: 100%;
 }
 
-.emotion-47 {
+.emotion-82 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -755,17 +755,17 @@ exports[`CreateDomainPage should render 1`] = `
   color: #fff;
 }
 
-.emotion-47:first-of-type {
+.emotion-82:first-of-type {
   margin-left: 0;
 }
 
-.emotion-47:disabled {
+.emotion-82:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-47:hover:not(:disabled) {
+.emotion-82:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
                   #3570f4,
@@ -773,7 +773,7 @@ exports[`CreateDomainPage should render 1`] = `
               );
 }
 
-.emotion-48 {
+.emotion-83 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -799,25 +799,25 @@ exports[`CreateDomainPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-48:first-of-type {
+.emotion-83:first-of-type {
   margin-left: 0;
 }
 
-.emotion-48:disabled {
+.emotion-83:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-48:disabled {
+.emotion-83:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-48:hover:not(:disabled) {
+.emotion-83:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-49 {
+.emotion-84 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -843,13 +843,13 @@ exports[`CreateDomainPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-50 {
+.emotion-86 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-51 {
+.emotion-87 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -864,7 +864,7 @@ exports[`CreateDomainPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-52 {
+.emotion-89 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -883,28 +883,28 @@ exports[`CreateDomainPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-53 {
+.emotion-91 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-54 {
+.emotion-93 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-55 {
+.emotion-95 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-57 {
+.emotion-99 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-58 {
+.emotion-101 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -912,12 +912,12 @@ exports[`CreateDomainPage should render 1`] = `
   display: flex;
 }
 
-.emotion-59 {
+.emotion-103 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-60 {
+.emotion-105 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -927,44 +927,44 @@ exports[`CreateDomainPage should render 1`] = `
   data-testid="create-domain"
 >
   <div
-    class="emotion-0"
+    class="emotion-0 emotion-1"
     data-testid="header"
   >
     <div
-      class="emotion-1 denali-navbar"
+      class="emotion-2 denali-navbar"
       data-testid="navbar"
     >
       <div
-        class="emotion-2 simple denali-navbar-item"
+        class="emotion-3 simple denali-navbar-item"
         data-testid="navbar-item"
       >
         <a
           href="/"
         >
           <img
-            class="emotion-3"
+            class="emotion-4 emotion-5"
             src="/static/athenz-logo-full.png"
           />
         </a>
       </div>
       <div
-        class="emotion-4"
+        class="emotion-6 emotion-7"
       >
         <div
-          class="emotion-5 simple denali-navbar-item"
+          class="emotion-8 simple denali-navbar-item"
           data-testid="navbar-item"
         />
       </div>
       <div
-        class="emotion-2 simple flush-right denali-navbar-item"
+        class="emotion-3 simple flush-right denali-navbar-item"
         data-testid="navbar-item"
       >
         <div
-          class="emotion-7"
+          class="emotion-10 emotion-11"
           data-testid="header-menu"
         >
           <svg
-            class="emotion-8"
+            class="emotion-12"
             data-testid="icon"
             height="25px"
             viewBox="0 0 1024 1024"
@@ -978,10 +978,10 @@ exports[`CreateDomainPage should render 1`] = `
             />
           </svg>
           <div
-            class="emotion-9"
+            class="emotion-13 emotion-14"
           >
             <svg
-              class="emotion-8"
+              class="emotion-12"
               data-testid="icon"
               height="25px"
               viewBox="0 0 1024 1024"
@@ -1006,59 +1006,59 @@ exports[`CreateDomainPage should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-11"
+    class="emotion-16 emotion-17"
   >
     <div
-      class="emotion-12"
+      class="emotion-18 emotion-19"
     >
       <div
-        class="emotion-13"
+        class="emotion-20 emotion-21"
       >
         <div
-          class="emotion-14"
+          class="emotion-22 emotion-23"
         >
           <div
-            class="emotion-15"
+            class="emotion-24 emotion-25"
           >
             <div
-              class="emotion-16"
+              class="emotion-26 emotion-27"
             >
               Create New Domain
             </div>
           </div>
           <div
-            class="emotion-17"
+            class="emotion-28 emotion-29"
             data-testid="create-domain-component"
           >
             <div
-              class="emotion-18"
+              class="emotion-30 emotion-31"
             >
               <div
-                class="emotion-19"
+                class="emotion-32 emotion-33"
               >
                 Domain Type
               </div>
               <div
-                class="emotion-20"
+                class="emotion-34 emotion-35"
               >
                 <div
-                  class="emotion-21 denali-button-group"
+                  class="emotion-36 denali-button-group"
                   data-testid="buttongroup"
                 >
                   <div
-                    class="emotion-22"
+                    class="emotion-37"
                     data-active="true"
                   >
                     Top Level
                   </div>
                   <div
-                    class="emotion-23"
+                    class="emotion-38"
                     data-active="false"
                   >
                     Sub Domain
                   </div>
                   <div
-                    class="emotion-23"
+                    class="emotion-38"
                     data-active="false"
                   >
                     Personal
@@ -1067,16 +1067,16 @@ exports[`CreateDomainPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-18"
+              class="emotion-30 emotion-31"
             >
               <div
-                class="emotion-19"
+                class="emotion-32 emotion-33"
               />
               <div
-                class="emotion-20"
+                class="emotion-34 emotion-35"
               >
                 <div
-                  class="emotion-28"
+                  class="emotion-46 emotion-47"
                 >
                   <p>
                     create for testing
@@ -1085,21 +1085,21 @@ exports[`CreateDomainPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-18"
+              class="emotion-30 emotion-31"
             >
               <div
-                class="emotion-19"
+                class="emotion-32 emotion-33"
               >
                 Domain Name
               </div>
               <div
-                class="emotion-20"
+                class="emotion-34 emotion-35"
               >
                 <div
-                  class="emotion-32"
+                  class="emotion-54 emotion-55"
                 >
                   <div
-                    class="emotion-33 denali-input animated"
+                    class="emotion-56 denali-input animated"
                     data-testid="input-wrapper"
                   >
                     <input
@@ -1119,19 +1119,19 @@ exports[`CreateDomainPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-18"
+              class="emotion-30 emotion-31"
             >
               <div
-                class="emotion-19"
+                class="emotion-32 emotion-33"
               />
               <div
-                class="emotion-20"
+                class="emotion-34 emotion-35"
               >
                 <div
-                  class="emotion-37"
+                  class="emotion-63 emotion-64"
                 >
                   <div
-                    class="emotion-38 denali-switch"
+                    class="emotion-65 denali-switch"
                     data-testid="switch-wrapper"
                   >
                     <input
@@ -1145,7 +1145,7 @@ exports[`CreateDomainPage should render 1`] = `
                     />
                   </div>
                   <label
-                    class="emotion-39"
+                    class="emotion-66 emotion-67"
                   >
                     Audit Enabled
                   </label>
@@ -1153,38 +1153,38 @@ exports[`CreateDomainPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-18"
+              class="emotion-30 emotion-31"
             >
               <div
-                class="emotion-19"
+                class="emotion-32 emotion-33"
               />
               <div
-                class="emotion-20"
+                class="emotion-34 emotion-35"
               >
                 <div
-                  class="emotion-43"
+                  class="emotion-74 emotion-75"
                 />
               </div>
             </div>
             <div
-              class="emotion-18"
+              class="emotion-30 emotion-31"
             >
               <div
-                class="emotion-19"
+                class="emotion-32 emotion-33"
               />
               <div
-                class="emotion-20"
+                class="emotion-34 emotion-35"
               >
                 <div>
                   <button
-                    class="emotion-47 denali-button"
+                    class="emotion-82 denali-button"
                     disabled=""
                     type="button"
                   >
                     Submit
                   </button>
                   <button
-                    class="emotion-48 denali-button"
+                    class="emotion-83 denali-button"
                     disabled=""
                     type="button"
                   >
@@ -1200,11 +1200,11 @@ exports[`CreateDomainPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-49"
+          class="emotion-84 emotion-85"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-50"
+            class="emotion-86"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1219,45 +1219,45 @@ exports[`CreateDomainPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-51"
+          class="emotion-87 emotion-88"
         >
           <div
-            class="emotion-52"
+            class="emotion-89 emotion-90"
           >
             <div
-              class="emotion-53"
+              class="emotion-91 emotion-92"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-54"
+                class="emotion-93 emotion-94"
               >
                 Create
               </a>
               <span
-                class="emotion-55"
+                class="emotion-95 emotion-96"
               >
                  | 
               </span>
               <a
-                class="emotion-54"
+                class="emotion-93 emotion-94"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-57"
+            class="emotion-99 emotion-100"
           >
             <div
-              class="emotion-58"
+              class="emotion-101 emotion-102"
             >
               <div
-                class="emotion-59"
+                class="emotion-103 emotion-104"
               >
                 <svg
-                  class="emotion-60"
+                  class="emotion-105"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1278,19 +1278,19 @@ exports[`CreateDomainPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-54"
+                class="emotion-93 emotion-94"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-58"
+              class="emotion-101 emotion-102"
             >
               <div
-                class="emotion-59"
+                class="emotion-103 emotion-104"
               >
                 <svg
-                  class="emotion-60"
+                  class="emotion-105"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1311,7 +1311,7 @@ exports[`CreateDomainPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-54"
+                class="emotion-93 emotion-94"
               >
                 athens.ci
               </a>

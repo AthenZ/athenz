@@ -5,17 +5,17 @@ exports[`RoleHistoryList should render 1`] = `
   margin: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   display: grid;
   grid-template-columns: 55% 15% 15% 15%;
   grid-gap: 10px;
 }
 
-.emotion-2 {
+.emotion-4 {
   font-weight: bold;
 }
 
-.emotion-4 {
+.emotion-8 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -44,17 +44,17 @@ exports[`RoleHistoryList should render 1`] = `
   color: #fff;
 }
 
-.emotion-4:first-of-type {
+.emotion-8:first-of-type {
   margin-left: 0;
 }
 
-.emotion-4:disabled {
+.emotion-8:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-4:hover:not(:disabled) {
+.emotion-8:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
                   #3570f4,
@@ -62,7 +62,7 @@ exports[`RoleHistoryList should render 1`] = `
               );
 }
 
-.emotion-5>div input {
+.emotion-9>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   background-color: rgba(53, 112, 244, 0.05);
@@ -88,7 +88,7 @@ exports[`RoleHistoryList should render 1`] = `
   width: 80%;
 }
 
-.emotion-7 {
+.emotion-13 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -114,25 +114,25 @@ exports[`RoleHistoryList should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-7:first-of-type {
+.emotion-13:first-of-type {
   margin-left: 0;
 }
 
-.emotion-7:disabled {
+.emotion-13:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-7:disabled {
+.emotion-13:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-7:hover:not(:disabled) {
+.emotion-13:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-8 {
+.emotion-14 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -142,7 +142,7 @@ exports[`RoleHistoryList should render 1`] = `
   padding-top: 20px;
 }
 
-.emotion-9 {
+.emotion-16 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -156,33 +156,33 @@ exports[`RoleHistoryList should render 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="collection-history-list"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <div />
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       Start Date
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       End Date
     </div>
     <div />
     <div>
       <button
-        class="emotion-4 denali-button"
+        class="emotion-8 denali-button"
       >
         Export to CSV
       </button>
     </div>
     <div
-      class="emotion-5"
+      class="emotion-9 emotion-10"
     >
       <div
         class="fp-startDate"
@@ -205,7 +205,7 @@ exports[`RoleHistoryList should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-5"
+      class="emotion-9 emotion-10"
     >
       <div
         class="fp-endDate"
@@ -229,39 +229,39 @@ exports[`RoleHistoryList should render 1`] = `
     </div>
     <div>
       <button
-        class="emotion-7 denali-button"
+        class="emotion-13 denali-button"
       >
         Submit
       </button>
     </div>
   </div>
   <table
-    class="emotion-8"
+    class="emotion-14 emotion-15"
   >
     <thead>
       <tr>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           ACTION
         </th>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           EXECUTED BY
         </th>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           MODIFIED DATE
         </th>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           MEMBERS
         </th>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           AUDIT REFERENCE
         </th>

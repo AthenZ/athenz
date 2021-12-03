@@ -6,7 +6,7 @@ exports[`Home should render 1`] = `
   position: relative;
 }
 
-.emotion-1 {
+.emotion-2 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -40,15 +40,15 @@ exports[`Home should render 1`] = `
   z-index: 2;
 }
 
-.emotion-1.scrolled {
+.emotion-2.scrolled {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
 }
 
-.emotion-1 .flush-right {
+.emotion-2 .flush-right {
   margin-left: auto;
 }
 
-.emotion-2 {
+.emotion-3 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -62,7 +62,7 @@ exports[`Home should render 1`] = `
   position: relative;
 }
 
-.emotion-2.simple {
+.emotion-3.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -71,23 +71,23 @@ exports[`Home should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.simple.nav-link {
+.emotion-3.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-2.simple.nav-link:hover {
+.emotion-3.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-2.simple.active {
+.emotion-3.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-2.simple.nav-link.active:hover {
+.emotion-3.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-2 .nav-title {
+.emotion-3 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -105,25 +105,25 @@ exports[`Home should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.nav-link .nav-title {
+.emotion-3.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-2.active .nav-title,
-.emotion-2 .active.nav-title {
+.emotion-3.active .nav-title,
+.emotion-3 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-2 .nav-title:hover {
+.emotion-3 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-2.nav-link.active .nav-title:hover,
-.emotion-2.nav-link .active.nav-title:hover {
+.emotion-3.nav-link.active .nav-title:hover,
+.emotion-3.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-2 img.nav-logo {
+.emotion-3 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -135,43 +135,43 @@ exports[`Home should render 1`] = `
   height: 34px;
 }
 
-.emotion-2 .nav-icon,
-.emotion-2:hover .nav-icon {
+.emotion-3 .nav-icon,
+.emotion-3:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-2 .nav-icon path,
-.emotion-2:hover .nav-icon path,
-.emotion-2 .nav-icon ellipse,
-.emotion-2:hover .nav-icon ellipse,
-.emotion-2 .nav-icon rect,
-.emotion-2:hover .nav-icon rect,
-.emotion-2 .nav-icon circle,
-.emotion-2:hover .nav-icon circle {
+.emotion-3 .nav-icon path,
+.emotion-3:hover .nav-icon path,
+.emotion-3 .nav-icon ellipse,
+.emotion-3:hover .nav-icon ellipse,
+.emotion-3 .nav-icon rect,
+.emotion-3:hover .nav-icon rect,
+.emotion-3 .nav-icon circle,
+.emotion-3:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.nav-link:hover .nav-icon path,
-.emotion-2.nav-link:hover .nav-icon ellipse,
-.emotion-2.nav-link:hover .nav-icon rect,
-.emotion-2.nav-link:hover .nav-icon circle {
+.emotion-3.nav-link:hover .nav-icon path,
+.emotion-3.nav-link:hover .nav-icon ellipse,
+.emotion-3.nav-link:hover .nav-icon rect,
+.emotion-3.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-3 {
+.emotion-4 {
   height: 36px;
   cursor: pointer;
 }
 
-.emotion-4 {
+.emotion-6 {
   margin-left: 10%;
   width: 50%;
 }
 
-.emotion-5 {
+.emotion-8 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -186,7 +186,7 @@ exports[`Home should render 1`] = `
   width: 100%;
 }
 
-.emotion-5.simple {
+.emotion-8.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -195,23 +195,23 @@ exports[`Home should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.simple.nav-link {
+.emotion-8.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-5.simple.nav-link:hover {
+.emotion-8.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-5.simple.active {
+.emotion-8.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-5.simple.nav-link.active:hover {
+.emotion-8.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-5 .nav-title {
+.emotion-8 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -229,25 +229,25 @@ exports[`Home should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.nav-link .nav-title {
+.emotion-8.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-5.active .nav-title,
-.emotion-5 .active.nav-title {
+.emotion-8.active .nav-title,
+.emotion-8 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-5 .nav-title:hover {
+.emotion-8 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-5.nav-link.active .nav-title:hover,
-.emotion-5.nav-link .active.nav-title:hover {
+.emotion-8.nav-link.active .nav-title:hover,
+.emotion-8.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-5 img.nav-logo {
+.emotion-8 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -259,50 +259,50 @@ exports[`Home should render 1`] = `
   height: 34px;
 }
 
-.emotion-5 .nav-icon,
-.emotion-5:hover .nav-icon {
+.emotion-8 .nav-icon,
+.emotion-8:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-5 .nav-icon path,
-.emotion-5:hover .nav-icon path,
-.emotion-5 .nav-icon ellipse,
-.emotion-5:hover .nav-icon ellipse,
-.emotion-5 .nav-icon rect,
-.emotion-5:hover .nav-icon rect,
-.emotion-5 .nav-icon circle,
-.emotion-5:hover .nav-icon circle {
+.emotion-8 .nav-icon path,
+.emotion-8:hover .nav-icon path,
+.emotion-8 .nav-icon ellipse,
+.emotion-8:hover .nav-icon ellipse,
+.emotion-8 .nav-icon rect,
+.emotion-8:hover .nav-icon rect,
+.emotion-8 .nav-icon circle,
+.emotion-8:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.nav-link:hover .nav-icon path,
-.emotion-5.nav-link:hover .nav-icon ellipse,
-.emotion-5.nav-link:hover .nav-icon rect,
-.emotion-5.nav-link:hover .nav-icon circle {
+.emotion-8.nav-link:hover .nav-icon path,
+.emotion-8.nav-link:hover .nav-icon ellipse,
+.emotion-8.nav-link:hover .nav-icon rect,
+.emotion-8.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-7 {
+.emotion-10 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-8 {
+.emotion-12 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-9 {
+.emotion-13 {
   margin-left: 15px;
 }
 
-.emotion-11 {
+.emotion-16 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -310,7 +310,7 @@ exports[`Home should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-12 {
+.emotion-18 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -330,13 +330,13 @@ exports[`Home should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-13 {
+.emotion-20 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
 }
 
-.emotion-14 {
+.emotion-22 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -356,16 +356,16 @@ exports[`Home should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-15 {
+.emotion-24 {
   padding-top: 20px;
 }
 
-.emotion-16 {
+.emotion-26 {
   height: 100px;
   width: 100px;
 }
 
-.emotion-17 {
+.emotion-28 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -376,19 +376,19 @@ exports[`Home should render 1`] = `
   width: 650px;
 }
 
-.emotion-18 {
+.emotion-30 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-19 {
+.emotion-32 {
   padding: 20px 0 0 0;
   width: 600px;
 }
 
-.emotion-20 {
+.emotion-34 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -405,7 +405,7 @@ exports[`Home should render 1`] = `
   width: 100%;
 }
 
-.emotion-20 input {
+.emotion-34 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -431,42 +431,42 @@ exports[`Home should render 1`] = `
   width: 100%;
 }
 
-.emotion-20.animated input {
+.emotion-34.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-20 input::-webkit-input-placeholder {
+.emotion-34 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-20 input::-moz-placeholder {
+.emotion-34 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-20 input:-ms-input-placeholder {
+.emotion-34 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-20 input::placeholder {
+.emotion-34 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-20 input.focused,
-.emotion-20 input:active,
-.emotion-20 input:focus {
+.emotion-34 input.focused,
+.emotion-34 input:active,
+.emotion-34 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-20 input:invalid {
+.emotion-34 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-20 .message {
+.emotion-34 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -474,22 +474,22 @@ exports[`Home should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-20.error input,
-.emotion-20.error input.focused,
-.emotion-20.error input:active,
-.emotion-20.error input:focus {
+.emotion-34.error input,
+.emotion-34.error input.focused,
+.emotion-34.error input:active,
+.emotion-34.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-20.error .message {
+.emotion-34.error .message {
   color: #d01111;
 }
 
-.emotion-20 input {
+.emotion-34 input {
   padding-right: 36px;
 }
 
-.emotion-20 .input-icon {
+.emotion-34 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -503,13 +503,13 @@ exports[`Home should render 1`] = `
   right: 6px;
 }
 
-.emotion-21 {
+.emotion-35 {
   fill: #3570f4;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-22 {
+.emotion-36 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -535,13 +535,13 @@ exports[`Home should render 1`] = `
   width: 20px;
 }
 
-.emotion-23 {
+.emotion-38 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-24 {
+.emotion-39 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -556,7 +556,7 @@ exports[`Home should render 1`] = `
   width: 350px;
 }
 
-.emotion-25 {
+.emotion-41 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -575,28 +575,28 @@ exports[`Home should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-26 {
+.emotion-43 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-27 {
+.emotion-45 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-28 {
+.emotion-47 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-30 {
+.emotion-51 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-31 {
+.emotion-53 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -604,12 +604,12 @@ exports[`Home should render 1`] = `
   display: flex;
 }
 
-.emotion-32 {
+.emotion-55 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-33 {
+.emotion-57 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -619,44 +619,44 @@ exports[`Home should render 1`] = `
   data-testid="home"
 >
   <div
-    class="emotion-0"
+    class="emotion-0 emotion-1"
     data-testid="header"
   >
     <div
-      class="emotion-1 denali-navbar"
+      class="emotion-2 denali-navbar"
       data-testid="navbar"
     >
       <div
-        class="emotion-2 simple denali-navbar-item"
+        class="emotion-3 simple denali-navbar-item"
         data-testid="navbar-item"
       >
         <a
           href="/"
         >
           <img
-            class="emotion-3"
+            class="emotion-4 emotion-5"
             src="/static/athenz-logo-full.png"
           />
         </a>
       </div>
       <div
-        class="emotion-4"
+        class="emotion-6 emotion-7"
       >
         <div
-          class="emotion-5 simple denali-navbar-item"
+          class="emotion-8 simple denali-navbar-item"
           data-testid="navbar-item"
         />
       </div>
       <div
-        class="emotion-2 simple flush-right denali-navbar-item"
+        class="emotion-3 simple flush-right denali-navbar-item"
         data-testid="navbar-item"
       >
         <div
-          class="emotion-7"
+          class="emotion-10 emotion-11"
           data-testid="header-menu"
         >
           <svg
-            class="emotion-8"
+            class="emotion-12"
             data-testid="icon"
             height="25px"
             viewBox="0 0 1024 1024"
@@ -670,10 +670,10 @@ exports[`Home should render 1`] = `
             />
           </svg>
           <div
-            class="emotion-9"
+            class="emotion-13 emotion-14"
           >
             <svg
-              class="emotion-8"
+              class="emotion-12"
               data-testid="icon"
               height="25px"
               viewBox="0 0 1024 1024"
@@ -698,33 +698,33 @@ exports[`Home should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-11"
+    class="emotion-16 emotion-17"
   >
     <div
-      class="emotion-12"
+      class="emotion-18 emotion-19"
     >
       <div
-        class="emotion-13"
+        class="emotion-20 emotion-21"
       >
         <div
-          class="emotion-14"
+          class="emotion-22 emotion-23"
         >
           <div
-            class="emotion-15"
+            class="emotion-24 emotion-25"
           >
             <img
-              class="emotion-16"
+              class="emotion-26 emotion-27"
               src="/static/athenz-logo.png"
             />
           </div>
           <div
-            class="emotion-17"
+            class="emotion-28 emotion-29"
           >
             <span>
               Athenz is an open source platform which provides secure identity in the form of X.509 certificate to every workload for service authentication (mutual TLS authentication) and provides fine-grained Role Based Access Control (RBAC) for authorization.
             </span>
             <a
-              class="emotion-18"
+              class="emotion-30 emotion-31"
               href="https://git.ouroath.com/pages/athens/athenz-guide/"
               rel="noopener"
               target="_blank"
@@ -733,10 +733,10 @@ exports[`Home should render 1`] = `
             </a>
           </div>
           <div
-            class="emotion-19"
+            class="emotion-32 emotion-33"
           >
             <div
-              class="emotion-20 denali-input animated"
+              class="emotion-34 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -750,7 +750,7 @@ exports[`Home should render 1`] = `
                 class="input-icon"
               >
                 <svg
-                  class="emotion-21"
+                  class="emotion-35"
                   data-testid="icon"
                   height="24px"
                   viewBox="0 0 1024 1024"
@@ -776,11 +776,11 @@ exports[`Home should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-22"
+          class="emotion-36 emotion-37"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-23"
+            class="emotion-38"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -795,45 +795,45 @@ exports[`Home should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-24"
+          class="emotion-39 emotion-40"
         >
           <div
-            class="emotion-25"
+            class="emotion-41 emotion-42"
           >
             <div
-              class="emotion-26"
+              class="emotion-43 emotion-44"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-27"
+                class="emotion-45 emotion-46"
               >
                 Create
               </a>
               <span
-                class="emotion-28"
+                class="emotion-47 emotion-48"
               >
                  | 
               </span>
               <a
-                class="emotion-27"
+                class="emotion-45 emotion-46"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-30"
+            class="emotion-51 emotion-52"
           >
             <div
-              class="emotion-31"
+              class="emotion-53 emotion-54"
             >
               <div
-                class="emotion-32"
+                class="emotion-55 emotion-56"
               >
                 <svg
-                  class="emotion-33"
+                  class="emotion-57"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -854,19 +854,19 @@ exports[`Home should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-27"
+                class="emotion-45 emotion-46"
               >
                 dom1
               </a>
             </div>
             <div
-              class="emotion-31"
+              class="emotion-53 emotion-54"
             >
               <div
-                class="emotion-32"
+                class="emotion-55 emotion-56"
               >
                 <svg
-                  class="emotion-33"
+                  class="emotion-57"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -887,7 +887,7 @@ exports[`Home should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-27"
+                class="emotion-45 emotion-46"
               >
                 dom2
               </a>

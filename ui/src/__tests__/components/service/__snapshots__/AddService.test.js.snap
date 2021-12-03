@@ -7,7 +7,7 @@ exports[`AddService should render 1`] = `
   background-color: #fff;
 }
 
-.emotion-1 {
+.emotion-2 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -23,7 +23,7 @@ exports[`AddService should render 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-2 {
+.emotion-4 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -31,21 +31,21 @@ exports[`AddService should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-3 {
+.emotion-5 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-4 {
+.emotion-7 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-5 {
+.emotion-9 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -62,7 +62,7 @@ exports[`AddService should render 1`] = `
   width: 250px;
 }
 
-.emotion-5 input {
+.emotion-9 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -88,42 +88,42 @@ exports[`AddService should render 1`] = `
   width: 100%;
 }
 
-.emotion-5.animated input {
+.emotion-9.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-5 input::-webkit-input-placeholder {
+.emotion-9 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-5 input::-moz-placeholder {
+.emotion-9 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-5 input:-ms-input-placeholder {
+.emotion-9 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-5 input::placeholder {
+.emotion-9 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-5 input.focused,
-.emotion-5 input:active,
-.emotion-5 input:focus {
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-5 input:invalid {
+.emotion-9 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-5 .message {
+.emotion-9 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -131,22 +131,22 @@ exports[`AddService should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-5.error input,
-.emotion-5.error input.focused,
-.emotion-5.error input:active,
-.emotion-5.error input:focus {
+.emotion-9.error input,
+.emotion-9.error input.focused,
+.emotion-9.error input:active,
+.emotion-9.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-5.error .message {
+.emotion-9.error .message {
   color: #d01111;
 }
 
-.emotion-6 {
+.emotion-10 {
   width: 500px;
 }
 
-.emotion-14 {
+.emotion-24 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
@@ -158,14 +158,18 @@ exports[`AddService should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-17 {
+.emotion-28 {
+  width: 500px;
+}
+
+.emotion-30 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-28 {
+.emotion-49 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -182,7 +186,7 @@ exports[`AddService should render 1`] = `
   width: 500px;
 }
 
-.emotion-28>textarea {
+.emotion-49>textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -211,43 +215,43 @@ exports[`AddService should render 1`] = `
   width: auto;
 }
 
-.emotion-28>textarea::-webkit-input-placeholder {
+.emotion-49>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-28>textarea::-moz-placeholder {
+.emotion-49>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-28>textarea:-ms-input-placeholder {
+.emotion-49>textarea:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-28>textarea::placeholder {
+.emotion-49>textarea::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-28>textarea:active,
-.emotion-28>textarea:focus {
+.emotion-49>textarea:active,
+.emotion-49>textarea:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-28>textarea:invalid {
+.emotion-49>textarea:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-28>textarea[disabled] {
+.emotion-49>textarea[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-28 .message {
+.emotion-49 .message {
   font-size: 12px;
   color: #303030;
   left: 0;
@@ -256,29 +260,29 @@ exports[`AddService should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-29>textarea {
+.emotion-50>textarea {
   resize: vertical;
 }
 
 <div
   autocomplete="off"
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="add-service-form"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <label
-      class="emotion-2 denali-input-label emotion-3"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="service-name"
     >
       Service Name
     </label>
     <div
-      class="emotion-4"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="emotion-5 denali-input animated emotion-6"
+        class="emotion-9 denali-input animated emotion-10 emotion-11"
         data-testid="input-wrapper"
       >
         <input
@@ -296,19 +300,19 @@ exports[`AddService should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <label
-      class="emotion-2 denali-input-label emotion-3"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="description"
     >
       Description
     </label>
     <div
-      class="emotion-4"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="emotion-5 denali-input animated emotion-6"
+        class="emotion-9 denali-input animated emotion-10 emotion-11"
         data-testid="input-wrapper"
       >
         <input
@@ -326,24 +330,24 @@ exports[`AddService should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <div
-      class="emotion-14"
+      class="emotion-24 emotion-25"
     >
       NOTE
     </div>
     <div
-      class="emotion-4"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="emotion-6"
+        class="emotion-28 emotion-29"
       >
         Test Message
          
         Generate a
         <a
-          class="emotion-17"
+          class="emotion-30 emotion-31"
         >
            
           key pair
@@ -354,20 +358,20 @@ exports[`AddService should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-33"
     data-testid="add-key-id"
   >
     <label
-      class="emotion-2 denali-input-label emotion-3"
+      class="emotion-4 denali-input-label emotion-5 emotion-36"
       for="key-id"
     >
       Public Key Id
     </label>
     <div
-      class="emotion-4"
+      class="emotion-7 emotion-38"
     >
       <div
-        class="emotion-5 denali-input animated emotion-6"
+        class="emotion-9 denali-input animated emotion-10 emotion-41"
         data-testid="input-wrapper"
       >
         <input
@@ -385,20 +389,20 @@ exports[`AddService should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-33"
     data-testid="add-key-value"
   >
     <label
-      class="emotion-2 denali-input-label emotion-3"
+      class="emotion-4 denali-input-label emotion-5 emotion-36"
       for="key-value"
     >
       Key Value
     </label>
     <div
-      class="emotion-4"
+      class="emotion-7 emotion-38"
     >
       <div
-        class="emotion-28 denali-textarea emotion-29"
+        class="emotion-49 denali-textarea emotion-50 emotion-51"
         data-testid="textarea-wrapper"
       >
         <textarea

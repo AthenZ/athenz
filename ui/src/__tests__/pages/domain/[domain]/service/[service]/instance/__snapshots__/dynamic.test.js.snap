@@ -6,7 +6,7 @@ exports[`DynamicInstancePage should render 1`] = `
   position: relative;
 }
 
-.emotion-1 {
+.emotion-2 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -40,15 +40,15 @@ exports[`DynamicInstancePage should render 1`] = `
   z-index: 2;
 }
 
-.emotion-1.scrolled {
+.emotion-2.scrolled {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
 }
 
-.emotion-1 .flush-right {
+.emotion-2 .flush-right {
   margin-left: auto;
 }
 
-.emotion-2 {
+.emotion-3 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -62,7 +62,7 @@ exports[`DynamicInstancePage should render 1`] = `
   position: relative;
 }
 
-.emotion-2.simple {
+.emotion-3.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -71,23 +71,23 @@ exports[`DynamicInstancePage should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.simple.nav-link {
+.emotion-3.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-2.simple.nav-link:hover {
+.emotion-3.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-2.simple.active {
+.emotion-3.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-2.simple.nav-link.active:hover {
+.emotion-3.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-2 .nav-title {
+.emotion-3 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -105,25 +105,25 @@ exports[`DynamicInstancePage should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.nav-link .nav-title {
+.emotion-3.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-2.active .nav-title,
-.emotion-2 .active.nav-title {
+.emotion-3.active .nav-title,
+.emotion-3 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-2 .nav-title:hover {
+.emotion-3 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-2.nav-link.active .nav-title:hover,
-.emotion-2.nav-link .active.nav-title:hover {
+.emotion-3.nav-link.active .nav-title:hover,
+.emotion-3.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-2 img.nav-logo {
+.emotion-3 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -135,43 +135,43 @@ exports[`DynamicInstancePage should render 1`] = `
   height: 34px;
 }
 
-.emotion-2 .nav-icon,
-.emotion-2:hover .nav-icon {
+.emotion-3 .nav-icon,
+.emotion-3:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-2 .nav-icon path,
-.emotion-2:hover .nav-icon path,
-.emotion-2 .nav-icon ellipse,
-.emotion-2:hover .nav-icon ellipse,
-.emotion-2 .nav-icon rect,
-.emotion-2:hover .nav-icon rect,
-.emotion-2 .nav-icon circle,
-.emotion-2:hover .nav-icon circle {
+.emotion-3 .nav-icon path,
+.emotion-3:hover .nav-icon path,
+.emotion-3 .nav-icon ellipse,
+.emotion-3:hover .nav-icon ellipse,
+.emotion-3 .nav-icon rect,
+.emotion-3:hover .nav-icon rect,
+.emotion-3 .nav-icon circle,
+.emotion-3:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.nav-link:hover .nav-icon path,
-.emotion-2.nav-link:hover .nav-icon ellipse,
-.emotion-2.nav-link:hover .nav-icon rect,
-.emotion-2.nav-link:hover .nav-icon circle {
+.emotion-3.nav-link:hover .nav-icon path,
+.emotion-3.nav-link:hover .nav-icon ellipse,
+.emotion-3.nav-link:hover .nav-icon rect,
+.emotion-3.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-3 {
+.emotion-4 {
   height: 36px;
   cursor: pointer;
 }
 
-.emotion-4 {
+.emotion-6 {
   margin-left: 10%;
   width: 50%;
 }
 
-.emotion-5 {
+.emotion-8 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -186,7 +186,7 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-5.simple {
+.emotion-8.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -195,23 +195,23 @@ exports[`DynamicInstancePage should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.simple.nav-link {
+.emotion-8.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-5.simple.nav-link:hover {
+.emotion-8.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-5.simple.active {
+.emotion-8.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-5.simple.nav-link.active:hover {
+.emotion-8.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-5 .nav-title {
+.emotion-8 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -229,25 +229,25 @@ exports[`DynamicInstancePage should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.nav-link .nav-title {
+.emotion-8.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-5.active .nav-title,
-.emotion-5 .active.nav-title {
+.emotion-8.active .nav-title,
+.emotion-8 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-5 .nav-title:hover {
+.emotion-8 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-5.nav-link.active .nav-title:hover,
-.emotion-5.nav-link .active.nav-title:hover {
+.emotion-8.nav-link.active .nav-title:hover,
+.emotion-8.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-5 img.nav-logo {
+.emotion-8 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -259,33 +259,33 @@ exports[`DynamicInstancePage should render 1`] = `
   height: 34px;
 }
 
-.emotion-5 .nav-icon,
-.emotion-5:hover .nav-icon {
+.emotion-8 .nav-icon,
+.emotion-8:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-5 .nav-icon path,
-.emotion-5:hover .nav-icon path,
-.emotion-5 .nav-icon ellipse,
-.emotion-5:hover .nav-icon ellipse,
-.emotion-5 .nav-icon rect,
-.emotion-5:hover .nav-icon rect,
-.emotion-5 .nav-icon circle,
-.emotion-5:hover .nav-icon circle {
+.emotion-8 .nav-icon path,
+.emotion-8:hover .nav-icon path,
+.emotion-8 .nav-icon ellipse,
+.emotion-8:hover .nav-icon ellipse,
+.emotion-8 .nav-icon rect,
+.emotion-8:hover .nav-icon rect,
+.emotion-8 .nav-icon circle,
+.emotion-8:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.nav-link:hover .nav-icon path,
-.emotion-5.nav-link:hover .nav-icon ellipse,
-.emotion-5.nav-link:hover .nav-icon rect,
-.emotion-5.nav-link:hover .nav-icon circle {
+.emotion-8.nav-link:hover .nav-icon path,
+.emotion-8.nav-link:hover .nav-icon ellipse,
+.emotion-8.nav-link:hover .nav-icon rect,
+.emotion-8.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-6 {
+.emotion-9 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -302,7 +302,7 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-6 input {
+.emotion-9 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -328,42 +328,42 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-6.animated input {
+.emotion-9.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-6 input::-webkit-input-placeholder {
+.emotion-9 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-6 input::-moz-placeholder {
+.emotion-9 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-6 input:-ms-input-placeholder {
+.emotion-9 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-6 input::placeholder {
+.emotion-9 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-6 input.focused,
-.emotion-6 input:active,
-.emotion-6 input:focus {
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-6 input:invalid {
+.emotion-9 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-6 .message {
+.emotion-9 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -371,51 +371,51 @@ exports[`DynamicInstancePage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-6.error input,
-.emotion-6.error input.focused,
-.emotion-6.error input:active,
-.emotion-6.error input:focus {
+.emotion-9.error input,
+.emotion-9.error input.focused,
+.emotion-9.error input:active,
+.emotion-9.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-6.error .message {
+.emotion-9.error .message {
   color: #d01111;
 }
 
-.emotion-6 input {
+.emotion-9 input {
   background: rgba(242,242,242,0.1);
   color: #fff;
 }
 
-.emotion-6 input::-webkit-input-placeholder {
+.emotion-9 input::-webkit-input-placeholder {
   color: rgba(255,255,255,0.6);
 }
 
-.emotion-6 input::-moz-placeholder {
+.emotion-9 input::-moz-placeholder {
   color: rgba(255,255,255,0.6);
 }
 
-.emotion-6 input:-ms-input-placeholder {
+.emotion-9 input:-ms-input-placeholder {
   color: rgba(255,255,255,0.6);
 }
 
-.emotion-6 input::placeholder {
+.emotion-9 input::placeholder {
   color: rgba(255,255,255,0.6);
 }
 
-.emotion-6 input.focused,
-.emotion-6 input:active,
-.emotion-6 input:focus {
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
   background: rgba(242,242,242,0.1);
   border-bottom: 2px solid #3570f4;
   color: #fff;
 }
 
-.emotion-6 input {
+.emotion-9 input {
   padding-right: 36px;
 }
 
-.emotion-6 .input-icon {
+.emotion-9 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -429,30 +429,30 @@ exports[`DynamicInstancePage should render 1`] = `
   right: 6px;
 }
 
-.emotion-7 {
+.emotion-10 {
   fill: #3570f4;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-9 {
+.emotion-12 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-10 {
+.emotion-14 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-11 {
+.emotion-15 {
   margin-left: 15px;
 }
 
-.emotion-13 {
+.emotion-18 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -460,7 +460,7 @@ exports[`DynamicInstancePage should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-14 {
+.emotion-20 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -480,7 +480,7 @@ exports[`DynamicInstancePage should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-15 {
+.emotion-22 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -499,39 +499,39 @@ exports[`DynamicInstancePage should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-17 {
+.emotion-26 {
   background: linear-gradient(to top, #f2f2f2, #fff);
   padding: 20px 30px 0;
 }
 
-.emotion-18 {
+.emotion-28 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
 }
 
-.emotion-19 {
+.emotion-30 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-20 {
+.emotion-32 {
   margin: 3px;
   vertical-align: 3px;
 }
 
-.emotion-21 {
+.emotion-34 {
   fill: #0072df;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-22 {
+.emotion-35 {
   margin: 20px 0;
 }
 
-.emotion-23 {
+.emotion-37 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -542,15 +542,15 @@ exports[`DynamicInstancePage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-24 {
+.emotion-39 {
   padding-right: 50px;
 }
 
-.emotion-25 {
+.emotion-41 {
   font-weight: 600;
 }
 
-.emotion-26 {
+.emotion-43 {
   color: #9a9a9a;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -558,12 +558,12 @@ exports[`DynamicInstancePage should render 1`] = `
   cursor: pointer;
 }
 
-.emotion-27 {
+.emotion-45 {
   margin: 3px;
   vertical-align: 2px;
 }
 
-.emotion-34 {
+.emotion-57 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -578,7 +578,7 @@ exports[`DynamicInstancePage should render 1`] = `
   position: relative;
 }
 
-.emotion-34.vertical {
+.emotion-57.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -594,7 +594,7 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 300px;
 }
 
-.emotion-35 {
+.emotion-58 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -618,11 +618,11 @@ exports[`DynamicInstancePage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-35:hover {
+.emotion-58:hover {
   color: #3570f4;
 }
 
-.emotion-35.active {
+.emotion-58.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -630,11 +630,11 @@ exports[`DynamicInstancePage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-35.active:hover {
+.emotion-58.active:hover {
   color: #303030;
 }
 
-.emotion-35.vertical {
+.emotion-58.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -646,21 +646,21 @@ exports[`DynamicInstancePage should render 1`] = `
   text-align: left;
 }
 
-.emotion-35.vertical.active {
+.emotion-58.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-35.vertical.active:hover {
+.emotion-58.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-37 {
+.emotion-60 {
   margin: 20px;
 }
 
-.emotion-38 {
+.emotion-62 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -679,11 +679,11 @@ exports[`DynamicInstancePage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-39 {
+.emotion-64 {
   width: 50%;
 }
 
-.emotion-40 {
+.emotion-66 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -691,21 +691,21 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-41 {
+.emotion-68 {
   background: #ffffff;
   width: 35%;
 }
 
-.emotion-42 {
+.emotion-70 {
   position: relative;
   width: 100%;
 }
 
-.emotion-42 input {
+.emotion-70 input {
   cursor: pointer;
 }
 
-.emotion-43 {
+.emotion-71 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -722,7 +722,7 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-43 input {
+.emotion-71 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -748,42 +748,42 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-43.animated input {
+.emotion-71.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-43 input::-webkit-input-placeholder {
+.emotion-71 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-43 input::-moz-placeholder {
+.emotion-71 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-43 input:-ms-input-placeholder {
+.emotion-71 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-43 input::placeholder {
+.emotion-71 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-43 input.focused,
-.emotion-43 input:active,
-.emotion-43 input:focus {
+.emotion-71 input.focused,
+.emotion-71 input:active,
+.emotion-71 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-43 input:invalid {
+.emotion-71 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-43 .message {
+.emotion-71 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -791,22 +791,22 @@ exports[`DynamicInstancePage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-43.error input,
-.emotion-43.error input.focused,
-.emotion-43.error input:active,
-.emotion-43.error input:focus {
+.emotion-71.error input,
+.emotion-71.error input.focused,
+.emotion-71.error input:active,
+.emotion-71.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-43.error .message {
+.emotion-71.error .message {
   color: #d01111;
 }
 
-.emotion-43 input {
+.emotion-71 input {
   padding-right: 36px;
 }
 
-.emotion-43 .input-icon {
+.emotion-71 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -820,19 +820,19 @@ exports[`DynamicInstancePage should render 1`] = `
   right: 6px;
 }
 
-.emotion-44 {
+.emotion-72 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-45 {
+.emotion-73 {
   background: #ffffff;
   width: 65%;
   margin-left: 5px;
 }
 
-.emotion-48 {
+.emotion-77 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -840,7 +840,7 @@ exports[`DynamicInstancePage should render 1`] = `
   border-color: grey;
 }
 
-.emotion-49 {
+.emotion-79 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -853,7 +853,7 @@ exports[`DynamicInstancePage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-54 {
+.emotion-89 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -865,14 +865,14 @@ exports[`DynamicInstancePage should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-55 {
+.emotion-91 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-60 {
+.emotion-101 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -898,13 +898,13 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 20px;
 }
 
-.emotion-61 {
+.emotion-103 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-62 {
+.emotion-104 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -919,7 +919,7 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 350px;
 }
 
-.emotion-63 {
+.emotion-106 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -938,28 +938,28 @@ exports[`DynamicInstancePage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-64 {
+.emotion-108 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-65 {
+.emotion-110 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-66 {
+.emotion-112 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-68 {
+.emotion-116 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-69 {
+.emotion-118 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -967,12 +967,12 @@ exports[`DynamicInstancePage should render 1`] = `
   display: flex;
 }
 
-.emotion-70 {
+.emotion-120 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-71 {
+.emotion-122 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -982,35 +982,35 @@ exports[`DynamicInstancePage should render 1`] = `
   data-testid="dynamic-instance"
 >
   <div
-    class="emotion-0"
+    class="emotion-0 emotion-1"
     data-testid="header"
   >
     <div
-      class="emotion-1 denali-navbar"
+      class="emotion-2 denali-navbar"
       data-testid="navbar"
     >
       <div
-        class="emotion-2 simple denali-navbar-item"
+        class="emotion-3 simple denali-navbar-item"
         data-testid="navbar-item"
       >
         <a
           href="/"
         >
           <img
-            class="emotion-3"
+            class="emotion-4 emotion-5"
             src="/static/athenz-logo-full.png"
           />
         </a>
       </div>
       <div
-        class="emotion-4"
+        class="emotion-6 emotion-7"
       >
         <div
-          class="emotion-5 simple denali-navbar-item"
+          class="emotion-8 simple denali-navbar-item"
           data-testid="navbar-item"
         >
           <div
-            class="emotion-6 denali-input animated"
+            class="emotion-9 denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -1024,7 +1024,7 @@ exports[`DynamicInstancePage should render 1`] = `
               class="input-icon"
             >
               <svg
-                class="emotion-7"
+                class="emotion-10"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -1046,15 +1046,15 @@ exports[`DynamicInstancePage should render 1`] = `
         </div>
       </div>
       <div
-        class="emotion-2 simple flush-right denali-navbar-item"
+        class="emotion-3 simple flush-right denali-navbar-item"
         data-testid="navbar-item"
       >
         <div
-          class="emotion-9"
+          class="emotion-12 emotion-13"
           data-testid="header-menu"
         >
           <svg
-            class="emotion-10"
+            class="emotion-14"
             data-testid="icon"
             height="25px"
             viewBox="0 0 1024 1024"
@@ -1068,10 +1068,10 @@ exports[`DynamicInstancePage should render 1`] = `
             />
           </svg>
           <div
-            class="emotion-11"
+            class="emotion-15 emotion-16"
           >
             <svg
-              class="emotion-10"
+              class="emotion-14"
               data-testid="icon"
               height="25px"
               viewBox="0 0 1024 1024"
@@ -1096,35 +1096,35 @@ exports[`DynamicInstancePage should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-13"
+    class="emotion-18 emotion-19"
   >
     <div
-      class="emotion-14"
+      class="emotion-20 emotion-21"
     >
       <div
-        class="emotion-15"
+        class="emotion-22 emotion-23"
       >
         <div
-          class="emotion-16"
+          class="emotion-24 emotion-25"
         >
           <div
-            class="emotion-17"
+            class="emotion-26 emotion-27"
           >
             <div
-              class="emotion-18"
+              class="emotion-28 emotion-29"
               data-testid="service-name-header"
             >
               <a
-                class="emotion-19"
+                class="emotion-30 emotion-31"
               >
                 dom
               </a>
               :service.
               <span
-                class="emotion-20"
+                class="emotion-32 emotion-33"
               >
                 <svg
-                  class="emotion-21"
+                  class="emotion-34"
                   data-testid="icon"
                   height="15px"
                   viewBox="0 0 1024 1024"
@@ -1143,29 +1143,29 @@ exports[`DynamicInstancePage should render 1`] = `
               </span>
             </div>
             <div
-              class="emotion-22"
+              class="emotion-35 emotion-36"
             >
               <div
-                class="emotion-23"
+                class="emotion-37 emotion-38"
               >
                 <span>
                   <div
-                    class="emotion-24"
+                    class="emotion-39 emotion-40"
                   >
                     <div
-                      class="emotion-25"
+                      class="emotion-41 emotion-42"
                     >
                       10
                     </div>
                     <div
-                      class="emotion-26"
+                      class="emotion-43 emotion-44"
                     >
                       Total Dynamic Instances
                       <span
-                        class="emotion-27"
+                        class="emotion-45 emotion-46"
                       >
                         <svg
-                          class="emotion-21"
+                          class="emotion-34"
                           data-testid="icon"
                           height="15px"
                           viewBox="0 0 1024 1024"
@@ -1187,22 +1187,22 @@ exports[`DynamicInstancePage should render 1`] = `
                 </span>
                 <span>
                   <div
-                    class="emotion-24"
+                    class="emotion-39 emotion-40"
                   >
                     <div
-                      class="emotion-25"
+                      class="emotion-41 emotion-42"
                     >
                       8
                     </div>
                     <div
-                      class="emotion-26"
+                      class="emotion-43 emotion-44"
                     >
                       Total Healthy Dynamic Instances
                       <span
-                        class="emotion-27"
+                        class="emotion-45 emotion-46"
                       >
                         <svg
-                          class="emotion-21"
+                          class="emotion-34"
                           data-testid="icon"
                           height="15px"
                           viewBox="0 0 1024 1024"
@@ -1225,17 +1225,17 @@ exports[`DynamicInstancePage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-34 denali-tab-group"
+              class="emotion-57 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-35 denali-tab"
+                class="emotion-58 denali-tab"
                 data-active="false"
               >
                 Static
               </div>
               <div
-                class="emotion-35 denali-tab active"
+                class="emotion-58 denali-tab active"
                 data-active="true"
               >
                 Dynamic
@@ -1243,31 +1243,31 @@ exports[`DynamicInstancePage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-37"
+            class="emotion-60 emotion-61"
             data-testid="instancelist"
           >
             <div
-              class="emotion-38"
+              class="emotion-62 emotion-63"
             >
               <div
-                class="emotion-39"
+                class="emotion-64 emotion-65"
               >
                 <div
-                  class="emotion-40"
+                  class="emotion-66 emotion-67"
                 >
                   <div
-                    class="emotion-41"
+                    class="emotion-68 emotion-69"
                   >
                     <div
                       aria-expanded="false"
                       aria-haspopup="listbox"
                       aria-labelledby="downshift-0-label"
-                      class="emotion-42 denali-input-dropdown"
+                      class="emotion-70 denali-input-dropdown"
                       data-testid="input-dropdown"
                       role="combobox"
                     >
                       <div
-                        class="emotion-43 denali-input animated"
+                        class="emotion-71 denali-input animated"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1287,7 +1287,7 @@ exports[`DynamicInstancePage should render 1`] = `
                           class="input-icon"
                         >
                           <svg
-                            class="emotion-44"
+                            class="emotion-72"
                             data-testid="icon"
                             height="24px"
                             viewBox="0 0 1024 1024"
@@ -1309,10 +1309,10 @@ exports[`DynamicInstancePage should render 1`] = `
                     </div>
                   </div>
                   <div
-                    class="emotion-45"
+                    class="emotion-73 emotion-74"
                   >
                     <div
-                      class="emotion-43 denali-input animated"
+                      class="emotion-71 denali-input animated"
                       data-testid="input-wrapper"
                     >
                       <input
@@ -1326,7 +1326,7 @@ exports[`DynamicInstancePage should render 1`] = `
                         class="input-icon"
                       >
                         <svg
-                          class="emotion-7"
+                          class="emotion-10"
                           data-testid="icon"
                           height="24px"
                           viewBox="0 0 1024 1024"
@@ -1350,7 +1350,7 @@ exports[`DynamicInstancePage should render 1`] = `
               </div>
             </div>
             <table
-              class="emotion-48"
+              class="emotion-77 emotion-78"
               data-testid="instancetable"
             >
               <colgroup>
@@ -1373,27 +1373,27 @@ exports[`DynamicInstancePage should render 1`] = `
               <thead>
                 <tr>
                   <th
-                    class="emotion-49"
+                    class="emotion-79 emotion-80"
                   >
                     Instance
                   </th>
                   <th
-                    class="emotion-49"
+                    class="emotion-79 emotion-80"
                   >
                     Hostname
                   </th>
                   <th
-                    class="emotion-49"
+                    class="emotion-79 emotion-80"
                   >
                     Provider
                   </th>
                   <th
-                    class="emotion-49"
+                    class="emotion-79 emotion-80"
                   >
                     Expires On
                   </th>
                   <th
-                    class="emotion-49"
+                    class="emotion-79 emotion-80"
                   >
                     Last Certificate Refresh
                   </th>
@@ -1401,31 +1401,31 @@ exports[`DynamicInstancePage should render 1`] = `
               </thead>
               <tbody>
                 <tr
-                  class="emotion-54"
+                  class="emotion-89 emotion-90"
                   data-testid="instance-row"
                 >
                   <td
-                    class="emotion-55"
+                    class="emotion-91 emotion-92"
                     color=""
                   />
                   <td
-                    class="emotion-55"
+                    class="emotion-91 emotion-92"
                     color=""
                   />
                   <td
-                    class="emotion-55"
+                    class="emotion-91 emotion-92"
                     color=""
                   >
                     Static
                   </td>
                   <td
-                    class="emotion-55"
+                    class="emotion-91 emotion-92"
                     color=""
                   >
                     Invalid date
                   </td>
                   <td
-                    class="emotion-55"
+                    class="emotion-91 emotion-92"
                     color=""
                   >
                     2021-05-15 01:17 UTC
@@ -1440,11 +1440,11 @@ exports[`DynamicInstancePage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-60"
+          class="emotion-101 emotion-102"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-61"
+            class="emotion-103"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1459,45 +1459,45 @@ exports[`DynamicInstancePage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-62"
+          class="emotion-104 emotion-105"
         >
           <div
-            class="emotion-63"
+            class="emotion-106 emotion-107"
           >
             <div
-              class="emotion-64"
+              class="emotion-108 emotion-109"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-65"
+                class="emotion-110 emotion-111"
               >
                 Create
               </a>
               <span
-                class="emotion-66"
+                class="emotion-112 emotion-113"
               >
                  | 
               </span>
               <a
-                class="emotion-65"
+                class="emotion-110 emotion-111"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-68"
+            class="emotion-116 emotion-117"
           >
             <div
-              class="emotion-69"
+              class="emotion-118 emotion-119"
             >
               <div
-                class="emotion-70"
+                class="emotion-120 emotion-121"
               >
                 <svg
-                  class="emotion-71"
+                  class="emotion-122"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1518,19 +1518,19 @@ exports[`DynamicInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-65"
+                class="emotion-110 emotion-111"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-69"
+              class="emotion-118 emotion-119"
             >
               <div
-                class="emotion-70"
+                class="emotion-120 emotion-121"
               >
                 <svg
-                  class="emotion-71"
+                  class="emotion-122"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1551,7 +1551,7 @@ exports[`DynamicInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-65"
+                class="emotion-110 emotion-111"
               >
                 athens.ci
               </a>
@@ -1575,7 +1575,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   position: relative;
 }
 
-.emotion-1 {
+.emotion-2 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1609,15 +1609,15 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   z-index: 2;
 }
 
-.emotion-1.scrolled {
+.emotion-2.scrolled {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
 }
 
-.emotion-1 .flush-right {
+.emotion-2 .flush-right {
   margin-left: auto;
 }
 
-.emotion-2 {
+.emotion-3 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1631,7 +1631,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   position: relative;
 }
 
-.emotion-2.simple {
+.emotion-3.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -1640,23 +1640,23 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.simple.nav-link {
+.emotion-3.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-2.simple.nav-link:hover {
+.emotion-3.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-2.simple.active {
+.emotion-3.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-2.simple.nav-link.active:hover {
+.emotion-3.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-2 .nav-title {
+.emotion-3 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1674,25 +1674,25 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.nav-link .nav-title {
+.emotion-3.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-2.active .nav-title,
-.emotion-2 .active.nav-title {
+.emotion-3.active .nav-title,
+.emotion-3 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-2 .nav-title:hover {
+.emotion-3 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-2.nav-link.active .nav-title:hover,
-.emotion-2.nav-link .active.nav-title:hover {
+.emotion-3.nav-link.active .nav-title:hover,
+.emotion-3.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-2 img.nav-logo {
+.emotion-3 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1704,53 +1704,53 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   height: 34px;
 }
 
-.emotion-2 .nav-icon,
-.emotion-2:hover .nav-icon {
+.emotion-3 .nav-icon,
+.emotion-3:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-2 .nav-icon path,
-.emotion-2:hover .nav-icon path,
-.emotion-2 .nav-icon ellipse,
-.emotion-2:hover .nav-icon ellipse,
-.emotion-2 .nav-icon rect,
-.emotion-2:hover .nav-icon rect,
-.emotion-2 .nav-icon circle,
-.emotion-2:hover .nav-icon circle {
+.emotion-3 .nav-icon path,
+.emotion-3:hover .nav-icon path,
+.emotion-3 .nav-icon ellipse,
+.emotion-3:hover .nav-icon ellipse,
+.emotion-3 .nav-icon rect,
+.emotion-3:hover .nav-icon rect,
+.emotion-3 .nav-icon circle,
+.emotion-3:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.nav-link:hover .nav-icon path,
-.emotion-2.nav-link:hover .nav-icon ellipse,
-.emotion-2.nav-link:hover .nav-icon rect,
-.emotion-2.nav-link:hover .nav-icon circle {
+.emotion-3.nav-link:hover .nav-icon path,
+.emotion-3.nav-link:hover .nav-icon ellipse,
+.emotion-3.nav-link:hover .nav-icon rect,
+.emotion-3.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-3 {
-  height: 36px;
-  cursor: pointer;
-}
-
-.emotion-3 {
+.emotion-4 {
   height: 36px;
   cursor: pointer;
 }
 
 .emotion-4 {
+  height: 36px;
+  cursor: pointer;
+}
+
+.emotion-6 {
   margin-left: 10%;
   width: 50%;
 }
 
-.emotion-4 {
+.emotion-6 {
   margin-left: 10%;
   width: 50%;
 }
 
-.emotion-5 {
+.emotion-8 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1765,7 +1765,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   width: 100%;
 }
 
-.emotion-5.simple {
+.emotion-8.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -1774,23 +1774,23 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.simple.nav-link {
+.emotion-8.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-5.simple.nav-link:hover {
+.emotion-8.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-5.simple.active {
+.emotion-8.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-5.simple.nav-link.active:hover {
+.emotion-8.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-5 .nav-title {
+.emotion-8 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1808,25 +1808,25 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.nav-link .nav-title {
+.emotion-8.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-5.active .nav-title,
-.emotion-5 .active.nav-title {
+.emotion-8.active .nav-title,
+.emotion-8 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-5 .nav-title:hover {
+.emotion-8 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-5.nav-link.active .nav-title:hover,
-.emotion-5.nav-link .active.nav-title:hover {
+.emotion-8.nav-link.active .nav-title:hover,
+.emotion-8.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-5 img.nav-logo {
+.emotion-8 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1838,33 +1838,33 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   height: 34px;
 }
 
-.emotion-5 .nav-icon,
-.emotion-5:hover .nav-icon {
+.emotion-8 .nav-icon,
+.emotion-8:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-5 .nav-icon path,
-.emotion-5:hover .nav-icon path,
-.emotion-5 .nav-icon ellipse,
-.emotion-5:hover .nav-icon ellipse,
-.emotion-5 .nav-icon rect,
-.emotion-5:hover .nav-icon rect,
-.emotion-5 .nav-icon circle,
-.emotion-5:hover .nav-icon circle {
+.emotion-8 .nav-icon path,
+.emotion-8:hover .nav-icon path,
+.emotion-8 .nav-icon ellipse,
+.emotion-8:hover .nav-icon ellipse,
+.emotion-8 .nav-icon rect,
+.emotion-8:hover .nav-icon rect,
+.emotion-8 .nav-icon circle,
+.emotion-8:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.nav-link:hover .nav-icon path,
-.emotion-5.nav-link:hover .nav-icon ellipse,
-.emotion-5.nav-link:hover .nav-icon rect,
-.emotion-5.nav-link:hover .nav-icon circle {
+.emotion-8.nav-link:hover .nav-icon path,
+.emotion-8.nav-link:hover .nav-icon ellipse,
+.emotion-8.nav-link:hover .nav-icon rect,
+.emotion-8.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-6 {
+.emotion-9 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -1881,7 +1881,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   width: 100%;
 }
 
-.emotion-6 input {
+.emotion-9 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -1907,42 +1907,42 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   width: 100%;
 }
 
-.emotion-6.animated input {
+.emotion-9.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-6 input::-webkit-input-placeholder {
+.emotion-9 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-6 input::-moz-placeholder {
+.emotion-9 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-6 input:-ms-input-placeholder {
+.emotion-9 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-6 input::placeholder {
+.emotion-9 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-6 input.focused,
-.emotion-6 input:active,
-.emotion-6 input:focus {
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-6 input:invalid {
+.emotion-9 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-6 .message {
+.emotion-9 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1950,51 +1950,51 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   top: 2.571rem;
 }
 
-.emotion-6.error input,
-.emotion-6.error input.focused,
-.emotion-6.error input:active,
-.emotion-6.error input:focus {
+.emotion-9.error input,
+.emotion-9.error input.focused,
+.emotion-9.error input:active,
+.emotion-9.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-6.error .message {
+.emotion-9.error .message {
   color: #d01111;
 }
 
-.emotion-6 input {
+.emotion-9 input {
   background: rgba(242,242,242,0.1);
   color: #fff;
 }
 
-.emotion-6 input::-webkit-input-placeholder {
+.emotion-9 input::-webkit-input-placeholder {
   color: rgba(255,255,255,0.6);
 }
 
-.emotion-6 input::-moz-placeholder {
+.emotion-9 input::-moz-placeholder {
   color: rgba(255,255,255,0.6);
 }
 
-.emotion-6 input:-ms-input-placeholder {
+.emotion-9 input:-ms-input-placeholder {
   color: rgba(255,255,255,0.6);
 }
 
-.emotion-6 input::placeholder {
+.emotion-9 input::placeholder {
   color: rgba(255,255,255,0.6);
 }
 
-.emotion-6 input.focused,
-.emotion-6 input:active,
-.emotion-6 input:focus {
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
   background: rgba(242,242,242,0.1);
   border-bottom: 2px solid #3570f4;
   color: #fff;
 }
 
-.emotion-6 input {
+.emotion-9 input {
   padding-right: 36px;
 }
 
-.emotion-6 .input-icon {
+.emotion-9 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -2008,41 +2008,41 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   right: 6px;
 }
 
-.emotion-7 {
+.emotion-10 {
   fill: #3570f4;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-9 {
+.emotion-12 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-9 {
+.emotion-12 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-10 {
+.emotion-14 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-11 {
+.emotion-15 {
   margin-left: 15px;
 }
 
-.emotion-11 {
+.emotion-15 {
   margin-left: 15px;
 }
 
-.emotion-13 {
+.emotion-18 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -2050,7 +2050,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-13 {
+.emotion-18 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -2058,7 +2058,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-14 {
+.emotion-20 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -2078,7 +2078,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-14 {
+.emotion-20 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -2098,7 +2098,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-15 {
+.emotion-22 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -2117,7 +2117,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   flex-direction: column;
 }
 
-.emotion-15 {
+.emotion-22 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -2136,65 +2136,65 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   flex-direction: column;
 }
 
-.emotion-17 {
+.emotion-26 {
   background: linear-gradient(to top, #f2f2f2, #fff);
   padding: 20px 30px 0;
 }
 
-.emotion-17 {
+.emotion-26 {
   background: linear-gradient(to top, #f2f2f2, #fff);
   padding: 20px 30px 0;
 }
 
-.emotion-18 {
+.emotion-28 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
 }
 
-.emotion-18 {
+.emotion-28 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
 }
 
-.emotion-19 {
+.emotion-30 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-19 {
+.emotion-30 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-20 {
+.emotion-32 {
   margin: 3px;
   vertical-align: 3px;
 }
 
-.emotion-20 {
+.emotion-32 {
   margin: 3px;
   vertical-align: 3px;
 }
 
-.emotion-21 {
+.emotion-34 {
   fill: #0072df;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-22 {
+.emotion-35 {
   margin: 20px 0;
 }
 
-.emotion-22 {
+.emotion-35 {
   margin: 20px 0;
 }
 
-.emotion-23 {
+.emotion-37 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -2205,7 +2205,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-23 {
+.emotion-37 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -2216,23 +2216,23 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-24 {
+.emotion-39 {
   padding-right: 50px;
 }
 
-.emotion-24 {
+.emotion-39 {
   padding-right: 50px;
 }
 
-.emotion-25 {
+.emotion-41 {
   font-weight: 600;
 }
 
-.emotion-25 {
+.emotion-41 {
   font-weight: 600;
 }
 
-.emotion-26 {
+.emotion-43 {
   color: #9a9a9a;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -2240,7 +2240,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   cursor: pointer;
 }
 
-.emotion-26 {
+.emotion-43 {
   color: #9a9a9a;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -2248,17 +2248,17 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   cursor: pointer;
 }
 
-.emotion-27 {
+.emotion-45 {
   margin: 3px;
   vertical-align: 2px;
 }
 
-.emotion-27 {
+.emotion-45 {
   margin: 3px;
   vertical-align: 2px;
 }
 
-.emotion-34 {
+.emotion-57 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -2273,7 +2273,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   position: relative;
 }
 
-.emotion-34.vertical {
+.emotion-57.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -2289,7 +2289,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   width: 300px;
 }
 
-.emotion-35 {
+.emotion-58 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -2313,11 +2313,11 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   z-index: 1;
 }
 
-.emotion-35:hover {
+.emotion-58:hover {
   color: #3570f4;
 }
 
-.emotion-35.active {
+.emotion-58.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -2325,11 +2325,11 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   cursor: initial;
 }
 
-.emotion-35.active:hover {
+.emotion-58.active:hover {
   color: #303030;
 }
 
-.emotion-35.vertical {
+.emotion-58.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -2341,25 +2341,25 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   text-align: left;
 }
 
-.emotion-35.vertical.active {
+.emotion-58.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-35.vertical.active:hover {
+.emotion-58.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-37 {
+.emotion-60 {
   margin: 20px;
 }
 
-.emotion-37 {
+.emotion-60 {
   margin: 20px;
 }
 
-.emotion-38 {
+.emotion-62 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -2378,7 +2378,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-38 {
+.emotion-62 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -2397,15 +2397,15 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-39 {
+.emotion-64 {
   width: 50%;
 }
 
-.emotion-39 {
+.emotion-64 {
   width: 50%;
 }
 
-.emotion-40 {
+.emotion-66 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -2413,7 +2413,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   width: 100%;
 }
 
-.emotion-40 {
+.emotion-66 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -2421,26 +2421,26 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   width: 100%;
 }
 
-.emotion-41 {
+.emotion-68 {
   background: #ffffff;
   width: 35%;
 }
 
-.emotion-41 {
+.emotion-68 {
   background: #ffffff;
   width: 35%;
 }
 
-.emotion-42 {
+.emotion-70 {
   position: relative;
   width: 100%;
 }
 
-.emotion-42 input {
+.emotion-70 input {
   cursor: pointer;
 }
 
-.emotion-43 {
+.emotion-71 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -2457,7 +2457,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   width: 100%;
 }
 
-.emotion-43 input {
+.emotion-71 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -2483,42 +2483,42 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   width: 100%;
 }
 
-.emotion-43.animated input {
+.emotion-71.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-43 input::-webkit-input-placeholder {
+.emotion-71 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-43 input::-moz-placeholder {
+.emotion-71 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-43 input:-ms-input-placeholder {
+.emotion-71 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-43 input::placeholder {
+.emotion-71 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-43 input.focused,
-.emotion-43 input:active,
-.emotion-43 input:focus {
+.emotion-71 input.focused,
+.emotion-71 input:active,
+.emotion-71 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-43 input:invalid {
+.emotion-71 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-43 .message {
+.emotion-71 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -2526,22 +2526,22 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   top: 2.571rem;
 }
 
-.emotion-43.error input,
-.emotion-43.error input.focused,
-.emotion-43.error input:active,
-.emotion-43.error input:focus {
+.emotion-71.error input,
+.emotion-71.error input.focused,
+.emotion-71.error input:active,
+.emotion-71.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-43.error .message {
+.emotion-71.error .message {
   color: #d01111;
 }
 
-.emotion-43 input {
+.emotion-71 input {
   padding-right: 36px;
 }
 
-.emotion-43 .input-icon {
+.emotion-71 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -2555,25 +2555,25 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   right: 6px;
 }
 
-.emotion-44 {
+.emotion-72 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-45 {
+.emotion-73 {
   background: #ffffff;
   width: 65%;
   margin-left: 5px;
 }
 
-.emotion-45 {
+.emotion-73 {
   background: #ffffff;
   width: 65%;
   margin-left: 5px;
 }
 
-.emotion-48 {
+.emotion-77 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -2581,7 +2581,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   border-color: grey;
 }
 
-.emotion-48 {
+.emotion-77 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -2589,7 +2589,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   border-color: grey;
 }
 
-.emotion-49 {
+.emotion-79 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -2602,7 +2602,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   word-break: break-all;
 }
 
-.emotion-49 {
+.emotion-79 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -2615,7 +2615,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   word-break: break-all;
 }
 
-.emotion-54 {
+.emotion-89 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -2627,7 +2627,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-54 {
+.emotion-89 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -2639,21 +2639,21 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-55 {
+.emotion-91 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-55 {
+.emotion-91 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-60 {
+.emotion-101 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -2679,7 +2679,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   width: 20px;
 }
 
-.emotion-60 {
+.emotion-101 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -2705,13 +2705,13 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   width: 20px;
 }
 
-.emotion-61 {
+.emotion-103 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-62 {
+.emotion-104 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -2726,7 +2726,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   width: 350px;
 }
 
-.emotion-62 {
+.emotion-104 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -2741,7 +2741,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   width: 350px;
 }
 
-.emotion-63 {
+.emotion-106 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -2760,7 +2760,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-63 {
+.emotion-106 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -2779,49 +2779,49 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-64 {
+.emotion-108 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-64 {
+.emotion-108 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-65 {
+.emotion-110 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-65 {
+.emotion-110 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-66 {
+.emotion-112 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-66 {
+.emotion-112 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-68 {
+.emotion-116 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-68 {
+.emotion-116 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-69 {
+.emotion-118 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -2829,7 +2829,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   display: flex;
 }
 
-.emotion-69 {
+.emotion-118 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -2837,17 +2837,17 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   display: flex;
 }
 
-.emotion-70 {
+.emotion-120 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-70 {
+.emotion-120 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-71 {
+.emotion-122 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -2857,35 +2857,35 @@ exports[`DynamicInstancePage should render with category type 1`] = `
   data-testid="dynamic-instance"
 >
   <div
-    class="emotion-0"
+    class="emotion-0 emotion-1"
     data-testid="header"
   >
     <div
-      class="emotion-1 denali-navbar"
+      class="emotion-2 denali-navbar"
       data-testid="navbar"
     >
       <div
-        class="emotion-2 simple denali-navbar-item"
+        class="emotion-3 simple denali-navbar-item"
         data-testid="navbar-item"
       >
         <a
           href="/"
         >
           <img
-            class="emotion-3"
+            class="emotion-4 emotion-5"
             src="/static/athenz-logo-full.png"
           />
         </a>
       </div>
       <div
-        class="emotion-4"
+        class="emotion-6 emotion-7"
       >
         <div
-          class="emotion-5 simple denali-navbar-item"
+          class="emotion-8 simple denali-navbar-item"
           data-testid="navbar-item"
         >
           <div
-            class="emotion-6 denali-input animated"
+            class="emotion-9 denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -2899,7 +2899,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
               class="input-icon"
             >
               <svg
-                class="emotion-7"
+                class="emotion-10"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -2921,15 +2921,15 @@ exports[`DynamicInstancePage should render with category type 1`] = `
         </div>
       </div>
       <div
-        class="emotion-2 simple flush-right denali-navbar-item"
+        class="emotion-3 simple flush-right denali-navbar-item"
         data-testid="navbar-item"
       >
         <div
-          class="emotion-9"
+          class="emotion-12 emotion-13"
           data-testid="header-menu"
         >
           <svg
-            class="emotion-10"
+            class="emotion-14"
             data-testid="icon"
             height="25px"
             viewBox="0 0 1024 1024"
@@ -2943,10 +2943,10 @@ exports[`DynamicInstancePage should render with category type 1`] = `
             />
           </svg>
           <div
-            class="emotion-11"
+            class="emotion-15 emotion-16"
           >
             <svg
-              class="emotion-10"
+              class="emotion-14"
               data-testid="icon"
               height="25px"
               viewBox="0 0 1024 1024"
@@ -2971,35 +2971,35 @@ exports[`DynamicInstancePage should render with category type 1`] = `
     </div>
   </div>
   <div
-    class="emotion-13"
+    class="emotion-18 emotion-19"
   >
     <div
-      class="emotion-14"
+      class="emotion-20 emotion-21"
     >
       <div
-        class="emotion-15"
+        class="emotion-22 emotion-23"
       >
         <div
-          class="emotion-16"
+          class="emotion-24 emotion-25"
         >
           <div
-            class="emotion-17"
+            class="emotion-26 emotion-27"
           >
             <div
-              class="emotion-18"
+              class="emotion-28 emotion-29"
               data-testid="service-name-header"
             >
               <a
-                class="emotion-19"
+                class="emotion-30 emotion-31"
               >
                 dom
               </a>
               :service.
               <span
-                class="emotion-20"
+                class="emotion-32 emotion-33"
               >
                 <svg
-                  class="emotion-21"
+                  class="emotion-34"
                   data-testid="icon"
                   height="15px"
                   viewBox="0 0 1024 1024"
@@ -3018,29 +3018,29 @@ exports[`DynamicInstancePage should render with category type 1`] = `
               </span>
             </div>
             <div
-              class="emotion-22"
+              class="emotion-35 emotion-36"
             >
               <div
-                class="emotion-23"
+                class="emotion-37 emotion-38"
               >
                 <span>
                   <div
-                    class="emotion-24"
+                    class="emotion-39 emotion-40"
                   >
                     <div
-                      class="emotion-25"
+                      class="emotion-41 emotion-42"
                     >
                       10
                     </div>
                     <div
-                      class="emotion-26"
+                      class="emotion-43 emotion-44"
                     >
                       Total Dynamic Instances
                       <span
-                        class="emotion-27"
+                        class="emotion-45 emotion-46"
                       >
                         <svg
-                          class="emotion-21"
+                          class="emotion-34"
                           data-testid="icon"
                           height="15px"
                           viewBox="0 0 1024 1024"
@@ -3062,22 +3062,22 @@ exports[`DynamicInstancePage should render with category type 1`] = `
                 </span>
                 <span>
                   <div
-                    class="emotion-24"
+                    class="emotion-39 emotion-40"
                   >
                     <div
-                      class="emotion-25"
+                      class="emotion-41 emotion-42"
                     >
                       8
                     </div>
                     <div
-                      class="emotion-26"
+                      class="emotion-43 emotion-44"
                     >
                       Total Healthy Dynamic Instances
                       <span
-                        class="emotion-27"
+                        class="emotion-45 emotion-46"
                       >
                         <svg
-                          class="emotion-21"
+                          class="emotion-34"
                           data-testid="icon"
                           height="15px"
                           viewBox="0 0 1024 1024"
@@ -3100,17 +3100,17 @@ exports[`DynamicInstancePage should render with category type 1`] = `
               </div>
             </div>
             <div
-              class="emotion-34 denali-tab-group"
+              class="emotion-57 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-35 denali-tab"
+                class="emotion-58 denali-tab"
                 data-active="false"
               >
                 Static
               </div>
               <div
-                class="emotion-35 denali-tab active"
+                class="emotion-58 denali-tab active"
                 data-active="true"
               >
                 Dynamic
@@ -3118,31 +3118,31 @@ exports[`DynamicInstancePage should render with category type 1`] = `
             </div>
           </div>
           <div
-            class="emotion-37"
+            class="emotion-60 emotion-61"
             data-testid="instancelist"
           >
             <div
-              class="emotion-38"
+              class="emotion-62 emotion-63"
             >
               <div
-                class="emotion-39"
+                class="emotion-64 emotion-65"
               >
                 <div
-                  class="emotion-40"
+                  class="emotion-66 emotion-67"
                 >
                   <div
-                    class="emotion-41"
+                    class="emotion-68 emotion-69"
                   >
                     <div
                       aria-expanded="false"
                       aria-haspopup="listbox"
                       aria-labelledby="downshift-1-label"
-                      class="emotion-42 denali-input-dropdown"
+                      class="emotion-70 denali-input-dropdown"
                       data-testid="input-dropdown"
                       role="combobox"
                     >
                       <div
-                        class="emotion-43 denali-input animated"
+                        class="emotion-71 denali-input animated"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -3162,7 +3162,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
                           class="input-icon"
                         >
                           <svg
-                            class="emotion-44"
+                            class="emotion-72"
                             data-testid="icon"
                             height="24px"
                             viewBox="0 0 1024 1024"
@@ -3184,10 +3184,10 @@ exports[`DynamicInstancePage should render with category type 1`] = `
                     </div>
                   </div>
                   <div
-                    class="emotion-45"
+                    class="emotion-73 emotion-74"
                   >
                     <div
-                      class="emotion-43 denali-input animated"
+                      class="emotion-71 denali-input animated"
                       data-testid="input-wrapper"
                     >
                       <input
@@ -3201,7 +3201,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
                         class="input-icon"
                       >
                         <svg
-                          class="emotion-7"
+                          class="emotion-10"
                           data-testid="icon"
                           height="24px"
                           viewBox="0 0 1024 1024"
@@ -3225,7 +3225,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
               </div>
             </div>
             <table
-              class="emotion-48"
+              class="emotion-77 emotion-78"
               data-testid="instancetable"
             >
               <colgroup>
@@ -3248,27 +3248,27 @@ exports[`DynamicInstancePage should render with category type 1`] = `
               <thead>
                 <tr>
                   <th
-                    class="emotion-49"
+                    class="emotion-79 emotion-80"
                   >
                     Instance
                   </th>
                   <th
-                    class="emotion-49"
+                    class="emotion-79 emotion-80"
                   >
                     Hostname
                   </th>
                   <th
-                    class="emotion-49"
+                    class="emotion-79 emotion-80"
                   >
                     Provider
                   </th>
                   <th
-                    class="emotion-49"
+                    class="emotion-79 emotion-80"
                   >
                     Expires On
                   </th>
                   <th
-                    class="emotion-49"
+                    class="emotion-79 emotion-80"
                   >
                     Last Certificate Refresh
                   </th>
@@ -3276,31 +3276,31 @@ exports[`DynamicInstancePage should render with category type 1`] = `
               </thead>
               <tbody>
                 <tr
-                  class="emotion-54"
+                  class="emotion-89 emotion-90"
                   data-testid="instance-row"
                 >
                   <td
-                    class="emotion-55"
+                    class="emotion-91 emotion-92"
                     color=""
                   />
                   <td
-                    class="emotion-55"
+                    class="emotion-91 emotion-92"
                     color=""
                   />
                   <td
-                    class="emotion-55"
+                    class="emotion-91 emotion-92"
                     color=""
                   >
                     Static
                   </td>
                   <td
-                    class="emotion-55"
+                    class="emotion-91 emotion-92"
                     color=""
                   >
                     Invalid date
                   </td>
                   <td
-                    class="emotion-55"
+                    class="emotion-91 emotion-92"
                     color=""
                   >
                     2021-05-15 01:17 UTC
@@ -3315,11 +3315,11 @@ exports[`DynamicInstancePage should render with category type 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-60"
+          class="emotion-101 emotion-102"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-61"
+            class="emotion-103"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -3334,45 +3334,45 @@ exports[`DynamicInstancePage should render with category type 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-62"
+          class="emotion-104 emotion-105"
         >
           <div
-            class="emotion-63"
+            class="emotion-106 emotion-107"
           >
             <div
-              class="emotion-64"
+              class="emotion-108 emotion-109"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-65"
+                class="emotion-110 emotion-111"
               >
                 Create
               </a>
               <span
-                class="emotion-66"
+                class="emotion-112 emotion-113"
               >
                  | 
               </span>
               <a
-                class="emotion-65"
+                class="emotion-110 emotion-111"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-68"
+            class="emotion-116 emotion-117"
           >
             <div
-              class="emotion-69"
+              class="emotion-118 emotion-119"
             >
               <div
-                class="emotion-70"
+                class="emotion-120 emotion-121"
               >
                 <svg
-                  class="emotion-71"
+                  class="emotion-122"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -3393,19 +3393,19 @@ exports[`DynamicInstancePage should render with category type 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-65"
+                class="emotion-110 emotion-111"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-69"
+              class="emotion-118 emotion-119"
             >
               <div
-                class="emotion-70"
+                class="emotion-120 emotion-121"
               >
                 <svg
-                  class="emotion-71"
+                  class="emotion-122"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -3426,7 +3426,7 @@ exports[`DynamicInstancePage should render with category type 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-65"
+                class="emotion-110 emotion-111"
               >
                 athens.ci
               </a>

@@ -5,13 +5,13 @@ exports[`TemplateList should render 1`] = `
   margin: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   font: 600 15px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 20px;
   margin-top: 40px;
 }
 
-.emotion-2 {
+.emotion-4 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -19,7 +19,7 @@ exports[`TemplateList should render 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-3 {
+.emotion-6 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -32,7 +32,7 @@ exports[`TemplateList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-5 {
+.emotion-10 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -46,46 +46,46 @@ exports[`TemplateList should render 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="template-list"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     Domain Templates
   </div>
   <table
-    class="emotion-2"
+    class="emotion-4 emotion-5"
   >
     <thead>
       <tr>
         <th
-          class="emotion-3"
+          class="emotion-6 emotion-7"
         >
           TEMPLATE
         </th>
         <th
-          class="emotion-3"
+          class="emotion-6 emotion-7"
         >
           INFO
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           CURRENT VERSION
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           LATEST VERSION
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           UPDATED DATE
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           UPDATE VERSION
         </th>
@@ -93,39 +93,39 @@ exports[`TemplateList should render 1`] = `
     </thead>
     <tbody />
     <div
-      class="emotion-1"
+      class="emotion-2 emotion-3"
     >
       Server Templates
     </div>
     <thead>
       <tr>
         <th
-          class="emotion-3"
+          class="emotion-6 emotion-7"
         >
           TEMPLATE
         </th>
         <th
-          class="emotion-3"
+          class="emotion-6 emotion-7"
         >
           INFO
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           CURRENT VERSION
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           LATEST VERSION
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           UPDATED DATE
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           UPDATE VERSION
         </th>
@@ -141,13 +141,13 @@ exports[`TemplateList should render with metadata array 1`] = `
   margin: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   font: 600 15px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 20px;
   margin-top: 40px;
 }
 
-.emotion-2 {
+.emotion-4 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -155,7 +155,7 @@ exports[`TemplateList should render with metadata array 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-3 {
+.emotion-6 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -168,7 +168,7 @@ exports[`TemplateList should render with metadata array 1`] = `
   word-break: break-all;
 }
 
-.emotion-5 {
+.emotion-10 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -181,7 +181,7 @@ exports[`TemplateList should render with metadata array 1`] = `
   word-break: break-all;
 }
 
-.emotion-16 {
+.emotion-32 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -189,7 +189,7 @@ exports[`TemplateList should render with metadata array 1`] = `
   word-break: break-all;
 }
 
-.emotion-17 {
+.emotion-34 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -197,13 +197,13 @@ exports[`TemplateList should render with metadata array 1`] = `
   word-break: break-all;
 }
 
-.emotion-18 {
+.emotion-36 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-23 {
+.emotion-45 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -230,65 +230,65 @@ exports[`TemplateList should render with metadata array 1`] = `
   color: #3697f2;
 }
 
-.emotion-23:first-of-type {
+.emotion-45:first-of-type {
   margin-left: 0;
 }
 
-.emotion-23:disabled {
+.emotion-45:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-23:disabled {
+.emotion-45:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-23:hover:not(:disabled) {
+.emotion-45:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="template-list"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     Domain Templates
   </div>
   <table
-    class="emotion-2"
+    class="emotion-4 emotion-5"
   >
     <thead>
       <tr>
         <th
-          class="emotion-3"
+          class="emotion-6 emotion-7"
         >
           TEMPLATE
         </th>
         <th
-          class="emotion-3"
+          class="emotion-6 emotion-7"
         >
           INFO
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           CURRENT VERSION
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           LATEST VERSION
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           UPDATED DATE
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           UPDATE VERSION
         </th>
@@ -296,39 +296,39 @@ exports[`TemplateList should render with metadata array 1`] = `
     </thead>
     <tbody />
     <div
-      class="emotion-1"
+      class="emotion-2 emotion-3"
     >
       Server Templates
     </div>
     <thead>
       <tr>
         <th
-          class="emotion-3"
+          class="emotion-6 emotion-7"
         >
           TEMPLATE
         </th>
         <th
-          class="emotion-3"
+          class="emotion-6 emotion-7"
         >
           INFO
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           CURRENT VERSION
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           LATEST VERSION
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           UPDATED DATE
         </th>
         <th
-          class="emotion-5"
+          class="emotion-10 emotion-7"
         >
           UPDATE VERSION
         </th>
@@ -339,18 +339,18 @@ exports[`TemplateList should render with metadata array 1`] = `
         data-testid="template-row"
       >
         <td
-          class="emotion-16"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           aws
         </td>
         <td
-          class="emotion-17"
+          class="emotion-34 emotion-33"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-18"
+              class="emotion-36"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -372,29 +372,29 @@ exports[`TemplateList should render with metadata array 1`] = `
           </span>
         </td>
         <td
-          class="emotion-17"
+          class="emotion-34 emotion-33"
           color="#3570f40D"
         >
           N/A
         </td>
         <td
-          class="emotion-17"
+          class="emotion-34 emotion-33"
           color="#3570f40D"
         >
           1
         </td>
         <td
-          class="emotion-17"
+          class="emotion-34 emotion-33"
           color="#3570f40D"
         >
           2020-04-28T00:00:00.000Z
         </td>
         <td
-          class="emotion-17"
+          class="emotion-34 emotion-33"
           color="#3570f40D"
         >
           <button
-            class="emotion-23 denali-button"
+            class="emotion-45 denali-button"
             type="submit"
           >
             Onboard

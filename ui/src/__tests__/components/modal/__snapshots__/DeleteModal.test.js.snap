@@ -8,7 +8,7 @@ exports[`DeleteModal should render 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="delete-modal-message"
 >
   test
@@ -27,7 +27,7 @@ exports[`DeleteModal should render with Domain input field 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="delete-modal-message"
 >
   test

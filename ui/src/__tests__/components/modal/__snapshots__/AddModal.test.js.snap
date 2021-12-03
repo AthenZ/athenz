@@ -10,7 +10,7 @@ exports[`AddModal should render 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="add-modal-message"
   height="auto"
 >

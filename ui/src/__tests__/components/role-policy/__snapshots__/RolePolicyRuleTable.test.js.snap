@@ -8,7 +8,7 @@ exports[`PolicyRuleTable should render 1`] = `
   border-collapse: separate;
 }
 
-.emotion-1 {
+.emotion-2 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #303030;
@@ -20,7 +20,7 @@ exports[`PolicyRuleTable should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-2 {
+.emotion-4 {
   text-align: right;
   border-bottom: 2px solid #d5d5d5;
   color: #3570F4;
@@ -32,18 +32,18 @@ exports[`PolicyRuleTable should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-3 {
+.emotion-6 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-4 {
+.emotion-8 {
   margin: 15px 0 0 0;
 }
 
-.emotion-6 {
+.emotion-12 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -56,7 +56,7 @@ exports[`PolicyRuleTable should render 1`] = `
   background-color: white;
 }
 
-.emotion-10 {
+.emotion-20 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -70,13 +70,13 @@ exports[`PolicyRuleTable should render 1`] = `
 }
 
 <table
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="role-policy-rule-table"
 >
   <tbody>
     <tr>
       <th
-        class="emotion-1"
+        class="emotion-2 emotion-3"
         color="#303030"
       >
         Rule Details(
@@ -84,11 +84,11 @@ exports[`PolicyRuleTable should render 1`] = `
         )
       </th>
       <th
-        class="emotion-2"
+        class="emotion-4 emotion-3"
         color="#3570F4"
       >
         <a
-          class="emotion-3"
+          class="emotion-6 emotion-7"
         >
           Add rule
         </a>
@@ -104,35 +104,35 @@ exports[`PolicyRuleTable should render 1`] = `
         colspan="4"
       >
         <div
-          class="emotion-4"
+          class="emotion-8 emotion-9"
         >
           <table
-            class="emotion-0"
+            class="emotion-0 emotion-1"
           >
             <thead>
               <tr>
                 <th
-                  class="emotion-6"
+                  class="emotion-12 emotion-13"
                 >
                   Effect
                 </th>
                 <th
-                  class="emotion-6"
+                  class="emotion-12 emotion-13"
                 >
                   Action
                 </th>
                 <th
-                  class="emotion-6"
+                  class="emotion-12 emotion-13"
                 >
                   Role
                 </th>
                 <th
-                  class="emotion-6"
+                  class="emotion-12 emotion-13"
                 >
                   Resource
                 </th>
                 <th
-                  class="emotion-10"
+                  class="emotion-20 emotion-21"
                 />
               </tr>
             </thead>
@@ -153,7 +153,7 @@ exports[`PolicyRuleTable should render 2`] = `
   border-collapse: separate;
 }
 
-.emotion-1 {
+.emotion-2 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #303030;
@@ -165,7 +165,7 @@ exports[`PolicyRuleTable should render 2`] = `
   word-break: break-all;
 }
 
-.emotion-2 {
+.emotion-4 {
   text-align: right;
   border-bottom: 2px solid #d5d5d5;
   color: #3570F4;
@@ -177,18 +177,18 @@ exports[`PolicyRuleTable should render 2`] = `
   word-break: break-all;
 }
 
-.emotion-3 {
+.emotion-6 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-4 {
+.emotion-8 {
   margin: 15px 0 0 0;
 }
 
-.emotion-6 {
+.emotion-12 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -201,7 +201,7 @@ exports[`PolicyRuleTable should render 2`] = `
   background-color: white;
 }
 
-.emotion-10 {
+.emotion-20 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -215,13 +215,13 @@ exports[`PolicyRuleTable should render 2`] = `
 }
 
 <table
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="role-policy-rule-table"
 >
   <tbody>
     <tr>
       <th
-        class="emotion-1"
+        class="emotion-2 emotion-3"
         color="#303030"
       >
         Rule Details(
@@ -229,11 +229,11 @@ exports[`PolicyRuleTable should render 2`] = `
         )
       </th>
       <th
-        class="emotion-2"
+        class="emotion-4 emotion-3"
         color="#3570F4"
       >
         <a
-          class="emotion-3"
+          class="emotion-6 emotion-7"
         >
           Add rule
         </a>
@@ -249,35 +249,35 @@ exports[`PolicyRuleTable should render 2`] = `
         colspan="4"
       >
         <div
-          class="emotion-4"
+          class="emotion-8 emotion-9"
         >
           <table
-            class="emotion-0"
+            class="emotion-0 emotion-1"
           >
             <thead>
               <tr>
                 <th
-                  class="emotion-6"
+                  class="emotion-12 emotion-13"
                 >
                   Effect
                 </th>
                 <th
-                  class="emotion-6"
+                  class="emotion-12 emotion-13"
                 >
                   Action
                 </th>
                 <th
-                  class="emotion-6"
+                  class="emotion-12 emotion-13"
                 >
                   Role
                 </th>
                 <th
-                  class="emotion-6"
+                  class="emotion-12 emotion-13"
                 >
                   Resource
                 </th>
                 <th
-                  class="emotion-10"
+                  class="emotion-20 emotion-21"
                 />
               </tr>
             </thead>

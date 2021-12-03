@@ -5,17 +5,17 @@ exports[`HistoryList should render 1`] = `
   margin: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   display: grid;
   grid-template-columns: 40% 15% 15% 15% 15%;
   grid-gap: 10px;
 }
 
-.emotion-2 {
+.emotion-4 {
   font-weight: bold;
 }
 
-.emotion-5 {
+.emotion-10 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -44,17 +44,17 @@ exports[`HistoryList should render 1`] = `
   color: #fff;
 }
 
-.emotion-5:first-of-type {
+.emotion-10:first-of-type {
   margin-left: 0;
 }
 
-.emotion-5:disabled {
+.emotion-10:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-5:hover:not(:disabled) {
+.emotion-10:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
                   #3570f4,
@@ -62,20 +62,20 @@ exports[`HistoryList should render 1`] = `
               );
 }
 
-.emotion-6 {
+.emotion-11 {
   position: relative;
   width: 100%;
 }
 
-.emotion-6 input {
+.emotion-11 input {
   cursor: inherit;
 }
 
-.emotion-7 {
+.emotion-12 {
   margin-top: 5px;
 }
 
-.emotion-8 {
+.emotion-14 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -92,7 +92,7 @@ exports[`HistoryList should render 1`] = `
   width: 100%;
 }
 
-.emotion-8 input {
+.emotion-14 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -118,42 +118,42 @@ exports[`HistoryList should render 1`] = `
   width: 100%;
 }
 
-.emotion-8.animated input {
+.emotion-14.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-8 input::-webkit-input-placeholder {
+.emotion-14 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-8 input::-moz-placeholder {
+.emotion-14 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-8 input:-ms-input-placeholder {
+.emotion-14 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-8 input::placeholder {
+.emotion-14 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-8 input.focused,
-.emotion-8 input:active,
-.emotion-8 input:focus {
+.emotion-14 input.focused,
+.emotion-14 input:active,
+.emotion-14 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-8 input:invalid {
+.emotion-14 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-8 .message {
+.emotion-14 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -161,22 +161,22 @@ exports[`HistoryList should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-8.error input,
-.emotion-8.error input.focused,
-.emotion-8.error input:active,
-.emotion-8.error input:focus {
+.emotion-14.error input,
+.emotion-14.error input.focused,
+.emotion-14.error input:active,
+.emotion-14.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-8.error .message {
+.emotion-14.error .message {
   color: #d01111;
 }
 
-.emotion-8 input {
+.emotion-14 input {
   padding-right: 36px;
 }
 
-.emotion-8 .input-icon {
+.emotion-14 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -190,13 +190,13 @@ exports[`HistoryList should render 1`] = `
   right: 6px;
 }
 
-.emotion-9 {
+.emotion-15 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-10>div input {
+.emotion-16>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   background-color: rgba(53, 112, 244, 0.05);
@@ -222,7 +222,7 @@ exports[`HistoryList should render 1`] = `
   width: 80%;
 }
 
-.emotion-12 {
+.emotion-20 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -248,25 +248,25 @@ exports[`HistoryList should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-12:first-of-type {
+.emotion-20:first-of-type {
   margin-left: 0;
 }
 
-.emotion-12:disabled {
+.emotion-20:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-12:disabled {
+.emotion-20:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-12:hover:not(:disabled) {
+.emotion-20:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-13 {
+.emotion-21 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -276,7 +276,7 @@ exports[`HistoryList should render 1`] = `
   padding-top: 20px;
 }
 
-.emotion-14 {
+.emotion-23 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -290,32 +290,32 @@ exports[`HistoryList should render 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="history-list"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <div />
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       Filter by Role
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       Start Date
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       End Date
     </div>
     <div />
     <div>
       <button
-        class="emotion-5 denali-button"
+        class="emotion-10 denali-button"
       >
         Export to CSV
       </button>
@@ -325,12 +325,12 @@ exports[`HistoryList should render 1`] = `
         aria-expanded="false"
         aria-haspopup="listbox"
         aria-labelledby="downshift-0-label"
-        class="emotion-6 denali-input-dropdown emotion-7"
+        class="emotion-11 denali-input-dropdown emotion-12 emotion-13"
         data-testid="input-dropdown"
         role="combobox"
       >
         <div
-          class="emotion-8 denali-input animated"
+          class="emotion-14 denali-input animated"
           data-testid="input-wrapper"
         >
           <input
@@ -350,7 +350,7 @@ exports[`HistoryList should render 1`] = `
           >
             
             <svg
-              class="emotion-9"
+              class="emotion-15"
               data-testid="icon"
               height="24px"
               viewBox="0 0 1024 1024"
@@ -372,7 +372,7 @@ exports[`HistoryList should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-10"
+      class="emotion-16 emotion-17"
     >
       <div
         class="fp-startDate"
@@ -395,7 +395,7 @@ exports[`HistoryList should render 1`] = `
       </div>
     </div>
     <div
-      class="emotion-10"
+      class="emotion-16 emotion-17"
     >
       <div
         class="fp-endDate"
@@ -419,44 +419,44 @@ exports[`HistoryList should render 1`] = `
     </div>
     <div>
       <button
-        class="emotion-12 denali-button"
+        class="emotion-20 denali-button"
       >
         Submit
       </button>
     </div>
   </div>
   <table
-    class="emotion-13"
+    class="emotion-21 emotion-22"
   >
     <thead>
       <tr>
         <th
-          class="emotion-14"
+          class="emotion-23 emotion-24"
         >
           ACTION
         </th>
         <th
-          class="emotion-14"
+          class="emotion-23 emotion-24"
         >
           ENTITY
         </th>
         <th
-          class="emotion-14"
+          class="emotion-23 emotion-24"
         >
           EXECUTED BY
         </th>
         <th
-          class="emotion-14"
+          class="emotion-23 emotion-24"
         >
           MODIFIED DATE
         </th>
         <th
-          class="emotion-14"
+          class="emotion-23 emotion-24"
         >
           DETAILS
         </th>
         <th
-          class="emotion-14"
+          class="emotion-23 emotion-24"
         >
           JUSTIFICATION
         </th>

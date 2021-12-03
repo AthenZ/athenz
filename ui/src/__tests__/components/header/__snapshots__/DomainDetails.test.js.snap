@@ -5,7 +5,7 @@ exports[`DomainDetails should render 1`] = `
   margin: 20px 0;
 }
 
-.emotion-1 {
+.emotion-2 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -16,21 +16,21 @@ exports[`DomainDetails should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-2 {
+.emotion-4 {
   padding-right: 50px;
 }
 
-.emotion-3 {
+.emotion-6 {
   font-weight: 600;
 }
 
-.emotion-4 {
+.emotion-8 {
   color: #9a9a9a;
   font-size: 12px;
   text-transform: uppercase;
 }
 
-.emotion-13 {
+.emotion-26 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -47,7 +47,7 @@ exports[`DomainDetails should render 1`] = `
   position: relative;
 }
 
-.emotion-13>input[type='checkbox'] {
+.emotion-26>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   position: absolute;
@@ -55,7 +55,7 @@ exports[`DomainDetails should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-13>input[type='checkbox']+label {
+.emotion-26>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -66,7 +66,7 @@ exports[`DomainDetails should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-13>input[type='checkbox']+label .label-content {
+.emotion-26>input[type='checkbox']+label .label-content {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -75,12 +75,12 @@ exports[`DomainDetails should render 1`] = `
 }
 
 @-moz-document url-prefix() {
-  .emotion-13>input[type='checkbox']+label .label-content {
+  .emotion-26>input[type='checkbox']+label .label-content {
     margin-top: 1px;
   }
 }
 
-.emotion-13>input[type='checkbox']+label:before {
+.emotion-26>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
   box-sizing: border-box;
@@ -96,7 +96,7 @@ exports[`DomainDetails should render 1`] = `
   width: 34px;
 }
 
-.emotion-13>input[type='checkbox']+label::after {
+.emotion-26>input[type='checkbox']+label::after {
   background-color: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -113,36 +113,36 @@ exports[`DomainDetails should render 1`] = `
   width: 18px;
 }
 
-.emotion-13>input[type='checkbox']:checked+label::before {
+.emotion-26>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-13>input[type='checkbox']:checked+label::after {
+.emotion-26>input[type='checkbox']:checked+label::after {
   background-color: #15c046;
   border-color: #15c046;
   left: 16px;
 }
 
-.emotion-13>input[type='checkbox']:disabled+label {
+.emotion-26>input[type='checkbox']:disabled+label {
   color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-13>input[type='checkbox']:disabled+label::before {
+.emotion-26>input[type='checkbox']:disabled+label::before {
   background-color: #e8e8e8;
   cursor: not-allowed;
 }
 
-.emotion-13>input[type='checkbox']:disabled+label::after {
+.emotion-26>input[type='checkbox']:disabled+label::after {
   border-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-13>input[type='checkbox']:checked:disabled+label::after {
+.emotion-26>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-19 {
+.emotion-37 {
   font-weight: 600;
   title: add;
   word-break: break-all;
@@ -152,7 +152,7 @@ exports[`DomainDetails should render 1`] = `
   max-width: 400px;
 }
 
-.emotion-20 {
+.emotion-39 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -161,62 +161,62 @@ exports[`DomainDetails should render 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="domain-details"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-3"
+        class="emotion-6 emotion-7"
       >
         2020-02-12 21:44 UTC
       </div>
       <div
-        class="emotion-4"
+        class="emotion-8 emotion-9"
       >
         MODIFIED DATE
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-3"
+        class="emotion-6 emotion-7"
       >
         N/A
       </div>
       <div
-        class="emotion-4"
+        class="emotion-8 emotion-9"
       >
         Product ID
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-3"
+        class="emotion-6 emotion-7"
       >
         N/A
       </div>
       <div
-        class="emotion-4"
+        class="emotion-8 emotion-9"
       >
         ORGANIZATION
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-3"
+        class="emotion-6 emotion-7"
       >
         <div
-          class="emotion-13 denali-switch"
+          class="emotion-26 denali-switch"
           data-testid="switch-wrapper"
         >
           <input
@@ -232,40 +232,40 @@ exports[`DomainDetails should render 1`] = `
         </div>
       </div>
       <div
-        class="emotion-4"
+        class="emotion-8 emotion-9"
       >
         AUDIT ENABLED
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-3"
+        class="emotion-6 emotion-7"
       >
         N/A
       </div>
       <div
-        class="emotion-4"
+        class="emotion-8 emotion-9"
       >
         AWS ACCOUNT ID
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-19"
+        class="emotion-37 emotion-38"
         title="add"
       >
         <a
-          class="emotion-20"
+          class="emotion-39 emotion-40"
         >
           add
         </a>
       </div>
       <div
-        class="emotion-4"
+        class="emotion-8 emotion-9"
       >
         BUSINESS SERVICE
       </div>
@@ -279,7 +279,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   margin: 20px 0;
 }
 
-.emotion-1 {
+.emotion-2 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -290,28 +290,28 @@ exports[`DomainDetails should render with mock data 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-2 {
+.emotion-4 {
   padding-right: 50px;
 }
 
-.emotion-3 {
+.emotion-6 {
   font-weight: 600;
 }
 
-.emotion-4 {
+.emotion-8 {
   color: #9a9a9a;
   font-size: 12px;
   text-transform: uppercase;
 }
 
-.emotion-7 {
+.emotion-14 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-14 {
+.emotion-28 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -328,7 +328,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   position: relative;
 }
 
-.emotion-14>input[type='checkbox'] {
+.emotion-28>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   position: absolute;
@@ -336,7 +336,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   visibility: hidden;
 }
 
-.emotion-14>input[type='checkbox']+label {
+.emotion-28>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -347,7 +347,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   white-space: nowrap;
 }
 
-.emotion-14>input[type='checkbox']+label .label-content {
+.emotion-28>input[type='checkbox']+label .label-content {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -356,12 +356,12 @@ exports[`DomainDetails should render with mock data 1`] = `
 }
 
 @-moz-document url-prefix() {
-  .emotion-14>input[type='checkbox']+label .label-content {
+  .emotion-28>input[type='checkbox']+label .label-content {
     margin-top: 1px;
   }
 }
 
-.emotion-14>input[type='checkbox']+label:before {
+.emotion-28>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
   box-sizing: border-box;
@@ -377,7 +377,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   width: 34px;
 }
 
-.emotion-14>input[type='checkbox']+label::after {
+.emotion-28>input[type='checkbox']+label::after {
   background-color: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -394,36 +394,36 @@ exports[`DomainDetails should render with mock data 1`] = `
   width: 18px;
 }
 
-.emotion-14>input[type='checkbox']:checked+label::before {
+.emotion-28>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-14>input[type='checkbox']:checked+label::after {
+.emotion-28>input[type='checkbox']:checked+label::after {
   background-color: #15c046;
   border-color: #15c046;
   left: 16px;
 }
 
-.emotion-14>input[type='checkbox']:disabled+label {
+.emotion-28>input[type='checkbox']:disabled+label {
   color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-14>input[type='checkbox']:disabled+label::before {
+.emotion-28>input[type='checkbox']:disabled+label::before {
   background-color: #e8e8e8;
   cursor: not-allowed;
 }
 
-.emotion-14>input[type='checkbox']:disabled+label::after {
+.emotion-28>input[type='checkbox']:disabled+label::after {
   border-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-14>input[type='checkbox']:checked:disabled+label::after {
+.emotion-28>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-20 {
+.emotion-39 {
   font-weight: 600;
   title: add;
   word-break: break-all;
@@ -433,7 +433,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   max-width: 400px;
 }
 
-.emotion-21 {
+.emotion-41 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -441,7 +441,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   font-weight: '';
 }
 
-.emotion-24 {
+.emotion-47 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -467,86 +467,86 @@ exports[`DomainDetails should render with mock data 1`] = `
   color: #3697f2;
 }
 
-.emotion-24:first-of-type {
+.emotion-47:first-of-type {
   margin-left: 0;
 }
 
-.emotion-24:disabled {
+.emotion-47:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-24:disabled {
+.emotion-47:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-24:hover:not(:disabled) {
+.emotion-47:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="domain-details"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-3"
+        class="emotion-6 emotion-7"
       >
         2020-02-12 21:44 UTC
       </div>
       <div
-        class="emotion-4"
+        class="emotion-8 emotion-9"
       >
         MODIFIED DATE
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-3"
+        class="emotion-6 emotion-7"
       >
         <div
-          class="emotion-7"
+          class="emotion-14 emotion-15"
           data-testid="pm-id"
         >
           test
         </div>
       </div>
       <div
-        class="emotion-4"
+        class="emotion-8 emotion-9"
       >
         Product ID
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-3"
+        class="emotion-6 emotion-7"
       >
         test
       </div>
       <div
-        class="emotion-4"
+        class="emotion-8 emotion-9"
       >
         ORGANIZATION
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-3"
+        class="emotion-6 emotion-7"
       >
         <div
-          class="emotion-14 denali-switch"
+          class="emotion-28 denali-switch"
           data-testid="switch-wrapper"
         >
           <input
@@ -563,49 +563,49 @@ exports[`DomainDetails should render with mock data 1`] = `
         </div>
       </div>
       <div
-        class="emotion-4"
+        class="emotion-8 emotion-9"
       >
         AUDIT ENABLED
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-3"
+        class="emotion-6 emotion-7"
       >
         test
       </div>
       <div
-        class="emotion-4"
+        class="emotion-8 emotion-9"
       >
         AWS ACCOUNT ID
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-20"
+        class="emotion-39 emotion-40"
         title="add"
       >
         <a
-          class="emotion-21"
+          class="emotion-41 emotion-42"
         >
           add
         </a>
       </div>
       <div
-        class="emotion-4"
+        class="emotion-8 emotion-9"
       >
         BUSINESS SERVICE
       </div>
     </div>
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <button
-        class="emotion-24 denali-button"
+        class="emotion-47 denali-button"
       >
         Onboard to AWS
       </button>

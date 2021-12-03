@@ -9,7 +9,7 @@ exports[`SettingTable should render setting table 1`] = `
   border-color: grey;
 }
 
-.emotion-1 {
+.emotion-2 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -21,7 +21,7 @@ exports[`SettingTable should render setting table 1`] = `
   height: 50px;
 }
 
-.emotion-2 {
+.emotion-4 {
   text-align: left;
   width: auto;
   padding: 5px 0 5px 15px;
@@ -29,7 +29,7 @@ exports[`SettingTable should render setting table 1`] = `
   word-break: break-all;
 }
 
-.emotion-4 {
+.emotion-8 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -46,7 +46,7 @@ exports[`SettingTable should render setting table 1`] = `
   position: relative;
 }
 
-.emotion-4>input[type='checkbox'] {
+.emotion-8>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   position: absolute;
@@ -54,7 +54,7 @@ exports[`SettingTable should render setting table 1`] = `
   visibility: hidden;
 }
 
-.emotion-4>input[type='checkbox']+label {
+.emotion-8>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -65,7 +65,7 @@ exports[`SettingTable should render setting table 1`] = `
   white-space: nowrap;
 }
 
-.emotion-4>input[type='checkbox']+label .label-content {
+.emotion-8>input[type='checkbox']+label .label-content {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -74,12 +74,12 @@ exports[`SettingTable should render setting table 1`] = `
 }
 
 @-moz-document url-prefix() {
-  .emotion-4>input[type='checkbox']+label .label-content {
+  .emotion-8>input[type='checkbox']+label .label-content {
     margin-top: 1px;
   }
 }
 
-.emotion-4>input[type='checkbox']+label:before {
+.emotion-8>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
   box-sizing: border-box;
@@ -95,7 +95,7 @@ exports[`SettingTable should render setting table 1`] = `
   width: 34px;
 }
 
-.emotion-4>input[type='checkbox']+label::after {
+.emotion-8>input[type='checkbox']+label::after {
   background-color: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -112,43 +112,43 @@ exports[`SettingTable should render setting table 1`] = `
   width: 18px;
 }
 
-.emotion-4>input[type='checkbox']:checked+label::before {
+.emotion-8>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-4>input[type='checkbox']:checked+label::after {
+.emotion-8>input[type='checkbox']:checked+label::after {
   background-color: #15c046;
   border-color: #15c046;
   left: 16px;
 }
 
-.emotion-4>input[type='checkbox']:disabled+label {
+.emotion-8>input[type='checkbox']:disabled+label {
   color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-4>input[type='checkbox']:disabled+label::before {
+.emotion-8>input[type='checkbox']:disabled+label::before {
   background-color: #e8e8e8;
   cursor: not-allowed;
 }
 
-.emotion-4>input[type='checkbox']:disabled+label::after {
+.emotion-8>input[type='checkbox']:disabled+label::after {
   border-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-4>input[type='checkbox']:checked:disabled+label::after {
+.emotion-8>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-14 {
+.emotion-26 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-15 {
+.emotion-28 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -165,7 +165,7 @@ exports[`SettingTable should render setting table 1`] = `
   width: 100%;
 }
 
-.emotion-15 input {
+.emotion-28 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -191,42 +191,42 @@ exports[`SettingTable should render setting table 1`] = `
   width: 100%;
 }
 
-.emotion-15.animated input {
+.emotion-28.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-15 input::-webkit-input-placeholder {
+.emotion-28 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-15 input::-moz-placeholder {
+.emotion-28 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-15 input:-ms-input-placeholder {
+.emotion-28 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-15 input::placeholder {
+.emotion-28 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-15 input.focused,
-.emotion-15 input:active,
-.emotion-15 input:focus {
+.emotion-28 input.focused,
+.emotion-28 input:active,
+.emotion-28 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-15 input:invalid {
+.emotion-28 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-15 .message {
+.emotion-28 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -234,36 +234,36 @@ exports[`SettingTable should render setting table 1`] = `
   top: 2.571rem;
 }
 
-.emotion-15.error input,
-.emotion-15.error input.focused,
-.emotion-15.error input:active,
-.emotion-15.error input:focus {
+.emotion-28.error input,
+.emotion-28.error input.focused,
+.emotion-28.error input:active,
+.emotion-28.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-15.error .message {
+.emotion-28.error .message {
   color: #d01111;
 }
 
-.emotion-16 {
+.emotion-29 {
   margin-top: 5px;
 }
 
-.emotion-71 {
+.emotion-132 {
   position: relative;
   width: 100%;
 }
 
-.emotion-71 input {
+.emotion-132 input {
   cursor: inherit;
 }
 
-.emotion-72 {
+.emotion-133 {
   margin-top: 5px;
   display: block;
 }
 
-.emotion-73 {
+.emotion-135 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -280,7 +280,7 @@ exports[`SettingTable should render setting table 1`] = `
   width: 100%;
 }
 
-.emotion-73 input {
+.emotion-135 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -306,42 +306,42 @@ exports[`SettingTable should render setting table 1`] = `
   width: 100%;
 }
 
-.emotion-73.animated input {
+.emotion-135.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-73 input::-webkit-input-placeholder {
+.emotion-135 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-73 input::-moz-placeholder {
+.emotion-135 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-73 input:-ms-input-placeholder {
+.emotion-135 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-73 input::placeholder {
+.emotion-135 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-73 input.focused,
-.emotion-73 input:active,
-.emotion-73 input:focus {
+.emotion-135 input.focused,
+.emotion-135 input:active,
+.emotion-135 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-73 input:invalid {
+.emotion-135 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-73 .message {
+.emotion-135 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -349,22 +349,22 @@ exports[`SettingTable should render setting table 1`] = `
   top: 2.571rem;
 }
 
-.emotion-73.error input,
-.emotion-73.error input.focused,
-.emotion-73.error input:active,
-.emotion-73.error input:focus {
+.emotion-135.error input,
+.emotion-135.error input.focused,
+.emotion-135.error input:active,
+.emotion-135.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-73.error .message {
+.emotion-135.error .message {
   color: #d01111;
 }
 
-.emotion-73 input {
+.emotion-135 input {
   padding-right: 36px;
 }
 
-.emotion-73 .input-icon {
+.emotion-135 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -378,33 +378,33 @@ exports[`SettingTable should render setting table 1`] = `
   right: 6px;
 }
 
-.emotion-74 {
+.emotion-136 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <table
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="setting-table"
 >
   <tbody>
     <tr
-      class="emotion-1"
+      class="emotion-2 emotion-3"
       data-testid="setting-row"
     >
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         Review
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         <div
-          class="emotion-4 denali-switch"
+          class="emotion-8 denali-switch"
           data-testid="switch-wrapper"
         >
           <input
@@ -420,28 +420,28 @@ exports[`SettingTable should render setting table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         Flag indicates whether or not role updates require another review and approval
       </td>
     </tr>
     <tr
-      class="emotion-1"
+      class="emotion-2 emotion-3"
       data-testid="setting-row"
     >
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         Self-Service
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         <div
-          class="emotion-4 denali-switch"
+          class="emotion-8 denali-switch"
           data-testid="switch-wrapper"
         >
           <input
@@ -456,31 +456,31 @@ exports[`SettingTable should render setting table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         Flag indicates whether or not role allows self service
       </td>
     </tr>
     <tr
-      class="emotion-1"
+      class="emotion-2 emotion-3"
       data-testid="setting-row"
     >
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         User Expiry (Days)
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         <div
-          class="emotion-14"
+          class="emotion-26 emotion-27"
         >
           <div
-            class="emotion-15 denali-input animated emotion-16"
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
             data-testid="input-wrapper"
           >
             <input
@@ -499,31 +499,31 @@ exports[`SettingTable should render setting table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         All user members in the role will have specified max expiry days
       </td>
     </tr>
     <tr
-      class="emotion-1"
+      class="emotion-2 emotion-3"
       data-testid="setting-row"
     >
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         User Review (Days)
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         <div
-          class="emotion-14"
+          class="emotion-26 emotion-27"
         >
           <div
-            class="emotion-15 denali-input animated emotion-16"
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
             data-testid="input-wrapper"
           >
             <input
@@ -542,31 +542,31 @@ exports[`SettingTable should render setting table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         All user members in the role will have specified review days
       </td>
     </tr>
     <tr
-      class="emotion-1"
+      class="emotion-2 emotion-3"
       data-testid="setting-row"
     >
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         Group Expiry (Days)
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         <div
-          class="emotion-14"
+          class="emotion-26 emotion-27"
         >
           <div
-            class="emotion-15 denali-input animated emotion-16"
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
             data-testid="input-wrapper"
           >
             <input
@@ -585,31 +585,31 @@ exports[`SettingTable should render setting table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         All group members in the role will have specified max expiry days
       </td>
     </tr>
     <tr
-      class="emotion-1"
+      class="emotion-2 emotion-3"
       data-testid="setting-row"
     >
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         Group Review (Days)
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         <div
-          class="emotion-14"
+          class="emotion-26 emotion-27"
         >
           <div
-            class="emotion-15 denali-input animated emotion-16"
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
             data-testid="input-wrapper"
           >
             <input
@@ -628,31 +628,31 @@ exports[`SettingTable should render setting table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         All groups in the role will have specified max review days
       </td>
     </tr>
     <tr
-      class="emotion-1"
+      class="emotion-2 emotion-3"
       data-testid="setting-row"
     >
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         Service Expiry (Days)
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         <div
-          class="emotion-14"
+          class="emotion-26 emotion-27"
         >
           <div
-            class="emotion-15 denali-input animated emotion-16"
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
             data-testid="input-wrapper"
           >
             <input
@@ -671,31 +671,31 @@ exports[`SettingTable should render setting table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         All services in the role will have specified max expiry days
       </td>
     </tr>
     <tr
-      class="emotion-1"
+      class="emotion-2 emotion-3"
       data-testid="setting-row"
     >
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         Service Review (Days)
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         <div
-          class="emotion-14"
+          class="emotion-26 emotion-27"
         >
           <div
-            class="emotion-15 denali-input animated emotion-16"
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
             data-testid="input-wrapper"
           >
             <input
@@ -714,31 +714,31 @@ exports[`SettingTable should render setting table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         All service members in the role will have specified review days
       </td>
     </tr>
     <tr
-      class="emotion-1"
+      class="emotion-2 emotion-3"
       data-testid="setting-row"
     >
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         Token Expiry (Mins)
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         <div
-          class="emotion-14"
+          class="emotion-26 emotion-27"
         >
           <div
-            class="emotion-15 denali-input animated emotion-16"
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
             data-testid="input-wrapper"
           >
             <input
@@ -757,31 +757,31 @@ exports[`SettingTable should render setting table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         Tokens issued for this role will have specified max timeout in mins
       </td>
     </tr>
     <tr
-      class="emotion-1"
+      class="emotion-2 emotion-3"
       data-testid="setting-row"
     >
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         Certificate Expiry (Mins)
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         <div
-          class="emotion-14"
+          class="emotion-26 emotion-27"
         >
           <div
-            class="emotion-15 denali-input animated emotion-16"
+            class="emotion-28 denali-input animated emotion-29 emotion-30"
             data-testid="input-wrapper"
           >
             <input
@@ -800,39 +800,39 @@ exports[`SettingTable should render setting table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         Certs issued for this role will have specified max timeout in mins
       </td>
     </tr>
     <tr
-      class="emotion-1"
+      class="emotion-2 emotion-3"
       data-testid="setting-row"
     >
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         User Authority Filter
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         <div
-          class="emotion-14"
+          class="emotion-26 emotion-27"
         >
           <div
             aria-expanded="false"
             aria-haspopup="listbox"
             aria-labelledby="downshift-0-label"
-            class="emotion-71 denali-input-dropdown emotion-72"
+            class="emotion-132 denali-input-dropdown emotion-133 emotion-134"
             data-testid="input-dropdown"
             role="combobox"
           >
             <div
-              class="emotion-73 denali-input animated"
+              class="emotion-135 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -852,7 +852,7 @@ exports[`SettingTable should render setting table 1`] = `
               >
                 
                 <svg
-                  class="emotion-74"
+                  class="emotion-136"
                   data-testid="icon"
                   height="24px"
                   viewBox="0 0 1024 1024"
@@ -875,39 +875,39 @@ exports[`SettingTable should render setting table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         membership filtered based on user authority configured attributes
       </td>
     </tr>
     <tr
-      class="emotion-1"
+      class="emotion-2 emotion-3"
       data-testid="setting-row"
     >
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         User Authority Expiration
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         <div
-          class="emotion-14"
+          class="emotion-26 emotion-27"
         >
           <div
             aria-expanded="false"
             aria-haspopup="listbox"
             aria-labelledby="downshift-1-label"
-            class="emotion-71 denali-input-dropdown emotion-72"
+            class="emotion-132 denali-input-dropdown emotion-133 emotion-134"
             data-testid="input-dropdown"
             role="combobox"
           >
             <div
-              class="emotion-73 denali-input animated"
+              class="emotion-135 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -927,7 +927,7 @@ exports[`SettingTable should render setting table 1`] = `
               >
                 
                 <svg
-                  class="emotion-74"
+                  class="emotion-136"
                   data-testid="icon"
                   height="24px"
                   viewBox="0 0 1024 1024"
@@ -950,7 +950,7 @@ exports[`SettingTable should render setting table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-2"
+        class="emotion-4 emotion-5"
         width="auto"
       >
         expiration enforced by a user authority configured attribute

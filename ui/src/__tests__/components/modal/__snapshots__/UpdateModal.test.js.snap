@@ -8,7 +8,7 @@ exports[`UpdateModal should render 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="update-modal-message"
 >
   test

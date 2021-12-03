@@ -14,7 +14,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   width: 1%;
 }
 
-.emotion-1 {
+.emotion-2 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -27,7 +27,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   vertical-align: middle;
 }
 
-.emotion-1>input[type='checkbox'] {
+.emotion-2>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -36,7 +36,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-1>input[type='checkbox']+label {
+.emotion-2>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -49,7 +49,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-1>input[type='checkbox']+label:before {
+.emotion-2>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -65,33 +65,33 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   width: 16px;
 }
 
-.emotion-1>input[type='checkbox']:hover+label:before {
+.emotion-2>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-1>input[type='checkbox']:focus+label:before {
+.emotion-2>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-1>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-1>input[type='checkbox']:checked+label:before {
+.emotion-2>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-2>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-1>input[type='checkbox']:disabled+label {
+.emotion-2>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-1>input[type='checkbox']:disabled+label:before {
+.emotion-2>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-1>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-2>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-1>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-2>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -106,7 +106,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   width: 8px;
 }
 
-.emotion-1>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-2>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -126,7 +126,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   width: 4.5px;
 }
 
-.emotion-2 {
+.emotion-3 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -138,7 +138,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   text-align: left;
 }
 
-.emotion-3 {
+.emotion-5 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -151,7 +151,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-8 {
+.emotion-15 {
   border-bottom: 2px solid #d5d5d5;
   font-weight: 600;
   font-size: 0.7rem;
@@ -161,7 +161,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   text-align: left;
 }
 
-.emotion-9 {
+.emotion-17 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -178,7 +178,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   width: 100%;
 }
 
-.emotion-9>textarea {
+.emotion-17>textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -207,43 +207,43 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   width: auto;
 }
 
-.emotion-9>textarea::-webkit-input-placeholder {
+.emotion-17>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9>textarea::-moz-placeholder {
+.emotion-17>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9>textarea:-ms-input-placeholder {
+.emotion-17>textarea:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9>textarea::placeholder {
+.emotion-17>textarea::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9>textarea:active,
-.emotion-9>textarea:focus {
+.emotion-17>textarea:active,
+.emotion-17>textarea:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-9>textarea:invalid {
+.emotion-17>textarea:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-9>textarea[disabled] {
+.emotion-17>textarea[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-9 .message {
+.emotion-17 .message {
   font-size: 12px;
   color: #303030;
   left: 0;
@@ -252,11 +252,11 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-10>textarea {
+.emotion-18>textarea {
   resize: vertical;
 }
 
-.emotion-12>div input {
+.emotion-22>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   background-color: #d5d5d5;
@@ -282,13 +282,13 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   width: 10em;
 }
 
-.emotion-13 {
+.emotion-24 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-17 {
+.emotion-30 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -305,17 +305,17 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-18 {
+.emotion-32 {
   margin-top: 10px;
 }
 
-.emotion-19 {
+.emotion-34 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-20 {
+.emotion-35 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -337,10 +337,10 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   data-testid="pending-approval-table-header"
 >
   <th
-    class="emotion-0"
+    class="emotion-0 emotion-1"
   >
     <div
-      class="emotion-1 denali-checkbox"
+      class="emotion-2 denali-checkbox"
       data-testid="checkbox-wrapper"
     >
       <input
@@ -355,33 +355,33 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-2"
+    class="emotion-3 emotion-4"
   >
     <div>
        Select All 
     </div>
   </th>
   <th
-    class="emotion-3"
+    class="emotion-5 emotion-6"
   />
   <th
-    class="emotion-3"
+    class="emotion-5 emotion-6"
   />
   <th
-    class="emotion-3"
+    class="emotion-5 emotion-6"
     colspan="3"
   />
   <th
-    class="emotion-3"
+    class="emotion-5 emotion-6"
   />
   <th
-    class="emotion-3"
+    class="emotion-5 emotion-6"
   />
   <th
-    class="emotion-8"
+    class="emotion-15 emotion-16"
   >
     <div
-      class="emotion-9 denali-textarea emotion-10"
+      class="emotion-17 denali-textarea emotion-18 emotion-19"
       data-testid="textarea-wrapper"
     >
       <textarea
@@ -393,10 +393,10 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-8"
+    class="emotion-15 emotion-16"
   >
     <div
-      class="emotion-12"
+      class="emotion-22 emotion-23"
       disabled=""
     >
       <div
@@ -421,7 +421,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
           data-clear=""
         >
           <svg
-            class="emotion-13"
+            class="emotion-24"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -439,10 +439,10 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-8"
+    class="emotion-15 emotion-16"
   >
     <div
-      class="emotion-12"
+      class="emotion-22 emotion-23"
       disabled=""
     >
       <div
@@ -467,7 +467,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
           data-clear=""
         >
           <svg
-            class="emotion-13"
+            class="emotion-24"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -485,13 +485,13 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-17"
+    class="emotion-30 emotion-31"
   >
     <div
-      class="emotion-18"
+      class="emotion-32 emotion-33"
     >
       <svg
-        class="emotion-19"
+        class="emotion-34"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -510,13 +510,13 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-20"
+    class="emotion-35 emotion-36"
   >
     <div
-      class="emotion-18"
+      class="emotion-32 emotion-33"
     >
       <svg
-        class="emotion-19"
+        class="emotion-34"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"

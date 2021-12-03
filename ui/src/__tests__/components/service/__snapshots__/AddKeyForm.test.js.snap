@@ -17,7 +17,7 @@ exports[`AddKeyForm should render 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-1 {
+.emotion-2 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -25,21 +25,21 @@ exports[`AddKeyForm should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-2 {
+.emotion-3 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-3 {
+.emotion-5 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-4 {
+.emotion-7 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -56,7 +56,7 @@ exports[`AddKeyForm should render 1`] = `
   width: 250px;
 }
 
-.emotion-4 input {
+.emotion-7 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -82,42 +82,42 @@ exports[`AddKeyForm should render 1`] = `
   width: 100%;
 }
 
-.emotion-4.animated input {
+.emotion-7.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-4 input::-webkit-input-placeholder {
+.emotion-7 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-4 input::-moz-placeholder {
+.emotion-7 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-4 input:-ms-input-placeholder {
+.emotion-7 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-4 input::placeholder {
+.emotion-7 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-4 input.focused,
-.emotion-4 input:active,
-.emotion-4 input:focus {
+.emotion-7 input.focused,
+.emotion-7 input:active,
+.emotion-7 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-4 input:invalid {
+.emotion-7 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-4 .message {
+.emotion-7 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -125,36 +125,36 @@ exports[`AddKeyForm should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-4.error input,
-.emotion-4.error input.focused,
-.emotion-4.error input:active,
-.emotion-4.error input:focus {
+.emotion-7.error input,
+.emotion-7.error input.focused,
+.emotion-7.error input:active,
+.emotion-7.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-4.error .message {
+.emotion-7.error .message {
   color: #d01111;
 }
 
-.emotion-5 {
+.emotion-8 {
   width: 500px;
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="add-key-id"
 >
   <label
-    class="emotion-1 denali-input-label emotion-2"
+    class="emotion-2 denali-input-label emotion-3 emotion-4"
     for="key-id"
   >
     Public Key Id
   </label>
   <div
-    class="emotion-3"
+    class="emotion-5 emotion-6"
   >
     <div
-      class="emotion-4 denali-input animated emotion-5"
+      class="emotion-7 denali-input animated emotion-8 emotion-9"
       data-testid="input-wrapper"
     >
       <input
@@ -190,7 +190,7 @@ exports[`AddKeyForm should render 2`] = `
   padding: 10px 30px;
 }
 
-.emotion-1 {
+.emotion-2 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -198,21 +198,21 @@ exports[`AddKeyForm should render 2`] = `
   white-space: nowrap;
 }
 
-.emotion-2 {
+.emotion-3 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-3 {
+.emotion-5 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-4 {
+.emotion-7 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -229,7 +229,7 @@ exports[`AddKeyForm should render 2`] = `
   width: 500px;
 }
 
-.emotion-4>textarea {
+.emotion-7>textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -258,43 +258,43 @@ exports[`AddKeyForm should render 2`] = `
   width: auto;
 }
 
-.emotion-4>textarea::-webkit-input-placeholder {
+.emotion-7>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-4>textarea::-moz-placeholder {
+.emotion-7>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-4>textarea:-ms-input-placeholder {
+.emotion-7>textarea:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-4>textarea::placeholder {
+.emotion-7>textarea::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-4>textarea:active,
-.emotion-4>textarea:focus {
+.emotion-7>textarea:active,
+.emotion-7>textarea:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-4>textarea:invalid {
+.emotion-7>textarea:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-4>textarea[disabled] {
+.emotion-7>textarea[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-4 .message {
+.emotion-7 .message {
   font-size: 12px;
   color: #303030;
   left: 0;
@@ -303,25 +303,25 @@ exports[`AddKeyForm should render 2`] = `
   top: 2.571rem;
 }
 
-.emotion-5>textarea {
+.emotion-8>textarea {
   resize: vertical;
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="add-key-value"
 >
   <label
-    class="emotion-1 denali-input-label emotion-2"
+    class="emotion-2 denali-input-label emotion-3 emotion-4"
     for="key-value"
   >
     Key Value
   </label>
   <div
-    class="emotion-3"
+    class="emotion-5 emotion-6"
   >
     <div
-      class="emotion-4 denali-textarea emotion-5"
+      class="emotion-7 denali-textarea emotion-8 emotion-9"
       data-testid="textarea-wrapper"
     >
       <textarea

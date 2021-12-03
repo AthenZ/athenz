@@ -7,7 +7,7 @@ exports[`AddKey should render 1`] = `
   background-color: #fff;
 }
 
-.emotion-1 {
+.emotion-2 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -23,7 +23,7 @@ exports[`AddKey should render 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-2 {
+.emotion-4 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -31,21 +31,21 @@ exports[`AddKey should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-3 {
+.emotion-5 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-4 {
+.emotion-7 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-5 {
+.emotion-9 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -62,7 +62,7 @@ exports[`AddKey should render 1`] = `
   width: 250px;
 }
 
-.emotion-5 input {
+.emotion-9 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -88,42 +88,42 @@ exports[`AddKey should render 1`] = `
   width: 100%;
 }
 
-.emotion-5.animated input {
+.emotion-9.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-5 input::-webkit-input-placeholder {
+.emotion-9 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-5 input::-moz-placeholder {
+.emotion-9 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-5 input:-ms-input-placeholder {
+.emotion-9 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-5 input::placeholder {
+.emotion-9 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-5 input.focused,
-.emotion-5 input:active,
-.emotion-5 input:focus {
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-5 input:invalid {
+.emotion-9 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-5 .message {
+.emotion-9 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -131,22 +131,22 @@ exports[`AddKey should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-5.error input,
-.emotion-5.error input.focused,
-.emotion-5.error input:active,
-.emotion-5.error input:focus {
+.emotion-9.error input,
+.emotion-9.error input.focused,
+.emotion-9.error input:active,
+.emotion-9.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-5.error .message {
+.emotion-9.error .message {
   color: #d01111;
 }
 
-.emotion-6 {
+.emotion-10 {
   width: 500px;
 }
 
-.emotion-11 {
+.emotion-19 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -163,7 +163,7 @@ exports[`AddKey should render 1`] = `
   width: 500px;
 }
 
-.emotion-11>textarea {
+.emotion-19>textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -192,43 +192,43 @@ exports[`AddKey should render 1`] = `
   width: auto;
 }
 
-.emotion-11>textarea::-webkit-input-placeholder {
+.emotion-19>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11>textarea::-moz-placeholder {
+.emotion-19>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11>textarea:-ms-input-placeholder {
+.emotion-19>textarea:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11>textarea::placeholder {
+.emotion-19>textarea::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11>textarea:active,
-.emotion-11>textarea:focus {
+.emotion-19>textarea:active,
+.emotion-19>textarea:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-11>textarea:invalid {
+.emotion-19>textarea:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-11>textarea[disabled] {
+.emotion-19>textarea[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-11 .message {
+.emotion-19 .message {
   font-size: 12px;
   color: #303030;
   left: 0;
@@ -237,19 +237,19 @@ exports[`AddKey should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-12>textarea {
+.emotion-20>textarea {
   resize: vertical;
 }
 
-.emotion-13 {
+.emotion-22 {
   background-color: #fff;
 }
 
-.emotion-14 {
+.emotion-24 {
   margin-left: 155px;
 }
 
-.emotion-15 {
+.emotion-26 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -278,17 +278,17 @@ exports[`AddKey should render 1`] = `
   color: #fff;
 }
 
-.emotion-15:first-of-type {
+.emotion-26:first-of-type {
   margin-left: 0;
 }
 
-.emotion-15:disabled {
+.emotion-26:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-15:hover:not(:disabled) {
+.emotion-26:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
                   #3570f4,
@@ -296,12 +296,12 @@ exports[`AddKey should render 1`] = `
               );
 }
 
-.emotion-16 {
+.emotion-27 {
   min-width: 8.5em;
   min-height: 1em;
 }
 
-.emotion-17 {
+.emotion-29 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -327,44 +327,44 @@ exports[`AddKey should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-17:first-of-type {
+.emotion-29:first-of-type {
   margin-left: 0;
 }
 
-.emotion-17:disabled {
+.emotion-29:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-17:disabled {
+.emotion-29:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-17:hover:not(:disabled) {
+.emotion-29:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
 <div
   autocomplete="off"
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="add-key"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
     data-testid="add-key-id"
   >
     <label
-      class="emotion-2 denali-input-label emotion-3"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="key-id"
     >
       Public Key Id
     </label>
     <div
-      class="emotion-4"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="emotion-5 denali-input animated emotion-6"
+        class="emotion-9 denali-input animated emotion-10 emotion-11"
         data-testid="input-wrapper"
       >
         <input
@@ -382,20 +382,20 @@ exports[`AddKey should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
     data-testid="add-key-value"
   >
     <label
-      class="emotion-2 denali-input-label emotion-3"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="key-value"
     >
       Key Value
     </label>
     <div
-      class="emotion-4"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="emotion-11 denali-textarea emotion-12"
+        class="emotion-19 denali-textarea emotion-20 emotion-21"
         data-testid="textarea-wrapper"
       >
         <textarea
@@ -407,18 +407,18 @@ exports[`AddKey should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-13"
+    class="emotion-22 emotion-23"
   >
     <div
-      class="emotion-14"
+      class="emotion-24 emotion-25"
     >
       <button
-        class="emotion-15 denali-button emotion-16"
+        class="emotion-26 denali-button emotion-27 emotion-28"
       >
         Submit
       </button>
       <button
-        class="emotion-17 denali-button emotion-16"
+        class="emotion-29 denali-button emotion-27 emotion-28"
       >
         Cancel
       </button>
@@ -474,7 +474,7 @@ exports[`AddKey should render nothing after cancel 1`] = `
   background-color: #fff;
 }
 
-.emotion-1 {
+.emotion-2 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -490,7 +490,7 @@ exports[`AddKey should render nothing after cancel 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-2 {
+.emotion-4 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -498,21 +498,21 @@ exports[`AddKey should render nothing after cancel 1`] = `
   white-space: nowrap;
 }
 
-.emotion-3 {
+.emotion-5 {
   -webkit-flex: 0 0 100px;
   -ms-flex: 0 0 100px;
   flex: 0 0 100px;
   margin-right: 2%;
 }
 
-.emotion-4 {
+.emotion-7 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 10px;
 }
 
-.emotion-5 {
+.emotion-9 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -529,7 +529,7 @@ exports[`AddKey should render nothing after cancel 1`] = `
   width: 250px;
 }
 
-.emotion-5 input {
+.emotion-9 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -555,42 +555,42 @@ exports[`AddKey should render nothing after cancel 1`] = `
   width: 100%;
 }
 
-.emotion-5.animated input {
+.emotion-9.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-5 input::-webkit-input-placeholder {
+.emotion-9 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-5 input::-moz-placeholder {
+.emotion-9 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-5 input:-ms-input-placeholder {
+.emotion-9 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-5 input::placeholder {
+.emotion-9 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-5 input.focused,
-.emotion-5 input:active,
-.emotion-5 input:focus {
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-5 input:invalid {
+.emotion-9 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-5 .message {
+.emotion-9 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -598,22 +598,22 @@ exports[`AddKey should render nothing after cancel 1`] = `
   top: 2.571rem;
 }
 
-.emotion-5.error input,
-.emotion-5.error input.focused,
-.emotion-5.error input:active,
-.emotion-5.error input:focus {
+.emotion-9.error input,
+.emotion-9.error input.focused,
+.emotion-9.error input:active,
+.emotion-9.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-5.error .message {
+.emotion-9.error .message {
   color: #d01111;
 }
 
-.emotion-6 {
+.emotion-10 {
   width: 500px;
 }
 
-.emotion-11 {
+.emotion-19 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -630,7 +630,7 @@ exports[`AddKey should render nothing after cancel 1`] = `
   width: 500px;
 }
 
-.emotion-11>textarea {
+.emotion-19>textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -659,43 +659,43 @@ exports[`AddKey should render nothing after cancel 1`] = `
   width: auto;
 }
 
-.emotion-11>textarea::-webkit-input-placeholder {
+.emotion-19>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11>textarea::-moz-placeholder {
+.emotion-19>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11>textarea:-ms-input-placeholder {
+.emotion-19>textarea:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11>textarea::placeholder {
+.emotion-19>textarea::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-11>textarea:active,
-.emotion-11>textarea:focus {
+.emotion-19>textarea:active,
+.emotion-19>textarea:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-11>textarea:invalid {
+.emotion-19>textarea:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-11>textarea[disabled] {
+.emotion-19>textarea[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-11 .message {
+.emotion-19 .message {
   font-size: 12px;
   color: #303030;
   left: 0;
@@ -704,19 +704,19 @@ exports[`AddKey should render nothing after cancel 1`] = `
   top: 2.571rem;
 }
 
-.emotion-12>textarea {
+.emotion-20>textarea {
   resize: vertical;
 }
 
-.emotion-13 {
+.emotion-22 {
   background-color: #fff;
 }
 
-.emotion-14 {
+.emotion-24 {
   margin-left: 155px;
 }
 
-.emotion-15 {
+.emotion-26 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -745,17 +745,17 @@ exports[`AddKey should render nothing after cancel 1`] = `
   color: #fff;
 }
 
-.emotion-15:first-of-type {
+.emotion-26:first-of-type {
   margin-left: 0;
 }
 
-.emotion-15:disabled {
+.emotion-26:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-15:hover:not(:disabled) {
+.emotion-26:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
                   #3570f4,
@@ -763,12 +763,12 @@ exports[`AddKey should render nothing after cancel 1`] = `
               );
 }
 
-.emotion-16 {
+.emotion-27 {
   min-width: 8.5em;
   min-height: 1em;
 }
 
-.emotion-17 {
+.emotion-29 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -794,44 +794,44 @@ exports[`AddKey should render nothing after cancel 1`] = `
   color: #3697f2;
 }
 
-.emotion-17:first-of-type {
+.emotion-29:first-of-type {
   margin-left: 0;
 }
 
-.emotion-17:disabled {
+.emotion-29:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-17:disabled {
+.emotion-29:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-17:hover:not(:disabled) {
+.emotion-29:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
 <div
   autocomplete="off"
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="add-key"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
     data-testid="add-key-id"
   >
     <label
-      class="emotion-2 denali-input-label emotion-3"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="key-id"
     >
       Public Key Id
     </label>
     <div
-      class="emotion-4"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="emotion-5 denali-input animated emotion-6"
+        class="emotion-9 denali-input animated emotion-10 emotion-11"
         data-testid="input-wrapper"
       >
         <input
@@ -849,20 +849,20 @@ exports[`AddKey should render nothing after cancel 1`] = `
     </div>
   </div>
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
     data-testid="add-key-value"
   >
     <label
-      class="emotion-2 denali-input-label emotion-3"
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
       for="key-value"
     >
       Key Value
     </label>
     <div
-      class="emotion-4"
+      class="emotion-7 emotion-8"
     >
       <div
-        class="emotion-11 denali-textarea emotion-12"
+        class="emotion-19 denali-textarea emotion-20 emotion-21"
         data-testid="textarea-wrapper"
       >
         <textarea
@@ -874,18 +874,18 @@ exports[`AddKey should render nothing after cancel 1`] = `
     </div>
   </div>
   <div
-    class="emotion-13"
+    class="emotion-22 emotion-23"
   >
     <div
-      class="emotion-14"
+      class="emotion-24 emotion-25"
     >
       <button
-        class="emotion-15 denali-button emotion-16"
+        class="emotion-26 denali-button emotion-27 emotion-28"
       >
         Submit
       </button>
       <button
-        class="emotion-17 denali-button emotion-16"
+        class="emotion-29 denali-button emotion-27 emotion-28"
       >
         Cancel
       </button>

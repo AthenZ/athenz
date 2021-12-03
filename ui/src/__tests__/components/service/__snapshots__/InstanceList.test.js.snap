@@ -5,7 +5,7 @@ exports[`InstanceList should render for dynamic 1`] = `
   margin: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -24,11 +24,11 @@ exports[`InstanceList should render for dynamic 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-2 {
+.emotion-4 {
   width: 50%;
 }
 
-.emotion-3 {
+.emotion-6 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -36,21 +36,21 @@ exports[`InstanceList should render for dynamic 1`] = `
   width: 100%;
 }
 
-.emotion-4 {
+.emotion-8 {
   background: #ffffff;
   width: 35%;
 }
 
-.emotion-5 {
+.emotion-10 {
   position: relative;
   width: 100%;
 }
 
-.emotion-5 input {
+.emotion-10 input {
   cursor: pointer;
 }
 
-.emotion-6 {
+.emotion-11 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -67,7 +67,7 @@ exports[`InstanceList should render for dynamic 1`] = `
   width: 100%;
 }
 
-.emotion-6 input {
+.emotion-11 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -93,42 +93,42 @@ exports[`InstanceList should render for dynamic 1`] = `
   width: 100%;
 }
 
-.emotion-6.animated input {
+.emotion-11.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-6 input::-webkit-input-placeholder {
+.emotion-11 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-6 input::-moz-placeholder {
+.emotion-11 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-6 input:-ms-input-placeholder {
+.emotion-11 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-6 input::placeholder {
+.emotion-11 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-6 input.focused,
-.emotion-6 input:active,
-.emotion-6 input:focus {
+.emotion-11 input.focused,
+.emotion-11 input:active,
+.emotion-11 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-6 input:invalid {
+.emotion-11 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-6 .message {
+.emotion-11 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -136,22 +136,22 @@ exports[`InstanceList should render for dynamic 1`] = `
   top: 2.571rem;
 }
 
-.emotion-6.error input,
-.emotion-6.error input.focused,
-.emotion-6.error input:active,
-.emotion-6.error input:focus {
+.emotion-11.error input,
+.emotion-11.error input.focused,
+.emotion-11.error input:active,
+.emotion-11.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-6.error .message {
+.emotion-11.error .message {
   color: #d01111;
 }
 
-.emotion-6 input {
+.emotion-11 input {
   padding-right: 36px;
 }
 
-.emotion-6 .input-icon {
+.emotion-11 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -165,25 +165,25 @@ exports[`InstanceList should render for dynamic 1`] = `
   right: 6px;
 }
 
-.emotion-7 {
+.emotion-12 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-8 {
+.emotion-13 {
   background: #ffffff;
   width: 65%;
   margin-left: 5px;
 }
 
-.emotion-10 {
+.emotion-16 {
   fill: #3570f4;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-11 {
+.emotion-17 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -191,7 +191,7 @@ exports[`InstanceList should render for dynamic 1`] = `
   border-color: grey;
 }
 
-.emotion-12 {
+.emotion-19 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -204,7 +204,7 @@ exports[`InstanceList should render for dynamic 1`] = `
   word-break: break-all;
 }
 
-.emotion-17 {
+.emotion-29 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -216,7 +216,7 @@ exports[`InstanceList should render for dynamic 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-18 {
+.emotion-31 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -224,31 +224,31 @@ exports[`InstanceList should render for dynamic 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="instancelist"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-3"
+        class="emotion-6 emotion-7"
       >
         <div
-          class="emotion-4"
+          class="emotion-8 emotion-9"
         >
           <div
             aria-expanded="false"
             aria-haspopup="listbox"
             aria-labelledby="downshift-0-label"
-            class="emotion-5 denali-input-dropdown"
+            class="emotion-10 denali-input-dropdown"
             data-testid="input-dropdown"
             role="combobox"
           >
             <div
-              class="emotion-6 denali-input animated"
+              class="emotion-11 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -268,7 +268,7 @@ exports[`InstanceList should render for dynamic 1`] = `
                 class="input-icon"
               >
                 <svg
-                  class="emotion-7"
+                  class="emotion-12"
                   data-testid="icon"
                   height="24px"
                   viewBox="0 0 1024 1024"
@@ -290,10 +290,10 @@ exports[`InstanceList should render for dynamic 1`] = `
           </div>
         </div>
         <div
-          class="emotion-8"
+          class="emotion-13 emotion-14"
         >
           <div
-            class="emotion-6 denali-input animated"
+            class="emotion-11 denali-input animated"
             data-testid="input-wrapper"
           >
             <input
@@ -307,7 +307,7 @@ exports[`InstanceList should render for dynamic 1`] = `
               class="input-icon"
             >
               <svg
-                class="emotion-10"
+                class="emotion-16"
                 data-testid="icon"
                 height="24px"
                 viewBox="0 0 1024 1024"
@@ -331,7 +331,7 @@ exports[`InstanceList should render for dynamic 1`] = `
     </div>
   </div>
   <table
-    class="emotion-11"
+    class="emotion-17 emotion-18"
     data-testid="instancetable"
   >
     <colgroup>
@@ -354,27 +354,27 @@ exports[`InstanceList should render for dynamic 1`] = `
     <thead>
       <tr>
         <th
-          class="emotion-12"
+          class="emotion-19 emotion-20"
         >
           Instance
         </th>
         <th
-          class="emotion-12"
+          class="emotion-19 emotion-20"
         >
           Hostname
         </th>
         <th
-          class="emotion-12"
+          class="emotion-19 emotion-20"
         >
           Provider
         </th>
         <th
-          class="emotion-12"
+          class="emotion-19 emotion-20"
         >
           Expires On
         </th>
         <th
-          class="emotion-12"
+          class="emotion-19 emotion-20"
         >
           Last Certificate Refresh
         </th>
@@ -382,35 +382,35 @@ exports[`InstanceList should render for dynamic 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-17"
+        class="emotion-29 emotion-30"
         data-testid="instance-row"
       >
         <td
-          class="emotion-18"
+          class="emotion-31 emotion-32"
           color=""
         >
           74.6.35.54
         </td>
         <td
-          class="emotion-18"
+          class="emotion-31 emotion-32"
           color=""
         >
           NA
         </td>
         <td
-          class="emotion-18"
+          class="emotion-31 emotion-32"
           color=""
         >
           sys.openstack.openstack-classic
         </td>
         <td
-          class="emotion-18"
+          class="emotion-31 emotion-32"
           color=""
         >
           1970-01-01 00:00 UTC
         </td>
         <td
-          class="emotion-18"
+          class="emotion-31 emotion-32"
           color=""
         >
           2021-04-09 19:32 UTC
@@ -426,7 +426,7 @@ exports[`InstanceList should render for static 1`] = `
   margin: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -445,11 +445,11 @@ exports[`InstanceList should render for static 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-2 {
+.emotion-4 {
   width: 50%;
 }
 
-.emotion-3 {
+.emotion-6 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -475,39 +475,39 @@ exports[`InstanceList should render for static 1`] = `
   color: #3697f2;
 }
 
-.emotion-3:first-of-type {
+.emotion-6:first-of-type {
   margin-left: 0;
 }
 
-.emotion-3:disabled {
+.emotion-6:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-3:disabled {
+.emotion-6:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-3:hover:not(:disabled) {
+.emotion-6:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="instancelist"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       No instances found
     </div>
     <div>
       <button
-        class="emotion-3 denali-button"
+        class="emotion-6 denali-button"
       >
         Add Static Instance
       </button>

@@ -10,89 +10,89 @@ exports[`ProviderTable should render 1`] = `
   display: table-cell;
 }
 
-.emotion-1 {
+.emotion-2 {
   display: table;
   border-collapse: separate;
   border-spacing: 2px;
   border-color: #9a9a9a;
 }
 
-.emotion-2 {
+.emotion-4 {
   display: table-header-group;
 }
 
-.emotion-3 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-4 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-  border-right: none;
-}
-
-.emotion-5 {
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
 .emotion-6 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
   text-align: left;
   padding: 5px 0 5px 15px;
-  vertical-align: middle;
   word-break: break-all;
-  border-right: none;
-}
-
-.emotion-7 {
-  margin-left: 30px;
 }
 
 .emotion-8 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+  border-right: none;
+}
+
+.emotion-10 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-12 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  border-right: none;
+}
+
+.emotion-14 {
+  margin-left: 30px;
+}
+
+.emotion-16 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
 <td
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   color=""
   colspan="7"
   data-testid="provider-table"
 >
   <table
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <thead
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <tr>
         <th
-          class="emotion-3"
+          class="emotion-6 emotion-7"
         >
           Provider
         </th>
         <th
-          class="emotion-4"
+          class="emotion-8 emotion-9"
         >
           Status
         </th>
@@ -101,19 +101,19 @@ exports[`ProviderTable should render 1`] = `
     <tbody>
       <tr>
         <td
-          class="emotion-5"
+          class="emotion-10 emotion-11"
         >
           AWS EC2/EKS/Fargate launches instances for the service
         </td>
         <td
-          class="emotion-6"
+          class="emotion-12 emotion-13"
           colspan="5"
         >
           <div
-            class="emotion-7"
+            class="emotion-14 emotion-15"
           >
             <svg
-              class="emotion-8"
+              class="emotion-16"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"

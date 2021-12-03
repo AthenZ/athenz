@@ -5,7 +5,7 @@ exports[`ReviewTable should render review table 1`] = `
   margin: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -14,7 +14,7 @@ exports[`ReviewTable should render review table 1`] = `
   table-layout: fixed;
 }
 
-.emotion-2 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -27,7 +27,7 @@ exports[`ReviewTable should render review table 1`] = `
   word-break: break-all;
 }
 
-.emotion-6 {
+.emotion-12 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -40,7 +40,7 @@ exports[`ReviewTable should render review table 1`] = `
   word-break: break-all;
 }
 
-.emotion-9 {
+.emotion-18 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -52,7 +52,7 @@ exports[`ReviewTable should render review table 1`] = `
   height: 50px;
 }
 
-.emotion-10 {
+.emotion-20 {
   background-color: white;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -61,7 +61,7 @@ exports[`ReviewTable should render review table 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-14 {
+.emotion-28 {
   background-color: white;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -70,7 +70,7 @@ exports[`ReviewTable should render review table 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-15 {
+.emotion-30 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -83,7 +83,7 @@ exports[`ReviewTable should render review table 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-15>input[type='radio'] {
+.emotion-30>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -92,7 +92,7 @@ exports[`ReviewTable should render review table 1`] = `
   visibility: hidden;
 }
 
-.emotion-15>input[type='radio']+label {
+.emotion-30>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -105,7 +105,7 @@ exports[`ReviewTable should render review table 1`] = `
   white-space: nowrap;
 }
 
-.emotion-15>input[type='radio']+label:before {
+.emotion-30>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -121,29 +121,29 @@ exports[`ReviewTable should render review table 1`] = `
   width: 16px;
 }
 
-.emotion-15>input[type='radio']:hover+label:before {
+.emotion-30>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-15>input[type='radio']:focus+label:before {
+.emotion-30>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-15>input[type='radio']:checked+label:before {
+.emotion-30>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-15>input[type='radio']:disabled+label {
+.emotion-30>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-15>input[type='radio']:disabled+label:before {
+.emotion-30>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-15>input[type='radio']:checked+label:after {
+.emotion-30>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -158,14 +158,14 @@ exports[`ReviewTable should render review table 1`] = `
   width: 8px;
 }
 
-.emotion-15>input[type='radio']:disabled:checked+label:after {
+.emotion-30>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-53 {
+.emotion-94 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -182,7 +182,7 @@ exports[`ReviewTable should render review table 1`] = `
   width: 250px;
 }
 
-.emotion-53 input {
+.emotion-94 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -208,42 +208,42 @@ exports[`ReviewTable should render review table 1`] = `
   width: 100%;
 }
 
-.emotion-53.animated input {
+.emotion-94.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-53 input::-webkit-input-placeholder {
+.emotion-94 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-53 input::-moz-placeholder {
+.emotion-94 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-53 input:-ms-input-placeholder {
+.emotion-94 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-53 input::placeholder {
+.emotion-94 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-53 input.focused,
-.emotion-53 input:active,
-.emotion-53 input:focus {
+.emotion-94 input.focused,
+.emotion-94 input:active,
+.emotion-94 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-53 input:invalid {
+.emotion-94 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-53 .message {
+.emotion-94 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -251,27 +251,27 @@ exports[`ReviewTable should render review table 1`] = `
   top: 2.571rem;
 }
 
-.emotion-53.error input,
-.emotion-53.error input.focused,
-.emotion-53.error input:active,
-.emotion-53.error input:focus {
+.emotion-94.error input,
+.emotion-94.error input.focused,
+.emotion-94.error input:active,
+.emotion-94.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-53.error .message {
+.emotion-94.error .message {
   color: #d01111;
 }
 
-.emotion-54 {
+.emotion-95 {
   width: 300px;
   margin-top: 5px;
 }
 
-.emotion-55 {
+.emotion-97 {
   margin-top: 10px;
 }
 
-.emotion-56 {
+.emotion-99 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -297,29 +297,29 @@ exports[`ReviewTable should render review table 1`] = `
   color: #3697f2;
 }
 
-.emotion-56:first-of-type {
+.emotion-99:first-of-type {
   margin-left: 0;
 }
 
-.emotion-56:disabled {
+.emotion-99:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-56:disabled {
+.emotion-99:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-56:hover:not(:disabled) {
+.emotion-99:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-57 {
+.emotion-100 {
   color: #9a9a9a;
 }
 
-.emotion-58 {
+.emotion-102 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -327,46 +327,46 @@ exports[`ReviewTable should render review table 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="review-table"
 >
   <table
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-2"
+          class="emotion-4 emotion-5"
         >
           MEMBER
         </th>
         <th
-          class="emotion-2"
+          class="emotion-4 emotion-5"
         >
           MEMBER NAME
         </th>
         <th
-          class="emotion-2"
+          class="emotion-4 emotion-5"
         >
           EXPIRATION DATE
         </th>
         <th
-          class="emotion-2"
+          class="emotion-4 emotion-5"
         >
           REVIEW REMINDER DATE
         </th>
         <th
-          class="emotion-6"
+          class="emotion-12 emotion-5"
         >
           EXTEND
         </th>
         <th
-          class="emotion-6"
+          class="emotion-12 emotion-5"
         >
           NO ACTION
         </th>
         <th
-          class="emotion-6"
+          class="emotion-12 emotion-5"
         >
           DELETE
         </th>
@@ -374,37 +374,37 @@ exports[`ReviewTable should render review table 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-9"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user1
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -420,11 +420,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -439,11 +439,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -459,37 +459,37 @@ exports[`ReviewTable should render review table 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-9"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user2
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -505,11 +505,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -524,11 +524,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -544,37 +544,37 @@ exports[`ReviewTable should render review table 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-9"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user3
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -590,11 +590,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -609,11 +609,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -629,37 +629,37 @@ exports[`ReviewTable should render review table 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-9"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user4
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -675,11 +675,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -694,11 +694,11 @@ exports[`ReviewTable should render review table 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -718,7 +718,7 @@ exports[`ReviewTable should render review table 1`] = `
           colspan="2"
         >
           <div
-            class="emotion-53 denali-input animated emotion-54"
+            class="emotion-94 denali-input animated emotion-95 emotion-96"
             data-testid="input-wrapper"
           >
             <input
@@ -739,10 +739,10 @@ exports[`ReviewTable should render review table 1`] = `
           colspan="1"
         >
           <div
-            class="emotion-55"
+            class="emotion-97 emotion-98"
           >
             <button
-              class="emotion-56 denali-button"
+              class="emotion-99 denali-button"
             >
               Submit Review
             </button>
@@ -752,13 +752,13 @@ exports[`ReviewTable should render review table 1`] = `
           colspan="3"
         >
           <span
-            class="emotion-57"
+            class="emotion-100 emotion-101"
           >
             Current default settings are - Member Expiry: 15 days. Service Expiry: 15 days. 
             <br />
             To change it, please click 
             <a
-              class="emotion-58"
+              class="emotion-102 emotion-103"
             >
                
               here
@@ -782,7 +782,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   margin: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -791,7 +791,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   table-layout: fixed;
 }
 
-.emotion-2 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -804,7 +804,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   word-break: break-all;
 }
 
-.emotion-6 {
+.emotion-12 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -817,7 +817,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   word-break: break-all;
 }
 
-.emotion-9 {
+.emotion-18 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -829,7 +829,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   height: 50px;
 }
 
-.emotion-10 {
+.emotion-20 {
   background-color: white;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -838,7 +838,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-14 {
+.emotion-28 {
   background-color: white;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -847,7 +847,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-15 {
+.emotion-30 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -860,7 +860,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-15>input[type='radio'] {
+.emotion-30>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -869,7 +869,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   visibility: hidden;
 }
 
-.emotion-15>input[type='radio']+label {
+.emotion-30>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -882,7 +882,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   white-space: nowrap;
 }
 
-.emotion-15>input[type='radio']+label:before {
+.emotion-30>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -898,29 +898,29 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   width: 16px;
 }
 
-.emotion-15>input[type='radio']:hover+label:before {
+.emotion-30>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-15>input[type='radio']:focus+label:before {
+.emotion-30>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-15>input[type='radio']:checked+label:before {
+.emotion-30>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-15>input[type='radio']:disabled+label {
+.emotion-30>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-15>input[type='radio']:disabled+label:before {
+.emotion-30>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-15>input[type='radio']:checked+label:after {
+.emotion-30>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -935,14 +935,14 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   width: 8px;
 }
 
-.emotion-15>input[type='radio']:disabled:checked+label:after {
+.emotion-30>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-53 {
+.emotion-94 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -959,7 +959,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   width: 250px;
 }
 
-.emotion-53 input {
+.emotion-94 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -985,42 +985,42 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   width: 100%;
 }
 
-.emotion-53.animated input {
+.emotion-94.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-53 input::-webkit-input-placeholder {
+.emotion-94 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-53 input::-moz-placeholder {
+.emotion-94 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-53 input:-ms-input-placeholder {
+.emotion-94 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-53 input::placeholder {
+.emotion-94 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-53 input.focused,
-.emotion-53 input:active,
-.emotion-53 input:focus {
+.emotion-94 input.focused,
+.emotion-94 input:active,
+.emotion-94 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-53 input:invalid {
+.emotion-94 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-53 .message {
+.emotion-94 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1028,27 +1028,27 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   top: 2.571rem;
 }
 
-.emotion-53.error input,
-.emotion-53.error input.focused,
-.emotion-53.error input:active,
-.emotion-53.error input:focus {
+.emotion-94.error input,
+.emotion-94.error input.focused,
+.emotion-94.error input:active,
+.emotion-94.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-53.error .message {
+.emotion-94.error .message {
   color: #d01111;
 }
 
-.emotion-54 {
+.emotion-95 {
   width: 300px;
   margin-top: 5px;
 }
 
-.emotion-55 {
+.emotion-97 {
   margin-top: 10px;
 }
 
-.emotion-56 {
+.emotion-99 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1074,29 +1074,29 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
   color: #3697f2;
 }
 
-.emotion-56:first-of-type {
+.emotion-99:first-of-type {
   margin-left: 0;
 }
 
-.emotion-56:disabled {
+.emotion-99:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-56:disabled {
+.emotion-99:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-56:hover:not(:disabled) {
+.emotion-99:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-57 {
+.emotion-100 {
   color: #9a9a9a;
 }
 
-.emotion-58 {
+.emotion-102 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -1104,46 +1104,46 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="review-table"
 >
   <table
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-2"
+          class="emotion-4 emotion-5"
         >
           MEMBER
         </th>
         <th
-          class="emotion-2"
+          class="emotion-4 emotion-5"
         >
           MEMBER NAME
         </th>
         <th
-          class="emotion-2"
+          class="emotion-4 emotion-5"
         >
           EXPIRATION DATE
         </th>
         <th
-          class="emotion-2"
+          class="emotion-4 emotion-5"
         >
           REVIEW REMINDER DATE
         </th>
         <th
-          class="emotion-6"
+          class="emotion-12 emotion-5"
         >
           EXTEND
         </th>
         <th
-          class="emotion-6"
+          class="emotion-12 emotion-5"
         >
           NO ACTION
         </th>
         <th
-          class="emotion-6"
+          class="emotion-12 emotion-5"
         >
           DELETE
         </th>
@@ -1151,37 +1151,37 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-9"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user1
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1197,11 +1197,11 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1216,11 +1216,11 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1236,37 +1236,37 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-9"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user2
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1282,11 +1282,11 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1301,11 +1301,11 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1321,37 +1321,37 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-9"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user3
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1367,11 +1367,11 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1386,11 +1386,11 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1406,37 +1406,37 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-9"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user4
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1452,11 +1452,11 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1471,11 +1471,11 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1495,7 +1495,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
           colspan="2"
         >
           <div
-            class="emotion-53 denali-input animated emotion-54"
+            class="emotion-94 denali-input animated emotion-95 emotion-96"
             data-testid="input-wrapper"
           >
             <input
@@ -1516,10 +1516,10 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
           colspan="1"
         >
           <div
-            class="emotion-55"
+            class="emotion-97 emotion-98"
           >
             <button
-              class="emotion-56 denali-button"
+              class="emotion-99 denali-button"
             >
               Submit Review
             </button>
@@ -1529,13 +1529,13 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
           colspan="3"
         >
           <span
-            class="emotion-57"
+            class="emotion-100 emotion-101"
           >
             Current default settings are - Member Review: 5 days. Service Review: 10 days. Group Review: 15 days. 
             <br />
             To change it, please click 
             <a
-              class="emotion-58"
+              class="emotion-102 emotion-103"
             >
                
               here
@@ -1559,7 +1559,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   margin: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -1568,7 +1568,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   table-layout: fixed;
 }
 
-.emotion-2 {
+.emotion-4 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -1581,7 +1581,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   word-break: break-all;
 }
 
-.emotion-6 {
+.emotion-12 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -1594,7 +1594,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   word-break: break-all;
 }
 
-.emotion-9 {
+.emotion-18 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -1606,7 +1606,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   height: 50px;
 }
 
-.emotion-10 {
+.emotion-20 {
   background-color: white;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -1615,7 +1615,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-14 {
+.emotion-28 {
   background-color: white;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -1624,7 +1624,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   border-bottom: 1px solid #d5d5d5;
 }
 
-.emotion-15 {
+.emotion-30 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -1637,7 +1637,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-15>input[type='radio'] {
+.emotion-30>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -1646,7 +1646,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   visibility: hidden;
 }
 
-.emotion-15>input[type='radio']+label {
+.emotion-30>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -1659,7 +1659,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   white-space: nowrap;
 }
 
-.emotion-15>input[type='radio']+label:before {
+.emotion-30>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -1675,29 +1675,29 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   width: 16px;
 }
 
-.emotion-15>input[type='radio']:hover+label:before {
+.emotion-30>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-15>input[type='radio']:focus+label:before {
+.emotion-30>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-15>input[type='radio']:checked+label:before {
+.emotion-30>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-15>input[type='radio']:disabled+label {
+.emotion-30>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-15>input[type='radio']:disabled+label:before {
+.emotion-30>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-15>input[type='radio']:checked+label:after {
+.emotion-30>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -1712,14 +1712,14 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   width: 8px;
 }
 
-.emotion-15>input[type='radio']:disabled:checked+label:after {
+.emotion-30>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-53 {
+.emotion-94 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -1736,7 +1736,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   width: 250px;
 }
 
-.emotion-53 input {
+.emotion-94 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -1762,42 +1762,42 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   width: 100%;
 }
 
-.emotion-53.animated input {
+.emotion-94.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-53 input::-webkit-input-placeholder {
+.emotion-94 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-53 input::-moz-placeholder {
+.emotion-94 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-53 input:-ms-input-placeholder {
+.emotion-94 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-53 input::placeholder {
+.emotion-94 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-53 input.focused,
-.emotion-53 input:active,
-.emotion-53 input:focus {
+.emotion-94 input.focused,
+.emotion-94 input:active,
+.emotion-94 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-53 input:invalid {
+.emotion-94 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-53 .message {
+.emotion-94 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1805,27 +1805,27 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   top: 2.571rem;
 }
 
-.emotion-53.error input,
-.emotion-53.error input.focused,
-.emotion-53.error input:active,
-.emotion-53.error input:focus {
+.emotion-94.error input,
+.emotion-94.error input.focused,
+.emotion-94.error input:active,
+.emotion-94.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-53.error .message {
+.emotion-94.error .message {
   color: #d01111;
 }
 
-.emotion-54 {
+.emotion-95 {
   width: 300px;
   margin-top: 5px;
 }
 
-.emotion-55 {
+.emotion-97 {
   margin-top: 10px;
 }
 
-.emotion-56 {
+.emotion-99 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1851,29 +1851,29 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
   color: #3697f2;
 }
 
-.emotion-56:first-of-type {
+.emotion-99:first-of-type {
   margin-left: 0;
 }
 
-.emotion-56:disabled {
+.emotion-99:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-56:disabled {
+.emotion-99:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-56:hover:not(:disabled) {
+.emotion-99:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-57 {
+.emotion-100 {
   color: #9a9a9a;
 }
 
-.emotion-58 {
+.emotion-102 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -1881,46 +1881,46 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="review-table"
 >
   <table
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <thead>
       <tr>
         <th
-          class="emotion-2"
+          class="emotion-4 emotion-5"
         >
           MEMBER
         </th>
         <th
-          class="emotion-2"
+          class="emotion-4 emotion-5"
         >
           MEMBER NAME
         </th>
         <th
-          class="emotion-2"
+          class="emotion-4 emotion-5"
         >
           EXPIRATION DATE
         </th>
         <th
-          class="emotion-2"
+          class="emotion-4 emotion-5"
         >
           REVIEW REMINDER DATE
         </th>
         <th
-          class="emotion-6"
+          class="emotion-12 emotion-5"
         >
           EXTEND
         </th>
         <th
-          class="emotion-6"
+          class="emotion-12 emotion-5"
         >
           NO ACTION
         </th>
         <th
-          class="emotion-6"
+          class="emotion-12 emotion-5"
         >
           DELETE
         </th>
@@ -1928,37 +1928,37 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-9"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user1
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1974,11 +1974,11 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -1993,11 +1993,11 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2013,37 +2013,37 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-9"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user2
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2059,11 +2059,11 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2078,11 +2078,11 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2098,37 +2098,37 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-9"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user3
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2144,11 +2144,11 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2163,11 +2163,11 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2183,37 +2183,37 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-9"
+        class="emotion-18 emotion-19"
         data-testid="review-row"
       >
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           user4
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         />
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-10"
+          class="emotion-20 emotion-21"
           color="white"
         >
           N/A
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2229,11 +2229,11 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2248,11 +2248,11 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
           </div>
         </td>
         <td
-          class="emotion-14"
+          class="emotion-28 emotion-21"
           color="white"
         >
           <div
-            class="emotion-15 denali-radiobutton"
+            class="emotion-30 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -2272,7 +2272,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
           colspan="2"
         >
           <div
-            class="emotion-53 denali-input animated emotion-54"
+            class="emotion-94 denali-input animated emotion-95 emotion-96"
             data-testid="input-wrapper"
           >
             <input
@@ -2293,10 +2293,10 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
           colspan="1"
         >
           <div
-            class="emotion-55"
+            class="emotion-97 emotion-98"
           >
             <button
-              class="emotion-56 denali-button"
+              class="emotion-99 denali-button"
             >
               Submit Review
             </button>
@@ -2306,13 +2306,13 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
           colspan="3"
         >
           <span
-            class="emotion-57"
+            class="emotion-100 emotion-101"
           >
             Current default settings are - None
             <br />
             To change it, please click 
             <a
-              class="emotion-58"
+              class="emotion-102 emotion-103"
             >
                
               here

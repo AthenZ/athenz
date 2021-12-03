@@ -7,7 +7,7 @@ exports[`ServiceRow should render keys on click of key 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
 >
   Details
 </div>
@@ -30,7 +30,7 @@ exports[`ServiceRow should render keys on click of key 3`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
 >
   Public Key Version: 
   0
@@ -48,7 +48,7 @@ exports[`ServiceRow should render keys on click of key 4`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
 >
   Public Key Version: 
   1
@@ -64,55 +64,55 @@ exports[`ServiceRow should render providers on click of cloud 1`] = `
 }
 
 <td
-  class="emotion-0"
+  class="emotion-0 emotion-1"
 >
   AWS EC2/EKS/Fargate launches instances for the service
 </td>
 `;
 
 exports[`ServiceRow should render row 1`] = `
-.emotion-1 {
+.emotion-2 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-3 {
+.emotion-6 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-4 {
+.emotion-8 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <tr
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="service-row"
 >
   <td
-    class="emotion-1"
+    class="emotion-2 emotion-3"
     color=""
   >
     serviceName
   </td>
   <td
-    class="emotion-1"
+    class="emotion-2 emotion-3"
     color=""
   >
     2017-12-19 20:24 UTC
   </td>
   <td
-    class="emotion-3"
+    class="emotion-6 emotion-3"
     color=""
   >
     <svg
-      class="emotion-4"
+      class="emotion-8"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"
@@ -127,11 +127,11 @@ exports[`ServiceRow should render row 1`] = `
     </svg>
   </td>
   <td
-    class="emotion-3"
+    class="emotion-6 emotion-3"
     color=""
   >
     <svg
-      class="emotion-4"
+      class="emotion-8"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"
@@ -146,11 +146,11 @@ exports[`ServiceRow should render row 1`] = `
     </svg>
   </td>
   <td
-    class="emotion-3"
+    class="emotion-6 emotion-3"
     color=""
   >
     <svg
-      class="emotion-4"
+      class="emotion-8"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"
@@ -165,11 +165,11 @@ exports[`ServiceRow should render row 1`] = `
     </svg>
   </td>
   <td
-    class="emotion-3"
+    class="emotion-6 emotion-3"
     color=""
   >
     <svg
-      class="emotion-4"
+      class="emotion-8"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"

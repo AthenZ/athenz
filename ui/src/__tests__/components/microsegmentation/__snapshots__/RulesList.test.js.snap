@@ -5,7 +5,7 @@ exports[`RulesList should render 1`] = `
   margin: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -25,7 +25,7 @@ exports[`RulesList should render 1`] = `
   float: right;
 }
 
-.emotion-2 {
+.emotion-4 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -51,25 +51,25 @@ exports[`RulesList should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-2:first-of-type {
+.emotion-4:first-of-type {
   margin-left: 0;
 }
 
-.emotion-2:disabled {
+.emotion-4:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-2:disabled {
+.emotion-4:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-2:hover:not(:disabled) {
+.emotion-4:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-3 {
+.emotion-5 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -86,7 +86,7 @@ exports[`RulesList should render 1`] = `
   height: 50px;
 }
 
-.emotion-4 {
+.emotion-7 {
   height: 25px;
   margin-left: 10px;
   margin-top: 10px;
@@ -97,18 +97,18 @@ exports[`RulesList should render 1`] = `
   display: block;
 }
 
-.emotion-5 {
+.emotion-9 {
   margin-right: 10px;
   verticalalign: bottom;
 }
 
-.emotion-6 {
+.emotion-11 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-7 {
+.emotion-12 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -121,7 +121,7 @@ exports[`RulesList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-9 {
+.emotion-16 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -132,40 +132,40 @@ exports[`RulesList should render 1`] = `
   text-transform: uppercase;
   padding: 5px 0 5px 15px;
   word-break: break-all;
-}
-
-.emotion-13 {
-  text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-17 {
-  background-color: #3570f40D;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-20 {
-  background-color: #3570f40D;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-  -webkit-text-decoration: dashed underline;
-  text-decoration: dashed underline;
 }
 
 .emotion-24 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-32 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-38 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  -webkit-text-decoration: dashed underline;
+  text-decoration: dashed underline;
+}
+
+.emotion-45 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -175,7 +175,7 @@ exports[`RulesList should render 1`] = `
   text-decoration: dashed underline;
 }
 
-.emotion-26 {
+.emotion-48 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -184,15 +184,15 @@ exports[`RulesList should render 1`] = `
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="segmentation-data-list"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <div>
       <button
-        class="emotion-2 denali-button"
+        class="emotion-4 denali-button"
       >
         Add ACL Policy
       </button>
@@ -200,18 +200,18 @@ exports[`RulesList should render 1`] = `
     </div>
   </div>
   <table
-    class="emotion-3"
+    class="emotion-5 emotion-6"
     data-testid="segmentation-rule-table"
   >
     <thead>
       <caption
-        class="emotion-4"
+        class="emotion-7 emotion-8"
       >
         <span
-          class="emotion-5"
+          class="emotion-9 emotion-10"
         >
           <svg
-            class="emotion-6"
+            class="emotion-11"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -229,47 +229,47 @@ exports[`RulesList should render 1`] = `
       </caption>
       <tr>
         <th
-          class="emotion-7"
+          class="emotion-12 emotion-13"
         >
           Identifier
         </th>
         <th
-          class="emotion-7"
+          class="emotion-12 emotion-13"
         >
           Destination Service
         </th>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           Destination Port
         </th>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           Source Service
         </th>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           Source Port
         </th>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           Layer
         </th>
         <th
-          class="emotion-13"
+          class="emotion-24 emotion-17"
         >
           Enforcement State
         </th>
         <th
-          class="emotion-13"
+          class="emotion-24 emotion-17"
         >
           Edit
         </th>
         <th
-          class="emotion-13"
+          class="emotion-24 emotion-17"
         >
           Delete
         </th>
@@ -277,30 +277,30 @@ exports[`RulesList should render 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-16"
+        class="emotion-30 emotion-31"
         data-testid="segmentation-row"
       >
         <td
-          class="emotion-17"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         />
         <td
-          class="emotion-17"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         />
         <td
-          class="emotion-17"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           2222
         </td>
         <td
-          class="emotion-20"
+          class="emotion-38 emotion-39"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-11"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -319,24 +319,24 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-17"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           1111
         </td>
         <td
-          class="emotion-17"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           tcp
         </td>
         <td
-          class="emotion-24"
+          class="emotion-45 emotion-39"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-11"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -361,12 +361,12 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-26"
+          class="emotion-48 emotion-33"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-11"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -383,12 +383,12 @@ exports[`RulesList should render 1`] = `
         </td>
         
         <td
-          class="emotion-26"
+          class="emotion-48 emotion-33"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-11"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -411,18 +411,18 @@ exports[`RulesList should render 1`] = `
   </table>
   <br />
   <table
-    class="emotion-3"
+    class="emotion-5 emotion-6"
     data-testid="segmentation-rule-table"
   >
     <thead>
       <caption
-        class="emotion-4"
+        class="emotion-7 emotion-8"
       >
         <span
-          class="emotion-5"
+          class="emotion-9 emotion-10"
         >
           <svg
-            class="emotion-6"
+            class="emotion-11"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -440,47 +440,47 @@ exports[`RulesList should render 1`] = `
       </caption>
       <tr>
         <th
-          class="emotion-7"
+          class="emotion-12 emotion-13"
         >
           Identifier
         </th>
         <th
-          class="emotion-7"
+          class="emotion-12 emotion-13"
         >
           Source Service
         </th>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           Source Port
         </th>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           Destination Service
         </th>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           Destination Port
         </th>
         <th
-          class="emotion-9"
+          class="emotion-16 emotion-17"
         >
           Layer
         </th>
         <th
-          class="emotion-13"
+          class="emotion-24 emotion-17"
         >
           Enforcement State
         </th>
         <th
-          class="emotion-13"
+          class="emotion-24 emotion-17"
         >
           Edit
         </th>
         <th
-          class="emotion-13"
+          class="emotion-24 emotion-17"
         >
           Delete
         </th>
@@ -488,32 +488,32 @@ exports[`RulesList should render 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-16"
+        class="emotion-30 emotion-31"
         data-testid="segmentation-row"
       >
         <td
-          class="emotion-17"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         />
         <td
-          class="emotion-17"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           serviceE
         </td>
         <td
-          class="emotion-17"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           3333
         </td>
         <td
-          class="emotion-20"
+          class="emotion-38 emotion-39"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-11"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -532,24 +532,24 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-17"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           4444
         </td>
         <td
-          class="emotion-17"
+          class="emotion-32 emotion-33"
           color="#3570f40D"
         >
           udp
         </td>
         <td
-          class="emotion-24"
+          class="emotion-45 emotion-39"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-11"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -565,12 +565,12 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-26"
+          class="emotion-48 emotion-33"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-11"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -587,12 +587,12 @@ exports[`RulesList should render 1`] = `
         </td>
         
         <td
-          class="emotion-26"
+          class="emotion-48 emotion-33"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-11"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"

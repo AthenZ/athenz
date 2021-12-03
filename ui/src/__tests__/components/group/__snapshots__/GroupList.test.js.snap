@@ -5,7 +5,7 @@ exports[`GroupList should render 1`] = `
   margin: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -24,11 +24,11 @@ exports[`GroupList should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-2 {
+.emotion-4 {
   width: 50%;
 }
 
-.emotion-3 {
+.emotion-6 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -54,39 +54,39 @@ exports[`GroupList should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-3:first-of-type {
+.emotion-6:first-of-type {
   margin-left: 0;
 }
 
-.emotion-3:disabled {
+.emotion-6:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-3:disabled {
+.emotion-6:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-3:hover:not(:disabled) {
+.emotion-6:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
 <div
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="grouplist"
 >
   <div
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <div
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       Click on Add Group button to create a new group.
     </div>
     <div>
       <button
-        class="emotion-3 denali-button"
+        class="emotion-6 denali-button"
       >
         Add Group
       </button>

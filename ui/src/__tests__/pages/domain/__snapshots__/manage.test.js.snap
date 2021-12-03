@@ -6,7 +6,7 @@ exports[`PageManageDomains should render 1`] = `
   position: relative;
 }
 
-.emotion-1 {
+.emotion-2 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -40,15 +40,15 @@ exports[`PageManageDomains should render 1`] = `
   z-index: 2;
 }
 
-.emotion-1.scrolled {
+.emotion-2.scrolled {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
 }
 
-.emotion-1 .flush-right {
+.emotion-2 .flush-right {
   margin-left: auto;
 }
 
-.emotion-2 {
+.emotion-3 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -62,7 +62,7 @@ exports[`PageManageDomains should render 1`] = `
   position: relative;
 }
 
-.emotion-2.simple {
+.emotion-3.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -71,23 +71,23 @@ exports[`PageManageDomains should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.simple.nav-link {
+.emotion-3.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-2.simple.nav-link:hover {
+.emotion-3.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-2.simple.active {
+.emotion-3.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-2.simple.nav-link.active:hover {
+.emotion-3.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-2 .nav-title {
+.emotion-3 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -105,25 +105,25 @@ exports[`PageManageDomains should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.nav-link .nav-title {
+.emotion-3.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-2.active .nav-title,
-.emotion-2 .active.nav-title {
+.emotion-3.active .nav-title,
+.emotion-3 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-2 .nav-title:hover {
+.emotion-3 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-2.nav-link.active .nav-title:hover,
-.emotion-2.nav-link .active.nav-title:hover {
+.emotion-3.nav-link.active .nav-title:hover,
+.emotion-3.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-2 img.nav-logo {
+.emotion-3 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -135,43 +135,43 @@ exports[`PageManageDomains should render 1`] = `
   height: 34px;
 }
 
-.emotion-2 .nav-icon,
-.emotion-2:hover .nav-icon {
+.emotion-3 .nav-icon,
+.emotion-3:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-2 .nav-icon path,
-.emotion-2:hover .nav-icon path,
-.emotion-2 .nav-icon ellipse,
-.emotion-2:hover .nav-icon ellipse,
-.emotion-2 .nav-icon rect,
-.emotion-2:hover .nav-icon rect,
-.emotion-2 .nav-icon circle,
-.emotion-2:hover .nav-icon circle {
+.emotion-3 .nav-icon path,
+.emotion-3:hover .nav-icon path,
+.emotion-3 .nav-icon ellipse,
+.emotion-3:hover .nav-icon ellipse,
+.emotion-3 .nav-icon rect,
+.emotion-3:hover .nav-icon rect,
+.emotion-3 .nav-icon circle,
+.emotion-3:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-2.nav-link:hover .nav-icon path,
-.emotion-2.nav-link:hover .nav-icon ellipse,
-.emotion-2.nav-link:hover .nav-icon rect,
-.emotion-2.nav-link:hover .nav-icon circle {
+.emotion-3.nav-link:hover .nav-icon path,
+.emotion-3.nav-link:hover .nav-icon ellipse,
+.emotion-3.nav-link:hover .nav-icon rect,
+.emotion-3.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-3 {
+.emotion-4 {
   height: 36px;
   cursor: pointer;
 }
 
-.emotion-4 {
+.emotion-6 {
   margin-left: 10%;
   width: 50%;
 }
 
-.emotion-5 {
+.emotion-8 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -186,7 +186,7 @@ exports[`PageManageDomains should render 1`] = `
   width: 100%;
 }
 
-.emotion-5.simple {
+.emotion-8.simple {
   color: #fff;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -195,23 +195,23 @@ exports[`PageManageDomains should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.simple.nav-link {
+.emotion-8.simple.nav-link {
   cursor: pointer;
 }
 
-.emotion-5.simple.nav-link:hover {
+.emotion-8.simple.nav-link:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-5.simple.active {
+.emotion-8.simple.active {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-5.simple.nav-link.active:hover {
+.emotion-8.simple.nav-link.active:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-5 .nav-title {
+.emotion-8 .nav-title {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -229,25 +229,25 @@ exports[`PageManageDomains should render 1`] = `
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.nav-link .nav-title {
+.emotion-8.nav-link .nav-title {
   cursor: pointer;
 }
 
-.emotion-5.active .nav-title,
-.emotion-5 .active.nav-title {
+.emotion-8.active .nav-title,
+.emotion-8 .active.nav-title {
   box-shadow: inset 0 -4px 0 #3697f2;
 }
 
-.emotion-5 .nav-title:hover {
+.emotion-8 .nav-title:hover {
   color: rgba(255,255,255,0.75);
 }
 
-.emotion-5.nav-link.active .nav-title:hover,
-.emotion-5.nav-link .active.nav-title:hover {
+.emotion-8.nav-link.active .nav-title:hover,
+.emotion-8.nav-link .active.nav-title:hover {
   box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
 }
 
-.emotion-5 img.nav-logo {
+.emotion-8 img.nav-logo {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -259,50 +259,50 @@ exports[`PageManageDomains should render 1`] = `
   height: 34px;
 }
 
-.emotion-5 .nav-icon,
-.emotion-5:hover .nav-icon {
+.emotion-8 .nav-icon,
+.emotion-8:hover .nav-icon {
   width: 24px;
   height: 24px;
 }
 
-.emotion-5 .nav-icon path,
-.emotion-5:hover .nav-icon path,
-.emotion-5 .nav-icon ellipse,
-.emotion-5:hover .nav-icon ellipse,
-.emotion-5 .nav-icon rect,
-.emotion-5:hover .nav-icon rect,
-.emotion-5 .nav-icon circle,
-.emotion-5:hover .nav-icon circle {
+.emotion-8 .nav-icon path,
+.emotion-8:hover .nav-icon path,
+.emotion-8 .nav-icon ellipse,
+.emotion-8:hover .nav-icon ellipse,
+.emotion-8 .nav-icon rect,
+.emotion-8:hover .nav-icon rect,
+.emotion-8 .nav-icon circle,
+.emotion-8:hover .nav-icon circle {
   fill: #fff;
   -webkit-transition: all 0.2s ease-in;
   transition: all 0.2s ease-in;
 }
 
-.emotion-5.nav-link:hover .nav-icon path,
-.emotion-5.nav-link:hover .nav-icon ellipse,
-.emotion-5.nav-link:hover .nav-icon rect,
-.emotion-5.nav-link:hover .nav-icon circle {
+.emotion-8.nav-link:hover .nav-icon path,
+.emotion-8.nav-link:hover .nav-icon ellipse,
+.emotion-8.nav-link:hover .nav-icon rect,
+.emotion-8.nav-link:hover .nav-icon circle {
   fill: rgba(255,255,255,0.75);
 }
 
-.emotion-7 {
+.emotion-10 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-8 {
+.emotion-12 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-9 {
+.emotion-13 {
   margin-left: 15px;
 }
 
-.emotion-11 {
+.emotion-16 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -310,7 +310,7 @@ exports[`PageManageDomains should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-12 {
+.emotion-18 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -330,7 +330,7 @@ exports[`PageManageDomains should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-13 {
+.emotion-20 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -349,24 +349,24 @@ exports[`PageManageDomains should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-15 {
+.emotion-24 {
   padding: 20px 30px 0;
 }
 
-.emotion-16 {
+.emotion-26 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
 }
 
-.emotion-17 {
+.emotion-28 {
   margin: 20px;
 }
 
-.emotion-18 {
+.emotion-30 {
   padding-bottom: 20px;
 }
 
-.emotion-19 {
+.emotion-32 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -374,49 +374,49 @@ exports[`PageManageDomains should render 1`] = `
   border-color: grey;
 }
 
-.emotion-20 {
-  text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-23 {
-  text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-29 {
-  background-color: #3570f40D;
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-32 {
-  background-color: #3570f40D;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
 .emotion-34 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-40 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-52 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-58 {
+  background-color: #3570f40D;
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-62 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -433,7 +433,7 @@ exports[`PageManageDomains should render 1`] = `
   position: relative;
 }
 
-.emotion-34>input[type='checkbox'] {
+.emotion-62>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   position: absolute;
@@ -441,7 +441,7 @@ exports[`PageManageDomains should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-34>input[type='checkbox']+label {
+.emotion-62>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -452,7 +452,7 @@ exports[`PageManageDomains should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-34>input[type='checkbox']+label .label-content {
+.emotion-62>input[type='checkbox']+label .label-content {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -461,12 +461,12 @@ exports[`PageManageDomains should render 1`] = `
 }
 
 @-moz-document url-prefix() {
-  .emotion-34>input[type='checkbox']+label .label-content {
+  .emotion-62>input[type='checkbox']+label .label-content {
     margin-top: 1px;
   }
 }
 
-.emotion-34>input[type='checkbox']+label:before {
+.emotion-62>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
   box-sizing: border-box;
@@ -482,7 +482,7 @@ exports[`PageManageDomains should render 1`] = `
   width: 34px;
 }
 
-.emotion-34>input[type='checkbox']+label::after {
+.emotion-62>input[type='checkbox']+label::after {
   background-color: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -499,36 +499,36 @@ exports[`PageManageDomains should render 1`] = `
   width: 18px;
 }
 
-.emotion-34>input[type='checkbox']:checked+label::before {
+.emotion-62>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-34>input[type='checkbox']:checked+label::after {
+.emotion-62>input[type='checkbox']:checked+label::after {
   background-color: #15c046;
   border-color: #15c046;
   left: 16px;
 }
 
-.emotion-34>input[type='checkbox']:disabled+label {
+.emotion-62>input[type='checkbox']:disabled+label {
   color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-34>input[type='checkbox']:disabled+label::before {
+.emotion-62>input[type='checkbox']:disabled+label::before {
   background-color: #e8e8e8;
   cursor: not-allowed;
 }
 
-.emotion-34>input[type='checkbox']:disabled+label::after {
+.emotion-62>input[type='checkbox']:disabled+label::after {
   border-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-34>input[type='checkbox']:checked:disabled+label::after {
+.emotion-62>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-36 {
+.emotion-65 {
   background-color: #3570f40D;
   text-align: left;
   title: add;
@@ -541,7 +541,7 @@ exports[`PageManageDomains should render 1`] = `
   max-width: 1px;
 }
 
-.emotion-37 {
+.emotion-67 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -549,21 +549,21 @@ exports[`PageManageDomains should render 1`] = `
   font-weight: '';
 }
 
-.emotion-40 {
+.emotion-73 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-43 {
+.emotion-79 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-47 {
+.emotion-86 {
   text-align: left;
   title: add;
   padding: 5px 0 5px 15px;
@@ -575,7 +575,7 @@ exports[`PageManageDomains should render 1`] = `
   max-width: 1px;
 }
 
-.emotion-50 {
+.emotion-92 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -601,13 +601,13 @@ exports[`PageManageDomains should render 1`] = `
   width: 20px;
 }
 
-.emotion-51 {
+.emotion-94 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-52 {
+.emotion-95 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -622,7 +622,7 @@ exports[`PageManageDomains should render 1`] = `
   width: 350px;
 }
 
-.emotion-53 {
+.emotion-97 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -641,28 +641,28 @@ exports[`PageManageDomains should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-54 {
+.emotion-99 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-55 {
+.emotion-101 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-56 {
+.emotion-103 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-58 {
+.emotion-107 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-59 {
+.emotion-109 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -670,12 +670,12 @@ exports[`PageManageDomains should render 1`] = `
   display: flex;
 }
 
-.emotion-60 {
+.emotion-111 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-61 {
+.emotion-113 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -685,44 +685,44 @@ exports[`PageManageDomains should render 1`] = `
   data-testid="page-manage-domains"
 >
   <div
-    class="emotion-0"
+    class="emotion-0 emotion-1"
     data-testid="header"
   >
     <div
-      class="emotion-1 denali-navbar"
+      class="emotion-2 denali-navbar"
       data-testid="navbar"
     >
       <div
-        class="emotion-2 simple denali-navbar-item"
+        class="emotion-3 simple denali-navbar-item"
         data-testid="navbar-item"
       >
         <a
           href="/"
         >
           <img
-            class="emotion-3"
+            class="emotion-4 emotion-5"
             src="/static/athenz-logo-full.png"
           />
         </a>
       </div>
       <div
-        class="emotion-4"
+        class="emotion-6 emotion-7"
       >
         <div
-          class="emotion-5 simple denali-navbar-item"
+          class="emotion-8 simple denali-navbar-item"
           data-testid="navbar-item"
         />
       </div>
       <div
-        class="emotion-2 simple flush-right denali-navbar-item"
+        class="emotion-3 simple flush-right denali-navbar-item"
         data-testid="navbar-item"
       >
         <div
-          class="emotion-7"
+          class="emotion-10 emotion-11"
           data-testid="header-menu"
         >
           <svg
-            class="emotion-8"
+            class="emotion-12"
             data-testid="icon"
             height="25px"
             viewBox="0 0 1024 1024"
@@ -736,10 +736,10 @@ exports[`PageManageDomains should render 1`] = `
             />
           </svg>
           <div
-            class="emotion-9"
+            class="emotion-13 emotion-14"
           >
             <svg
-              class="emotion-8"
+              class="emotion-12"
               data-testid="icon"
               height="25px"
               viewBox="0 0 1024 1024"
@@ -764,75 +764,75 @@ exports[`PageManageDomains should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-11"
+    class="emotion-16 emotion-17"
   >
     <div
-      class="emotion-12"
+      class="emotion-18 emotion-19"
     >
       <div
-        class="emotion-13"
+        class="emotion-20 emotion-21"
       >
         <div
-          class="emotion-14"
+          class="emotion-22 emotion-23"
         >
           <div
-            class="emotion-15"
+            class="emotion-24 emotion-25"
           >
             <div
-              class="emotion-16"
+              class="emotion-26 emotion-27"
             >
               Manage My Domains
             </div>
           </div>
           <div
-            class="emotion-17"
+            class="emotion-28 emotion-29"
             data-testid="manage-domains"
           >
             <div
-              class="emotion-18"
+              class="emotion-30 emotion-31"
             />
             <table
-              class="emotion-19"
+              class="emotion-32 emotion-33"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-20"
+                    class="emotion-34 emotion-35"
                   >
                     Name
                   </th>
                   <th
-                    class="emotion-20"
+                    class="emotion-34 emotion-35"
                   >
                     Type
                   </th>
                   <th
-                    class="emotion-20"
+                    class="emotion-34 emotion-35"
                   >
                     Modified Date
                   </th>
                   <th
-                    class="emotion-23"
+                    class="emotion-40 emotion-35"
                   >
                     Product Master Id
                   </th>
                   <th
-                    class="emotion-23"
+                    class="emotion-40 emotion-35"
                   >
                     Audit
                   </th>
                   <th
-                    class="emotion-23"
+                    class="emotion-40 emotion-35"
                   >
                     AWS Account #
                   </th>
                   <th
-                    class="emotion-20"
+                    class="emotion-34 emotion-35"
                   >
                     Business Service
                   </th>
                   <th
-                    class="emotion-23"
+                    class="emotion-40 emotion-35"
                   >
                     Delete
                   </th>
@@ -840,36 +840,36 @@ exports[`PageManageDomains should render 1`] = `
               </thead>
               <tbody>
                 <tr
-                  class="emotion-28"
+                  class="emotion-50 emotion-51"
                 >
                   <td
-                    class="emotion-29"
+                    class="emotion-52 emotion-53"
                     color="#3570f40D"
                   >
                     home.mujibur
                   </td>
                   <td
-                    class="emotion-29"
+                    class="emotion-52 emotion-53"
                     color="#3570f40D"
                   >
                     Personal
                   </td>
                   <td
-                    class="emotion-29"
+                    class="emotion-52 emotion-53"
                     color="#3570f40D"
                   >
                     2018-01-31 19:43 UTC
                   </td>
                   <td
-                    class="emotion-32"
+                    class="emotion-58 emotion-53"
                     color="#3570f40D"
                   />
                   <td
-                    class="emotion-32"
+                    class="emotion-58 emotion-53"
                     color="#3570f40D"
                   >
                     <div
-                      class="emotion-34 denali-switch"
+                      class="emotion-62 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -885,58 +885,58 @@ exports[`PageManageDomains should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-32"
+                    class="emotion-58 emotion-53"
                     color="#3570f40D"
                   >
                     111111
                   </td>
                   <td
-                    class="emotion-36"
+                    class="emotion-65 emotion-66"
                     color="#3570f40D"
                     title="add"
                   >
                     <a
-                      class="emotion-37"
+                      class="emotion-67 emotion-68"
                     >
                       add
                     </a>
                   </td>
                   <td
-                    class="emotion-32"
+                    class="emotion-58 emotion-53"
                     color="#3570f40D"
                   />
                 </tr>
                 <tr
-                  class="emotion-28"
+                  class="emotion-50 emotion-51"
                 >
                   <td
-                    class="emotion-40"
+                    class="emotion-73 emotion-53"
                     color=""
                   >
                     home.pgote
                   </td>
                   <td
-                    class="emotion-40"
+                    class="emotion-73 emotion-53"
                     color=""
                   >
                     Personal
                   </td>
                   <td
-                    class="emotion-40"
+                    class="emotion-73 emotion-53"
                     color=""
                   >
                     2018-02-15 00:48 UTC
                   </td>
                   <td
-                    class="emotion-43"
+                    class="emotion-79 emotion-53"
                     color=""
                   />
                   <td
-                    class="emotion-43"
+                    class="emotion-79 emotion-53"
                     color=""
                   >
                     <div
-                      class="emotion-34 denali-switch"
+                      class="emotion-62 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -952,24 +952,24 @@ exports[`PageManageDomains should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-43"
+                    class="emotion-79 emotion-53"
                     color=""
                   >
                     14913436251
                   </td>
                   <td
-                    class="emotion-47"
+                    class="emotion-86 emotion-66"
                     color=""
                     title="add"
                   >
                     <a
-                      class="emotion-37"
+                      class="emotion-67 emotion-68"
                     >
                       add
                     </a>
                   </td>
                   <td
-                    class="emotion-43"
+                    class="emotion-79 emotion-53"
                     color=""
                   />
                 </tr>
@@ -982,11 +982,11 @@ exports[`PageManageDomains should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-50"
+          class="emotion-92 emotion-93"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-51"
+            class="emotion-94"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1001,45 +1001,45 @@ exports[`PageManageDomains should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-52"
+          class="emotion-95 emotion-96"
         >
           <div
-            class="emotion-53"
+            class="emotion-97 emotion-98"
           >
             <div
-              class="emotion-54"
+              class="emotion-99 emotion-100"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-55"
+                class="emotion-101 emotion-102"
               >
                 Create
               </a>
               <span
-                class="emotion-56"
+                class="emotion-103 emotion-104"
               >
                  | 
               </span>
               <a
-                class="emotion-55"
+                class="emotion-101 emotion-102"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-58"
+            class="emotion-107 emotion-108"
           >
             <div
-              class="emotion-59"
+              class="emotion-109 emotion-110"
             >
               <div
-                class="emotion-60"
+                class="emotion-111 emotion-112"
               >
                 <svg
-                  class="emotion-61"
+                  class="emotion-113"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1060,19 +1060,19 @@ exports[`PageManageDomains should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-55"
+                class="emotion-101 emotion-102"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-59"
+              class="emotion-109 emotion-110"
             >
               <div
-                class="emotion-60"
+                class="emotion-111 emotion-112"
               >
                 <svg
-                  class="emotion-61"
+                  class="emotion-113"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1093,7 +1093,7 @@ exports[`PageManageDomains should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-55"
+                class="emotion-101 emotion-102"
               >
                 athens.ci
               </a>

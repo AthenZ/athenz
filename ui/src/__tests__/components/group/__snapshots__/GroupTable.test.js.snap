@@ -9,7 +9,7 @@ exports[`GroupTable should render 1`] = `
   border-color: grey;
 }
 
-.emotion-1 {
+.emotion-2 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -22,7 +22,7 @@ exports[`GroupTable should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-2 {
+.emotion-4 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -34,7 +34,7 @@ exports[`GroupTable should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-9 {
+.emotion-18 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -46,32 +46,32 @@ exports[`GroupTable should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-10 {
+.emotion-20 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-11 {
+.emotion-22 {
   padding-left: 20px;
 }
 
-.emotion-12 {
+.emotion-24 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-15 {
+.emotion-30 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <table
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="grouptable"
 >
   <colgroup>
@@ -103,42 +103,42 @@ exports[`GroupTable should render 1`] = `
   <thead>
     <tr>
       <th
-        class="emotion-1"
+        class="emotion-2 emotion-3"
       >
         Group
       </th>
       <th
-        class="emotion-2"
+        class="emotion-4 emotion-5"
       >
         Modified Date
       </th>
       <th
-        class="emotion-2"
+        class="emotion-4 emotion-5"
       >
         Reviewed Date
       </th>
       <th
-        class="emotion-2"
+        class="emotion-4 emotion-5"
       >
         Members
       </th>
       <th
-        class="emotion-2"
+        class="emotion-4 emotion-5"
       >
         Roles
       </th>
       <th
-        class="emotion-2"
+        class="emotion-4 emotion-5"
       >
         Settings
       </th>
       <th
-        class="emotion-2"
+        class="emotion-4 emotion-5"
       >
         History
       </th>
       <th
-        class="emotion-2"
+        class="emotion-4 emotion-5"
       >
         Delete
       </th>
@@ -146,39 +146,39 @@ exports[`GroupTable should render 1`] = `
   </thead>
   <tbody>
     <tr
-      class="emotion-9"
+      class="emotion-18 emotion-19"
       data-testid="group-row"
     >
       <td
-        class="emotion-10"
+        class="emotion-20 emotion-21"
         color=""
       >
         
         <span
-          class="emotion-11"
+          class="emotion-22 emotion-23"
         >
            a
         </span>
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         Invalid date
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         N/A
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         <span>
           <svg
-            class="emotion-15"
+            class="emotion-30"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -200,12 +200,12 @@ exports[`GroupTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         <span>
           <svg
-            class="emotion-15"
+            class="emotion-30"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -221,12 +221,12 @@ exports[`GroupTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         <span>
           <svg
-            class="emotion-15"
+            class="emotion-30"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -245,12 +245,12 @@ exports[`GroupTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         <span>
           <svg
-            class="emotion-15"
+            class="emotion-30"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -269,12 +269,12 @@ exports[`GroupTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         <span>
           <svg
-            class="emotion-15"
+            class="emotion-30"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -294,39 +294,39 @@ exports[`GroupTable should render 1`] = `
       </td>
     </tr>
     <tr
-      class="emotion-9"
+      class="emotion-18 emotion-19"
       data-testid="group-row"
     >
       <td
-        class="emotion-10"
+        class="emotion-20 emotion-21"
         color=""
       >
         
         <span
-          class="emotion-11"
+          class="emotion-22 emotion-23"
         >
            b
         </span>
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         Invalid date
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         N/A
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         <span>
           <svg
-            class="emotion-15"
+            class="emotion-30"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -348,12 +348,12 @@ exports[`GroupTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         <span>
           <svg
-            class="emotion-15"
+            class="emotion-30"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -369,12 +369,12 @@ exports[`GroupTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         <span>
           <svg
-            class="emotion-15"
+            class="emotion-30"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -393,12 +393,12 @@ exports[`GroupTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         <span>
           <svg
-            class="emotion-15"
+            class="emotion-30"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -417,12 +417,12 @@ exports[`GroupTable should render 1`] = `
         </span>
       </td>
       <td
-        class="emotion-12"
+        class="emotion-24 emotion-21"
         color=""
       >
         <span>
           <svg
-            class="emotion-15"
+            class="emotion-30"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"

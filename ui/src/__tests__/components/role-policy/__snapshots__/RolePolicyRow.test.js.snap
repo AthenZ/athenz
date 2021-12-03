@@ -13,36 +13,36 @@ exports[`RolePolicyRow should render 1`] = `
   height: 50px;
 }
 
-.emotion-1 {
+.emotion-2 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-2 {
+.emotion-4 {
   margin-right: 10px;
   vertical-align: bottom;
 }
 
-.emotion-3 {
+.emotion-6 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
 <tr
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="role-policy-row"
 >
   <td
-    class="emotion-1"
+    class="emotion-2 emotion-3"
   >
     <span
-      class="emotion-2"
+      class="emotion-4 emotion-5"
     >
       <svg
-        class="emotion-3"
+        class="emotion-6"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"

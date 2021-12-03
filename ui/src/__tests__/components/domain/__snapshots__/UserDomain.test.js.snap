@@ -27,7 +27,7 @@ exports[`UserDomains should hide domains on click of arrow 1`] = `
   width: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
@@ -37,11 +37,11 @@ exports[`UserDomains should hide domains on click of arrow 1`] = `
   data-testid="user-domains"
 >
   <div
-    class="emotion-0"
+    class="emotion-0 emotion-1"
     data-testid="toggle-domain"
   >
     <svg
-      class="emotion-1"
+      class="emotion-2"
       data-testid="icon"
       height="1em"
       viewBox="0 0 1024 1024"
@@ -85,13 +85,13 @@ exports[`UserDomains should render 1`] = `
   width: 20px;
 }
 
-.emotion-1 {
+.emotion-2 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-2 {
+.emotion-3 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -106,7 +106,7 @@ exports[`UserDomains should render 1`] = `
   width: 350px;
 }
 
-.emotion-3 {
+.emotion-5 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -125,28 +125,28 @@ exports[`UserDomains should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-4 {
+.emotion-7 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-5 {
+.emotion-9 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-6 {
+.emotion-11 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-8 {
+.emotion-15 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-9 {
+.emotion-17 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -154,12 +154,12 @@ exports[`UserDomains should render 1`] = `
   display: flex;
 }
 
-.emotion-10 {
+.emotion-19 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-11 {
+.emotion-21 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -169,11 +169,11 @@ exports[`UserDomains should render 1`] = `
   data-testid="user-domains"
 >
   <div
-    class="emotion-0"
+    class="emotion-0 emotion-1"
     data-testid="toggle-domain"
   >
     <svg
-      class="emotion-1"
+      class="emotion-2"
       data-testid="icon"
       height="1em"
       viewBox="0 0 1024 1024"
@@ -188,45 +188,45 @@ exports[`UserDomains should render 1`] = `
     </svg>
   </div>
   <div
-    class="emotion-2"
+    class="emotion-3 emotion-4"
   >
     <div
-      class="emotion-3"
+      class="emotion-5 emotion-6"
     >
       <div
-        class="emotion-4"
+        class="emotion-7 emotion-8"
       >
         My Domains
       </div>
       <div>
         <a
-          class="emotion-5"
+          class="emotion-9 emotion-10"
         >
           Create
         </a>
         <span
-          class="emotion-6"
+          class="emotion-11 emotion-12"
         >
            | 
         </span>
         <a
-          class="emotion-5"
+          class="emotion-9 emotion-10"
         >
           Manage
         </a>
       </div>
     </div>
     <div
-      class="emotion-8"
+      class="emotion-15 emotion-16"
     >
       <div
-        class="emotion-9"
+        class="emotion-17 emotion-18"
       >
         <div
-          class="emotion-10"
+          class="emotion-19 emotion-20"
         >
           <svg
-            class="emotion-11"
+            class="emotion-21"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -247,19 +247,19 @@ exports[`UserDomains should render 1`] = `
           </svg>
         </div>
         <a
-          class="emotion-5"
+          class="emotion-9 emotion-10"
         >
           athens
         </a>
       </div>
       <div
-        class="emotion-9"
+        class="emotion-17 emotion-18"
       >
         <div
-          class="emotion-10"
+          class="emotion-19 emotion-20"
         >
           <svg
-            class="emotion-11"
+            class="emotion-21"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -280,7 +280,7 @@ exports[`UserDomains should render 1`] = `
           </svg>
         </div>
         <a
-          class="emotion-5"
+          class="emotion-9 emotion-10"
         >
           athens.ci
         </a>

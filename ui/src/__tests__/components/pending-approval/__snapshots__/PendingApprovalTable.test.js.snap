@@ -7,7 +7,7 @@ exports[`PendingApprovalTable should render 1`] = `
   border-spacing: 0;
 }
 
-.emotion-1 {
+.emotion-2 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -20,7 +20,7 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 1%;
 }
 
-.emotion-2 {
+.emotion-4 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -33,7 +33,7 @@ exports[`PendingApprovalTable should render 1`] = `
   vertical-align: middle;
 }
 
-.emotion-2>input[type='checkbox'] {
+.emotion-4>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -42,7 +42,7 @@ exports[`PendingApprovalTable should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-2>input[type='checkbox']+label {
+.emotion-4>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -55,7 +55,7 @@ exports[`PendingApprovalTable should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-2>input[type='checkbox']+label:before {
+.emotion-4>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -71,33 +71,33 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 16px;
 }
 
-.emotion-2>input[type='checkbox']:hover+label:before {
+.emotion-4>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-2>input[type='checkbox']:focus+label:before {
+.emotion-4>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-2>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-2>input[type='checkbox']:checked+label:before {
+.emotion-4>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-4>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-2>input[type='checkbox']:disabled+label {
+.emotion-4>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-2>input[type='checkbox']:disabled+label:before {
+.emotion-4>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-2>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-4>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-2>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-4>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -112,7 +112,7 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 8px;
 }
 
-.emotion-2>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-4>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -132,7 +132,7 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 4.5px;
 }
 
-.emotion-3 {
+.emotion-5 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -144,7 +144,7 @@ exports[`PendingApprovalTable should render 1`] = `
   text-align: left;
 }
 
-.emotion-4 {
+.emotion-7 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -157,7 +157,7 @@ exports[`PendingApprovalTable should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-9 {
+.emotion-17 {
   border-bottom: 2px solid #d5d5d5;
   font-weight: 600;
   font-size: 0.7rem;
@@ -167,7 +167,7 @@ exports[`PendingApprovalTable should render 1`] = `
   text-align: left;
 }
 
-.emotion-10 {
+.emotion-19 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -184,7 +184,7 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 100%;
 }
 
-.emotion-10>textarea {
+.emotion-19>textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -213,43 +213,43 @@ exports[`PendingApprovalTable should render 1`] = `
   width: auto;
 }
 
-.emotion-10>textarea::-webkit-input-placeholder {
+.emotion-19>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-10>textarea::-moz-placeholder {
+.emotion-19>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-10>textarea:-ms-input-placeholder {
+.emotion-19>textarea:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-10>textarea::placeholder {
+.emotion-19>textarea::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-10>textarea:active,
-.emotion-10>textarea:focus {
+.emotion-19>textarea:active,
+.emotion-19>textarea:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-10>textarea:invalid {
+.emotion-19>textarea:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-10>textarea[disabled] {
+.emotion-19>textarea[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-10 .message {
+.emotion-19 .message {
   font-size: 12px;
   color: #303030;
   left: 0;
@@ -258,11 +258,11 @@ exports[`PendingApprovalTable should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-11>textarea {
+.emotion-20>textarea {
   resize: vertical;
 }
 
-.emotion-13>div input {
+.emotion-24>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   background-color: #d5d5d5;
@@ -288,13 +288,13 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 10em;
 }
 
-.emotion-14 {
+.emotion-26 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-18 {
+.emotion-32 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -311,17 +311,17 @@ exports[`PendingApprovalTable should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-19 {
+.emotion-34 {
   margin-top: 10px;
 }
 
-.emotion-20 {
+.emotion-36 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-21 {
+.emotion-37 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -339,7 +339,7 @@ exports[`PendingApprovalTable should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-25 {
+.emotion-44 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -351,7 +351,7 @@ exports[`PendingApprovalTable should render 1`] = `
   text-align: left;
 }
 
-.emotion-35 {
+.emotion-64 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -369,7 +369,7 @@ exports[`PendingApprovalTable should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-36 {
+.emotion-66 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -389,7 +389,7 @@ exports[`PendingApprovalTable should render 1`] = `
 }
 
 <table
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="pending-approval-table"
 >
   <thead>
@@ -397,10 +397,10 @@ exports[`PendingApprovalTable should render 1`] = `
       data-testid="pending-approval-table-header"
     >
       <th
-        class="emotion-1"
+        class="emotion-2 emotion-3"
       >
         <div
-          class="emotion-2 denali-checkbox"
+          class="emotion-4 denali-checkbox"
           data-testid="checkbox-wrapper"
         >
           <input
@@ -415,33 +415,33 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="emotion-3"
+        class="emotion-5 emotion-6"
       >
         <div>
            Select All 
         </div>
       </th>
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-8"
       />
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-8"
       />
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-8"
         colspan="3"
       />
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-8"
       />
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-8"
       />
       <th
-        class="emotion-9"
+        class="emotion-17 emotion-18"
       >
         <div
-          class="emotion-10 denali-textarea emotion-11"
+          class="emotion-19 denali-textarea emotion-20 emotion-21"
           data-testid="textarea-wrapper"
         >
           <textarea
@@ -453,10 +453,10 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="emotion-9"
+        class="emotion-17 emotion-18"
       >
         <div
-          class="emotion-13"
+          class="emotion-24 emotion-25"
           disabled=""
         >
           <div
@@ -481,7 +481,7 @@ exports[`PendingApprovalTable should render 1`] = `
               data-clear=""
             >
               <svg
-                class="emotion-14"
+                class="emotion-26"
                 data-testid="icon"
                 height="1.25em"
                 viewBox="0 0 1024 1024"
@@ -499,10 +499,10 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="emotion-9"
+        class="emotion-17 emotion-18"
       >
         <div
-          class="emotion-13"
+          class="emotion-24 emotion-25"
           disabled=""
         >
           <div
@@ -527,7 +527,7 @@ exports[`PendingApprovalTable should render 1`] = `
               data-clear=""
             >
               <svg
-                class="emotion-14"
+                class="emotion-26"
                 data-testid="icon"
                 height="1.25em"
                 viewBox="0 0 1024 1024"
@@ -545,13 +545,13 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="emotion-18"
+        class="emotion-32 emotion-33"
       >
         <div
-          class="emotion-19"
+          class="emotion-34 emotion-35"
         >
           <svg
-            class="emotion-20"
+            class="emotion-36"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -570,13 +570,13 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="emotion-21"
+        class="emotion-37 emotion-38"
       >
         <div
-          class="emotion-19"
+          class="emotion-34 emotion-35"
         >
           <svg
-            class="emotion-20"
+            class="emotion-36"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -594,66 +594,66 @@ exports[`PendingApprovalTable should render 1`] = `
     </tr>
     <tr>
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-43"
       />
       <th
-        class="emotion-25"
+        class="emotion-44 emotion-45"
       >
         Domain
       </th>
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-43"
       >
         Type
       </th>
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-43"
       >
         Name
       </th>
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-43"
       >
         Member
       </th>
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-43"
         colspan="2"
       >
         User Comment
       </th>
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-43"
       >
         Requester
       </th>
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-43"
       >
         Request Time
       </th>
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-43"
       >
         Audit Reference
       </th>
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-43"
       >
         Expiration Date
       </th>
       <th
-        class="emotion-4"
+        class="emotion-7 emotion-43"
       >
         Reminder Date
       </th>
       <th
-        class="emotion-35"
+        class="emotion-64 emotion-65"
       >
         Approve
       </th>
       <th
-        class="emotion-36"
+        class="emotion-66 emotion-67"
       >
         Reject
       </th>

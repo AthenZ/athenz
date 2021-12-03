@@ -14,7 +14,7 @@ exports[`PolicyRow should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-1 {
+.emotion-2 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -22,7 +22,7 @@ exports[`PolicyRow should render 1`] = `
   width: 10%;
 }
 
-.emotion-2 {
+.emotion-4 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -35,7 +35,7 @@ exports[`PolicyRow should render 1`] = `
   vertical-align: bottom;
 }
 
-.emotion-2>input[type='radio'] {
+.emotion-4>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -44,7 +44,7 @@ exports[`PolicyRow should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-2>input[type='radio']+label {
+.emotion-4>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -57,7 +57,7 @@ exports[`PolicyRow should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-2>input[type='radio']+label:before {
+.emotion-4>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -73,29 +73,29 @@ exports[`PolicyRow should render 1`] = `
   width: 16px;
 }
 
-.emotion-2>input[type='radio']:hover+label:before {
+.emotion-4>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-2>input[type='radio']:focus+label:before {
+.emotion-4>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-2>input[type='radio']:checked+label:before {
+.emotion-4>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-2>input[type='radio']:disabled+label {
+.emotion-4>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-2>input[type='radio']:disabled+label:before {
+.emotion-4>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-2>input[type='radio']:checked+label:after {
+.emotion-4>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -110,14 +110,14 @@ exports[`PolicyRow should render 1`] = `
   width: 8px;
 }
 
-.emotion-2>input[type='radio']:disabled:checked+label:after {
+.emotion-4>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-3 {
+.emotion-5 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -125,7 +125,7 @@ exports[`PolicyRow should render 1`] = `
   width: 20%;
 }
 
-.emotion-4 {
+.emotion-7 {
   text-align: left;
   padding: 5px 0 5px 0;
   vertical-align: middle;
@@ -133,7 +133,7 @@ exports[`PolicyRow should render 1`] = `
   width: 15%;
 }
 
-.emotion-5 {
+.emotion-9 {
   width: 100%;
   border-spacing: 0 0;
   display: table;
@@ -141,7 +141,7 @@ exports[`PolicyRow should render 1`] = `
   border-color: grey;
 }
 
-.emotion-6 {
+.emotion-11 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -149,7 +149,7 @@ exports[`PolicyRow should render 1`] = `
   width: 70%;
 }
 
-.emotion-7 {
+.emotion-13 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -157,19 +157,19 @@ exports[`PolicyRow should render 1`] = `
   width: 30%;
 }
 
-.emotion-10 {
+.emotion-19 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-12 {
+.emotion-22 {
   fill: #d5d5d5;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-13 {
+.emotion-23 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -178,15 +178,15 @@ exports[`PolicyRow should render 1`] = `
 }
 
 <tr
-  class="emotion-0"
+  class="emotion-0 emotion-1"
   data-testid="policy-row"
 >
   <td
-    class="emotion-1"
+    class="emotion-2 emotion-3"
     width="10%"
   >
     <div
-      class="emotion-2 denali-radiobutton"
+      class="emotion-4 denali-radiobutton"
       data-testid="radiobutton-wrapper"
     >
       <input
@@ -201,25 +201,25 @@ exports[`PolicyRow should render 1`] = `
     </div>
   </td>
   <td
-    class="emotion-3"
+    class="emotion-5 emotion-3"
     width="20%"
   />
   <td
-    class="emotion-4"
+    class="emotion-7 emotion-3"
     width="15%"
   >
     <table
-      class="emotion-5"
+      class="emotion-9 emotion-10"
     >
       <thead />
       <tbody>
         <tr>
           <td
-            class="emotion-6"
+            class="emotion-11 emotion-3"
             width="70%"
           />
           <td
-            class="emotion-7"
+            class="emotion-13 emotion-3"
             width="30%"
           />
         </tr>
@@ -227,17 +227,17 @@ exports[`PolicyRow should render 1`] = `
     </table>
   </td>
   <td
-    class="emotion-3"
+    class="emotion-5 emotion-3"
     width="20%"
   >
     Invalid date
   </td>
   <td
-    class="emotion-1"
+    class="emotion-2 emotion-3"
     width="10%"
   >
     <svg
-      class="emotion-10"
+      class="emotion-19"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 1024 1024"
@@ -252,11 +252,11 @@ exports[`PolicyRow should render 1`] = `
     </svg>
   </td>
   <td
-    class="emotion-1"
+    class="emotion-2 emotion-3"
     width="10%"
   >
     <svg
-      class="emotion-12"
+      class="emotion-22"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 48 48"
@@ -271,11 +271,11 @@ exports[`PolicyRow should render 1`] = `
     </svg>
   </td>
   <td
-    class="emotion-13"
+    class="emotion-23 emotion-3"
     width="15%"
   >
     <svg
-      class="emotion-12"
+      class="emotion-22"
       data-testid="icon"
       height="1.25em"
       viewBox="0 0 48 48"
