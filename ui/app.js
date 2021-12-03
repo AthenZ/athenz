@@ -19,7 +19,6 @@ const express = require('express');
 const next = require('next');
 const appConfig = require('./src/config/config')();
 const secrets = require('./src/server/secrets');
-const appRoutes = require('./src/routes');
 const handlers = {
     api: require('./src/server/handlers/api'),
     passportAuth: require('./src/server/handlers/passportAuth'),
@@ -45,7 +44,23 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
             handlers.secure(expressApp, appConfig, secrets);
             handlers.passportAuth.auth(expressApp, appConfig, secrets);
             handlers.routes.route(expressApp, appConfig, secrets);
-            expressApp.use(appRoutes.getRequestHandler(nextApp));
+            expressApp.get('/athenz/', (req, res) => {
+                return nextApp.render(req, res, `/index`, req.query);
+            });
+            expressApp.get('/athenz/*', (req, res) => {
+                return nextApp.render(
+                    req,
+                    res,
+                    `${req.path.substring(7)}`,
+                    req.query
+                );
+            });
+            expressApp.get('/', (req, res) => {
+                return nextApp.render(req, res, `/index`, req.query);
+            });
+            expressApp.get('*', (req, res) => {
+                return nextApp.render(req, res, `${req.path}`, req.query);
+            });
 
             const server = https.createServer(
                 {

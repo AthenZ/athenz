@@ -30,15 +30,13 @@ class ServiceTabs extends React.Component {
             case 'static':
                 this.props.router.push(
                     `/domain/${domain}/service/${service}/instance/static`,
-                    `/domain/${domain}/service/${service}/instance/static`,
-                    { getInitialProps: true }
+                    `/domain/${domain}/service/${service}/instance/static`
                 );
                 break;
             case 'dynamic':
                 this.props.router.push(
                     `/domain/${domain}/service/${service}/instance/dynamic`,
-                    `/domain/${domain}/service/${service}/instance/dynamic`,
-                    { getInitialProps: true }
+                    `/domain/${domain}/service/${service}/instance/dynamic`
                 );
                 break;
         }

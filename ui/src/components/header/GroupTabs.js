@@ -55,43 +55,37 @@ class GroupTabs extends React.Component {
             case 'members':
                 this.props.router.push(
                     `/domain/${domain}/group/${group}/members`,
-                    `/domain/${domain}/group/${group}/members`,
-                    { getInitialProps: true }
+                    `/domain/${domain}/group/${group}/members`
                 );
                 break;
             case 'review':
                 this.props.router.push(
                     `/domain/${domain}/group/${group}/review`,
-                    `/domain/${domain}/group/${group}/review`,
-                    { getInitialProps: true }
+                    `/domain/${domain}/group/${group}/review`
                 );
                 break;
             case 'roles':
                 this.props.router.push(
                     `/domain/${domain}/group/${group}/roles`,
-                    `/domain/${domain}/group/${group}/roles`,
-                    { getInitialProps: true }
+                    `/domain/${domain}/group/${group}/roles`
                 );
                 break;
             case 'settings':
                 this.props.router.push(
                     `/domain/${domain}/group/${group}/settings`,
-                    `/domain/${domain}/group/${group}/settings`,
-                    { getInitialProps: true }
+                    `/domain/${domain}/group/${group}/settings`
                 );
                 break;
             case 'history':
                 this.props.router.push(
                     `/domain/${domain}/group/${group}/history`,
-                    `/domain/${domain}/group/${group}/history`,
-                    { getInitialProps: true }
+                    `/domain/${domain}/group/${group}/history`
                 );
                 break;
             case 'tags':
                 this.props.router.push(
                     `/domain/${domain}/group/${group}/tags`,
-                    `/domain/${domain}/group/${group}/tags`,
-                    { getInitialProps: true }
+                    `/domain/${domain}/group/${group}/tags`
                 );
                 break;
         }

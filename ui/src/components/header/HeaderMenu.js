@@ -109,11 +109,7 @@ const HeaderMenu = (props) => {
             <Icon
                 icon={icon}
                 isLink
-                onClick={() =>
-                    router.push('/workflow', '/workflow', {
-                        getInitialProps: true,
-                    })
-                }
+                onClick={() => router.push('/workflow', '/workflow')}
                 size={'25px'}
                 color={colors.white}
             />

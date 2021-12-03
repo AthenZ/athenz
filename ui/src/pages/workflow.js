@@ -66,37 +66,38 @@ const WorkFlowDiv = styled.div`
     position: relative;
 `;
 
-export default class Workflow extends React.Component {
-    static async getInitialProps({ req }) {
-        let api = API(req);
-        let reload = false;
-        let error = null;
-        const domains = await Promise.all([
-            api.listUserDomains(),
-            api.getHeaderDetails(),
-            api.getForm(),
-            api.getPendingDomainMembersList(),
-        ]).catch((err) => {
-            let response = RequestUtils.errorCheckHelper(err);
-            reload = response.reload;
-            error = response.error;
-            return [{}, {}, {}, {}];
-        });
-        return {
-            api,
+export async function getServerSideProps(context) {
+    let api = API(context.req);
+    let reload = false;
+    let error = null;
+    const domains = await Promise.all([
+        api.listUserDomains(),
+        api.getHeaderDetails(),
+        api.getForm(),
+        api.getPendingDomainMembersList(),
+    ]).catch((err) => {
+        let response = RequestUtils.errorCheckHelper(err);
+        reload = response.reload;
+        error = response.error;
+        return [{}, {}, {}, {}];
+    });
+    return {
+        props: {
             reload,
             error,
             domains: domains[0],
             headerDetails: domains[1],
             pendingData: domains[3],
             _csrf: domains[2],
-            nonce: req && req.headers.rid,
-        };
-    }
+            nonce: context.req && context.req.headers.rid,
+        },
+    };
+}
 
+export default class Workflow extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api || API();
+        this.api = API();
         this.state = {
             selected: this.props.option || 'domain',
             searchText: '',

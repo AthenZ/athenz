@@ -67,8 +67,7 @@ class ServiceRow extends React.Component {
         let service = this.props.serviceName;
         this.props.router.push(
             `/domain/${domain}/service/${service}/instance/dynamic`,
-            `/domain/${domain}/service/${service}/instance/dynamic`,
-            { getInitialProps: true }
+            `/domain/${domain}/service/${service}/instance/dynamic`
         );
     }
 

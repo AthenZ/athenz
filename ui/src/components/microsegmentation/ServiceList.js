@@ -90,8 +90,7 @@ class ServiceList extends React.Component {
         let service = item.substring(index + 1);
         this.props.router.push(
             `/domain/${dom}/service/${service}/instance/dynamic`,
-            `/domain/${dom}/service/${service}/instance/dynamic`,
-            { getInitialProps: true }
+            `/domain/${dom}/service/${service}/instance/dynamic`
         );
     }
 
