@@ -159,7 +159,8 @@ public class MSDSchema {
             .comment("Response object of transport policy rule validation")
             .field("status", "TransportPolicyValidationStatus", false, "")
             .arrayField("errors", "String", true, "")
-            .field("updateTime", "Timestamp", true, "most recent update timestamp in the backend");
+            .field("updateTime", "Timestamp", true, "most recent update timestamp in the backend")
+            .field("id", "Int64", true, "If present, assertion id associated with the transport policy");
 
         sb.structType("TransportPolicyValidationResponseList")
             .comment("List of TransportPolicyValidationResponse")

@@ -21,6 +21,9 @@ public class TransportPolicyValidationResponse {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp updateTime;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Long id;
 
     public TransportPolicyValidationResponse setStatus(TransportPolicyValidationStatus status) {
         this.status = status;
@@ -43,6 +46,13 @@ public class TransportPolicyValidationResponse {
     public Timestamp getUpdateTime() {
         return updateTime;
     }
+    public TransportPolicyValidationResponse setId(Long id) {
+        this.id = id;
+        return this;
+    }
+    public Long getId() {
+        return id;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -58,6 +68,9 @@ public class TransportPolicyValidationResponse {
                 return false;
             }
             if (updateTime == null ? a.updateTime != null : !updateTime.equals(a.updateTime)) {
+                return false;
+            }
+            if (id == null ? a.id != null : !id.equals(a.id)) {
                 return false;
             }
         }
