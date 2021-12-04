@@ -111,8 +111,12 @@ export default class RulesList extends React.Component {
             </AddContainerDiv>
         );
 
-        let showInbound = this.state.segmentationData.inbound.length > 0;
-        let showOutbound = this.state.segmentationData.outbound.length > 0;
+        let showInbound =
+            this.state.segmentationData &&
+            this.state.segmentationData.inbound.length > 0;
+        let showOutbound =
+            this.state.segmentationData &&
+            this.state.segmentationData.outbound.length > 0;
 
         return (
             <MembersSectionDiv data-testid='segmentation-data-list'>

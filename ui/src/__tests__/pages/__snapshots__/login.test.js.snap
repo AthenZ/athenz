@@ -1,0 +1,536 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Login should render 1`] = `
+.emotion-0 {
+  height: 60px;
+  position: relative;
+}
+
+.emotion-2 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #002339;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex: 0 0 60px;
+  -ms-flex: 0 0 60px;
+  flex: 0 0 60px;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: 60px;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  left: 0;
+  padding: 0 24px;
+  position: static;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+
+.emotion-2.scrolled {
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.16);
+}
+
+.emotion-2 .flush-right {
+  margin-left: auto;
+}
+
+.emotion-3 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 60px;
+  position: relative;
+}
+
+.emotion-3.simple {
+  color: #fff;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-3.simple.nav-link {
+  cursor: pointer;
+}
+
+.emotion-3.simple.nav-link:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-3.simple.active {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-3.simple.nav-link.active:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-3 .nav-title {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #fff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  height: 100%;
+  padding: 0 12px;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-3.nav-link .nav-title {
+  cursor: pointer;
+}
+
+.emotion-3.active .nav-title,
+.emotion-3 .active.nav-title {
+  box-shadow: inset 0 -4px 0 #3697f2;
+}
+
+.emotion-3 .nav-title:hover {
+  color: rgba(255,255,255,0.75);
+}
+
+.emotion-3.nav-link.active .nav-title:hover,
+.emotion-3.nav-link .active.nav-title:hover {
+  box-shadow: inset 0 -4px 0 rgba(54,151,242,0.75);
+}
+
+.emotion-3 img.nav-logo {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 34px;
+}
+
+.emotion-3 .nav-icon,
+.emotion-3:hover .nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.emotion-3 .nav-icon path,
+.emotion-3:hover .nav-icon path,
+.emotion-3 .nav-icon ellipse,
+.emotion-3:hover .nav-icon ellipse,
+.emotion-3 .nav-icon rect,
+.emotion-3:hover .nav-icon rect,
+.emotion-3 .nav-icon circle,
+.emotion-3:hover .nav-icon circle {
+  fill: #fff;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.emotion-3.nav-link:hover .nav-icon path,
+.emotion-3.nav-link:hover .nav-icon ellipse,
+.emotion-3.nav-link:hover .nav-icon rect,
+.emotion-3.nav-link:hover .nav-icon circle {
+  fill: rgba(255,255,255,0.75);
+}
+
+.emotion-4 {
+  height: 36px;
+  cursor: pointer;
+}
+
+.emotion-6 {
+  -webkit-flex: 1 1 calc(100vh - 60px);
+  -ms-flex: 1 1 calc(100vh - 60px);
+  flex: 1 1 calc(100vh - 60px);
+  overflow: hidden;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+}
+
+.emotion-8 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  height: 100%;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+}
+
+.emotion-10 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+}
+
+.emotion-12 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  height: 100%;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.emotion-14 {
+  padding-top: 20px;
+}
+
+.emotion-16 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 10px;
+}
+
+.emotion-18 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-19 {
+  float: left;
+  font-size: 14px;
+  font-weight: 700;
+  padding-top: 12px;
+  width: 25%;
+}
+
+.emotion-21 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin: 10px;
+}
+
+.emotion-23 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-23 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-23.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-23 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-23 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-23 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-23 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-23 input.focused,
+.emotion-23 input:active,
+.emotion-23 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-23 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-23 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-23.error input,
+.emotion-23.error input.focused,
+.emotion-23.error input:active,
+.emotion-23.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-23.error .message {
+  color: #d01111;
+}
+
+.emotion-24 {
+  width: 500px;
+}
+
+.emotion-36 {
+  text-align: center;
+}
+
+.emotion-38 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: linear-gradient(
+              to right,
+              #3697f2,
+              #3570f4
+          );
+  color: #fff;
+}
+
+.emotion-38:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-38:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-38:hover:not(:disabled) {
+  background: linear-gradient(
+                  to right,
+                  #3570f4,
+                  #3448f7
+              );
+}
+
+.emotion-39 {
+  min-width: 8.5em;
+  min-height: 1em;
+}
+
+<div
+  data-testid="login"
+>
+  <div
+    class="emotion-0 emotion-1"
+    data-testid="header"
+  >
+    <div
+      class="emotion-2 denali-navbar"
+      data-testid="navbar"
+    >
+      <div
+        class="emotion-3 simple denali-navbar-item"
+        data-testid="navbar-item"
+      >
+        <a
+          href="/"
+        >
+          <img
+            class="emotion-4 emotion-5"
+            src="/static/athenz-logo-full.png"
+          />
+        </a>
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-6 emotion-7"
+  >
+    <div
+      class="emotion-8 emotion-9"
+    >
+      <div
+        class="emotion-10 emotion-11"
+      >
+        <div
+          class="emotion-12 emotion-13"
+        >
+          <div
+            class="emotion-14 emotion-15"
+          >
+            <div
+              class="emotion-16 emotion-17"
+            >
+              <label
+                class="emotion-18 denali-input-label emotion-19 emotion-20"
+              >
+                Username
+              </label>
+              <div
+                class="emotion-21 emotion-22"
+              >
+                <div
+                  class="emotion-23 denali-input emotion-24 emotion-25"
+                  data-testid="input-wrapper"
+                >
+                  <input
+                    autocomplete="off"
+                    data-testid="input-node"
+                    placeholder="Enter Username"
+                    value=""
+                  />
+                  <div
+                    class="message"
+                    data-testid="message"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="emotion-16 emotion-17"
+            >
+              <label
+                class="emotion-18 denali-input-label emotion-19 emotion-20"
+              >
+                Password
+              </label>
+              <div
+                class="emotion-21 emotion-22"
+              >
+                <div
+                  class="emotion-23 denali-input emotion-24 emotion-25"
+                  data-testid="input-wrapper"
+                >
+                  <input
+                    autocomplete="off"
+                    data-testid="input-node"
+                    placeholder="Enter Password"
+                    type="password"
+                    value=""
+                  />
+                  <div
+                    class="message"
+                    data-testid="message"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="emotion-36 emotion-37"
+            >
+              <button
+                class="emotion-38 denali-button emotion-39 emotion-40"
+              >
+                Login
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

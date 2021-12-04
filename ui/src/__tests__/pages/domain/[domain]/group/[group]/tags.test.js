@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Verizon Media
+ * Copyright The Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,28 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import GroupSettingsPage from '../../../../../../pages/domain/[domain]/group/[group]/settings';
+import GroupTagsPage from '../../../../../../pages/domain/[domain]/group/[group]/tags';
 
-describe('GroupSettingPage', () => {
+describe('Groups Tag Page', () => {
     it('should render', () => {
-        let group = 'groupName';
+        const query = {
+            domain: 'dom',
+        };
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
-        let query = {
-            domain: 'dom',
-        };
-        let domainDetails = {
-            modified: '2020-02-12T21:44:37.792Z',
-        };
-        let groupDetails = {
-            modified: '2020-02-12T21:44:37.792Z',
-            memberExpiryDays: '60',
-            serviceExpiryDays: '50',
+        const userId = 'test';
+        const domain = 'home.test';
+        const domainDetails = {
+            description: 'test',
+            org: 'athenz',
+            enabled: true,
+            auditEnabled: false,
+            account: '1231243134',
+            ypmId: 0,
+            name: 'home.test',
+            modified: '2020-01-24T18:14:51.939Z',
+            id: 'a48cb050-e4fa-11e7-9d38-9d13efb959d1',
         };
         let headerDetails = {
             headerLinks: [
@@ -42,30 +46,30 @@ describe('GroupSettingPage', () => {
                     target: '_blank',
                 },
             ],
-            userData: {
-                userLink: {
-                    title: 'User Link',
-                    url: '',
-                    target: '_blank',
+        };
+        let groupDetails = {
+            modified: '2020-02-12T21:44:37.792Z',
+            tags: {
+                'tag-name': {
+                    list: ['first', 'second'],
                 },
             },
         };
         const { getByTestId } = render(
-            <GroupSettingsPage
+            <GroupTagsPage
                 domains={domains}
                 req='req'
-                userId='userid'
+                userId={userId}
                 query={query}
                 reload={false}
                 domainDetails={domainDetails}
                 groupDetails={groupDetails}
-                role={group}
-                domain='dom'
+                domain={domain}
                 domainResult={[]}
                 headerDetails={headerDetails}
             />
         );
-        const groupSettingsPage = getByTestId('group-settings');
-        expect(groupSettingsPage).toMatchSnapshot();
+        const groupTagsPage = getByTestId('group-tags');
+        expect(groupTagsPage).toMatchSnapshot();
     });
 });
