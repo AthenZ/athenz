@@ -16,25 +16,24 @@
 
 package options
 
-// package options contains types for parsing sia_config file and options to carry those config values
-
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-	"strings"
-	"time"
-
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
+	"io"
+	"io/ioutil"
+	"os"
+	"strings"
+	"time"
 )
+
+// package options contains types for parsing sia_config file and options to carry those config values
 
 // ConfigService represents a service to be specified by user, and specify User/Group attributes for the service
 type ConfigService struct {
@@ -98,14 +97,17 @@ type Role struct {
 
 // Service represents service details. Attributes are filled in based on the config values
 type Service struct {
-	Name       string
-	Filename   string
-	User       string
-	Group      string
-	Uid        int
-	Gid        int
-	FileMode   int
-	ExpiryTime int
+	Name           string
+	Filename       string
+	User           string
+	Group          string
+	Uid            int
+	Gid            int
+	FileMode       int
+	ExpiryTime     int
+	SDSUdsUid      int
+	SDSNodeId      string
+	SDSNodeCluster string
 }
 
 // Options represents settings that are derived from config file and application defaults
@@ -304,26 +306,25 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 	useRegionalSTS := false
 	sanDnsWildcard := false
 	sdsUdsPath := ""
+	sdsUdsUid := 0
+	generateRoleKey := false
+	rotateKey := false
+
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
 		sanDnsWildcard = config.SanDnsWildcard
 		sdsUdsPath = config.SDSUdsPath
-	}
+		sdsUdsUid = config.SDSUdsUid
 
-	//update account user/group settings if override provided at the config level
-	if config != nil {
+		//update account user/group settings if override provided at the config level
 		if account.User == "" && config.User != "" {
 			account.User = config.User
 		}
 		if account.Group == "" && config.Group != "" {
 			account.Group = config.Group
 		}
-	}
 
-	//update generate role and rotate key options if config is provided
-	generateRoleKey := false
-	rotateKey := false
-	if config != nil {
+		//update generate role and rotate key options if config is provided
 		generateRoleKey = config.GenerateRoleKey
 		rotateKey = config.RotateKey
 		if len(account.Roles) != 0 && generateRoleKey == false && rotateKey == true {
@@ -343,6 +344,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 			User:     account.User,
 		}
 		s.Uid, s.Gid, s.FileMode = util.SvcAttrs(account.User, account.Group, sysLogger)
+		s.SDSUdsUid = sdsUdsUid
 		services = append(services, s)
 	} else {
 		// sia_config and services are found
@@ -375,6 +377,12 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 				}
 				first.Uid, first.Gid, first.FileMode = util.SvcAttrs(first.User, first.Group, sysLogger)
 				first.ExpiryTime = expiryTime
+				first.SDSNodeId = s.SDSNodeId
+				first.SDSNodeCluster = s.SDSNodeCluster
+				first.SDSUdsUid = sdsUdsUid
+				if s.SDSUdsUid != 0 {
+					first.SDSUdsUid = s.SDSUdsUid
+				}
 			} else {
 				ts := Service{
 					Name:     name,
@@ -384,6 +392,12 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 				}
 				ts.Uid, ts.Gid, ts.FileMode = util.SvcAttrs(s.User, s.Group, sysLogger)
 				ts.ExpiryTime = expiryTime
+				ts.SDSNodeId = s.SDSNodeId
+				ts.SDSNodeCluster = s.SDSNodeCluster
+				ts.SDSUdsUid = sdsUdsUid
+				if ts.SDSUdsUid != 0 {
+					ts.SDSUdsUid = s.SDSUdsUid
+				}
 				tail = append(tail, ts)
 			}
 			if s.Filename != "" && s.Filename[0] == '/' {
