@@ -33,6 +33,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -577,6 +578,18 @@ func ParseEnvBooleanFlag(varName string) bool {
 	return value == "true" || value == "1"
 }
 
+func ParseEnvIntFlag(varName string, defaultValue int) int {
+	varStr := os.Getenv(varName)
+	if varStr == "" {
+		return defaultValue
+	}
+	value, err := strconv.Atoi(varStr)
+	if err != nil {
+		return defaultValue
+	}
+	return value
+}
+
 func getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix string) (string, string) {
 	if file != "" && file[0] == '/' {
 		return file, fmt.Sprintf("%s/%s.key.pem", keyDir, keyPrefix)
@@ -656,4 +669,33 @@ func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid,
 	}
 
 	return nil
+}
+
+func ParseServiceSpiffeUri(uri string) (string, string) {
+	return parseSpiffeUri(uri, "/sa/")
+}
+
+func ParseRoleSpiffeUri(uri string) (string, string) {
+	return parseSpiffeUri(uri, "/ra/")
+}
+
+func ParseCASpiffeUri(uri string) (string, string) {
+	return parseSpiffeUri(uri, "/ca/")
+}
+
+func parseSpiffeUri(uri, objType string) (string, string) {
+	if !strings.HasPrefix(uri, "spiffe://") {
+		return "", ""
+	}
+	comp := uri[9:]
+	idx := strings.Index(comp, objType)
+	if idx == -1 {
+		return "", ""
+	}
+	comp1 := comp[0:idx]
+	comp2 := comp[idx+len(objType):]
+	if comp1 == "" || comp2 == "" {
+		return "", ""
+	}
+	return comp1, comp2
 }

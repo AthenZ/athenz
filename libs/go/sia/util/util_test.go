@@ -710,3 +710,108 @@ func TestParseEnvBooleanFlag(test *testing.T) {
 		test.Errorf("false value env variable returned true")
 	}
 }
+
+func TestParseEnvIntFlag(test *testing.T) {
+
+	tests := []struct {
+		name         string
+		varName      string
+		varValue     string
+		defaultValue int
+		returnValue  int
+	}{
+		{"valid", "TEST-INT-ENV1", "1", 2, 1},
+		{"valid-negative", "TEST-INT-ENV2", "-1", 2, -1},
+		{"not-set", "TEST-INT-ENV3", "", 2, 2},
+		{"not-int1", "TEST-INT-ENV4", "abc", 3, 3},
+		{"not-int2", "TEST-INT-ENV5", "4abc", 3, 3},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			if tt.varValue != "" {
+				os.Setenv(tt.varName, tt.varValue)
+			}
+			value := ParseEnvIntFlag(tt.varName, tt.defaultValue)
+			if value != tt.returnValue {
+				test.Errorf("%s: invalid value returned - expected: %d, received %d", tt.name, tt.returnValue, value)
+			}
+		})
+	}
+}
+
+func TestParseServiceSpiffeUri(test *testing.T) {
+
+	tests := []struct {
+		name    string
+		uri     string
+		domain  string
+		service string
+	}{
+		{"valid", "spiffe://athenz/sa/api", "athenz", "api"},
+		{"not-valid1", "spiffe://athenz/ra/api", "", ""},
+		{"not-valid2", "spiffe://athenz/sa/", "", ""},
+		{"not-valid3", "spiffe:///sa/api", "", ""},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			domain, service := ParseServiceSpiffeUri(tt.uri)
+			if domain != tt.domain {
+				test.Errorf("%s: invalid domain returned - expected: %s, received %s", tt.name, tt.domain, domain)
+			}
+			if service != tt.service {
+				test.Errorf("%s: invalid service returned - expected: %s, received %s", tt.name, tt.service, service)
+			}
+		})
+	}
+}
+
+func TestParseRoleSpiffeUri(test *testing.T) {
+
+	tests := []struct {
+		name   string
+		uri    string
+		domain string
+		role   string
+	}{
+		{"valid", "spiffe://athenz/ra/readers", "athenz", "readers"},
+		{"not-valid1", "spiffe://athenz/sa/readers", "", ""},
+		{"not-valid2", "spiffe://athenz/ra/", "", ""},
+		{"not-valid3", "spiffe:///ra/readers", "", ""},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			domain, role := ParseRoleSpiffeUri(tt.uri)
+			if domain != tt.domain {
+				test.Errorf("%s: invalid domain returned - expected: %s, received %s", tt.name, tt.domain, domain)
+			}
+			if role != tt.role {
+				test.Errorf("%s: invalid role returned - expected: %s, received %s", tt.name, tt.role, role)
+			}
+		})
+	}
+}
+
+func TestParseCASpiffeUri(test *testing.T) {
+
+	tests := []struct {
+		name string
+		uri  string
+		ns   string
+		ca   string
+	}{
+		{"valid", "spiffe://athenz/ca/default", "athenz", "default"},
+		{"not-valid1", "spiffe://athenz/sa/default", "", ""},
+		{"not-valid2", "spiffe://athenz/sa/", "", ""},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			ns, ca := ParseCASpiffeUri(tt.uri)
+			if ns != tt.ns {
+				test.Errorf("invalid ns returned - expected: %s, received %s", tt.ns, ns)
+			}
+			if ca != tt.ca {
+				test.Errorf("invalid ca returned - expected: %s, received %s", tt.ca, ca)
+			}
+		})
+	}
+}

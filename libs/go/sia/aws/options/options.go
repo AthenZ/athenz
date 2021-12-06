@@ -26,7 +26,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -39,10 +38,13 @@ import (
 
 // ConfigService represents a service to be specified by user, and specify User/Group attributes for the service
 type ConfigService struct {
-	Filename   string `json:"filename,omitempty"`
-	User       string `json:"user,omitempty"`
-	Group      string `json:"group,omitempty"`
-	ExpiryTime int    `json:"expiry_time,omitempty"`
+	Filename       string `json:"filename,omitempty"`
+	User           string `json:"user,omitempty"`
+	Group          string `json:"group,omitempty"`
+	ExpiryTime     int    `json:"expiry_time,omitempty"`
+	SDSUdsUid      int    `json:"sds_uds_uid,omitempty"`
+	SDSNodeId      string `json:"sds_node_id,omitempty"`
+	SDSNodeCluster string `json:"sds_node_cluster,omitempty"`
 }
 
 // ConfigRole represents a role to be specified by user, and specify attributes for the role
@@ -78,7 +80,8 @@ type Config struct {
 	RotateKey       bool                     `json:"rotate_key,omitempty"`        //rotate private key support
 	User            string                   `json:"user,omitempty"`              //the user name to chown the cert/key dirs to. If absent, then root
 	Group           string                   `json:"group,omitempty"`             //the group name to chown the cert/key dirs to. If absent, then athenz
-	UdsPath         string                   `json:"uds_path,omitempty"`          //uds path if the agent should support uds connections
+	SDSUdsPath      string                   `json:"sds_uds_path,omitempty"`      //uds path if the agent should support uds connections
+	SDSUdsUid       int                      `json:"sds_uds_uid,omitempty"`       //uds connections must be from the given user uid
 	ExpiryTime      int                      `json:"expiry_time,omitempty"`       //service and role certificate expiry in minutes
 }
 
@@ -145,8 +148,9 @@ type Options struct {
 	EC2StartTime       *time.Time            //EC2 instance start time
 	InstanceIdSanDNS   bool                  //include instance id in a san dns entry (backward compatible option)
 	RolePrincipalEmail bool                  //include role principal in a san email field (backward compatible option)
-	UdsPath            string                //UDS path if the agent should support uds connections
-	RefreshInterval    int                   //refresh interval for certficates - default 24 hours
+	SDSUdsPath         string                //UDS path if the agent should support uds connections
+	SDSUdsUid          int                   //UDS connections must be from the given user uid
+	RefreshInterval    int                   //refresh interval for certificates - default 24 hours
 }
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (string, error) {
@@ -257,16 +261,19 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if config.Group == "" {
 		config.Group = os.Getenv("ATHENZ_SIA_GROUP")
 	}
-	if config.UdsPath == "" {
-		config.UdsPath = os.Getenv("ATHENZ_SIA_UDS_PATH")
+	if config.SDSUdsPath == "" {
+		config.SDSUdsPath = os.Getenv("ATHENZ_SIA_SDS_UDS_PATH")
+	}
+	if config.SDSUdsUid == 0 {
+		uid := util.ParseEnvIntFlag(os.Getenv("ATHENZ_SIA_SDS_UDS_UID"), 0)
+		if uid > 0 {
+			config.SDSUdsUid = uid
+		}
 	}
 	if config.ExpiryTime == 0 {
-		expiryTime := os.Getenv("ATHENZ_SIA_EXPIRY_TIME")
-		if expiryTime != "" {
-			mins, err := strconv.Atoi(expiryTime)
-			if err == nil && mins > 0 {
-				config.ExpiryTime = mins
-			}
+		expiryTime := util.ParseEnvIntFlag(os.Getenv("ATHENZ_SIA_EXPIRY_TIME"), 0)
+		if expiryTime > 0 {
+			config.ExpiryTime = expiryTime
 		}
 	}
 
@@ -296,11 +303,11 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 	//update regional sts and wildcard settings based on config settings
 	useRegionalSTS := false
 	sanDnsWildcard := false
-	udsPath := ""
+	sdsUdsPath := ""
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
 		sanDnsWildcard = config.SanDnsWildcard
-		udsPath = config.UdsPath
+		sdsUdsPath = config.SDSUdsPath
 	}
 
 	//update account user/group settings if override provided at the config level
@@ -417,7 +424,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 		GenerateRoleKey:  generateRoleKey,
 		RotateKey:        rotateKey,
 		BackUpDir:        fmt.Sprintf("%s/backup", siaDir),
-		UdsPath:          udsPath,
+		SDSUdsPath:       sdsUdsPath,
 		RefreshInterval:  24 * 60,
 	}, nil
 }
