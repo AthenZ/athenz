@@ -309,12 +309,14 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 	sdsUdsUid := 0
 	generateRoleKey := false
 	rotateKey := false
+	expiryTime := 0
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
 		sanDnsWildcard = config.SanDnsWildcard
 		sdsUdsPath = config.SDSUdsPath
 		sdsUdsUid = config.SDSUdsUid
+		expiryTime = config.ExpiryTime
 
 		//update account user/group settings if override provided at the config level
 		if account.User == "" && config.User != "" {
@@ -345,6 +347,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 		}
 		s.Uid, s.Gid, s.FileMode = util.SvcAttrs(account.User, account.Group, sysLogger)
 		s.SDSUdsUid = sdsUdsUid
+		s.ExpiryTime = expiryTime
 		services = append(services, s)
 	} else {
 		// sia_config and services are found
@@ -359,9 +362,13 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 		// Populate the remaining into tail
 		tail := []Service{}
 		for name, s := range config.Services {
-			expiryTime := config.ExpiryTime
+			svcExpiryTime := expiryTime
 			if s.ExpiryTime > 0 {
-				expiryTime = s.ExpiryTime
+				svcExpiryTime = s.ExpiryTime
+			}
+			svcSDSUdsUid := sdsUdsUid
+			if s.SDSUdsUid != 0 {
+				svcSDSUdsUid = s.SDSUdsUid
 			}
 			if name == config.Service {
 				first.Filename = s.Filename
@@ -376,13 +383,10 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 					first.Group = account.Group
 				}
 				first.Uid, first.Gid, first.FileMode = util.SvcAttrs(first.User, first.Group, sysLogger)
-				first.ExpiryTime = expiryTime
+				first.ExpiryTime = svcExpiryTime
 				first.SDSNodeId = s.SDSNodeId
 				first.SDSNodeCluster = s.SDSNodeCluster
-				first.SDSUdsUid = sdsUdsUid
-				if s.SDSUdsUid != 0 {
-					first.SDSUdsUid = s.SDSUdsUid
-				}
+				first.SDSUdsUid = svcSDSUdsUid
 			} else {
 				ts := Service{
 					Name:     name,
@@ -391,13 +395,10 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 					Group:    s.Group,
 				}
 				ts.Uid, ts.Gid, ts.FileMode = util.SvcAttrs(s.User, s.Group, sysLogger)
-				ts.ExpiryTime = expiryTime
+				ts.ExpiryTime = svcExpiryTime
 				ts.SDSNodeId = s.SDSNodeId
 				ts.SDSNodeCluster = s.SDSNodeCluster
-				ts.SDSUdsUid = sdsUdsUid
-				if ts.SDSUdsUid != 0 {
-					ts.SDSUdsUid = s.SDSUdsUid
-				}
+				ts.SDSUdsUid = svcSDSUdsUid
 				tail = append(tail, ts)
 			}
 			if s.Filename != "" && s.Filename[0] == '/' {
