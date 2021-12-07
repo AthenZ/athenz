@@ -815,3 +815,17 @@ func TestParseCASpiffeUri(test *testing.T) {
 		})
 	}
 }
+
+func TestNonce(test *testing.T) {
+	nonce1, err := Nonce()
+	if err != nil {
+		test.Errorf("Unable to generate a nonce1 value, error %v", err)
+	}
+	nonce2, err := Nonce()
+	if err != nil {
+		test.Errorf("Unable to generate a nonce2 value, error %v", err)
+	}
+	if nonce1 == nonce2 {
+		test.Errorf("generated identical nonce values")
+	}
+}
