@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/sds"
 	"io"
 	"io/ioutil"
 	"os"
@@ -454,6 +455,7 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io
 
 		stop := make(chan bool, 1)
 		errors := make(chan error, 1)
+		certUpdates := make(chan bool, 1)
 
 		go func() {
 			for {
@@ -484,12 +486,25 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io
 					opts,
 					sysLogger,
 				)
+				certUpdates <- true
+
 				select {
 				case <-stop:
 					errors <- nil
 					return
 				case <-time.After(rotationInterval):
 					break
+				}
+			}
+		}()
+
+		go func() {
+			if opts.SDSUdsPath != "" {
+				err := sds.StartGrpcServer(opts, certUpdates)
+				if err != nil {
+					logutil.LogInfo(sysLogger, "failed to start grpc/uds server: %v\n", err)
+					stop <- true
+					return
 				}
 			}
 		}()

@@ -48,6 +48,7 @@ func main() {
 	useRegionalSTS := flag.Bool("regionalsts", false, "Use regional STS endpoint instead of global")
 	providerPrefix := flag.String("providerprefix", "", "Provider name prefix e.g athenz.aws")
 	displayVersion := flag.Bool("version", false, "Display version information")
+	udsPath := flag.String("uds", "", "uds path")
 
 	flag.Parse()
 
@@ -108,6 +109,10 @@ func main() {
 	} else {
 		opts.EC2StartTime = startTime
 		opts.InstanceId = instanceId
+	}
+
+	if *udsPath != "" {
+		opts.SDSUdsPath = *udsPath
 	}
 
 	agent.RunAgent(*cmd, siaMainDir, ztsUrl, opts, sysLogger)
