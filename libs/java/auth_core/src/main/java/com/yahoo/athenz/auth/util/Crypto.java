@@ -386,9 +386,20 @@ public class Crypto {
         // twice the size of our expected value
 
         byte[] out = new byte[2 * size];
-        System.arraycopy(toIntegerBytes(r, true), 0, out, 0, size);
-        System.arraycopy(toIntegerBytes(s, true), 0, out, size, size);
+        safeCopyByteArray(toIntegerBytes(r, true), out, 0, size);
+        safeCopyByteArray(toIntegerBytes(s, true), out, size, size);
         return out;
+    }
+
+    static void safeCopyByteArray(byte[] src, byte[] dest, int destPos, int length) {
+
+        // if the length of the source byte array is smaller than what
+        // want to copy we'll pad the preceding bytes with 0s
+        int idxDestPos = destPos + length - src.length;
+        if (src.length < length) {
+            Arrays.fill(dest, destPos, idxDestPos, (byte) 0);
+        }
+        System.arraycopy(src, 0, dest, idxDestPos, src.length);
     }
 
     /**
