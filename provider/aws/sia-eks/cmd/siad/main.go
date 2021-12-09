@@ -47,6 +47,7 @@ func main() {
 	useRegionalSTS := flag.Bool("regionalsts", false, "Use regional STS endpoint instead of global")
 	providerPrefix := flag.String("providerprefix", "", "Provider name prefix e.g athenz.aws")
 	displayVersion := flag.Bool("version", false, "Display version information")
+	udsPath := flag.String("uds", "", "uds path")
 
 	flag.Parse()
 
@@ -88,6 +89,10 @@ func main() {
 	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
 	opts.Provider = fmt.Sprintf("%s.%s", *providerPrefix, region)
 	opts.InstanceId = sia.GetEKSPodId()
+
+	if *udsPath != "" {
+		opts.SDSUdsPath = *udsPath
+	}
 
 	agent.RunAgent(*cmd, siaMainDir, ztsUrl, opts, sysLogger)
 }

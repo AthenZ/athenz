@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/sds"
 	"io"
 	"io/ioutil"
 	"os"
@@ -107,13 +108,20 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			}
 		}
 
-		csr, err := util.GenerateRoleCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, opts.Services[0].Name, roleName, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains[0], opts.BackwardCompatible)
+		emailDomain := ""
+		if opts.RolePrincipalEmail {
+			emailDomain = opts.ZTSAWSDomains[0]
+		}
+		csr, err := util.GenerateRoleCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, opts.Services[0].Name, roleName, opts.InstanceId, opts.Provider, emailDomain)
 		if err != nil {
 			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
 			continue
 		}
 		roleRequest.Csr = csr
+		if role.ExpiryTime > 0 {
+			roleRequest.ExpiryTime = int64(role.ExpiryTime)
+		}
 
 		certFilePem := util.GetRoleCertFileName(opts.CertDir, role.Filename, roleName)
 		notBefore, notAfter, _ := GetPrevRoleCertDates(certFilePem, sysLogger)
@@ -199,7 +207,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 			return err
 		}
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.BackwardCompatible)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
 	if err != nil {
 		return err
 	}
@@ -214,6 +222,10 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 		Csr:             csr,
 		Ssh:             sshCsr,
 		AttestationData: string(attestData),
+	}
+	if svc.ExpiryTime > 0 {
+		expiryTime := int32(svc.ExpiryTime)
+		info.ExpiryTime = &expiryTime
 	}
 
 	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, "", "", opts.ZTSCACertFile, sysLogger)
@@ -276,7 +288,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		logutil.LogInfo(sysLogger, "Unable to read private key from %s, err: %v\n", keyFile, err)
 		return err
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.BackwardCompatible)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
@@ -293,9 +305,14 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 
 	info := &zts.InstanceRefreshInformation{
 		AttestationData: string(attestData),
-		Csr:      csr,
-		Ssh:      sshCsr,
+		Csr:             csr,
+		Ssh:             sshCsr,
 	}
+	if svc.ExpiryTime > 0 {
+		expiryTime := int32(svc.ExpiryTime)
+		info.ExpiryTime = &expiryTime
+	}
+
 	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(opts.Provider), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(opts.InstanceId), info)
 	if err != nil {
 		logutil.LogInfo(sysLogger, "Unable to refresh instance service certificate for %s, err: %v\n", opts.Name, err)
@@ -385,10 +402,9 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io
 
 	_ = util.SetupSIADirs(siaDir, "", sysLogger)
 
-	//for now we're going to rotate once every day
-	//since our server and role certs are valid for
-	//30 days by default
-	rotationInterval := 24 * 60 * time.Minute
+	//the default value is to rotate once every day since our
+	//server and role certs are valid for 30 days by default
+	rotationInterval := time.Duration(opts.RefreshInterval) * time.Minute
 
 	data, err := attestation.GetAttestationData(opts, sysLogger)
 	if err != nil {
@@ -439,6 +455,7 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io
 
 		stop := make(chan bool, 1)
 		errors := make(chan error, 1)
+		certUpdates := make(chan bool, 1)
 
 		go func() {
 			for {
@@ -469,12 +486,25 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io
 					opts,
 					sysLogger,
 				)
+				certUpdates <- true
+
 				select {
 				case <-stop:
 					errors <- nil
 					return
 				case <-time.After(rotationInterval):
 					break
+				}
+			}
+		}()
+
+		go func() {
+			if opts.SDSUdsPath != "" {
+				err := sds.StartGrpcServer(opts, certUpdates)
+				if err != nil {
+					logutil.LogInfo(sysLogger, "failed to start grpc/uds server: %v\n", err)
+					stop <- true
+					return
 				}
 			}
 		}()

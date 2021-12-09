@@ -50,7 +50,7 @@ func getLambdaAttestationData(domain, service, account string) (*attestation.Att
 	return data, nil
 }
 
-func GetAWSLambdaServiceCertificate(ztsUrl, provider, domain, service, account string, ztsDomains[] string, backwardCompatible bool) (tls.Certificate, error) {
+func GetAWSLambdaServiceCertificate(ztsUrl, provider, domain, service, account string, ztsDomains []string, instanceIdSanDNS bool) (tls.Certificate, error) {
 	key, err := util.GenerateKeyPair(2048)
 	if err != nil {
 		return tls.Certificate{}, err
@@ -73,8 +73,8 @@ func GetAWSLambdaServiceCertificate(ztsUrl, provider, domain, service, account s
 	// athenz://instanceid/<provider>/<instance-id>
 	instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/lambda-%s-%s", provider, account, service)
 	csrDetails.URIs = util.AppendUri(csrDetails.URIs, instanceIdUri)
-	// for backward compatibility a sanDNS entry with instance id in the hostname
-	if backwardCompatible {
+	// for backward compatibility a sanDNS entry with instance id in the hostname if requested
+	if instanceIdSanDNS {
 		instanceIdHost := fmt.Sprintf("lambda-%s-%s.instanceid.athenz.%s", account, service, ztsDomains[0])
 		csrDetails.HostList = append(csrDetails.HostList, instanceIdHost)
 	}

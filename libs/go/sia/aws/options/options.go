@@ -16,36 +16,40 @@
 
 package options
 
-// package options contains types for parsing sia_config file and options to carry those config values
-
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-	"strings"
-	"time"
-
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
+	"io"
+	"io/ioutil"
+	"os"
+	"strings"
+	"time"
 )
+
+// package options contains types for parsing sia_config file and options to carry those config values
 
 // ConfigService represents a service to be specified by user, and specify User/Group attributes for the service
 type ConfigService struct {
-	Filename string `json:"filename,omitempty"`
-	User     string `json:"user,omitempty"`
-	Group    string `json:"group,omitempty"`
+	Filename       string `json:"filename,omitempty"`
+	User           string `json:"user,omitempty"`
+	Group          string `json:"group,omitempty"`
+	ExpiryTime     int    `json:"expiry_time,omitempty"`
+	SDSUdsUid      int    `json:"sds_uds_uid,omitempty"`
+	SDSNodeId      string `json:"sds_node_id,omitempty"`
+	SDSNodeCluster string `json:"sds_node_cluster,omitempty"`
 }
 
 // ConfigRole represents a role to be specified by user, and specify attributes for the role
 type ConfigRole struct {
-	Filename string `json:"filename,omitempty"`
+	Filename   string `json:"filename,omitempty"`
+	ExpiryTime int    `json:"expiry_time,omitempty"`
 }
 
 // ConfigAccount represents each of the accounts that can be specified in the config file
@@ -75,6 +79,9 @@ type Config struct {
 	RotateKey       bool                     `json:"rotate_key,omitempty"`        //rotate private key support
 	User            string                   `json:"user,omitempty"`              //the user name to chown the cert/key dirs to. If absent, then root
 	Group           string                   `json:"group,omitempty"`             //the group name to chown the cert/key dirs to. If absent, then athenz
+	SDSUdsPath      string                   `json:"sds_uds_path,omitempty"`      //uds path if the agent should support uds connections
+	SDSUdsUid       int                      `json:"sds_uds_uid,omitempty"`       //uds connections must be from the given user uid
+	ExpiryTime      int                      `json:"expiry_time,omitempty"`       //service and role certificate expiry in minutes
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -90,54 +97,62 @@ type Role struct {
 
 // Service represents service details. Attributes are filled in based on the config values
 type Service struct {
-	Name     string
-	Filename string
-	User     string
-	Group    string
-	Uid      int
-	Gid      int
-	FileMode int
+	Name           string
+	Filename       string
+	User           string
+	Group          string
+	Uid            int
+	Gid            int
+	FileMode       int
+	ExpiryTime     int
+	SDSUdsUid      int
+	SDSNodeId      string
+	SDSNodeCluster string
 }
 
 // Options represents settings that are derived from config file and application defaults
 type Options struct {
-	Provider             string                //name of the provider
-	Name                 string                //name of the service identity
-	User                 string                //the user name to chown the cert/key dirs to. If absent, then root
-	Group                string                //the group name to chown the cert/key dirs to. If absent, then athenz
-	Domain               string                //name of the domain for the identity
-	Account              string                //name of the account
-	Service              string                //name of the service for the identity
-	Zts                  string                //the ZTS to contact
-	Filename             string                //filename to put the service certificate
-	InstanceId           string                //instance id if ec2, task id if running within eks/ecs
-	Roles                map[string]ConfigRole //map of roles to retrieve certificates for
-	Region               string                //region name
-	SanDnsWildcard       bool                  //san dns wildcard support
-	Version              string                //sia version number
-	ZTSDomains           []string              //zts domain prefixes
-	Services             []Service             //array of configured services
-	Ssh                  bool                  //ssh certificate support
-	UseRegionalSTS       bool                  //use regional sts endpoint
-	KeyDir               string                //private key directory path
-	CertDir              string                //x.509 certificate directory path
-	AthenzCACertFile     string                //filename to store Athenz CA certs
-	ZTSCACertFile        string                //filename for CA certs when communicating with ZTS
-	ZTSServerName        string                //ZTS server name, if necessary for tls
-	ZTSAWSDomains        []string              //list of domain prefixes for sanDNS entries
-	GenerateRoleKey      bool                  //option to generate a separate key for role certificates
-	RotateKey            bool                  //rotate the private key when refreshing certificates
-	BackUpDir            string                //backup directory for key/cert rotation
-	CertCountryName      string                //generated x.509 certificate country name
-	CertOrgName          string                //generated x.509 certificate organization name
-	SshPubKeyFile        string                //ssh host public key file path
-	SshCertFile          string                //ssh host certificate file path
-	SshConfigFile        string                //sshd config file path
-	PrivateIp            string                //instance private ip
-	EC2Document          string                //EC2 instance identity document
-	EC2Signature         string                //EC2 instance identity document pkcs7 signature
-	EC2StartTime         *time.Time            //EC2 instance start time
-	BackwardCompatible   bool                  //support backward compatible option in generated certs
+	Provider           string                //name of the provider
+	Name               string                //name of the service identity
+	User               string                //the user name to chown the cert/key dirs to. If absent, then root
+	Group              string                //the group name to chown the cert/key dirs to. If absent, then athenz
+	Domain             string                //name of the domain for the identity
+	Account            string                //name of the account
+	Service            string                //name of the service for the identity
+	Zts                string                //the ZTS to contact
+	Filename           string                //filename to put the service certificate
+	InstanceId         string                //instance id if ec2, task id if running within eks/ecs
+	Roles              map[string]ConfigRole //map of roles to retrieve certificates for
+	Region             string                //region name
+	SanDnsWildcard     bool                  //san dns wildcard support
+	Version            string                //sia version number
+	ZTSDomains         []string              //zts domain prefixes
+	Services           []Service             //array of configured services
+	Ssh                bool                  //ssh certificate support
+	UseRegionalSTS     bool                  //use regional sts endpoint
+	KeyDir             string                //private key directory path
+	CertDir            string                //x.509 certificate directory path
+	AthenzCACertFile   string                //filename to store Athenz CA certs
+	ZTSCACertFile      string                //filename for CA certs when communicating with ZTS
+	ZTSServerName      string                //ZTS server name, if necessary for tls
+	ZTSAWSDomains      []string              //list of domain prefixes for sanDNS entries
+	GenerateRoleKey    bool                  //option to generate a separate key for role certificates
+	RotateKey          bool                  //rotate the private key when refreshing certificates
+	BackUpDir          string                //backup directory for key/cert rotation
+	CertCountryName    string                //generated x.509 certificate country name
+	CertOrgName        string                //generated x.509 certificate organization name
+	SshPubKeyFile      string                //ssh host public key file path
+	SshCertFile        string                //ssh host certificate file path
+	SshConfigFile      string                //sshd config file path
+	PrivateIp          string                //instance private ip
+	EC2Document        string                //EC2 instance identity document
+	EC2Signature       string                //EC2 instance identity document pkcs7 signature
+	EC2StartTime       *time.Time            //EC2 instance start time
+	InstanceIdSanDNS   bool                  //include instance id in a san dns entry (backward compatible option)
+	RolePrincipalEmail bool                  //include role principal in a san email field (backward compatible option)
+	SDSUdsPath         string                //UDS path if the agent should support uds connections
+	SDSUdsUid          int                   //UDS connections must be from the given user uid
+	RefreshInterval    int                   //refresh interval for certificates - default 24 hours
 }
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (string, error) {
@@ -248,6 +263,21 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if config.Group == "" {
 		config.Group = os.Getenv("ATHENZ_SIA_GROUP")
 	}
+	if config.SDSUdsPath == "" {
+		config.SDSUdsPath = os.Getenv("ATHENZ_SIA_SDS_UDS_PATH")
+	}
+	if config.SDSUdsUid == 0 {
+		uid := util.ParseEnvIntFlag(os.Getenv("ATHENZ_SIA_SDS_UDS_UID"), 0)
+		if uid > 0 {
+			config.SDSUdsUid = uid
+		}
+	}
+	if config.ExpiryTime == 0 {
+		expiryTime := util.ParseEnvIntFlag(os.Getenv("ATHENZ_SIA_EXPIRY_TIME"), 0)
+		if expiryTime > 0 {
+			config.ExpiryTime = expiryTime
+		}
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -275,25 +305,28 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 	//update regional sts and wildcard settings based on config settings
 	useRegionalSTS := false
 	sanDnsWildcard := false
+	sdsUdsPath := ""
+	sdsUdsUid := 0
+	generateRoleKey := false
+	rotateKey := false
+	expiryTime := 0
+
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
 		sanDnsWildcard = config.SanDnsWildcard
-	}
+		sdsUdsPath = config.SDSUdsPath
+		sdsUdsUid = config.SDSUdsUid
+		expiryTime = config.ExpiryTime
 
-	//update account user/group settings if override provided at the config level
-	if config != nil {
+		//update account user/group settings if override provided at the config level
 		if account.User == "" && config.User != "" {
 			account.User = config.User
 		}
 		if account.Group == "" && config.Group != "" {
 			account.Group = config.Group
 		}
-	}
 
-	//update generate role and rotate key options if config is provided
-	generateRoleKey := false
-	rotateKey := false
-	if config != nil {
+		//update generate role and rotate key options if config is provided
 		generateRoleKey = config.GenerateRoleKey
 		rotateKey = config.RotateKey
 		if len(account.Roles) != 0 && generateRoleKey == false && rotateKey == true {
@@ -313,6 +346,8 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 			User:     account.User,
 		}
 		s.Uid, s.Gid, s.FileMode = util.SvcAttrs(account.User, account.Group, sysLogger)
+		s.SDSUdsUid = sdsUdsUid
+		s.ExpiryTime = expiryTime
 		services = append(services, s)
 	} else {
 		// sia_config and services are found
@@ -327,6 +362,14 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 		// Populate the remaining into tail
 		tail := []Service{}
 		for name, s := range config.Services {
+			svcExpiryTime := expiryTime
+			if s.ExpiryTime > 0 {
+				svcExpiryTime = s.ExpiryTime
+			}
+			svcSDSUdsUid := sdsUdsUid
+			if s.SDSUdsUid != 0 {
+				svcSDSUdsUid = s.SDSUdsUid
+			}
 			if name == config.Service {
 				first.Filename = s.Filename
 				first.User = s.User
@@ -340,6 +383,10 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 					first.Group = account.Group
 				}
 				first.Uid, first.Gid, first.FileMode = util.SvcAttrs(first.User, first.Group, sysLogger)
+				first.ExpiryTime = svcExpiryTime
+				first.SDSNodeId = s.SDSNodeId
+				first.SDSNodeCluster = s.SDSNodeCluster
+				first.SDSUdsUid = svcSDSUdsUid
 			} else {
 				ts := Service{
 					Name:     name,
@@ -348,6 +395,10 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 					Group:    s.Group,
 				}
 				ts.Uid, ts.Gid, ts.FileMode = util.SvcAttrs(s.User, s.Group, sysLogger)
+				ts.ExpiryTime = svcExpiryTime
+				ts.SDSNodeId = s.SDSNodeId
+				ts.SDSNodeCluster = s.SDSNodeCluster
+				ts.SDSUdsUid = svcSDSUdsUid
 				tail = append(tail, ts)
 			}
 			if s.Filename != "" && s.Filename[0] == '/' {
@@ -370,24 +421,26 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 	}
 
 	return &Options{
-		Name:                 account.Name,
-		User:                 account.User,
-		Group:                account.Group,
-		Domain:               account.Domain,
-		Account:              account.Account,
-		Zts:                  account.Zts,
-		Filename:             account.Filename,
-		Version:              fmt.Sprintf("SIA-AWS %s", version),
-		UseRegionalSTS:       useRegionalSTS,
-		SanDnsWildcard:       sanDnsWildcard,
-		Services:             services,
-		Roles:                account.Roles,
-		CertDir:              fmt.Sprintf("%s/certs", siaDir),
-		KeyDir:               fmt.Sprintf("%s/keys", siaDir),
-		AthenzCACertFile:     fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
-		GenerateRoleKey:      generateRoleKey,
-		RotateKey:            rotateKey,
-		BackUpDir:            fmt.Sprintf("%s/backup", siaDir),
+		Name:             account.Name,
+		User:             account.User,
+		Group:            account.Group,
+		Domain:           account.Domain,
+		Account:          account.Account,
+		Zts:              account.Zts,
+		Filename:         account.Filename,
+		Version:          fmt.Sprintf("SIA-AWS %s", version),
+		UseRegionalSTS:   useRegionalSTS,
+		SanDnsWildcard:   sanDnsWildcard,
+		Services:         services,
+		Roles:            account.Roles,
+		CertDir:          fmt.Sprintf("%s/certs", siaDir),
+		KeyDir:           fmt.Sprintf("%s/keys", siaDir),
+		AthenzCACertFile: fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
+		GenerateRoleKey:  generateRoleKey,
+		RotateKey:        rotateKey,
+		BackUpDir:        fmt.Sprintf("%s/backup", siaDir),
+		SDSUdsPath:       sdsUdsPath,
+		RefreshInterval:  24 * 60,
 	}, nil
 }
 

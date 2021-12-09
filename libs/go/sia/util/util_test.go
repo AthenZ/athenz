@@ -296,7 +296,7 @@ func TestGenerateRoleCertCSR(test *testing.T) {
 		return
 	}
 
-	csr, err := GenerateRoleCertCSR(key, "US", "", "domain", "service", "athenz:role.readers", "instance001", "Athenz", "athenz.cloud", true)
+	csr, err := GenerateRoleCertCSR(key, "US", "", "domain", "service", "athenz:role.readers", "instance001", "Athenz", "athenz.cloud")
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -343,6 +343,33 @@ func TestGenerateRoleCertCSR(test *testing.T) {
 	}
 	if parsedcertreq.Subject.Organization != nil {
 		test.Errorf("CSR does not have expected org")
+		return
+	}
+}
+
+func TestGenerateRoleCertCSRNoEmail(test *testing.T) {
+
+	key, err := GenerateKeyPair(2048)
+	if err != nil {
+		test.Errorf("Cannot generate private key: %v", err)
+		return
+	}
+
+	csr, err := GenerateRoleCertCSR(key, "US", "", "domain", "service", "athenz:role.readers", "instance001", "Athenz", "")
+	if err != nil {
+		test.Errorf("Cannot create CSR: %v", err)
+		return
+	}
+
+	block, _ := pem.Decode([]byte(csr))
+	parsedcertreq, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		test.Errorf("Cannot parse CSR: %v", err)
+		return
+	}
+
+	if parsedcertreq.EmailAddresses != nil {
+		test.Errorf("CSR has an unexpected email addresses: %v", parsedcertreq.EmailAddresses)
 		return
 	}
 }
@@ -681,5 +708,124 @@ func TestParseEnvBooleanFlag(test *testing.T) {
 	os.Setenv("TEST-ENV3", "false")
 	if ParseEnvBooleanFlag("TEST-ENV3") {
 		test.Errorf("false value env variable returned true")
+	}
+}
+
+func TestParseEnvIntFlag(test *testing.T) {
+
+	tests := []struct {
+		name         string
+		varName      string
+		varValue     string
+		defaultValue int
+		returnValue  int
+	}{
+		{"valid", "TEST-INT-ENV1", "1", 2, 1},
+		{"valid-negative", "TEST-INT-ENV2", "-1", 2, -1},
+		{"not-set", "TEST-INT-ENV3", "", 2, 2},
+		{"not-int1", "TEST-INT-ENV4", "abc", 3, 3},
+		{"not-int2", "TEST-INT-ENV5", "4abc", 3, 3},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			if tt.varValue != "" {
+				os.Setenv(tt.varName, tt.varValue)
+			}
+			value := ParseEnvIntFlag(tt.varName, tt.defaultValue)
+			if value != tt.returnValue {
+				test.Errorf("%s: invalid value returned - expected: %d, received %d", tt.name, tt.returnValue, value)
+			}
+		})
+	}
+}
+
+func TestParseServiceSpiffeUri(test *testing.T) {
+
+	tests := []struct {
+		name    string
+		uri     string
+		domain  string
+		service string
+	}{
+		{"valid", "spiffe://athenz/sa/api", "athenz", "api"},
+		{"not-valid1", "spiffe://athenz/ra/api", "", ""},
+		{"not-valid2", "spiffe://athenz/sa/", "", ""},
+		{"not-valid3", "spiffe:///sa/api", "", ""},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			domain, service := ParseServiceSpiffeUri(tt.uri)
+			if domain != tt.domain {
+				test.Errorf("%s: invalid domain returned - expected: %s, received %s", tt.name, tt.domain, domain)
+			}
+			if service != tt.service {
+				test.Errorf("%s: invalid service returned - expected: %s, received %s", tt.name, tt.service, service)
+			}
+		})
+	}
+}
+
+func TestParseRoleSpiffeUri(test *testing.T) {
+
+	tests := []struct {
+		name   string
+		uri    string
+		domain string
+		role   string
+	}{
+		{"valid", "spiffe://athenz/ra/readers", "athenz", "readers"},
+		{"not-valid1", "spiffe://athenz/sa/readers", "", ""},
+		{"not-valid2", "spiffe://athenz/ra/", "", ""},
+		{"not-valid3", "spiffe:///ra/readers", "", ""},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			domain, role := ParseRoleSpiffeUri(tt.uri)
+			if domain != tt.domain {
+				test.Errorf("%s: invalid domain returned - expected: %s, received %s", tt.name, tt.domain, domain)
+			}
+			if role != tt.role {
+				test.Errorf("%s: invalid role returned - expected: %s, received %s", tt.name, tt.role, role)
+			}
+		})
+	}
+}
+
+func TestParseCASpiffeUri(test *testing.T) {
+
+	tests := []struct {
+		name string
+		uri  string
+		ns   string
+		ca   string
+	}{
+		{"valid", "spiffe://athenz/ca/default", "athenz", "default"},
+		{"not-valid1", "spiffe://athenz/sa/default", "", ""},
+		{"not-valid2", "spiffe://athenz/sa/", "", ""},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			ns, ca := ParseCASpiffeUri(tt.uri)
+			if ns != tt.ns {
+				test.Errorf("invalid ns returned - expected: %s, received %s", tt.ns, ns)
+			}
+			if ca != tt.ca {
+				test.Errorf("invalid ca returned - expected: %s, received %s", tt.ca, ca)
+			}
+		})
+	}
+}
+
+func TestNonce(test *testing.T) {
+	nonce1, err := Nonce()
+	if err != nil {
+		test.Errorf("Unable to generate a nonce1 value, error %v", err)
+	}
+	nonce2, err := Nonce()
+	if err != nil {
+		test.Errorf("Unable to generate a nonce2 value, error %v", err)
+	}
+	if nonce1 == nonce2 {
+		test.Errorf("generated identical nonce values")
 	}
 }
