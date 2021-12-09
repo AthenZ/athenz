@@ -10,6 +10,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/AthenZ/athenz/utils/zpe-updater/metrics"
 	"io/ioutil"
 	"log"
 	"os"
@@ -439,4 +440,74 @@ func PolicyView(config *ZpuConfiguration, domainName string) error {
 	}
 	fmt.Print(string(jsonPolicyBytes))
 	return nil
+}
+
+func CheckState(config *ZpuConfiguration) ([]metrics.PolicyStatus, []error) {
+	var errorsMessages []error
+	if config == nil {
+		errorsMessages = append(errorsMessages, errors.New("nil configuration"))
+		return nil, errorsMessages
+	}
+	if config.DomainList == "" {
+		errorsMessages = append(errorsMessages, errors.New("no domain list to process from configuration"))
+		return nil, errorsMessages
+	}
+	if config.Zts == "" {
+		errorsMessages = append(errorsMessages, errors.New("empty Zts url in configuration"))
+		return nil, errorsMessages
+	}
+
+	ztsClient, err := getZTSClient(config)
+	if err != nil {
+		errorsMessages = append(errorsMessages, errors.New("failed to generate Zts client: " + err.Error()))
+		return nil, errorsMessages
+	}
+	domains := strings.Split(config.DomainList, ",")
+
+	var checkedPolicis []metrics.PolicyStatus
+	for _, domainName := range domains {
+
+		checkedPolicy := metrics.PolicyStatus{
+			Name:     		domainName,
+			FileExists: 	false,
+		}
+
+		policyFile := fmt.Sprintf("%s/%s.pol", config.PolicyFileDir, domainName)
+		exists := util.Exists(policyFile)
+		if !exists {
+			errorsMessages = append(errorsMessages, errors.New("policy file doesn't exist for domain " + domainName))
+			checkedPolicis = append(checkedPolicis, checkedPolicy)
+			continue
+		}
+		readFile, err := os.OpenFile(policyFile, os.O_RDONLY, 0444)
+		if err != nil {
+			errorsMessages = append(errorsMessages, errors.New("failed to read policy file for domain " + domainName + ": " + err.Error()))
+			checkedPolicis = append(checkedPolicis, checkedPolicy)
+			continue
+		}
+		checkedPolicy.FileExists = true
+		defer readFile.Close()
+
+		var signedPolicyData *zts.SignedPolicyData
+		if config.JWSPolicySupport {
+			signedPolicyData, err = GetSignedPolicyDataFromJws(config, ztsClient, readFile)
+		} else {
+			signedPolicyData, err = GetSignedPolicyDataFromJson(config, ztsClient, readFile)
+		}
+		if err != nil {
+			errorsMessages = append(errorsMessages, errors.New("failed to validate policy file signature for domain " + domainName + ": " + err.Error()))
+			checkedPolicy.ValidSignature = false
+			checkedPolicis = append(checkedPolicis, checkedPolicy)
+			continue
+		}
+		checkedPolicy.ValidSignature = true
+
+		expiryCheck := rdl.NewTimestamp(signedPolicyData.Expires.Time.Add(-1 * time.Duration(int64(config.ExpiryCheck)) * time.Second))
+		checkedPolicy.Expiry = expiryCheck.Sub(rdl.TimestampNow().Time)
+		if checkedPolicy.Expiry.Milliseconds() <= 0 {
+			errorsMessages = append(errorsMessages, errors.New("policy file expired for domain " + domainName))
+		}
+		checkedPolicis = append(checkedPolicis, checkedPolicy)
+	}
+	return checkedPolicis, errorsMessages
 }
