@@ -119,22 +119,23 @@ export async function getServerSideProps(context) {
         domainResults = values[1];
     }
     return {
-        api,
-        domain: context.query.searchterm,
-        domains: values[0],
-        domainResults,
-        type: type,
-        headerDetails: values[2],
-        error,
-        reload,
-        nonce: context.req && context.req.headers.rid,
+        props: {
+            domain: context.query.searchterm,
+            domains: values[0],
+            domainResults,
+            type: type,
+            headerDetails: values[2],
+            error,
+            reload,
+            nonce: context.req && context.req.headers.rid,
+        }
     };
 }
 
 class PageSearchDetails extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api || API();
+        this.api = API();
         this.state = {
             domains: props.domains,
             domainResults: props.domainResults,
