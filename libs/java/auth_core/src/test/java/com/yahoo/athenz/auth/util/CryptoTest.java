@@ -70,7 +70,7 @@ public class CryptoTest {
     private final String serviceRSASignature = "VsUlcNozK4as1FjPbowEE_DFDD8KWpQzphadfbt_TsMoCTLFpYrMzKTu_nHKemJmEi0bbPwj7hRLrIKEFu2VjQ--";
     private final String serviceECSignature = "MEQCIEBnyNCxp5GSeua3K9OenyetmVs4F68VB.Md1JRaU4OXAiBWAxlJLe74ZV4QDqapsD4FJm.MA3mv0FMcq.LEevJa0g--";
 
-    private static final byte[] PERIOD = { 46 };
+    private static final byte[] PERIOD = {46};
 
     @Test
     public void testSignVerifyRSAKey() {
@@ -341,6 +341,7 @@ public class CryptoTest {
 
         assertTrue(Crypto.verify(serviceToken, publicKey, signature));
     }
+
     @Test
     public void testSignVerifyECParamsKeyException() {
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateParamsKey);
@@ -376,6 +377,7 @@ public class CryptoTest {
     public void testLoadPublicKeyException() {
         assertThrows(CryptoException.class, () -> Crypto.loadPublicKey(noFile));
     }
+
     @Test
     public void testSignVerifyECParamMixCurvesFail() {
 
@@ -614,13 +616,13 @@ public class CryptoTest {
 
     @Test
     public void testSHA256() {
-        byte [] checkByte = Crypto.sha256("check");
+        byte[] checkByte = Crypto.sha256("check");
         assertNotNull(checkByte);
     }
 
     @DataProvider
     public Object[][] x500Principal() {
-        return new Object[][] {
+        return new Object[][]{
                 {"CN=athenzcompany.com,O=foo", false},
                 {"CDDN=athenzcompany.com", true},
         };
@@ -811,7 +813,7 @@ public class CryptoTest {
     }
 
     @Test
-    public void testExtractX509CertOField() throws Exception{
+    public void testExtractX509CertOField() throws Exception {
         try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
@@ -1108,7 +1110,7 @@ public class CryptoTest {
     }
 
     @Test
-    public void testExtractX509CertDnsNmaes() throws Exception{
+    public void testExtractX509CertDnsNmaes() throws Exception {
         try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_singleip.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
@@ -1282,7 +1284,7 @@ public class CryptoTest {
         assertNotNull(derSignature);
         byte[] p1363Signature = Crypto.convertSignatureFromDERToP1363Format(derSignature, Crypto.SHA256);
         assertNotNull(p1363Signature);
-        byte [] testDerSignature = Crypto.convertSignatureFromP1363ToDERFormat(p1363Signature, Crypto.SHA256);
+        byte[] testDerSignature = Crypto.convertSignatureFromP1363ToDERFormat(p1363Signature, Crypto.SHA256);
         assertEquals(derSignature, testDerSignature);
 
         try {
@@ -1384,7 +1386,7 @@ public class CryptoTest {
         Map<String, PublicKey> keyMap = new HashMap<>();
         keyMap.put("rsa-0", Crypto.loadPublicKey(rsaPublicKey));
         keyMap.put("ec-0", Crypto.loadPublicKey(ecPublicKey));
-        Function<String, PublicKey> keyGetter= keyMap::get;
+        Function<String, PublicKey> keyGetter = keyMap::get;
 
         final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         final String protectedHeader = "{\"kid\":\"" + kid + "\",\"alg\":\"" + algorithm + "\"}";
@@ -1404,7 +1406,7 @@ public class CryptoTest {
     @Test
     public void validateJWSDocumentMissingKid() {
 
-        Function<String, PublicKey> keyGetter= (String keyId)-> null;
+        Function<String, PublicKey> keyGetter = (String keyId) -> null;
         final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         final String protectedHeader = "{\"alg\":\"ES256\"}";
         final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
@@ -1423,7 +1425,7 @@ public class CryptoTest {
     @Test
     public void validateJWSDocumentInvalidHeader() {
 
-        Function<String, PublicKey> keyGetter= (String keyId)-> null;
+        Function<String, PublicKey> keyGetter = (String keyId) -> null;
         final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         final String protectedHeader = "{\"alg\":\"ES256\"}";
         final byte[] encodedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
@@ -1445,7 +1447,7 @@ public class CryptoTest {
         Map<String, PublicKey> keyMap = new HashMap<>();
         keyMap.put("rsa-0", Crypto.loadPublicKey(rsaPublicKey));
         keyMap.put("ec-0", Crypto.loadPublicKey(ecPublicKey));
-        Function<String, PublicKey> keyGetter= keyMap::get;
+        Function<String, PublicKey> keyGetter = keyMap::get;
 
         final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         final String protectedHeader = "{\"kid\":\"ec-0\",\"alg\":\"ES256\"}";
@@ -1465,7 +1467,7 @@ public class CryptoTest {
         Map<String, PublicKey> keyMap = new HashMap<>();
         keyMap.put("rsa-0", Crypto.loadPublicKey(ecPublicKey));
         keyMap.put("ec-0", Crypto.loadPublicKey(rsaPublicKey));
-        Function<String, PublicKey> keyGetter= keyMap::get;
+        Function<String, PublicKey> keyGetter = keyMap::get;
 
         final Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         final String protectedHeader = "{\"kid\":\"ec-0\",\"alg\":\"ES256\"}";
@@ -1543,5 +1545,43 @@ public class CryptoTest {
         assertEquals(Crypto.getSignatureExpectedSize("SHA384"), 48);
         assertEquals(Crypto.getSignatureExpectedSize("SHA512"), 66);
         assertEquals(Crypto.getSignatureExpectedSize("SHA1"), 0);
+    }
+
+    @Test
+    public void testSafeCopyByteArray() {
+        byte[] src = "data".getBytes(StandardCharsets.UTF_8);
+        byte[] dest = new byte[6];
+        Crypto.safeCopyByteArray(src, dest, 0, 6);
+        assertEquals(dest[0], (byte) 0);
+        assertEquals(dest[1], (byte) 0);
+        assertEquals(dest[2], (byte) 'd');
+        assertEquals(dest[3], (byte) 'a');
+        assertEquals(dest[4], (byte) 't');
+        assertEquals(dest[5], (byte) 'a');
+
+        byte[] src1 = "part1".getBytes(StandardCharsets.UTF_8);
+        byte[] src2 = "part2".getBytes(StandardCharsets.UTF_8);
+        dest = new byte[10];
+        Crypto.safeCopyByteArray(src1, dest, 0, 5);
+        Crypto.safeCopyByteArray(src2, dest, 5, 5);
+        assertEquals(new String(dest), "part1part2");
+    }
+
+    @Test
+    public void testSignVerifyByteArrayECKeyP1363FormatConversions() {
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        assertNotNull(privateKey);
+
+        for (int i = 0; i < 10000; i++) {
+            String serviceToken = Integer.toString(i);
+            byte[] derSignature = Crypto.sign(serviceToken.getBytes(StandardCharsets.UTF_8), privateKey, Crypto.SHA256);
+            assertNotNull(derSignature);
+            byte[] p1363Signature = Crypto.convertSignatureFromDERToP1363Format(derSignature, Crypto.SHA256);
+            assertNotNull(p1363Signature);
+
+            byte[] testDerSignature = Crypto.convertSignatureFromP1363ToDERFormat(p1363Signature, Crypto.SHA256);
+            assertEquals(derSignature, testDerSignature);
+        }
     }
 }
