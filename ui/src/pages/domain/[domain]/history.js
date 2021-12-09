@@ -82,7 +82,6 @@ export async function getServerSideProps(context) {
         api.listUserDomains(),
         api.getHeaderDetails(),
         api.getDomain(context.query.domain),
-        api.getDomain(context.query.domain),
         api.getHistory(context.query.domain, 'ALL', null, null),
         api.getRoles(context.query.domain),
         api.getForm(),

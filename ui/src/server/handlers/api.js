@@ -840,7 +840,7 @@ Fetchr.registerService({
                         status: 404,
                         message: {
                             message:
-                                'Failed to get assertion for policy' +
+                                'Failed to get assertion for policy ' +
                                 params.policyName +
                                 '.',
                         },
