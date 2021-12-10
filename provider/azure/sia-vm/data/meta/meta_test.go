@@ -57,7 +57,7 @@ func TestGetMetadata(test *testing.T) {
 	// Mock the metadata endpoints
 	router := httptreemux.New()
 	router.GET("/metadata/instance", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /metadata/instance?api-version=2020-06-01")
+		log.Println("Called /metadata/instance?api-version=2020-06-01")
 		io.WriteString(w, "{ \"test\": \"document\"}")
 	})
 

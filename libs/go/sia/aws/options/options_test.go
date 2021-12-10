@@ -23,13 +23,11 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"os/user"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/dimfeld/httptreemux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -69,15 +67,15 @@ func (t *testServer) httpUrl() string {
 	return fmt.Sprintf("http://%s", t.addr)
 }
 
-func getConfig(fileName, roleSuffix, metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (*Config, *ConfigAccount, error) {
+func getConfig(fileName, roleSuffix, metaEndPoint string, useRegionalSTS bool, region string) (*Config, *ConfigAccount, error) {
 	// Parse config bytes first, and if that fails, load values from Instance Profile and IAM info
-	config, configAccount, err := InitFileConfig(fileName, metaEndPoint, useRegionalSTS, region, "", sysLogger)
+	config, configAccount, err := InitFileConfig(fileName, metaEndPoint, useRegionalSTS, region, "")
 	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to parse configuration file, error: %v\n", err)
+		log.Printf("unable to parse configuration file, error: %v\n", err)
 		// if we do not have a configuration file, we're going
 		// to use fallback to <domain>.<service>-service
 		// naming structure
-		logutil.LogInfo(sysLogger, "trying to determine service name from profile arn...\n")
+		log.Println("trying to determine service name from profile arn...")
 		configAccount, err = InitProfileConfig(metaEndPoint, roleSuffix)
 		if err != nil {
 			return nil, nil, fmt.Errorf("config non-parsable and unable to determine service name from profile arn, error: %v", err)
@@ -87,8 +85,8 @@ func getConfig(fileName, roleSuffix, metaEndPoint string, useRegionalSTS bool, r
 }
 
 func assertService(expected Service, actual Service) bool {
-	log.Printf("expected: %+v", expected)
-	log.Printf("actual: %+v", actual)
+	log.Printf("expected: %+v\n", expected)
+	log.Printf("actual: %+v\n", actual)
 	return expected.Name == actual.Name &&
 		expected.User == actual.User &&
 		expected.Uid == actual.Uid &&
@@ -98,8 +96,8 @@ func assertService(expected Service, actual Service) bool {
 }
 
 func assertInServices(svcs []Service, actual Service) bool {
-	log.Printf("svcs passed: %+v", svcs)
-	log.Printf("actual: %+v", actual)
+	log.Printf("svcs passed: %+v\n", svcs)
+	log.Printf("actual: %+v\n", actual)
 	for _, s := range svcs {
 		if s.Name == actual.Name && s.User == actual.User && s.Uid == actual.Uid && s.Group == actual.Group && s.Gid == actual.Gid && s.Filename == actual.Filename {
 			return true
@@ -143,7 +141,7 @@ func TestOptionsNoConfig(t *testing.T) {
 	// Mock the metadata endpoints
 	router := httptreemux.New()
 	router.GET("/latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /latest/dynamic/instance-identity/document")
+		log.Println("Called /latest/dynamic/instance-identity/document")
 		io.WriteString(w, iamJson)
 	})
 
@@ -151,8 +149,8 @@ func TestOptionsNoConfig(t *testing.T) {
 	metaServer.start(router)
 	defer metaServer.stop()
 
-	config, configAccount, _ := getConfig("data/sia_empty_config", "-service", metaServer.httpUrl(), false, "us-west-2", os.Stdout)
-	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
+	config, configAccount, _ := getConfig("data/sia_empty_config", "-service", metaServer.httpUrl(), false, "us-west-2")
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -165,8 +163,8 @@ func TestOptionsNoConfig(t *testing.T) {
 
 // TestOptionsWithConfig test the scenario when /etc/sia/sia_config is present
 func TestOptionsWithConfig(t *testing.T) {
-	config, configAccount, _ := getConfig("data/sia_config", "-service", "http://localhost:80", false, "us-west-2", os.Stdout)
-	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
+	config, configAccount, _ := getConfig("data/sia_config", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -183,18 +181,18 @@ func TestOptionsWithConfig(t *testing.T) {
 
 // TestOptionsNoService test the scenario when /etc/sia/sia_config is present, but service is not repeated in services
 func TestOptionsNoService(t *testing.T) {
-	config, configAccount, e := getConfig("data/sia_no_service", "-service", "http://localhost:80", false, "us-west-2", os.Stdout)
+	config, configAccount, e := getConfig("data/sia_no_service", "-service", "http://localhost:80", false, "us-west-2")
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 
-	config, configAccount, _ = getConfig("data/sia_no_service2", "-service", "http://localhost:80", false, "us-west-2", os.Stdout)
-	_, e = setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
+	config, configAccount, _ = getConfig("data/sia_no_service2", "-service", "http://localhost:80", false, "us-west-2")
+	_, e = setOptions(config, configAccount, "/tmp", "1.0.0")
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 }
 
 // TestOptionsNoServices test the scenario when only "service" is mentioned and there are no multiple "services"
 func TestOptionsNoServices(t *testing.T) {
-	config, configAccount, _ := getConfig("data/sia_no_services", "-service", "http://localhost:80", false, "us-west-2", os.Stdout)
-	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
+	config, configAccount, _ := getConfig("data/sia_no_services", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 
 	// Make sure one service is set
@@ -205,15 +203,15 @@ func TestOptionsNoServices(t *testing.T) {
 }
 
 func TestOptionsWithGenerateRoleKeyConfig(t *testing.T) {
-	config, configAccount, _ := getConfig("data/sia_generate_role_key", "-service", "http://localhost:80", false, "us-west-2", os.Stdout)
-	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
+	config, configAccount, _ := getConfig("data/sia_generate_role_key", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.GenerateRoleKey == true)
 }
 
 func TestOptionsWithRotateKeyConfig(t *testing.T) {
-	config, configAccount, _ := getConfig("data/sia_rotate_key", "-service", "http://localhost:80", false, "us-west-2", os.Stdout)
-	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0", os.Stdout)
+	config, configAccount, _ := getConfig("data/sia_rotate_key", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.RotateKey == true)
 }

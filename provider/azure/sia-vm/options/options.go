@@ -23,11 +23,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
 	vmutil "github.com/AthenZ/athenz/provider/azure/sia-vm/util"
-	"io"
+	"log"
 	"strings"
 )
 
@@ -158,12 +157,12 @@ func initFileConfig(bytes []byte, identityDocument *attestation.IdentityDocument
 
 // NewOptions takes in sia_config bytes and returns a pointer to Options after parsing and initializing the defaults
 // It uses identity document defaults when sia_config is empty or non-parsable. It populates "services" array
-func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, siaDir, version, ztsCaCert, ztsServerName string, ztsAzureDomains []string, countryName, azureProvider string, sysLogger io.Writer) (*Options, error) {
+func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, siaDir, version, ztsCaCert, ztsServerName string, ztsAzureDomains []string, countryName, azureProvider string) (*Options, error) {
 	// Parse config bytes first, and if that fails, load values from Identity document
 	config, account, err := initFileConfig(bytes, identityDocument)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to parse configuration file, error: %v\n", err)
-		logutil.LogInfo(sysLogger, "trying to determine service name from identity document tags...\n")
+		log.Printf("unable to parse configuration file, error: %v\n", err)
+		log.Println("trying to determine service name from identity document tags...")
 		account, err = initProfileConfig(identityDocument)
 		if err != nil {
 			return nil, fmt.Errorf("config non-parsable and unable to determine service name from identity tags, error: %v", err)
@@ -188,7 +187,7 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 			Filename: account.Filename,
 			User:     account.User,
 		}
-		s.Uid, s.Gid = util.UidGidForUserGroup(account.User, account.Group, sysLogger)
+		s.Uid, s.Gid = util.UidGidForUserGroup(account.User, account.Group)
 		services = append(services, s)
 	} else {
 		// sia_config and services are found
@@ -215,7 +214,7 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 				if first.Group == "" {
 					first.Group = account.Group
 				}
-				first.Uid, first.Gid = util.UidGidForUserGroup(first.User, first.Group, sysLogger)
+				first.Uid, first.Gid = util.UidGidForUserGroup(first.User, first.Group)
 			} else {
 				ts := Service{
 					Name:     name,
@@ -223,7 +222,7 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 					User:     s.User,
 					Group:    s.Group,
 				}
-				ts.Uid, ts.Gid = util.UidGidForUserGroup(s.User, s.Group, sysLogger)
+				ts.Uid, ts.Gid = util.UidGidForUserGroup(s.User, s.Group)
 				tail = append(tail, ts)
 			}
 		}

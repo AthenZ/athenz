@@ -148,7 +148,7 @@ func (handler *ServerHandler) DeltaSecrets(envoySecret.SecretDiscoveryService_De
 func (handler *ServerHandler) FetchSecrets(ctx context.Context, req *envoyDiscovery.DiscoveryRequest) (*envoyDiscovery.DiscoveryResponse, error) {
 
 	clientInfo := ClientInfoFromContext(ctx)
-	log.Printf("FetchSecrets: client info - %v\n", clientInfo)
+	log.Printf("FetchSecrets: client info: %v\n", clientInfo)
 
 	resp, err := handler.getFetchResponse(clientInfo, req)
 	if err != nil {
@@ -230,7 +230,7 @@ func (handler *ServerHandler) getResponse(req *envoyDiscovery.DiscoveryRequest, 
 		} else {
 			domain, service := util.ParseServiceSpiffeUri(spiffeUri)
 			if domain == "" || service == "" {
-				log.Printf("Response: %s: unable to parse spiffe uri: %s", subId, spiffeUri)
+				log.Printf("Response: %s: unable to parse spiffe uri: %s\n", subId, spiffeUri)
 				continue
 			}
 			// authenticate the request

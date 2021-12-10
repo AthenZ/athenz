@@ -17,12 +17,12 @@ type AzureVmFetcher struct {
 
 func (fetcher *AzureVmFetcher) Fetch(host MsdHost, accountId string) (ServicesData, error) {
 
-	identityDocument, err := attestation.GetIdentityDocument(AzureVmMetaEndPoint, ApiVersion, log.GetWriter())
+	identityDocument, err := attestation.GetIdentityDocument(AzureVmMetaEndPoint, ApiVersion)
 	if err != nil {
 		log.Fatalf("Unable to get the instance identity document, error: %v", err)
 	}
 
-	opts, err := options.NewOptions(host.SiaConfig, identityDocument, "", SIA_DIR, "", "", nil, "", "", nil)
+	opts, err := options.NewOptions(host.SiaConfig, identityDocument, "", SIA_DIR, "", "", nil, "", "")
 	if err != nil {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}

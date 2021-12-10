@@ -44,7 +44,7 @@ func SetupCA() (string, string) {
 
 	key, err := generateKeyPair()
 	if err != nil {
-		log.Fatalf("Cannot generate private key: %v", err)
+		log.Fatalf("Cannot generate private key: %v\n", err)
 	}
 
 	//create self-signed cert
@@ -56,7 +56,7 @@ func SetupCA() (string, string) {
 	name := "Troy CA"
 	certPem, err := createCACert(key, country, locality, province, org, unit, name, nil, nil)
 	if err != nil {
-		log.Fatalf("Cannot create CA Cert: %v", err)
+		log.Fatalf("Cannot create CA Cert: %v\n", err)
 	}
 
 	return privatePem(key), certPem
@@ -66,33 +66,33 @@ func StartZtsServer(endPoint string) {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/zts/v1/instance", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("/instance is called")
+		log.Println("/instance is called")
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Fatalf("Could not read the body")
+			log.Fatalln("Could not read the body")
 		}
 
 		var data *zts.InstanceRegisterInformation
 		err = json.Unmarshal(body, &data)
 		if err != nil {
-			log.Fatalf("Could not parse the body into zts.InstanceRegisterInformation")
+			log.Fatalln("Could not parse the body into zts.InstanceRegisterInformation")
 		}
 
 		caKey, err := privateKeyFromPem(caKeyStr)
 		if err != nil {
-			log.Fatalf("Could not generate caKey from string")
+			log.Fatalln("Could not generate caKey from string")
 		}
 
 		caCert, err := certFromPEM(caCertStr)
 		if err != nil {
-			log.Fatalf("Could not generate caCert from string")
+			log.Fatalln("Could not generate caCert from string")
 		}
 
 		service := fmt.Sprintf("%s.%s", data.Domain, data.Service)
 		cert, err := generateCertInMemory(data.Csr, caKey, caCert, service)
 		if err != nil {
-			log.Fatalf("Could not generate cert in memory: %v", err)
+			log.Fatalf("Could not generate cert in memory: %v\n", err)
 		}
 
 		identity := &zts.InstanceIdentity{
@@ -106,36 +106,36 @@ func StartZtsServer(endPoint string) {
 		if err == nil {
 			w.WriteHeader(201)
 			io.WriteString(w, string(identityBytes))
-			log.Printf("Successfully processed register instance request")
+			log.Println("Successfully processed register instance request")
 		}
 	}).Methods("POST")
 
 	router.HandleFunc("/zts/v1/instance/athenz.azure.west2/athenz/hockey/123456789012-vmid", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("instance refresh handler called")
+		log.Println("instance refresh handler called")
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Fatalf("Could not read the body")
+			log.Fatalln("Could not read the body")
 		}
 		var data *zts.InstanceRefreshInformation
 		err = json.Unmarshal(body, &data)
 		if err != nil {
-			log.Fatalf("Could not parse the body into zts.InstanceRefreshInformation")
+			log.Fatalln("Could not parse the body into zts.InstanceRefreshInformation")
 		}
 
 		caKey, err := privateKeyFromPem(caKeyStr)
 		if err != nil {
-			log.Fatalf("Could not generate caKey from string")
+			log.Fatalln("Could not generate caKey from string")
 		}
 
 		caCert, err := certFromPEM(caCertStr)
 		if err != nil {
-			log.Fatalf("Could not generate caCert from string")
+			log.Fatalln("Could not generate caCert from string")
 		}
 
 		cert, err := generateCertInMemory(data.Csr, caKey, caCert, "athenz.hockey")
 		if err != nil {
-			log.Fatalf("Could not generate cert in memory: %v", err)
+			log.Fatalf("Could not generate cert in memory: %v\n", err)
 		}
 
 		identity := &zts.InstanceIdentity{
@@ -148,36 +148,36 @@ func StartZtsServer(endPoint string) {
 		identityBytes, err := json.Marshal(identity)
 		if err == nil {
 			io.WriteString(w, string(identityBytes))
-			log.Printf("Successfully processed refresh instance request")
+			log.Println("Successfully processed refresh instance request")
 		}
 	}).Methods("POST")
 
 	router.HandleFunc("/zts/v1/rolecert", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("role certificate handler called")
+		log.Println("role certificate handler called")
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Fatalf("Could not read the body")
+			log.Fatalln("Could not read the body")
 		}
 		var data *zts.RoleCertificateRequest
 		err = json.Unmarshal(body, &data)
 		if err != nil {
-			log.Fatalf("Could not parse the body into zts.RoleCertificateRequest")
+			log.Fatalln("Could not parse the body into zts.RoleCertificateRequest")
 		}
 
 		caKey, err := privateKeyFromPem(caKeyStr)
 		if err != nil {
-			log.Fatalf("Could not generate caKey from string")
+			log.Fatalln("Could not generate caKey from string")
 		}
 
 		caCert, err := certFromPEM(caCertStr)
 		if err != nil {
-			log.Fatalf("Could not generate caCert from string")
+			log.Fatalln("Could not generate caCert from string")
 		}
 
 		cert, err := generateCertInMemory(data.Csr, caKey, caCert, "athenz:role.writers")
 		if err != nil {
-			log.Fatalf("Could not generate cert in memory: %v", err)
+			log.Fatalf("Could not generate cert in memory: %v\n", err)
 		}
 
 		identity := &zts.RoleCertificate{
@@ -186,13 +186,13 @@ func StartZtsServer(endPoint string) {
 		identityBytes, err := json.Marshal(identity)
 		if err == nil {
 			io.WriteString(w, string(identityBytes))
-			log.Printf("Successfully processed role certificate request")
+			log.Println("Successfully processed role certificate request")
 		}
 	}).Methods("POST")
 
 	err := http.ListenAndServe(endPoint, router)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		log.Fatalf("ListenAndServe: %v\n", err)
 	}
 
 }

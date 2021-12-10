@@ -27,7 +27,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net"
@@ -39,7 +38,6 @@ import (
 	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 )
 
 type CertReqDetails struct {
@@ -92,27 +90,27 @@ func ZtsHostName(identity, ztsAwsDomain string) string {
 	return fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsAwsDomain)
 }
 
-func ZtsClient(ztsUrl, ztsServerName string, keyFile, certFile, caCertFile string, sysLogger io.Writer) (*zts.ZTSClient, error) {
-	logutil.LogInfo(sysLogger, "ZTS Client: url: %s\n", ztsUrl)
+func ZtsClient(ztsUrl, ztsServerName string, keyFile, certFile, caCertFile string) (*zts.ZTSClient, error) {
+	log.Printf("ZTS Client: url: %s\n", ztsUrl)
 	if strings.HasPrefix(ztsUrl, "http://") {
 		client := zts.NewClient(ztsUrl, &http.Transport{Proxy: http.ProxyFromEnvironment})
 		return &client, nil
 	} else {
 		if keyFile != "" {
-			logutil.LogInfo(sysLogger, "ZTS Client: private key file: %s\n", keyFile)
+			log.Printf("ZTS Client: private key file: %s\n", keyFile)
 		}
 		if certFile != "" {
-			logutil.LogInfo(sysLogger, "ZTS Client: certificate file: %s\n", certFile)
+			log.Printf("ZTS Client: certificate file: %s\n", certFile)
 		}
 		if caCertFile != "" {
-			logutil.LogInfo(sysLogger, "ZTS Client: CA certificate file: %s\n", caCertFile)
+			log.Printf("ZTS Client: CA certificate file: %s\n", caCertFile)
 		}
 		config, err := tlsConfiguration(keyFile, certFile, caCertFile)
 		if err != nil {
 			return nil, err
 		}
 		if ztsServerName != "" {
-			logutil.LogInfo(sysLogger, "ZTS Client: Server Name: %s\n", ztsServerName)
+			log.Printf("ZTS Client: Server Name: %s\n", ztsServerName)
 			config.ServerName = ztsServerName
 		}
 		tr := &http.Transport{
@@ -331,10 +329,10 @@ func GenerateRoleCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, serv
 	return GenerateX509CSR(key, csrDetails)
 }
 
-func GenerateSSHHostCSR(sshPubKeyFile string, domain, service, ip string, ztsAwsDomains []string, sysLogger io.Writer) (string, error) {
+func GenerateSSHHostCSR(sshPubKeyFile string, domain, service, ip string, ztsAwsDomains []string) (string, error) {
 	pubkey, err := ioutil.ReadFile(sshPubKeyFile)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Skipping SSH CSR Request - Unable to read SSH Public Key File: %v\n", err)
+		log.Printf("Skipping SSH CSR Request - Unable to read SSH Public Key File: %v\n", err)
 		return "", nil
 	}
 	identity := domain + "." + service
@@ -441,7 +439,7 @@ func Copy(sourceFile, destFile string, perm os.FileMode) error {
 	}
 	if FileExists(destFile) {
 		if err := os.Remove(destFile); err != nil {
-			log.Printf("Unable to delete file %s", destFile)
+			log.Printf("Unable to delete file %s\n", destFile)
 		}
 	}
 	return ioutil.WriteFile(destFile, sourceBytes, perm)
@@ -599,7 +597,7 @@ func getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix string) (st
 	}
 }
 
-func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid, fileMode int, createKey, rotateKey bool, keyDir, certDir, backupDir string, sysLogger io.Writer) error {
+func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid, fileMode int, createKey, rotateKey bool, keyDir, certDir, backupDir string) error {
 
 	certFile, keyFile := getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix)
 
@@ -622,22 +620,21 @@ func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid,
 			return err
 		}
 		// taking back up of key and cert
-		log.Printf("taking back up of cert: %s to %s and key: %s to %s", certFile, backUpCertFile,
-			keyFile, backUpKeyFile)
+		log.Printf("taking back up of cert: %s to %s and key: %s to %s\n", certFile, backUpCertFile, keyFile, backUpKeyFile)
 		err = CopyCertKeyFile(keyFile, backUpKeyFile, certFile, backUpCertFile, 0400)
 		if err != nil {
 			return err
 		}
 		//write the new key and x509KeyPair to disk
-		log.Printf("writing new key file: %s to disk", keyFile)
-		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode), nil)
+		log.Printf("writing new key file: %s to disk\n", keyFile)
+		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode))
 		if err != nil {
 			return err
 		}
 	} else if createKey == true && !FileExists(keyFile) {
 		//write the new key and x509KeyPair to disk
-		log.Printf("writing new key file: %s to disk", keyFile)
-		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode), nil)
+		log.Printf("writing new key file: %s to disk\n", keyFile)
+		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode))
 		if err != nil {
 			return err
 		}
@@ -645,7 +642,7 @@ func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid,
 		UpdateKey(keyFile, uid, gid)
 	}
 
-	err = UpdateFile(certFile, cert, uid, gid, os.FileMode(0444), sysLogger)
+	err = UpdateFile(certFile, cert, uid, gid, os.FileMode(0444))
 	if err != nil {
 		return err
 	}
@@ -653,7 +650,7 @@ func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid,
 	// perform 2nd validation of x509KeyPair pair match after writing to disk
 	x509KeyPair, err = tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
-		log.Printf("x509KeyPair: %s, key: %s do not match, error: %v", certFile, keyFile, err)
+		log.Printf("x509KeyPair: %s, key: %s do not match, error: %v\n", certFile, keyFile, err)
 		err = CopyCertKeyFile(backUpKeyFile, keyFile, backUpCertFile, certFile, fileMode)
 		if err != nil {
 			return err
@@ -662,7 +659,7 @@ func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid,
 
 	_, err = x509.ParseCertificate(x509KeyPair.Certificate[0])
 	if err != nil {
-		log.Printf("x509KeyPair: %s, key: %s, unable to parse cert, error: %v", certFile, keyFile, err)
+		log.Printf("x509KeyPair: %s, key: %s, unable to parse cert, error: %v\n", certFile, keyFile, err)
 		err = CopyCertKeyFile(backUpKeyFile, keyFile, backUpCertFile, certFile, fileMode)
 		if err != nil {
 			return err

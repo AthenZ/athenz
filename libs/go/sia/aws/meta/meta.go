@@ -18,9 +18,8 @@ package meta
 import (
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
-	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -50,19 +49,19 @@ func GetData(base, path string) ([]byte, error) {
 }
 
 // GetRegion get current region from identity document
-func GetRegion(metaEndPoint string, sysLogger io.Writer) string {
+func GetRegion(metaEndPoint string) string {
 	var region string
 	document, err := GetData(metaEndPoint, "/latest/dynamic/instance-identity/document")
 	if err == nil {
-		logutil.LogInfo(sysLogger, "Trying to determine region from identity document ...\n")
+		log.Println("Trying to determine region from identity document ...")
 		region, _ = doc.GetDocumentEntry(document, "region")
 	}
 	if region == "" {
-		logutil.LogInfo(sysLogger, "Trying to determine region from AWS_REGION environment variable...\n")
+		log.Println("Trying to determine region from AWS_REGION environment variable...")
 		region = os.Getenv("AWS_REGION")
 	}
 	if region == "" {
-		logutil.LogInfo(sysLogger, "No region information available. Defaulting to us-west-2\n")
+		log.Println("No region information available. Defaulting to us-west-2")
 		region = "us-west-2"
 	}
 	return region

@@ -17,10 +17,6 @@
 package util
 
 import (
-	"io"
-	"log"
-	"log/syslog"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -28,13 +24,6 @@ import (
 )
 
 func TestGidForGroupCommand(t *testing.T) {
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
-	}
-
 	// Get current group name.
 	grp, err := exec.Command("id", "-gn").Output()
 	if err != nil {
@@ -55,7 +44,7 @@ func TestGidForGroupCommand(t *testing.T) {
 	}
 
 	// Test if function returns expected gid.
-	actualGid := gidForGroup(group, sysLogger)
+	actualGid := gidForGroup(group)
 	if actualGid != gid {
 		t.Errorf("Unexpected group id: group=%s, expected=%d, got=%d", group, gid, actualGid)
 		return
@@ -63,15 +52,8 @@ func TestGidForGroupCommand(t *testing.T) {
 }
 
 func TestGidForInvalidGroupCommand(t *testing.T) {
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
-	}
-
 	// Test if function returns -1
-	gid := gidForGroup("invalid-group-name", sysLogger)
+	gid := gidForGroup("invalid-group-name")
 	if gid != -1 {
 		t.Errorf("Did not get expected -1 for gid, got=%d", gid)
 		return
@@ -79,13 +61,6 @@ func TestGidForInvalidGroupCommand(t *testing.T) {
 }
 
 func TestUidGidForUserGroupCommand(t *testing.T) {
-	var sysLogger io.Writer
-	sysLogger, err := syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
-	}
-
 	// Get current user id
 	usr, err := exec.Command("id", "-un").Output()
 	if err != nil {
@@ -116,14 +91,14 @@ func TestUidGidForUserGroupCommand(t *testing.T) {
 		t.Errorf("Unexpected GID format in user record: %s", string(gidBytes))
 	}
 
-	testUid, testGid := uidGidForUser(user, sysLogger)
+	testUid, testGid := uidGidForUser(user)
 	if testUid != uid {
 		t.Errorf("Unexpected uid value returned: %d, expected: %d", testUid, uid)
 	}
 	if testGid != gid {
 		t.Errorf("Unexpected gid value returned: %d, expected: %d", testGid, gid)
 	}
-	testUid, testGid = uidGidForUser("root", sysLogger)
+	testUid, testGid = uidGidForUser("root")
 	if testUid != 0 {
 		t.Errorf("Unexpected uid value returned: %d, expected: 0", testUid)
 	}
