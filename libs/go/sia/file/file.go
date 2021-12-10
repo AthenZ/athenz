@@ -35,7 +35,7 @@ func Update(fileName string, contents []byte, uid, gid int, perm os.FileMode, vf
 			}
 		} else {
 			// Unknown stat error
-			log.Printf("Unable to stat file: %q", fileName)
+			log.Printf("Unable to stat file: %q\n", fileName)
 			return err
 		}
 	} else {
@@ -66,7 +66,7 @@ func Update(fileName string, contents []byte, uid, gid int, perm os.FileMode, vf
 			return err
 		}
 	} else {
-		log.Printf("Not changing the file ownership, file: %q, uid: %d, gid: %d", fileName, uid, gid)
+		log.Printf("Not changing the file ownership, file: %q, uid: %d, gid: %d\n", fileName, uid, gid)
 	}
 	return nil
 }
@@ -87,7 +87,7 @@ func overrideFile(fileName string, err error, contents []byte, perm os.FileMode,
 	if vfn != nil {
 		err = vfn(fileName, newFileName)
 		if err != nil {
-			log.Printf("invalid content: %q, error: %v", newFileName, err)
+			log.Printf("invalid content: %q, error: %v\n", newFileName, err)
 			return err
 		}
 	}
@@ -119,12 +119,12 @@ func Copy(sourceFile, destFile string, perm os.FileMode) error {
 	if Exists(sourceFile) {
 		sourceBytes, err := ioutil.ReadFile(sourceFile)
 		if err != nil {
-			log.Printf("unable to read file %s", sourceFile)
+			log.Printf("unable to read file %s\n", sourceFile)
 			return err
 		}
 		err = ioutil.WriteFile(destFile, sourceBytes, perm)
 		if err != nil {
-			log.Printf("unable to write to file %s", destFile)
+			log.Printf("unable to write to file %s\n", destFile)
 			return err
 		}
 	}
@@ -156,11 +156,11 @@ func WriteFile(content interface{}, ipFile string) error {
 	if err == nil {
 		err = ioutil.WriteFile(ipFile, file, 0644)
 		if err != nil {
-			log.Printf("Failed to write file, Error: %v", err)
+			log.Printf("Failed to write file, Error: %v\n", err)
 			return err
 		}
 	} else {
-		log.Printf("Failed marshal struct, Error: %v", err)
+		log.Printf("Failed marshal struct, Error: %v\n", err)
 		return err
 	}
 	return nil
@@ -170,13 +170,13 @@ func ReadFile(filePath string, value interface{}) error {
 
 	file, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		log.Printf("Failed to read file: %v", err)
+		log.Printf("Failed to read file: %v\n", err)
 		return err
 	}
 
 	err = json.Unmarshal(file, value)
 	if err != nil {
-		log.Printf("Failed to unmarshal file: %v", err)
+		log.Printf("Failed to unmarshal file: %v\n", err)
 		return err
 	}
 	return nil

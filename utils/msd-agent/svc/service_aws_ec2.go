@@ -9,7 +9,6 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2"
-	"os"
 )
 
 var Ec2MetaEndPoint = "http://169.254.169.254:80"
@@ -24,13 +23,12 @@ type EC2Fetcher struct {
 
 func (fetcher *EC2Fetcher) Fetch(host MsdHost, accountId string) (ServicesData, error) {
 
-	sysLogger := os.Stderr
-	config, configAccount, err := sia.GetEC2Config(SIA_CONFIG, Ec2MetaEndPoint, false, "", accountId, sysLogger)
+	config, configAccount, err := sia.GetEC2Config(SIA_CONFIG, Ec2MetaEndPoint, false, "", accountId)
 	if err != nil {
 		log.Fatalf("Unable to formulate config, error: %v\n", err)
 	}
 
-	opts, err := options.NewOptions(config, configAccount, SIA_DIR, "", false, "", sysLogger)
+	opts, err := options.NewOptions(config, configAccount, SIA_DIR, "", false, "")
 	if err != nil {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}

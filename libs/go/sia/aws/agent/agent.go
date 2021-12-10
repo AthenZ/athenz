@@ -23,8 +23,8 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/sds"
-	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -35,7 +35,6 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/ardielle/ardielle-go/rdl"
 )
@@ -53,7 +52,7 @@ func readCertificate(certFile string) (*x509.Certificate, error) {
 	return x509.ParseCertificate(block.Bytes)
 }
 
-func GetPrevRoleCertDates(certFile string, sysLogger io.Writer) (*rdl.Timestamp, *rdl.Timestamp, error) {
+func GetPrevRoleCertDates(certFile string) (*rdl.Timestamp, *rdl.Timestamp, error) {
 	prevRolCert, err := readCertificate(certFile)
 	if err != nil {
 		return nil, nil, err
@@ -67,7 +66,7 @@ func GetPrevRoleCertDates(certFile string, sysLogger io.Writer) (*rdl.Timestamp,
 		Time: prevRolCert.NotAfter,
 	}
 
-	logutil.LogInfo(sysLogger, "Existing role cert %s, not before: %s, not after: %s", certFile, notBefore.String(), notAfter.String())
+	log.Printf("Existing role cert %s, not before: %s, not after: %s\n", certFile, notBefore.String(), notAfter.String())
 	return notBefore, notAfter, nil
 }
 
@@ -78,17 +77,17 @@ func RoleKey(rotateKey bool, svcKey string) (*rsa.PrivateKey, error) {
 	return util.PrivateKeyFromFile(svcKey)
 }
 
-func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Options, sysLogger io.Writer) bool {
-	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, svcKeyFile, svcCertFile, opts.ZTSCACertFile, sysLogger)
+func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Options) bool {
+	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, svcKeyFile, svcCertFile, opts.ZTSCACertFile)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to initialize ZTS Client for %s, err: %v\n", ztsUrl, err)
+		log.Printf("unable to initialize ZTS Client for %s, err: %v\n", ztsUrl, err)
 		return false
 	}
 	client.AddCredentials("User-Agent", opts.Version)
 
 	key, err := util.PrivateKeyFromFile(svcKeyFile)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to read private key from %s, err: %v\n", svcKeyFile, err)
+		log.Printf("unable to read private key from %s, err: %v\n", svcKeyFile, err)
 		return false
 	}
 
@@ -102,7 +101,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			var err error
 			key, err = RoleKey(opts.RotateKey, svcKeyFile)
 			if err != nil {
-				logutil.LogInfo(sysLogger, "unable to read generate/read key from %s, err: %v\n", role.Filename, err)
+				log.Printf("unable to read generate/read key from %s, err: %v\n", role.Filename, err)
 				failures += 1
 				continue
 			}
@@ -114,7 +113,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		}
 		csr, err := util.GenerateRoleCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, opts.Services[0].Name, roleName, opts.InstanceId, opts.Provider, emailDomain)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
+			log.Printf("unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
 			continue
 		}
@@ -124,11 +123,11 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		}
 
 		certFilePem := util.GetRoleCertFileName(opts.CertDir, role.Filename, roleName)
-		notBefore, notAfter, _ := GetPrevRoleCertDates(certFilePem, sysLogger)
+		notBefore, notAfter, _ := GetPrevRoleCertDates(certFilePem)
 		roleRequest.PrevCertNotBefore = notBefore
 		roleRequest.PrevCertNotAfter = notAfter
 		if notBefore != nil && notAfter != nil {
-			logutil.LogInfo(sysLogger, "Previous Role Cert Not Before date: %s, Not After date: %s", notBefore, notAfter)
+			log.Printf("Previous Role Cert Not Before date: %s, Not After date: %s\n", notBefore, notAfter)
 		}
 
 		//"rolename": "athenz.fp:role.readers"
@@ -136,7 +135,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		//role is readers
 		roleCert, err := client.PostRoleCertificateRequestExt(roleRequest)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "PostRoleCertificateRequest failed for %s, err: %v\n", roleName, err)
+			log.Printf("PostRoleCertificateRequest failed for %s, err: %v\n", roleName, err)
 			failures += 1
 			continue
 		}
@@ -151,17 +150,17 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			Gid:      opts.Services[0].Gid,
 			FileMode: 0444,
 		}
-		err = SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleCert.X509Certificate), optsRole, opts, sysLogger)
+		err = SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleCert.X509Certificate), optsRole, opts)
 		if err != nil {
 			failures += 1
 			continue
 		}
 	}
-	logutil.LogInfo(sysLogger, "SIA processed %d (failures %d) role certificate requests\n", len(opts.Roles), failures)
+	log.Printf("SIA processed %d (failures %d) role certificate requests\n", len(opts.Roles), failures)
 	return failures == 0
 }
 
-func RegisterInstance(data []*attestation.AttestationData, ztsUrl string, opts *options.Options, docExpiryCheck bool, sysLogger io.Writer) error {
+func RegisterInstance(data []*attestation.AttestationData, ztsUrl string, opts *options.Options, docExpiryCheck bool) error {
 
 	//special handling for EC2 instances
 	//before we process our register event we need to check to
@@ -173,7 +172,7 @@ func RegisterInstance(data []*attestation.AttestationData, ztsUrl string, opts *
 	}
 
 	for i, svc := range opts.Services {
-		err := registerSvc(svc, data[i], ztsUrl, opts, sysLogger)
+		err := registerSvc(svc, data[i], ztsUrl, opts)
 		if err != nil {
 			return fmt.Errorf("unable to register identity for svc: %q, error: %v", svc.Name, err)
 		}
@@ -181,9 +180,9 @@ func RegisterInstance(data []*attestation.AttestationData, ztsUrl string, opts *
 	return nil
 }
 
-func RefreshInstance(data []*attestation.AttestationData, ztsUrl string, opts *options.Options, sysLogger io.Writer) error {
+func RefreshInstance(data []*attestation.AttestationData, ztsUrl string, opts *options.Options) error {
 	for i, svc := range opts.Services {
-		err := refreshSvc(svc, data[i], ztsUrl, opts, sysLogger)
+		err := refreshSvc(svc, data[i], ztsUrl, opts)
 		if err != nil {
 			return fmt.Errorf("unable to refresh identity for svc: %q, error: %v", svc.Name, err)
 		}
@@ -191,7 +190,7 @@ func RefreshInstance(data []*attestation.AttestationData, ztsUrl string, opts *o
 	return nil
 }
 
-func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl string, opts *options.Options, sysLogger io.Writer) error {
+func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl string, opts *options.Options) error {
 
 	key, err := util.GenerateKeyPair(2048)
 	if err != nil {
@@ -202,7 +201,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	//it is also generated for the primary service only
 	var sshCsr string
 	if opts.Ssh && opts.Services[0].Name == svc.Name {
-		sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, svc.Name, opts.PrivateIp, opts.ZTSAWSDomains, sysLogger)
+		sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, svc.Name, opts.PrivateIp, opts.ZTSAWSDomains)
 		if err != nil {
 			return err
 		}
@@ -228,7 +227,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 		info.ExpiryTime = &expiryTime
 	}
 
-	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, "", "", opts.ZTSCACertFile, sysLogger)
+	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, "", "", opts.ZTSCACertFile)
 	if err != nil {
 		return err
 	}
@@ -236,22 +235,22 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 
 	ident, _, err := client.PostInstanceRegisterInformation(info)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to do PostInstanceRegisterInformation, err: %v\n", err)
+		log.Printf("Unable to do PostInstanceRegisterInformation, err: %v\n", err)
 		return err
 	}
 	svcKeyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
-	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440, sysLogger)
+	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440)
 	if err != nil {
 		return err
 	}
 	certFile := util.GetSvcCertFileName(opts.CertDir, svc.Filename, opts.Domain, svc.Name)
-	err = util.UpdateFile(certFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444, sysLogger)
+	err = util.UpdateFile(certFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444, sysLogger)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444)
 		if err != nil {
 			return err
 		}
@@ -259,21 +258,21 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	//we're not going to count ssh updates as fatal since the primary
 	//task for sia to get service identity certs but we'll log the failure
 	if ident.SshCertificate != "" {
-		err = updateSSH(opts.SshCertFile, opts.SshConfigFile, ident.SshCertificate, sysLogger)
+		err = updateSSH(opts.SshCertFile, opts.SshConfigFile, ident.SshCertificate)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to update ssh certificate, err: %v\n", err)
+			log.Printf("Unable to update ssh certificate, err: %v\n", err)
 		}
 	}
 	return nil
 }
 
-func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl string, opts *options.Options, sysLogger io.Writer) error {
+func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl string, opts *options.Options) error {
 	keyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
 	certFile := fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, svc.Name)
 
-	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, keyFile, certFile, opts.ZTSCACertFile, sysLogger)
+	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, keyFile, certFile, opts.ZTSCACertFile)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to get ZTS Client for %s, err: %v\n", ztsUrl, err)
+		log.Printf("Unable to get ZTS Client for %s, err: %v\n", ztsUrl, err)
 		return err
 	}
 	client.AddCredentials("User-Agent", opts.Version)
@@ -285,19 +284,19 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 
 	key, err := util.PrivateKey(keyFile, opts.RotateKey)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to read private key from %s, err: %v\n", keyFile, err)
+		log.Printf("Unable to read private key from %s, err: %v\n", keyFile, err)
 		return err
 	}
 	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
+		log.Printf("Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
 	}
 	//if ssh support is enabled then we need to generate the csr
 	//it is also generated for the primary service only
 	var sshCsr string
 	if opts.Ssh && opts.Services[0].Name == svc.Name {
-		sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, svc.Name, opts.PrivateIp, opts.ZTSAWSDomains, sysLogger)
+		sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, svc.Name, opts.PrivateIp, opts.ZTSAWSDomains)
 		if err != nil {
 			return err
 		}
@@ -315,19 +314,19 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 
 	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(opts.Provider), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(opts.InstanceId), info)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to refresh instance service certificate for %s, err: %v\n", opts.Name, err)
+		log.Printf("Unable to refresh instance service certificate for %s, err: %v\n", opts.Name, err)
 		return err
 	}
 
 	svcKeyBytes := util.PrivatePem(key)
 	svcCertBytes := []byte(ident.X509Certificate)
-	err = SaveSvcCertKey([]byte(svcKeyBytes), svcCertBytes, svc, opts, sysLogger)
+	err = SaveSvcCertKey([]byte(svcKeyBytes), svcCertBytes, svc, opts)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444, sysLogger)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444)
 		if err != nil {
 			return err
 		}
@@ -335,20 +334,20 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	//we're not going to count ssh updates as fatal since the primary
 	//task for sia to get service identity certs but we'll log the failure
 	if ident.SshCertificate != "" {
-		err = updateSSH(opts.SshCertFile, opts.SshConfigFile, ident.SshCertificate, sysLogger)
+		err = updateSSH(opts.SshCertFile, opts.SshConfigFile, ident.SshCertificate)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to update ssh certificate, err: %v\n", err)
+			log.Printf("Unable to update ssh certificate, err: %v\n", err)
 		}
 	}
 	return nil
 }
 
-func SaveSvcCertKey(key, cert []byte, svc options.Service, opts *options.Options, sysLogger io.Writer) error {
+func SaveSvcCertKey(key, cert []byte, svc options.Service, opts *options.Options) error {
 	prefix := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	return util.SaveCertKey(key, cert, svc.Filename, prefix, prefix, svc.Uid, svc.Gid, svc.FileMode, false, false, opts.KeyDir, opts.CertDir, opts.BackUpDir, sysLogger)
+	return util.SaveCertKey(key, cert, svc.Filename, prefix, prefix, svc.Uid, svc.Gid, svc.FileMode, false, false, opts.KeyDir, opts.CertDir, opts.BackUpDir)
 }
 
-func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options, sysLogger io.Writer) error {
+func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options) error {
 	certPrefix := role.Name
 	if role.Filename != "" {
 		certPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
@@ -360,17 +359,17 @@ func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options,
 			keyPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
 		}
 	}
-	return util.SaveCertKey(key, cert, role.Filename, keyPrefix, certPrefix, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackUpDir, sysLogger)
+	return util.SaveCertKey(key, cert, role.Filename, keyPrefix, certPrefix, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackUpDir)
 }
 
 func restartSshdService() error {
 	return exec.Command("systemctl", "restart", "sshd").Run()
 }
 
-func updateSSH(sshCertFile, sshConfigFile, hostCert string, sysLogger io.Writer) error {
+func updateSSH(sshCertFile, sshConfigFile, hostCert string) error {
 
 	//write the host cert file
-	err := util.UpdateFile(sshCertFile, []byte(hostCert), 0, 0, 0644, sysLogger)
+	err := util.UpdateFile(sshCertFile, []byte(hostCert), 0, 0, 0644)
 	if err != nil {
 		return err
 	}
@@ -387,7 +386,7 @@ func updateSSH(sshCertFile, sshConfigFile, hostCert string, sysLogger io.Writer)
 		i := strings.Index(conf, certLine)
 		if i >= 0 {
 			conf = conf[:i] + conf[i+1:]
-			err = util.UpdateFile(sshConfigFile, []byte(conf), 0, 0, 0644, sysLogger)
+			err = util.UpdateFile(sshConfigFile, []byte(conf), 0, 0, 0644)
 			if err != nil {
 				return err
 			}
@@ -398,17 +397,17 @@ func updateSSH(sshCertFile, sshConfigFile, hostCert string, sysLogger io.Writer)
 	return nil
 }
 
-func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io.Writer) {
+func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 
-	_ = util.SetupSIADirs(siaDir, "", sysLogger)
+	_ = util.SetupSIADirs(siaDir, "")
 
 	//the default value is to rotate once every day since our
 	//server and role certs are valid for 30 days by default
 	rotationInterval := time.Duration(opts.RefreshInterval) * time.Minute
 
-	data, err := attestation.GetAttestationData(opts, sysLogger)
+	data, err := attestation.GetAttestationData(opts)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Cannot determine identity to run as, err:%v\n", err)
+		log.Fatalf("Cannot determine identity to run as, err:%v\n", err)
 	}
 	svcs := options.GetSvcNames(opts.Services)
 
@@ -418,22 +417,21 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io
 			fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, opts.Services[0].Name),
 			fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
 			opts,
-			sysLogger,
 		)
 	case "post":
 	case "register":
-		err := RegisterInstance(data, ztsUrl, opts, false, sysLogger)
+		err := RegisterInstance(data, ztsUrl, opts, false)
 		if err != nil {
-			logutil.LogFatal(sysLogger, "Unable to register identity, err: %v\n", err)
+			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
-		logutil.LogInfo(sysLogger, "identity registered for services: %s\n", svcs)
+		log.Printf("identity registered for services: %s\n", svcs)
 	case "rotate":
 	case "refresh":
-		err = RefreshInstance(data, ztsUrl, opts, sysLogger)
+		err = RefreshInstance(data, ztsUrl, opts)
 		if err != nil {
-			logutil.LogFatal(sysLogger, "Refresh identity failed, err: %v\n", err)
+			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
-		logutil.LogInfo(sysLogger, "Identity successfully refreshed for services: %s\n", svcs)
+		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
 	default:
 		// if we already have a cert file then we're not going to
 		// prove our identity since most likely it will not succeed
@@ -443,15 +441,15 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io
 
 		initialSetup := true
 		if files, err := ioutil.ReadDir(opts.CertDir); err != nil || len(files) <= 0 {
-			err := RegisterInstance(data, ztsUrl, opts, true, sysLogger)
+			err := RegisterInstance(data, ztsUrl, opts, true)
 			if err != nil {
-				logutil.LogFatal(sysLogger, "Register identity failed, error: %v\n", err)
+				log.Fatalf("Register identity failed, error: %v\n", err)
 			}
 		} else {
 			initialSetup = false
-			logutil.LogInfo(sysLogger, "Identity certificate file already exists. Retrieving identity details...\n")
+			log.Println("Identity certificate file already exists. Retrieving identity details...")
 		}
-		logutil.LogInfo(sysLogger, "Identity established for services: %s\n", svcs)
+		log.Printf("Identity established for services: %s\n", svcs)
 
 		stop := make(chan bool, 1)
 		errors := make(chan error, 1)
@@ -459,24 +457,24 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io
 
 		go func() {
 			for {
-				logutil.LogInfo(sysLogger, "Identity being used: %s\n", opts.Name)
+				log.Printf("Identity being used: %s\n", opts.Name)
 
 				// if we just did our initial setup there is no point
 				// to refresh the certs again. so we are going to skip
 				// this time around and refresh certs next time
 
 				if !initialSetup {
-					data, err := attestation.GetAttestationData(opts, sysLogger)
+					data, err := attestation.GetAttestationData(opts)
 					if err != nil {
 						errors <- fmt.Errorf("Cannot get attestation data: %v\n", err)
 						return
 					}
-					err = RefreshInstance(data, ztsUrl, opts, sysLogger)
+					err = RefreshInstance(data, ztsUrl, opts)
 					if err != nil {
 						errors <- fmt.Errorf("refresh identity failed: %v\n", err)
 						return
 					}
-					logutil.LogInfo(sysLogger, "identity successfully refreshed for services: %s\n", svcs)
+					log.Printf("identity successfully refreshed for services: %s\n", svcs)
 				} else {
 					initialSetup = false
 				}
@@ -484,7 +482,6 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io
 					fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, opts.Services[0].Name),
 					fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
 					opts,
-					sysLogger,
 				)
 				certUpdates <- true
 
@@ -502,7 +499,7 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io
 			if opts.SDSUdsPath != "" {
 				err := sds.StartGrpcServer(opts, certUpdates)
 				if err != nil {
-					logutil.LogInfo(sysLogger, "failed to start grpc/uds server: %v\n", err)
+					log.Printf("failed to start grpc/uds server: %v\n", err)
 					stop <- true
 					return
 				}
@@ -513,13 +510,13 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options, sysLogger io
 			signals := make(chan os.Signal, 2)
 			signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
 			sig := <-signals
-			logutil.LogInfo(sysLogger, "Received signal %v, stopping rotation\n", sig)
+			log.Printf("Received signal %v, stopping rotation\n", sig)
 			stop <- true
 		}()
 
 		err = <-errors
 		if err != nil {
-			logutil.LogInfo(sysLogger, "%v", err)
+			log.Printf("%v\n", err)
 		}
 	}
 	os.Exit(0)

@@ -72,6 +72,6 @@ func StartMetaServer(EndPoint string) {
 	log.Println("Starting Meta Mock listening on: " + EndPoint)
 	err := http.ListenAndServe(EndPoint, nil)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		log.Fatalf("ListenAndServe: %v\n", err)
 	}
 }

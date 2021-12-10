@@ -89,7 +89,7 @@ func GetAWSLambdaServiceCertificate(ztsUrl, provider, domain, service, account s
 		return tls.Certificate{}, err
 	}
 
-	client, err := util.ZtsClient(ztsUrl, "", "", "", "", nil)
+	client, err := util.ZtsClient(ztsUrl, "", "", "", "")
 	if err != nil {
 		return tls.Certificate{}, err
 	}

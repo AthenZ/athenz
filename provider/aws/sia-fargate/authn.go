@@ -18,13 +18,12 @@ package sia
 
 import (
 	"fmt"
-	"io"
+	"log"
 	"os"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 )
 
@@ -85,21 +84,21 @@ func initTaskConfig(config *options.Config, metaEndpoint string) (*options.Confi
 	}, nil
 }
 
-func GetFargateConfig(configFile, metaEndpoint string, useRegionalSTS bool, account, region string, sysLogger io.Writer) (*options.Config, *options.ConfigAccount, error) {
+func GetFargateConfig(configFile, metaEndpoint string, useRegionalSTS bool, account, region string) (*options.Config, *options.ConfigAccount, error) {
 
-	config, configAccount, err := options.InitFileConfig(configFile, metaEndpoint, useRegionalSTS, account, region, sysLogger)
+	config, configAccount, err := options.InitFileConfig(configFile, metaEndpoint, useRegionalSTS, account, region)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to process configuration file '%s': %v\n", configFile, err)
-		logutil.LogInfo(sysLogger, "Trying to determine service details from the environment variables...\n")
+		log.Printf("Unable to process configuration file '%s': %v\n", configFile, err)
+		log.Println("Trying to determine service details from the environment variables...")
 		config, configAccount, err = options.InitEnvConfig(config)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to process environment settings: %v\n", err)
+			log.Printf("Unable to process environment settings: %v\n", err)
 			// if we do not have settings in our environment, we're going
 			// to use fallback to <domain>.<service>-service naming structure
-			logutil.LogInfo(sysLogger, "Trying to determine service name from task role arn...\n")
+			log.Println("Trying to determine service name from task role arn...")
 			config, configAccount, err = initTaskConfig(config, metaEndpoint)
 			if err != nil {
-				logutil.LogInfo(sysLogger, "Unable to determine service name: %v\n", err)
+				log.Printf("Unable to determine service name: %v\n", err)
 				return config, nil, err
 			}
 		}

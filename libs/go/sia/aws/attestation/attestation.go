@@ -19,7 +19,6 @@ package attestation
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -27,7 +26,6 @@ import (
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/aws/aws-sdk-go/service/sts"
 )
 
@@ -43,10 +41,10 @@ type AttestationData struct {
 // New creates a new AttestationData with values fed to it and from the result of STS Assume Role.
 // This requires an identity document along with its signature. The aws account and region will
 // be extracted from the identity document.
-func New(opts *options.Options, service string, sysLogger io.Writer) (*AttestationData, error) {
+func New(opts *options.Options, service string) (*AttestationData, error) {
 
 	role := fmt.Sprintf("%s.%s", opts.Domain, service)
-	tok, err := getSTSToken(opts.UseRegionalSTS, opts.Region, opts.Account, role, sysLogger)
+	tok, err := getSTSToken(opts.UseRegionalSTS, opts.Region, opts.Account, role)
 	if err != nil {
 		return nil, err
 	}
@@ -60,16 +58,16 @@ func New(opts *options.Options, service string, sysLogger io.Writer) (*Attestati
 	}, nil
 }
 
-func getSTSToken(useRegionalSTS bool, region, account, role string, sysLogger io.Writer) (*sts.AssumeRoleOutput, error) {
+func getSTSToken(useRegionalSTS bool, region, account, role string) (*sts.AssumeRoleOutput, error) {
 	// Attempt STS AssumeRole
-	stsSession, err := stssession.New(useRegionalSTS, region, sysLogger)
+	stsSession, err := stssession.New(useRegionalSTS, region)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to create new session: %v\n", err)
+		log.Printf("unable to create new session: %v\n", err)
 		return nil, err
 	}
 	stsService := sts.New(stsSession)
 	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", account, role)
-	logutil.LogInfo(sysLogger, "trying to assume role: %v\n", roleArn)
+	log.Printf("trying to assume role: %v\n", roleArn)
 	return stsService.AssumeRole(&sts.AssumeRoleInput{
 		RoleArn:         &roleArn,
 		RoleSessionName: &role,
@@ -85,7 +83,7 @@ func GetECSTaskId() string {
 	if err != nil {
 		return ""
 	}
-	log.Printf("Content: %s", ecsMetaData)
+	log.Printf("Content: %s\n", ecsMetaData)
 	var docMap map[string]interface{}
 	err = json.Unmarshal(ecsMetaData, &docMap)
 	if err != nil {
@@ -111,10 +109,10 @@ func GetECSTaskId() string {
 }
 
 //GetAttestationData fetches attestation data for all the services mentioned in the config file
-func GetAttestationData(opts *options.Options, sysLogger io.Writer) ([]*AttestationData, error) {
+func GetAttestationData(opts *options.Options) ([]*AttestationData, error) {
 	data := []*AttestationData{}
 	for _, svc := range opts.Services {
-		a, err := New(opts, svc.Name, sysLogger)
+		a, err := New(opts, svc.Name)
 		if err != nil {
 			return nil, err
 		}

@@ -18,18 +18,17 @@ package stssession
 
 import (
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"io"
+	"log"
 )
 
-func New(useRegionalSTS bool, region string, sysLogger io.Writer) (*session.Session, error) {
+func New(useRegionalSTS bool, region string) (*session.Session, error) {
 	if useRegionalSTS {
 		stsUrl := "sts." + region + ".amazonaws.com"
-		logutil.LogInfo(sysLogger, "Creating session to regional STS endpoint: %s\n", stsUrl)
+		log.Printf("Creating session to regional STS endpoint: %s\n", stsUrl)
 		return session.NewSessionWithOptions(session.Options{
 			Config: aws.Config{
 				Endpoint: aws.String(stsUrl),
@@ -37,13 +36,13 @@ func New(useRegionalSTS bool, region string, sysLogger io.Writer) (*session.Sess
 			},
 		})
 	} else {
-		logutil.LogInfo(sysLogger, "Creating session to global STS endpoint\n")
+		log.Print("Creating session to global STS endpoint\n")
 		return session.NewSession()
 	}
 }
 
-func GetMetaDetailsFromCreds(serviceSuffix string, useRegionalSTS bool, region string, sysLogger io.Writer) (string, string, string, error) {
-	stsSession, err := New(useRegionalSTS, region, sysLogger)
+func GetMetaDetailsFromCreds(serviceSuffix string, useRegionalSTS bool, region string) (string, string, string, error) {
+	stsSession, err := New(useRegionalSTS, region)
 	if err != nil {
 		return "", "", "", fmt.Errorf("unable to create new session: %v", err)
 	}

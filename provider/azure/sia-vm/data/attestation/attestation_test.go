@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestGetIdentityDocument(test *testing.T) {
-	identityDocument, err := GetIdentityDocument(MetaEndPoint, ApiVersion, os.Stdout)
+	identityDocument, err := GetIdentityDocument(MetaEndPoint, ApiVersion)
 	require.Nilf(test, err, "error for get identity document should be empty, error: %v", err)
 
 	assert.True(test, identityDocument.Name == "athenz-client")
@@ -72,7 +72,7 @@ func TestGetAccessToken(test *testing.T) {
 		Document:          nil,
 	}
 
-	attestData, err := New("athenz", "backend", MetaEndPoint, ApiVersion, "https://test.athenz.io/", &identityDocument, os.Stdout)
+	attestData, err := New("athenz", "backend", MetaEndPoint, ApiVersion, "https://test.athenz.io/", &identityDocument)
 	require.Nilf(test, err, "error for get attestation data should be empty, error: %v", err)
 
 	assert.True(test, attestData.Name == "athenz-client")

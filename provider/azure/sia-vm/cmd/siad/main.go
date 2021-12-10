@@ -19,15 +19,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/options"
-	"io"
 	"io/ioutil"
 	"log"
-	"log/syslog"
 	"os"
 	"os/signal"
 	"strings"
@@ -57,49 +54,49 @@ func main() {
 
 	flag.Parse()
 
-	var sysLogger io.Writer
-	if *noSysLog {
-		sysLogger = os.Stdout
-	} else {
-		var err error
-		sysLogger, err = syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
-		if err != nil {
+	if !*noSysLog {
+		sysLogger, err := util.NewSysLogger()
+		if err == nil {
+			log.SetOutput(sysLogger)
+		} else {
+			log.SetFlags(log.LstdFlags)
 			log.Printf("Unable to create sys logger: %v\n", err)
-			sysLogger = os.Stdout
 		}
+	} else {
+		log.SetFlags(log.LstdFlags)
 	}
 
 	if *ztsEndPoint == "" {
-		logutil.LogFatal(sysLogger, "ztsEndPoint argument must be specified\n")
+		log.Fatalf("ztsEndPoint argument must be specified\n")
 	}
 	if *ztsAzureDomains == "" {
-		logutil.LogFatal(sysLogger, "ztsazuredomain argument must be specified\n")
+		log.Fatalf("ztsazuredomain argument must be specified\n")
 	}
 	ztsAzureDomainList := strings.Split(*ztsAzureDomains, ",")
 
 	if *ztsResourceUri == "" {
-		logutil.LogFatal(sysLogger, "ztsresourceuri argument must be specified\n")
+		log.Fatalf("ztsresourceuri argument must be specified\n")
 	}
 	if *metaEndPoint != "" {
 		MetaEndPoint = *metaEndPoint
 	}
 
-	identityDocument, err := attestation.GetIdentityDocument(MetaEndPoint, ApiVersion, sysLogger)
+	identityDocument, err := attestation.GetIdentityDocument(MetaEndPoint, ApiVersion)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to get the instance identity document, error: %v\n", err)
+		log.Fatalf("Unable to get the instance identity document, error: %v\n", err)
 	}
 
 	confBytes, _ := ioutil.ReadFile(*pConf)
-	opts, err := options.NewOptions(confBytes, identityDocument, siaMainDir, siaVersion, *ztsCACert, *ztsServerName, ztsAzureDomainList, *countryName, *azureProvider, sysLogger)
+	opts, err := options.NewOptions(confBytes, identityDocument, siaMainDir, siaVersion, *ztsCACert, *ztsServerName, ztsAzureDomainList, *countryName, *azureProvider)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v\n", err)
+		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}
 
-	logutil.LogInfo(sysLogger, "options: %+v\n", opts)
+	log.Printf("options: %+v\n", opts)
 
-	data, err := getAttestationData(*ztsResourceUri, identityDocument, opts, sysLogger)
+	data, err := getAttestationData(*ztsResourceUri, identityDocument, opts)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to formulate attestation data, error: %v\n", err)
+		log.Fatalf("Unable to formulate attestation data, error: %v\n", err)
 	}
 
 	// for now we're going to rotate once every day
@@ -109,12 +106,12 @@ func main() {
 
 	ztsUrl := fmt.Sprintf("https://%s:4443/zts/v1", *ztsEndPoint)
 
-	err = util.SetupSIADirs(siaMainDir, siaLinkDir, sysLogger)
+	err = util.SetupSIADirs(siaMainDir, siaLinkDir)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to setup sia directories, error: %v\n", err)
+		log.Fatalf("Unable to setup sia directories, error: %v\n", err)
 	}
 
-	logutil.LogInfo(sysLogger, "Request SSH Certificates: %t\n", opts.Ssh)
+	log.Printf("Request SSH Certificates: %t\n", opts.Ssh)
 
 	svcs := options.GetSvcNames(opts.Services)
 
@@ -124,20 +121,19 @@ func main() {
 			fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, opts.Services[0].Name),
 			fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
 			opts,
-			sysLogger,
 		)
 	case "post":
-		err := sia.RegisterInstance(data, ztsUrl, identityDocument, opts, sysLogger)
+		err := sia.RegisterInstance(data, ztsUrl, identityDocument, opts)
 		if err != nil {
-			logutil.LogFatal(sysLogger, "Register identity failed, err: %v\n", err)
+			log.Fatalf("Register identity failed, err: %v\n", err)
 		}
-		logutil.LogInfo(sysLogger, "identity registered for services: %s\n", svcs)
+		log.Printf("identity registered for services: %s\n", svcs)
 	case "rotate":
-		err = sia.RefreshInstance(data, ztsUrl, identityDocument, opts, sysLogger)
+		err = sia.RefreshInstance(data, ztsUrl, identityDocument, opts)
 		if err != nil {
-			logutil.LogFatal(sysLogger, "Refresh identity failed, err: %v\n", err)
+			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
-		logutil.LogInfo(sysLogger, "Identity successfully refreshed for services: %s\n", svcs)
+		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
 	default:
 		// if we already have a cert file then we're not going to
 		// prove our identity since most likely it will not succeed
@@ -147,39 +143,39 @@ func main() {
 
 		initialSetup := true
 		if files, err := ioutil.ReadDir(opts.CertDir); err != nil || len(files) <= 0 {
-			err := sia.RegisterInstance(data, ztsUrl, identityDocument, opts, sysLogger)
+			err := sia.RegisterInstance(data, ztsUrl, identityDocument, opts)
 			if err != nil {
-				logutil.LogFatal(sysLogger, "Register identity failed, error: %v\n", err)
+				log.Fatalf("Register identity failed, error: %v\n", err)
 			}
 		} else {
 			initialSetup = false
-			logutil.LogInfo(sysLogger, "Identity certificate file already exists. Retrieving identity details...\n")
+			log.Println("Identity certificate file already exists. Retrieving identity details...")
 		}
-		logutil.LogInfo(sysLogger, "Identity established for services: %s\n", svcs)
+		log.Printf("Identity established for services: %s\n", svcs)
 
 		stop := make(chan bool, 1)
 		errors := make(chan error, 1)
 
 		go func() {
 			for {
-				logutil.LogInfo(sysLogger, "Identity being used: %s\n", opts.Name)
+				log.Printf("Identity being used: %s\n", opts.Name)
 
 				// if we just did our initial setup there is no point
 				// to refresh the certs again. so we are going to skip
 				// this time around and refresh certs next time
 
 				if !initialSetup {
-					data, err := getAttestationData(*ztsResourceUri, identityDocument, opts, sysLogger)
+					data, err := getAttestationData(*ztsResourceUri, identityDocument, opts)
 					if err != nil {
 						errors <- fmt.Errorf("Cannot get attestation data: %v\n", err)
 						return
 					}
-					err = sia.RefreshInstance(data, ztsUrl, identityDocument, opts, sysLogger)
+					err = sia.RefreshInstance(data, ztsUrl, identityDocument, opts)
 					if err != nil {
 						errors <- fmt.Errorf("refresh identity failed, error: %v", err)
 						return
 					}
-					logutil.LogInfo(sysLogger, "identity successfully refreshed for services: %s\n", svcs)
+					log.Printf("identity successfully refreshed for services: %s\n", svcs)
 				} else {
 					initialSetup = false
 				}
@@ -187,7 +183,6 @@ func main() {
 					fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, opts.Services[0].Name),
 					fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
 					opts,
-					sysLogger,
 				)
 				select {
 				case <-stop:
@@ -203,23 +198,23 @@ func main() {
 			signals := make(chan os.Signal, 2)
 			signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
 			sig := <-signals
-			logutil.LogInfo(sysLogger, "Received signal %v, stopping rotation\n", sig)
+			log.Printf("Received signal %v, stopping rotation\n", sig)
 			stop <- true
 		}()
 
 		err = <-errors
 		if err != nil {
-			logutil.LogInfo(sysLogger, "%v\n", err)
+			log.Printf("%v\n", err)
 		}
 	}
 	os.Exit(0)
 }
 
 // getAttestationData fetches attestation data for all the services mentioned in the config file
-func getAttestationData(resourceUri string, identityDocument *attestation.IdentityDocument, opts *options.Options, sysLogger io.Writer) ([]*attestation.Data, error) {
+func getAttestationData(resourceUri string, identityDocument *attestation.IdentityDocument, opts *options.Options) ([]*attestation.Data, error) {
 	var data []*attestation.Data
 	for _, svc := range opts.Services {
-		a, err := attestation.New(opts.Domain, svc.Name, MetaEndPoint, ApiVersion, resourceUri, identityDocument, sysLogger)
+		a, err := attestation.New(opts.Domain, svc.Name, MetaEndPoint, ApiVersion, resourceUri, identityDocument)
 		if err != nil {
 			return nil, err
 		}

@@ -19,9 +19,8 @@ package attestation
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/meta"
-	"io"
+	"log"
 )
 
 type IdentityDocument struct {
@@ -47,11 +46,11 @@ type Data struct {
 }
 
 // New creates a new AttestationData with values fed to it
-func New(domain, service, metaEndPoint, apiVersion, resourceUri string, identityDocument *IdentityDocument, sysLogger io.Writer) (*Data, error) {
+func New(domain, service, metaEndPoint, apiVersion, resourceUri string, identityDocument *IdentityDocument) (*Data, error) {
 
 	// obtain the access token for our service resource
 
-	accessToken, err := getAccessToken(metaEndPoint, apiVersion, resourceUri, sysLogger)
+	accessToken, err := getAccessToken(metaEndPoint, apiVersion, resourceUri)
 	if err != nil {
 		return nil, err
 	}
@@ -66,36 +65,36 @@ func New(domain, service, metaEndPoint, apiVersion, resourceUri string, identity
 	}, nil
 }
 
-func getAccessToken(metaEndPoint, apiVersion, resourceUri string, sysLogger io.Writer) (string, error) {
+func getAccessToken(metaEndPoint, apiVersion, resourceUri string) (string, error) {
 
 	uri := fmt.Sprintf("/metadata/identity/oauth2/token?api-version=%s&resource=%s", apiVersion, resourceUri)
 	document, err := meta.GetData(metaEndPoint, uri)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to get the identity access token, error: %v\n", err)
+		log.Fatalf("Unable to get the identity access token, error: %v\n", err)
 		return "", err
 	}
 
 	var docMap map[string]interface{}
 	err = json.Unmarshal(document, &docMap)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to parse access token document: %v\n", err)
+		log.Fatalf("Unable to parse access token document: %v\n", err)
 		return "", err
 	}
 	return docMap["access_token"].(string), nil
 }
 
-func GetIdentityDocument(metaEndPoint, apiVersion string, sysLogger io.Writer) (*IdentityDocument, error) {
+func GetIdentityDocument(metaEndPoint, apiVersion string) (*IdentityDocument, error) {
 
 	uri := fmt.Sprintf("/metadata/instance/compute?api-version=%s", apiVersion)
 	computeData, err := meta.GetData(metaEndPoint, uri)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to get the instance identity document, error: %v\n", err)
+		log.Fatalf("Unable to get the instance identity document, error: %v\n", err)
 		return nil, err
 	}
 	var compute map[string]interface{}
 	err = json.Unmarshal(computeData, &compute)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to parse host info document: %v\n", err)
+		log.Printf("unable to parse host info document: %v\n", err)
 		return nil, err
 	}
 
@@ -110,10 +109,10 @@ func GetIdentityDocument(metaEndPoint, apiVersion string, sysLogger io.Writer) (
 			privateIp = ipv4["privateIpAddress"].(string)
 			publicIp = ipv4["publicIpAddress"].(string)
 		} else {
-			logutil.LogInfo(sysLogger, "unable to unmarshall ipv4 document: %v\n", err)
+			log.Printf("unable to unmarshall ipv4 document: %v\n", err)
 		}
 	} else {
-		logutil.LogInfo(sysLogger, "unable to parse ipv4 document: %v\n", err)
+		log.Printf("unable to parse ipv4 document: %v\n", err)
 	}
 
 	return &IdentityDocument{

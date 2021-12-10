@@ -24,10 +24,9 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -155,10 +154,10 @@ type Options struct {
 	RefreshInterval    int                   //refresh interval for certificates - default 24 hours
 }
 
-func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string, sysLogger io.Writer) (string, error) {
+func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string) (string, error) {
 	// first try to get the account from our creds and if
 	// fails we'll fall back to identity document
-	configAccount, err := InitCredsConfig("", useRegionalSTS, region, sysLogger)
+	configAccount, err := InitCredsConfig("", useRegionalSTS, region)
 	if err == nil {
 		return configAccount.Account, nil
 	}
@@ -169,8 +168,8 @@ func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string, sysLo
 	return doc.GetDocumentEntry(document, "accountId")
 }
 
-func InitCredsConfig(roleSuffix string, useRegionalSTS bool, region string, sysLogger io.Writer) (*ConfigAccount, error) {
-	account, domain, service, err := stssession.GetMetaDetailsFromCreds(roleSuffix, useRegionalSTS, region, sysLogger)
+func InitCredsConfig(roleSuffix string, useRegionalSTS bool, region string) (*ConfigAccount, error) {
+	account, domain, service, err := stssession.GetMetaDetailsFromCreds(roleSuffix, useRegionalSTS, region)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse role arn: %v", err)
 	}
@@ -204,7 +203,7 @@ func InitProfileConfig(metaEndPoint, roleSuffix string) (*ConfigAccount, error) 
 	}, nil
 }
 
-func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, account string, sysLogger io.Writer) (*Config, *ConfigAccount, error) {
+func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, account string) (*Config, *ConfigAccount, error) {
 	confBytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil, nil, err
@@ -223,7 +222,7 @@ func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, 
 	// if we have more than one account block defined (not recommended)
 	// then we need to determine our account id
 	if len(config.Accounts) > 1 && account == "" {
-		account, _ = GetAccountId(metaEndPoint, useRegionalSTS || config.UseRegionalSTS, region, sysLogger)
+		account, _ = GetAccountId(metaEndPoint, useRegionalSTS || config.UseRegionalSTS, region)
 	}
 	for _, configAccount := range config.Accounts {
 		if configAccount.Account == account || len(config.Accounts) == 1 {
@@ -300,7 +299,7 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 
 // setOptions takes in sia_config objects and returns a pointer to Options after parsing and initializing the defaults
 // It uses profile arn for defaults when sia_config is empty or non-parsable. It populates "services" array
-func setOptions(config *Config, account *ConfigAccount, siaDir, version string, sysLogger io.Writer) (*Options, error) {
+func setOptions(config *Config, account *ConfigAccount, siaDir, version string) (*Options, error) {
 
 	//update regional sts and wildcard settings based on config settings
 	useRegionalSTS := false
@@ -330,8 +329,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 		generateRoleKey = config.GenerateRoleKey
 		rotateKey = config.RotateKey
 		if len(account.Roles) != 0 && generateRoleKey == false && rotateKey == true {
-			logutil.LogInfo(sysLogger, "Cannot set rotate_key to true, with generate_role_key as false,"+
-				" when there are one or more roles defined in config\n")
+			log.Println("Cannot set rotate_key to true, with generate_role_key as false, when there are one or more roles defined in config")
 			generateRoleKey = false
 			rotateKey = false
 		}
@@ -345,7 +343,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 			Filename: account.Filename,
 			User:     account.User,
 		}
-		s.Uid, s.Gid, s.FileMode = util.SvcAttrs(account.User, account.Group, sysLogger)
+		s.Uid, s.Gid, s.FileMode = util.SvcAttrs(account.User, account.Group)
 		s.SDSUdsUid = sdsUdsUid
 		s.ExpiryTime = expiryTime
 		services = append(services, s)
@@ -382,7 +380,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 				if first.Group == "" {
 					first.Group = account.Group
 				}
-				first.Uid, first.Gid, first.FileMode = util.SvcAttrs(first.User, first.Group, sysLogger)
+				first.Uid, first.Gid, first.FileMode = util.SvcAttrs(first.User, first.Group)
 				first.ExpiryTime = svcExpiryTime
 				first.SDSNodeId = s.SDSNodeId
 				first.SDSNodeCluster = s.SDSNodeCluster
@@ -394,7 +392,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 					User:     s.User,
 					Group:    s.Group,
 				}
-				ts.Uid, ts.Gid, ts.FileMode = util.SvcAttrs(s.User, s.Group, sysLogger)
+				ts.Uid, ts.Gid, ts.FileMode = util.SvcAttrs(s.User, s.Group)
 				ts.ExpiryTime = svcExpiryTime
 				ts.SDSNodeId = s.SDSNodeId
 				ts.SDSNodeCluster = s.SDSNodeCluster
@@ -402,7 +400,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 				tail = append(tail, ts)
 			}
 			if s.Filename != "" && s.Filename[0] == '/' {
-				logutil.LogInfo(sysLogger, "when custom filepaths are specified, rotate_key and generate_role_key are not supported")
+				log.Println("when custom filepaths are specified, rotate_key and generate_role_key are not supported")
 				generateRoleKey = false
 				rotateKey = false
 			}
@@ -413,7 +411,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string, 
 
 	for _, r := range account.Roles {
 		if r.Filename != "" && r.Filename[0] == '/' {
-			logutil.LogInfo(sysLogger, "when custom filepaths are specified, rotate_key and generate_role_key are not supported")
+			log.Println("when custom filepaths are specified, rotate_key and generate_role_key are not supported")
 			generateRoleKey = false
 			rotateKey = false
 			break
@@ -453,11 +451,11 @@ func GetSvcNames(svcs []Service) string {
 	return strings.TrimSuffix(b.String(), ",")
 }
 
-func NewOptions(config *Config, configAccount *ConfigAccount, siaDir, siaVersion string, useRegionalSTS bool, region string, sysLogger io.Writer) (*Options, error) {
+func NewOptions(config *Config, configAccount *ConfigAccount, siaDir, siaVersion string, useRegionalSTS bool, region string) (*Options, error) {
 
-	opts, err := setOptions(config, configAccount, siaDir, siaVersion, sysLogger)
+	opts, err := setOptions(config, configAccount, siaDir, siaVersion)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to formulate options, error: %v", err)
+		log.Printf("Unable to formulate options, error: %v\n", err)
 		return nil, err
 	}
 

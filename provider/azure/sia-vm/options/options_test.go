@@ -23,7 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"log"
-	"os"
 	"os/user"
 	"strconv"
 	"strings"
@@ -60,7 +59,7 @@ func TestOptionsNoConfig(t *testing.T) {
 	}
 
 	ztsAzureDomains := []string{"zts-azure-domain"}
-	opts, e := NewOptions([]byte{}, &identityDocument, "/tmp", "1.0.0", "", "", ztsAzureDomains, "US", "azure.provider", os.Stdout)
+	opts, e := NewOptions([]byte{}, &identityDocument, "/tmp", "1.0.0", "", "", ztsAzureDomains, "US", "azure.provider")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -107,7 +106,7 @@ func TestOptionsWithConfig(t *testing.T) {
 	}
 
 	ztsAzureDomains := []string{"zts-azure-domain"}
-	opts, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", ztsAzureDomains, "US", "azure.provider", os.Stdout)
+	opts, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", ztsAzureDomains, "US", "azure.provider")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -153,7 +152,7 @@ func TestOptionsNoService(t *testing.T) {
 	}
 
 	ztsAzureDomains := []string{"zts-azure-domain"}
-	_, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", ztsAzureDomains, "US", "azure.provider", os.Stdout)
+	_, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", ztsAzureDomains, "US", "azure.provider")
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 
 	config = `{
@@ -171,7 +170,7 @@ func TestOptionsNoService(t *testing.T) {
   		]
 	}`
 
-	_, e = NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", ztsAzureDomains, "US", "azure.provider", os.Stdout)
+	_, e = NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", ztsAzureDomains, "US", "azure.provider")
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 }
 
@@ -203,7 +202,7 @@ func TestOptionsNoServices(t *testing.T) {
 	}
 
 	ztsAzureDomains := []string{"zts-azure-domain"}
-	opts, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", ztsAzureDomains, "US", "azure.provider", os.Stdout)
+	opts, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", ztsAzureDomains, "US", "azure.provider")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 
 	// Make sure one service is set
@@ -214,8 +213,8 @@ func TestOptionsNoServices(t *testing.T) {
 }
 
 func assertService(expected Service, actual Service) bool {
-	log.Printf("expected: %+v", expected)
-	log.Printf("actual: %+v", actual)
+	log.Printf("expected: %+v\n", expected)
+	log.Printf("actual: %+v\n", actual)
 	return expected.Name == actual.Name &&
 		expected.User == actual.User &&
 		expected.Uid == actual.Uid &&
@@ -225,8 +224,8 @@ func assertService(expected Service, actual Service) bool {
 }
 
 func assertInServices(svcs []Service, actual Service) bool {
-	log.Printf("svcs passed: %+v", svcs)
-	log.Printf("actual: %+v", actual)
+	log.Printf("svcs passed: %+v\n", svcs)
+	log.Printf("actual: %+v\n", actual)
 	for _, s := range svcs {
 		if s.Name == actual.Name && s.User == actual.User && s.Uid == actual.Uid && s.Group == actual.Group && s.Gid == actual.Gid && s.Filename == actual.Filename {
 			return true

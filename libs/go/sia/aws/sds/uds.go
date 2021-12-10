@@ -18,8 +18,8 @@ package sds
 
 import (
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 	"inet.af/peercred"
+	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -102,7 +102,7 @@ func getUdsUserDetails(connection net.Conn) ClientInfo {
 	}
 	userId, ok := credentials.UserID()
 	if !ok {
-		log.Printf("unable to obtain connection user id\n")
+		log.Println("unable to obtain connection user id")
 	} else {
 		uid, err := strconv.Atoi(userId)
 		if err != nil {
@@ -113,7 +113,7 @@ func getUdsUserDetails(connection net.Conn) ClientInfo {
 	}
 	clientInfo.PID, ok = credentials.PID()
 	if !ok {
-		log.Printf("unable to obtain connection pid\n")
+		log.Println("unable to obtain connection pid")
 	}
 	return clientInfo
 }

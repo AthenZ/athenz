@@ -48,14 +48,12 @@ func TestMain(m *testing.M) {
 
 func TestUpdateFileNew(test *testing.T) {
 
-	sysLogger := os.Stdout
-
 	//make sure our temp file does not exist
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	_ = os.Remove(fileName)
 	testContents := "sia-unit-test"
-	err := util.UpdateFile(fileName, []byte(testContents), 0, 0, 0644, sysLogger)
+	err := util.UpdateFile(fileName, []byte(testContents), 0, 0, 0644)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -76,8 +74,6 @@ func TestUpdateFileNew(test *testing.T) {
 
 func TestUpdateFileExisting(test *testing.T) {
 
-	sysLogger := os.Stdout
-
 	//create our temporary file
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
@@ -88,7 +84,7 @@ func TestUpdateFileExisting(test *testing.T) {
 		return
 	}
 	testNewContents := "sia-unit"
-	err = util.UpdateFile(fileName, []byte(testNewContents), 0, 0, 0644, sysLogger)
+	err = util.UpdateFile(fileName, []byte(testNewContents), 0, 0, 0644)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -139,7 +135,7 @@ func TestRegisterInstance(test *testing.T) {
 		Role: "athenz.hockey",
 	}
 
-	err = RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, false, os.Stdout)
+	err = RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, false)
 	assert.Nil(test, err, "unable to register instance")
 
 	if err != nil {
@@ -214,7 +210,7 @@ func TestRefreshInstance(test *testing.T) {
 		Role: "athenz.hockey",
 	}
 
-	err = RefreshInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, os.Stdout)
+	err = RefreshInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts)
 	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
 
 	oldCert, _ := ioutil.ReadFile("devel/data/cert.pem")
@@ -271,7 +267,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 		Provider:         "athenz.aws.us-west-2",
 	}
 
-	result := GetRoleCertificate("http://127.0.0.1:5081/zts/v1", keyFile, certFile, opts, os.Stdout)
+	result := GetRoleCertificate("http://127.0.0.1:5081/zts/v1", keyFile, certFile, opts)
 	if !result {
 		test.Errorf("Unable to get role certificate: %v", err)
 		return
@@ -293,16 +289,15 @@ func TestShouldSkipRegister(test *testing.T) {
 		test.Errorf("Current time is considered expired incorrectly")
 	}
 	//generate time stamp 29 mins ago - valid
-	startTime = time.Now().Add(time.Minute*29*-1)
+	startTime = time.Now().Add(time.Minute * 29 * -1)
 	opts.EC2StartTime = &startTime
 	if shouldSkipRegister(opts) {
 		test.Errorf("29 mins ago time is considered expired incorrectly")
 	}
 	//generate time stamp 31 mins ago - expired
-	startTime = time.Now().Add(time.Minute*31*-1)
+	startTime = time.Now().Add(time.Minute * 31 * -1)
 	opts.EC2StartTime = &startTime
 	if !shouldSkipRegister(opts) {
 		test.Errorf("31 mins ago time is considered not expired incorrectly")
 	}
 }
-

@@ -18,14 +18,13 @@ package sia
 
 import (
 	"encoding/json"
-	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"time"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 )
 
@@ -60,50 +59,50 @@ func GetEC2DocumentDetails(metaEndPoint string) ([]byte, []byte, string, string,
 	return document, signature, account, instanceId, region, &timeCheck, err
 }
 
-func GetECSOnEC2TaskId(sysLogger io.Writer) string {
+func GetECSOnEC2TaskId() string {
 	ecs := os.Getenv("ECS_CONTAINER_METADATA_FILE")
 	if ecs == "" {
-		logutil.LogInfo(sysLogger, "Not ECS on EC2 instance\n")
+		log.Println("Not ECS on EC2 instance")
 		return ""
 	}
 	ecsMetaData, err := ioutil.ReadFile(ecs)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to read ECS on EC2 instance metadata: %s - %v\n", ecs, err)
+		log.Printf("Unable to read ECS on EC2 instance metadata: %s - %v\n", ecs, err)
 		return ""
 	}
 	var docMap map[string]interface{}
 	err = json.Unmarshal(ecsMetaData, &docMap)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to parse ECS on EC2 instance metadata: %s - %v\n", ecs, err)
+		log.Printf("Unable to parse ECS on EC2 instance metadata: %s - %v\n", ecs, err)
 		return ""
 	}
 	taskArn := getDocValue(docMap, "TaskARN")
 	_, taskId, _, err := util.ParseTaskArn(taskArn)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to parse ECS on EC2 task id: %s - %v\n", taskArn, err)
+		log.Printf("Unable to parse ECS on EC2 task id: %s - %v\n", taskArn, err)
 		return ""
 	}
 	return taskId
 }
 
-func GetEC2Config(configFile, metaEndpoint string, useRegionalSTS bool, region, account string, sysLogger io.Writer) (*options.Config, *options.ConfigAccount, error) {
-	config, configAccount, err := options.InitFileConfig(configFile, metaEndpoint, useRegionalSTS, region, account, sysLogger)
+func GetEC2Config(configFile, metaEndpoint string, useRegionalSTS bool, region, account string) (*options.Config, *options.ConfigAccount, error) {
+	config, configAccount, err := options.InitFileConfig(configFile, metaEndpoint, useRegionalSTS, region, account)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to process configuration file '%s': %v\n", configFile, err)
-		logutil.LogInfo(sysLogger, "Trying to determine service details from the environment variables...\n")
+		log.Printf("Unable to process configuration file '%s': %v\n", configFile, err)
+		log.Println("Trying to determine service details from the environment variables...")
 		config, configAccount, err = options.InitEnvConfig(config)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to process environment settings: %v\n", err)
+			log.Printf("Unable to process environment settings: %v\n", err)
 			// if we do not have settings in our environment, we're going
 			// to use fallback to <domain>.<service>-service naming structure
-			logutil.LogInfo(sysLogger, "Trying to determine service name security credentials...\n")
-			configAccount, err = options.InitCredsConfig("-service", useRegionalSTS, region, sysLogger)
+			log.Println("Trying to determine service name security credentials...")
+			configAccount, err = options.InitCredsConfig("-service", useRegionalSTS, region)
 			if err != nil {
-				logutil.LogInfo(sysLogger, "Unable to process security credentials: %v\n", err)
-				logutil.LogInfo(sysLogger, "Trying to determine service name from profile arn...\n")
+				log.Printf("Unable to process security credentials: %v\n", err)
+				log.Println("Trying to determine service name from profile arn...")
 				configAccount, err = options.InitProfileConfig(metaEndpoint, "-service")
 				if err != nil {
-					logutil.LogInfo(sysLogger, "Unable to determine service name: %v\n", err)
+					log.Printf("Unable to determine service name: %v\n", err)
 					return config, nil, err
 				}
 			}

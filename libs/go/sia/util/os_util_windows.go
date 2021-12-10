@@ -2,9 +2,9 @@ package util
 
 import (
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"time"
 )
@@ -15,11 +15,11 @@ func NewSysLogger() (io.Writer, error) {
 	return os.Stdout, nil
 }
 
-func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode, sysLogger io.Writer) error {
+func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode) error {
 	// verify we have valid contents otherwise we're just
 	// going to skip and return success without doing anything
 	if len(contents) == 0 {
-		logutil.LogInfo(sysLogger, "Contents is empty. Skipping writing to file %s\n", fileName)
+		log.Printf("Contents is empty. Skipping writing to file %s\n", fileName)
 		return nil
 	}
 	// if the original file does not exists then we
@@ -27,55 +27,55 @@ func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode
 	// directly
 	_, err := os.Stat(fileName)
 	if err != nil && os.IsNotExist(err) {
-		logutil.LogInfo(sysLogger, "Updating file %s...\n", fileName)
+		log.Printf("Updating file %s...\n", fileName)
 		err = ioutil.WriteFile(fileName, contents, perm)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to write new file %s, err: %v\n", fileName, err)
+			log.Printf("Unable to write new file %s, err: %v\n", fileName, err)
 			return err
 		}
 	} else {
 		timeNano := time.Now().UnixNano()
 		// write the new contents to a temporary file
 		newFileName := fmt.Sprintf("%s.tmp%d", fileName, timeNano)
-		logutil.LogInfo(sysLogger, "Writing contents to temporary file %s...\n", newFileName)
+		log.Printf("Writing contents to temporary file %s...\n", newFileName)
 		err = ioutil.WriteFile(newFileName, contents, perm)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to write new file %s, err: %v\n", newFileName, err)
+			log.Printf("Unable to write new file %s, err: %v\n", newFileName, err)
 			return err
 		}
 		// move the contents of the old file to a backup file
 		bakFileName := fmt.Sprintf("%s.bak%d", fileName, timeNano)
-		logutil.LogInfo(sysLogger, "Renaming original file %s to backup file %s...\n", fileName, bakFileName)
+		log.Printf("Renaming original file %s to backup file %s...\n", fileName, bakFileName)
 		err = os.Rename(fileName, bakFileName)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to rename file %s to %s, err: %v\n", fileName, bakFileName, err)
+			log.Printf("Unable to rename file %s to %s, err: %v\n", fileName, bakFileName, err)
 			return err
 		}
 		// move the new contents to the original location
-		logutil.LogInfo(sysLogger, "Renaming temporary file %s to requested file %s...\n", newFileName, fileName)
+		log.Printf("Renaming temporary file %s to requested file %s...\n", newFileName, fileName)
 		err = os.Rename(newFileName, fileName)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to rename file %s to %s, err: %v\n", newFileName, fileName, err)
+			log.Printf("Unable to rename file %s to %s, err: %v\n", newFileName, fileName, err)
 			// before returning try to restore the original file
 			os.Rename(bakFileName, fileName)
 			return err
 		}
 		// remove the temporary backup file
-		logutil.LogInfo(sysLogger, "Removing backup file %s...\n", bakFileName)
+		log.Printf("Removing backup file %s...\n", bakFileName)
 		os.Remove(bakFileName)
 	}
 	return nil
 }
 
-func SvcAttrs(username, groupname string, sysLogger io.Writer) (int, int, int) {
+func SvcAttrs(username, groupname string) (int, int, int) {
 	return 0, 0, 0440
 }
 
-func UidGidForUserGroup(username, groupname string, sysLogger io.Writer) (int, int) {
+func UidGidForUserGroup(username, groupname string) (int, int) {
 	return 0, 0
 }
 
-func SetupSIADirs(siaMainDir, siaLinkDir string, sysLogger io.Writer) error {
+func SetupSIADirs(siaMainDir, siaLinkDir string) error {
 	// Create the certs directory, if it doesn't exist
 	certDir := fmt.Sprintf("%s/certs", siaMainDir)
 	if !FileExists(certDir) {

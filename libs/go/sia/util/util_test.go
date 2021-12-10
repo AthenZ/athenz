@@ -126,15 +126,12 @@ func TestZtsHostName(test *testing.T) {
 }
 
 func TestUpdateFileNew(test *testing.T) {
-
-	sysLogger := os.Stdout
-
 	//make sure our temp file does not exist
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	os.Remove(fileName)
 	testContents := "sia-unit-test"
-	err := UpdateFile(fileName, []byte(testContents), 0, 0, 0644, sysLogger)
+	err := UpdateFile(fileName, []byte(testContents), 0, 0, 0644)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -154,9 +151,6 @@ func TestUpdateFileNew(test *testing.T) {
 }
 
 func TestUpdateFileExisting(test *testing.T) {
-
-	sysLogger := os.Stdout
-
 	//create our temporary file
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
@@ -167,7 +161,7 @@ func TestUpdateFileExisting(test *testing.T) {
 		return
 	}
 	testNewContents := "sia-unit"
-	err = UpdateFile(fileName, []byte(testNewContents), 0, 0, 0644, sysLogger)
+	err = UpdateFile(fileName, []byte(testNewContents), 0, 0, 0644)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -187,9 +181,6 @@ func TestUpdateFileExisting(test *testing.T) {
 }
 
 func TestPrivateKeySupport(test *testing.T) {
-
-	sysLogger := os.Stdout
-
 	key, err := GenerateKeyPair(2048)
 	if err != nil {
 		test.Errorf("Unable to generate private key pair %v", err)
@@ -199,7 +190,7 @@ func TestPrivateKeySupport(test *testing.T) {
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	uid := localIdCommand("-u")
 	gid := localIdCommand("-g")
-	err = UpdateFile(fileName, []byte(PrivatePem(key)), uid, gid, 0644, sysLogger)
+	err = UpdateFile(fileName, []byte(PrivatePem(key)), uid, gid, 0644)
 	if err != nil {
 		test.Errorf("Unable to save private key file - %v", err)
 		return

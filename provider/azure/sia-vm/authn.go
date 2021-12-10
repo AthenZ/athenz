@@ -22,13 +22,12 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/options"
 	"github.com/ardielle/ardielle-go/rdl"
-	"io"
 	"io/ioutil"
+	"log"
 	"os/exec"
 	"strings"
 	"time"
@@ -44,7 +43,7 @@ type Identity struct {
 	Ip         string
 }
 
-func GetPrevRoleCertDates(certFile string, sysLogger io.Writer) (*rdl.Timestamp, *rdl.Timestamp, error) {
+func GetPrevRoleCertDates(certFile string) (*rdl.Timestamp, *rdl.Timestamp, error) {
 	prevRolCert, err := readCertificate(certFile)
 	if err != nil {
 		return nil, nil, err
@@ -58,14 +57,14 @@ func GetPrevRoleCertDates(certFile string, sysLogger io.Writer) (*rdl.Timestamp,
 		Time: prevRolCert.NotAfter,
 	}
 
-	logutil.LogInfo(sysLogger, "Existing role cert %s, not before: %s, not after: %s", certFile, notBefore.String(), notAfter.String())
+	log.Printf("Existing role cert %s, not before: %s, not after: %s\n", certFile, notBefore.String(), notAfter.String())
 	return notBefore, notAfter, nil
 }
 
-func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Options, sysLogger io.Writer) bool {
-	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, svcKeyFile, svcCertFile, opts.ZTSCACertFile, sysLogger)
+func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Options) bool {
+	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, svcKeyFile, svcCertFile, opts.ZTSCACertFile)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to initialize ZTS Client for %s, err: %v\n", ztsUrl, err)
+		log.Printf("unable to initialize ZTS Client for %s, err: %v\n", ztsUrl, err)
 		return false
 	}
 	client.AddCredentials("User-Agent", opts.Version)
@@ -74,7 +73,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 	provider := extractProviderFromCert(svcCertFile)
 	key, err := util.PrivateKeyFromFile(svcKeyFile)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "unable to read private key from %s, err: %v\n", svcKeyFile, err)
+		log.Printf("unable to read private key from %s, err: %v\n", svcKeyFile, err)
 		return false
 	}
 
@@ -86,43 +85,43 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		certFilePem := util.GetRoleCertFileName(mkDirPath(opts.CertDir), role.Filename, roleName)
 		csr, err := util.GenerateRoleCertCSR(key, opts.CountryName, "", opts.Domain, opts.Services[0].Name, roleName, opts.Services[0].Name, provider, "")
 		if err != nil {
-			logutil.LogInfo(sysLogger, "unable to generate CSR for %s, err: %v\n", roleName, err)
+			log.Printf("unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
 			continue
 		}
 		roleRequest.Csr = csr
 
-		notBefore, notAfter, _ := GetPrevRoleCertDates(certFilePem, sysLogger)
+		notBefore, notAfter, _ := GetPrevRoleCertDates(certFilePem)
 		roleRequest.PrevCertNotBefore = notBefore
 		roleRequest.PrevCertNotAfter = notAfter
 		if notBefore != nil && notAfter != nil {
-			logutil.LogInfo(sysLogger, "Previous Role Cert Not Before date: %s, Not After date: %s", notBefore, notAfter)
+			log.Printf("Previous Role Cert Not Before date: %s, Not After date: %s\n", notBefore, notAfter)
 		}
 
 		// "rolename": "athenz.fp:role.readers"
 		// from the rolename, domain is athenz.fp and role is readers
 		roleCert, err := client.PostRoleCertificateRequestExt(roleRequest)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "PostRoleCertificateRequest failed for %s, err: %v\n", roleName, err)
+			log.Printf("PostRoleCertificateRequest failed for %s, err: %v\n", roleName, err)
 			failures += 1
 			continue
 		}
 
 		// we have the role certificate
 		// write the cert to pem file using Role.Filename
-		err = util.UpdateFile(certFilePem, []byte(roleCert.X509Certificate), 0, 0, 0444, sysLogger)
+		err = util.UpdateFile(certFilePem, []byte(roleCert.X509Certificate), 0, 0, 0444)
 		if err != nil {
 			failures += 1
 			continue
 		}
 	}
-	logutil.LogInfo(sysLogger, "SIA processed %d (failures %d) role certificate requests\n", len(opts.Roles), failures)
+	log.Printf("SIA processed %d (failures %d) role certificate requests\n", len(opts.Roles), failures)
 	return failures == 0
 }
 
-func RegisterInstance(data []*attestation.Data, ztsUrl string, identityDocument *attestation.IdentityDocument, opts *options.Options, sysLogger io.Writer) error {
+func RegisterInstance(data []*attestation.Data, ztsUrl string, identityDocument *attestation.IdentityDocument, opts *options.Options) error {
 	for i, svc := range opts.Services {
-		err := registerSvc(svc, data[i], ztsUrl, identityDocument, opts, sysLogger)
+		err := registerSvc(svc, data[i], ztsUrl, identityDocument, opts)
 		if err != nil {
 			return fmt.Errorf("unable to register identity for svc: %q, error: %v", svc.Name, err)
 		}
@@ -130,7 +129,7 @@ func RegisterInstance(data []*attestation.Data, ztsUrl string, identityDocument 
 	return nil
 }
 
-func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, identityDocument *attestation.IdentityDocument, opts *options.Options, sysLogger io.Writer) error {
+func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, identityDocument *attestation.IdentityDocument, opts *options.Options) error {
 
 	key, err := util.GenerateKeyPair(2048)
 	if err != nil {
@@ -138,7 +137,7 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 	}
 
 	// include a csr for the host ssh certificate if requested
-	ssh, err := generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, identityDocument.PrivateIp, opts.ZTSAzureDomains, sysLogger)
+	ssh, err := generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, identityDocument.PrivateIp, opts.ZTSAzureDomains)
 	if err != nil {
 		return err
 	}
@@ -162,7 +161,7 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 	}
 	info.AttestationData = string(attestData)
 
-	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, "", "", opts.ZTSCACertFile, sysLogger)
+	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, "", "", opts.ZTSCACertFile)
 	if err != nil {
 		return err
 	}
@@ -170,38 +169,38 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 
 	instIdent, _, err := client.PostInstanceRegisterInformation(&info)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to do PostInstanceRegisterInformation, err: %v\n", err)
+		log.Printf("Unable to do PostInstanceRegisterInformation, err: %v\n", err)
 		return err
 	}
 	svcKeyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
-	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440, sysLogger)
+	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440)
 	if err != nil {
 		return err
 	}
 	certFile := getCertFileName(svc.Filename, opts.Domain, svc.Name, opts.CertDir)
-	err = util.UpdateFile(certFile, []byte(instIdent.X509Certificate), svc.Uid, svc.Gid, 0444, sysLogger)
+	err = util.UpdateFile(certFile, []byte(instIdent.X509Certificate), svc.Uid, svc.Gid, 0444)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, []byte(instIdent.X509CertificateSigner), svc.Uid, svc.Gid, 0444, sysLogger)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(instIdent.X509CertificateSigner), svc.Uid, svc.Gid, 0444)
 		if err != nil {
 			return err
 		}
 		// we're not going to count ssh updates as fatal since the primary
 		// task for sia to get service identity certs but we'll log the failure
-		err = updateSSH(instIdent.SshCertificate, instIdent.SshCertificateSigner, sysLogger)
+		err = updateSSH(instIdent.SshCertificate, instIdent.SshCertificateSigner)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to update ssh certificate, err: %v\n", err)
+			log.Printf("Unable to update ssh certificate, err: %v\n", err)
 		}
 	}
 	return nil
 }
 
-func RefreshInstance(data []*attestation.Data, ztsUrl string, identityDocument *attestation.IdentityDocument, opts *options.Options, sysLogger io.Writer) error {
+func RefreshInstance(data []*attestation.Data, ztsUrl string, identityDocument *attestation.IdentityDocument, opts *options.Options) error {
 	for i, svc := range opts.Services {
-		err := refreshSvc(svc, data[i], ztsUrl, identityDocument, opts, sysLogger)
+		err := refreshSvc(svc, data[i], ztsUrl, identityDocument, opts)
 		if err != nil {
 			return fmt.Errorf("unable to refresh identity for svc: %q, error: %v", svc.Name, err)
 		}
@@ -209,18 +208,18 @@ func RefreshInstance(data []*attestation.Data, ztsUrl string, identityDocument *
 	return nil
 }
 
-func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, identityDocument *attestation.IdentityDocument, opts *options.Options, sysLogger io.Writer) error {
+func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, identityDocument *attestation.IdentityDocument, opts *options.Options) error {
 	keyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
 	key, err := util.PrivateKeyFromFile(keyFile)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to read private key from %s, err: %v\n", keyFile, err)
+		log.Printf("Unable to read private key from %s, err: %v\n", keyFile, err)
 		return err
 	}
 
 	certFile := fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, svc.Name)
 
 	// include a csr for the host ssh certificate if requested
-	ssh, err := generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, identityDocument.PrivateIp, opts.ZTSAzureDomains, sysLogger)
+	ssh, err := generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, identityDocument.PrivateIp, opts.ZTSAzureDomains)
 	if err != nil {
 		return err
 	}
@@ -233,57 +232,54 @@ func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, iden
 	commonName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
 	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, opts.ZTSAzureDomains, opts.SanDnsWildcard, false)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to generate CSR for %s, err: %v\n", opts.Name, err)
+		log.Printf("Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
 	}
 	info := &zts.InstanceRefreshInformation{AttestationData: string(attestData), Csr: csr, Ssh: ssh}
 
-	infoData, err := json.Marshal(info)
-	logutil.LogInfo(sysLogger, "attestation data: \n%s\n", infoData)
-
-	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, keyFile, certFile, opts.ZTSCACertFile, sysLogger)
+	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, keyFile, certFile, opts.ZTSCACertFile)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to get ZTS Client for %s, err: %v\n", ztsUrl, err)
+		log.Printf("Unable to get ZTS Client for %s, err: %v\n", ztsUrl, err)
 		return err
 	}
 	client.AddCredentials("User-Agent", opts.Version)
 
 	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(provider), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(identityDocument.VmId), info)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Unable to refresh instance service certificate for %s, err: %v\n", opts.Name, err)
+		log.Printf("Unable to refresh instance service certificate for %s, err: %v\n", opts.Name, err)
 		return err
 	}
 
-	err = util.UpdateFile(certFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444, sysLogger)
+	err = util.UpdateFile(certFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444, sysLogger)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444)
 		if err != nil {
 			return err
 		}
 		// we're not going to count ssh updates as fatal since the primary
 		// task for sia to get service identity certs but we'll log the failure
-		err = updateSSH(ident.SshCertificate, ident.SshCertificateSigner, sysLogger)
+		err = updateSSH(ident.SshCertificate, ident.SshCertificateSigner)
 		if err != nil {
-			logutil.LogInfo(sysLogger, "Unable to update ssh certificate, err: %v\n", err)
+			log.Printf("Unable to update ssh certificate, err: %v\n", err)
 		}
 	}
 	return nil
 }
 
-func updateSSH(hostCert, hostSigner string, sysLogger io.Writer) error {
+func updateSSH(hostCert, hostSigner string) error {
 	// if we have no hostCert and hostSigner then
 	// we have nothing to update for ssh access
 	if hostCert == "" && hostSigner == "" {
-		logutil.LogInfo(sysLogger, "No host ssh certificate available to update\n")
+		log.Println("No host ssh certificate available to update")
 		return nil
 	}
 
 	// write the host cert file
-	err := util.UpdateFile(sshCertFile, []byte(hostCert), 0, 0, 0644, sysLogger)
+	err := util.UpdateFile(sshCertFile, []byte(hostCert), 0, 0, 0644)
 	if err != nil {
 		return err
 	}
@@ -297,7 +293,7 @@ func updateSSH(hostCert, hostSigner string, sysLogger io.Writer) error {
 	i := strings.Index(conf, "#HostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub")
 	if i >= 0 {
 		conf = conf[:i] + conf[i+1:]
-		err = util.UpdateFile(sshConfigFile, []byte(conf), 0, 0, 0644, sysLogger)
+		err = util.UpdateFile(sshConfigFile, []byte(conf), 0, 0, 0644)
 		if err != nil {
 			return err
 		}
@@ -323,13 +319,13 @@ type SSHKeyReq struct {
 	Command    string   `json:"command,omitempty" rdl:"optional"`
 }
 
-func generateSSHHostCSR(sshCert bool, domain, service, ip string, ztsAzureDomains []string, sysLogger io.Writer) (string, error) {
+func generateSSHHostCSR(sshCert bool, domain, service, ip string, ztsAzureDomains []string) (string, error) {
 	if !sshCert {
 		return "", nil
 	}
 	pubkey, err := ioutil.ReadFile(sshPubKeyFile)
 	if err != nil {
-		logutil.LogInfo(sysLogger, "Skipping SSH CSR Request - Unable to read SSH Public Key File: %v\n", err)
+		log.Printf("Skipping SSH CSR Request - Unable to read SSH Public Key File: %v\n", err)
 		return "", nil
 	}
 	identity := domain + "." + service

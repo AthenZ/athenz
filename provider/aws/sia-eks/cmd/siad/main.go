@@ -19,13 +19,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/agent"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/provider/aws/sia-eks"
 )
 
@@ -56,31 +56,31 @@ func main() {
 		os.Exit(0)
 	}
 
+	log.SetFlags(log.LstdFlags)
+
 	if *ztsEndPoint == "" {
-		logutil.LogFatal(os.Stderr, "missing zts argument\n")
+		log.Fatalln("missing zts argument")
 	}
 	ztsUrl := fmt.Sprintf("https://%s:%d/zts/v1", *ztsEndPoint, *ztsPort)
 
 	if *dnsDomains == "" {
-		logutil.LogFatal(os.Stderr, "missing dnsdomains argument\n")
+		log.Fatalln("missing dnsdomains argument")
 	}
 
 	if *providerPrefix == "" {
-		logutil.LogFatal(os.Stderr, "missing providerprefix argument\n")
+		log.Fatalln("missing providerprefix argument")
 	}
 
-	sysLogger := os.Stderr
+	region := meta.GetRegion(*eksMetaEndPoint)
 
-	region := meta.GetRegion(*eksMetaEndPoint, sysLogger)
-
-	config, configAccount, err := sia.GetEKSConfig(*pConf, *eksMetaEndPoint, *useRegionalSTS, region, sysLogger)
+	config, configAccount, err := sia.GetEKSConfig(*pConf, *eksMetaEndPoint, *useRegionalSTS, region)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to formulate configuration objects, error: %v", err)
+		log.Fatalf("Unable to formulate configuration objects, error: %v\n", err)
 	}
 
-	opts, err := options.NewOptions(config, configAccount, siaMainDir, Version, *useRegionalSTS, region, sysLogger)
+	opts, err := options.NewOptions(config, configAccount, siaMainDir, Version, *useRegionalSTS, region)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v", err)
+		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}
 
 	opts.Ssh = false
@@ -94,5 +94,5 @@ func main() {
 		opts.SDSUdsPath = *udsPath
 	}
 
-	agent.RunAgent(*cmd, siaMainDir, ztsUrl, opts, sysLogger)
+	agent.RunAgent(*cmd, siaMainDir, ztsUrl, opts)
 }

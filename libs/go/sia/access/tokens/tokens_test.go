@@ -88,7 +88,7 @@ func TestToBeRefreshed(t *testing.T) {
 	require.Nilf(t, err, "should be able to create a temp directory")
 	//defer os.RemoveAll(tokenDir)
 
-	log.Printf("temp dir: %s", tokenDir)
+	log.Printf("temp dir: %s\n", tokenDir)
 	domain := "athenz.examples"
 	service := "httpd"
 
@@ -136,36 +136,36 @@ func TestToBeRefreshed(t *testing.T) {
 	require.Nilf(t, err, fmt.Sprintf("should be able to create directory: %s", domainDir))
 
 	tpath := filepath.Join(tokenDir, domain, "reader")
-	log.Printf("Creating a token at: %s", tpath)
+	log.Printf("Creating a token at: %s\n", tpath)
 	err = ioutil.WriteFile(tpath, token(3600), 0400)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
 
 	tpath = filepath.Join(tokenDir, domain, "reader-aged")
-	log.Printf("Creating a token at: %s", tpath)
+	log.Printf("Creating a token at: %s\n", tpath)
 	err = ioutil.WriteFile(tpath, token(3600), 0400)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
 	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-time.Minute*90))
 
 	tpath = filepath.Join(tokenDir, domain, "reader-fail1")
-	log.Printf("Creating a token at: %s", tpath)
+	log.Printf("Creating a token at: %s\n", tpath)
 	err = ioutil.WriteFile(tpath, []byte("{}"), 0000)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
 
 	tpath = filepath.Join(tokenDir, domain, "reader-fail2")
-	log.Printf("Creating a token at: %s", tpath)
+	log.Printf("Creating a token at: %s\n", tpath)
 	err = ioutil.WriteFile(tpath, []byte("asdf"), 0400)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
 
 	tpath = filepath.Join(tokenDir, domain, "reader-fail3")
-	log.Printf("Creating a token at: %s", tpath)
+	log.Printf("Creating a token at: %s\n", tpath)
 	err = ioutil.WriteFile(tpath, []byte(fmt.Sprintf("{%q: %q, %q: %q}", "access_token", "signed-string", "token_type", "Bearer")), 0400)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
 
 	toRefresh, errors := ToBeRefreshed(tokenDir, tokens)
 	assert.True(t, len(errors) == 3, fmt.Sprintf("there shoud be errors in fetching ToBeRefreshed tokend, err: %v", err))
-	log.Printf("errors so far: %+v", errors)
+	log.Printf("errors so far: %+v\n", errors)
 
-	log.Printf("toRefresh: %#v", toRefresh)
+	log.Printf("toRefresh: %#v\n", toRefresh)
 	assert.NotNil(t, toRefresh, "list of tokens to be refreshed should not be empty")
 	assert.True(t, len(toRefresh) == 2, "there should be one token to be refreshed")
 	assert.Equalf(t, toRefresh[0].FileName, "writer", fmt.Sprintf("first item: %+v should be %q", toRefresh[0], "writer"))
@@ -211,7 +211,7 @@ func TestAccessTokensSuccess(t *testing.T) {
 
 	// Mock Access Tokens
 	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /zts/v1/instance")
+		log.Println("Called /zts/v1/instance")
 		io.WriteString(w, makeAccessToken(r, eckey))
 	})
 
@@ -235,7 +235,7 @@ func TestAccessTokensSuccess(t *testing.T) {
 		ZtsUrl: ztsServer.baseUrl("zts/v1"),
 	}
 
-	log.Printf("Options fed are: %+v", opts)
+	log.Printf("Options fed are: %+v\n", opts)
 
 	makeSiaDirs(t, opts)
 	makeIdentity(t, opts)
@@ -258,7 +258,7 @@ func TestAccessTokensSuccess(t *testing.T) {
 
 	errs = Fetch(opts)
 	assert.Lenf(t, errs, 1, "should be one error related to token1, errs: %v", err)
-	log.Printf("errors; %+v", errs)
+	log.Printf("errors; %+v\n", errs)
 }
 
 // TestAccessTokensRerun verifies that access tokens are being fetched
@@ -273,7 +273,7 @@ func TestAccessTokensRerun(t *testing.T) {
 
 	// Mock Access Tokens
 	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /zts/v1/instance")
+		log.Println("Called /zts/v1/instance")
 		io.WriteString(w, makeAccessToken(r, eckey))
 	})
 
@@ -293,7 +293,7 @@ func TestAccessTokensRerun(t *testing.T) {
 		ZtsUrl: ztsServer.baseUrl("zts/v1"),
 	}
 
-	log.Printf("Options fed are: %+v", opts)
+	log.Printf("Options fed are: %+v\n", opts)
 
 	makeSiaDirs(t, opts)
 	makeIdentity(t, opts)
@@ -350,7 +350,7 @@ func TestAccessTokensUserAgent(t *testing.T) {
 
 	// Mock Access Tokens
 	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /zts/v1/instance")
+		log.Println("Called /zts/v1/instance")
 		if r.Header.Get(USER_AGENT) != userAgent {
 			panic("User-Agent is not set")
 		}
@@ -374,7 +374,7 @@ func TestAccessTokensUserAgent(t *testing.T) {
 		UserAgent: userAgent,
 	}
 
-	log.Printf("Options fed are: %+v", opts)
+	log.Printf("Options fed are: %+v\n", opts)
 
 	makeSiaDirs(t, opts)
 	makeIdentity(t, opts)
@@ -397,7 +397,7 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 
 	// Mock Access Tokens
 	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /zts/v1/instance")
+		log.Println("Called /zts/v1/instance")
 		io.WriteString(w, makeAccessToken(r, eckey))
 	})
 
@@ -418,7 +418,7 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 		ZtsUrl: ztsServer.baseUrl("zts/v1"),
 	}
 
-	log.Printf("Options fed are: %+v", opts)
+	log.Printf("Options fed are: %+v\n", opts)
 
 	makeSiaDirs(t, opts)
 	makeIdentity(t, opts)
@@ -440,7 +440,7 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 
 	errs = Fetch(opts)
 	assert.Lenf(t, errs, 1, "should be one error related to token2, err: %v", errs)
-	log.Printf("tokens error: %v", errs)
+	log.Printf("tokens error: %v\n", errs)
 
 	// Make sure token1 is updated
 	tpath = filepath.Join(opts.TokenDir, "athenz.demo", "token1")
@@ -462,7 +462,7 @@ func TestAccessTokensApiErrors(t *testing.T) {
 	// Mock Access Tokens
 	c := 0
 	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Printf("Called /zts/v1/token")
+		log.Println("Called /zts/v1/token")
 		// Success the first time, api error second time, json error the third time
 		switch c {
 		case 0:
@@ -493,7 +493,7 @@ func TestAccessTokensApiErrors(t *testing.T) {
 		ZtsUrl: ztsServer.baseUrl("zts/v1"),
 	}
 
-	log.Printf("Options fed are: %+v", opts)
+	log.Printf("Options fed are: %+v\n", opts)
 
 	makeSiaDirs(t, opts)
 	makeIdentity(t, opts)
@@ -512,7 +512,7 @@ func TestAccessTokensApiErrors(t *testing.T) {
 
 	errs = Fetch(opts)
 	assert.Lenf(t, errs, 1, "should be one error related to token1, err: %v", errs)
-	log.Printf("tokens error: %v", err)
+	log.Printf("tokens error: %v\n", err)
 
 	// Make sure token1 is not updated, since ZTS is giving an api error
 	after, err := os.Stat(tpath)
@@ -522,7 +522,7 @@ func TestAccessTokensApiErrors(t *testing.T) {
 	// Handling ZTS returning bad content
 	errs = Fetch(opts)
 	assert.Lenf(t, errs, 1, "should be one error related to token1, err: %v", errs)
-	log.Printf("tokens error: %v", err)
+	log.Printf("tokens error: %v\n", err)
 
 	// Make sure token1 is not updated, since ZTS is giving an api error
 	after, err = os.Stat(tpath)
@@ -554,14 +554,14 @@ func TestAccessTokensBadCerts(t *testing.T) {
 		ZtsUrl: "http://testurl.invalid",
 	}
 
-	log.Printf("Options fed are: %+v", opts)
+	log.Printf("Options fed are: %+v\n", opts)
 
 	makeSiaDirs(t, opts)
 
 	// Fetch Tokens should return errors, since identity svc certs are not present
 	errs := Fetch(opts)
 	assert.Lenf(t, errs, 3, "there should be 2 errors, errs: %+v", errs)
-	log.Printf("Errors: %+v", errs)
+	log.Printf("Errors: %+v\n", errs)
 }
 
 func token(expiry int) []byte {
@@ -585,7 +585,7 @@ func makeSiaDirs(t *testing.T, opts *config.TokenOptions) {
 	dirs = append(dirs, TokenDirs(opts.TokenDir, opts.Tokens)...)
 	for _, d := range dirs {
 		if e := os.MkdirAll(d, 0755); e != nil {
-			log.Printf("unable to create folder: %s, err: %v", d, e)
+			log.Printf("unable to create folder: %s, err: %v\n", d, e)
 			t.FailNow()
 		}
 	}
@@ -631,13 +631,13 @@ func makeAccessToken(r *http.Request, key crypto.PrivateKey) string {
 		panic(err)
 	}
 
-	log.Printf("Body: %q", string(body))
+	log.Printf("Body: %q\n", string(body))
 	values, err := url.ParseQuery(string(body))
 	if err != nil {
 		panic(err)
 	}
 
-	log.Printf("Scopes: %+v", values.Get("scope"))
+	log.Printf("Scopes: %+v\n", values.Get("scope"))
 	audience, roles := audScopes(values.Get("scope"))
 
 	expiry, err := strconv.Atoi(values.Get("expires_in"))

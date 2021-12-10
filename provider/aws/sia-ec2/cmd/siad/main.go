@@ -25,7 +25,6 @@ import (
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/agent"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
-	"github.com/AthenZ/athenz/libs/go/sia/logutil"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2"
 )
@@ -49,6 +48,7 @@ func main() {
 	providerPrefix := flag.String("providerprefix", "", "Provider name prefix e.g athenz.aws")
 	displayVersion := flag.Bool("version", false, "Display version information")
 	udsPath := flag.String("uds", "", "uds path")
+	noSysLog := flag.Bool("nosyslog", false, "turn off syslog, log to stdout")
 
 	flag.Parse()
 
@@ -57,39 +57,45 @@ func main() {
 		os.Exit(0)
 	}
 
+	if !*noSysLog {
+		sysLogger, err := util.NewSysLogger()
+		if err == nil {
+			log.SetOutput(sysLogger)
+		} else {
+			log.SetFlags(log.LstdFlags)
+			log.Printf("Unable to create sys logger: %v\n", err)
+		}
+	} else {
+		log.SetFlags(log.LstdFlags)
+	}
+
 	if *ztsEndPoint == "" {
-		logutil.LogFatal(os.Stderr, "missing zts argument\n")
+		log.Fatalf("missing zts argument\n")
 	}
 	ztsUrl := fmt.Sprintf("https://%s:%d/zts/v1", *ztsEndPoint, *ztsPort)
 
 	if *dnsDomains == "" {
-		logutil.LogFatal(os.Stderr, "missing dnsdomains argument\n")
+		log.Fatalf("missing dnsdomains argument\n")
 	}
 
 	if *providerPrefix == "" {
-		logutil.LogFatal(os.Stderr, "missing providerprefix argument\n")
-	}
-
-	sysLogger, err := util.NewSysLogger()
-	if err != nil {
-		log.Printf("Unable to create sys logger: %v\n", err)
-		sysLogger = os.Stdout
+		log.Fatalf("missing providerprefix argument\n")
 	}
 
 	//obtain the ec2 document details
 	document, signature, account, instanceId, region, startTime, err := sia.GetEC2DocumentDetails(*ec2MetaEndPoint)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to extract document details: %v", err)
+		log.Fatalf("Unable to extract document details: %v\n", err)
 	}
 
-	config, configAccount, err := sia.GetEC2Config(*pConf, *ec2MetaEndPoint, *useRegionalSTS, region, account, sysLogger)
+	config, configAccount, err := sia.GetEC2Config(*pConf, *ec2MetaEndPoint, *useRegionalSTS, region, account)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to formulate configuration objects, error: %v", err)
+		log.Fatalf("Unable to formulate configuration objects, error: %v\n", err)
 	}
 
-	opts, err := options.NewOptions(config, configAccount, siaMainDir, Version, *useRegionalSTS, region, sysLogger)
+	opts, err := options.NewOptions(config, configAccount, siaMainDir, Version, *useRegionalSTS, region)
 	if err != nil {
-		logutil.LogFatal(sysLogger, "Unable to formulate options, error: %v", err)
+		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}
 
 	opts.Ssh = false
@@ -103,7 +109,7 @@ func main() {
 	//check to see if this is ecs on ec2 and update instance id
 	//for ec2 instances we also need to set the start time so
 	//can check the expiry check if requested
-	taskId := sia.GetECSOnEC2TaskId(sysLogger)
+	taskId := sia.GetECSOnEC2TaskId()
 	if taskId != "" {
 		opts.InstanceId = taskId
 	} else {
@@ -115,5 +121,5 @@ func main() {
 		opts.SDSUdsPath = *udsPath
 	}
 
-	agent.RunAgent(*cmd, siaMainDir, ztsUrl, opts, sysLogger)
+	agent.RunAgent(*cmd, siaMainDir, ztsUrl, opts)
 }

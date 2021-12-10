@@ -50,7 +50,7 @@ func StartGrpcServer(opts *options.Options, certUpdates chan bool) error {
 
 	select {
 	case err = <-errChan:
-		log.Printf("Stopping GRPC SDS server...")
+		log.Println("Stopping GRPC SDS server...")
 		grpcServer.Stop()
 		if _, err := os.Stat(opts.SDSUdsPath); err == nil {
 			os.Remove(opts.SDSUdsPath)

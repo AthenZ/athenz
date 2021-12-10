@@ -38,15 +38,14 @@ func TestMain(m *testing.M) {
 }
 
 func TestGetECSonEC2TaskId(t *testing.T) {
-	sysLogger := os.Stdout
 	os.Setenv("ECS_CONTAINER_METADATA_FILE", "devel/data/ecs.json")
-	assert.True(t, GetECSOnEC2TaskId(sysLogger) == "1234")
+	assert.True(t, GetECSOnEC2TaskId() == "1234")
 	os.Setenv("ECS_CONTAINER_METADATA_FILE", "devel/data/ecs-old.json")
-	assert.True(t, GetECSOnEC2TaskId(sysLogger) == "3456")
+	assert.True(t, GetECSOnEC2TaskId() == "3456")
 	os.Setenv("ECS_CONTAINER_METADATA_FILE", "devel/data/ecs-notask.json")
-	assert.True(t, GetECSOnEC2TaskId(sysLogger) == "")
+	assert.True(t, GetECSOnEC2TaskId() == "")
 	os.Setenv("ECS_CONTAINER_METADATA_FILE", "devel/data/ecs-invalid.json")
-	assert.True(t, GetECSOnEC2TaskId(sysLogger) == "")
+	assert.True(t, GetECSOnEC2TaskId() == "")
 }
 
 func TestGetEC2DocumentDetails(t *testing.T) {
