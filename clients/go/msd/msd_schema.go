@@ -189,6 +189,7 @@ func init() {
 	tTransportPolicyValidationResponse.Field("status", "TransportPolicyValidationStatus", false, nil, "")
 	tTransportPolicyValidationResponse.ArrayField("errors", "String", true, "")
 	tTransportPolicyValidationResponse.Field("updateTime", "Timestamp", true, nil, "most recent update timestamp in the backend")
+	tTransportPolicyValidationResponse.Field("id", "Int64", true, nil, "If present, assertion id associated with the transport policy")
 	sb.AddType(tTransportPolicyValidationResponse.Build())
 
 	tTransportPolicyValidationResponseList := rdl.NewStructTypeBuilder("Struct", "TransportPolicyValidationResponseList")

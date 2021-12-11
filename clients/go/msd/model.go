@@ -1215,6 +1215,11 @@ type TransportPolicyValidationResponse struct {
 	// most recent update timestamp in the backend
 	//
 	UpdateTime *rdl.Timestamp `json:"updateTime,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// If present, assertion id associated with the transport policy
+	//
+	Id *int64 `json:"id,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 //
