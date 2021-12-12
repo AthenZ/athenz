@@ -55,7 +55,7 @@ func GetDataV2(base, path string) ([]byte, error) {
 func getAuthToken(base string) ([]byte, error) {
 	headers := make(map[string]string)
 	headers["X-aws-ec2-metadata-token-ttl-seconds"] = "300"
-	return processHttpRequest(base, "latest/api/token", "PUT", headers)
+	return processHttpRequest(base, "/latest/api/token", "PUT", headers)
 }
 
 func GetDataV1(base, path string) ([]byte, error) {
