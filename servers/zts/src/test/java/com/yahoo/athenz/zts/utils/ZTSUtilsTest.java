@@ -26,7 +26,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import com.google.common.io.Resources;
 import com.yahoo.athenz.common.server.cert.Priority;
@@ -209,27 +211,11 @@ public class ZTSUtilsTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRecord certRecord = new X509CertRecord();
-        certRecord.setService("athenz.production");
-        certRecord.setInstanceId("1001");
-        
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", certRecord);
+        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production");
         assertTrue(result);
-        
-        certRecord.setService("athenz.production");
-        certRecord.setInstanceId("1001");
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", certRecord);
-        assertFalse(result);
-        
-        certRecord.setService("athenz2.production");
-        certRecord.setInstanceId("1001");
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", certRecord);
-        assertFalse(result);
-        
-        certRecord.setService("athenz.production");
-        certRecord.setInstanceId("1002");
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", certRecord);
+
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production");
         assertFalse(result);
     }
     
@@ -240,7 +226,7 @@ public class ZTSUtilsTest {
         String csr = new String(Files.readAllBytes(path));
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null);
+        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production");
         assertFalse(result);
     }
     
@@ -251,10 +237,10 @@ public class ZTSUtilsTest {
         String csr = new String(Files.readAllBytes(path));
         
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production", null);
+        boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production");
         assertTrue(result);
         
-        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production", null);
+        result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production");
         assertFalse(result);
     }
     
@@ -677,5 +663,14 @@ public class ZTSUtilsTest {
                 Date.from(currentDate.toInstant().minus(3, ChronoUnit.DAYS))
         );
         assertEquals(certRequestPriority, Priority.High);
+    }
+
+    @Test
+    public void testValueEndsWith() {
+        assertTrue(ZTSUtils.valueEndsWith("test.athenz.cloud", Arrays.asList(".athenz.cloud")));
+        assertTrue(ZTSUtils.valueEndsWith("test.athenz.cloud", Arrays.asList(".athenz.cloud", "athenz2.cloud")));
+        assertTrue(ZTSUtils.valueEndsWith("test.athenz.cloud", Arrays.asList(".athenz2.cloud", "athenz.cloud")));
+        assertFalse(ZTSUtils.valueEndsWith("test.athenz1.cloud", Arrays.asList(".athenz2.cloud")));
+        assertFalse(ZTSUtils.valueEndsWith("test.athenz1.cloud", Arrays.asList(".athenz2.cloud", "athenz.cloud")));
     }
 }

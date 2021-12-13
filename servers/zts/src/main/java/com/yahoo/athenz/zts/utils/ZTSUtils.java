@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts.utils;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -36,7 +37,6 @@ import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
-import com.yahoo.athenz.common.server.cert.X509CertRecord;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -58,8 +58,8 @@ public class ZTSUtils {
             + "SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,"
             + "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA,SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA";
     static final String ZTS_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
-    public static final String ZTS_CERT_DNS_SUFFIX =
-            System.getProperty(ZTSConsts.ZTS_PROP_CERT_DNS_SUFFIX, ZTSConsts.ZTS_CERT_DNS_SUFFIX);
+    public static final List<String> ZTS_CERT_DNS_SUFFIX = Arrays.asList(
+            System.getProperty(ZTSConsts.ZTS_PROP_CERT_DNS_SUFFIX, ZTSConsts.ZTS_CERT_DNS_SUFFIX).split(","));
 
     public static final long CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY = Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY, ZTSConsts.ZTS_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY_DEFAULT));
     public static final long CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY = Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY, ZTSConsts.ZTS_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY_DEFAULT));
@@ -178,8 +178,7 @@ public class ZTSUtils {
         return true;
     }
 
-    public static boolean verifyCertificateRequest(PKCS10CertificationRequest certReq,
-            final String domain, final String service, X509CertRecord certRecord) {
+    public static boolean verifyCertificateRequest(PKCS10CertificationRequest certReq, final String domain, final String service) {
         
         // verify that it contains the right common name
         // and the certificate matches to what we have
@@ -197,28 +196,7 @@ public class ZTSUtils {
             LOGGER.error("validateCertificateRequest: unable to validate PKCS10 cert request DNS Name");
             return false;
         }
-        
-        // if we have an instance id then we have to make sure the
-        // athenz instance id fields are identical
-        
-        if (certRecord != null) {
-            
-            // validate the service name matches first
-            
-            if (!cn.equals(certRecord.getService())) {
-                LOGGER.error("verifyCertificateRequest: unable to validate cn: {} vs. cert record data: {}",
-                        cn, certRecord.getService());
-                return false;
-            }
-            
-            // then validate instance ids
-            
-            if (!validateCertReqInstanceId(certReq, certRecord.getInstanceId())) {
-                LOGGER.error("verifyCertificateRequest: unable to validate PKCS10 cert request instance id");
-                return false;
-            }
-        }
-        
+
         return true;
     }
     
@@ -233,19 +211,16 @@ public class ZTSUtils {
             // handle all the errors and not let container to return
             // standard server error
             
-            LOGGER.error("validateCertReqCommonName: unable to extract csr cn: "
-                    + ex.getMessage());
+            LOGGER.error("validateCertReqCommonName: unable to extract csr cn: {}", ex.getMessage());
         }
         
         if (cnCertReq == null) {
-            LOGGER.error("validateCertReqCommonName - unable to extract csr cn: "
-                    + certReq.toString());
+            LOGGER.error("validateCertReqCommonName - unable to extract csr cn: {}", certReq.toString());
             return false;
         }
 
         if (!cnCertReq.equalsIgnoreCase(cn)) {
-            LOGGER.error("validateCertReqCommonName - cn mismatch: "
-                    + cnCertReq + " vs. " + cn);
+            LOGGER.error("validateCertReqCommonName - cn mismatch: {} vs. {}", cnCertReq, cn);
             return false;
         }
 
@@ -268,7 +243,7 @@ public class ZTSUtils {
         
         final String prefix = service + "." + domain.replace('.', '-') + ".";
         for (String dnsName : dnsNames) {
-            if (dnsName.startsWith(prefix) && dnsName.endsWith(ZTS_CERT_DNS_SUFFIX)) {
+            if (dnsName.startsWith(prefix) && valueEndsWith(dnsName, ZTS_CERT_DNS_SUFFIX)) {
                 continue;
             }
             if (dnsName.contains(ZTSConsts.ZTS_CERT_INSTANCE_ID_DNS)) {
@@ -468,5 +443,14 @@ public class ZTSUtils {
         } else {
             return Priority.Medium;
         }
+    }
+
+    public static boolean valueEndsWith(final String value, final List<String> suffixList) {
+        for (String suffix : suffixList) {
+            if (value.endsWith(suffix)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
