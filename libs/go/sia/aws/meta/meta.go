@@ -27,11 +27,52 @@ import (
 
 // GetData makes a http call to the local metadata end point and returns the metadata document as bytes
 func GetData(base, path string) ([]byte, error) {
-	c := &http.Client{}
-	c.Timeout = 2 * time.Second
-	req, err := http.NewRequest("GET", base+path, nil)
+	// first we're going to make a call using v2 api using tokens
+	data, err := GetDataV2(base, path)
+	if err == nil {
+		return data, nil
+	}
+	log.Printf("failed to obtain metadata using v2 api: %v\n", err)
+	// next, we'll try using v1 api
+	data, err = GetDataV1(base, path)
+	if err != nil {
+		log.Printf("failed to obtain metadata using v1 api: %v\n", err)
+	}
+	return data, err
+}
+
+func GetDataV2(base, path string) ([]byte, error) {
+	// let get our authentication token first
+	token, err := getAuthToken(base)
 	if err != nil {
 		return nil, err
+	}
+	headers := make(map[string]string)
+	headers["X-aws-ec2-metadata-token"] = string(token)
+	return processHttpRequest(base, path, "GET", headers)
+}
+
+func getAuthToken(base string) ([]byte, error) {
+	headers := make(map[string]string)
+	headers["X-aws-ec2-metadata-token-ttl-seconds"] = "300"
+	return processHttpRequest(base, "/latest/api/token", "PUT", headers)
+}
+
+func GetDataV1(base, path string) ([]byte, error) {
+	return processHttpRequest(base, path, "GET", nil)
+}
+
+func processHttpRequest(base, path, method string, headers map[string]string) ([]byte, error) {
+	c := &http.Client{}
+	c.Timeout = 5 * time.Second
+	req, err := http.NewRequest(method, base+path, nil)
+	if err != nil {
+		return nil, err
+	}
+	if headers != nil {
+		for key, value := range headers {
+			req.Header.Set(key, value)
+		}
 	}
 	res, err := c.Do(req)
 	if err != nil {

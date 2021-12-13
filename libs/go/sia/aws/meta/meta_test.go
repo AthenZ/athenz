@@ -71,7 +71,38 @@ func TestGetMetadata(test *testing.T) {
 	metaServer.start(router)
 	defer metaServer.stop()
 
+	// we are going to fail on v2 and fall back to v1
 	_, err := GetData(metaServer.httpUrl(), "/latest/dynamic/instance-identity/document")
+	if err != nil {
+		test.Errorf("Unable to retrieve instance document - %v", err)
+		return
+	}
+
+	_, err = GetData(metaServer.httpUrl(), "/latest/dynamic/instance-identity/pkcs7")
+	if err != nil {
+		test.Errorf("Unable to retrieve document signature - %v", err)
+		return
+	}
+}
+
+func TestGetMetadataV1(test *testing.T) {
+	// Mock the metadata endpoints
+	router := httptreemux.New()
+	router.GET("/latest/dynamic/instance-identity/document", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /latest/dynamic/instance-identity/document")
+		io.WriteString(w, "{ \"test\": \"document\" }")
+	})
+
+	router.GET("/latest/dynamic/instance-identity/pkcs7", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /latest/dynamic/instance-identity/pkcs7")
+		io.WriteString(w, "{ \"test\": \"pkcs7\"}")
+	})
+
+	metaServer := &testServer{}
+	metaServer.start(router)
+	defer metaServer.stop()
+
+	_, err := GetDataV1(metaServer.httpUrl(), "/latest/dynamic/instance-identity/document")
 	if err != nil {
 		test.Errorf("Unable to retrieve instance document - %v", err)
 		return
@@ -126,5 +157,36 @@ func TestGetRegionFromEnv(test *testing.T) {
 	region = GetRegion(metaServer.httpUrl())
 	if region != "us-west-2" {
 		test.Errorf("Unable to expected region: %s", region)
+	}
+}
+
+func TestGetMetadataV2(test *testing.T) {
+	// Mock the metadata endpoints
+	router := httptreemux.New()
+	router.PUT("/latest/api/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /latest/api/token")
+		if r.Header.Get("X-aws-ec2-metadata-token-ttl-seconds") != "300" {
+			log.Println("request does not have expected X-aws-ec2-metadata-token-ttl-seconds header")
+			w.WriteHeader(500)
+		}
+		io.WriteString(w, "imdsv2-token")
+	})
+	router.GET("/latest/dynamic/instance-identity/document", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /latest/dynamic/instance-identity/document")
+		if r.Header.Get("X-aws-ec2-metadata-token") != "imdsv2-token" {
+			log.Println("request does not have expected X-aws-ec2-metadata-token header")
+			w.WriteHeader(500)
+		}
+		io.WriteString(w, "{ \"test\": \"document\" }")
+	})
+
+	metaServer := &testServer{}
+	metaServer.start(router)
+	defer metaServer.stop()
+
+	_, err := GetDataV2(metaServer.httpUrl(), "/latest/dynamic/instance-identity/document")
+	if err != nil {
+		test.Errorf("Unable to retrieve instance document - %v", err)
+		return
 	}
 }
