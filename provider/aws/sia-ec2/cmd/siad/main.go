@@ -61,6 +61,7 @@ func main() {
 		sysLogger, err := util.NewSysLogger()
 		if err == nil {
 			log.SetOutput(sysLogger)
+			log.SetFlags(0)
 		} else {
 			log.SetFlags(log.LstdFlags)
 			log.Printf("Unable to create sys logger: %v\n", err)
