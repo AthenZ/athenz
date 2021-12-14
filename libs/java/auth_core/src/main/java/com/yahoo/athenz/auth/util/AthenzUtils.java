@@ -66,6 +66,31 @@ public class AthenzUtils {
         return principal;
     }
 
+    /**
+     * Return the Athenz Service principal for the given role certificate.
+     * If the certificate does not have the Athenz expected name format
+     * the method will return null.
+     * @param x509Cert x.509 role certificate
+     * @return service principal name
+     */
+    public static String extractRolePrincipal(X509Certificate x509Cert) {
+
+        // it's a role certificate, so we're going to extract
+        // our service principal from the SAN uri or email field
+        // first we're going to check the uri field
+
+        String principal = extractPrincipalFromUri(x509Cert);
+
+        // if it's not available in the uri then we're going
+        // to extract from the email san field
+
+        if (principal == null) {
+            principal = extractPrincipalFromEmail(x509Cert);
+        }
+
+        return principal;
+    }
+
     static String extractPrincipalFromEmail(X509Certificate x509Cert) {
 
         // verify that we must have only a single email

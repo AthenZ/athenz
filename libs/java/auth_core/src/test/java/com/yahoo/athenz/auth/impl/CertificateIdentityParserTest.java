@@ -182,7 +182,7 @@ public class CertificateIdentityParserTest {
         try {
             certId = parser.parse(certs);
         } catch (CertificateIdentityException e) {
-            assertEquals(e.getMessage(), "Invalid role cert, invalid email SAN entry");
+            assertEquals(e.getMessage(), "Invalid role cert, no role principal");
         } finally {
             assertNull(certId);
         }
@@ -197,7 +197,7 @@ public class CertificateIdentityParserTest {
         try {
             certId = parser.parse(certs);
         } catch (CertificateIdentityException e) {
-            assertEquals(e.getMessage(), "Invalid role cert, no email SAN entry");
+            assertEquals(e.getMessage(), "Invalid role cert, no role principal");
         } finally {
             assertNull(certId);
         }

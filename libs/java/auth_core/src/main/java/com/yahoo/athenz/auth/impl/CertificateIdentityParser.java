@@ -40,8 +40,8 @@ public class CertificateIdentityParser {
 
     public static final String EMPTY_CERT_ERR_MSG = "No certificate available in request";
 
-    private Set<String> excludedPrincipalSet = null;
-    private boolean excludeRoleCertificates;
+    private final Set<String> excludedPrincipalSet;
+    private final boolean excludeRoleCertificates;
 
     /**
      * @param  excludedPrincipalSet    Reject parsing certificate with those principal
@@ -91,8 +91,7 @@ public class CertificateIdentityParser {
         // For role cert, the principal information is in the SAN email
 
         List<String> roles = null;
-        int idx = principalName.indexOf(AuthorityConsts.ROLE_SEP);
-        if (idx != -1) {
+        if (principalName.contains(AuthorityConsts.ROLE_SEP)) {
 
             // check to make sure role certs are allowed for principal
 
@@ -105,38 +104,23 @@ public class CertificateIdentityParser {
             roles = new ArrayList<>();
             roles.add(principalName);
 
-            // now extract the email field
+            // now let's extract our role principal
 
-            List<String> emails = Crypto.extractX509CertEmails(x509Cert);
-            if (emails.isEmpty()) {
-                throw new CertificateIdentityException("Invalid role cert, no email SAN entry");
+            principalName = AthenzUtils.extractRolePrincipal(x509Cert);
+            if (principalName == null) {
+                throw new CertificateIdentityException("Invalid role cert, no role principal");
             }
-            String email = emails.get(0);
-            idx = email.indexOf('@');
-            if (idx == -1) {
-                throw new CertificateIdentityException("Invalid role cert, invalid email SAN entry");
-            }
-            principalName = email.substring(0, idx);
-        }
-
-        if (this.excludeRoleCertificates && roles != null) {
-            throw new CertificateIdentityException("Role Certificates not allowed");
         }
 
         // extract domain and service names from the name. We must have
         // a valid service identity in the form domain.service
 
-        String[] ds = AthenzUtils.splitPrincipalName(principalName);
-        if (ds == null) {
+        int idx = principalName.lastIndexOf(AuthorityConsts.ATHENZ_PRINCIPAL_DELIMITER_CHAR);
+        if (idx == -1 || idx == 0 || idx == principalName.length() - 1) {
             throw new CertificateIdentityException("Principal is not a valid service identity");
         }
 
-        return new CertificateIdentity(
-            ds[0],
-            ds[1],
-            roles,
-            x509Cert
-        );
+        return new CertificateIdentity(principalName.substring(0, idx).toLowerCase(),
+                principalName.substring(idx + 1).toLowerCase(), roles, x509Cert);
     }
-
 }

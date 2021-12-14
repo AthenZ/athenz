@@ -58,12 +58,32 @@ public class AthenzUtilsTest {
     }
 
     @Test
+    public void testExtractRolePrincipalRoleCert() throws Exception {
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_email_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            assertEquals("athens.zts", AthenzUtils.extractRolePrincipal(cert));
+        }
+    }
+
+    @Test
     public void testExtractServicePrincipalRoleCertUri() throws Exception {
         try (InputStream inStream = new FileInputStream("src/test/resources/role_cert_principal_uri_x509.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
             assertEquals("athenz.production", AthenzUtils.extractServicePrincipal(cert));
+        }
+    }
+
+    @Test
+    public void testExtractRolePrincipalRoleCertUri() throws Exception {
+        try (InputStream inStream = new FileInputStream("src/test/resources/role_cert_principal_uri_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            assertEquals("athenz.production", AthenzUtils.extractRolePrincipal(cert));
         }
     }
 

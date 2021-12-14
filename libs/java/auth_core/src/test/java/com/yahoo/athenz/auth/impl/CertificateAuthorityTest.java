@@ -218,7 +218,7 @@ public class CertificateAuthorityTest {
             StringBuilder errMsg = new StringBuilder();
             Principal principal = authority.authenticate(certs, errMsg);
             assertNull(principal);
-            assertTrue(errMsg.toString().contains("invalid email SAN entry"));
+            assertTrue(errMsg.toString().contains("Invalid role cert, no role principal"));
         }
     }
 
@@ -238,7 +238,7 @@ public class CertificateAuthorityTest {
             StringBuilder errMsg = new StringBuilder();
             Principal principal = authority.authenticate(certs, errMsg);
             assertNull(principal);
-            assertTrue(errMsg.toString().contains("no email SAN entry"));
+            assertTrue(errMsg.toString().contains("Invalid role cert, no role principal"));
         }
     }
 
