@@ -45,14 +45,13 @@ public class CertificateAuthority implements Authority {
     @Override
     public void initialize() {
         Set<String> excludedPrincipalSet = null;
-        boolean excludeRoleCertificates;
 
         final String exPrincipals = System.getProperty(ATHENZ_PROP_EXCLUDED_PRINCIPALS);
         if (exPrincipals != null && !exPrincipals.isEmpty()) {
             excludedPrincipalSet = new HashSet<>(Arrays.asList(exPrincipals.split(",")));
         }
 
-        excludeRoleCertificates = Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_EXCLUDE_ROLE_CERTIFICATES, "false"));
+        boolean excludeRoleCertificates = Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_EXCLUDE_ROLE_CERTIFICATES, "false"));
 
         this.certificateIdentityParser = new CertificateIdentityParser(excludedPrincipalSet, excludeRoleCertificates);
     }
