@@ -3973,7 +3973,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         
         final PKCS10CertificationRequest certReq = x509CertReq.getCertReq();
-        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service, null)) {
+        if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service)) {
             throw requestError("Invalid CSR - data mismatch", caller, domain, principalDomain);
         }
 

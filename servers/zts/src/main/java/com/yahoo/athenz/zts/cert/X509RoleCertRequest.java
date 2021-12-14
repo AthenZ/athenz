@@ -158,7 +158,7 @@ public class X509RoleCertRequest extends X509CertRequest {
 
         final String email = emails.get(0);
         final String emailPrefix = principal + "@";
-        if (!email.startsWith(emailPrefix) || !email.endsWith(ZTSUtils.ZTS_CERT_DNS_SUFFIX)) {
+        if (!email.startsWith(emailPrefix) || !ZTSUtils.valueEndsWith(email, ZTSUtils.ZTS_CERT_DNS_SUFFIX)) {
             LOGGER.error("validateRoleCertificateRequest: fail to validate email {} format {}*{}",
                     email, emailPrefix, ZTSUtils.ZTS_CERT_DNS_SUFFIX);
             return false;
