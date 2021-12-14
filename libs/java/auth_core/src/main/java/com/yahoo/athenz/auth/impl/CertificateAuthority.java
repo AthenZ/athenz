@@ -106,7 +106,7 @@ public class CertificateAuthority implements Authority {
         }
 
         // parse certificate
-        CertificateIdentity certId = null;
+        CertificateIdentity certId;
         try {
             certId = this.certificateIdentityParser.parse(certs);
         } catch (CertificateIdentityException e) {
@@ -119,7 +119,10 @@ public class CertificateAuthority implements Authority {
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(certId.getDomain(), certId.getService(), x509Cert.toString(), this);
         principal.setUnsignedCreds(x509Cert.getSubjectX500Principal().toString());
         principal.setX509Certificate(x509Cert);
-        principal.setRoles(certId.getRoles());
+        if (certId.getRoles() != null) {
+            principal.setRoles(certId.getRoles());
+            principal.setRolePrincipalName(certId.getRolePrincipalName());
+        }
         principal.setMtlsRestricted(Crypto.isRestrictedCertificate(x509Cert, globStringsMatcher));
 
         return principal;

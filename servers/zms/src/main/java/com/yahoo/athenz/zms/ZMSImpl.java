@@ -8244,10 +8244,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // we are going to log our principal and validate that it
         // contains expected data
 
-        final Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
-        ((RsrcCtxWrapper) ctx).logPrincipal(ctxPrincipal);
-        if (ctxPrincipal != null && ctxPrincipal.getFullName() != null) {
-            validate(ctxPrincipal.getFullName(), TYPE_SERVICE_NAME, "logPrincipal");
+        final String principalName = ((RsrcCtxWrapper) ctx).logPrincipal();
+        if (principalName != null) {
+            validate(principalName, TYPE_SERVICE_NAME, "logPrincipal");
         }
     }
 

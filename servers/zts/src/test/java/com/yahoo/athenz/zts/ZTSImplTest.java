@@ -261,6 +261,10 @@ public class ZTSImplTest {
         Mockito.when(rsrcCtxWrapper.principal()).thenReturn(principal);
         Mockito.when(rsrcCtxWrapper.request()).thenReturn(mockServletRequest);
         Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
+        if (principal != null) {
+            Mockito.when(rsrcCtxWrapper.logPrincipal()).thenReturn(principal.getFullName());
+            Mockito.when(rsrcCtxWrapper.getPrincipalDomain()).thenReturn(principal.getDomain());
+        }
         return rsrcCtxWrapper;
     }
 
@@ -10441,8 +10445,8 @@ public class ZTSImplTest {
     public void testGetPrincipalDomain() {
         Principal principal = SimplePrincipal.create("sports", "api",
                 "creds", 0, new PrincipalAuthority());
-        ResourceContext ctx = createResourceContext(principal);
 
+        ResourceContext ctx = createResourceContext(principal);
         assertEquals(zts.logPrincipalAndGetDomain(ctx), "sports");
     }
 

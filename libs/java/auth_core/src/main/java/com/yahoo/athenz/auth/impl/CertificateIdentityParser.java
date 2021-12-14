@@ -88,9 +88,10 @@ public class CertificateIdentityParser {
             throw new CertificateIdentityException("Principal is excluded");
         }
 
-        // For role cert, the principal information is in the SAN email
+        // For role cert, the principal information is in the SAN uri and/or email
 
         List<String> roles = null;
+        String rolePrincipalName = null;
         if (principalName.contains(AuthorityConsts.ROLE_SEP)) {
 
             // check to make sure role certs are allowed for principal
@@ -106,10 +107,11 @@ public class CertificateIdentityParser {
 
             // now let's extract our role principal
 
-            principalName = AthenzUtils.extractRolePrincipal(x509Cert);
-            if (principalName == null) {
+            rolePrincipalName = AthenzUtils.extractRolePrincipal(x509Cert);
+            if (rolePrincipalName == null) {
                 throw new CertificateIdentityException("Invalid role cert, no role principal");
             }
+            principalName = rolePrincipalName;
         }
 
         // extract domain and service names from the name. We must have
@@ -121,6 +123,6 @@ public class CertificateIdentityParser {
         }
 
         return new CertificateIdentity(principalName.substring(0, idx).toLowerCase(),
-                principalName.substring(idx + 1).toLowerCase(), roles, x509Cert);
+                principalName.substring(idx + 1).toLowerCase(), roles, rolePrincipalName, x509Cert);
     }
 }

@@ -45,6 +45,7 @@ public class SimplePrincipal implements Principal {
     X509Certificate x509Certificate = null;
     String applicationId = null;
     private boolean mtlsRestricted = false;
+    String rolePrincipalName = null;
 
     // defaulting to ACTIVE state
     private Principal.State state = State.ACTIVE;
@@ -54,19 +55,32 @@ public class SimplePrincipal implements Principal {
     }
 
     /**
-     * Create a Principal based on a given RoleToken
+     * Create a Principal based on a given Access/Role Token or role certificate
      * @param domain Domain name that the RoleToken was issued for
      * @param creds Credentials of the principal (RoleToken)
      * @param roles List of roles defined in the token
-     * @param authority authority responsible for the credentials (RoleAuthority)
+     * @param authority authority responsible for the credentials (e.g. RoleAuthority)
      * @return a Principal for the given set of roles in a domain
      */
     public static Principal create(String domain, String creds, List<String> roles, Authority authority) {
+        return create(domain, creds, roles, null, authority);
+    }
+
+    /**
+     * Create a Principal based on a given Access/Role Token or role certificate
+     * @param domain Domain name that the RoleToken was issued for
+     * @param creds Credentials of the principal (RoleToken)
+     * @param roles List of roles defined in the token
+     * @param rolePrincipalName principal who requested the given access token or role certificate
+     * @param authority authority responsible for the credentials (e.g. RoleAuthority)
+     * @return a Principal for the given set of roles in a domain
+     */
+    public static Principal create(String domain, String creds, List<String> roles, String rolePrincipalName, Authority authority) {
         if (roles == null || roles.size() == 0) {
             LOG.error("createRolePrincipal: zero roles");
             return null;
         }
-        return new SimplePrincipal(domain, creds, roles, authority);
+        return new SimplePrincipal(domain, creds, roles, rolePrincipalName, authority);
     }
 
     /** 
@@ -90,12 +104,10 @@ public class SimplePrincipal implements Principal {
      * @param authority authority responsible for the credentials (e.g. UserAuthority)
      * @return a Principal for the identity
      */
-    public static Principal create(String domain, String name, String creds, long issueTime,
-            Authority authority) {
+    public static Principal create(String domain, String name, String creds, long issueTime, Authority authority) {
         String matchDomain = (authority == null) ? null : authority.getDomain();
         if (matchDomain != null && !domain.equals(matchDomain)) {
-            LOG.error("createPrincipal: domain mismatch for user {} in authority {}",
-                    name, authority);
+            LOG.error("createPrincipal: domain mismatch for user {} in authority {}", name, authority);
             return null;
         }
         return new SimplePrincipal(domain, name, creds, issueTime, authority);
@@ -124,11 +136,12 @@ public class SimplePrincipal implements Principal {
         this.issueTime = issueTime;
     }
 
-    private SimplePrincipal(String domain, String creds, List<String> roles, Authority authority) {
+    private SimplePrincipal(String domain, String creds, List<String> roles, String rolePrincipalName, Authority authority) {
         this.domain = domain;
         this.creds = creds;
         this.roles = roles;
         this.authority = authority;
+        this.rolePrincipalName = rolePrincipalName;
     }
 
     public void setUnsignedCreds(String unsignedCreds) {
@@ -173,6 +186,10 @@ public class SimplePrincipal implements Principal {
 
     public void setState(State state) {
         this.state = state;
+    }
+
+    public void setRolePrincipalName(String rolePrincipalName) {
+        this.rolePrincipalName = rolePrincipalName;
     }
 
     @Override
@@ -275,6 +292,11 @@ public class SimplePrincipal implements Principal {
     @Override
     public Principal.State getState() {
         return this.state;
+    }
+
+    @Override
+    public String getRolePrincipalName() {
+        return this.rolePrincipalName;
     }
 
     @Override

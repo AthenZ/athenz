@@ -102,17 +102,25 @@ public class RsrcCtxWrapper implements ResourceContext {
         try {
             ctx.authorize(action, resource, trustedDomain);
         } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
-            logPrincipal(ctx.principal());
+            logPrincipal();
             throwZmsException(restExc);
         }
     }
 
-    public void logPrincipal(final Principal principal) {
+    public String logPrincipal() {
+        final Principal principal = ctx.principal();
         if (principal == null) {
-            return;
+            return null;
         }
-        ctx.request().setAttribute(ServerCommonConsts.REQUEST_PRINCIPAL, principal.getFullName());
+        // we'll try our role principal name and if it's not configured
+        // we'll fall back to our service principal name
+        String principalName = principal.getRolePrincipalName();
+        if (principalName == null) {
+            principalName = principal.getFullName();
+        }
+        ctx.request().setAttribute(ServerCommonConsts.REQUEST_PRINCIPAL, principalName);
         logAuthorityId(principal.getAuthority());
+        return principalName;
     }
 
     public void logAuthorityId(Authority authority) {

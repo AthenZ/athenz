@@ -4405,14 +4405,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // we are going to log our principal and validate that it
         // contains expected data
         
-        final Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
-        ((RsrcCtxWrapper) ctx).logPrincipal(ctxPrincipal);
-        if (ctxPrincipal != null && ctxPrincipal.getFullName() != null) {
-            final String ctxPrincipalDomain = ctxPrincipal.getDomain();
-            validate(ctxPrincipal.getFullName(), TYPE_SERVICE_NAME, "logPrincipal", ctxPrincipalDomain);
-            return ctxPrincipalDomain;
+        final String principalName = ((RsrcCtxWrapper) ctx).logPrincipal();
+        final String principalDomain = ((RsrcCtxWrapper) ctx).getPrincipalDomain();
+        if (principalName != null) {
+            validate(principalName, TYPE_SERVICE_NAME, "logPrincipal", principalDomain);
         }
-        return null;
+        return principalDomain;
     }
 
     String getPrincipalDomain(ResourceContext ctx) {
