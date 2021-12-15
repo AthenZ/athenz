@@ -7,6 +7,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/AthenZ/athenz/utils/zpe-updater/errconv"
+	"github.com/AthenZ/athenz/utils/zpe-updater/metrics"
 	"log"
 	"math/rand"
 	"os"
@@ -22,7 +24,7 @@ func main() {
 		root = "/home/athenz"
 	}
 	var athenzConf, zpuConf, logFile, ztsURL, privateKeyFile, certFile, caCertFile, viewDomain string
-	var forceRefresh bool
+	var forceRefresh, check bool
 	flag.StringVar(&athenzConf, "athenzConf", fmt.Sprintf("%s/conf/athenz/athenz.conf", root), "Athenz configuration file path for ZMS/ZTS urls and public keys")
 	flag.StringVar(&zpuConf, "zpuConf", fmt.Sprintf("%s/conf/zpu/zpu.conf", root), "ZPU utility configuration path")
 	flag.StringVar(&logFile, "logFile", fmt.Sprintf("%s/logs/zpu/zpu.log", root), "Log file name")
@@ -31,6 +33,7 @@ func main() {
 	flag.StringVar(&privateKeyFile, "private-key", "", "private key file")
 	flag.StringVar(&certFile, "cert-file", "", "certificate file")
 	flag.BoolVar(&forceRefresh, "force-refresh", false, "Force refresh of policy files")
+	flag.BoolVar(&check, "check", false, "Check zpu state")
 	flag.StringVar(&viewDomain, "view-domain", "", "view policy domain")
 
 	flag.Parse()
@@ -87,7 +90,36 @@ func main() {
 		zpuConfig.Zts = ztsURL
 	}
 
-	// first check if we're just asked to view a local domain
+	// first, if running check we need to verify policy files
+	// validity and generate a json metrics that can be pushed to
+	// a monitoring service
+	if check {
+		var bytes []byte
+		policyStatus, errorMessages := zpu.CheckState(zpuConfig)
+		policyMetrics := metrics.FormPolicyMetrics(policyStatus)
+		for _, policyMetric := range policyMetrics {
+			metricBytes, err := metrics.DumpMetric(policyMetric, nil)
+			if err != nil {
+				errorMessages = append(errorMessages, err)
+			}
+			bytes = append(bytes, metricBytes...)
+		}
+		statusBytes, ok, err := metrics.DumpStatus(errconv.Reduce(errorMessages))
+		if err != nil {
+			byteString := metrics.GetFailedStatus(err)
+			bytes = append([]byte(byteString), bytes...)
+		}
+		bytes = append(statusBytes, bytes...)
+
+		fmt.Printf("%s\n", bytes)
+
+		if ok {
+			os.Exit(0)
+		}
+		os.Exit(1)
+	}
+
+	// then check if we're just asked to view a local domain
 	// this option is mutually exclusive with running the updater
 	if viewDomain != "" {
 		err = zpu.PolicyView(zpuConfig, viewDomain)
