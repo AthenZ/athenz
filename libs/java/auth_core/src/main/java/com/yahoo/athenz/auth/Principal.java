@@ -96,7 +96,8 @@ public interface Principal {
     String getUnsignedCredentials();
 
     /** @return the list of roles this principal is able to assume. This is null 
-     * for user/service principals, but valid for a principal based on ZTokens. */
+     * for user/service principals, but valid for principals based on AccessTokens
+     * and role certificates */
     List<String> getRoles();
     
     /** @return the authority over this principal. Can be null, if not authenticated. */
@@ -143,4 +144,9 @@ public interface Principal {
         return State.ACTIVE;
     }
 
+    /** @return the role principal name. This is null for user/service principals,
+     *  but valid for principals based on AccessTokens and role certificates */
+    default String getRolePrincipalName() {
+        return null;
+    }
 }

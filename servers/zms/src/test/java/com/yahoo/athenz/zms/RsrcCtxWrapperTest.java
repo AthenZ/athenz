@@ -32,6 +32,7 @@ import java.util.List;
 
 import static com.yahoo.athenz.common.messaging.DomainChangeMessage.ObjectType.DOMAIN;
 import static com.yahoo.athenz.common.messaging.DomainChangeMessage.ObjectType.ROLE;
+import static org.mockito.Mockito.times;
 import static org.testng.Assert.*;
 
 public class RsrcCtxWrapperTest {
@@ -162,7 +163,7 @@ public class RsrcCtxWrapperTest {
     }
 
     @Test
-    public void testLogPrincipal() {
+    public void testLogPrincipalNull() {
 
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = Mockito.mock(HttpServletResponse.class);
@@ -174,15 +175,38 @@ public class RsrcCtxWrapperTest {
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletRequest, servletResponse,
                 authListMock, false, authorizerMock, timerMetric, "apiName", false);
 
-        wrapper.logPrincipal(null);
+        wrapper.logPrincipal();
         assertNull(servletRequest.getAttribute("com.yahoo.athenz.auth.principal"));
+    }
 
+    @Test
+    public void testLogPrincipal() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
 
-        wrapper.logPrincipal(principal);
-        assertEquals(servletRequest.getAttribute("com.yahoo.athenz.auth.principal"), "hockey.kings");
-        assertEquals(servletRequest.getAttribute("com.yahoo.athenz.auth.authority_id"), "Auth-NTOKEN");
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(principal);
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+        Object timerMetric = new Object();
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
+                authorizerMock, timerMetric, "apiName", false);
+
+        wrapper.authenticate();
+        wrapper.logPrincipal();
+
+        Mockito.verify(reqMock, times(1)).setAttribute("com.yahoo.athenz.auth.principal", "hockey.kings");
+        Mockito.verify(reqMock, times(1)).setAttribute("com.yahoo.athenz.auth.authority_id", "Auth-NTOKEN");
     }
 
     @Test

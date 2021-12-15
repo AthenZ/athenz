@@ -147,7 +147,14 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
         // we have verified that our token already includes valid roles
         
         SimplePrincipal princ = (SimplePrincipal) SimplePrincipal.create(roleToken.getDomain().toLowerCase(),
-                signedToken, roleToken.getRoles(), this);
+                signedToken, roleToken.getRoles(), roleToken.getPrincipal(), this);
+        if (princ == null) {
+            errMsg.append("RoleAuthority:authenticate failed: unable to create principal object");
+            if (LOG.isWarnEnabled()) {
+                LOG.warn(errMsg.toString());
+            }
+            return null;
+        }
         princ.setUnsignedCreds(roleToken.getUnsignedToken());
         return princ;
     }

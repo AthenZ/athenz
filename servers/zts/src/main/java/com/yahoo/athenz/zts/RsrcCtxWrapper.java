@@ -110,14 +110,13 @@ public class RsrcCtxWrapper implements ResourceContext {
         try {
             ctx.authorize(action, resource, trustedDomain);
         } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
-            logPrincipal(ctx.principal());
+            logPrincipal();
             throwZtsException(restExc);
         }
     }
 
     @Override
     public void addDomainChangeMessage(DomainChangeMessage domainChangeMsg) {
-        
     }
 
     @Override
@@ -125,12 +124,20 @@ public class RsrcCtxWrapper implements ResourceContext {
         return null;
     }
 
-    public void logPrincipal(final Principal principal) {
+    public String logPrincipal() {
+        final Principal principal = ctx.principal();
         if (principal == null) {
-            return;
+            return null;
         }
-        logPrincipal(principal.getFullName());
+        // we'll try our role principal name and if it's not configured
+        // we'll fall back to our service principal name
+        String principalName = principal.getRolePrincipalName();
+        if (principalName == null) {
+            principalName = principal.getFullName();
+        }
+        logPrincipal(principalName);
         logAuthorityId(principal.getAuthority());
+        return principalName;
     }
     
     public void logPrincipal(final String principal) {
@@ -145,6 +152,11 @@ public class RsrcCtxWrapper implements ResourceContext {
             return;
         }
         ctx.request().setAttribute(ServerCommonConsts.REQUEST_AUTHORITY_ID, authority.getID());
+    }
+
+    public String getPrincipalDomain() {
+        final Principal principal = ctx.principal();
+        return (principal == null) ? null : principal.getDomain();
     }
 
     public void throwZtsException(com.yahoo.athenz.common.server.rest.ResourceException restExc) {

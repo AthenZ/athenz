@@ -305,7 +305,7 @@ public class DBService implements RolesProvider {
         final String domainName = domain.getName();
         String principalName = getPrincipalName(ctx);
         if (principalName == null) {
-            principalName = "system-account";
+            principalName = "sys.auth.zms";
         }
 
         // our exception handling code does the check for retry count
@@ -1290,7 +1290,6 @@ public class DBService implements RolesProvider {
         }
     }
 
-
     void executePutRole(ResourceContext ctx, String domainName, String roleName, Role role,
             String auditRef, String caller) {
 
@@ -1302,7 +1301,7 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
-                String principal = getPrincipalName(ctx);
+                final String principal = getPrincipalName(ctx);
 
                 // first verify that auditing requirements are met
 
@@ -1362,7 +1361,7 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
-                String principal = getPrincipalName(ctx);
+                final String principal = getPrincipalName(ctx);
 
                 // first verify that auditing requirements are met
 
@@ -1604,7 +1603,7 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
 
-                String principal = getPrincipalName(ctx);
+                final String principal = getPrincipalName(ctx);
 
                 // first verify that auditing requirements are met
 
@@ -1637,8 +1636,7 @@ public class DBService implements RolesProvider {
                 // process our insert role member support. since this is a "single"
                 // operation, we are not using any transactions.
 
-                if (!con.insertRoleMember(domainName, roleName, roleMember,
-                        principal, auditRef)) {
+                if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
                     con.rollbackChanges();
                     throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
                             roleMember.getMemberName() + " to role: " + roleName, caller);
@@ -1684,7 +1682,7 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
 
-                String principal = getPrincipalName(ctx);
+                final String principal = getPrincipalName(ctx);
 
                 // first verify that auditing requirements are met
 
@@ -1723,8 +1721,8 @@ public class DBService implements RolesProvider {
                         auditDetails.toString());
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
-                
                 return;
 
             } catch (ResourceException ex) {
@@ -1858,7 +1856,7 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
 
-                String principal = getPrincipalName(ctx);
+                final String principal = getPrincipalName(ctx);
 
                 // first verify that auditing requirements are met
 
@@ -1866,8 +1864,7 @@ public class DBService implements RolesProvider {
 
                 // process our delete role member operation
 
-                if (!con.deletePendingRoleMember(domainName, roleName, normalizedMember,
-                        principal, auditRef)) {
+                if (!con.deletePendingRoleMember(domainName, roleName, normalizedMember, principal, auditRef)) {
                     con.rollbackChanges();
                     throw ZMSUtils.notFoundError(caller + ": unable to delete pending role member: " +
                             normalizedMember + " from role: " + roleName, caller);
@@ -1908,7 +1905,7 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
 
-                String principal = getPrincipalName(ctx);
+                final String principal = getPrincipalName(ctx);
 
                 // first verify that auditing requirements are met
 
@@ -1957,7 +1954,7 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(true, true)) {
 
-                String principal = getPrincipalName(ctx);
+                final String principal = getPrincipalName(ctx);
 
                 // first verify that auditing requirements are met
 
@@ -2330,7 +2327,7 @@ public class DBService implements RolesProvider {
             final String caller, final String principal) {
 
         if (domain.getAuditEnabled() == Boolean.TRUE) {
-            if (auditRef == null || auditRef.length() == 0) {
+            if (StringUtil.isEmpty(auditRef)) {
                 con.rollbackChanges();
                 throw ZMSUtils.requestError(caller + ": Audit reference required for domain: " + domain.getName(), caller);
             }
@@ -2477,6 +2474,7 @@ public class DBService implements RolesProvider {
             con.updateRoleModTimestamp(domainName, roleName);
 
             // add domain change event
+
             addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
         }
 
@@ -2632,14 +2630,11 @@ public class DBService implements RolesProvider {
                 // remove this user from all roles manually so that we
                 // can have an audit log record for each role
 
-                removePrincipalFromDomainRoles(ctx, con, domainName, memberName,
-                        getPrincipalName(ctx), auditRef);
+                removePrincipalFromDomainRoles(ctx, con, domainName, memberName, getPrincipalName(ctx), auditRef);
 
                 // audit log the request
 
-                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                        memberName, null);
-
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE, memberName, null);
                 return;
 
             } catch (ResourceException ex) {
@@ -2698,9 +2693,7 @@ public class DBService implements RolesProvider {
 
                 // audit log the request
 
-                auditLogRequest(ctx, userName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                        userName, null);
-
+                auditLogRequest(ctx, userName, auditRef, caller, ZMSConsts.HTTP_DELETE, userName, null);
                 return;
 
             } catch (ResourceException ex) {
@@ -3824,9 +3817,11 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
+                final String principalName = getPrincipalName(ctx);
+
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_TEMPLATE);
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, principalName, AUDIT_TYPE_TEMPLATE);
 
                 // go through our list of templates and add the specified
                 // roles and polices to our domain
@@ -3837,7 +3832,7 @@ public class DBService implements RolesProvider {
 
                 for (String templateName : domainTemplate.getTemplateNames()) {
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                    if (!addSolutionTemplate(ctx, con, domainName, templateName, getPrincipalName(ctx),
+                    if (!addSolutionTemplate(ctx, con, domainName, templateName, principalName,
                             domainTemplate.getParams(), auditRef, auditDetails)) {
                         con.rollbackChanges();
                         throw ZMSUtils.internalServerError("unable to put domain templates: " + domainName, caller);
@@ -4354,9 +4349,11 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
+                final String principalName = getPrincipalName(ctx);
+
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, provSvcDomain, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_TENANCY);
+                checkDomainAuditEnabled(con, provSvcDomain, auditRef, caller, principalName, AUDIT_TYPE_TENANCY);
 
                 String trustedRolePrefix = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
                         provSvcName, tenantDomain, resourceGroup);
@@ -4389,7 +4386,7 @@ public class DBService implements RolesProvider {
 
                     auditDetails.append("{\"role\": ");
                     if (!processRole(con, originalRole, provSvcDomain, trustedName, role,
-                            getPrincipalName(ctx), auditRef, ignoreDeletes, auditDetails)) {
+                            principalName, auditRef, ignoreDeletes, auditDetails)) {
                         con.rollbackChanges();
                         throw ZMSUtils.internalServerError("unable to put role: " + trustedRole, caller);
                     }
@@ -4542,15 +4539,14 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
+                final String principalName = getPrincipalName(ctx);
+
                 // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_TENANCY);
+                checkDomainAuditEnabled(con, tenantDomain, auditRef, caller, principalName, AUDIT_TYPE_TENANCY);
 
                 // we're going to create a separate role for each one of tenant roles returned
                 // based on its action and set the caller as a member in each role
-
-                final String principalName = getPrincipalName(ctx);
-
                 // now set up the roles and policies for all the provider roles returned.
 
                 final String rolePrefix = ZMSUtils.getProviderResourceGroupRolePrefix(provSvcDomain,
@@ -6583,7 +6579,7 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
-                String principal = getPrincipalName(ctx);
+                final String principal = getPrincipalName(ctx);
 
                 // make sure the role auditing requirements are met
 
@@ -6644,7 +6640,7 @@ public class DBService implements RolesProvider {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
-                String principal = getPrincipalName(ctx);
+                final String principal = getPrincipalName(ctx);
 
                 // make sure the role auditing requirements are met
 

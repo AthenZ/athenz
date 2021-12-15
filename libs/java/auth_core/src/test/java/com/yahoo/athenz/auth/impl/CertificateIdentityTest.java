@@ -58,10 +58,13 @@ public class CertificateIdentityTest {
     @Test
     public void testToString() throws Exception {
         X509Certificate cert = this.readCert("valid_cn_x509.cert");
-        CertificateIdentity certId = new CertificateIdentity("domain", "service", Arrays.asList("role_1", "role_2"), cert);
+        CertificateIdentity certId = new CertificateIdentity("domain", "service", Arrays.asList("role_1", "role_2"),
+                "domain.service", cert);
 
         assertNotNull(certId);
-        assertEquals(certId.toString(), String.format("{domain:\"domain\", service:\"service\", roles:[\"role_1\", \"role_2\"], x509Cert:\"%s\"}", certId.getX509Certificate().toString()));
+        assertEquals(certId.toString(), String.format("{\"domain\":\"domain\", \"service\":\"service\", " +
+                "\"roles\":[\"role_1\", \"role_2\"], \"rolePrincipalName\":\"domain.service\", \"x509Cert\":\"%s\"}",
+                certId.getX509Certificate().toString()));
     }
 
 }
