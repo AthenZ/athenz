@@ -257,10 +257,10 @@ func getRoleCertificate(client *zts.ZTSClient, csr, roleDomain, roleName, roleCe
 	}
 
 	roleRequest := &zts.RoleCertificateRequest{
-		Csr:        		csr,
-		ExpiryTime: 		expiryTime,
-		PrevCertNotBefore: 	notBefore,
-		PrevCertNotAfter: 	notAfter,
+		Csr:               csr,
+		ExpiryTime:        expiryTime,
+		PrevCertNotBefore: notBefore,
+		PrevCertNotAfter:  notAfter,
 	}
 
 	roleCertificate, err := client.PostRoleCertificateRequestExt(roleRequest)

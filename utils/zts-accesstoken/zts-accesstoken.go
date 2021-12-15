@@ -100,12 +100,12 @@ func validateAccessToken(accessToken, conf string, showClaims bool) {
 	if err != nil {
 		log.Fatalf("Public key load failure: %v\n", err)
 	}
-	jwks := &jose.JSONWebKeySet {
-		Keys: []jose.JSONWebKey {
+	jwks := &jose.JSONWebKeySet{
+		Keys: []jose.JSONWebKey{
 			{
-				Key: publicKey,
+				Key:       publicKey,
 				Algorithm: tok.Headers[0].Algorithm,
-				KeyID: tok.Headers[0].KeyID,
+				KeyID:     tok.Headers[0].KeyID,
 			},
 		},
 	}

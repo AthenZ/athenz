@@ -333,29 +333,29 @@ func main() {
 			}
 		}
 		switch cli.OutputFormat {
-			case zmscli.JSONOutputFormat:
-				jsonOutput, errJson := json.MarshalIndent(err, "", "    ")
-				if errJson != nil {
-					fmt.Println("failed to produce JSON output: ", errJson)
-				}
-				output := string(jsonOutput)
-				fmt.Println(output)
-			case zmscli.YAMLOutputFormat:
-				yamlOutput, errYaml := yaml.Marshal(err)
-				if errYaml != nil {
-					fmt.Println("failed to produce YAML output: ", errYaml)
-				}
-				output := string(yamlOutput)
-				fmt.Println(output)
-			case zmscli.DefaultOutputFormat:
-				yamlOutput, errYaml := yaml.Marshal(err)
-				if errYaml != nil {
-					fmt.Println("failed to produce YAML output: ", errYaml)
-				}
-				output := string(yamlOutput)
-				fmt.Println(output)
-			default:
-				fmt.Println("***", err)
+		case zmscli.JSONOutputFormat:
+			jsonOutput, errJson := json.MarshalIndent(err, "", "    ")
+			if errJson != nil {
+				fmt.Println("failed to produce JSON output: ", errJson)
+			}
+			output := string(jsonOutput)
+			fmt.Println(output)
+		case zmscli.YAMLOutputFormat:
+			yamlOutput, errYaml := yaml.Marshal(err)
+			if errYaml != nil {
+				fmt.Println("failed to produce YAML output: ", errYaml)
+			}
+			output := string(yamlOutput)
+			fmt.Println(output)
+		case zmscli.DefaultOutputFormat:
+			yamlOutput, errYaml := yaml.Marshal(err)
+			if errYaml != nil {
+				fmt.Println("failed to produce YAML output: ", errYaml)
+			}
+			output := string(yamlOutput)
+			fmt.Println(output)
+		default:
+			fmt.Println("***", err)
 		}
 		os.Exit(1)
 	} else if msg != nil {
