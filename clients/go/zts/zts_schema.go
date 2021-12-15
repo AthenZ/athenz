@@ -354,6 +354,7 @@ func init() {
 	tSSHCertRequestData.ArrayField("destinations", "String", true, "destination FQDNs or ip addresses")
 	tSSHCertRequestData.Field("publicKey", "String", true, nil, "public key for ssh certificate")
 	tSSHCertRequestData.Field("touchPublicKey", "String", true, nil, "yubikey/touch public key for ssh certificate")
+	tSSHCertRequestData.Field("caPubKeyAlgo", "Int32", true, nil, "CA public key algorithm: 0: Unknown, 1: RSA, 3: ECDSA")
 	sb.AddType(tSSHCertRequestData.Build())
 
 	tSSHCertRequestMeta := rdl.NewStructTypeBuilder("Struct", "SSHCertRequestMeta")

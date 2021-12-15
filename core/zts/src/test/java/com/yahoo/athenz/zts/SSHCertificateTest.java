@@ -31,17 +31,22 @@ public class SSHCertificateTest {
 
         SSHCertRequestData data1 = new SSHCertRequestData();
         data1.setPublicKey("publickey1");
+        data1.setDestinations(Arrays.asList("dest1", "dest2"));
+        data1.setPrincipals(Collections.singletonList("principal1"));
+        data1.setSources(Collections.singletonList("src1"));
+        data1.setTouchPublicKey("publickey2");
+        data1.setCaPubKeyAlgo(3);
 
         SSHCertRequestData data2 = new SSHCertRequestData();
         data2.setPublicKey("publickey1");
-
-        assertEquals(data1, data1);
-        assertEquals(data1, data2);
-
         data2.setDestinations(Arrays.asList("dest1", "dest2"));
         data2.setPrincipals(Collections.singletonList("principal1"));
         data2.setSources(Collections.singletonList("src1"));
         data2.setTouchPublicKey("publickey2");
+        data2.setCaPubKeyAlgo(3);
+
+        assertEquals(data1, data1);
+        assertEquals(data1, data2);
 
         // verify getters
         assertEquals("publickey1", data2.getPublicKey());
@@ -49,46 +54,48 @@ public class SSHCertificateTest {
         assertEquals(Collections.singletonList("principal1"), data2.getPrincipals());
         assertEquals(Collections.singletonList("src1"), data2.getSources());
         assertEquals("publickey2", data2.getTouchPublicKey());
+        assertEquals(data2.getCaPubKeyAlgo().intValue(), 3);
 
+        data1.setPrincipals(Collections.singletonList("principal2"));
         assertNotEquals(data2, data1);
-
+        data1.setPrincipals(null);
+        assertNotEquals(data2, data1);
         data1.setPrincipals(Collections.singletonList("principal1"));
-        assertNotEquals(data2, data1);
-
-        data1.setSources(null);
-        assertNotEquals(data2, data1);
+        assertEquals(data2, data1);
 
         data1.setSources(Collections.singletonList("src1a"));
         assertNotEquals(data2, data1);
-
+        data1.setSources(null);
+        assertNotEquals(data2, data1);
         data1.setSources(Collections.singletonList("src1"));
-        assertNotEquals(data2, data1);
-
-        data1.setDestinations(null);
-        assertNotEquals(data2, data1);
+        assertEquals(data2, data1);
 
         data1.setDestinations(Collections.singletonList("dest1"));
         assertNotEquals(data2, data1);
-
+        data1.setDestinations(null);
+        assertNotEquals(data2, data1);
         data1.setDestinations(Arrays.asList("dest1", "dest2"));
-        assertNotEquals(data2, data1);
-
-        data1.setPublicKey(null);
-        assertNotEquals(data2, data1);
+        assertEquals(data2, data1);
 
         data1.setPublicKey("publickey1a");
         assertNotEquals(data2, data1);
-
+        data1.setPublicKey(null);
+        assertNotEquals(data2, data1);
         data1.setPublicKey("publickey1");
-        assertNotEquals(data2, data1);
-
-        data1.setTouchPublicKey(null);
-        assertNotEquals(data2, data1);
+        assertEquals(data2, data1);
 
         data1.setTouchPublicKey("publickey2a");
         assertNotEquals(data2, data1);
-
+        data1.setTouchPublicKey(null);
+        assertNotEquals(data2, data1);
         data1.setTouchPublicKey("publickey2");
+        assertEquals(data2, data1);
+
+        data1.setCaPubKeyAlgo(2);
+        assertNotEquals(data2, data1);
+        data1.setCaPubKeyAlgo(null);
+        assertNotEquals(data2, data1);
+        data1.setCaPubKeyAlgo(3);
         assertEquals(data2, data1);
 
         assertNotEquals(data1, null);

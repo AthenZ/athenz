@@ -2742,6 +2742,11 @@ type SSHCertRequestData struct {
 	// yubikey/touch public key for ssh certificate
 	//
 	TouchPublicKey string `json:"touchPublicKey,omitempty" rdl:"optional"`
+
+	//
+	// CA public key algorithm: 0: Unknown, 1: RSA, 3: ECDSA
+	//
+	CaPubKeyAlgo *int32 `json:"caPubKeyAlgo,omitempty" rdl:"optional"`
 }
 
 //

@@ -304,7 +304,8 @@ public class ZTSSchema {
             .arrayField("sources", "String", true, "source FQDNs or ip addresses")
             .arrayField("destinations", "String", true, "destination FQDNs or ip addresses")
             .field("publicKey", "String", true, "public key for ssh certificate")
-            .field("touchPublicKey", "String", true, "yubikey/touch public key for ssh certificate");
+            .field("touchPublicKey", "String", true, "yubikey/touch public key for ssh certificate")
+            .field("caPubKeyAlgo", "Int32", true, "CA public key algorithm: 0: Unknown, 1: RSA, 3: ECDSA");
 
         sb.structType("SSHCertRequestMeta")
             .field("requestor", "String", false, "requesting user")
