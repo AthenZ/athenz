@@ -62,22 +62,22 @@ type AthenzConf struct {
 }
 
 type ZpuConf struct {
-	Domains           string `json:"domains"`
-	User              string `json:"user"`
-	PolicyDir         string `json:"policyDir"`
-	TempPolicyDir     string `json:"tempPolicyDir"`
-	MetricsDir        string `json:"metricsDir"`
-	LogMaxSize        int    `json:"logMaxsize"`
-	LogMaxAge         int    `json:"logMaxage"`
-	LogMaxBackups     int    `json:"logMaxbackups"`
-	LogCompress       bool   `json:"logCompress"`
-	PrivateKey        string `json:"privateKeyFile"`
-	CertFile          string `json:"certFile"`
-	CaCertFile        string `json:"caCertFile"`
-	Proxy             bool   `json:"proxy"`
-	ExpiryCheck       int    `json:"expiryCheck"`
-	CheckZMSSignature bool   `json:"checkZMSSignature"`
-	JWSPolicySupport  bool   `json:"jwsPolicySupport"`
+	Domains           string            `json:"domains"`
+	User              string            `json:"user"`
+	PolicyDir         string            `json:"policyDir"`
+	TempPolicyDir     string            `json:"tempPolicyDir"`
+	MetricsDir        string            `json:"metricsDir"`
+	LogMaxSize        int               `json:"logMaxsize"`
+	LogMaxAge         int               `json:"logMaxage"`
+	LogMaxBackups     int               `json:"logMaxbackups"`
+	LogCompress       bool              `json:"logCompress"`
+	PrivateKey        string            `json:"privateKeyFile"`
+	CertFile          string            `json:"certFile"`
+	CaCertFile        string            `json:"caCertFile"`
+	Proxy             bool              `json:"proxy"`
+	ExpiryCheck       int               `json:"expiryCheck"`
+	CheckZMSSignature bool              `json:"checkZMSSignature"`
+	JWSPolicySupport  bool              `json:"jwsPolicySupport"`
 	PolicyVersions    map[string]string `json:"policyVersions"`
 }
 

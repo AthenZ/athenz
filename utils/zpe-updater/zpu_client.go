@@ -90,7 +90,7 @@ func GetJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, domain st
 	log.Printf("Getting policies for domain: %v\n", domain)
 	etag := GetEtagForExistingPolicy(config, ztsClient, domain)
 	signedPolicyRequest := zts.SignedPolicyRequest{
-		PolicyVersions: config.PolicyVersions,
+		PolicyVersions:       config.PolicyVersions,
 		SignatureP1363Format: true,
 	}
 	data, _, err := ztsClient.PostSignedPolicyRequest(zts.DomainName(domain), &signedPolicyRequest, etag)
@@ -146,7 +146,7 @@ func GetSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, domain
 	return nil
 }
 
-func GetSignedPolicyDataFromJson(config *ZpuConfiguration, ztsClient zts.ZTSClient, readFile *os.File) (*zts.SignedPolicyData, error){
+func GetSignedPolicyDataFromJson(config *ZpuConfiguration, ztsClient zts.ZTSClient, readFile *os.File) (*zts.SignedPolicyData, error) {
 	var domainSignedPolicyData *zts.DomainSignedPolicyData
 	err := json.NewDecoder(readFile).Decode(&domainSignedPolicyData)
 	if err != nil {
@@ -159,7 +159,7 @@ func GetSignedPolicyDataFromJson(config *ZpuConfiguration, ztsClient zts.ZTSClie
 	return domainSignedPolicyData.SignedPolicyData, nil
 }
 
-func GetSignedPolicyDataFromJws(config *ZpuConfiguration, ztsClient zts.ZTSClient, readFile *os.File) (*zts.SignedPolicyData, error){
+func GetSignedPolicyDataFromJws(config *ZpuConfiguration, ztsClient zts.ZTSClient, readFile *os.File) (*zts.SignedPolicyData, error) {
 	var jwsPolicyData *zts.JWSPolicyData
 	err := json.NewDecoder(readFile).Decode(&jwsPolicyData)
 	if err != nil {
@@ -459,7 +459,7 @@ func CheckState(config *ZpuConfiguration) ([]metrics.PolicyStatus, []error) {
 
 	ztsClient, err := getZTSClient(config)
 	if err != nil {
-		errorsMessages = append(errorsMessages, errors.New("failed to generate Zts client: " + err.Error()))
+		errorsMessages = append(errorsMessages, errors.New("failed to generate Zts client: "+err.Error()))
 		return nil, errorsMessages
 	}
 	domains := strings.Split(config.DomainList, ",")
@@ -468,20 +468,20 @@ func CheckState(config *ZpuConfiguration) ([]metrics.PolicyStatus, []error) {
 	for _, domainName := range domains {
 
 		checkedPolicy := metrics.PolicyStatus{
-			Name:     		domainName,
-			FileExists: 	false,
+			Name:       domainName,
+			FileExists: false,
 		}
 
 		policyFile := fmt.Sprintf("%s/%s.pol", config.PolicyFileDir, domainName)
 		exists := util.Exists(policyFile)
 		if !exists {
-			errorsMessages = append(errorsMessages, errors.New("policy file doesn't exist for domain " + domainName))
+			errorsMessages = append(errorsMessages, errors.New("policy file doesn't exist for domain "+domainName))
 			checkedPolicis = append(checkedPolicis, checkedPolicy)
 			continue
 		}
 		readFile, err := os.OpenFile(policyFile, os.O_RDONLY, 0444)
 		if err != nil {
-			errorsMessages = append(errorsMessages, errors.New("failed to read policy file for domain " + domainName + ": " + err.Error()))
+			errorsMessages = append(errorsMessages, errors.New("failed to read policy file for domain "+domainName+": "+err.Error()))
 			checkedPolicis = append(checkedPolicis, checkedPolicy)
 			continue
 		}
@@ -495,7 +495,7 @@ func CheckState(config *ZpuConfiguration) ([]metrics.PolicyStatus, []error) {
 			signedPolicyData, err = GetSignedPolicyDataFromJson(config, ztsClient, readFile)
 		}
 		if err != nil {
-			errorsMessages = append(errorsMessages, errors.New("failed to validate policy file signature for domain " + domainName + ": " + err.Error()))
+			errorsMessages = append(errorsMessages, errors.New("failed to validate policy file signature for domain "+domainName+": "+err.Error()))
 			checkedPolicy.ValidSignature = false
 			checkedPolicis = append(checkedPolicis, checkedPolicy)
 			continue
@@ -505,7 +505,7 @@ func CheckState(config *ZpuConfiguration) ([]metrics.PolicyStatus, []error) {
 		expiryCheck := rdl.NewTimestamp(signedPolicyData.Expires.Time.Add(-1 * time.Duration(int64(config.ExpiryCheck)) * time.Second))
 		checkedPolicy.Expiry = expiryCheck.Sub(rdl.TimestampNow().Time)
 		if checkedPolicy.Expiry.Milliseconds() <= 0 {
-			errorsMessages = append(errorsMessages, errors.New("policy file expired for domain " + domainName))
+			errorsMessages = append(errorsMessages, errors.New("policy file expired for domain "+domainName))
 		}
 		checkedPolicis = append(checkedPolicis, checkedPolicy)
 	}
