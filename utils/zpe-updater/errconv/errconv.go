@@ -40,5 +40,5 @@ func Reduce(es []error) error {
 		return nil
 	}
 
-	return fmt.Errorf("%d errors occurred: %s", len(list), strings.Join(list, "; "))
+	return fmt.Errorf("%d error(s) occurred: %s", len(list), strings.Join(list, "; "))
 }
