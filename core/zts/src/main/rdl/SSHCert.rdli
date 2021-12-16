@@ -9,6 +9,7 @@ type SSHCertRequestData Struct {
     Array<String> destinations (optional); //destination FQDNs or ip addresses
     String publicKey (optional); //public key for ssh certificate
     String touchPublicKey (optional); //yubikey/touch public key for ssh certificate
+    Int32 caPubKeyAlgo (optional); //CA public key algorithm: 0: Unknown, 1: RSA, 3: ECDSA
 }
 
 type SSHCertRequestMeta Struct {

@@ -54,7 +54,7 @@ public class ServiceIdentityTest {
         si.setUser("user.test");
 
         si2.setExecutable("add-domain");
-        si.setGroup("sample_group");
+        si2.setGroup("sample_group");
         si2.setHosts(hosts);
         si2.setModified(Timestamp.fromMillis(1234567890123L));
         si2.setName("apicomponent");
