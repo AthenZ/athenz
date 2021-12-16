@@ -468,7 +468,7 @@ func CheckState(config *ZpuConfiguration) ([]metrics.PolicyStatus, []error) {
 	for _, domainName := range domains {
 
 		checkedPolicy := metrics.PolicyStatus{
-			Name:       domainName,
+			DomainName: domainName,
 			FileExists: false,
 		}
 

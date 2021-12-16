@@ -25,9 +25,8 @@ import (
 )
 
 type Metric struct {
-	Application string             `json:"application"`
-	Dimensions  map[string]string  `json:"dimensions"`
-	Metrics		map[string]interface{} `json:"metrics,omitempty"`
+	DomainName string                 `json:"domain_name"`
+	Metrics    map[string]interface{} `json:"metrics,omitempty"`
 }
 
 type StatusMetric struct {
@@ -37,17 +36,15 @@ type StatusMetric struct {
 }
 
 type PolicyStatus struct {
-	Name     		string
-	ValidSignature 	bool
-	FileExists      bool
-	Expiry 			time.Duration
+	DomainName     string
+	ValidSignature bool
+	FileExists     bool
+	Expiry         time.Duration
 }
 
-// NewMetric creates a metric type initialized to application 'zpu-check'
+// NewMetric creates a metric type
 func NewMetric() *Metric {
-	return &Metric{
-		Application: "zpu-check",
-	}
+	return &Metric{}
 }
 
 func NewStatusMetric() *StatusMetric {
@@ -56,7 +53,7 @@ func NewStatusMetric() *StatusMetric {
 	}
 }
 
-func DumpMetric(metric *Metric, err error) ([]byte, error) {
+func DumpMetric(metric *Metric) ([]byte, error) {
 	bytes, e := json.Marshal(metric)
 	if e != nil {
 		return nil, e
@@ -64,7 +61,7 @@ func DumpMetric(metric *Metric, err error) ([]byte, error) {
 	return bytes, nil
 }
 
-func DumpStatus(err error) ([]byte, bool, error) {
+func DumpStatus(err error) ([]byte, int, error) {
 	status := NewStatusMetric()
 
 	if err == nil {
@@ -75,10 +72,7 @@ func DumpStatus(err error) ([]byte, bool, error) {
 		status.Message = err.Error()
 	}
 	bytes, e := json.Marshal(status)
-	if e != nil {
-		return bytes, err == nil, e
-	}
-	return bytes, err == nil, e
+	return bytes, status.Code, e
 }
 
 func FormPolicyMetrics(policiesStatus []PolicyStatus) []*Metric {
@@ -86,11 +80,9 @@ func FormPolicyMetrics(policiesStatus []PolicyStatus) []*Metric {
 	if policiesStatus != nil {
 		for _, policyStatus := range policiesStatus {
 			policyMetric := NewMetric()
-			policyMetric.Dimensions = map[string]string{
-				"policy_name": policyStatus.Name,
-			}
+			policyMetric.DomainName = policyStatus.DomainName
 			policyMetric.Metrics = make(map[string]interface{})
-			policyMetric.Metrics["policy_expiry_minutes"] = float64(policyStatus.Expiry.Minutes())
+			policyMetric.Metrics["policy_expiry_minutes"] = int(policyStatus.Expiry.Minutes())
 			policyMetric.Metrics["valid_signature"] = policyStatus.ValidSignature
 			policyMetric.Metrics["file_exists"] = policyStatus.FileExists
 			policyMetrics = append(policyMetrics, policyMetric)
@@ -99,6 +91,6 @@ func FormPolicyMetrics(policiesStatus []PolicyStatus) []*Metric {
 	return policyMetrics
 }
 
-func GetFailedStatus(err error) string {
-	return fmt.Sprintf("{\"application\":\"zpu-check\",\"status_code\":1,\"status_msg\":\"%s\"}", err.Error())
+func GetFailedStatus(err error) []byte {
+	return []byte(fmt.Sprintf("{\"application\":\"zpu-check\",\"status_code\":1,\"status_msg\":\"%s\"}", err.Error()))
 }
