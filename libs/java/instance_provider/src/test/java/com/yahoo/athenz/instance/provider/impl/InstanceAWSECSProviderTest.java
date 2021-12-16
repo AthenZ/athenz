@@ -46,7 +46,7 @@ public class InstanceAWSECSProviderTest {
         InstanceAWSECSProvider provider = new InstanceAWSECSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", null, null);
         assertNull(provider.awsPublicKey);
-        assertEquals(provider.bootTimeOffset, 0);
+        assertEquals((long)provider.bootTimeOffsetSeconds.get(), 0);
         provider.close();
     }
     

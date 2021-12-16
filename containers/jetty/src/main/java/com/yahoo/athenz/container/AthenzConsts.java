@@ -28,6 +28,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_ACCESS_LOG_NAME        = "athenz.access_log_name";
     public static final String ATHENZ_PROP_ACCESS_SLF4J_LOGGER    = "athenz.access_slf4j_logger";
     public static final String ATHENZ_PROP_ACCESS_LOG_DIR         = "athenz.access_log_dir";
+    public static final String ATHENZ_PROP_AWS_PARAM_STORE_PATH   = "athenz.aws_param_store_path";
 
     public static final String ATHENZ_PROP_KEYSTORE_PASSWORD      = "athenz.ssl_key_store_password";
     public static final String ATHENZ_PROP_KEYMANAGER_PASSWORD    = "athenz.ssl_key_manager_password";

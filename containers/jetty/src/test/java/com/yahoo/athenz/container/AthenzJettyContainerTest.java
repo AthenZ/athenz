@@ -796,4 +796,11 @@ public class AthenzJettyContainerTest {
 
         System.clearProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON);
     }
+
+    @Test
+    public void testInitConfigManager() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME, "./src/test/resources/athenz.properties");
+        AthenzJettyContainer.initConfigManager();
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME);
+    }
 }

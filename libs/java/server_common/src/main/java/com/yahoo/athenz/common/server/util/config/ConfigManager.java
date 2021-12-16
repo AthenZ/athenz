@@ -219,7 +219,7 @@ public class ConfigManager implements Closeable {
         Set<ConfigProvider.ConfigSource> higherPrioritySources = new HashSet<>(configSources);
         configSources.add(configSource);
         List<ChangeLog> changeLogs = new LinkedList<>();
-        reloadConfigSource(configSource, higherPrioritySources, -1, changeLogs);
+        reloadConfigSource(configSource, higherPrioritySources, -1, changeLogs, true);
 
         // Log and call change-callbacks.
         digestChangeLogs(changeLogs);
@@ -272,7 +272,8 @@ public class ConfigManager implements Closeable {
                     configSource,
                     alreadyLoadedSources,
                     newestObsoleteGeneration,
-                    changeLogs);
+                    changeLogs,
+                    false);
             alreadyLoadedSources.add(configSource);
         }
 
@@ -416,7 +417,8 @@ public class ConfigManager implements Closeable {
             ConfigProvider.ConfigSource configSource,
             Set<ConfigProvider.ConfigSource> higherPrioritySources,
             long newestObsoleteGeneration,
-            List<ChangeLog> changeLogs) {
+            List<ChangeLog> changeLogs,
+            boolean throwExceptionOnError) {
 
         lastReloadGeneration++;
 
@@ -425,6 +427,9 @@ public class ConfigManager implements Closeable {
         try {
             sourceEntries = configSource.getConfigEntries();
         } catch (Exception exception) {
+            if (throwExceptionOnError) {
+                throw new RuntimeException(exception.getMessage(), exception);
+            }
             // When a query to a config-source fails, it is possible that the fail is temporary,
             //  so we don't want to remove the source's config-entries, or to override them with lower-priority configs.
             // To do that - we mark as if all existing configs from the failed source are actually reloaded.

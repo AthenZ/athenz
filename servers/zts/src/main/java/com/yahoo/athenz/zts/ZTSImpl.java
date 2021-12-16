@@ -50,7 +50,8 @@ import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
-import com.yahoo.athenz.common.server.util.config.ConfigManager;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.utils.SignUtils;
@@ -100,6 +101,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
+import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
 /**
  * An implementation of ZTS.
@@ -122,7 +124,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected int roleTokenDefaultTimeout;
     protected int roleTokenMaxTimeout;
     protected int idTokenMaxTimeout;
-    protected long x509CertRefreshResetTime;
+    protected DynamicConfigLong x509CertRefreshResetTime;
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
     protected AuditLogger auditLogger = null;
@@ -147,10 +149,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean statusCertSigner = false;
     protected Status successServerStatus = null;
     protected boolean includeRoleCompleteFlag = true;
-    protected boolean readOnlyMode = false;
+    protected DynamicConfigBoolean readOnlyMode;
     protected boolean verifyCertRequestIP = false;
     protected boolean verifyCertSubjectOU = false;
-    protected boolean validateInstanceServiceIdentity = true;
+    protected DynamicConfigBoolean validateInstanceServiceIdentity;
     protected String ztsOAuthIssuer;
     protected File healthCheckFile = null;
     protected int maxAuthzDetailsLength;
@@ -326,7 +328,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // create our instance manager and provider
         
-        instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer, hostnameResolver, readOnlyMode, userAuthority);
+        instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer, hostnameResolver, readOnlyMode.get(), userAuthority);
 
         instanceProviderManager = new InstanceProviderManager(dataStore,
                 ZTSUtils.createServerClientSSLContext(privateKeyStore), privateKey, this);
@@ -362,7 +364,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     void loadSystemProperties() {
         String propFile = System.getProperty(ZTS_PROP_FILE_NAME,
                 getRootDir() + "/conf/zts_server/zts.properties");
-        new ConfigManager().addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
+        CONFIG_MANAGER.addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
     }
 
     void loadSystemAuthorizationDetails() {
@@ -483,11 +485,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         includeRoleCompleteFlag = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_ROLE_COMPLETE_FLAG, "true"));
-        
+
         // check if we need to run in maintenance read only mode
-        
-        readOnlyMode = Boolean.parseBoolean(
-                System.getProperty(ZTSConsts.ZTS_PROP_READ_ONLY_MODE, "false"));
+
+        readOnlyMode = new DynamicConfigBoolean(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_READ_ONLY_MODE, false);
 
         // configure if we should verify the IP address that's included
         // in the certificate request
@@ -503,8 +504,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // x509 certificate issue reset time if configured
 
-        x509CertRefreshResetTime = Long.parseLong(
-                System.getProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_RESET_TIME, "0"));
+        x509CertRefreshResetTime = new DynamicConfigLong(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_CERT_REFRESH_RESET_TIME, 0L);
 
         // list of valid O and OU values for any certificate request
 
@@ -540,8 +540,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String skipDomains = System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "");
         validateServiceSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
 
-        validateInstanceServiceIdentity = Boolean.parseBoolean(
-                System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, "true"));
+        validateInstanceServiceIdentity = new DynamicConfigBoolean(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, true);
 
         // configured max length for authz details claims
 
@@ -2152,7 +2151,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
@@ -2508,7 +2507,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
@@ -2581,7 +2580,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
@@ -2640,7 +2639,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
@@ -2656,7 +2655,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
@@ -2875,7 +2874,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // if the feature is not enforced there is nothing to do
 
-        if (!validateInstanceServiceIdentity) {
+        if (!validateInstanceServiceIdentity.get()) {
             return;
         }
 
@@ -2989,7 +2988,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
@@ -3386,7 +3385,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
@@ -3765,7 +3764,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // time we're going to assume it is valid and we'll just create
             // an object based on the configured details
 
-            if (cert.getNotBefore().getTime() < x509CertRefreshResetTime) {
+            if (cert.getNotBefore().getTime() < x509CertRefreshResetTime.get()) {
                 x509CertRecord = insertX509CertRecord(ctx, principalName, provider, instanceId,
                         cert.getSerialNumber().toString(), false, cert.getNotAfter(), hostName);
             }
@@ -3805,7 +3804,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // refreshed again next time, if this is truly invalid, we'll
             // revoke it at that time
 
-            if (cert.getNotBefore().getTime() > x509CertRefreshResetTime) {
+            if (cert.getNotBefore().getTime() > x509CertRefreshResetTime.get()) {
                 revokeCertificateRefresh(principalName, serialNumber, x509CertRecord);
                 throw forbiddenError("Certificate revoked", caller, requestDomain, principalDomain);
             }
@@ -3837,7 +3836,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
@@ -3889,7 +3888,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
@@ -4076,7 +4075,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }

@@ -46,7 +46,7 @@ import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
-import com.yahoo.athenz.common.server.util.config.ConfigManager;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.config.*;
@@ -94,6 +94,7 @@ import java.util.stream.Collectors;
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES;
 
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
@@ -171,9 +172,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected AuthorizedServices serverAuthorizedServices = null;
     protected SolutionTemplates serverSolutionTemplates = null;
     protected Map<String, String> serverPublicKeyMap = null;
-    protected boolean readOnlyMode = false;
-    protected boolean validateUserRoleMembers = false;
-    protected boolean validateServiceRoleMembers = false;
+    protected DynamicConfigBoolean readOnlyMode;
+    protected DynamicConfigBoolean validateServiceRoleMembers;
+    protected DynamicConfigBoolean validateUserRoleMembers;
     protected boolean useMasterCopyForSignedDomains = false;
     protected Set<String> validateServiceMemberSkipDomains;
     protected static Validator validator;
@@ -711,7 +712,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void loadSystemProperties() {
         String propFile = System.getProperty(ZMSConsts.ZMS_PROP_FILE_NAME,
                 getRootDir() + "/conf/zms_server/zms.properties");
-        new ConfigManager().addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
+        try {
+            CONFIG_MANAGER.addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     void setAuthorityKeyStore() {
@@ -774,16 +779,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // check if we need to run in maintenance read only mode
 
-        readOnlyMode = Boolean.parseBoolean(
-                System.getProperty(ZMSConsts.ZMS_PROP_READ_ONLY_MODE, "false"));
+        readOnlyMode = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_READ_ONLY_MODE, false);
 
         // check to see if we need to validate all user and service members
         // when adding them to roles
-
-        validateUserRoleMembers = Boolean.parseBoolean(
-                System.getProperty(ZMSConsts.ZMS_PROP_VALIDATE_USER_MEMBERS, "false"));
-        validateServiceRoleMembers = Boolean.parseBoolean(
-                System.getProperty(ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS, "false"));
+        validateServiceRoleMembers = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS, false);
+        validateUserRoleMembers = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_VALIDATE_USER_MEMBERS, false);
 
         // there are going to be domains like our ci/cd dynamic project domain
         // where we can't verify the service role members so for those we're
@@ -1374,7 +1375,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -1475,7 +1476,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -1572,7 +1573,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -1646,7 +1647,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -1763,7 +1764,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -1792,7 +1793,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -1848,7 +1849,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -1877,7 +1878,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -1912,7 +1913,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -2232,7 +2233,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -2354,7 +2355,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -2397,7 +2398,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -2444,7 +2445,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -2948,7 +2949,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -3063,7 +3064,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -3471,7 +3472,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -3717,12 +3718,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 // if the account contains a wildcard then we're going
                 // to let the user authority decide if it's valid or not
 
-                validateUserPrincipal(memberName, validateUserRoleMembers, userAuthorityFilter, caller);
+                validateUserPrincipal(memberName, validateUserRoleMembers.get(), userAuthorityFilter, caller);
                 break;
 
             case SERVICE:
 
-                if (validateServiceRoleMembers) {
+                if (validateServiceRoleMembers.get()) {
 
                     // if the account contains a wildcard character then
                     // we're going to assume it's valid
@@ -3783,7 +3784,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -3963,7 +3964,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -4181,7 +4182,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -4224,7 +4225,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -4304,7 +4305,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -4340,7 +4341,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -4482,7 +4483,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -4522,7 +4523,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -4561,7 +4562,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -4718,7 +4719,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -4763,7 +4764,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -4810,7 +4811,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -4847,7 +4848,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -4963,7 +4964,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -5017,7 +5018,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -5326,7 +5327,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -5378,7 +5379,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = "putservicesystemmeta";
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -5442,7 +5443,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -5586,7 +5587,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -5618,7 +5619,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -6486,7 +6487,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -6563,7 +6564,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -6619,7 +6620,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -6671,7 +6672,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -6764,7 +6765,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -7115,7 +7116,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -7261,7 +7262,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -7454,7 +7455,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -7716,7 +7717,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("putDefaultAdmins: domain={}", domainName);
         }
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -8333,7 +8334,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -8371,7 +8372,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -8488,7 +8489,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -8853,7 +8854,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9104,7 +9105,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9205,7 +9206,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9371,7 +9372,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9457,7 +9458,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9508,7 +9509,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9581,7 +9582,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9619,7 +9620,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9667,7 +9668,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9756,7 +9757,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9859,7 +9860,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9903,7 +9904,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9947,7 +9948,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
@@ -9984,7 +9985,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
-        if (readOnlyMode) {
+        if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
         }
 
