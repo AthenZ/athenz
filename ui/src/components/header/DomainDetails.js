@@ -92,6 +92,20 @@ export default class DomainDetails extends React.Component {
         this.saveJustification = this.saveJustification.bind(this);
     }
 
+    componentDidUpdate = (prevProps, prevState, snapshot) => {
+        if (
+            prevState.businessServiceName !==
+                this.props.domainDetails.businessService &&
+            prevProps.domainDetails !== this.props.domainDetails
+        ) {
+            this.setState({
+                businessServiceName: this.props.domainDetails.businessService,
+                tempBusinessServiceName:
+                    this.props.domainDetails.businessService,
+            });
+        }
+    };
+
     onClickBusinessService(domainName, businessServiceName, auditEnabled) {
         this.setState({
             showBusinessService: true,
