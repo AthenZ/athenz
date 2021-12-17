@@ -305,6 +305,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven-surefire-plugin.version}</version>
         <configuration>
+          <runOrder>alphabetical</runOrder>
         </configuration>
       </plugin>
     </plugins>

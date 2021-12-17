@@ -66,10 +66,10 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven-surefire-plugin.version}</version>
         <configuration>
+          <runOrder>alphabetical</runOrder>
           <argLine>
             -javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
           </argLine>
-          <!-- ... -->
         </configuration>
         <dependencies>
           <dependency>
