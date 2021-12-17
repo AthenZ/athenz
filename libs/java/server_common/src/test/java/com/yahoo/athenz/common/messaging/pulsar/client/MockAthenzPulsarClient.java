@@ -58,7 +58,7 @@ public class MockAthenzPulsarClient extends AthenzPulsarClient {
                 .setObjectType(DomainChangeMessage.ObjectType.ROLE)
                 .setApiName("putRole")
                 .setObjectName("role1");
-            MessageImpl<byte[]> msg = MessageImpl.create(meta, ByteBuffer.wrap(new ObjectMapper().writeValueAsBytes(roleChange)), Schema.BYTES);
+            MessageImpl<byte[]> msg = MessageImpl.create(meta, ByteBuffer.wrap(new ObjectMapper().writeValueAsBytes(roleChange)), Schema.BYTES, null);
 
             Mockito.when(consumer.receive(1, TimeUnit.SECONDS))
                 .thenReturn(msg);
