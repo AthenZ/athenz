@@ -95,6 +95,7 @@ export default class RulesList extends React.Component {
                 _csrf={this.props._csrf}
                 showAddSegment={this.state.showAddSegmentation}
                 justificationRequired={this.props.isDomainAuditEnabled}
+                pageFeatureFlag={this.props.pageFeatureFlag}
             />
         ) : (
             ''
@@ -145,6 +146,7 @@ export default class RulesList extends React.Component {
                         data={this.state.segmentationData.outbound}
                         caption='Outbound'
                         justificationRequired={this.props.isDomainAuditEnabled}
+                        pageFeatureFlag={this.props.pageFeatureFlag}
                     />
                 ) : null}
                 {!showInbound && !showOutbound ? (

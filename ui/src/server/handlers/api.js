@@ -803,60 +803,73 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'assertionId',
     read(req, resource, params, config, callback) {
-        new Promise((resolve, reject) => {
-            req.clients.zms.getPolicy(
-                {
-                    policyName: params.policyName,
-                    domainName: params.domainName,
-                },
-                (err, data) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    if (data) {
-                        resolve(data);
-                    }
-                }
-            );
-        })
-            .then((policyData) => {
-                let flag = 0;
-                policyData.assertions.forEach((assertion) => {
-                    if (
-                        assertion.role ===
-                            params.domainName + ':role.' + params.roleName &&
-                        assertion.resource ===
-                            params.domainName + ':' + params.resource &&
-                        assertion.action === params.action &&
-                        assertion.effect === params.effect
-                    ) {
-                        flag = 1;
-                        callback(null, assertion.id);
-                    }
-                });
+        const timeout = 1000;
 
-                if (!flag) {
-                    let error = {
-                        status: 404,
-                        message: {
-                            message:
-                                'Failed to get assertion for policy ' +
-                                params.policyName +
-                                '.',
+        const getPolicyWithRetry = (numberOfRetries) => {
+            return new Promise((resolve, reject) => {
+                const getPolicy = (n) => {
+                    return req.clients.zms.getPolicy(
+                        {
+                            policyName: params.policyName,
+                            domainName: params.domainName,
                         },
-                    };
-                    callback(errorHandler.fetcherError(error));
-                }
+                        (err, data) => {
+                            if (data) {
+                                data.assertions.forEach((assertion) => {
+                                    if (
+                                        assertion.role ===
+                                            params.domainName +
+                                                ':role.' +
+                                                params.roleName &&
+                                        assertion.resource ===
+                                            params.domainName +
+                                                ':' +
+                                                params.resource &&
+                                        assertion.action === params.action &&
+                                        assertion.effect === params.effect
+                                    ) {
+                                        resolve(assertion.id);
+                                    }
+                                });
+
+                                if (n === 1) {
+                                    let error = {
+                                        status: 404,
+                                        message: {
+                                            message:
+                                                'Failed to get assertion for policy ' +
+                                                params.policyName +
+                                                '.',
+                                        },
+                                    };
+                                    reject(error);
+                                } else {
+                                    setTimeout(() => {
+                                        getPolicy(n - 1);
+                                    }, timeout);
+                                }
+                            } else {
+                                if (n === 1) {
+                                    reject(err);
+                                } else {
+                                    setTimeout(() => {
+                                        getPolicy(n - 1);
+                                    }, timeout);
+                                }
+                            }
+                        }
+                    );
+                };
+                return getPolicy(numberOfRetries);
+            });
+        };
+
+        getPolicyWithRetry(2)
+            .then((data) => {
+                return callback(null, data);
             })
             .catch((err) => {
-                debug(
-                    `principal: ${req.session.shortId} rid: ${
-                        req.headers.rid
-                    } Error from ZMS while calling getPolicy API for microsegmentation: ${JSON.stringify(
-                        err
-                    )}`
-                );
-                callback(errorHandler.fetcherError(err));
+                return callback(errorHandler.fetcherError(err));
             });
     },
 });
@@ -1983,6 +1996,13 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'page-feature-flag',
+    read(req, resource, params, config, callback) {
+        callback(null, appConfig.pageFeatureFlag[params.pageName]);
+    },
+});
+
+Fetchr.registerService({
     name: 'microsegmentation',
 
     read(req, resource, params, config, callback) {
@@ -2571,6 +2591,7 @@ module.exports.load = function (config, secrets) {
         allPrefixes: config.allPrefixes,
         zmsLoginUrl: config.zmsLoginUrl,
         featureFlag: config.featureFlag,
+        pageFeatureFlag: config.pageFeatureFlag,
         serviceHeaderLinks: config.serviceHeaderLinks,
         templates: config.templates,
     };

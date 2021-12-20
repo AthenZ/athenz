@@ -25,7 +25,9 @@ describe('AddSegmentation', () => {
         const cancel = function() {};
         const submit = function() {};
         let _csrf = 'csrf';
-
+        const pageFeatureFlag ={
+            "policyValidation": true
+        };
         const { getByTestId } = render(
             <AddSegmentation
                 api={API()}
@@ -35,6 +37,7 @@ describe('AddSegmentation', () => {
                 _csrf={_csrf}
                 showAddSegment={showAddSegmentation}
                 justificationRequired={false}
+                pageFeatureFlag={pageFeatureFlag}
             />
         );
         const addsegment = getByTestId('add-segment');
@@ -55,6 +58,10 @@ describe('AddSegmentation', () => {
                 });
             },
         };
+        const pageFeatureFlag ={
+            "policyValidation": true
+        };
+
         const { getByTestId, getByText } =  render(
             <AddSegmentation
                 api={api}
@@ -64,6 +71,7 @@ describe('AddSegmentation', () => {
                 _csrf={_csrf}
                 showAddSegment={showAddSegmentation}
                 justificationRequired={false}
+                pageFeatureFlag={pageFeatureFlag}
             />
         );
         const addSegmentation = getByTestId('add-modal-message');

@@ -319,6 +319,7 @@ export default class RuleRow extends React.Component {
                 justificationRequired={this.props.justificationRequired}
                 editMode={true}
                 data={editData}
+                pageFeatureFlag={this.props.pageFeatureFlag}
             />
         ) : (
             ''

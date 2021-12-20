@@ -89,11 +89,12 @@ export async function getServerSideProps(context) {
         api.getFeatureFlag(),
         api.getMeta(bServicesParams),
         api.getMeta(bServicesParamsAll),
+        api.getPageFeatureFlag("microsegmentation"),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
     });
     let businessServiceOptions = [];
     if (data[9] && data[9].validValues) {
@@ -146,6 +147,7 @@ export async function getServerSideProps(context) {
             featureFlag: true,
             validBusinessServices: businessServiceOptions,
             validBusinessServicesAll: businessServiceOptionsAll,
+            pageFeatureFlag: data[11],
         }
     };
 }
@@ -222,6 +224,7 @@ export default class MicrosegmentationPage extends React.Component {
                                         _csrf={_csrf}
                                         isDomainAuditEnabled={auditEnabled}
                                         data={segmentationData}
+                                        pageFeatureFlag={this.props.pageFeatureFlag}
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>
