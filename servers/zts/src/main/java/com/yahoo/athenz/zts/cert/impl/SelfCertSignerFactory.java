@@ -48,6 +48,7 @@ public class SelfCertSignerFactory implements CertSignerFactory {
         final String pKeyPassword = System.getProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD);
         final String csrDn = System.getProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_CERT_DN,
                 "cn=Self Signed Athenz CA,o=Athenz,c=US");
+        final int maxCertExpiryTimeMins = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME, "43200"));
 
         if (StringUtil.isEmpty(pKeyFileName)) {
             LOGGER.error("No private key path available for Self Cert Signer Factory");
@@ -67,7 +68,7 @@ public class SelfCertSignerFactory implements CertSignerFactory {
             return null;
         }
         
-        // generate our self signed certificate
+        // generate our self-signed certificate
         
         X500Principal subject = new X500Principal(csrDn);
         X500Name issuer = X500Name.getInstance(subject.getEncoded());
@@ -75,6 +76,6 @@ public class SelfCertSignerFactory implements CertSignerFactory {
         X509Certificate caCertificate = Crypto.generateX509Certificate(certReq,
                 caPrivateKey, issuer, 30 * 24 * 60, true);
 
-        return new SelfCertSigner(caPrivateKey, caCertificate);
+        return new KeyStoreCertSigner(caCertificate, caPrivateKey, maxCertExpiryTimeMins);
     }
 }

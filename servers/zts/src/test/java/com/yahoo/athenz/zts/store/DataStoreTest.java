@@ -46,7 +46,6 @@ import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSTestUtils;
 import com.yahoo.rdl.Timestamp;
 import org.bouncycastle.jce.spec.ECParameterSpec;
-import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
@@ -4600,9 +4599,9 @@ public class DataStoreTest {
         store.getAccessibleRoles(data, "access-domain3", "user.user5", null, accessibleRoles, false);
         assertTrue(accessibleRoles.isEmpty());
 
-        // sleep for a second so user6 becomes expired
+        // sleep for a couple of seconds so user6 becomes expired
 
-        ZTSTestUtils.sleep(1000);
+        ZTSTestUtils.sleep(2000);
 
         accessibleRoles.clear();
         store.getAccessibleRoles(data, "access-domain3", "user.user6", null, accessibleRoles, false);

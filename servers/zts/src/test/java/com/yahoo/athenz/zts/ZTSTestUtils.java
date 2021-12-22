@@ -26,8 +26,11 @@ import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.athenz.zts.store.DataStoreTest;
 import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.security.PrivateKey;
@@ -35,6 +38,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class ZTSTestUtils {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZTSTestUtils.class);
 
     public static void deleteDirectory(File file) {
         if (!file.exists()) {
@@ -376,9 +381,10 @@ public class ZTSTestUtils {
 
     public static void sleep(long millis) {
         try {
+            LOGGER.info("sleeping {} milliseconds...", millis);
             Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            //ignored
+        } catch (InterruptedException ex) {
+            LOGGER.info("Interrupted Exception while sleeping...", ex);
         }
     }
 
