@@ -28,7 +28,7 @@ if [ -z "${GOPATH}" ]; then
     exit 1;
 fi
 
-go get -u github.com/ardielle/ardielle-go/...
+go install github.com/ardielle/ardielle-go/...
 go build
 cp rdl-gen-athenz-java-client ${GOPATH}/bin/rdl-gen-athenz-java-client
 
