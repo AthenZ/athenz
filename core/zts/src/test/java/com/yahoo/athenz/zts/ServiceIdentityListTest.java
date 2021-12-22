@@ -16,32 +16,36 @@
 
 package com.yahoo.athenz.zts;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 
 import org.testng.annotations.Test;
 
-@SuppressWarnings({"ALL", "EqualsWithItself"})
+import static org.testng.Assert.*;
+import static org.testng.Assert.assertNotEquals;
+
 public class ServiceIdentityListTest {
 
     @Test
     public void testServiceIdentityList() {
-        ServiceIdentityList sil = new ServiceIdentityList();
+        ServiceIdentityList sil1 = new ServiceIdentityList();
         ServiceIdentityList sil2 = new ServiceIdentityList();
 
-        List<String> nl = new ArrayList<String>();
-        nl.add("sample.service1");
+        sil1.setNames(Collections.singletonList("principal1"));
+        sil2.setNames(Collections.singletonList("principal1"));
 
-        sil.setNames(nl);
-        assertEquals(sil.getNames(), nl);
+        assertEquals(Collections.singletonList("principal1"), sil1.getNames());
 
-        assertTrue(sil.equals(sil));
-        //noinspection ObjectEqualsNull,ConstantConditions
-        assertFalse(sil.equals(null));
-        assertFalse(sil.equals(sil2));
+        assertEquals(sil1, sil2);
+        assertEquals(sil1, sil1);
+
+        sil1.setNames(Collections.singletonList("principal2"));
+        assertNotEquals(sil2, sil1);
+        sil1.setNames(null);
+        assertNotEquals(sil2, sil1);
+        sil1.setNames(Collections.singletonList("principal1"));
+        assertEquals(sil2, sil1);
+
+        assertNotEquals(sil2, null);
+        assertNotEquals("sil1", sil1);
     }
 }

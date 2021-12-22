@@ -20,26 +20,37 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-@SuppressWarnings("EqualsWithItself")
 public class RoleTokenTest {
 
     @Test
     public void testRoleToken() {
-        RoleToken rt = new RoleToken();
+        RoleToken rt1 = new RoleToken();
         RoleToken rt2 = new RoleToken();
 
         // set
-        rt.setToken("sample_token").setExpiryTime(30L);
-        rt2.setToken("sample_token").setExpiryTime(40L);
+        rt1.setToken("sample_token").setExpiryTime(30L);
+        rt2.setToken("sample_token").setExpiryTime(30L);
 
         // getter assertion
-        assertEquals(rt.getToken(), "sample_token");
-        assertEquals(rt.getExpiryTime(), 30L);
-        assertEquals(rt, rt);
-        assertNotEquals(rt, rt2);
-        rt2.setToken(null);
-        assertNotEquals(rt2, rt);
-        //noinspection EqualsBetweenInconvertibleTypes
-        assertNotEquals("", rt);
+        assertEquals(rt1.getToken(), "sample_token");
+        assertEquals(rt1.getExpiryTime(), 30L);
+
+        assertEquals(rt1, rt1);
+        assertEquals(rt1, rt2);
+
+        rt1.setToken(null);
+        assertNotEquals(rt2, rt1);
+        rt1.setToken("token2");
+        assertNotEquals(rt2, rt1);
+        rt1.setToken("sample_token");
+        assertEquals(rt2, rt1);
+
+        rt2.setExpiryTime(40L);
+        assertNotEquals(rt2, rt1);
+        rt2.setExpiryTime(30L);
+        assertEquals(rt2, rt1);
+
+        assertNotEquals(rt2, null);
+        assertNotEquals("", rt1);
     }
 }

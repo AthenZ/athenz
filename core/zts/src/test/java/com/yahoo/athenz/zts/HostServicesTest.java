@@ -18,8 +18,7 @@ package com.yahoo.athenz.zts;
 
 import static org.testng.Assert.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 
 import org.testng.annotations.Test;
 
@@ -28,27 +27,36 @@ public class HostServicesTest {
 
     @Test
     public void testHostService() {
-        HostServices hs = new HostServices();
+        HostServices hs1 = new HostServices();
         HostServices hs2 = new HostServices();
 
-        List<String> nl = new ArrayList<>();
-        nl.add("sample.service1");
+        hs1.setNames(Collections.singletonList("host1"));
+        hs1.setHost("hostA");
 
-        // set
-        hs.setNames(nl);
-        hs.setHost("sample.com");
-        hs2.setHost("sample.com");
+        hs2.setNames(Collections.singletonList("host1"));
+        hs2.setHost("hostA");
 
-        // getter assertion
-        assertEquals(hs.getHost(), "sample.com");
-        assertEquals(hs.getNames(), nl);
-        assertEquals(hs, hs);
+        assertEquals(Collections.singletonList("host1"), hs1.getNames());
+        assertEquals("hostA", hs1.getHost());
 
-        assertNotEquals(hs2, hs);
-        hs2.setHost(null);
-        assertNotEquals(hs2, hs);
+        assertEquals(hs1, hs2);
+        assertEquals(hs1, hs1);
 
-        assertNotEquals("", hs);
+        hs1.setNames(Collections.singletonList("host2"));
+        assertNotEquals(hs2, hs1);
+        hs1.setNames(null);
+        assertNotEquals(hs2, hs1);
+        hs1.setNames(Collections.singletonList("host1"));
+        assertEquals(hs2, hs1);
 
+        hs1.setHost("hostB");
+        assertNotEquals(hs2, hs1);
+        hs1.setHost(null);
+        assertNotEquals(hs2, hs1);
+        hs1.setHost("hostA");
+        assertEquals(hs2, hs1);
+
+        assertNotEquals(hs2, null);
+        assertNotEquals("hs2", hs1);
     }
 }

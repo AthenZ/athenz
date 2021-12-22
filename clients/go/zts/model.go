@@ -1862,6 +1862,495 @@ func (self *AWSTemporaryCredentials) Validate() error {
 }
 
 //
+// SSHCertRequestData -
+//
+type SSHCertRequestData struct {
+
+	//
+	// principals in the ssh certificate (usually only one)
+	//
+	Principals []string `json:"principals"`
+
+	//
+	// source FQDNs or ip addresses
+	//
+	Sources []string `json:"sources,omitempty" rdl:"optional"`
+
+	//
+	// destination FQDNs or ip addresses
+	//
+	Destinations []string `json:"destinations,omitempty" rdl:"optional"`
+
+	//
+	// public key for ssh certificate
+	//
+	PublicKey string `json:"publicKey,omitempty" rdl:"optional"`
+
+	//
+	// yubikey/touch public key for ssh certificate
+	//
+	TouchPublicKey string `json:"touchPublicKey,omitempty" rdl:"optional"`
+
+	//
+	// CA public key algorithm: 0: Unknown, 1: RSA, 3: ECDSA
+	//
+	CaPubKeyAlgo *int32 `json:"caPubKeyAlgo,omitempty" rdl:"optional"`
+
+	//
+	// optional force command option for certificate
+	//
+	Command string `json:"command,omitempty" rdl:"optional"`
+}
+
+//
+// NewSSHCertRequestData - creates an initialized SSHCertRequestData instance, returns a pointer to it
+//
+func NewSSHCertRequestData(init ...*SSHCertRequestData) *SSHCertRequestData {
+	var o *SSHCertRequestData
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(SSHCertRequestData)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *SSHCertRequestData) Init() *SSHCertRequestData {
+	if self.Principals == nil {
+		self.Principals = make([]string, 0)
+	}
+	return self
+}
+
+type rawSSHCertRequestData SSHCertRequestData
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a SSHCertRequestData
+//
+func (self *SSHCertRequestData) UnmarshalJSON(b []byte) error {
+	var m rawSSHCertRequestData
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := SSHCertRequestData(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *SSHCertRequestData) Validate() error {
+	if self.Principals == nil {
+		return fmt.Errorf("SSHCertRequestData: Missing required field: principals")
+	}
+	if self.PublicKey != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.PublicKey)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestData.publicKey does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.TouchPublicKey != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.TouchPublicKey)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestData.touchPublicKey does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Command != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Command)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestData.command does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// SSHCertRequestMeta -
+//
+type SSHCertRequestMeta struct {
+
+	//
+	// requesting user
+	//
+	Requestor string `json:"requestor"`
+
+	//
+	// origin FQDN or ip
+	//
+	Origin string `json:"origin"`
+
+	//
+	// client info
+	//
+	ClientInfo string `json:"clientInfo,omitempty" rdl:"optional"`
+
+	//
+	// ssh client version
+	//
+	SshClientVersion string `json:"sshClientVersion,omitempty" rdl:"optional"`
+
+	//
+	// cert type - user or host
+	//
+	CertType string `json:"certType"`
+
+	//
+	// principals included in the keyId field in the certificate
+	//
+	KeyIdPrincipals []string `json:"keyIdPrincipals,omitempty" rdl:"optional"`
+
+	//
+	// ssh host cert request is for this athenz service
+	//
+	AthenzService EntityName `json:"athenzService,omitempty" rdl:"optional"`
+
+	//
+	// ssh host cert request is for this instance id
+	//
+	InstanceId PathElement `json:"instanceId,omitempty" rdl:"optional"`
+
+	//
+	// previous ssh certificate validity from date
+	//
+	PrevCertValidFrom *rdl.Timestamp `json:"prevCertValidFrom,omitempty" rdl:"optional"`
+
+	//
+	// previous ssh certificate validity to date
+	//
+	PrevCertValidTo *rdl.Timestamp `json:"prevCertValidTo,omitempty" rdl:"optional"`
+
+	//
+	// ssh request transaction id
+	//
+	TransId string `json:"transId,omitempty" rdl:"optional"`
+}
+
+//
+// NewSSHCertRequestMeta - creates an initialized SSHCertRequestMeta instance, returns a pointer to it
+//
+func NewSSHCertRequestMeta(init ...*SSHCertRequestMeta) *SSHCertRequestMeta {
+	var o *SSHCertRequestMeta
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(SSHCertRequestMeta)
+	}
+	return o
+}
+
+type rawSSHCertRequestMeta SSHCertRequestMeta
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a SSHCertRequestMeta
+//
+func (self *SSHCertRequestMeta) UnmarshalJSON(b []byte) error {
+	var m rawSSHCertRequestMeta
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := SSHCertRequestMeta(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *SSHCertRequestMeta) Validate() error {
+	if self.Requestor == "" {
+		return fmt.Errorf("SSHCertRequestMeta.requestor is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Requestor)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestMeta.requestor does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Origin == "" {
+		return fmt.Errorf("SSHCertRequestMeta.origin is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Origin)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestMeta.origin does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ClientInfo != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.ClientInfo)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestMeta.clientInfo does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SshClientVersion != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.SshClientVersion)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestMeta.sshClientVersion does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.CertType == "" {
+		return fmt.Errorf("SSHCertRequestMeta.certType is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.CertType)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestMeta.certType does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AthenzService != "" {
+		val := rdl.Validate(ZTSSchema(), "EntityName", self.AthenzService)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestMeta.athenzService does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.InstanceId != "" {
+		val := rdl.Validate(ZTSSchema(), "PathElement", self.InstanceId)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestMeta.instanceId does not contain a valid PathElement (%v)", val.Error)
+		}
+	}
+	if self.TransId != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.TransId)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequestMeta.transId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// SSHCertRequest -
+//
+type SSHCertRequest struct {
+
+	//
+	// ssh certificate request data
+	//
+	CertRequestData *SSHCertRequestData `json:"certRequestData"`
+
+	//
+	// ssh certificate request meta
+	//
+	CertRequestMeta *SSHCertRequestMeta `json:"certRequestMeta"`
+
+	//
+	// free-form csr if not using data/meta fields.
+	//
+	Csr string `json:"csr,omitempty" rdl:"optional"`
+}
+
+//
+// NewSSHCertRequest - creates an initialized SSHCertRequest instance, returns a pointer to it
+//
+func NewSSHCertRequest(init ...*SSHCertRequest) *SSHCertRequest {
+	var o *SSHCertRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(SSHCertRequest)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *SSHCertRequest) Init() *SSHCertRequest {
+	if self.CertRequestData == nil {
+		self.CertRequestData = NewSSHCertRequestData()
+	}
+	if self.CertRequestMeta == nil {
+		self.CertRequestMeta = NewSSHCertRequestMeta()
+	}
+	return self
+}
+
+type rawSSHCertRequest SSHCertRequest
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a SSHCertRequest
+//
+func (self *SSHCertRequest) UnmarshalJSON(b []byte) error {
+	var m rawSSHCertRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := SSHCertRequest(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *SSHCertRequest) Validate() error {
+	if self.CertRequestData == nil {
+		return fmt.Errorf("SSHCertRequest: Missing required field: certRequestData")
+	}
+	if self.CertRequestMeta == nil {
+		return fmt.Errorf("SSHCertRequest: Missing required field: certRequestMeta")
+	}
+	if self.Csr != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequest.csr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// SSHCertificate -
+//
+type SSHCertificate struct {
+
+	//
+	// the SSH certificate, signed by the CA
+	//
+	Certificate string `json:"certificate"`
+
+	//
+	// certificate public key if generated by SSH RA
+	//
+	PublicKey string `json:"publicKey,omitempty" rdl:"optional"`
+
+	//
+	// certificate private key if generated by SSH Agent
+	//
+	PrivateKey string `json:"privateKey,omitempty" rdl:"optional"`
+}
+
+//
+// NewSSHCertificate - creates an initialized SSHCertificate instance, returns a pointer to it
+//
+func NewSSHCertificate(init ...*SSHCertificate) *SSHCertificate {
+	var o *SSHCertificate
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(SSHCertificate)
+	}
+	return o
+}
+
+type rawSSHCertificate SSHCertificate
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a SSHCertificate
+//
+func (self *SSHCertificate) UnmarshalJSON(b []byte) error {
+	var m rawSSHCertificate
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := SSHCertificate(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *SSHCertificate) Validate() error {
+	if self.Certificate == "" {
+		return fmt.Errorf("SSHCertificate.certificate is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Certificate)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertificate.certificate does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.PublicKey != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.PublicKey)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertificate.publicKey does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.PrivateKey != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.PrivateKey)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertificate.privateKey does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// SSHCertificates -
+//
+type SSHCertificates struct {
+
+	//
+	// set of user ssh certificates
+	//
+	Certificates []*SSHCertificate `json:"certificates"`
+
+	//
+	// the SSH CA's public key for the sshCertificate (user or host)
+	//
+	CertificateSigner string `json:"certificateSigner,omitempty" rdl:"optional"`
+}
+
+//
+// NewSSHCertificates - creates an initialized SSHCertificates instance, returns a pointer to it
+//
+func NewSSHCertificates(init ...*SSHCertificates) *SSHCertificates {
+	var o *SSHCertificates
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(SSHCertificates)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *SSHCertificates) Init() *SSHCertificates {
+	if self.Certificates == nil {
+		self.Certificates = make([]*SSHCertificate, 0)
+	}
+	return self
+}
+
+type rawSSHCertificates SSHCertificates
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a SSHCertificates
+//
+func (self *SSHCertificates) UnmarshalJSON(b []byte) error {
+	var m rawSSHCertificates
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := SSHCertificates(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *SSHCertificates) Validate() error {
+	if self.Certificates == nil {
+		return fmt.Errorf("SSHCertificates: Missing required field: certificates")
+	}
+	if self.CertificateSigner != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.CertificateSigner)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertificates.certificateSigner does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // InstanceRegisterInformation -
 //
 type InstanceRegisterInformation struct {
@@ -1894,9 +2383,15 @@ type InstanceRegisterInformation struct {
 	Csr string `json:"csr"`
 
 	//
-	// if present, return an SSH host certificate. Format is JSON.
+	// deprecated - use sshCertRequest, if present, return an SSH host
+	// certificate. Format is JSON.
 	//
 	Ssh string `json:"ssh,omitempty" rdl:"optional"`
+
+	//
+	// if present, return an SSH host certificate
+	//
+	SshCertRequest *SSHCertRequest `json:"sshCertRequest,omitempty" rdl:"optional"`
 
 	//
 	// if true, return a service token signed by ZTS for this service
@@ -2025,9 +2520,15 @@ type InstanceRefreshInformation struct {
 	Csr string `json:"csr,omitempty" rdl:"optional"`
 
 	//
-	// if present, return an SSH host certificate. Format is JSON.
+	// deprecated - use sshCertRequest, if present, return an SSH host
+	// certificate. Format is JSON.
 	//
 	Ssh string `json:"ssh,omitempty" rdl:"optional"`
+
+	//
+	// if present, return an SSH host certificate
+	//
+	SshCertRequest *SSHCertRequest `json:"sshCertRequest,omitempty" rdl:"optional"`
 
 	//
 	// if true, return a service token signed by ZTS for this service
@@ -2708,468 +3209,6 @@ func (self *Status) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "String", self.Message)
 		if !val.Valid {
 			return fmt.Errorf("Status.message does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// SSHCertRequestData -
-//
-type SSHCertRequestData struct {
-
-	//
-	// principals in the ssh certificate (usually only one)
-	//
-	Principals []string `json:"principals"`
-
-	//
-	// source FQDNs or ip addresses
-	//
-	Sources []string `json:"sources,omitempty" rdl:"optional"`
-
-	//
-	// destination FQDNs or ip addresses
-	//
-	Destinations []string `json:"destinations,omitempty" rdl:"optional"`
-
-	//
-	// public key for ssh certificate
-	//
-	PublicKey string `json:"publicKey,omitempty" rdl:"optional"`
-
-	//
-	// yubikey/touch public key for ssh certificate
-	//
-	TouchPublicKey string `json:"touchPublicKey,omitempty" rdl:"optional"`
-
-	//
-	// CA public key algorithm: 0: Unknown, 1: RSA, 3: ECDSA
-	//
-	CaPubKeyAlgo *int32 `json:"caPubKeyAlgo,omitempty" rdl:"optional"`
-}
-
-//
-// NewSSHCertRequestData - creates an initialized SSHCertRequestData instance, returns a pointer to it
-//
-func NewSSHCertRequestData(init ...*SSHCertRequestData) *SSHCertRequestData {
-	var o *SSHCertRequestData
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(SSHCertRequestData)
-	}
-	return o.Init()
-}
-
-//
-// Init - sets up the instance according to its default field values, if any
-//
-func (self *SSHCertRequestData) Init() *SSHCertRequestData {
-	if self.Principals == nil {
-		self.Principals = make([]string, 0)
-	}
-	return self
-}
-
-type rawSSHCertRequestData SSHCertRequestData
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a SSHCertRequestData
-//
-func (self *SSHCertRequestData) UnmarshalJSON(b []byte) error {
-	var m rawSSHCertRequestData
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := SSHCertRequestData(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *SSHCertRequestData) Validate() error {
-	if self.Principals == nil {
-		return fmt.Errorf("SSHCertRequestData: Missing required field: principals")
-	}
-	if self.PublicKey != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.PublicKey)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertRequestData.publicKey does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.TouchPublicKey != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.TouchPublicKey)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertRequestData.touchPublicKey does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// SSHCertRequestMeta -
-//
-type SSHCertRequestMeta struct {
-
-	//
-	// requesting user
-	//
-	Requestor string `json:"requestor"`
-
-	//
-	// origin FQDN or ip
-	//
-	Origin string `json:"origin"`
-
-	//
-	// client info
-	//
-	ClientInfo string `json:"clientInfo,omitempty" rdl:"optional"`
-
-	//
-	// ssh client version
-	//
-	SshClientVersion string `json:"sshClientVersion,omitempty" rdl:"optional"`
-
-	//
-	// cert type - user or host
-	//
-	CertType string `json:"certType"`
-
-	//
-	// ssh host cert request is for this athenz service
-	//
-	AthenzService EntityName `json:"athenzService,omitempty" rdl:"optional"`
-
-	//
-	// ssh host cert request is for this instance id
-	//
-	InstanceId PathElement `json:"instanceId,omitempty" rdl:"optional"`
-
-	//
-	// previous ssh certificate validity from date
-	//
-	PrevCertValidFrom *rdl.Timestamp `json:"prevCertValidFrom,omitempty" rdl:"optional"`
-
-	//
-	// previous ssh certificate validity to date
-	//
-	PrevCertValidTo *rdl.Timestamp `json:"prevCertValidTo,omitempty" rdl:"optional"`
-}
-
-//
-// NewSSHCertRequestMeta - creates an initialized SSHCertRequestMeta instance, returns a pointer to it
-//
-func NewSSHCertRequestMeta(init ...*SSHCertRequestMeta) *SSHCertRequestMeta {
-	var o *SSHCertRequestMeta
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(SSHCertRequestMeta)
-	}
-	return o
-}
-
-type rawSSHCertRequestMeta SSHCertRequestMeta
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a SSHCertRequestMeta
-//
-func (self *SSHCertRequestMeta) UnmarshalJSON(b []byte) error {
-	var m rawSSHCertRequestMeta
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := SSHCertRequestMeta(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *SSHCertRequestMeta) Validate() error {
-	if self.Requestor == "" {
-		return fmt.Errorf("SSHCertRequestMeta.requestor is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.Requestor)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertRequestMeta.requestor does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Origin == "" {
-		return fmt.Errorf("SSHCertRequestMeta.origin is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.Origin)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertRequestMeta.origin does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.ClientInfo != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.ClientInfo)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertRequestMeta.clientInfo does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.SshClientVersion != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.SshClientVersion)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertRequestMeta.sshClientVersion does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.CertType == "" {
-		return fmt.Errorf("SSHCertRequestMeta.certType is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.CertType)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertRequestMeta.certType does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.AthenzService != "" {
-		val := rdl.Validate(ZTSSchema(), "EntityName", self.AthenzService)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertRequestMeta.athenzService does not contain a valid EntityName (%v)", val.Error)
-		}
-	}
-	if self.InstanceId != "" {
-		val := rdl.Validate(ZTSSchema(), "PathElement", self.InstanceId)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertRequestMeta.instanceId does not contain a valid PathElement (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// SSHCertRequest -
-//
-type SSHCertRequest struct {
-
-	//
-	// ssh certificate request data
-	//
-	CertRequestData *SSHCertRequestData `json:"certRequestData"`
-
-	//
-	// ssh certificate request meta
-	//
-	CertRequestMeta *SSHCertRequestMeta `json:"certRequestMeta"`
-
-	//
-	// free-form csr if not using data/meta fields.
-	//
-	Csr string `json:"csr,omitempty" rdl:"optional"`
-}
-
-//
-// NewSSHCertRequest - creates an initialized SSHCertRequest instance, returns a pointer to it
-//
-func NewSSHCertRequest(init ...*SSHCertRequest) *SSHCertRequest {
-	var o *SSHCertRequest
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(SSHCertRequest)
-	}
-	return o.Init()
-}
-
-//
-// Init - sets up the instance according to its default field values, if any
-//
-func (self *SSHCertRequest) Init() *SSHCertRequest {
-	if self.CertRequestData == nil {
-		self.CertRequestData = NewSSHCertRequestData()
-	}
-	if self.CertRequestMeta == nil {
-		self.CertRequestMeta = NewSSHCertRequestMeta()
-	}
-	return self
-}
-
-type rawSSHCertRequest SSHCertRequest
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a SSHCertRequest
-//
-func (self *SSHCertRequest) UnmarshalJSON(b []byte) error {
-	var m rawSSHCertRequest
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := SSHCertRequest(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *SSHCertRequest) Validate() error {
-	if self.CertRequestData == nil {
-		return fmt.Errorf("SSHCertRequest: Missing required field: certRequestData")
-	}
-	if self.CertRequestMeta == nil {
-		return fmt.Errorf("SSHCertRequest: Missing required field: certRequestMeta")
-	}
-	if self.Csr != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertRequest.csr does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// SSHCertificate -
-//
-type SSHCertificate struct {
-
-	//
-	// the SSH certificate, signed by the CA
-	//
-	Certificate string `json:"certificate"`
-
-	//
-	// certificate public key if generated by SSH RA
-	//
-	PublicKey string `json:"publicKey,omitempty" rdl:"optional"`
-
-	//
-	// certificate private key if generated by SSH Agent
-	//
-	PrivateKey string `json:"privateKey,omitempty" rdl:"optional"`
-}
-
-//
-// NewSSHCertificate - creates an initialized SSHCertificate instance, returns a pointer to it
-//
-func NewSSHCertificate(init ...*SSHCertificate) *SSHCertificate {
-	var o *SSHCertificate
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(SSHCertificate)
-	}
-	return o
-}
-
-type rawSSHCertificate SSHCertificate
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a SSHCertificate
-//
-func (self *SSHCertificate) UnmarshalJSON(b []byte) error {
-	var m rawSSHCertificate
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := SSHCertificate(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *SSHCertificate) Validate() error {
-	if self.Certificate == "" {
-		return fmt.Errorf("SSHCertificate.certificate is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.Certificate)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertificate.certificate does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.PublicKey != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.PublicKey)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertificate.publicKey does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.PrivateKey != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.PrivateKey)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertificate.privateKey does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// SSHCertificates -
-//
-type SSHCertificates struct {
-
-	//
-	// set of user ssh certificates
-	//
-	Certificates []*SSHCertificate `json:"certificates"`
-
-	//
-	// the SSH CA's public key for the sshCertificate (user or host)
-	//
-	CertificateSigner string `json:"certificateSigner,omitempty" rdl:"optional"`
-}
-
-//
-// NewSSHCertificates - creates an initialized SSHCertificates instance, returns a pointer to it
-//
-func NewSSHCertificates(init ...*SSHCertificates) *SSHCertificates {
-	var o *SSHCertificates
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(SSHCertificates)
-	}
-	return o.Init()
-}
-
-//
-// Init - sets up the instance according to its default field values, if any
-//
-func (self *SSHCertificates) Init() *SSHCertificates {
-	if self.Certificates == nil {
-		self.Certificates = make([]*SSHCertificate, 0)
-	}
-	return self
-}
-
-type rawSSHCertificates SSHCertificates
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a SSHCertificates
-//
-func (self *SSHCertificates) UnmarshalJSON(b []byte) error {
-	var m rawSSHCertificates
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := SSHCertificates(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *SSHCertificates) Validate() error {
-	if self.Certificates == nil {
-		return fmt.Errorf("SSHCertificates: Missing required field: certificates")
-	}
-	if self.CertificateSigner != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.CertificateSigner)
-		if !val.Valid {
-			return fmt.Errorf("SSHCertificates.certificateSigner does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil

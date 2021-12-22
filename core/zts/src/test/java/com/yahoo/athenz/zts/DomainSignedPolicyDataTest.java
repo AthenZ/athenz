@@ -26,7 +26,7 @@ import com.yahoo.rdl.Timestamp;
 
 import static org.testng.Assert.*;
 
-public class DomainSignedPolicyDataTest implements Cloneable {
+public class DomainSignedPolicyDataTest {
 
     @Test
     public void testsetgetSignedPolicyData() {
@@ -143,7 +143,6 @@ public class DomainSignedPolicyDataTest implements Cloneable {
         assertNotEquals(a2, a);
         a2.setRole(null);
         assertNotEquals(a2, a);
-
 
         assertNotEquals(p2, p);
         p2.setModified(null);
@@ -302,4 +301,152 @@ public class DomainSignedPolicyDataTest implements Cloneable {
         assertNotEquals(data1, null);
         assertNotEquals("data", data2);
     }
+
+    @Test
+    public void testPolicyData() {
+        PolicyData pd1 = new PolicyData();
+        PolicyData pd2 = new PolicyData();
+
+        pd1.setPolicies(Collections.singletonList(new Policy()));
+        pd1.setDomain("domainA");
+
+        pd2.setPolicies(Collections.singletonList(new Policy()));
+        pd2.setDomain("domainA");
+
+        assertEquals(Collections.singletonList(new Policy()), pd1.getPolicies());
+        assertEquals("domainA", pd1.getDomain());
+
+        assertEquals(pd1, pd2);
+        assertEquals(pd1, pd1);
+
+        pd1.setPolicies(Collections.singletonList(new Policy().setName("pl1")));
+        assertNotEquals(pd2, pd1);
+        pd1.setPolicies(null);
+        assertNotEquals(pd2, pd1);
+        pd1.setPolicies(Collections.singletonList(new Policy()));
+        assertEquals(pd2, pd1);
+
+        pd1.setDomain("domainB");
+        assertNotEquals(pd2, pd1);
+        pd1.setDomain(null);
+        assertNotEquals(pd2, pd1);
+        pd1.setDomain("domainA");
+        assertEquals(pd2, pd1);
+
+        assertNotEquals(pd2, null);
+        assertNotEquals("pd2", pd1);
+    }
+
+    @Test
+    public void testDomainSignedPolicyData() {
+
+        DomainSignedPolicyData dspd1 = new DomainSignedPolicyData();
+        DomainSignedPolicyData dspd2 = new DomainSignedPolicyData();
+
+        dspd1.setKeyId("kid");
+        dspd1.setSignature("signature");
+        dspd1.setSignedPolicyData(new SignedPolicyData());
+
+        dspd2.setKeyId("kid");
+        dspd2.setSignature("signature");
+        dspd2.setSignedPolicyData(new SignedPolicyData());
+
+        assertEquals(dspd1, dspd2);
+        assertEquals(dspd1, dspd1);
+
+        assertEquals(dspd1.getSignature(), "signature");
+        assertEquals(dspd1.getKeyId(), "kid");
+        assertEquals(dspd1.getSignedPolicyData(), new SignedPolicyData());
+
+        dspd1.setKeyId("kid2");
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setKeyId(null);
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setKeyId("kid");
+        assertEquals(dspd2, dspd1);
+
+        dspd1.setSignature("signature1");
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setSignature(null);
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setSignature("signature");
+        assertEquals(dspd2, dspd1);
+
+        dspd1.setSignedPolicyData(new SignedPolicyData().setZmsKeyId("kid"));
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setSignedPolicyData(null);
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setSignedPolicyData(new SignedPolicyData());
+        assertEquals(dspd2, dspd1);
+
+        assertNotEquals(dspd2, null);
+        assertNotEquals("dspd2", dspd2);
+    }
+
+    @Test
+    public void testSignedPolicyData() {
+
+        SignedPolicyData dspd1 = new SignedPolicyData();
+        SignedPolicyData dspd2 = new SignedPolicyData();
+
+        dspd1.setZmsKeyId("kid");
+        dspd1.setZmsSignature("signature");
+        dspd1.setExpires(Timestamp.fromMillis(123456789123L));
+        dspd1.setModified(Timestamp.fromMillis(123456789123L));
+        dspd1.setPolicyData(new PolicyData());
+
+        dspd2.setZmsKeyId("kid");
+        dspd2.setZmsSignature("signature");
+        dspd2.setExpires(Timestamp.fromMillis(123456789123L));
+        dspd2.setModified(Timestamp.fromMillis(123456789123L));
+        dspd2.setPolicyData(new PolicyData());
+
+        assertEquals(dspd1, dspd2);
+        assertEquals(dspd1, dspd1);
+
+        assertEquals(dspd1.getZmsSignature(), "signature");
+        assertEquals(dspd1.getZmsKeyId(), "kid");
+        assertEquals(dspd1.getExpires(), Timestamp.fromMillis(123456789123L));
+        assertEquals(dspd1.getModified(), Timestamp.fromMillis(123456789123L));
+        assertEquals(dspd1.getPolicyData(), new PolicyData());
+
+        dspd1.setZmsKeyId("kid2");
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setZmsKeyId(null);
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setZmsKeyId("kid");
+        assertEquals(dspd2, dspd1);
+
+        dspd1.setZmsSignature("signature1");
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setZmsSignature(null);
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setZmsSignature("signature");
+        assertEquals(dspd2, dspd1);
+
+        dspd1.setPolicyData(new PolicyData().setDomain("domain"));
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setPolicyData(null);
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setPolicyData(new PolicyData());
+        assertEquals(dspd2, dspd1);
+
+        dspd1.setExpires(Timestamp.fromMillis(123456789124L));
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setExpires(null);
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setExpires(Timestamp.fromMillis(123456789123L));
+        assertEquals(dspd2, dspd1);
+
+        dspd1.setModified(Timestamp.fromMillis(123456789124L));
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setModified(null);
+        assertNotEquals(dspd2, dspd1);
+        dspd1.setModified(Timestamp.fromMillis(123456789123L));
+        assertEquals(dspd2, dspd1);
+
+        assertNotEquals(dspd2, null);
+        assertNotEquals("dspd2", dspd2);
+    }
+
 }

@@ -23,7 +23,6 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-@SuppressWarnings("EqualsBetweenInconvertibleTypes")
 public class DomainMetricTest {
 
     @Test
@@ -66,9 +65,9 @@ public class DomainMetricTest {
         assertNotEquals("", dm1);
     }
 
-    @SuppressWarnings("EqualsWithItself")
     @Test
     public void testDomainMetrics() {
+
         DomainMetrics dms1 = new DomainMetrics();
         DomainMetrics dms2 = new DomainMetrics();
 
@@ -86,19 +85,57 @@ public class DomainMetricTest {
         assertEquals("test.org", dms1.getDomainName());
         assertEquals(dmlist, dms1.getMetricList());
 
-        //// equals
-        // true case
         assertEquals(dms1, dms1);
         assertEquals(dms1, dms2);
 
-        // false case
         dms2.setMetricList(new ArrayList<>());
         assertNotEquals(dms1, dms2);
+        dms2.setMetricList(null);
+        assertNotEquals(dms1, dms2);
+        dms2.setMetricList(dmlist);
+        assertEquals(dms1, dms2);
 
         dms2.setDomainName("test.net");
         assertNotEquals(dms1, dms2);
+        dms2.setDomainName(null);
+        assertNotEquals(dms1, dms2);
+        dms2.setDomainName("test.org");
+        assertEquals(dms1, dms2);
 
+        assertNotEquals(null, dms2);
         assertNotEquals("", dms1);
     }
 
+    @Test
+    public void testDomainMetric() {
+        DomainMetric dms1 = new DomainMetric();
+        DomainMetric dms2 = new DomainMetric();
+
+        dms1.setMetricType(DomainMetricType.ACCESS_ALLOWED);
+        dms1.setMetricVal(10);
+
+        dms2.setMetricType(DomainMetricType.ACCESS_ALLOWED);
+        dms2.setMetricVal(10);
+
+        assertEquals(DomainMetricType.ACCESS_ALLOWED, dms1.getMetricType());
+        assertEquals(10, dms1.getMetricVal());
+
+        assertEquals(dms1, dms1);
+        assertEquals(dms1, dms2);
+
+        dms2.setMetricVal(15);
+        assertNotEquals(dms1, dms2);
+        dms2.setMetricVal(10);
+        assertEquals(dms1, dms2);
+
+        dms2.setMetricType(null);
+        assertNotEquals(dms1, dms2);
+        dms2.setMetricType(DomainMetricType.ACCESS_ALLOWED_DENY);
+        assertNotEquals(dms1, dms2);
+        dms2.setMetricType(DomainMetricType.ACCESS_ALLOWED);
+        assertEquals(dms1, dms2);
+
+        assertNotEquals(dms2, null);
+        assertNotEquals("dms1", dms1);
+    }
 }

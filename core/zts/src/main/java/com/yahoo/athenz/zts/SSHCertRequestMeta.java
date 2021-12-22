@@ -5,6 +5,7 @@
 package com.yahoo.athenz.zts;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.List;
 import com.yahoo.rdl.*;
 
 //
@@ -23,6 +24,9 @@ public class SSHCertRequestMeta {
     public String certType;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public List<String> keyIdPrincipals;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String athenzService;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -33,6 +37,9 @@ public class SSHCertRequestMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp prevCertValidTo;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String transId;
 
     public SSHCertRequestMeta setRequestor(String requestor) {
         this.requestor = requestor;
@@ -69,6 +76,13 @@ public class SSHCertRequestMeta {
     public String getCertType() {
         return certType;
     }
+    public SSHCertRequestMeta setKeyIdPrincipals(List<String> keyIdPrincipals) {
+        this.keyIdPrincipals = keyIdPrincipals;
+        return this;
+    }
+    public List<String> getKeyIdPrincipals() {
+        return keyIdPrincipals;
+    }
     public SSHCertRequestMeta setAthenzService(String athenzService) {
         this.athenzService = athenzService;
         return this;
@@ -97,6 +111,13 @@ public class SSHCertRequestMeta {
     public Timestamp getPrevCertValidTo() {
         return prevCertValidTo;
     }
+    public SSHCertRequestMeta setTransId(String transId) {
+        this.transId = transId;
+        return this;
+    }
+    public String getTransId() {
+        return transId;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -120,6 +141,9 @@ public class SSHCertRequestMeta {
             if (certType == null ? a.certType != null : !certType.equals(a.certType)) {
                 return false;
             }
+            if (keyIdPrincipals == null ? a.keyIdPrincipals != null : !keyIdPrincipals.equals(a.keyIdPrincipals)) {
+                return false;
+            }
             if (athenzService == null ? a.athenzService != null : !athenzService.equals(a.athenzService)) {
                 return false;
             }
@@ -130,6 +154,9 @@ public class SSHCertRequestMeta {
                 return false;
             }
             if (prevCertValidTo == null ? a.prevCertValidTo != null : !prevCertValidTo.equals(a.prevCertValidTo)) {
+                return false;
+            }
+            if (transId == null ? a.transId != null : !transId.equals(a.transId)) {
                 return false;
             }
         }
