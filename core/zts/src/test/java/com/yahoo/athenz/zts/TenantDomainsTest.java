@@ -16,44 +16,37 @@
 
 package com.yahoo.athenz.zts;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.testng.Assert;
+import java.util.Collections;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("EqualsWithItself")
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
+
 public class TenantDomainsTest {
 
     @Test
-    public void TestsetgetTenantDomainNames() {
-        TenantDomains td = new TenantDomains();
-
-        List<String> list = new ArrayList<>(Arrays.asList("A", "B", "C"));
-
-        td.setTenantDomainNames(list);
-
-        Assert.assertEquals(td.getTenantDomainNames(), list);
-    }
-
-    @Test
-    public void TestEqualsTrue() {
-        TenantDomains td = new TenantDomains();
-        //noinspection ResultOfMethodCallIgnored
-        td.equals(td);
-    }
-
-    @Test
-    public void TestEqualsFalse() {
+    public void TestTenantDomainNames() {
+        
         TenantDomains td1 = new TenantDomains();
         TenantDomains td2 = new TenantDomains();
 
-        td1.setTenantDomainNames(new ArrayList<>(Arrays.asList("A", "B", "C")));
+        td1.setTenantDomainNames(Collections.singletonList("domain1"));
+        td2.setTenantDomainNames(Collections.singletonList("domain1"));
 
-        Assert.assertNotEquals(td1, td2);
-        //noinspection EqualsBetweenInconvertibleTypes
-        Assert.assertNotEquals("", td1);
+        assertEquals(Collections.singletonList("domain1"), td1.getTenantDomainNames());
+
+        assertEquals(td1, td2);
+        assertEquals(td1, td1);
+
+        td1.setTenantDomainNames(Collections.singletonList("domain2"));
+        assertNotEquals(td2, td1);
+        td1.setTenantDomainNames(null);
+        assertNotEquals(td2, td1);
+        td1.setTenantDomainNames(Collections.singletonList("domain1"));
+        assertEquals(td2, td1);
+
+        assertNotEquals(td2, null);
+        assertNotEquals("td2", td1);
     }
 
 }

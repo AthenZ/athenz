@@ -2,6 +2,7 @@
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 include "Names.tdl";
+include "SSHCert.tdl";
 
 type InstanceRegisterInformation Struct {
     ServiceName provider; //the provider service name (i.e. "aws.us-west-2", "sys.openstack.cluster1")
@@ -9,7 +10,8 @@ type InstanceRegisterInformation Struct {
     SimpleName service; //the service this instance is supposed to run
     String attestationData; //identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.
     String csr; //the Certificate Signing Request for the expected X.509 certificate in the response
-    String ssh (optional); //if present, return an SSH host certificate. Format is JSON.
+    String ssh (optional); //deprecated - use sshCertRequest, if present, return an SSH host certificate. Format is JSON.
+    SSHCertRequest sshCertRequest (optional); //if present, return an SSH host certificate
     Bool token (optional); //if true, return a service token signed by ZTS for this service
     Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)
     DomainName hostname (optional); //optional hostname in case included in the csr SAN dnsName attribute
@@ -19,7 +21,8 @@ type InstanceRegisterInformation Struct {
 type InstanceRefreshInformation Struct {
     String attestationData (optional); //identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.
     String csr (optional); //the Certificate Signing Request for the expected X.509 certificate in the response
-    String ssh (optional); //if present, return an SSH host certificate. Format is JSON.
+    String ssh (optional); //deprecated - use sshCertRequest, if present, return an SSH host certificate. Format is JSON.
+    SSHCertRequest sshCertRequest (optional); //if present, return an SSH host certificate
     Bool token (optional); //if true, return a service token signed by ZTS for this service
     Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)
     DomainName hostname (optional); //optional hostname in case included in the csr SAN dnsName attribute

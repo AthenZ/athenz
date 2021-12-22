@@ -26,38 +26,58 @@ public class AWSTemporaryCredentialsTest {
 
     @Test
     public void testIdentity() {
-        AWSTemporaryCredentials i = new AWSTemporaryCredentials();
+        AWSTemporaryCredentials i1 = new AWSTemporaryCredentials();
         AWSTemporaryCredentials i2 = new AWSTemporaryCredentials();
 
         // set
-        i.setAccessKeyId("key01");
-        i.setSecretAccessKey("test_secret");
-        i.setSessionToken("test_token");
-        i.setExpiration(Timestamp.fromMillis(123456789123L));
+        i1.setAccessKeyId("key01");
+        i1.setSecretAccessKey("test_secret");
+        i1.setSessionToken("test_token");
+        i1.setExpiration(Timestamp.fromMillis(123456789123L));
+
         i2.setAccessKeyId("key01");
         i2.setSecretAccessKey("test_secret");
         i2.setSessionToken("test_token");
+        i2.setExpiration(Timestamp.fromMillis(123456789123L));
 
         // getter assertion
-        assertEquals(i.getAccessKeyId(), "key01");
-        assertEquals(i.getSecretAccessKey(), "test_secret");
-        assertEquals(i.getSessionToken(), "test_token");
-        assertEquals(i.getExpiration(), Timestamp.fromMillis(123456789123L));
+        assertEquals(i1.getAccessKeyId(), "key01");
+        assertEquals(i1.getSecretAccessKey(), "test_secret");
+        assertEquals(i1.getSessionToken(), "test_token");
+        assertEquals(i1.getExpiration(), Timestamp.fromMillis(123456789123L));
 
-        //noinspection EqualsWithItself
-        assertEquals(i, i);
+        assertEquals(i1, i2);
+        assertEquals(i1, i1);
 
-        assertNotEquals(i2, i);
-        i2.setSessionToken(null);
-        assertNotEquals(i2, i);
-        i2.setSecretAccessKey(null);
-        assertNotEquals(i2, i);
-        i2.setAccessKeyId(null);
-        assertNotEquals(i2, i);
+        i1.setAccessKeyId("key02");
+        assertNotEquals(i2, i1);
+        i1.setAccessKeyId(null);
+        assertNotEquals(i2, i1);
+        i1.setAccessKeyId("key01");
+        assertEquals(i2, i1);
 
-        //noinspection EqualsBetweenInconvertibleTypes
-        assertNotEquals("", i);
+        i1.setSecretAccessKey("test_secret1");
+        assertNotEquals(i2, i1);
+        i1.setSecretAccessKey(null);
+        assertNotEquals(i2, i1);
+        i1.setSecretAccessKey("test_secret");
+        assertEquals(i2, i1);
 
+        i1.setSessionToken("test_token1");
+        assertNotEquals(i2, i1);
+        i1.setSessionToken(null);
+        assertNotEquals(i2, i1);
+        i1.setSessionToken("test_token");
+        assertEquals(i2, i1);
+
+        i1.setExpiration(Timestamp.fromMillis(123456789124L));
+        assertNotEquals(i2, i1);
+        i1.setExpiration(null);
+        assertNotEquals(i2, i1);
+        i1.setExpiration(Timestamp.fromMillis(123456789123L));
+        assertEquals(i2, i1);
+
+        assertNotEquals(i2, null);
+        assertNotEquals("i1", i1);
     }
-
 }

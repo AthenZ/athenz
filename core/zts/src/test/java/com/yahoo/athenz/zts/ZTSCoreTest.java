@@ -30,6 +30,9 @@ public class ZTSCoreTest {
     
     @Test
     public void test() {
+        ZTSSchema ztsSchema = new ZTSSchema();
+        assertNotNull(ztsSchema);
+
         Schema schema = ZTSSchema.instance();
         assertNotNull(schema);
     }

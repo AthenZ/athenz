@@ -24,6 +24,9 @@ public class InstanceRefreshInformation {
     public String ssh;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public SSHCertRequest sshCertRequest;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean token;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -55,6 +58,13 @@ public class InstanceRefreshInformation {
     }
     public String getSsh() {
         return ssh;
+    }
+    public InstanceRefreshInformation setSshCertRequest(SSHCertRequest sshCertRequest) {
+        this.sshCertRequest = sshCertRequest;
+        return this;
+    }
+    public SSHCertRequest getSshCertRequest() {
+        return sshCertRequest;
     }
     public InstanceRefreshInformation setToken(Boolean token) {
         this.token = token;
@@ -99,6 +109,9 @@ public class InstanceRefreshInformation {
                 return false;
             }
             if (ssh == null ? a.ssh != null : !ssh.equals(a.ssh)) {
+                return false;
+            }
+            if (sshCertRequest == null ? a.sshCertRequest != null : !sshCertRequest.equals(a.sshCertRequest)) {
                 return false;
             }
             if (token == null ? a.token != null : !token.equals(a.token)) {
