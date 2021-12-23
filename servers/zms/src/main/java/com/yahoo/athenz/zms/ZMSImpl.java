@@ -1883,7 +1883,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
         validate(name, TYPE_SIMPLE_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
@@ -1899,7 +1898,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         String userName = userDomainPrefix + name;
         String domainName = homeDomainPrefix + getUserDomainName(name);
+
+        // verify that we're not deleting one of the system admins. We'll
+        // refuse those operations since the user must first be removed
+        // from the sys.auth:role.admin role and then can be deleted
+
+        if (isSysAdminRoleMember(userName)) {
+            throw ZMSUtils.forbiddenError("system admin users cannot be deleted", caller);
+        }
+
         dbService.executeDeleteUser(ctx, userName, domainName, auditRef, caller);
+    }
+
+    boolean isSysAdminRoleMember(final String roleMember) {
+        Role role = dbService.getRole(SYS_AUTH, ADMIN_ROLE_NAME, false, true, false);
+        if (role == null) {
+            return false;
+        }
+        return isMemberOfRole(role, roleMember);
     }
 
     String getUserDomainName(String userName) {

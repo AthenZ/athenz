@@ -913,7 +913,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testCeateSubDomainNoParent() {
+    public void testCreateSubDomainNoParent() {
 
         SubDomain dom = zmsTestInitializer.createSubDomainObject("sub", "parent",
                 "Test Domain", "testOrg", zmsTestInitializer.getAdminUser());
@@ -17523,7 +17523,7 @@ public class ZMSImplTest {
     @Test
     public void testDeleteUser() {
 
-        String domainName = "deleteuser1";
+        final String domainName = "deleteuser1";
 
         ZMSTestUtils.cleanupNotAdminUsers(zmsTestInitializer.getZms(), zmsTestInitializer.getAdminUser(), zmsTestInitializer.getMockDomRsrcCtx());
 
@@ -17656,6 +17656,20 @@ public class ZMSImplTest {
 
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "deleteusersports", zmsTestInitializer.getAuditRef());
+    }
+
+    @Test
+    public void testDeleteAdminUserForbidden() {
+
+        // we should not be allowed to delete system admin users
+
+        try {
+            zmsTestInitializer.getZms().deleteUser(zmsTestInitializer.getMockDomRsrcCtx(), "testadminuser", zmsTestInitializer.getAuditRef());
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("system admin users cannot be deleted"));
+        }
     }
 
     @Test
@@ -28335,5 +28349,17 @@ public class ZMSImplTest {
 
         // make sure no exceptions are thrown since we should catch and log them
         zmsImpl.recordMetrics(mockContext, 200);
+    }
+
+    @Test
+    public void testIsSysAdminRoleMemberNotFoundRole() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+
+        DBService dbService = Mockito.mock(DBService.class);
+        when(dbService.getRole("sys.auth", "admin", false, true, false)).thenReturn(null);
+        zmsImpl.dbService = dbService;
+
+        assertFalse(zmsImpl.isSysAdminRoleMember("user.testadminuser"));
     }
 }

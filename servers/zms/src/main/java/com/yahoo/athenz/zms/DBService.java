@@ -2511,9 +2511,7 @@ public class DBService implements RolesProvider {
 
             // process our delete role member operation
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("removing member {} from {}:role.{}", principalName, domainName, roleName);
-            }
+            LOG.info("Inactive User Cleanup - principal: {} role: {}:role.{}", principalName, domainName, roleName);
 
             // we are going to ignore all errors here rather than
             // rejecting the full operation. our delete user will
@@ -2566,9 +2564,7 @@ public class DBService implements RolesProvider {
 
             // process our delete group member operation
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("removing member {} from {}:group.{}", principalName, domainName, groupName);
-            }
+            LOG.info("Inactive User Cleanup - principal: {} group: {}:group.{}", principalName, domainName, groupName);
 
             // we are going to ignore all errors here rather than
             // rejecting the full operation. our delete user will
