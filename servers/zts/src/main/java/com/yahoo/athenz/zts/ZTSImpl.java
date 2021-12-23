@@ -2306,23 +2306,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         // If no previous cert before / after specified, process in high priority.
-        // Otherwise priority depends on the duration of the previous certificate.
+        // Otherwise, priority depends on the duration of the previous certificate.
+
         Priority priority = Priority.High;
         if (req.getPrevCertNotAfter() != null && req.getPrevCertNotBefore() != null) {
             priority = ZTSUtils.getCertRequestPriority(req.getPrevCertNotBefore().toDate(), req.getPrevCertNotAfter().toDate());
         }
+
         int expiryTime = determineRoleCertTimeout(data, roles, (int) req.getExpiryTime());
         if (LOGGER.isDebugEnabled()) {
-            String prevCertNotBefore = "";
-            if (req.getPrevCertNotBefore() != null) {
-                prevCertNotBefore = req.getPrevCertNotBefore().toString();
-            }
-            String prevCertNotAfter = "";
-            if (req.getPrevCertNotAfter() != null) {
-                prevCertNotAfter = req.getPrevCertNotAfter().toString();
-            }
-            LOGGER.debug("PrevCertNotBefore: {}, PrevCertNotAfter: {}, Priority: {}, expiryTime: {}. ", prevCertNotBefore, prevCertNotAfter, priority, expiryTime);
+            LOGGER.debug("Role Certificate Priority: {}, expiryTime: {}", priority, expiryTime);
         }
+
         final String x509Cert = instanceCertManager.generateX509Certificate(null, null, req.getCsr(),
                 InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime, priority);
         if (null == x509Cert || x509Cert.isEmpty()) {
@@ -3164,7 +3159,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, cn, certReqInstanceId, instancePrivateIp);
             instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(),
-                    certRecord, ZTSConsts.ZTS_SSH_HOST);
+                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -3434,7 +3429,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String x509Csr = convertEmptyStringToNull(info.getCsr());
         final String sshCsr = convertEmptyStringToNull(info.getSsh());
 
-        if (x509Csr == null && sshCsr == null) {
+        if (x509Csr == null && sshCsr == null && info.getSshCertRequest() == null) {
             throw requestError("no csr provided", caller, domain, principalDomain);
         }
         
@@ -3475,7 +3470,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             identity = processProviderX509RefreshRequest(ctx, domainData, principal, domain, service,
                     provider, instanceId, info, cert, caller);
         } else {
-            identity = processProviderSSHRefreshRequest(principal, domain, provider, instanceId, sshCsr, caller);
+            identity = processProviderSSHRefreshRequest(principal, domain, provider, instanceId,
+                    sshCsr, info.getSshCertRequest(), caller);
         }
         
         return identity;
@@ -3633,7 +3629,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, domain + "." + service, instanceId,
                     instancePrivateIp);
             instanceCertManager.generateSSHIdentity(principal, identity, info.getHostname(), info.getSsh(),
-                    certRecord, ZTSConsts.ZTS_SSH_HOST);
+                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -3674,7 +3670,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (enableWorkloadStore && !athenzSysDomainCache.isWorkloadStoreExcludedProvider(provider)) {
             // workloads store update is on best-effort basis. No errors are thrown if the op is not successful.
-            updateWorkloadRecord(AthenzUtils.getPrincipalName(domain, service), provider, instanceId, sanIpStrForWorkloadStore, info.getHostname(), newCert.getNotAfter());
+            updateWorkloadRecord(AthenzUtils.getPrincipalName(domain, service), provider, instanceId,
+                    sanIpStrForWorkloadStore, info.getHostname(), newCert.getNotAfter());
         }
 
         // log our certificate
@@ -3707,7 +3704,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     InstanceIdentity processProviderSSHRefreshRequest(final Principal principal, final String domain,
-            final String provider, final String instanceId, final String sshCsr, final String caller) {
+            final String provider, final String instanceId, final String sshCsr, SSHCertRequest sshCertRequest,
+            final String caller) {
 
         LOGGER.info("User ssh certificate request from {}", principal.getFullName());
 
@@ -3718,7 +3716,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         
         InstanceIdentity identity = new InstanceIdentity().setName(principalName);
         Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
-        if (!instanceCertManager.generateSSHIdentity(principal, identity, null, sshCsr, null, ZTSConsts.ZTS_SSH_USER)) {
+        if (!instanceCertManager.generateSSHIdentity(principal, identity, null, sshCsr, sshCertRequest,
+                null, ZTSConsts.ZTS_SSH_USER)) {
             throw serverError("unable to generate ssh identity", caller, domain, principalDomain);
         }
         metric.stopTiming(timerSSHCertMetric, null, principalDomain);

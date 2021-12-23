@@ -5079,7 +5079,7 @@ public class ZTSImplTest {
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.doThrow(new ResourceException(500, "Invalid SSH")).when(instanceManager)
                 .generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
-                        Mockito.any(), Mockito.any());
+                        Mockito.any(), Mockito.any(), Mockito.any());
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -5142,7 +5142,7 @@ public class ZTSImplTest {
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.when(instanceManager.generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -5840,7 +5840,7 @@ public class ZTSImplTest {
                 .setProvider("athenz.provider").setToken(false);
 
         Mockito.doReturn(false).when(instanceManager).generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any());
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 
         ResourceContext context = createResourceContext(null);
 
@@ -6021,7 +6021,7 @@ public class ZTSImplTest {
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.when(instanceManager.generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -6697,7 +6697,7 @@ public class ZTSImplTest {
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.when(instanceManager.generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(), eq("ssh-csr"),
-                Mockito.any(), eq("user"))).thenReturn(false);
+                Mockito.any(), Mockito.any(), eq("user"))).thenReturn(false);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -7650,7 +7650,8 @@ public class ZTSImplTest {
         assertNotNull(principal);
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
-        Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr", null, "user")).thenReturn(true);
+        Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr",
+                null, null, "user")).thenReturn(true);
 
         ztsImpl.instanceCertManager = instanceManager;
 
@@ -7700,7 +7701,8 @@ public class ZTSImplTest {
         assertNotNull(principal);
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
-        Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr", null, "user")).thenReturn(true);
+        Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr",
+                null, null, "user")).thenReturn(true);
 
         ztsImpl.instanceCertManager = instanceManager;
 
@@ -7750,7 +7752,8 @@ public class ZTSImplTest {
         assertNotNull(principal);
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
-        Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr", null, "user")).thenReturn(false);
+        Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr",
+                null, null, "user")).thenReturn(false);
 
         ztsImpl.instanceCertManager = instanceManager;
 
