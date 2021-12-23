@@ -49,8 +49,8 @@ endif
 build: src/$(RDL_LIB)
 
 src/$(RDL_LIB):
-	go get $(RDL_LIB)
-	go get github.com/ardielle/ardielle-tools/...
+	go install $(RDL_LIB)
+	go install github.com/ardielle/ardielle-tools/...
 
 model.go: $(RDL_FILE)
 	$(GOPATH)/bin/rdl -ps generate -t -o $@ go-model $(RDL_FILE)

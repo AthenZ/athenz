@@ -33,7 +33,7 @@ if [ ! -d "${GOPATH}/bin" ]; then
     exit 1;
 fi
 
-go get -u github.com/ardielle/ardielle-go/...
+go install github.com/ardielle/ardielle-go/...
 go build
 cp rdl-gen-athenz-server ${GOPATH}/bin/rdl-gen-athenz-server
 

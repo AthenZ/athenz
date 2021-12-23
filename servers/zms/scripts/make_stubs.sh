@@ -17,14 +17,14 @@ if [ ! -z "${SCREWDRIVER}" ] || [ ! -z "${TRAVIS_PULL_REQUEST}" ] || [ ! -z "${T
 fi
 
 if [ -x "$(command -v go)" ]; then
-    go get -u github.com/ardielle/ardielle-tools/...
+    go install github.com/ardielle/ardielle-tools/...
 fi
 
 command -v rdl >/dev/null 2>&1 || {
     echo >&2 "------------------------------------------------------------------------";
     echo >&2 "SOURCE WARNING";
     echo >&2 "------------------------------------------------------------------------";
-    echo >&2 "Please install rdl utility: go get -u github.com/ardielle/ardielle-tools/...";
+    echo >&2 "Please install rdl utility: go install github.com/ardielle/ardielle-tools/...";
     echo >&2 "Skipping source generation...";
     exit 0;
 }
