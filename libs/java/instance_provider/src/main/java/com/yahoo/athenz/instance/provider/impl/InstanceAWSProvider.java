@@ -21,6 +21,7 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,8 @@ import com.yahoo.rdl.Timestamp;
 
 import javax.net.ssl.*;
 
+import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
+
 public class InstanceAWSProvider implements InstanceProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceAWSProvider.class);
@@ -61,12 +64,16 @@ public class InstanceAWSProvider implements InstanceProvider {
 
     static final String AWS_PROP_CERT_VALIDITY_STS_ONLY = "athenz.zts.aws_cert_validity_sts_only";
 
-    PublicKey awsPublicKey = null;      // AWS public key for validating instance documents
-    long bootTimeOffset;                // boot time offset in milliseconds
-    long certValidityTime;              // cert validity for STS creds only case
+    PublicKey awsPublicKey = null;           // AWS public key for validating instance documents
+    DynamicConfigLong bootTimeOffsetSeconds; // boot time offset in seconds
+    long certValidityTime;                   // cert validity for STS creds only case
     boolean supportRefresh = false;
     String awsRegion;
     Set<String> dnsSuffixes = null;
+
+    public long getTimeOffsetInMilli() {
+        return bootTimeOffsetSeconds.get() * 1000;
+    }
 
     @Override
     public Scheme getProviderScheme() {
@@ -87,14 +94,12 @@ public class InstanceAWSProvider implements InstanceProvider {
         if (awsPublicKey == null) {
             LOGGER.error("AWS Public Key not specified - no instance requests will be authorized");
         }
-        
         // how long the instance must be booted in the past before we
         // stop validating the instance requests
-        
+
         long timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
-        bootTimeOffset = 1000 * Long.parseLong(
-                System.getProperty(AWS_PROP_BOOT_TIME_OFFSET, Long.toString(timeout)));
-        
+        bootTimeOffsetSeconds = new DynamicConfigLong(CONFIG_MANAGER, AWS_PROP_BOOT_TIME_OFFSET, timeout);
+
         // determine the dns suffix. if this is not specified we'll
         // be rejecting all entries
 
@@ -247,12 +252,12 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         // first check to see if the boot time enforcement is enabled
         
-        if (bootTimeOffset <= 0) {
+        if (getTimeOffsetInMilli() <= 0) {
             return true;
         }
         
         Timestamp bootTime = Timestamp.fromString(instanceDocument.getString(ATTR_PENDING_TIME));
-        if (bootTime.millis() < System.currentTimeMillis() - bootTimeOffset) {
+        if (bootTime.millis() < System.currentTimeMillis() - getTimeOffsetInMilli()) {
             errMsg.append("Instance boot time is not recent enough: ");
             errMsg.append(bootTime);
             return false;

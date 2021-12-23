@@ -58,7 +58,7 @@ public class InstanceAWSProviderTest {
         InstanceAWSProvider provider = new InstanceAWSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         assertNull(provider.awsPublicKey);
-        assertEquals(provider.bootTimeOffset, 300000);
+        assertEquals(provider.getTimeOffsetInMilli(), 300000);
         provider.close();
     }
     
@@ -70,7 +70,7 @@ public class InstanceAWSProviderTest {
         System.setProperty(InstanceAWSProvider.AWS_PROP_BOOT_TIME_OFFSET, "60");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         assertNotNull(provider.awsPublicKey);
-        assertEquals(provider.bootTimeOffset, 60000);
+        assertEquals(provider.getTimeOffsetInMilli(), 60000);
         provider.close();
         System.clearProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT);
         System.clearProperty(InstanceAWSProvider.AWS_PROP_BOOT_TIME_OFFSET);

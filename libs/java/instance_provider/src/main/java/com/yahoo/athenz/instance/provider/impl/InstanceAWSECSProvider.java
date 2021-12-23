@@ -16,6 +16,7 @@
 package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import com.yahoo.rdl.Struct;
 
 import javax.net.ssl.*;
@@ -32,8 +33,8 @@ public class InstanceAWSECSProvider extends InstanceAWSProvider {
         // boot time since we don't know when the container
         // was started and temporary aws iam assume role
         // validation is sufficient
-        
-        bootTimeOffset = 0;
+
+        bootTimeOffsetSeconds = new DynamicConfigLong(0L);
         
         // our ECS provider must validate refresh requests
         

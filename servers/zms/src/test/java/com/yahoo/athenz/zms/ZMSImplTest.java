@@ -44,6 +44,7 @@ import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.ZMSImpl.AccessStatus;
 import com.yahoo.athenz.zms.ZMSImpl.AthenzObject;
@@ -2909,7 +2910,9 @@ public class ZMSImplTest {
         // enable user validation for the test
 
         zmsImpl.userAuthority = new TestUserPrincipalAuthority();
-        zmsImpl.validateUserRoleMembers = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true);
+        zmsImpl.validateUserRoleMembers = dynamicConfigBoolean;
 
         // valid users no exception
 
@@ -4079,7 +4082,9 @@ public class ZMSImplTest {
         }
 
         // Verify putting policy version in read mode throws an exception
-        zmsImpl.readOnlyMode = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true).thenReturn(false);
+        zmsImpl.readOnlyMode = dynamicConfigBoolean;
         try {
             zmsImpl.putPolicyVersion(zmsTestInitializer.getMockDomRsrcCtx(), domainName, policyName, new PolicyOptions().setVersion("New-Version4"), zmsTestInitializer.getAuditRef());
             fail();
@@ -4087,7 +4092,7 @@ public class ZMSImplTest {
             assertEquals(ex.getMessage(), "ResourceException (400): {code: 400, message: \"Server in Maintenance Read-Only mode. Please try your request later\"}");
         }
 
-        zmsImpl.readOnlyMode = false;
+        zmsImpl.readOnlyMode = dynamicConfigBoolean;
         zmsImpl.deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
@@ -4420,7 +4425,9 @@ public class ZMSImplTest {
         }
 
         // Verify setting active version in read mode throws an exception
-        zmsImpl.readOnlyMode = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true).thenReturn(false);
+        zmsImpl.readOnlyMode = dynamicConfigBoolean;
         try {
             zmsImpl.setActivePolicyVersion(zmsTestInitializer.getMockDomRsrcCtx(), domainName, policyName, new PolicyOptions().setVersion("New-Version2"), zmsTestInitializer.getAuditRef());
             fail();
@@ -4428,7 +4435,7 @@ public class ZMSImplTest {
             assertEquals(ex.getMessage(), "ResourceException (400): {code: 400, message: \"Server in Maintenance Read-Only mode. Please try your request later\"}");
         }
 
-        zmsImpl.readOnlyMode = false;
+        zmsImpl.readOnlyMode = dynamicConfigBoolean;
         zmsImpl.deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "PolicyGetDom1", zmsTestInitializer.getAuditRef());
     }
 
@@ -5099,14 +5106,16 @@ public class ZMSImplTest {
         assertEquals(newActivePolicy.getName(), "policygetdom1:policy.policy1");
 
         // Verify deleting policy version in read mode throws an exception
-        zmsImpl.readOnlyMode = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true).thenReturn(false);
+        zmsImpl.readOnlyMode = dynamicConfigBoolean;
         try {
             zmsImpl.deletePolicyVersion(zmsTestInitializer.getMockDomRsrcCtx(), domainName, policyName, "New-Version2", zmsTestInitializer.getAuditRef());
             fail();
         } catch (Exception ex) {
             assertEquals(ex.getMessage(), "ResourceException (400): {code: 400, message: \"Server in Maintenance Read-Only mode. Please try your request later\"}");
         }
-        zmsImpl.readOnlyMode = false;
+        zmsImpl.readOnlyMode = dynamicConfigBoolean;
 
         // Verify trying to delete admin policy version throws an exception
         try {
@@ -20184,7 +20193,10 @@ public class ZMSImplTest {
         // valid users in the system
 
         zmsTestInitializer.getZms().userAuthority = new TestUserPrincipalAuthority();
-        zmsTestInitializer.getZms().validateUserRoleMembers = true;
+
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true);
+        zmsTestInitializer.getZms().validateUserRoleMembers = dynamicConfigBoolean;
 
         // first let's approve user.joe which should be ok since user joe
         // is a valid user based on our test authority
@@ -20474,8 +20486,12 @@ public class ZMSImplTest {
     @Test
     public void testValidateRoleMemberPrincipals() {
 
-        zmsTestInitializer.getZms().validateUserRoleMembers = false;
-        zmsTestInitializer.getZms().validateServiceRoleMembers = false;
+        DynamicConfigBoolean validateUserRoleMembersBool = Mockito.mock(DynamicConfigBoolean.class);
+        when(validateUserRoleMembersBool.get()).thenReturn(false);
+        zmsTestInitializer.getZms().validateUserRoleMembers = validateUserRoleMembersBool;
+        DynamicConfigBoolean validateServiceRoleMembersBool = Mockito.mock(DynamicConfigBoolean.class);
+        when(validateServiceRoleMembersBool.get()).thenReturn(false);
+        zmsTestInitializer.getZms().validateServiceRoleMembers = validateServiceRoleMembersBool;
 
         // if both are false then any invalid users are ok
 
@@ -20492,7 +20508,9 @@ public class ZMSImplTest {
         // enable user authority check
 
         zmsTestInitializer.getZms().userAuthority = new TestUserPrincipalAuthority();
-        zmsTestInitializer.getZms().validateUserRoleMembers = true;
+        DynamicConfigBoolean validateUserRoleMembersBoolTrue = Mockito.mock(DynamicConfigBoolean.class);
+        when(validateUserRoleMembersBoolTrue.get()).thenReturn(true);
+        zmsTestInitializer.getZms().validateUserRoleMembers = validateUserRoleMembersBoolTrue;
 
         // include all valid principals
 
@@ -20545,7 +20563,9 @@ public class ZMSImplTest {
 
         Authority savedAuthority = zmsTestInitializer.getZms().userAuthority;
         zmsTestInitializer.getZms().userAuthority = new TestUserPrincipalAuthority();
-        zmsTestInitializer.getZms().validateUserRoleMembers = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true);
+        zmsTestInitializer.getZms().validateUserRoleMembers = dynamicConfigBoolean;
 
         // valid users no exception
 
@@ -20610,7 +20630,9 @@ public class ZMSImplTest {
     @Test
     public void testValidateRoleMemberPrincipalService() {
 
-        zmsTestInitializer.getZms().validateServiceRoleMembers = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true);
+        zmsTestInitializer.getZms().validateServiceRoleMembers = dynamicConfigBoolean;
 
         // wildcards are always valid with no exception
 
@@ -20674,7 +20696,7 @@ public class ZMSImplTest {
         System.setProperty(ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS,
                 "unix,coretech");
         zmsTestInitializer.getZms().loadConfigurationSettings();
-        zmsTestInitializer.getZms().validateServiceRoleMembers = true;
+        zmsTestInitializer.getZms().validateServiceRoleMembers = dynamicConfigBoolean;
 
         // coretech is now accepted
 
@@ -23815,7 +23837,9 @@ public class ZMSImplTest {
         // enable user validation for the test
 
         zmsImpl.userAuthority = new TestUserPrincipalAuthority();
-        zmsImpl.validateUserRoleMembers = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true);
+        zmsImpl.validateUserRoleMembers = dynamicConfigBoolean;
 
         // valid users no exception
 
@@ -24232,7 +24256,9 @@ public class ZMSImplTest {
         // valid users in the system
 
         zmsTestInitializer.getZms().userAuthority = new TestUserPrincipalAuthority();
-        zmsTestInitializer.getZms().validateUserRoleMembers = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true);
+        zmsTestInitializer.getZms().validateUserRoleMembers = dynamicConfigBoolean;
 
         // first let's approve user.joe which should be ok since user joe
         // is a valid user based on our test authority
@@ -27248,14 +27274,16 @@ public class ZMSImplTest {
                 assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp, conditionResp2));
             }
         }
-        zmsTestInitializer.getZms().readOnlyMode = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true).thenReturn(false);
+        zmsTestInitializer.getZms().readOnlyMode = dynamicConfigBoolean;
         try {
             zmsTestInitializer.getZms().putAssertionConditions(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), acs);
             fail();
         } catch(ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
-        zmsTestInitializer.getZms().readOnlyMode = false;
+        zmsTestInitializer.getZms().readOnlyMode = dynamicConfigBoolean;
         try {
             zmsTestInitializer.getZms().putAssertionConditions(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "admin", policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), acs);
             fail();
@@ -27329,14 +27357,16 @@ public class ZMSImplTest {
                 assertThat(conditionsResp.getConditionsList(), CoreMatchers.hasItems(conditionResp));
             }
         }
-        zmsTestInitializer.getZms().readOnlyMode = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true).thenReturn(false);
+        zmsTestInitializer.getZms().readOnlyMode = dynamicConfigBoolean;
         try {
             zmsTestInitializer.getZms().putAssertionCondition(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), ac1);
             fail();
         } catch(ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
-        zmsTestInitializer.getZms().readOnlyMode = false;
+        zmsTestInitializer.getZms().readOnlyMode = dynamicConfigBoolean;
         try {
             zmsTestInitializer.getZms().putAssertionCondition(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "admin", policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), ac1);
             fail();
@@ -27402,14 +27432,16 @@ public class ZMSImplTest {
                 assertNull(policy.getAssertions().get(0).getConditions());
             }
         }
-        zmsTestInitializer.getZms().readOnlyMode = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true).thenReturn(false);
+        zmsTestInitializer.getZms().readOnlyMode = dynamicConfigBoolean;
         try {
             zmsTestInitializer.getZms().deleteAssertionConditions(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef());
             fail();
         } catch(ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
-        zmsTestInitializer.getZms().readOnlyMode = false;
+        zmsTestInitializer.getZms().readOnlyMode = dynamicConfigBoolean;
         try {
             zmsTestInitializer.getZms().deleteAssertionConditions(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "admin", policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef());
             fail();
@@ -27470,14 +27502,16 @@ public class ZMSImplTest {
                 assertNull(policy.getAssertions().get(0).getConditions());
             }
         }
-        zmsTestInitializer.getZms().readOnlyMode = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true).thenReturn(false);
+        zmsTestInitializer.getZms().readOnlyMode = dynamicConfigBoolean;
         try {
             zmsTestInitializer.getZms().deleteAssertionCondition(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), 1, zmsTestInitializer.getAuditRef());
             fail();
         } catch(ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
-        zmsTestInitializer.getZms().readOnlyMode = false;
+        zmsTestInitializer.getZms().readOnlyMode = dynamicConfigBoolean;
         try {
             zmsTestInitializer.getZms().deleteAssertionCondition(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "admin", policyResp.getAssertions().get(0).getId(), 1, zmsTestInitializer.getAuditRef());
             fail();

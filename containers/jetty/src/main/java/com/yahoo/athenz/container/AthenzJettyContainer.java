@@ -28,7 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLoggerFactory;
-import com.yahoo.athenz.common.server.util.config.ConfigManager;
+import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderAwsParametersStore;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import org.eclipse.jetty.deploy.DeploymentManager;
 import org.eclipse.jetty.deploy.PropertiesConfigurationManager;
@@ -67,6 +67,8 @@ import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.container.filter.HealthCheckFilter;
 import com.yahoo.athenz.container.log.AthenzRequestLog;
+
+import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
 public class AthenzJettyContainer {
     
@@ -589,6 +591,25 @@ public class AthenzJettyContainer {
         return container;
     }
 
+    public static void initConfigManager() {
+        System.getProperties().remove("socksProxyHost");
+
+        // First load initial properties (to get parameter store path)
+        String propFile = System.getProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME,
+                getRootDir() + "/conf/athenz/athenz.properties");
+        ConfigProperties.loadProperties(propFile);
+
+        final String awsParameterStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_AWS_PARAM_STORE_PATH);
+        if (!StringUtil.isEmpty(awsParameterStorePath)) {
+            // Manage AWS parameter store configurations (as the first config source, AWS parameters will take precedence over parameters
+            // configured in the properties file.
+            CONFIG_MANAGER.addConfigSource(ConfigProviderAwsParametersStore.PROVIDER_DESCRIPTION_PREFIX + awsParameterStorePath);
+        }
+
+        // Manage properties file configurations
+        CONFIG_MANAGER.addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
+    }
+
     ///CLOVER:OFF
     public void run() {
         try {
@@ -609,11 +630,8 @@ public class AthenzJettyContainer {
 
     public static void main(String [] args) {
 
-        System.getProperties().remove("socksProxyHost");
-        String propFile = System.getProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME,
-                getRootDir() + "/conf/athenz/athenz.properties");
-        new ConfigManager().addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
-        
+        initConfigManager();
+
         try {
             AthenzJettyContainer container = createJettyContainer();
             container.run();
@@ -625,5 +643,6 @@ public class AthenzJettyContainer {
             throw exc;
         }
     }
+
     ///CLOVER:ON
 }

@@ -33,6 +33,8 @@ import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
@@ -98,8 +100,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItems;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 public class ZTSImplTest {
@@ -6197,7 +6198,7 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal);
 
-        ztsImpl.x509CertRefreshResetTime = cert.getNotBefore().getTime() + 1;
+        ztsImpl.x509CertRefreshResetTime =  new DynamicConfigLong(cert.getNotBefore().getTime() + 1);
 
         try {
             ztsImpl.getValidatedX509CertRecord(context, "athenz.provider", "1001",
@@ -6241,7 +6242,7 @@ public class ZTSImplTest {
 
         ResourceContext context = createResourceContext(principal);
 
-        ztsImpl.x509CertRefreshResetTime = cert.getNotBefore().getTime() + 1;
+        ztsImpl.x509CertRefreshResetTime = new DynamicConfigLong(cert.getNotBefore().getTime() + 1);
 
         X509CertRecord certRecord =  ztsImpl.getValidatedX509CertRecord(context, "athenz.provider",
                 "1001", "athenz.production", cert, "caller", "athenz", "athenz",
@@ -7257,7 +7258,7 @@ public class ZTSImplTest {
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
-        ztsImpl.x509CertRefreshResetTime = System.currentTimeMillis();
+        ztsImpl.x509CertRefreshResetTime = new DynamicConfigLong(System.currentTimeMillis());
 
         InstanceRefreshInformation info = new InstanceRefreshInformation()
                 .setCsr(certCsr);
@@ -9004,7 +9005,9 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
-        ztsImpl.readOnlyMode = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true);
+        ztsImpl.readOnlyMode = dynamicConfigBoolean;
 
         PrincipalAuthority authority = new PrincipalAuthority();
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz", "readonly",
@@ -11148,7 +11151,7 @@ public class ZTSImplTest {
 
         DomainData domainData = new DomainData();
 
-        zts.validateInstanceServiceIdentity = true;
+        zts.validateInstanceServiceIdentity = new DynamicConfigBoolean(true);
 
         try {
             zts.validateInstanceServiceIdentity(domainData, "athenz.api", "unit-test");
@@ -11201,7 +11204,7 @@ public class ZTSImplTest {
 
         zts.validateInstanceServiceIdentity(domainData, "screwdriver.project1", "unit-test");
         zts.validateInstanceServiceIdentity(domainData, "screwdriver.project2", "unit-test");
-        zts.validateInstanceServiceIdentity = false;
+        zts.validateInstanceServiceIdentity = new DynamicConfigBoolean(false);
     }
 
     @Test
@@ -11953,7 +11956,9 @@ public class ZTSImplTest {
 
     @Test
     public void getTransportRulesROTest() {
-        zts.readOnlyMode = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true).thenReturn(false);
+        zts.readOnlyMode = dynamicConfigBoolean;
         try {
             Principal principal = SimplePrincipal.create("user_domain", "user1",
                     "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -11963,12 +11968,14 @@ public class ZTSImplTest {
         } catch (ResourceException re) {
             assertEquals(ResourceException.BAD_REQUEST, re.getCode());
         }
-        zts.readOnlyMode = false;
+        zts.readOnlyMode = dynamicConfigBoolean;
     }
 
     @Test
     public void getWorkloadsByIpROTest() {
-        zts.readOnlyMode = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true).thenReturn(false);
+        zts.readOnlyMode = dynamicConfigBoolean;
         try {
             Principal principal = SimplePrincipal.create("user_domain", "user1",
                     "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -11978,12 +11985,14 @@ public class ZTSImplTest {
         } catch (ResourceException re) {
             assertEquals(ResourceException.BAD_REQUEST, re.getCode());
         }
-        zts.readOnlyMode = false;
+        zts.readOnlyMode = dynamicConfigBoolean;
     }
 
     @Test
     public void getWorkloadsByServiceROTest() {
-        zts.readOnlyMode = true;
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true).thenReturn(false);
+        zts.readOnlyMode = dynamicConfigBoolean;
         try {
             Principal principal = SimplePrincipal.create("user_domain", "user1",
                     "v=U1;d=user_domain;n=user;s=signature", 0, null);
@@ -11993,7 +12002,7 @@ public class ZTSImplTest {
         } catch (ResourceException re) {
             assertEquals(ResourceException.BAD_REQUEST, re.getCode());
         }
-        zts.readOnlyMode = false;
+        zts.readOnlyMode = dynamicConfigBoolean;
     }
 
     @Test

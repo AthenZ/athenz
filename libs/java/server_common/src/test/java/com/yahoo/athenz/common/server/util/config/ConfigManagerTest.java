@@ -147,9 +147,12 @@ public class ConfigManagerTest {
         assertEquals(2, configManager.getConfigSources().length);
         configManager.removeConfigSource(mockSource2);    // "mock://aAb2d4"
         assertEquals(1, configManager.getConfigSources().length);
-        configManager.addConfigSource(mockSource2);       // re-add "mock://aAb2d4")
-        assertEquals(2, configManager.getConfigSources().length);
-        assertEquals(6, changesCount);
+        try {
+            configManager.addConfigSource(mockSource2);       // add source that will throw an exception
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "Threw by MockConfigSource");
+        }
     }
 
     @Test
