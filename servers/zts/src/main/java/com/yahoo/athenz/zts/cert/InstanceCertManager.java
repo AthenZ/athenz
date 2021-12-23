@@ -38,6 +38,7 @@ import com.yahoo.athenz.common.utils.X509CertUtils;
 import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.utils.*;
 import com.yahoo.rdl.Timestamp;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -711,19 +712,45 @@ public class InstanceCertManager {
             return;
         }
 
-        String recordPrincipals = "";
-
         // check both principals and x-principal fields
 
-        String[] principals = sshHostCsr.getPrincipals();
-        String[] xprincipals = sshHostCsr.getXPrincipals();
-        if (principals != null || xprincipals != null) {
+        List<String> principals = null;
+        if (sshHostCsr.getXPrincipals() != null) {
+            principals = Arrays.asList(sshHostCsr.getXPrincipals());
+        }
+
+        List<String> keyIdPrincipals = null;
+        if (sshHostCsr.getPrincipals() != null) {
+            keyIdPrincipals = Arrays.asList(sshHostCsr.getPrincipals());
+        }
+
+        updateSSHHostPrincipals(principals, keyIdPrincipals, sshCertRecord);
+    }
+
+    void updateSSHHostPrincipals(SSHCertRequest sshCertRequest, SSHCertRecord sshCertRecord) {
+
+        SSHCertRequestMeta requestMeta = sshCertRequest.getCertRequestMeta();
+        SSHCertRequestData requestData = sshCertRequest.getCertRequestData();
+
+        if (requestData == null || requestMeta == null) {
+            sshCertRecord.setPrincipals("127.0.0.1");
+            return;
+        }
+
+        updateSSHHostPrincipals(requestData.getPrincipals(), requestMeta.getKeyIdPrincipals(), sshCertRecord);
+    }
+
+    void updateSSHHostPrincipals(List<String> principals, List<String> keyIdPrincipals, SSHCertRecord sshCertRecord) {
+
+        String recordPrincipals = "";
+
+        if (principals != null || keyIdPrincipals != null) {
             Set<String> principalSet = new HashSet<>();
             if (principals != null) {
-                principalSet.addAll(Arrays.asList(principals));
+                principalSet.addAll(principals);
             }
-            if (xprincipals != null) {
-                principalSet.addAll(Arrays.asList(xprincipals));
+            if (keyIdPrincipals != null) {
+                principalSet.addAll(keyIdPrincipals);
             }
             if (!principalSet.isEmpty()) {
                 recordPrincipals = String.join(",", principalSet);
@@ -738,9 +765,12 @@ public class InstanceCertManager {
     }
 
     public boolean generateSSHIdentity(Principal principal, InstanceIdentity identity, final String hostname,
-            final String csr, SSHCertRecord sshCertRecord, final String certType) {
+            final String csr, SSHCertRequest sshCertRequest, SSHCertRecord sshCertRecord, final String certType) {
 
-        if (sshSigner == null || csr == null || csr.isEmpty()) {
+        // in addition to our ssh signer, we must either have a non-empty
+        // ssh csr or a cert request object
+
+        if (sshSigner == null || (StringUtil.isEmpty(csr) && sshCertRequest == null)) {
             return true;
         }
 
@@ -748,25 +778,46 @@ public class InstanceCertManager {
 
             // parse our host csr
 
-            SshHostCsr sshHostCsr = parseSshHostCsr(csr);
-            if (hostname != null && !hostname.isEmpty() && hostnameResolver != null) {
-                if (!validPrincipals(hostname, sshCertRecord, sshHostCsr)) {
-                    LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}", principal, hostname, csr);
-                    return false;
+            if (!StringUtil.isEmpty(csr)) {
+
+                SshHostCsr sshHostCsr = parseSshHostCsr(csr);
+                if (!StringUtil.isEmpty(hostname) && hostnameResolver != null) {
+                    if (!validPrincipals(hostname, sshCertRecord, sshHostCsr)) {
+                        LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}", principal, hostname, csr);
+                        return false;
+                    }
                 }
+
+                // update our ssh record object
+
+                updateSSHHostPrincipals(sshHostCsr, sshCertRecord);
+
+            } else {
+
+                if (!StringUtil.isEmpty(hostname) && hostnameResolver != null) {
+                    if (!validPrincipals(hostname, sshCertRecord, sshCertRequest)) {
+                        LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}", principal, hostname, csr);
+                        return false;
+                    }
+                }
+
+                // update our ssh record object
+
+                updateSSHHostPrincipals(sshCertRequest, sshCertRecord);
             }
-
-            // update our ssh record object
-
-            updateSSHHostPrincipals(sshHostCsr, sshCertRecord);
         }
 
-        SSHCertRequest certRequest = new SSHCertRequest();
-        certRequest.setCsr(csr);
+        // if we have a csr specified then we're going to generate a new
+        // empty ssh cert request object with the csr field set
+
+        if (!StringUtil.isEmpty(csr)) {
+            LOGGER.info("processing ssh {} certificate request based on csr", certType);
+            sshCertRequest = new SSHCertRequest().setCsr(csr);
+        }
 
         SSHCertificates sshCerts;
         try {
-            sshCerts = sshSigner.generateCertificate(principal, certRequest, sshCertRecord, certType);
+            sshCerts = sshSigner.generateCertificate(principal, sshCertRequest, sshCertRecord, certType);
         } catch (Exception ex) {
             LOGGER.error("SSHSigner was unable to generate SSH certificate for {}/{} - error {}",
                     identity.getInstanceId(), identity.getName(), ex.getMessage());
@@ -899,15 +950,41 @@ public class InstanceCertManager {
 
         // Pass through when xPrincipals is not specified
 
-        if (sshHostCsr.getXPrincipals() == null) {
+        if (xPrincipals == null) {
             LOGGER.error("CSR has no xPrincipals to verify, hostname: {}, principals: {}", hostname, principals);
             return true;
         }
 
         LOGGER.debug("CSR principals: {}, xPrincipals: {}", principals, xPrincipals);
+        return validateSSHHostnames(hostname, Arrays.asList(xPrincipals), sshCertRecord);
+    }
 
+    public boolean validPrincipals(final String hostname, SSHCertRecord sshCertRecord, SSHCertRequest sshCertRequest) {
+
+        SSHCertRequestMeta requestMeta = sshCertRequest.getCertRequestMeta();
+        SSHCertRequestData requestData = sshCertRequest.getCertRequestData();
+
+        if (requestData == null || requestMeta == null) {
+            return false;
+        }
+
+        List<String> principals = requestData.getPrincipals();
+        List<String> keyIdPrincipals = requestMeta.getKeyIdPrincipals();
+
+        // Pass through when no principals are specified
+
+        if (principals == null) {
+            LOGGER.error("CSR has no principals to verify, hostname: {}, keyIdPrincipals: {}", hostname, keyIdPrincipals);
+            return true;
+        }
+
+        LOGGER.debug("CSR principals: {}, keyIdPrincipals: {}", principals, keyIdPrincipals);
+        return validateSSHHostnames(hostname, principals, sshCertRecord);
+    }
+
+    boolean validateSSHHostnames(final String hostname, List<String> principals, SSHCertRecord sshCertRecord) {
         List<String> cnames = new ArrayList<>();
-        for (String name: xPrincipals) {
+        for (String name: principals) {
             // Skip IPs
             if (InetAddresses.isInetAddress(name)) {
                 continue;
@@ -929,7 +1006,7 @@ public class InstanceCertManager {
             return true;
         }
 
-        LOGGER.debug("validating xPrincipals in the csr: {}", cnames);
+        LOGGER.debug("validating principals in the ssh request/csr: {}", cnames);
         if (hostnameResolver.isValidHostCnameList(sshCertRecord.getService(), hostname, cnames, CertType.SSH_HOST)) {
             return true;
         }

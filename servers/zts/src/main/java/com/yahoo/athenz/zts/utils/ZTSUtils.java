@@ -427,6 +427,11 @@ public class ZTSUtils {
     }
 
     public static Priority getCertRequestPriority(Date notBefore, Date notAfter) {
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("CertPriority: PrevCertNotBefore: {}, PrevCertNotAfter: {}", notBefore, notAfter);
+        }
+
         long certDuration = notAfter.getTime() - notBefore.getTime();
         long howLongStillValid = notAfter.getTime() - System.currentTimeMillis();
 
@@ -435,10 +440,10 @@ public class ZTSUtils {
             return Priority.High;
         }
 
-        long validityDurationPercantage = howLongStillValid * 100 / certDuration;
-        if (validityDurationPercantage >= CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY) {
+        long validityDurationPercentage = howLongStillValid * 100 / certDuration;
+        if (validityDurationPercentage >= CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY) {
             return Priority.Low;
-        } else if (validityDurationPercantage <= CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY) {
+        } else if (validityDurationPercentage <= CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY) {
             return Priority.High;
         } else {
             return Priority.Medium;
