@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 
+import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
@@ -159,7 +160,7 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
 
-        String pem = certSigner.generateX509Certificate("aws", null, "csr", null, 0);
+        String pem = certSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.Unspecified_priority);
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(1)).execute(Mockito.any(HttpPost.class));
 
@@ -190,7 +191,7 @@ public class HttpCertSignerTest {
         String pemResponse = "{\"pem2\": \"pem-value\"}";
         CloseableHttpResponse response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.Unspecified_priority));
 
         pemResponse = "invalid-json";
         response = mockRequest(201, pemResponse);
@@ -203,7 +204,8 @@ public class HttpCertSignerTest {
     @Test
     public void testGenerateX509CertificateInvalidCsr() {
        HttpCertSigner testHttpCertSigner = new HttpCertSigner() {
-            public Object getX509CertSigningRequest(String provider, String csr, String keyUsage, int expireMins) {
+            @Override
+            public Object getX509CertSigningRequest(String provider, String csr, String keyUsage, int expireMins, Priority priority) {
                 throw new IllegalArgumentException();
             }
         };
