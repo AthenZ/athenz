@@ -68,23 +68,24 @@ type ConfigAccount struct {
 
 // Config represents entire sia_config file
 type Config struct {
-	Version         string                   `json:"version,omitempty"`           //name of the provider
-	Service         string                   `json:"service,omitempty"`           //name of the service for the identity
-	Services        map[string]ConfigService `json:"services,omitempty"`          //names of the multiple services for the identity
-	Ssh             *bool                    `json:"ssh,omitempty"`               //ssh certificate support
-	SanDnsWildcard  bool                     `json:"sandns_wildcard,omitempty"`   //san dns wildcard support
-	UseRegionalSTS  bool                     `json:"regionalsts,omitempty"`       //whether to use a regional STS endpoint (default is false)
-	Accounts        []ConfigAccount          `json:"accounts,omitempty"`          //array of configured accounts
-	GenerateRoleKey bool                     `json:"generate_role_key,omitempty"` //private key to be generated for role certificate
-	RotateKey       bool                     `json:"rotate_key,omitempty"`        //rotate private key support
-	User            string                   `json:"user,omitempty"`              //the user name to chown the cert/key dirs to. If absent, then root
-	Group           string                   `json:"group,omitempty"`             //the group name to chown the cert/key dirs to. If absent, then athenz
-	SDSUdsPath      string                   `json:"sds_uds_path,omitempty"`      //uds path if the agent should support uds connections
-	SDSUdsUid       int                      `json:"sds_uds_uid,omitempty"`       //uds connections must be from the given user uid
-	ExpiryTime      int                      `json:"expiry_time,omitempty"`       //service and role certificate expiry in minutes
-	RefreshInterval int                      `json:"refresh_interval,omitempty"`  //specifies refresh interval in minutes
-	ZTSRegion       string                   `json:"zts_region,omitempty"`        //specifies zts region for the requests
-	KeepPrivileges  bool                     `json:"keep_privileges,omitempty"`   //keep privileges as root instead of dropping to configured user
+	Version          string                   `json:"version,omitempty"`            //name of the provider
+	Service          string                   `json:"service,omitempty"`            //name of the service for the identity
+	Services         map[string]ConfigService `json:"services,omitempty"`           //names of the multiple services for the identity
+	Ssh              *bool                    `json:"ssh,omitempty"`                //ssh certificate support
+	SanDnsWildcard   bool                     `json:"sandns_wildcard,omitempty"`    //san dns wildcard support
+	UseRegionalSTS   bool                     `json:"regionalsts,omitempty"`        //whether to use a regional STS endpoint (default is false)
+	Accounts         []ConfigAccount          `json:"accounts,omitempty"`           //array of configured accounts
+	GenerateRoleKey  bool                     `json:"generate_role_key,omitempty"`  //private key to be generated for role certificate
+	RotateKey        bool                     `json:"rotate_key,omitempty"`         //rotate private key support
+	User             string                   `json:"user,omitempty"`               //the user name to chown the cert/key dirs to. If absent, then root
+	Group            string                   `json:"group,omitempty"`              //the group name to chown the cert/key dirs to. If absent, then athenz
+	SDSUdsPath       string                   `json:"sds_uds_path,omitempty"`       //uds path if the agent should support uds connections
+	SDSUdsUid        int                      `json:"sds_uds_uid,omitempty"`        //uds connections must be from the given user uid
+	ExpiryTime       int                      `json:"expiry_time,omitempty"`        //service and role certificate expiry in minutes
+	RefreshInterval  int                      `json:"refresh_interval,omitempty"`   //specifies refresh interval in minutes
+	ZTSRegion        string                   `json:"zts_region,omitempty"`         //specifies zts region for the requests
+	KeepPrivileges   bool                     `json:"keep_privileges,omitempty"`    //keep privileges as root instead of dropping to configured user
+	DynamicRoleCerts bool                     `json:"dynamic_role_certs,omitempty"` //if true, fetch role certs dynamically. Roles attribute will be ignored.
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -158,6 +159,7 @@ type Options struct {
 	RefreshInterval    int                   //refresh interval for certificates - default 24 hours
 	ZTSRegion          string                //ZTS region in case the client needs this information
 	KeepPrivileges     bool                  //Keep privileges as root instead of dropping to configured user
+	DynamicRoleCerts   bool                  //If true, fetch role certs dynamically. Roles attribute will be ignored.
 }
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string) (string, error) {
@@ -330,6 +332,8 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 	refreshInterval := 24 * 60
 	ztsRegion := ""
 	keepPrivileges := false
+	dynamicRoleCerts := false
+	roles := account.Roles
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
@@ -341,6 +345,11 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		keepPrivileges = config.KeepPrivileges
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
+		}
+		dynamicRoleCerts = config.DynamicRoleCerts
+		if dynamicRoleCerts {
+			// If dynamic role certs enabled, we'll ignore the roles listed in the config
+			roles = make(map[string]ConfigRole)
 		}
 
 		//update account user/group settings if override provided at the config level
@@ -354,7 +363,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		//update generate role and rotate key options if config is provided
 		generateRoleKey = config.GenerateRoleKey
 		rotateKey = config.RotateKey
-		if len(account.Roles) != 0 && generateRoleKey == false && rotateKey == true {
+		if len(roles) != 0 && generateRoleKey == false && rotateKey == true {
 			log.Println("Cannot set rotate_key to true, with generate_role_key as false, when there are one or more roles defined in config")
 			generateRoleKey = false
 			rotateKey = false
@@ -435,7 +444,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		services = append(services, tail...)
 	}
 
-	for _, r := range account.Roles {
+	for _, r := range roles {
 		if r.Filename != "" && r.Filename[0] == '/' {
 			log.Println("when custom filepaths are specified, rotate_key and generate_role_key are not supported")
 			generateRoleKey = false
@@ -456,7 +465,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		UseRegionalSTS:   useRegionalSTS,
 		SanDnsWildcard:   sanDnsWildcard,
 		Services:         services,
-		Roles:            account.Roles,
+		Roles:            roles,
 		CertDir:          fmt.Sprintf("%s/certs", siaDir),
 		KeyDir:           fmt.Sprintf("%s/keys", siaDir),
 		AthenzCACertFile: fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
@@ -467,6 +476,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		RefreshInterval:  refreshInterval,
 		ZTSRegion:        ztsRegion,
 		KeepPrivileges:   keepPrivileges,
+		DynamicRoleCerts: dynamicRoleCerts,
 	}, nil
 }
 

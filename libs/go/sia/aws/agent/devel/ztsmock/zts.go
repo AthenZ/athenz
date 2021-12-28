@@ -31,6 +31,7 @@ import (
 	"math/big"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
@@ -189,6 +190,28 @@ func StartZtsServer(endPoint string) {
 			log.Println("Successfully processed role certificate request")
 		}
 	}).Methods("POST")
+
+	router.HandleFunc("/zts/v1/role/cert", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("dynamic role list handler called")
+
+		index := strings.Index(r.RequestURI, "principal=") + 10
+		principal := r.RequestURI[index:len(r.RequestURI)]
+
+		log.Printf("GenerateRoleRequireRoleCertResponse called with principal %s", principal)
+		rolesList := make([]zts.EntityName, 0)
+		rolesList = append(rolesList, zts.EntityName("athenz:role.writers"))
+
+		rolesResponse := &zts.RoleAccess{
+			Roles: rolesList,
+		}
+
+		responseBytes, err := json.Marshal(rolesResponse)
+		if err != nil {
+			panic(err)
+		}
+
+		io.WriteString(w, string(responseBytes))
+	}).Methods("GET")
 
 	err := http.ListenAndServe(endPoint, router)
 	if err != nil {

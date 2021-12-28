@@ -286,6 +286,61 @@ func TestRoleCertificateRequest(test *testing.T) {
 	}
 }
 
+func TestDyamicRoleCertificateRequest(test *testing.T) {
+
+	siaDir, err := ioutil.TempDir("", "sia.")
+	require.Nil(test, err)
+	defer os.RemoveAll(siaDir)
+
+	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
+	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
+	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
+	roleCertFile := fmt.Sprintf("%s/athenz:role.writers:hockey.cert.pem", siaDir)
+
+	err = copyFile("devel/data/key.pem", keyFile)
+	if err != nil {
+		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/key.pem", keyFile, err)
+		return
+	}
+	err = copyFile("devel/data/cert.pem", certFile)
+	if err != nil {
+		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/cert.pem", certFile, err)
+		return
+	}
+	err = copyFile("devel/data/ca.cert.pem", caCertFile)
+	if err != nil {
+		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/ca.cert..pem", caCertFile, err)
+		return
+	}
+
+	opts := &options.Options{
+		Domain: "athenz",
+		Services: []options.Service{
+			{
+				Name: "hockey",
+			},
+		},
+		Roles: make(map[string]options.ConfigRole),
+		DynamicRoleCerts: true,
+		KeyDir:           siaDir,
+		CertDir:          siaDir,
+		AthenzCACertFile: caCertFile,
+		ZTSAWSDomains:    []string{"zts-aws-cloud"},
+		Provider:         "athenz.aws.us-west-2",
+	}
+
+	result := GetRoleCertificate("http://127.0.0.1:5081/zts/v1", keyFile, certFile, opts)
+	if !result {
+		test.Errorf("Unable to get role certificate: %v", err)
+		return
+	}
+
+	_, err = os.Stat(roleCertFile)
+	if err != nil {
+		test.Errorf("Unable to validate role certificate file: %v", err)
+	}
+}
+
 func TestShouldSkipRegister(test *testing.T) {
 	startTime := time.Now()
 	opts := &options.Options{

@@ -59,12 +59,13 @@ type ConfigAccount struct {
 
 // Config represents entire sia_config file
 type Config struct {
-	Version        string                   `json:"version,omitempty"`         //name of the provider
-	Service        string                   `json:"service,omitempty"`         //name of the service for the identity
-	Services       map[string]ConfigService `json:"services,omitempty"`        //names of the multiple services for the identity
-	Ssh            *bool                    `json:"ssh,omitempty"`             //ssh certificate support
-	Accounts       []ConfigAccount          `json:"accounts,omitempty"`        //array of configured accounts
-	SanDnsWildcard bool                     `json:"sandns_wildcard,omitempty"` //san dns wildcard support
+	Version        string                   `json:"version,omitempty"`         		//name of the provider
+	Service        string                   `json:"service,omitempty"`         		//name of the service for the identity
+	Services       map[string]ConfigService `json:"services,omitempty"`        		//names of the multiple services for the identity
+	Ssh            *bool                    `json:"ssh,omitempty"`             		//ssh certificate support
+	Accounts       []ConfigAccount          `json:"accounts,omitempty"`        		//array of configured accounts
+	SanDnsWildcard bool                     `json:"sandns_wildcard,omitempty"` 		//san dns wildcard support
+	DynamicRoleCerts bool                   `json:"dynamic_role_certs,omitempty"` 	//if true, fetch role certs dynamically. Roles attribute will be ignored.
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -109,6 +110,7 @@ type Options struct {
 	ZTSAzureDomains  []string
 	CountryName      string
 	SanDnsWildcard   bool
+	DynamicRoleCerts bool
 }
 
 func initProfileConfig(identityDocument *attestation.IdentityDocument) (*ConfigAccount, error) {
@@ -175,8 +177,15 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 	}
 
 	sanDnsWildcard := false
+	dynamicRoleCerts := false
+	roles := account.Roles
 	if config != nil {
 		sanDnsWildcard = config.SanDnsWildcard
+		dynamicRoleCerts = config.DynamicRoleCerts
+		if (dynamicRoleCerts) {
+			// If dynamic role certs enabled, we'll ignore the roles listed in the config
+			roles = make(map[string]ConfigRole)
+		}
 	}
 
 	var services []Service
@@ -242,7 +251,7 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 		Version:          fmt.Sprintf("SIA-Azure %s", version),
 		Ssh:              ssh,
 		Services:         services,
-		Roles:            account.Roles,
+		Roles:            roles,
 		CertDir:          fmt.Sprintf("%s/certs", siaDir),
 		KeyDir:           fmt.Sprintf("%s/keys", siaDir),
 		AthenzCACertFile: fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
@@ -251,6 +260,7 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 		ZTSAzureDomains:  ztsAzureDomains,
 		CountryName:      countryName,
 		SanDnsWildcard:   sanDnsWildcard,
+		DynamicRoleCerts: dynamicRoleCerts,
 	}, nil
 }
 

@@ -215,6 +215,140 @@ func TestOptionsNoServices(t *testing.T) {
 	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody")}))
 }
 
+func TestOptionsStaticRoles(t *testing.T) {
+	config := `{
+    "version": "1.0.0",
+    "service": "api",
+    "services": {
+        "api": {},
+        "ui": {},
+        "yamas": {
+            "user": "nobody",
+            "group": "sys"
+        }
+    },
+    "accounts": [
+        {
+            "domain": "athenz",
+            "user": "nobody",
+            "account": "123456789012",
+            "roles": {
+                "testdomain1:role.testrole1": {
+                },
+                "testdomain2:role.testrole2": {
+                }
+            }
+        }
+    ]
+}`
+
+	identityDocument := attestation.IdentityDocument{
+		Location:          "west2",
+		Name:              "athenz",
+		ResourceGroupName: "athenz-rg",
+		SubscriptionId:    "123456789012",
+		VmId:              "123456789012-vmid",
+		OsType:            "Linux",
+		Tags:              "athenz:athenz.api",
+		PrivateIp:         "10.0.0.1",
+		PublicIp:          "",
+		Document:          nil,
+	}
+
+	ztsAzureDomains := []string{"zts-azure-domain"}
+
+	opts, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", ztsAzureDomains, "US", "azure.provider")
+	require.Nilf(t, e, "error should be empty, error: %v", e)
+	require.NotNil(t, opts, "should be able to get Options")
+
+	// Make sure services are set
+	assert.True(t, len(opts.Services) == 3)
+	assert.True(t, opts.Domain == "athenz")
+	assert.True(t, opts.Name == "athenz.api")
+
+	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
+	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody")}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui"}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys")}))
+
+	// Make sure dynamic roles are disabled
+	assert.False(t, opts.DynamicRoleCerts)
+
+	// Make sure roles are set
+	assert.True(t, len(opts.Roles) == 2)
+	_, exists := opts.Roles["testdomain1:role.testrole1"]
+	assert.True(t, exists)
+	_, exists = opts.Roles["testdomain2:role.testrole2"]
+	assert.True(t, exists)
+	_, exists = opts.Roles["testdomain2:role.someotherrole"]
+	assert.False(t, exists)
+}
+
+func TestOptionsDynamicRoles(t *testing.T) {
+	config := `{
+    "version": "1.0.0",
+    "service": "api",
+    "services": {
+        "api": {},
+        "ui": {},
+        "yamas": {
+            "user": "nobody",
+            "group": "sys"
+        }
+    },
+    "accounts": [
+        {
+            "domain": "athenz",
+            "user": "nobody",
+            "account": "123456789012",
+            "roles": {
+                "testdomain1:role.testrole1": {
+                },
+                "testdomain2:role.testrole2": {
+                }
+            }
+        }
+    ],
+    "dynamic_role_certs": true
+}`
+
+	identityDocument := attestation.IdentityDocument{
+		Location:          "west2",
+		Name:              "athenz",
+		ResourceGroupName: "athenz-rg",
+		SubscriptionId:    "123456789012",
+		VmId:              "123456789012-vmid",
+		OsType:            "Linux",
+		Tags:              "athenz:athenz.api",
+		PrivateIp:         "10.0.0.1",
+		PublicIp:          "",
+		Document:          nil,
+	}
+
+	ztsAzureDomains := []string{"zts-azure-domain"}
+
+	opts, e := NewOptions([]byte(config), &identityDocument, "/tmp", "1.0.0", "", "", ztsAzureDomains, "US", "azure.provider")
+
+	require.Nilf(t, e, "error should be empty, error: %v", e)
+	require.NotNil(t, opts, "should be able to get Options")
+
+	// Make sure services are set
+	assert.True(t, len(opts.Services) == 3)
+	assert.True(t, opts.Domain == "athenz")
+	assert.True(t, opts.Name == "athenz.api")
+
+	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
+	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody")}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui"}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys")}))
+
+	// Make sure dynamic roles are enabled
+	assert.True(t, opts.DynamicRoleCerts)
+
+	// Make sure roles are ignored
+	assert.True(t, len(opts.Roles) == 0)
+}
+
 func assertService(expected Service, actual Service) bool {
 	log.Printf("expected: %+v\n", expected)
 	log.Printf("actual: %+v\n", actual)

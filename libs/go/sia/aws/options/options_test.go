@@ -182,6 +182,58 @@ func TestOptionsWithConfig(t *testing.T) {
 	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys")}))
 }
 
+func TestOptionsStaticRoles(t *testing.T) {
+	config, configAccount, _ := getConfig("data/sia_config_static_roles", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0")
+	require.Nilf(t, e, "error should be empty, error: %v", e)
+	require.NotNil(t, opts, "should be able to get Options")
+
+	// Make sure services are set
+	assert.True(t, len(opts.Services) == 3)
+	assert.True(t, opts.Domain == "athenz")
+	assert.True(t, opts.Name == "athenz.api")
+
+	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
+	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui"}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys")}))
+
+	// Make sure dynamic roles are disabled
+	assert.False(t, opts.DynamicRoleCerts)
+
+	// Make sure roles are set
+	assert.True(t, len(opts.Roles) == 2)
+	_, exists := opts.Roles["testdomain1:role.testrole1"]
+	assert.True(t, exists)
+	_, exists = opts.Roles["testdomain2:role.testrole2"]
+	assert.True(t, exists)
+	_, exists = opts.Roles["testdomain2:role.someotherrole"]
+	assert.False(t, exists)
+}
+
+func TestOptionsDynamicRoles(t *testing.T) {
+	config, configAccount, _ := getConfig("data/sia_config_dynamic_roles", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0")
+	require.Nilf(t, e, "error should be empty, error: %v", e)
+	require.NotNil(t, opts, "should be able to get Options")
+
+	// Make sure services are set
+	assert.True(t, len(opts.Services) == 3)
+	assert.True(t, opts.Domain == "athenz")
+	assert.True(t, opts.Name == "athenz.api")
+
+	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
+	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui"}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys")}))
+
+	// Make sure dynamic roles are enabled
+	assert.True(t, opts.DynamicRoleCerts)
+
+	// Make sure roles are ignored
+	assert.True(t, len(opts.Roles) == 0)
+}
+
 // TestOptionsNoService test the scenario when /etc/sia/sia_config is present, but service is not repeated in services
 func TestOptionsNoService(t *testing.T) {
 	config, configAccount, e := getConfig("data/sia_no_service", "-service", "http://localhost:80", false, "us-west-2")

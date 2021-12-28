@@ -17,6 +17,7 @@
 package sia
 
 import (
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
@@ -77,12 +78,43 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		return false
 	}
 
-	// initialize our return state to success
 	failures := 0
+	if opts.DynamicRoleCerts {
+		//fetch dynamic roles
+		fullServiceName := fmt.Sprintf("%s.%s", opts.Domain, opts.Services[0].Name)
+		log.Printf("Fetching dynamic role cert for service: %s", fullServiceName)
 
+		rolesRequireRoleCert, err := client.GetRolesRequireRoleCert(zts.EntityName(fullServiceName))
+		if err != nil {
+			log.Printf("unable to get roles requiring role certs for service %s, err: %v\n", fullServiceName, err)
+			failures += 1
+		} else {
+			log.Printf("rolesRequireRoleCert: %v", rolesRequireRoleCert)
+			var roles = make(map[string]options.ConfigRole)
+			for _, role := range rolesRequireRoleCert.Roles {
+				roles[string(role)] = options.ConfigRole{Filename: ""}
+			}
+
+			failures += fetchRoles(roles, opts, key, svcKeyFile, client)
+		}
+	} else {
+		// fetch static roles
+		failures += fetchRoles(opts.Roles, opts, key, provider, client)
+	}
+
+	log.Printf("SIA processed %d (failures %d) role certificate requests\n", len(opts.Roles), failures)
+	return failures == 0
+}
+
+func fetchRoles(roles map[string]options.ConfigRole, opts *options.Options, key *rsa.PrivateKey, provider string, client *zts.ZTSClient) int {
+	failures := 0
 	var roleRequest = new(zts.RoleCertificateRequest)
-	for roleName, role := range opts.Roles {
-		certFilePem := util.GetRoleCertFileName(mkDirPath(opts.CertDir), role.Filename, roleName)
+	for roleName, role := range roles {
+		certFileName := roleName
+		if opts.DynamicRoleCerts {
+			certFileName = fmt.Sprintf("%s:%s", roleName, opts.Services[0].Name)
+		}
+		certFilePem := util.GetRoleCertFileName(opts.CertDir, role.Filename, certFileName)
 		csr, err := util.GenerateRoleCertCSR(key, opts.CountryName, "", opts.Domain, opts.Services[0].Name, roleName, opts.Services[0].Name, provider, "")
 		if err != nil {
 			log.Printf("unable to generate CSR for %s, err: %v\n", roleName, err)
@@ -115,8 +147,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			continue
 		}
 	}
-	log.Printf("SIA processed %d (failures %d) role certificate requests\n", len(opts.Roles), failures)
-	return failures == 0
+	return failures
 }
 
 func RegisterInstance(data []*attestation.Data, ztsUrl string, identityDocument *attestation.IdentityDocument, opts *options.Options) error {
