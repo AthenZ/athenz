@@ -37,8 +37,8 @@ public class ZMSUtils {
     private static final Logger LOG = LoggerFactory.getLogger(ZMSUtils.class);
 
     public static void addAssertion(Policy policy, String resource, String action, String role,
-            AssertionEffect effect) {
-        
+                                    AssertionEffect effect) {
+
         List<Assertion> assertions = policy.getAssertions();
         if (assertions == null) {
             assertions = new ArrayList<>();
@@ -53,10 +53,10 @@ public class ZMSUtils {
         }
         assertions.add(assertion);
     }
-    
+
     public static Role makeAdminRole(String domainName, List<String> adminUsers) {
         List<RoleMember> roleMembers = new ArrayList<>();
-        for (String admin: adminUsers) {
+        for (String admin : adminUsers) {
             RoleMember roleMember = new RoleMember();
             roleMember.setMemberName(admin);
             roleMember.setActive(true);
@@ -67,16 +67,16 @@ public class ZMSUtils {
                 .setName(ResourceUtils.roleResourceName(domainName, ZMSConsts.ADMIN_ROLE_NAME))
                 .setRoleMembers(roleMembers);
     }
-    
+
     public static Policy makeAdminPolicy(String domainName, Role adminsRole) {
-        
+
         Policy policy = new Policy()
                 .setName(ResourceUtils.policyResourceName(domainName, ZMSConsts.ADMIN_POLICY_NAME));
-        
+
         addAssertion(policy, domainName + ":*", "*", adminsRole.getName(), AssertionEffect.ALLOW);
         return policy;
     }
-    
+
     public static String removeDomainPrefix(String objectName, String domainName, String objectPrefix) {
         String valPrefix = domainName + ":" + objectPrefix;
         if (objectName.startsWith(valPrefix)) {
@@ -84,7 +84,7 @@ public class ZMSUtils {
         }
         return objectName;
     }
-    
+
     public static String removeDomainPrefixForService(String serviceName, String domainName) {
         final String valPrefix = domainName + ".";
         if (serviceName.startsWith(valPrefix)) {
@@ -92,9 +92,9 @@ public class ZMSUtils {
         }
         return serviceName;
     }
-    
+
     public static String getTenantResourceGroupRolePrefix(String provSvcName, String tenantDomain, String resourceGroup) {
-        
+
         StringBuilder rolePrefix = new StringBuilder(256);
         rolePrefix.append(provSvcName).append(".tenant.").append(tenantDomain).append('.');
         if (resourceGroup != null) {
@@ -105,9 +105,9 @@ public class ZMSUtils {
         }
         return rolePrefix.toString();
     }
-    
+
     public static String getProviderResourceGroupRolePrefix(String provSvcDomain, String provSvcName, String resourceGroup) {
-        
+
         StringBuilder rolePrefix = new StringBuilder(256);
         rolePrefix.append(provSvcDomain).append('.').append(provSvcName).append('.');
         if (!StringUtil.isEmpty(resourceGroup)) {
@@ -115,10 +115,10 @@ public class ZMSUtils {
         }
         return rolePrefix.toString();
     }
-    
+
     public static String getTrustedResourceGroupRolePrefix(String provSvcDomain, String provSvcName,
-            String tenantDomain, String resourceGroup) {
-        
+                                                           String tenantDomain, String resourceGroup) {
+
         StringBuilder trustedRole = new StringBuilder(256);
         trustedRole.append(provSvcDomain).append(AuthorityConsts.ROLE_SEP).append(provSvcName)
                 .append(".tenant.").append(tenantDomain).append('.');
@@ -127,30 +127,31 @@ public class ZMSUtils {
         }
         return trustedRole.toString();
     }
-    
+
     /**
      * Setup a new AuditLogMsgBuilder object with common values.
-     * @param ctx resource context object
+     *
+     * @param ctx         resource context object
      * @param auditLogger audit logger object
-     * @param domainName domain name
-     * @param auditRef audit reference value provided in the request
-     * @param caller api name
-     * @param method http method name
+     * @param domainName  domain name
+     * @param auditRef    audit reference value provided in the request
+     * @param caller      api name
+     * @param method      http method name
      * @return audit log message builder object
-    **/
+     **/
     public static AuditLogMsgBuilder getAuditLogMsgBuilder(ResourceContext ctx,
-            AuditLogger auditLogger, String domainName, String auditRef, String caller,
-            String method) {
-        
+                                                           AuditLogger auditLogger, String domainName, String auditRef, String caller,
+                                                           String method) {
+
         AuditLogMsgBuilder msgBldr = auditLogger.getMsgBuilder();
 
         // get the where - which means where this server is running
-        
+
         msgBldr.where(ZMSImpl.serverHostName);
         msgBldr.whatDomain(domainName).why(auditRef).whatApi(caller).whatMethod(method);
 
         // get the 'who' and set it
-        
+
         if (ctx != null) {
             Principal princ = ((RsrcCtxWrapper) ctx).principal();
             if (princ != null) {
@@ -172,20 +173,20 @@ public class ZMSUtils {
             }
 
             // get the client IP
-            
+
             msgBldr.clientIp(ServletRequestUtil.getRemoteAddress(ctx.request()));
         }
 
         return msgBldr;
     }
-    
+
     public static RuntimeException error(int code, String msg, String caller) {
 
         LOG.error("Error: {} code: {} message: {}", caller, code, msg);
-        
+
         // emit our metrics if configured. the method will automatically
         // return from the caller if caller is null
-        
+
         emitMonmetricError(code, caller);
         return new ResourceException(code, new ResourceError().code(code).message(msg));
     }
@@ -205,15 +206,15 @@ public class ZMSUtils {
     public static RuntimeException notFoundError(String msg, String caller) {
         return error(ResourceException.NOT_FOUND, msg, caller);
     }
-    
+
     public static RuntimeException internalServerError(String msg, String caller) {
         return error(ResourceException.INTERNAL_SERVER_ERROR, msg, caller);
     }
-    
+
     public static RuntimeException quotaLimitError(String msg, String caller) {
         return error(ResourceException.TOO_MANY_REQUESTS, msg, caller);
     }
-    
+
     public static boolean emitMonmetricError(int errorCode, String caller) {
         if (errorCode < 1) {
             return false;
@@ -221,7 +222,7 @@ public class ZMSUtils {
         if (caller == null || caller.isEmpty()) {
             return false;
         }
-        
+
         if (ZMSImpl.metric == null) {
             return false;
         }
@@ -233,7 +234,7 @@ public class ZMSUtils {
         ZMSImpl.metric.increment("ERROR");
         ZMSImpl.metric.increment(caller.toLowerCase() + "_error_" + errCode);
         ZMSImpl.metric.increment("error_" + errCode);
-        
+
         return true;
     }
 
@@ -265,7 +266,7 @@ public class ZMSUtils {
     }
 
     public static boolean isUserDomainPrincipal(final String memberName, final String userDomainPrefix,
-            final List<String> addlUserCheckDomainPrefixList) {
+                                                final List<String> addlUserCheckDomainPrefixList) {
 
         if (memberName.startsWith(userDomainPrefix)) {
             return true;
@@ -441,5 +442,18 @@ public class ZMSUtils {
             expiryDays = domainDueDateDays;
         }
         return expiryDays == 0 ? 0 : System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(expiryDays, TimeUnit.DAYS);
+    }
+
+    public static void validateRoleNotRelatedToPolicy(List<Policy> policies, final String roleName) {
+        final String caller = "validateRoleNotRelatedToPolicy";
+        String rName;
+        for (Policy policy : policies) {
+            for (Assertion assertion : policy.getAssertions()) {
+                rName = assertion.role.contains(":role.") ? assertion.role.split(":role.")[1] : assertion.role;
+                if (rName.equals(roleName)) {
+                    throw ZMSUtils.requestError("deleteRole: the role: " + roleName + " related to policy: " + policy.name + ", it cannot be deleted", caller);
+                }
+            }
+        }
     }
 }

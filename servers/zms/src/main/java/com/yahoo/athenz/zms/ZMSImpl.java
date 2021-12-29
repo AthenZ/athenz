@@ -153,10 +153,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
 
-    private static final byte[] PERIOD = { 46 };
+    private static final byte[] PERIOD = {46};
 
     public static Metric metric;
-    public static String serverHostName  = null;
+    public static String serverHostName = null;
 
     protected DBService dbService = null;
     protected Schema schema = null;
@@ -541,9 +541,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             @Override
             void convertToLowerCase(Object obj) {
                 AssertionConditions assertionConditions = (AssertionConditions) obj;
-                    for (AssertionCondition assertionCondition : assertionConditions.getConditionsList()) {
-                        ASSERTION_CONDITION.convertToLowerCase(assertionCondition);
-                    }
+                for (AssertionCondition assertionCondition : assertionConditions.getConditionsList()) {
+                    ASSERTION_CONDITION.convertToLowerCase(assertionCondition);
+                }
             }
         },
         ASSERTION_CONDITION {
@@ -663,9 +663,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // system disabled from UserAuthority
 
         initializePrincipalStateUpdater();
-        
+
         // load the DomainChangePublisher
-        
+
         loadDomainChangePublisher();
     }
 
@@ -688,7 +688,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private ChangePublisher<DomainChangeMessage> createPublisher(String topicName) {
         ChangePublisherFactory<DomainChangeMessage> publisherFactory;
         final String domainChangePublisherClassName = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS,
-            ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT);
+                ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT);
         try {
             publisherFactory = (ChangePublisherFactory<DomainChangeMessage>) Class.forName(domainChangePublisherClassName).newInstance();
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
@@ -1145,7 +1145,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // get the configured path for the list of authorized services and what operations
         // those services are allowed to process
 
-        String authzServiceFname =  System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
+        String authzServiceFname = System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
                 getRootDir() + "/conf/zms_server/authorized_services.json");
 
         Path path = Paths.get(authzServiceFname);
@@ -1266,8 +1266,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public DomainList getDomainList(ResourceContext ctx, Integer limit, String skip, String prefix,
-            Integer depth, String account, Integer productId, String roleMember, String roleName,
-            String subscription, String tagKey, String tagValue, String businessService, String modifiedSince) {
+                                    Integer depth, String account, Integer productId, String roleMember, String roleName,
+                                    String subscription, String tagKey, String tagValue, String businessService, String modifiedSince) {
 
         final String caller = ctx.getApiName();
 
@@ -1277,7 +1277,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("getDomainList: limit: {}, skip: {}, prefix: {}, depth: {}, account: {}, productId: {}, " +
-                    "roleMember: {}, roleName: {}, modifiedSince: {}, subscription: {}, businessService: {}",
+                            "roleMember: {}, roleName: {}, modifiedSince: {}, subscription: {}, businessService: {}",
                     limit, skip, prefix, depth, account, productId, roleMember, roleName,
                     modifiedSince, subscription, businessService);
         }
@@ -1924,7 +1924,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putDomainMeta(ResourceContext ctx, String domainName, String auditRef,
-            DomainMeta meta) {
+                              DomainMeta meta) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -2244,7 +2244,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putDomainSystemMeta(ResourceContext ctx, String domainName, String attribute,
-            String auditRef, DomainMeta meta) {
+                                    String auditRef, DomainMeta meta) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -2309,7 +2309,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (productIdSupport && meta.getYpmId() == null && domainName.indexOf('.') == -1 &&
                 ZMSConsts.SYSTEM_META_PRODUCT_ID.equals(attribute)) {
-             throw ZMSUtils.requestError("Unique Product Id must be specified for top level domain", caller);
+            throw ZMSUtils.requestError("Unique Product Id must be specified for top level domain", caller);
         }
 
         // if we're provided a user authority filter then we need to
@@ -2366,7 +2366,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putDomainTemplate(ResourceContext ctx, String domainName, String auditRef,
-            DomainTemplate domainTemplate) {
+                                  DomainTemplate domainTemplate) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -2409,7 +2409,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putDomainTemplateExt(ResourceContext ctx, String domainName,
-            String templateName, String auditRef, DomainTemplate domainTemplate) {
+                                     String templateName, String auditRef, DomainTemplate domainTemplate) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -2656,7 +2656,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     AccessStatus evaluateAccess(AthenzDomain domain, String identity, String action, String resource,
-            List<String> authenticatedRoles, String trustDomain, Principal principal) {
+                                List<String> authenticatedRoles, String trustDomain, Principal principal) {
 
         // In ZMS, mTLS restricted certs cannot be used in APIs that require authorization
 
@@ -2837,7 +2837,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     AccessStatus hasAccess(AthenzDomain domain, String action, String resource,
-            Principal principal, String trustDomain) {
+                           Principal principal, String trustDomain) {
 
         String identity = principal.getFullName();
 
@@ -2857,7 +2857,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public Access getAccessExt(ResourceContext ctx, String action, String resource,
-            String trustDomain, String checkPrincipal) {
+                               String trustDomain, String checkPrincipal) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -2870,7 +2870,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public Access getAccess(ResourceContext ctx, String action, String resource,
-            String trustDomain, String checkPrincipal) {
+                            String trustDomain, String checkPrincipal) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -2884,7 +2884,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     Access getAccessCheck(Principal principal, String action, String resource,
-            String trustDomain, String checkPrincipal, ResourceContext ctx) {
+                          String trustDomain, String checkPrincipal, ResourceContext ctx) {
 
         final String caller = "getaccess";
 
@@ -3356,7 +3356,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public Role getRole(ResourceContext ctx, String domainName, String roleName,
-            Boolean auditLog, Boolean expand, Boolean pending) {
+                        Boolean auditLog, Boolean expand, Boolean pending) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -3414,7 +3414,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private boolean addNormalizedRoleMember(Map<String, RoleMember> normalizedMembers,
-            RoleMember member) {
+                                            RoleMember member) {
 
         member.setMemberName(normalizeDomainAliasUser(member.getMemberName()));
 
@@ -3829,6 +3829,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("deleteRole: admin role cannot be deleted", caller);
         }
 
+        /* we are not going to allow any user to delete
+         * role that related to any assertion of any policy */
+
+        Policies policies = getPolicies(ctx, domainName, true, true);
+
+        // size > 1 because of the admin policy
+        if (policies.getList().size() > 1) {
+            ZMSUtils.validateRoleNotRelatedToPolicy(policies.getList(), roleName);
+        }
+
         dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
     }
 
@@ -3842,7 +3852,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public Membership getMembership(ResourceContext ctx, String domainName,
-            String roleName, String memberName, String expiration) {
+                                    String roleName, String memberName, String expiration) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -3975,7 +3985,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putMembership(ResourceContext ctx, String domainName, String roleName,
-            String memberName, String auditRef, Membership membership) {
+                              String memberName, String auditRef, Membership membership) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4109,7 +4119,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void setRoleMemberExpiration(final AthenzDomain domain, final Role role, final RoleMember roleMember,
-            final Membership membership, final String caller) {
+                                 final Membership membership, final String caller) {
 
         switch (Principal.Type.getType(roleMember.getPrincipalType())) {
 
@@ -4139,7 +4149,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void setRoleMemberReview(final Role role, final RoleMember roleMember,
-                                 final Membership membership) {
+                             final Membership membership) {
 
         switch (Principal.Type.getType(roleMember.getPrincipalType())) {
             case USER:
@@ -4159,8 +4169,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-     void sendMembershipApprovalNotification(final String domain, final String org, final String roleName,
-            final String member, final String auditRef, final String principal, final Role role) {
+    void sendMembershipApprovalNotification(final String domain, final String org, final String roleName,
+                                            final String member, final String auditRef, final String principal, final Role role) {
         Map<String, String> details = new HashMap<>();
         details.put(NOTIFICATION_DETAILS_DOMAIN, domain);
         details.put(NOTIFICATION_DETAILS_ROLE, roleName);
@@ -4193,7 +4203,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public void deletePendingMembership(ResourceContext ctx, String domainName, String roleName,
-            String memberName, String auditRef) {
+                                        String memberName, String auditRef) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4236,7 +4246,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public void deleteMembership(ResourceContext ctx, String domainName, String roleName,
-            String memberName, String auditRef) {
+                                 String memberName, String auditRef) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4701,7 +4711,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public Assertion getAssertion(ResourceContext ctx, String domainName, String policyName,
-            Long assertionId) {
+                                  Long assertionId) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4730,7 +4740,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public Assertion putAssertion(ResourceContext ctx, String domainName, String policyName,
-            String auditRef, Assertion assertion) {
+                                  String auditRef, Assertion assertion) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4822,7 +4832,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public void deleteAssertion(ResourceContext ctx, String domainName, String policyName,
-            Long assertionId, String auditRef) {
+                                Long assertionId, String auditRef) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5186,7 +5196,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean assertionMatch(Assertion assertion, String identity, String action, String resource,
-            String domain, List<Role> roles, List<String> authenticatedRoles, String trustDomain) {
+                           String domain, List<Role> roles, List<String> authenticatedRoles, String trustDomain) {
 
         String actionPattern = StringUtils.patternFromGlob(assertion.getAction().toLowerCase());
         if (LOG.isDebugEnabled()) {
@@ -5382,7 +5392,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!verifyProviderEndpoint(service.getProviderEndpoint())) {
             throw ZMSUtils.requestError("putServiceIdentity: Invalid endpoint: "
-                + service.getProviderEndpoint() + " - must be http(s) and in configured domain", caller);
+                    + service.getProviderEndpoint() + " - must be http(s) and in configured domain", caller);
         }
 
         dbService.executePutServiceIdentity(ctx, domainName, serviceName, service, auditRef, caller);
@@ -5390,7 +5400,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putServiceIdentitySystemMeta(ResourceContext ctx, String domainName, String serviceName,
-             String attribute, String auditRef, ServiceIdentitySystemMeta meta) {
+                                             String attribute, String auditRef, ServiceIdentitySystemMeta meta) {
 
         final String caller = "putservicesystemmeta";
         logPrincipal(ctx);
@@ -5454,7 +5464,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public void deleteServiceIdentity(ResourceContext ctx, String domainName,
-            String serviceName, String auditRef) {
+                                      String serviceName, String auditRef) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5514,7 +5524,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public ServiceIdentities getServiceIdentities(ResourceContext ctx, String domainName,
-            Boolean publicKeys, Boolean hosts) {
+                                                  Boolean publicKeys, Boolean hosts) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5542,7 +5552,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public ServiceIdentityList getServiceIdentityList(ResourceContext ctx, String domainName,
-            Integer limit, String skip) {
+                                                      Integer limit, String skip) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5598,7 +5608,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public void deletePublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
-            String keyId, String auditRef) {
+                                     String keyId, String auditRef) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5630,7 +5640,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putPublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
-            String keyId, String auditRef, PublicKeyEntry keyEntry) {
+                                  String keyId, String auditRef, PublicKeyEntry keyEntry) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5903,7 +5913,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public Response getSignedDomains(ResourceContext ctx, String domainName, String metaOnly,
-            String metaAttr, Boolean master, Boolean conditions, String matchingTag) {
+                                     String metaAttr, Boolean master, Boolean conditions, String matchingTag) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5985,7 +5995,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // domains and sign all domains into a single response
             // unless the request is from a system service
 
-            if (!setMetaDataOnly && !masterCopy)  {
+            if (!setMetaDataOnly && !masterCopy) {
                 return Response.status(ResourceException.BAD_REQUEST).build();
             }
 
@@ -6208,9 +6218,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                                     .map(c -> new AssertionCondition().setId(c.getId())
                                             .setConditionsMap(c.getConditionsMap().entrySet().stream()
                                                     .collect(Collectors.toMap(
-                                                            Map.Entry::getKey,
-                                                            e -> new AssertionConditionData().setValue(e.getValue().getValue())
-                                                                    .setOperator(e.getValue().getOperator())
+                                                                    Map.Entry::getKey,
+                                                                    e -> new AssertionConditionData().setValue(e.getValue().getValue())
+                                                                            .setOperator(e.getValue().getOperator())
                                                             )
 
                                                     ))
@@ -6219,8 +6229,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         }
                     }
                     newAssertion.setAction(assertion.getAction())
-                    .setResource(assertion.getResource())
-                    .setRole(assertion.getRole());
+                            .setResource(assertion.getResource())
+                            .setRole(assertion.getRole());
                     if (assertion.getEffect() != null) {
                         newAssertion.setEffect(assertion.getEffect());
                     } else {
@@ -6283,7 +6293,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public UserToken getUserToken(ResourceContext ctx, String userName, String authorizedServices,
-            Boolean header) {
+                                  Boolean header) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -6315,8 +6325,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         PrincipalToken token = new PrincipalToken.Builder("U1", userDomain, principal.getName())
-            .expirationWindow(userTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
-            .ip(ServletRequestUtil.getRemoteAddress(ctx.request())).authorizedServices(services).build();
+                .expirationWindow(userTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
+                .ip(ServletRequestUtil.getRemoteAddress(ctx.request())).authorizedServices(services).build();
 
         token.sign(privateKey.getKey());
         UserToken userToken = new UserToken().setToken(token.getSignedToken());
@@ -6328,7 +6338,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // set our standard CORS headers in our response if we're processing
         // a get user token for an authorized service
 
-        if (services != null)  {
+        if (services != null) {
             setStandardCORSHeaders(ctx);
         }
 
@@ -6498,7 +6508,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putTenancy(ResourceContext ctx, String tenantDomain, String provider,
-            String auditRef, Tenancy detail) {
+                           String auditRef, Tenancy detail) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -6605,7 +6615,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // make sure we have a valid provider service
 
         String provSvcDomain = providerServiceDomain(provider);
-        String provSvcName   = providerServiceName(provider);
+        String provSvcName = providerServiceName(provider);
 
         if (dbService.getServiceIdentity(provSvcDomain, provSvcName, true) == null) {
             throw ZMSUtils.notFoundError("Unable to retrieve service: " + provider, caller);
@@ -6616,11 +6626,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // end point
 
         boolean authzServiceTokenOperation = isAuthorizedProviderService(authorizedService,
-            provSvcDomain, provSvcName, ((RsrcCtxWrapper) ctx).principal());
+                provSvcDomain, provSvcName, ((RsrcCtxWrapper) ctx).principal());
 
         if (authzServiceTokenOperation) {
             dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
-                auditRef, caller);
+                    auditRef, caller);
         }
 
         // now clean-up local domain roles and policies for this tenant
@@ -6631,7 +6641,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putTenant(ResourceContext ctx, String providerDomain, String providerService,
-           String tenantDomain, String auditRef, Tenancy detail) {
+                          String tenantDomain, String auditRef, Tenancy detail) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -6683,7 +6693,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void deleteTenant(ResourceContext ctx, String providerDomain, String providerService,
-            String tenantDomain, String auditRef) {
+                             String tenantDomain, String auditRef) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -6728,7 +6738,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean validateTenantResourceGroupRolesObject(TenantResourceGroupRoles roles, final String providerDomain,
-            final String providerService, final String tenantDomain, final String resourceGroup) {
+                                                   final String providerService, final String tenantDomain, final String resourceGroup) {
 
         if (!providerDomain.equals(roles.getDomain())) {
             return false;
@@ -6750,7 +6760,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean validateProviderResourceGroupRolesObject(ProviderResourceGroupRoles roles, final String providerDomain,
-            final String providerService, final String tenantDomain, final String resourceGroup) {
+                                                     final String providerService, final String tenantDomain, final String resourceGroup) {
 
         if (!providerDomain.equals(roles.getDomain())) {
             return false;
@@ -6775,8 +6785,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     //
     @Override
     public TenantResourceGroupRoles putTenantResourceGroupRoles(ResourceContext ctx, String provSvcDomain,
-            String provSvcName, String tenantDomain, String resourceGroup, String auditRef,
-            TenantResourceGroupRoles detail) {
+                                                                String provSvcName, String tenantDomain, String resourceGroup, String auditRef,
+                                                                TenantResourceGroupRoles detail) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -6862,7 +6872,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // build set of roles
         // iterate them to look for trust roles - in case this is a provider domain
 
-        Set<String> roleSet      = new HashSet<>();
+        Set<String> roleSet = new HashSet<>();
         Set<String> trustRoleSet = new HashSet<>();
 
         // map per trust/tenant domain that contains the trust roles
@@ -6951,7 +6961,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     // this wildcard - else its a dangling policy
                     String rolePattern = StringUtils.patternFromGlob(roleName);
                     boolean wildCardMatch = false;
-                    for (String role: roleSet) {
+                    for (String role : roleSet) {
                         if (role.matches(rolePattern)) {
                             wildCardMatch = true;
                             break;
@@ -7064,7 +7074,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // tenantDomMap: optimize reading tenant domains once already read
         // This is optimizing for Providers with lots of tenants.
         Map<String, AthenzDomain> tenantDomMap = new HashMap<>();
-        for (String trustRole: trustRoleSet) {
+        for (String trustRole : trustRoleSet) {
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("getDomainDataCheck: processing trust role: {}", trustRole);
@@ -7127,7 +7137,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public void deleteProviderResourceGroupRoles(ResourceContext ctx, String tenantDomain,
-             String provSvcDomain, String provSvcName, String resourceGroup, String auditRef) {
+                                                 String provSvcDomain, String provSvcName, String resourceGroup, String auditRef) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -7160,7 +7170,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // first clean-up local domain roles and policies for this tenant
 
         dbService.executeDeleteTenancy(ctx, tenantDomain, provSvcDomain, provSvcName,
-             resourceGroup, auditRef, caller);
+                resourceGroup, auditRef, caller);
 
         // at this point the tenant side is complete. If the token was a chained
         // token signed by the provider service then we're going to process the
@@ -7170,12 +7180,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName, ((RsrcCtxWrapper) ctx).principal())) {
 
             dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
-                resourceGroup, auditRef, caller);
+                    resourceGroup, auditRef, caller);
         }
     }
 
     public ProviderResourceGroupRoles getProviderResourceGroupRoles(ResourceContext ctx, String tenantDomain,
-            String provSvcDomain, String provSvcName, String resourceGroup) {
+                                                                    String provSvcDomain, String provSvcName, String resourceGroup) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -7211,7 +7221,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // find roles matching the prefix
 
         List<String> rcollection = dbService.listRoles(tenantDomain);
-        for (String rname: rcollection) {
+        for (String rname : rcollection) {
 
             if (dbService.isTenantRolePrefixMatch(rname, rolePrefix, resourceGroup, null)) {
 
@@ -7233,34 +7243,34 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean isAuthorizedProviderService(String authorizedService, String provSvcDomain,
-             String provSvcName, Principal principal) {
+                                        String provSvcName, Principal principal) {
 
-         // make sure we have a service provided and it matches to our provider
+        // make sure we have a service provided and it matches to our provider
 
-         if (authorizedService == null) {
-             return false;
-         }
+        if (authorizedService == null) {
+            return false;
+        }
 
-         if (!authorizedService.equals(provSvcDomain + "." + provSvcName)) {
-             return false;
-         }
+        if (!authorizedService.equals(provSvcDomain + "." + provSvcName)) {
+            return false;
+        }
 
-         // verify that provider service does indeed have access to provision
-         // its own tenants. the authorize statement for the putTenantRole
-         // command is defined in the RDL as:
-         // authorize ("UPDATE", "{domain}:tenant.{service}");
+        // verify that provider service does indeed have access to provision
+        // its own tenants. the authorize statement for the putTenantRole
+        // command is defined in the RDL as:
+        // authorize ("UPDATE", "{domain}:tenant.{service}");
 
-         AthenzDomain domain = getAthenzDomain(provSvcDomain, true);
-         if (domain == null) {
-             return false;
-         }
+        AthenzDomain domain = getAthenzDomain(provSvcDomain, true);
+        if (domain == null) {
+            return false;
+        }
 
-         // evaluate our domain's roles and policies to see if access
-         // is allowed or not for the given operation and resource
+        // evaluate our domain's roles and policies to see if access
+        // is allowed or not for the given operation and resource
 
-         String resource = provSvcDomain + ":tenant." + provSvcName;
-         AccessStatus accessStatus = evaluateAccess(domain, authorizedService, "update",
-                 resource, null, null, principal);
+        String resource = provSvcDomain + ":tenant." + provSvcName;
+        AccessStatus accessStatus = evaluateAccess(domain, authorizedService, "update",
+                resource, null, null, principal);
 
         return accessStatus == AccessStatus.ALLOWED;
     }
@@ -7269,11 +7279,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
      * This sets up the assume roles in the tenant. If the tenants admin user
      * token has been authorized by the provider, the providers domain will be
      * updated as well, thus completing the tenancy on-boarding in a single step.
-    **/
+     **/
     @Override
     public ProviderResourceGroupRoles putProviderResourceGroupRoles(ResourceContext ctx, String tenantDomain,
-             String provSvcDomain, String provSvcName, String resourceGroup, String auditRef,
-             ProviderResourceGroupRoles detail) {
+                                                                    String provSvcDomain, String provSvcName, String resourceGroup, String auditRef,
+                                                                    ProviderResourceGroupRoles detail) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -7342,7 +7352,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // based on its action and set the caller as a member in each role
 
         dbService.executePutProviderRoles(ctx, tenantDomain, provSvcDomain, provSvcName, resourceGroup,
-            roles, auditRef, caller);
+                roles, auditRef, caller);
 
         // at this point the tenant side is complete. If the token was a chained
         // token signed by the provider service then we're going to process the
@@ -7367,8 +7377,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void setupTenantAdminPolicyInProvider(ResourceContext ctx, final String provSvcDomain,
-            final String provSvcName, final String tenantDomain, boolean resourceGroupComp,
-            final String auditRef, final String caller) {
+                                          final String provSvcName, final String tenantDomain, boolean resourceGroupComp,
+                                          final String auditRef, final String caller) {
 
         List<TenantRoleAction> roles = new ArrayList<>();
         TenantRoleAction roleAction = new TenantRoleAction().setAction("*").setRole(ADMIN_ROLE_NAME);
@@ -7408,7 +7418,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public TenantResourceGroupRoles getTenantResourceGroupRoles(ResourceContext ctx, String provSvcDomain,
-            String provSvcName, String tenantDomain, String resourceGroup) {
+                                                                String provSvcName, String tenantDomain, String resourceGroup) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -7444,7 +7454,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // find roles matching the prefix
 
         List<String> rcollection = dbService.listRoles(provSvcDomain);
-        for (String rname: rcollection) {
+        for (String rname : rcollection) {
             if (dbService.isTrustRoleForTenant(provSvcDomain, rname, rolePrefix, resourceGroup, tenantDomain)) {
 
                 // good, its exactly what we are looking for, but
@@ -7466,7 +7476,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     public void deleteTenantResourceGroupRoles(ResourceContext ctx, String provSvcDomain,
-            String provSvcName, String tenantDomain, String resourceGroup, String auditRef) {
+                                               String provSvcName, String tenantDomain, String resourceGroup, String auditRef) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -7563,7 +7573,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     Domain createTopLevelDomain(ResourceContext ctx, Domain domain, List<String> adminUsers,
-                List<String> solutionTemplates, String auditRef) {
+                                List<String> solutionTemplates, String auditRef) {
         List<String> users = validatedAdminUsers(adminUsers);
         Domain newDomain = dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef);
 
@@ -7575,7 +7585,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     Domain createSubDomain(ResourceContext ctx, Domain domain, List<String> adminUsers,
-                List<String> solutionTemplates, String auditRef, String caller) {
+                           List<String> solutionTemplates, String auditRef, String caller) {
 
         // verify length of full sub domain name
 
@@ -7661,8 +7671,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     /**
      * implements KeyStore getPublicKey
+     *
      * @return String with PEM encoded key, which should be ybase64decoded prior
-     *         to return if ybase64encoded
+     * to return if ybase64encoded
      **/
     @Override
     public String getPublicKey(String domain, String service, String keyId) {
@@ -7724,7 +7735,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putDefaultAdmins(ResourceContext ctx, String domainName, String auditRef,
-            DefaultAdmins defaultAdmins) {
+                                 DefaultAdmins defaultAdmins) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -7817,7 +7828,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void addDefaultAdminAssertion(ResourceContext ctx, String domainName, Policy adminPolicy,
-            String auditRef, String caller) {
+                                  String auditRef, String caller) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("addDefaultAdminAssertion");
@@ -7880,7 +7891,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void removeAdminDenyAssertions(ResourceContext ctx, final String domainName, List<Policy> policies,
-            List<Role> roles, Role adminRole, DefaultAdmins defaultAdmins, final String auditRef) {
+                                   List<Role> roles, Role adminRole, DefaultAdmins defaultAdmins, final String auditRef) {
 
         final String caller = "putdefaultadmins";
 
@@ -7949,7 +7960,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void removeAdminMembers(ResourceContext ctx, String domainName, List<Role> roles,
-            String assertionRole, DefaultAdmins defaultAdmins, String auditRef, String caller) {
+                            String assertionRole, DefaultAdmins defaultAdmins, String auditRef, String caller) {
 
         for (Role role : roles) {
 
@@ -7976,7 +7987,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void addDefaultAdminMembers(ResourceContext ctx, String domainName, Role adminRole,
-            DefaultAdmins defaultAdmins, String auditRef, String caller) {
+                                DefaultAdmins defaultAdmins, String auditRef, String caller) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("addDefaultAdminMembers");
@@ -8018,10 +8029,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             PrincipalToken sdToken = new PrincipalToken(principal.getCredentials());
             PrincipalToken zmsToken = new PrincipalToken.Builder("S1", sdToken.getDomain(), sdToken.getName())
-                .issueTime(sdToken.getTimestamp())
-                .expirationWindow(sdToken.getExpiryTime() - sdToken.getTimestamp())
-                .ip(sdToken.getIP()).keyId(privateKey.getId()).host(serverHostName)
-                .keyService(ZMSConsts.ZMS_SERVICE).build();
+                    .issueTime(sdToken.getTimestamp())
+                    .expirationWindow(sdToken.getExpiryTime() - sdToken.getTimestamp())
+                    .ip(sdToken.getIP()).keyId(privateKey.getId()).host(serverHostName)
+                    .keyService(ZMSConsts.ZMS_SERVICE).build();
             zmsToken.sign(privateKey.getKey());
 
             servicePrincipal.setToken(zmsToken.getSignedToken());
@@ -8060,7 +8071,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void verifyAuthorizedServiceRoleOperation(final String authorizedService, final String operationName,
-            final String roleName) {
+                                              final String roleName) {
 
         // only process this request if we have an authorized service specified
 
@@ -8088,13 +8099,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!opAllowed) {
             throw ZMSUtils.forbiddenError("Unauthorized Operation (" + operationName
-                            + ") for Service " + authorizedService
-                            + " on role " + roleName, operationName);
+                    + ") for Service " + authorizedService
+                    + " on role " + roleName, operationName);
         }
     }
 
     void verifyAuthorizedServiceGroupOperation(final String authorizedService, final String operationName,
-                                              final String groupName) {
+                                               final String groupName) {
 
         // only process this request if we have an authorized service specified
 
@@ -8132,7 +8143,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
      * you can simply pass NULL for these two values.
      */
     void verifyAuthorizedServiceOperation(final String authorizedService, final String operationName,
-            final String opItemType, final String opItemVal) {
+                                          final String opItemType, final String opItemVal) {
 
         // only process this request if we have an authorized service specified
 
@@ -8159,15 +8170,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!opAllowed) {
             throw ZMSUtils.forbiddenError("Unauthorized Operation (" + operationName
-                    + ") for Service " + authorizedService
-                    + (opItemType != null && !opItemType.isEmpty() ? " on opItemKey " + opItemType + " and opItemVal " + opItemVal : ""),
+                            + ") for Service " + authorizedService
+                            + (opItemType != null && !opItemType.isEmpty() ? " on opItemKey " + opItemType + " and opItemVal " + opItemVal : ""),
                     operationName);
         }
     }
 
     @Override
     public ResourceAccessList getResourceAccessList(ResourceContext ctx, String principal,
-            String action) {
+                                                    String action) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -8326,7 +8337,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean isAllowedSystemMetaDelete(Principal principal, final String reqDomain, final String attribute,
-            final String objectType) {
+                                      final String objectType) {
 
         // the authorization policy resides in official sys.auth domain
 
@@ -8345,7 +8356,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putRoleSystemMeta(ResourceContext ctx, String domainName, String roleName, String attribute,
-            String auditRef, RoleSystemMeta meta) {
+                                  String auditRef, RoleSystemMeta meta) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -8500,7 +8511,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putMembershipDecision(ResourceContext ctx, String domainName, String roleName,
-            String memberName, String auditRef, Membership membership) {
+                                      String memberName, String auditRef, Membership membership) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -8592,7 +8603,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private void validatePutMembershipDecisionAuthorization(final Principal principal, final AthenzDomain domain,
-            final Role role, final RoleMember roleMember) {
+                                                            final Role role, final RoleMember roleMember) {
 
         final String caller = "putmembershipdecision";
 
@@ -8775,7 +8786,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean isAllowedPutMembership(Principal principal, final AthenzDomain domain, final Role role,
-            final RoleMember member) {
+                                   final RoleMember member) {
 
         // first lets check if the principal has update access on the role
 
@@ -8805,7 +8816,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean isAllowedDeletePendingMembership(Principal principal, final String domainName,
-            final String roleName, final String memberName) {
+                                             final String roleName, final String memberName) {
 
         // first lets check if the principal has update access on the role
 
@@ -9194,7 +9205,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void updateGroupMemberExpiration(MemberDueDays memberExpiryDueDays,
-                                    List<GroupMember> groupMembers) {
+                                     List<GroupMember> groupMembers) {
 
         updateGroupMemberDueDate(
                 memberExpiryDueDays,
@@ -9353,7 +9364,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean isAllowedPutGroupMembership(Principal principal, final AthenzDomain domain, final Group group,
-                                   final GroupMember groupMember) {
+                                        final GroupMember groupMember) {
 
         // first lets check if the principal has update access on the group
 
@@ -9760,8 +9771,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             final String userAuthorityFilter = enforcedUserAuthorityFilter(group.getUserAuthorityFilter(),
                     domain.getDomain().getUserAuthorityFilter());
-             validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(),
-                     userAuthorityFilter, caller);
+            validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(),
+                    userAuthorityFilter, caller);
         }
 
         dbService.executePutGroupMembershipDecision(ctx, domainName, group, groupMember, auditRef);
@@ -9849,7 +9860,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return dbService.getPendingDomainGroupMembers(checkPrincipal);
     }
 
-    void validateUserAuthorityFilterAttribute(final String authorityFilter, final String caller)  {
+    void validateUserAuthorityFilterAttribute(final String authorityFilter, final String caller) {
 
         if (authorityFilter != null && !authorityFilter.isEmpty()) {
             if (userAuthority == null) {
@@ -9857,7 +9868,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
 
             Set<String> attrSet = userAuthority.booleanAttributesSupported();
-            for (String attr : authorityFilter.split(","))  {
+            for (String attr : authorityFilter.split(",")) {
                 if (!attrSet.contains(attr)) {
                     throw ZMSUtils.requestError(attr + " is not a valid user authority attribute", caller);
                 }
@@ -10113,10 +10124,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
     }
-    
+
     static class ZMSGroupMembersFetcher implements AuthzHelper.GroupMembersFetcher {
 
         DBService dbService;
+
         ZMSGroupMembersFetcher(DBService dbService) {
             this.dbService = dbService;
         }

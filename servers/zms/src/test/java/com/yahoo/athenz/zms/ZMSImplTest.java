@@ -127,10 +127,12 @@ public class ZMSImplTest {
         public void log(String logMsg, String msgVersionTag) {
             logMsgList.add(logMsg);
         }
+
         public void log(AuditLogMsgBuilder msgBldr) {
             String msg = msgBldr.build();
             logMsgList.add(msg);
         }
+
         @Override
         public AuditLogMsgBuilder getMsgBuilder() {
             return new DefaultAuditLogMsgBuilder();
@@ -168,7 +170,7 @@ public class ZMSImplTest {
     @Test
     public void testGetAuditLogMsgBuilderTokenWithSig() {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        String userId     = "user1";
+        String userId = "user1";
         String signature = "ABRACADABRA";
         String unsignedCreds = "v=U1;d=user;n=user1";
         Principal principal = SimplePrincipal.create("user", userId, unsignedCreds + ";s=" + signature,
@@ -188,7 +190,7 @@ public class ZMSImplTest {
     @Test
     public void testGetAuditLogMsgBuilderTokenSigMissing() {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        String userId     = "user1";
+        String userId = "user1";
         String unsignedCreds = "v=U1;d=user;n=user1";
         Principal principal = SimplePrincipal.create("user", userId, unsignedCreds,
                 0, principalAuthority);
@@ -424,7 +426,7 @@ public class ZMSImplTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_DOMAIN_NAME_MAX_SIZE);
         zmsImpl.objectStore.clearConnections();
     }
-    
+
     @Test
     public void testGetDomainList() {
 
@@ -805,11 +807,11 @@ public class ZMSImplTest {
     public void testCreateSubDomain() {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("AddSubDom1",
-            "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("AddSubDom2", "AddSubDom1",
-            "Test Domain2", null, zmsTestInitializer.getAdminUser());
+                "Test Domain2", null, zmsTestInitializer.getAdminUser());
         Domain resDom1 = zmsTestInitializer.getZms().postSubDomain(zmsTestInitializer.getMockDomRsrcCtx(), "AddSubDom1", zmsTestInitializer.getAuditRef(), dom2);
         assertNotNull(resDom1);
 
@@ -857,7 +859,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().postUserDomain(ctx, "hga", zmsTestInitializer.getAuditRef(), dom1);
 
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, "user.hga", "user.hga", "postUserDomain");
-        
+
         Domain resDom2 = zmsTestInitializer.getZms().getDomain(zmsTestInitializer.getMockDomRsrcCtx(), "user.hga");
         assertNotNull(resDom2);
 
@@ -2045,7 +2047,7 @@ public class ZMSImplTest {
         // check audit log msg for putRole
         boolean foundError = false;
         System.err.println("testCreateRole: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putrole)")) {
                 continue;
             }
@@ -2062,7 +2064,7 @@ public class ZMSImplTest {
         // delete member of the role
         //
         List<RoleMember> listrm = role1.getRoleMembers();
-        for (RoleMember rmemb: listrm) {
+        for (RoleMember rmemb : listrm) {
             if (rmemb.getMemberName().equals("user.jane")) {
                 listrm.remove(rmemb);
                 break;
@@ -2074,7 +2076,7 @@ public class ZMSImplTest {
 
         foundError = false;
         System.err.println("testCreateRole: Now Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putrole)")) {
                 continue;
             }
@@ -2191,7 +2193,7 @@ public class ZMSImplTest {
             assertEquals(400, ex.getCode());
         }
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"CreateRoleInvalidNameDom1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "CreateRoleInvalidNameDom1", zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -2211,7 +2213,7 @@ public class ZMSImplTest {
             assertEquals(400, ex.getCode());
         }
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"CreateRoleInvalidStructDom1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "CreateRoleInvalidStructDom1", zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -2317,7 +2319,7 @@ public class ZMSImplTest {
         assertEquals(members.size(), 1);
         assertEquals("user.joe", members.get(0).getMemberName());
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"CreateDuplicateMemberRoleDom1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "CreateDuplicateMemberRoleDom1", zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -2349,7 +2351,7 @@ public class ZMSImplTest {
         checkList.add("user.jane");
         zmsTestInitializer.checkRoleMember(checkList, members);
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"CreateNormalizedUserMemberRoleDom1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "CreateNormalizedUserMemberRoleDom1", zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -2400,7 +2402,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().deleteSubDomain(zmsTestInitializer.getMockDomRsrcCtx(), "user", "user1", zmsTestInitializer.getAuditRef());
         zmsTestInitializer.getZms().deleteSubDomain(zmsTestInitializer.getMockDomRsrcCtx(), "coretech", "storage", zmsTestInitializer.getAuditRef());
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "coretech", zmsTestInitializer.getAuditRef());
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"CreateNormalizedServiceMemberRoleDom1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "CreateNormalizedServiceMemberRoleDom1", zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -2528,7 +2530,7 @@ public class ZMSImplTest {
         // our role count is +1 because of the admin role
         assertEquals(roleList.getNames().size(), 3);
 
-        zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(),"DelRoleDom1", "Role1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(), "DelRoleDom1", "Role1", zmsTestInitializer.getAuditRef());
 
         roleList = zmsTestInitializer.getZms().getRoleList(zmsTestInitializer.getMockDomRsrcCtx(), "DelRoleDom1", null, null);
         assertNotNull(roleList);
@@ -2539,7 +2541,7 @@ public class ZMSImplTest {
         assertFalse(roleList.getNames().contains("Role1".toLowerCase()));
         assertTrue(roleList.getNames().contains("Role2".toLowerCase()));
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"DelRoleDom1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "DelRoleDom1", zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -2574,7 +2576,7 @@ public class ZMSImplTest {
         String domainName = "DomainName1";
         String roleName = "RoleName1";
         try {
-            zmsImpl.deleteRole(zmsTestInitializer.getMockDomRsrcCtx(),domainName, roleName, zmsTestInitializer.getAuditRef());
+            zmsImpl.deleteRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, roleName, zmsTestInitializer.getAuditRef());
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
@@ -2589,13 +2591,43 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
         try {
-            zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(),"DelAdminRoleDom1", "admin", zmsTestInitializer.getAuditRef());
+            zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(), "DelAdminRoleDom1", "admin", zmsTestInitializer.getAuditRef());
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"DelAdminRoleDom1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "DelAdminRoleDom1", zmsTestInitializer.getAuditRef());
+    }
+
+    @Test
+    public void testDeleteRoleRelatedToPolicy() {
+
+        String domain = "DelRoleRelatedToPolicyDom1";
+        String role = "relatedRole";
+        String policy = "policy1";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domain,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        Role relatedRole = zmsTestInitializer.createRoleObject(domain, role, null, "user.joe",
+                "user.jane");
+        zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), domain, role, zmsTestInitializer.getAuditRef(), relatedRole);
+
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domain, policy, role,
+                "update_members", domain + ":role." + role, AssertionEffect.ALLOW);
+
+        zmsTestInitializer.getZms().putPolicy(zmsTestInitializer.getMockDomRsrcCtx(), domain, policy, zmsTestInitializer.getAuditRef(), policy1);
+
+        try {
+            zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(), domain, role, zmsTestInitializer.getAuditRef());
+            fail("should be fail");
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("related to policy"));
+        } finally {
+            zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domain, zmsTestInitializer.getAuditRef());
+        }
     }
 
     @Test
@@ -2626,7 +2658,7 @@ public class ZMSImplTest {
         assertEquals(responseRoleMemberList.get(0).getMemberName(), "user.overduereview1");
         assertEquals(responseRoleMemberList.get(1).getMemberName(), "user.overduereview2");
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"test-domain1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -2658,9 +2690,9 @@ public class ZMSImplTest {
         domainRoleMember = zmsTestInitializer.getZms().getPrincipalRoles(zmsTestInitializer.getMockDomRsrcCtx(), principal, "domain1");
         verifyGetPrincipalRoles(principal, domainRoleMember, false);
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"domain1", zmsTestInitializer.getAuditRef());
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"domain2", zmsTestInitializer.getAuditRef());
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"domain3", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "domain1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "domain2", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "domain3", zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -2686,9 +2718,9 @@ public class ZMSImplTest {
         domainRoleMember = zmsTestInitializer.getZms().getPrincipalRoles(rsrcCtx1, null, "domain1"); // we'll don't pass a principal. Current user will be used
         verifyGetPrincipalRoles(principalName, domainRoleMember, false);
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"domain1", zmsTestInitializer.getAuditRef());
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"domain2", zmsTestInitializer.getAuditRef());
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"domain3", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "domain1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "domain2", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "domain3", zmsTestInitializer.getAuditRef());
     }
 
     private void verifyGetPrincipalRoles(String principal, DomainRoleMember domainRoleMember, boolean isAllDomains) {
@@ -2776,7 +2808,7 @@ public class ZMSImplTest {
         assertEquals(member2.getRoleName(), "MbrGetRoleDom1:role.Role1".toLowerCase());
         assertFalse(member2.getIsMember());
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"MbrGetRoleDom1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "MbrGetRoleDom1", zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -2823,7 +2855,7 @@ public class ZMSImplTest {
             assertEquals(e.getCode(), 404);
         }
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -2861,7 +2893,7 @@ public class ZMSImplTest {
         boolean foundError = false;
         List<String> aLogMsgs = alogger.getLogMsgList();
         System.err.println("testPutMembership: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putmembership)")) {
                 continue;
             }
@@ -2894,7 +2926,7 @@ public class ZMSImplTest {
 
         foundError = false;
         System.err.println("testPutMembership: now Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putmembership)")) {
                 continue;
             }
@@ -2931,7 +2963,7 @@ public class ZMSImplTest {
 
         zmsImpl.deleteSubDomain(zmsTestInitializer.getMockDomRsrcCtx(), "coretech", "storage", zmsTestInitializer.getAuditRef());
         zmsImpl.deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "coretech", zmsTestInitializer.getAuditRef());
-        zmsImpl.deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"MbrAddDom1", zmsTestInitializer.getAuditRef());
+        zmsImpl.deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "MbrAddDom1", zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -2996,7 +3028,7 @@ public class ZMSImplTest {
         checkList.add("coretech.storage");
         zmsTestInitializer.checkRoleMember(checkList, role.getRoleMembers());
 
-        for (RoleMember roleMember: members) {
+        for (RoleMember roleMember : members) {
             if (roleMember.getMemberName().equalsIgnoreCase("user.doe")) {
                 Timestamp actual = roleMember.getExpiration();
                 assertNotNull(actual);
@@ -3014,7 +3046,7 @@ public class ZMSImplTest {
 
         zmsTestInitializer.getZms().deleteSubDomain(zmsTestInitializer.getMockDomRsrcCtx(), "coretech", "storage", zmsTestInitializer.getAuditRef());
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "coretech", zmsTestInitializer.getAuditRef());
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -3040,7 +3072,7 @@ public class ZMSImplTest {
 
         assertEquals("user.doe", members.get(0).getMemberName());
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),"MbrAddDom1EmptyRole", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "MbrAddDom1EmptyRole", zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -3512,7 +3544,7 @@ public class ZMSImplTest {
         assertEquals(members.size(), 1);
 
         boolean found = false;
-        for (RoleMember member: members) {
+        for (RoleMember member : members) {
             if (member.getMemberName().equalsIgnoreCase("user.joe")) {
                 fail("delete user.joe failed");
             }
@@ -3866,7 +3898,7 @@ public class ZMSImplTest {
 
         boolean foundError = false;
         System.err.println("testGetPolicy: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putpolicy)")) {
                 continue;
             }
@@ -3894,7 +3926,7 @@ public class ZMSImplTest {
 
         foundError = false;
         System.err.println("testGetPolicy: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putpolicy)")) {
                 continue;
             }
@@ -3998,7 +4030,7 @@ public class ZMSImplTest {
 
         boolean foundError = false;
         System.err.println("testGetPolicyVersions: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putpolicy)")) {
                 continue;
             }
@@ -4026,7 +4058,7 @@ public class ZMSImplTest {
 
         foundError = false;
         System.err.println("testGetPolicyVersions: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putpolicy)")) {
                 continue;
             }
@@ -4049,7 +4081,7 @@ public class ZMSImplTest {
 
         foundError = false;
         System.err.println("testGetPolicyVersions: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putpolicy)")) {
                 continue;
             }
@@ -4378,7 +4410,7 @@ public class ZMSImplTest {
 
         boolean foundError = false;
         System.err.println("testEnablePolicyVersion: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(setActivePolicyVersion)")) {
                 continue;
             }
@@ -4491,7 +4523,7 @@ public class ZMSImplTest {
 
         boolean foundError = false;
         System.err.println("testGetPolicy: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putpolicy)")) {
                 continue;
             }
@@ -4521,7 +4553,7 @@ public class ZMSImplTest {
 
         foundError = false;
         System.err.println("testGetPolicy: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putpolicy)")) {
                 continue;
             }
@@ -4743,7 +4775,7 @@ public class ZMSImplTest {
 
     @Test
     public void testPutPolicyChanges() {
-        String domain     = "PutPolicyChanges";
+        String domain = "PutPolicyChanges";
         String policyName = "Jobs";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(
                 domain, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
@@ -5036,7 +5068,7 @@ public class ZMSImplTest {
 
         boolean foundError = false;
         System.err.println("testDeletePolicyVersion: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(deletepolicyversion)")) {
                 continue;
             }
@@ -5369,7 +5401,7 @@ public class ZMSImplTest {
         assertNotNull(serviceRes);
         assertEquals(serviceRes.getName(), "ServicePutDom1.Service1".toLowerCase());
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),  domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -5390,7 +5422,7 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Invalid/Reserved service name"));
         }
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),  domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -5412,7 +5444,7 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Invalid endpoint"));
         }
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),  domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -6227,7 +6259,7 @@ public class ZMSImplTest {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
         }
-        String serviceName  = "storage";
+        String serviceName = "storage";
         String tenantDomain = "tenantTestDeleteTenantRoles";
         String resourceGroup = "Group1";
 
@@ -6275,7 +6307,7 @@ public class ZMSImplTest {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
         }
-        String serviceName  = "storage";
+        String serviceName = "storage";
         String tenantDomain = "tenantTestDeleteTenantRoles";
         String resourceGroup = "Group1";
 
@@ -6765,7 +6797,7 @@ public class ZMSImplTest {
         assertNotNull(list);
         assertEquals(list.size(), numDoms);
 
-        for(SignedDomain sDomain : list) {
+        for (SignedDomain sDomain : list) {
             String signature = sDomain.getSignature();
             String keyId = sDomain.getKeyId();
             String publicKey = zmsTestInitializer.getZms().getPublicKey("sys.auth", "zms", keyId);
@@ -6788,7 +6820,7 @@ public class ZMSImplTest {
         assertNotNull(list);
         assertEquals(list.size(), numDoms);
 
-        for(SignedDomain sDomain : list) {
+        for (SignedDomain sDomain : list) {
             String signature = sDomain.getSignature();
             String keyId = sDomain.getKeyId();
             String publicKey = zmsTestInitializer.getZms().getPublicKey("sys.auth", "zms", keyId);
@@ -6842,7 +6874,7 @@ public class ZMSImplTest {
 
         // test metaonly=false
         //
-        response = zmsTestInitializer.getZms().getSignedDomains(rsrcCtx, null, "fAlSe", null, null, false,null);
+        response = zmsTestInitializer.getZms().getSignedDomains(rsrcCtx, null, "fAlSe", null, null, false, null);
         sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
@@ -6863,7 +6895,7 @@ public class ZMSImplTest {
 
         // test bad tag format
         //
-        String eTag  = "I am not good";
+        String eTag = "I am not good";
         response = zmsTestInitializer.getZms().getSignedDomains(rsrcCtx, null, null, null, Boolean.TRUE, false, eTag);
         sdoms = (SignedDomains) response.getEntity();
         String eTag2 = response.getHeaderString("ETag");
@@ -6900,7 +6932,7 @@ public class ZMSImplTest {
         acs.getConditionsList().add(createAssertionConditionObject(1, "instances", "host1,host2,host3"));
         zmsTestInitializer.getZms().putAssertionConditions(zmsTestInitializer.getMockDomRsrcCtx(), "signeddom1", "pol1", policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), acs);
 
-        response = zmsTestInitializer.getZms().getSignedDomains(rsrcCtx, null, "false", null, true, true,null);
+        response = zmsTestInitializer.getZms().getSignedDomains(rsrcCtx, null, "false", null, true, true, null);
         sdoms = (SignedDomains) response.getEntity();
         assertNotNull(sdoms);
 
@@ -6951,7 +6983,7 @@ public class ZMSImplTest {
 
         zmsTestInitializer.getZms().privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(zmsTestInitializer.getPrivKey())), "0");
 
-        Response response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), "signeddom1filtered", null, null, null, false,  null);
+        Response response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), "signeddom1filtered", null, null, null, false, null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
 
         assertNotNull(sdoms);
@@ -8792,8 +8824,8 @@ public class ZMSImplTest {
 
         int code = 400;
         final String domainName = "domain";
-        final String entityName ="entity-one";
-        final String nonmatchName ="entity-two";
+        final String entityName = "entity-one";
+        final String nonmatchName = "entity-two";
 
         Entity entity = new Entity();
 
@@ -9212,7 +9244,7 @@ public class ZMSImplTest {
         try {
             zmsTestInitializer.getZms().getRole(zmsTestInitializer.getMockDomRsrcCtx(), "AddTenancyDom1", "tenancy.coretech.storage.admin", false, false, false);
             fail();
-        } catch(ResourceException re) {
+        } catch (ResourceException re) {
             assertEquals(re.getCode(), 404);
         }
 
@@ -9230,7 +9262,7 @@ public class ZMSImplTest {
         try {
             zmsTestInitializer.getZms().getPolicy(zmsTestInitializer.getMockDomRsrcCtx(), "AddTenancyDom1", "tenancy.coretech.storage.admin");
             fail();
-        } catch(ResourceException re) {
+        } catch (ResourceException re) {
             assertEquals(re.getCode(), 404);
         }
 
@@ -9258,7 +9290,7 @@ public class ZMSImplTest {
     public void testPutTenancyWithAuthorizedService() {
 
         String tenantDomain = "puttenancyauthorizedservice";
-        String providerService  = "storage";
+        String providerService = "storage";
         String providerDomain = "coretech";
         String provider = providerDomain + "." + providerService;
 
@@ -9327,7 +9359,7 @@ public class ZMSImplTest {
 
         // now let's call delete tenancy support with the same authorized service token
 
-        zmsTestInitializer.getZms().deleteTenancy(ctx, tenantDomain,  provider, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTenancy(ctx, tenantDomain, provider, zmsTestInitializer.getAuditRef());
 
         // verify that all roles and policies have been deleted
 
@@ -9357,7 +9389,7 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsTestInitializer.getZmsImpl(alogger);
 
         String tenantDomain = "puttenancyauthorizedservicemismatch";
-        String providerService  = "storage";
+        String providerService = "storage";
         String providerDomain = "coretech-test";
         String provider = providerDomain + "." + providerService;
 
@@ -9483,8 +9515,8 @@ public class ZMSImplTest {
 
     @Test
     public void testPutTenancyMissingAuditRef() {
-        String tenantDomain    = "testPutTenancyMissingAuditRef";
-        String providerDomain  = "providerTestPutTenancyMissingAuditRef";
+        String tenantDomain = "testPutTenancyMissingAuditRef";
+        String providerDomain = "providerTestPutTenancyMissingAuditRef";
         String providerService = "storage";
 
         // create tenant and provider domains
@@ -9513,8 +9545,8 @@ public class ZMSImplTest {
 
     @Test
     public void testPutTenancyMismatchObject() {
-        String tenantDomain    = "testPutTenancyMismatchObject";
-        String providerDomain  = "providerTestPutTenancyMismatchObject";
+        String tenantDomain = "testPutTenancyMismatchObject";
+        String providerDomain = "providerTestPutTenancyMismatchObject";
         String providerService = "storage";
 
         // create tenant and provider domains
@@ -9536,8 +9568,8 @@ public class ZMSImplTest {
 
     @Test
     public void testDeleteTenancy() {
-        String tenantDomain    = "testDeleteTenancy";
-        String providerDomain  = "providerTestDeleteTenancy";
+        String tenantDomain = "testDeleteTenancy";
+        String providerDomain = "providerTestDeleteTenancy";
         String providerService = "storage";
         String provService = providerDomain + "." + providerService;
 
@@ -9562,7 +9594,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().putTenancy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomain, provService, zmsTestInitializer.getAuditRef(), tenant);
 
         try {
-            zmsTestInitializer.getZms().deleteTenancy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomain,  provService, zmsTestInitializer.getAuditRef());
+            zmsTestInitializer.getZms().deleteTenancy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomain, provService, zmsTestInitializer.getAuditRef());
 
             // verify we didn't delete a role by mistake
 
@@ -9619,8 +9651,8 @@ public class ZMSImplTest {
 
     @Test
     public void testDeleteTenancyMissingService() {
-        String tenantDomain    = "testDeleteTenancy";
-        String providerDomain  = "providerTestDeleteTenancy";
+        String tenantDomain = "testDeleteTenancy";
+        String providerDomain = "providerTestDeleteTenancy";
         String providerService = "storage";
         String provService = providerDomain + "." + providerService;
 
@@ -9658,8 +9690,8 @@ public class ZMSImplTest {
 
     @Test
     public void testDeleteTenancyMissingAuditRef() {
-        String tenantDomain    = "testDeleteTenancyMissingAuditRef";
-        String providerDomain  = "providerTestDeleteTenancyMissingAuditRef";
+        String tenantDomain = "testDeleteTenancyMissingAuditRef";
+        String providerDomain = "providerTestDeleteTenancyMissingAuditRef";
         String providerService = "storage";
 
         // create tenant and provider domains
@@ -9681,7 +9713,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().putTenancy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomain, providerDomain + "." + providerService, zmsTestInitializer.getAuditRef(), tenant);
 
         try {
-            zmsTestInitializer.getZms().deleteTenancy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomain,  providerDomain + "." + providerService, null);
+            zmsTestInitializer.getZms().deleteTenancy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomain, providerDomain + "." + providerService, null);
             fail("requesterror not thrown by deleteTenancy.");
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -9706,7 +9738,7 @@ public class ZMSImplTest {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
         }
-        String serviceName  = "storage";
+        String serviceName = "storage";
         String tenantDomain = "tenantTestPutTenantRoles";
         String resourceGroup = "Group1";
 
@@ -9738,7 +9770,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom);
 
         List<TenantRoleAction> roleActions = new ArrayList<>();
-        String serviceName  = "storage";
+        String serviceName = "storage";
         String tenantDomain = "tenantTestPutTenantRoles";
         String resourceGroup = "Group1";
 
@@ -9888,7 +9920,7 @@ public class ZMSImplTest {
         // test incomplete tenancy setup
         // put tenancy for provider
         String provEndPoint = "http://localhost:8090/provider";
-        String provSvc      = "storage";
+        String provSvc = "storage";
         ServiceIdentity service = zmsTestInitializer.createServiceObject(
                 provDomainSub, provSvc, provEndPoint,
                 "/usr/bin/java", "root", "users", "localhost");
@@ -9955,7 +9987,7 @@ public class ZMSImplTest {
 
         // test provider should report tenant is missing
         // remove the assume_role policies from the tenant
-        zmsTestInitializer.getZms().deleteTenancy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName,  provDomainSub + "." + provSvc, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTenancy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName, provDomainSub + "." + provSvc, zmsTestInitializer.getAuditRef());
 
         ddc = zmsTestInitializer.getZms().getDomainDataCheck(zmsTestInitializer.getMockDomRsrcCtx(), provDomainSub);
         assertNotNull(ddc);
@@ -10594,27 +10626,27 @@ public class ZMSImplTest {
     @Test
     public void testMatchPrincipalInRoleStdMemberMatch() {
 
-        Role role = zmsTestInitializer.createRoleObject("weather",  "Role", null, "user.user2", null);
+        Role role = zmsTestInitializer.createRoleObject("weather", "Role", null, "user.user2", null);
         assertTrue(zmsTestInitializer.getZms().matchPrincipalInRole(role, null, "user.user2", null));
     }
 
     @Test
     public void testMatchPrincipalInRoleStdMemberNoMatch() {
 
-        Role role = zmsTestInitializer.createRoleObject("weather",  "Role", null, "user.user2", null);
+        Role role = zmsTestInitializer.createRoleObject("weather", "Role", null, "user.user2", null);
         assertFalse(zmsTestInitializer.getZms().matchPrincipalInRole(role, null, "user.user23", null));
     }
 
     @Test
     public void testMatchPrincipalInRoleNoDelegatedTrust() {
-        Role role = zmsTestInitializer.createRoleObject("weather",  "Role", null);
+        Role role = zmsTestInitializer.createRoleObject("weather", "Role", null);
         assertFalse(zmsTestInitializer.getZms().matchPrincipalInRole(role, null, null, null));
         assertFalse(zmsTestInitializer.getZms().matchPrincipalInRole(role, null, null, "weather"));
     }
 
     @Test
     public void testMatchPrincipalInRoleDelegatedTrustNoMatch() {
-        Role role = zmsTestInitializer.createRoleObject("weather",  "Role", "coretech_not_present");
+        Role role = zmsTestInitializer.createRoleObject("weather", "Role", "coretech_not_present");
         assertFalse(zmsTestInitializer.getZms().matchPrincipalInRole(role, "Role", "user.user1", "coretech_not_present"));
     }
 
@@ -10632,15 +10664,15 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().dbService.executePutPolicy(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "trust",
                 policy, zmsTestInitializer.getAuditRef(), "unitTest");
 
-        Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user1", null);
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null, "user.user1", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role1",
                 role1, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user2", null);
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null, "user.user2", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role2",
                 role2, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role = zmsTestInitializer.createRoleObject("weather",  "role1", domainName);
+        Role role = zmsTestInitializer.createRoleObject("weather", "role1", domainName);
         assertTrue(zmsTestInitializer.getZms().matchPrincipalInRole(role, "weather:role.role1", "user.user1", "coretechtrust"));
         assertFalse(zmsTestInitializer.getZms().matchPrincipalInRole(role, "weather:role.role1", "user.user1", "coretechtrust2"));
         assertFalse(zmsTestInitializer.getZms().matchPrincipalInRole(role, "weather:role.role1", "user.user3", "coretechtrust"));
@@ -10656,15 +10688,15 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().dbService.makeDomain(zmsTestInitializer.getMockDomRsrcCtx(), ZMSTestUtils.makeDomainObject(domainName, "Test Domain", "org",
                 true, null, 0, null, 0), adminUsers, null, zmsTestInitializer.getAuditRef());
 
-        Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role1",
                 role1, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role2",
                 role2, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
+        Role role3 = zmsTestInitializer.createRoleObject(domainName, "role3", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role3",
                 role3, zmsTestInitializer.getAuditRef(), "unittest");
 
@@ -10704,15 +10736,15 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().dbService.makeDomain(zmsTestInitializer.getMockDomRsrcCtx(), ZMSTestUtils.makeDomainObject(domainName, "Test Domain", "org",
                 true, null, 0, null, 0), adminUsers, null, zmsTestInitializer.getAuditRef());
 
-        Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role1",
                 role1, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role2",
                 role2, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
+        Role role3 = zmsTestInitializer.createRoleObject(domainName, "role3", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role3",
                 role3, zmsTestInitializer.getAuditRef(), "unittest");
 
@@ -10739,15 +10771,15 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().dbService.makeDomain(zmsTestInitializer.getMockDomRsrcCtx(), ZMSTestUtils.makeDomainObject(domainName, "Test Domain", "org",
                 true, null, 0, null, 0), adminUsers, null, zmsTestInitializer.getAuditRef());
 
-        Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role1",
                 role1, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role2",
                 role2, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
+        Role role3 = zmsTestInitializer.createRoleObject(domainName, "role3", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role3",
                 role3, zmsTestInitializer.getAuditRef(), "unittest");
 
@@ -10768,15 +10800,15 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().dbService.makeDomain(zmsTestInitializer.getMockDomRsrcCtx(), ZMSTestUtils.makeDomainObject(domainName, "Test Domain", "org",
                 true, null, 0, null, 0), adminUsers, null, zmsTestInitializer.getAuditRef());
 
-        Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role1",
                 role1, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role2",
                 role2, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
+        Role role3 = zmsTestInitializer.createRoleObject(domainName, "role3", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role3",
                 role3, zmsTestInitializer.getAuditRef(), "unittest");
 
@@ -10799,15 +10831,15 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().dbService.makeDomain(zmsTestInitializer.getMockDomRsrcCtx(), ZMSTestUtils.makeDomainObject(domainName, "Test Domain", "org",
                 true, null, 0, null, 0), adminUsers, null, zmsTestInitializer.getAuditRef());
 
-        Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role1",
                 role1, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role2",
                 role2, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
+        Role role3 = zmsTestInitializer.createRoleObject(domainName, "role3", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role3",
                 role3, zmsTestInitializer.getAuditRef(), "unittest");
 
@@ -10834,23 +10866,23 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().dbService.makeDomain(zmsTestInitializer.getMockDomRsrcCtx(), ZMSTestUtils.makeDomainObject(domainName, "Test Domain", "org",
                 true, null, 0, null, 0), adminUsers, null, zmsTestInitializer.getAuditRef());
 
-        Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role1",
                 role1, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role2",
                 role2, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
+        Role role3 = zmsTestInitializer.createRoleObject(domainName, "role3", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role3",
                 role3, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role4 = zmsTestInitializer.createRoleObject(domainName,  "role4", null, "user.user", null);
+        Role role4 = zmsTestInitializer.createRoleObject(domainName, "role4", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role4",
                 role4, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role5 = zmsTestInitializer.createRoleObject(domainName,  "role5", null, "user.user", null);
+        Role role5 = zmsTestInitializer.createRoleObject(domainName, "role5", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role5",
                 role5, zmsTestInitializer.getAuditRef(), "unittest");
 
@@ -10873,23 +10905,23 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().dbService.makeDomain(zmsTestInitializer.getMockDomRsrcCtx(), ZMSTestUtils.makeDomainObject(domainName, "Test Domain", "org",
                 true, null, 0, null, 0), adminUsers, null, zmsTestInitializer.getAuditRef());
 
-        Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role1",
                 role1, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role2",
                 role2, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
+        Role role3 = zmsTestInitializer.createRoleObject(domainName, "role3", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role3",
                 role3, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role4 = zmsTestInitializer.createRoleObject(domainName,  "role4", null, "user.user", null);
+        Role role4 = zmsTestInitializer.createRoleObject(domainName, "role4", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role4",
                 role4, zmsTestInitializer.getAuditRef(), "unittest");
 
-        Role role5 = zmsTestInitializer.createRoleObject(domainName,  "role5", null, "user.user", null);
+        Role role5 = zmsTestInitializer.createRoleObject(domainName, "role5", null, "user.user", null);
         zmsTestInitializer.getZms().dbService.executePutRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role5",
                 role5, zmsTestInitializer.getAuditRef(), "unittest");
 
@@ -11129,7 +11161,7 @@ public class ZMSImplTest {
 
         assertEquals(zmsTestInitializer.getZms().evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null, rsrcPrince),
                 AccessStatus.ALLOWED);
-        ((SimplePrincipal)rsrcPrince).setMtlsRestricted(true);
+        ((SimplePrincipal) rsrcPrince).setMtlsRestricted(true);
         assertEquals(zmsTestInitializer.getZms().evaluateAccess(domain, "user.user1", "read", "coretech:resource1", null, null, rsrcPrince),
                 AccessStatus.DENIED);
     }
@@ -13103,7 +13135,7 @@ public class ZMSImplTest {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
         }
-        String providerService  = "storage";
+        String providerService = "storage";
         String providerDomain = "coretech";
         String resourceGroup = "hockey";
 
@@ -13156,7 +13188,7 @@ public class ZMSImplTest {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
         }
-        String providerService  = "storage";
+        String providerService = "storage";
         String providerDomain = "coretech";
         String resourceGroup1 = "hockey";
         String resourceGroup2 = "baseball";
@@ -13242,7 +13274,7 @@ public class ZMSImplTest {
             roleActions.add(new TenantRoleAction().setRole(f.name()).setAction(
                     (String) f.value()));
         }
-        String providerService  = "storage";
+        String providerService = "storage";
         String providerDomain = "coretech";
         String resourceGroup = "hockey";
 
@@ -13312,7 +13344,7 @@ public class ZMSImplTest {
     public void testPutProviderResourceGroupRolesWithAuthorizedService() {
 
         String tenantDomain = "providerresourcegrouprolesauthorizedservice";
-        String providerService  = "storage";
+        String providerService = "storage";
         String providerDomain = "coretech";
         String resourceGroup = "hockey";
 
@@ -13455,7 +13487,7 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsTestInitializer.getZmsImpl(alogger);
 
         String tenantDomain = "provrscgrprolesauthorizedservicenoaccess";
-        String providerService  = "index";
+        String providerService = "index";
         String providerDomain = "coretech";
         String resourceGroup = "hockey";
 
@@ -13528,7 +13560,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom);
 
         List<TenantRoleAction> roleActions = new ArrayList<>();
-        String serviceName  = "storage";
+        String serviceName = "storage";
         String tenantDomain = "tenantTestPutTenantRoles";
         String resourceGroup = "Group1";
 
@@ -15189,7 +15221,7 @@ public class ZMSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(401, ex.getCode());
-            assertEquals( ((ResourceError) ex.data).message, "failed struct");
+            assertEquals(((ResourceError) ex.data).message, "failed struct");
         }
     }
 
@@ -16039,6 +16071,7 @@ public class ZMSImplTest {
         }
         return false;
     }
+
     @Test
     public void testGetPoliciesInvalidDomain() {
 
@@ -17023,7 +17056,7 @@ public class ZMSImplTest {
         Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal1);
-        try{
+        try {
             zmsTestInitializer.getZms().deleteDomainTemplate(rsrcCtx1, null, null, null);
             fail();
         } catch (ResourceException ex) {
@@ -17038,7 +17071,7 @@ public class ZMSImplTest {
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal1);
         TenantResourceGroupRoles tenantResource = new TenantResourceGroupRoles();
-        try{
+        try {
             zmsTestInitializer.getZms().putTenantResourceGroupRoles(rsrcCtx1, null, null, null, null, null, tenantResource);
             fail();
         } catch (ResourceException ex) {
@@ -17052,7 +17085,7 @@ public class ZMSImplTest {
         Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal1);
-        try{
+        try {
             zmsTestInitializer.getZms().deleteTenantResourceGroupRoles(rsrcCtx1, null, null, null, null, null);
             fail();
         } catch (ResourceException ex) {
@@ -17066,10 +17099,10 @@ public class ZMSImplTest {
         Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal1);
-        try{
+        try {
             zmsTestInitializer.getZms().getResourceAccessList(rsrcCtx1, "principal", "UPDATE");
             fail();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             assertTrue(true);
         }
     }
@@ -17081,18 +17114,18 @@ public class ZMSImplTest {
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal1);
 
-        try{
+        try {
             zmsTestInitializer.getZms().getResourceAccessList(rsrcCtx1, "", "UPDATE");
             fail();
-        } catch(ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("principal is required for resource access list"));
         }
 
-        try{
+        try {
             zmsTestInitializer.getZms().getResourceAccessList(rsrcCtx1, null, "UPDATE");
             fail();
-        } catch(ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("principal is required for resource access list"));
         }
@@ -17318,22 +17351,22 @@ public class ZMSImplTest {
         Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user1;s=signature",
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal1);
-        try{
+        try {
             zmsTestInitializer.getZms().deleteProviderResourceGroupRoles(rsrcCtx1, null, null, null, null, null);
             fail();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             assertTrue(true);
         }
     }
 
     @DataProvider(name = "roles")
     public static Object[][] getRoles() {
-        final String memberName="member1";
-        final String memberNameToSearch="notFound";
+        final String memberName = "member1";
+        final String memberNameToSearch = "notFound";
         final Timestamp expiredTimestamp = Timestamp.fromMillis(System.currentTimeMillis() - 10000);
         final Timestamp notExpiredTimestamp = Timestamp.fromMillis(System.currentTimeMillis() + 10000);
 
-        return new Object[][] {
+        return new Object[][]{
                 //expired
                 {memberName, memberName, expiredTimestamp, true, false},
                 //not expired
@@ -17594,7 +17627,7 @@ public class ZMSImplTest {
         // timestamp changes for objects
 
         ZMSTestUtils.sleep(1000);
-        
+
         RsrcCtxWrapper ctx = contextWithMockPrincipal("deleteUser");
 
         zmsTestInitializer.getZms().deleteUser(ctx, "jack", zmsTestInitializer.getAuditRef());
@@ -17604,7 +17637,7 @@ public class ZMSImplTest {
         assertChange(changeMsgs.get(1), DOMAIN, "user.jack.sub1", "user.jack.sub1", "deleteUser");
         assertChange(changeMsgs.get(2), ROLE, "deleteuser1", "role3", "deleteUser");
         assertChange(changeMsgs.get(3), GROUP, "deleteuser1", "qa-team", "deleteUser");
-        
+
         Role role1Res = zmsTestInitializer.getZms().getRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "role1", true, false, false);
         assertTrue(role1Res.getModified().millis() > role1.getModified().millis());
         assertEquals(role1Res.getAuditLog().size(), 3);
@@ -18955,7 +18988,7 @@ public class ZMSImplTest {
         }
         String tenantDomain = "identicaldomain";
         String providerDomain = "identicaldomain";
-        String providerService  = "storage";
+        String providerService = "storage";
         String providerFullService = providerDomain + "." + providerService;
         String resourceGroup = "group1";
 
@@ -19013,7 +19046,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testLoadAuditRefValidator(){
+    public void testLoadAuditRefValidator() {
         System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.zms.audit.MockAuditReferenceValidatorFactoryImpl");
         zmsTestInitializer.getZms().loadAuditRefValidator();
         assertNotNull(zmsTestInitializer.getZms().auditReferenceValidator);
@@ -19021,7 +19054,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testNullLoadAuditRefValidator(){
+    public void testNullLoadAuditRefValidator() {
         System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_VALIDATOR_FACTORY_CLASS, "does.not.exist");
         try {
             zmsTestInitializer.getZms().loadAuditRefValidator();
@@ -19232,7 +19265,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testIsAllowedSystemMetaDelete(){
+    public void testIsAllowedSystemMetaDelete() {
 
         TestAuditLogger alogger = new TestAuditLogger();
         System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
@@ -19548,12 +19581,12 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testIsAllowedPutMembershipAccess(){
+    public void testIsAllowedPutMembershipAccess() {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1",
                 "Role Test Domain1", "testOrg", "user.user1");
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
-        Role role1 = zmsTestInitializer.createRoleObject("testdomain1", "testrole1", null,"user.user1", "user.jane");
+        Role role1 = zmsTestInitializer.createRoleObject("testdomain1", "testrole1", null, "user.user1", "user.jane");
         zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole1", zmsTestInitializer.getAuditRef(), role1);
 
         AthenzDomain domain = zmsTestInitializer.getZms().getAthenzDomain("testdomain1", false);
@@ -19563,7 +19596,7 @@ public class ZMSImplTest {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=john";
-        final Principal rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",0, principalAuthority);
+        final Principal rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
@@ -19573,12 +19606,12 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testIsAllowedPutRoleMetaAccess(){
+    public void testIsAllowedPutRoleMetaAccess() {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1",
                 "Role Test Domain1", "testOrg", "user.user1");
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
-        Role role1 = zmsTestInitializer.createRoleObject("testdomain1", "testrole1", null,"user.user1", "user.john");
+        Role role1 = zmsTestInitializer.createRoleObject("testdomain1", "testrole1", null, "user.user1", "user.john");
         zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole1", zmsTestInitializer.getAuditRef(), role1);
 
         AthenzDomain domain = zmsTestInitializer.getZms().getAthenzDomain("testdomain1", false);
@@ -19588,7 +19621,7 @@ public class ZMSImplTest {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=john";
-        final Principal rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",0, principalAuthority);
+        final Principal rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
@@ -19623,10 +19656,10 @@ public class ZMSImplTest {
     @Test
     public void testIsAllowedPutMembership() {
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1","Role Test Domain1", "testOrg", "user.user1");
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1", "Role Test Domain1", "testOrg", "user.user1");
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
-        Role role1 = zmsTestInitializer.createRoleObject("testdomain1", "testrole1", null,"user.john", "user.jane");
+        Role role1 = zmsTestInitializer.createRoleObject("testdomain1", "testrole1", null, "user.john", "user.jane");
         zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole1", zmsTestInitializer.getAuditRef(), role1);
 
         AthenzDomain domain = zmsTestInitializer.getZms().getAthenzDomain("testdomain1", false);
@@ -19639,7 +19672,7 @@ public class ZMSImplTest {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=bob";
-        final Principal rsrcPrince = SimplePrincipal.create("user", "bob", unsignedCreds + ";s=signature",0, principalAuthority);
+        final Principal rsrcPrince = SimplePrincipal.create("user", "bob", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
@@ -19650,11 +19683,11 @@ public class ZMSImplTest {
         roleMember = new RoleMember().setMemberName("user.dave");
         assertFalse(zmsTestInitializer.getZms().isAllowedPutMembership(rsrcPrince, domain, role, roleMember));//bob trying to add dave
 
-        Role selfserverole = zmsTestInitializer.createRoleObject("testdomain1", "testrole2", null,"user.john", "user.jane");
+        Role selfserverole = zmsTestInitializer.createRoleObject("testdomain1", "testrole2", null, "user.john", "user.jane");
         zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole2", zmsTestInitializer.getAuditRef(), selfserverole);
 
         RoleMeta rm = createRoleMetaObject(true);
-        zmsTestInitializer.getZms().putRoleMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole2",  zmsTestInitializer.getAuditRef(), rm);
+        zmsTestInitializer.getZms().putRoleMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole2", zmsTestInitializer.getAuditRef(), rm);
 
         domain = zmsTestInitializer.getZms().getAthenzDomain("testdomain1", false);
         role = zmsTestInitializer.getZms().getRoleFromDomain("testrole2", domain);
@@ -19673,7 +19706,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().putDomainMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", zmsTestInitializer.getAuditRef(), meta);
         zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "auditenabled", zmsTestInitializer.getAuditRef(), meta);
 
-        Role auditedRole = zmsTestInitializer.createRoleObject("testdomain1", "testrole3", null,"user.john", "user.jane");
+        Role auditedRole = zmsTestInitializer.createRoleObject("testdomain1", "testrole3", null, "user.john", "user.jane");
         zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole3", zmsTestInitializer.getAuditRef(), auditedRole);
 
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
@@ -20229,7 +20262,7 @@ public class ZMSImplTest {
         try {
             zmsTestInitializer.getZms().putMembershipDecision(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole1", "user.bob", zmsTestInitializer.getAuditRef(), mbr);
             fail();
-        }catch (ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.code, 400);
         }
 
@@ -20320,13 +20353,13 @@ public class ZMSImplTest {
     @Test
     public void testPutMembershipDecisionErrors() {
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1","Approval Test Domain1", "testOrg", "user.user1");
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1", "Approval Test Domain1", "testOrg", "user.user1");
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
-        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg", true, true, "12345", 1001);
         zmsTestInitializer.getZms().putDomainMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", zmsTestInitializer.getAuditRef(), meta);
         zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "auditenabled", zmsTestInitializer.getAuditRef(), meta);
 
-        Role auditedRole = zmsTestInitializer.createRoleObject("testdomain1", "testrole1", null,"user.john", "user.jane");
+        Role auditedRole = zmsTestInitializer.createRoleObject("testdomain1", "testrole1", null, "user.john", "user.jane");
         zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole1", zmsTestInitializer.getAuditRef(), auditedRole);
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
         zmsTestInitializer.getZms().putRoleSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole1", "auditenabled", zmsTestInitializer.getAuditRef(), rsm);
@@ -20463,7 +20496,7 @@ public class ZMSImplTest {
     @Test
     public void testGetRoleWithPendingMembers() {
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1","Pending Test Domain1",
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1", "Pending Test Domain1",
                 "testOrg", "user.user1");
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
@@ -20472,7 +20505,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().putDomainMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", zmsTestInitializer.getAuditRef(), meta);
         zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "auditenabled", zmsTestInitializer.getAuditRef(), meta);
 
-        Role auditedRole = zmsTestInitializer.createRoleObject("testdomain1", "testrole1", null,"user.john", "user.jane");
+        Role auditedRole = zmsTestInitializer.createRoleObject("testdomain1", "testrole1", null, "user.john", "user.jane");
         zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole1", zmsTestInitializer.getAuditRef(), auditedRole);
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
         zmsTestInitializer.getZms().putRoleSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole1", "auditenabled", zmsTestInitializer.getAuditRef(), rsm);
@@ -20488,7 +20521,7 @@ public class ZMSImplTest {
         assertNotNull(resRole);
         assertEquals(resRole.getRoleMembers().size(), 3);
 
-        for ( RoleMember rm : resRole.getRoleMembers()) {
+        for (RoleMember rm : resRole.getRoleMembers()) {
             if ("user.bob".equals(rm.getMemberName())) {
                 assertFalse(rm.getApproved());
             }
@@ -20692,7 +20725,7 @@ public class ZMSImplTest {
         // known service - no exception
 
         zmsTestInitializer.getZms().validateRoleMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(),
-                null, null,  null, false, "unittest");
+                null, null, null, false, "unittest");
 
         // unknown service - exception
 
@@ -20796,7 +20829,7 @@ public class ZMSImplTest {
 
         // known service - no exception
 
-        zmsTestInitializer.getZms().validateGroupMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(), null,  "unittest");
+        zmsTestInitializer.getZms().validateGroupMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(), null, "unittest");
 
         // unknown service - exception
 
@@ -20849,14 +20882,14 @@ public class ZMSImplTest {
     @Test
     public void testCreateMembershipApprovalNotification() {
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1","Role Test Domain1", "testOrg", "user.user1");
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1", "Role Test Domain1", "testOrg", "user.user1");
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
-        Role selfserverole = zmsTestInitializer.createRoleObject("testdomain1", "testrole2", null,"user.john", "user.jane");
+        Role selfserverole = zmsTestInitializer.createRoleObject("testdomain1", "testrole2", null, "user.john", "user.jane");
         zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole2", zmsTestInitializer.getAuditRef(), selfserverole);
 
         RoleMeta rm = createRoleMetaObject(true);
-        zmsTestInitializer.getZms().putRoleMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole2",  zmsTestInitializer.getAuditRef(), rm);
+        zmsTestInitializer.getZms().putRoleMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole2", zmsTestInitializer.getAuditRef(), rm);
 
         Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String auditAdminUnsignedCreds = "v=U1;d=user;n=fury";
@@ -22062,7 +22095,7 @@ public class ZMSImplTest {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=jane";
-        Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
@@ -22070,7 +22103,7 @@ public class ZMSImplTest {
                 "testrole1", "user.pending"));
 
         unsignedCreds = "v=U1;d=user;n=john";
-        rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",0, principalAuthority);
+        rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
@@ -22132,7 +22165,7 @@ public class ZMSImplTest {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=jane";
-        Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         ResourceContext ctx = zmsTestInitializer.createResourceContext(rsrcPrince);
@@ -22208,7 +22241,7 @@ public class ZMSImplTest {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=joe";
-        Principal rsrcPrince = SimplePrincipal.create("user", "joe", unsignedCreds + ";s=signature",0, principalAuthority);
+        Principal rsrcPrince = SimplePrincipal.create("user", "joe", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         ResourceContext ctxJoe = zmsTestInitializer.createResourceContext(rsrcPrince);
@@ -22242,7 +22275,7 @@ public class ZMSImplTest {
         // first try to delete the pending request without proper authorization
 
         unsignedCreds = "v=U1;d=user;n=jane";
-        rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         ResourceContext ctxJane = zmsTestInitializer.createResourceContext(rsrcPrince);
@@ -22594,7 +22627,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().putMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, roleName1, group1.name, zmsTestInitializer.getAuditRef(), mbr1);
 
         mbrResult = zmsTestInitializer.getZms().getMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, roleName1, group1.name, null);
-        long days = ((mbrResult.getExpiration().millis() - testDate.getTime()) / (60*60*24*1000));
+        long days = ((mbrResult.getExpiration().millis() - testDate.getTime()) / (60 * 60 * 24 * 1000));
         assertNotNull(mbrResult);
         assertEquals(mbrResult.getMemberName(), group1.name);
         assertNotNull(mbrResult.getExpiration());
@@ -22603,7 +22636,7 @@ public class ZMSImplTest {
         RoleMeta rm = new RoleMeta().setGroupExpiryDays(1);
         zmsTestInitializer.getZms().putRoleMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName, roleName1, zmsTestInitializer.getAuditRef(), rm);
         mbrResult = zmsTestInitializer.getZms().getMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, roleName1, group1.name, null);
-        days = ((mbrResult.getExpiration().millis() - testDate.getTime()) / (60*60*24*1000));
+        days = ((mbrResult.getExpiration().millis() - testDate.getTime()) / (60 * 60 * 24 * 1000));
         assertNotNull(mbrResult);
         assertEquals(mbrResult.getMemberName(), group1.name);
         assertNotNull(mbrResult.getExpiration());
@@ -22716,7 +22749,7 @@ public class ZMSImplTest {
         Role role7 = new Role();
         role7.setTrust("trust-notfound");
 
-        return new Object[][] {
+        return new Object[][]{
                 {domainName, role1, false},
                 {domainName, role2, true},
                 {domainName, role3, false},
@@ -22761,7 +22794,7 @@ public class ZMSImplTest {
         ctx.setRequestDomain(testDomain);
         zmsTestInitializer.getZms().recordMetrics(ctx, httpStatus);
         verify(ZMSImpl.metric,
-                times(1)).increment (
+                times(1)).increment(
                 eq("zms_api"),
                 eq(testDomain),
                 eq(null),
@@ -22769,7 +22802,7 @@ public class ZMSImplTest {
                 eq(httpStatus),
                 eq("someapimethod"));
         verify(ZMSImpl.metric,
-                times(1)).stopTiming (
+                times(1)).stopTiming(
                 eq(ctx.getTimerMetric()),
                 eq(testDomain),
                 eq(null),
@@ -22777,7 +22810,7 @@ public class ZMSImplTest {
                 eq(httpStatus),
                 eq("someapimethod_timing"));
         verify(ZMSImpl.metric,
-                times(1)).startTiming (
+                times(1)).startTiming(
                 eq("zms_api_latency"),
                 eq(null),
                 eq(null),
@@ -22794,7 +22827,7 @@ public class ZMSImplTest {
         when(ctx.getRequestDomain()).thenReturn(testDomain);
         zmsTestInitializer.getZms().recordMetrics(ctx, httpStatus);
         verify(ZMSImpl.metric,
-                times(1)).increment (
+                times(1)).increment(
                 eq("zms_api"),
                 eq(testDomain),
                 eq("user"),
@@ -22802,7 +22835,7 @@ public class ZMSImplTest {
                 eq(httpStatus),
                 eq("someApiMethod"));
         verify(ZMSImpl.metric,
-                times(1)).stopTiming (
+                times(1)).stopTiming(
                 eq(ctx.getTimerMetric()),
                 eq(testDomain),
                 eq("user"),
@@ -22815,7 +22848,7 @@ public class ZMSImplTest {
         ZMSImpl.metric = Mockito.mock(Metric.class);
         zmsTestInitializer.getZms().recordMetrics(null, httpStatus);
         verify(ZMSImpl.metric,
-                times(1)).increment (
+                times(1)).increment(
                 eq("zms_api"),
                 eq(null),
                 eq(null),
@@ -22823,7 +22856,7 @@ public class ZMSImplTest {
                 eq(httpStatus),
                 eq(null));
         verify(ZMSImpl.metric,
-                times(1)).stopTiming (
+                times(1)).stopTiming(
                 eq(null),
                 eq(null),
                 eq(null),
@@ -22900,7 +22933,7 @@ public class ZMSImplTest {
         // check audit log msg for putRole
         boolean foundError = false;
         System.err.println("testCreateGroup: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putgroup)")) {
                 continue;
             }
@@ -22917,7 +22950,7 @@ public class ZMSImplTest {
         // delete member of the role
         //
         List<GroupMember> listrm = group1.getGroupMembers();
-        for (GroupMember rmemb: listrm) {
+        for (GroupMember rmemb : listrm) {
             if (rmemb.getMemberName().equals("user.jane")) {
                 listrm.remove(rmemb);
                 break;
@@ -22929,7 +22962,7 @@ public class ZMSImplTest {
 
         foundError = false;
         System.err.println("testCreateGroup: Now Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putgroup)")) {
                 continue;
             }
@@ -22987,7 +23020,7 @@ public class ZMSImplTest {
 
         // add group members with another group as member
 
-        Group group2 = zmsTestInitializer.createGroupObject(domainName, "group2", "user.joe", domainName  + ":group.dev-team");
+        Group group2 = zmsTestInitializer.createGroupObject(domainName, "group2", "user.joe", domainName + ":group.dev-team");
         try {
             zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "group2", zmsTestInitializer.getAuditRef(), group2);
             fail();
@@ -22997,7 +23030,7 @@ public class ZMSImplTest {
 
         // add group with invalid service names
 
-        group2 = zmsTestInitializer.createGroupObject(domainName, "group2", "user.joe", domainName  + ".api");
+        group2 = zmsTestInitializer.createGroupObject(domainName, "group2", "user.joe", domainName + ".api");
         try {
             zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "group2", zmsTestInitializer.getAuditRef(), group2);
             fail();
@@ -23057,7 +23090,7 @@ public class ZMSImplTest {
         assertEquals(members.size(), 1);
         assertEquals("user.joe", members.get(0).getMemberName());
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -23087,7 +23120,7 @@ public class ZMSImplTest {
         checkList.add("user.john");
         zmsTestInitializer.checkGroupMember(checkList, members);
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -23130,13 +23163,13 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
     public void testCreateNormalizedUserMemberGroup() {
 
-        final  String domainName = "norm-user-member-group";
+        final String domainName = "norm-user-member-group";
         final String groupName = "group1";
         final String groupName2 = "group2";
 
@@ -23173,7 +23206,7 @@ public class ZMSImplTest {
         assertNotNull(group);
         assertTrue(group.getGroupMembers().isEmpty());
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -23233,7 +23266,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().deleteSubDomain(zmsTestInitializer.getMockDomRsrcCtx(), "user", "user1", zmsTestInitializer.getAuditRef());
         zmsTestInitializer.getZms().deleteSubDomain(zmsTestInitializer.getMockDomRsrcCtx(), "coretech", "storage", zmsTestInitializer.getAuditRef());
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "coretech", zmsTestInitializer.getAuditRef());
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -23277,7 +23310,7 @@ public class ZMSImplTest {
         checkList.add("user.user5");
         zmsTestInitializer.checkGroupMember(checkList, members);
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -23303,7 +23336,7 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("reviewEnabled groups"));
         }
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -23369,7 +23402,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().deleteSubDomain(zmsTestInitializer.getMockDomRsrcCtx(), "user", "user1", zmsTestInitializer.getAuditRef());
         zmsTestInitializer.getZms().deleteSubDomain(zmsTestInitializer.getMockDomRsrcCtx(), "coretech", "storage", zmsTestInitializer.getAuditRef());
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "coretech", zmsTestInitializer.getAuditRef());
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -23526,7 +23559,7 @@ public class ZMSImplTest {
         final String domainName = "DomainName1";
         final String groupName = "GroupName1";
         try {
-            zmsImpl.deleteGroup(zmsTestInitializer.getMockDomRsrcCtx(),domainName, groupName, zmsTestInitializer.getAuditRef());
+            zmsImpl.deleteGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef());
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
@@ -23757,7 +23790,7 @@ public class ZMSImplTest {
         assertEquals(mbr.getGroupName(), domainName + ":group." + groupName);
         assertEquals(mbr.getMemberName(), "user.jane");
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -23802,7 +23835,7 @@ public class ZMSImplTest {
         boolean foundError = false;
         List<String> aLogMsgs = alogger.getLogMsgList();
         System.err.println("testPutGroupMembership: Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putgroupmembership)")) {
                 continue;
             }
@@ -23835,7 +23868,7 @@ public class ZMSImplTest {
 
         foundError = false;
         System.err.println("testGroupPutMembership: now Number of lines: " + aLogMsgs.size());
-        for (String msg: aLogMsgs) {
+        for (String msg : aLogMsgs) {
             if (!msg.contains("WHAT-api=(putgroupmembership)")) {
                 continue;
             }
@@ -24291,7 +24324,7 @@ public class ZMSImplTest {
         try {
             zmsTestInitializer.getZms().putGroupMembershipDecision(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "user.bob", zmsTestInitializer.getAuditRef(), mbr);
             fail();
-        }catch (ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.code, 400);
         }
 
@@ -24386,13 +24419,13 @@ public class ZMSImplTest {
         final String domainName = "put-group-dec-errors";
         final String groupName = "testgroup1";
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,"Approval Test Domain1", "testOrg", "user.user1");
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1", "testOrg", "user.user1");
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
-        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg", true, true, "12345", 1001);
         zmsTestInitializer.getZms().putDomainMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef(), meta);
         zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "auditenabled", zmsTestInitializer.getAuditRef(), meta);
 
-        Group auditedGroup = zmsTestInitializer.createGroupObject(domainName, groupName,"user.john", "user.jane");
+        Group auditedGroup = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", "user.jane");
         zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), auditedGroup);
         GroupSystemMeta rsm = createGroupSystemMetaObject(true);
         zmsTestInitializer.getZms().putGroupSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "auditenabled", zmsTestInitializer.getAuditRef(), rsm);
@@ -24446,11 +24479,11 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1, "Approval Test Domain1", "testOrg", "user.user1");
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
-        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg", true, true, "12345", 1001);
         zmsTestInitializer.getZms().putDomainMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName1, zmsTestInitializer.getAuditRef(), meta);
         zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName1, "auditenabled", zmsTestInitializer.getAuditRef(), meta);
 
-        Group auditedGroup = zmsTestInitializer.createGroupObject(domainName1, groupName,"user.john", "user.jane");
+        Group auditedGroup = zmsTestInitializer.createGroupObject(domainName1, groupName, "user.john", "user.jane");
         zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName1, groupName, zmsTestInitializer.getAuditRef(), auditedGroup);
 
         // invalid field name
@@ -24511,7 +24544,7 @@ public class ZMSImplTest {
         assertEquals(members.size(), 1);
 
         boolean found = false;
-        for (GroupMember member: members) {
+        for (GroupMember member : members) {
             if (member.getMemberName().equalsIgnoreCase("user.joe")) {
                 fail("delete user.joe failed");
             }
@@ -24551,14 +24584,14 @@ public class ZMSImplTest {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=jane";
-        Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
         assertTrue(zmsTestInitializer.getZms().isAllowedDeletePendingGroupMembership(rsrcPrince, domainName, groupName, "user.pending"));
 
         unsignedCreds = "v=U1;d=user;n=john";
-        rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",0, principalAuthority);
+        rsrcPrince = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
 
@@ -24633,7 +24666,7 @@ public class ZMSImplTest {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=jane";
-        Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        Principal rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         ResourceContext ctx = zmsTestInitializer.createResourceContext(rsrcPrince);
@@ -24704,7 +24737,7 @@ public class ZMSImplTest {
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String unsignedCreds = "v=U1;d=user;n=joe";
-        Principal rsrcPrince = SimplePrincipal.create("user", "joe", unsignedCreds + ";s=signature",0, principalAuthority);
+        Principal rsrcPrince = SimplePrincipal.create("user", "joe", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         ResourceContext ctxJoe = zmsTestInitializer.createResourceContext(rsrcPrince);
@@ -24738,7 +24771,7 @@ public class ZMSImplTest {
         // first try to delete the pending request without proper authorization
 
         unsignedCreds = "v=U1;d=user;n=jane";
-        rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature",0, principalAuthority);
+        rsrcPrince = SimplePrincipal.create("user", "jane", unsignedCreds + ";s=signature", 0, principalAuthority);
         assertNotNull(rsrcPrince);
         ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
         ResourceContext ctxJane = zmsTestInitializer.createResourceContext(rsrcPrince);
@@ -25542,7 +25575,7 @@ public class ZMSImplTest {
             GroupMembership mbr = zmsTestInitializer.generateGroupMembership(groupName, "user.doe");
             zmsTestInitializer.getZms().putGroupMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "user.doe", zmsTestInitializer.getAuditRef(), mbr);
             fail();
-        } catch (ResourceException ex)  {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.GONE);
         }
 
@@ -25551,7 +25584,7 @@ public class ZMSImplTest {
         try {
             zmsTestInitializer.getZms().deleteGroupMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "user.joe", zmsTestInitializer.getAuditRef());
             fail();
-        } catch (ResourceException ex)  {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.GONE);
         }
 
@@ -25583,7 +25616,7 @@ public class ZMSImplTest {
         try {
             zmsTestInitializer.getZms().deleteGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef());
             fail();
-        } catch (ResourceException ex)  {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.GONE);
         }
 
@@ -26271,7 +26304,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testCreateTopLevelDomainNegativeProductId(){
+    public void testCreateTopLevelDomainNegativeProductId() {
 
         final String domainName = "negative-product-id";
 
@@ -26293,7 +26326,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testCreateTopLevelDomainWithTemplate(){
+    public void testCreateTopLevelDomainWithTemplate() {
 
         final String domainName = "domain-with-template";
 
@@ -26385,7 +26418,7 @@ public class ZMSImplTest {
         try {
             zmsTest.putRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, roleName, zmsTestInitializer.getAuditRef(), role);
             fail();
-        } catch(ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("role tag quota exceeded - limit: 3, current tags count: 0, new tags count: 4"));
         }
@@ -26394,7 +26427,7 @@ public class ZMSImplTest {
             // role should not be created if fails to process tags..
             zmsTest.getRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, roleName, false, false, false);
             fail();
-        } catch(ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
@@ -26592,7 +26625,7 @@ public class ZMSImplTest {
         try {
             zmsTest.postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), topLevelDomain);
             fail();
-        } catch(ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("domain tag quota exceeded - limit: 3, current tags count: 0, new tags count: 4"));
         }
@@ -26600,7 +26633,7 @@ public class ZMSImplTest {
             // domain should not be created if fails to process tags..
             zmsTest.getDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName);
             fail();
-        } catch(ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
@@ -27242,7 +27275,7 @@ public class ZMSImplTest {
         String roleName = "role1";
         String polName = "pol1";
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
         Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.john", "user.jane");
@@ -27264,13 +27297,13 @@ public class ZMSImplTest {
 
         zmsTestInitializer.getZms().putAssertionConditions(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), acs);
 
-        Response response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true,null);
+        Response response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true, null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
         AssertionConditions conditionsResp;
         AssertionCondition conditionResp = new AssertionCondition().setId(1).setConditionsMap(new HashMap<>());
         // zms is going to lowercase data
         conditionResp.getConditionsMap().put("instances", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
-        .setValue("host1,host2,host3"));
+                .setValue("host1,host2,host3"));
         conditionResp.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
                 .setValue("enforce"));
 
@@ -27281,7 +27314,7 @@ public class ZMSImplTest {
         conditionResp2.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
                 .setValue("report"));
 
-        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+        for (Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
                 conditionsResp = policy.getAssertions().get(0).getConditions();
                 assertNotNull(conditionsResp);
@@ -27294,14 +27327,14 @@ public class ZMSImplTest {
         try {
             zmsTestInitializer.getZms().putAssertionConditions(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), acs);
             fail();
-        } catch(ResourceException re) {
+        } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zmsTestInitializer.getZms().readOnlyMode = dynamicConfigBoolean;
         try {
             zmsTestInitializer.getZms().putAssertionConditions(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "admin", policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), acs);
             fail();
-        } catch(ResourceException re) {
+        } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
@@ -27313,7 +27346,7 @@ public class ZMSImplTest {
         String roleName = "role1";
         String polName = "pol1";
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
         Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.john", "user.jane");
@@ -27329,7 +27362,7 @@ public class ZMSImplTest {
 
         zmsTestInitializer.getZms().putAssertionCondition(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), ac1);
 
-        Response response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true,null);
+        Response response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true, null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
         AssertionConditions conditionsResp;
         AssertionCondition conditionResp = new AssertionCondition().setId(1).setConditionsMap(new HashMap<>());
@@ -27339,7 +27372,7 @@ public class ZMSImplTest {
         conditionResp.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
                 .setValue("enforce"));
 
-        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+        for (Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
                 conditionsResp = policy.getAssertions().get(0).getConditions();
                 assertNotNull(conditionsResp);
@@ -27354,7 +27387,7 @@ public class ZMSImplTest {
                 .setValue("report"));
         zmsTestInitializer.getZms().putAssertionCondition(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), ac1);
 
-        response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true,null);
+        response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true, null);
         sdoms = (SignedDomains) response.getEntity();
 
         conditionResp = new AssertionCondition().setId(1).setConditionsMap(new HashMap<>());
@@ -27364,7 +27397,7 @@ public class ZMSImplTest {
         conditionResp.getConditionsMap().put("newkey", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
                 .setValue("myval"));
 
-        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+        for (Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
                 conditionsResp = policy.getAssertions().get(0).getConditions();
                 assertNotNull(conditionsResp);
@@ -27377,14 +27410,14 @@ public class ZMSImplTest {
         try {
             zmsTestInitializer.getZms().putAssertionCondition(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), ac1);
             fail();
-        } catch(ResourceException re) {
+        } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zmsTestInitializer.getZms().readOnlyMode = dynamicConfigBoolean;
         try {
             zmsTestInitializer.getZms().putAssertionCondition(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "admin", policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), ac1);
             fail();
-        } catch(ResourceException re) {
+        } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
@@ -27396,7 +27429,7 @@ public class ZMSImplTest {
         String roleName = "role1";
         String polName = "pol1";
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
         Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.john", "user.jane");
@@ -27418,7 +27451,7 @@ public class ZMSImplTest {
 
         zmsTestInitializer.getZms().putAssertionConditions(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), acs);
 
-        Response response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true,null);
+        Response response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true, null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
         AssertionConditions conditionsResp;
         AssertionCondition conditionResp = new AssertionCondition().setId(1).setConditionsMap(new HashMap<>());
@@ -27429,7 +27462,7 @@ public class ZMSImplTest {
                 .setValue("enforce"));
 
         // make sure assertion conditions are present first
-        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+        for (Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
                 conditionsResp = policy.getAssertions().get(0).getConditions();
                 assertNotNull(conditionsResp);
@@ -27439,9 +27472,9 @@ public class ZMSImplTest {
         // now delete all condition
         zmsTestInitializer.getZms().deleteAssertionConditions(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef());
 
-        response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true,null);
+        response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true, null);
         sdoms = (SignedDomains) response.getEntity();
-        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+        for (Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
                 assertNull(policy.getAssertions().get(0).getConditions());
             }
@@ -27452,14 +27485,14 @@ public class ZMSImplTest {
         try {
             zmsTestInitializer.getZms().deleteAssertionConditions(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef());
             fail();
-        } catch(ResourceException re) {
+        } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zmsTestInitializer.getZms().readOnlyMode = dynamicConfigBoolean;
         try {
             zmsTestInitializer.getZms().deleteAssertionConditions(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "admin", policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef());
             fail();
-        } catch(ResourceException re) {
+        } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
@@ -27471,7 +27504,7 @@ public class ZMSImplTest {
         String roleName = "role1";
         String polName = "pol1";
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
         Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.john", "user.jane");
@@ -27487,7 +27520,7 @@ public class ZMSImplTest {
 
         zmsTestInitializer.getZms().putAssertionCondition(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), zmsTestInitializer.getAuditRef(), ac1);
 
-        Response response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true,null);
+        Response response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true, null);
         SignedDomains sdoms = (SignedDomains) response.getEntity();
         AssertionConditions conditionsResp;
         AssertionCondition conditionResp = new AssertionCondition().setId(1).setConditionsMap(new HashMap<>());
@@ -27509,9 +27542,9 @@ public class ZMSImplTest {
         // now delete all condition
         zmsTestInitializer.getZms().deleteAssertionCondition(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), 1, zmsTestInitializer.getAuditRef());
 
-        response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true,null);
+        response = zmsTestInitializer.getZms().getSignedDomains(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "false", null, true, true, null);
         sdoms = (SignedDomains) response.getEntity();
-        for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
+        for (Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
                 assertNull(policy.getAssertions().get(0).getConditions());
             }
@@ -27522,14 +27555,14 @@ public class ZMSImplTest {
         try {
             zmsTestInitializer.getZms().deleteAssertionCondition(zmsTestInitializer.getMockDomRsrcCtx(), domainName, polName, policyResp.getAssertions().get(0).getId(), 1, zmsTestInitializer.getAuditRef());
             fail();
-        } catch(ResourceException re) {
+        } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zmsTestInitializer.getZms().readOnlyMode = dynamicConfigBoolean;
         try {
             zmsTestInitializer.getZms().deleteAssertionCondition(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "admin", policyResp.getAssertions().get(0).getId(), 1, zmsTestInitializer.getAuditRef());
             fail();
-        } catch(ResourceException re) {
+        } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
@@ -27706,12 +27739,12 @@ public class ZMSImplTest {
         // postTopLevelDomain events
         String domainName = "test-dom-change-msg";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("test-dom-change-msg",
-            "Test description Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test description Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         dom1.setAuditEnabled(true);
-        
+
         RsrcCtxWrapper ctx = contextWithMockPrincipal("postTopLevelDomain");
         zmsTestInitializer.getZms().postTopLevelDomain(ctx, zmsTestInitializer.getAuditRef(), dom1);
-        
+
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "postTopLevelDomain");
 
         // putDomainTemplate events
@@ -27772,7 +27805,7 @@ public class ZMSImplTest {
 
         // putMembership events using user.doe principal
         ctx = contextWithMockPrincipal("putMembership", "doe");
-        
+
         Membership mbr = new Membership();
         mbr.setMemberName("user.doe");
         mbr.setActive(false);
@@ -27780,17 +27813,17 @@ public class ZMSImplTest {
 
         zmsTestInitializer.getZms().putMembership(ctx, domainName, roleName, "user.doe", zmsTestInitializer.getAuditRef(), mbr);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putMembership");
-        
+
         // putRoleReview events
         ctx = contextWithMockPrincipal("putRoleReview");
-        
+
         Role inputRole = new Role().setName(roleName);
         List<RoleMember> inputMembers = new ArrayList<>();
         inputRole.setRoleMembers(inputMembers);
         inputMembers.add(new RoleMember().setMemberName("user.doe").setActive(false));
         zmsTestInitializer.getZms().putRoleReview(ctx, domainName, roleName, zmsTestInitializer.getAuditRef(), inputRole);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putRoleReview");
-        
+
         // putMembershipDecision events
         ctx = contextWithMockPrincipal("putMembershipDecision");
         mbr.setActive(true);
@@ -27813,7 +27846,7 @@ public class ZMSImplTest {
         ctx = contextWithMockPrincipal("deletePendingMembership");
         zmsTestInitializer.getZms().deletePendingMembership(ctx, domainName, roleName, "user.pend", zmsTestInitializer.getAuditRef());
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "deletePendingMembership");
-        
+
         // deleteMembership events
         ctx = contextWithMockPrincipal("deleteMembership");
         zmsTestInitializer.getZms().deleteMembership(ctx, domainName, roleName, "user.doe", zmsTestInitializer.getAuditRef());
@@ -27822,9 +27855,9 @@ public class ZMSImplTest {
         // putRoleSystemMeta events
         ctx = contextWithMockPrincipal("putRoleSystemMeta");
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
-        zmsTestInitializer.getZms().putRoleSystemMeta(ctx, domainName, roleName, "auditenabled", zmsTestInitializer.getAuditRef(), rsm);        
+        zmsTestInitializer.getZms().putRoleSystemMeta(ctx, domainName, roleName, "auditenabled", zmsTestInitializer.getAuditRef(), rsm);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putRoleSystemMeta");
-    
+
         // deleteRole events
         ctx = contextWithMockPrincipal("deleteRole");
         zmsTestInitializer.getZms().deleteRole(ctx, domainName, roleName, zmsTestInitializer.getAuditRef());
@@ -27861,7 +27894,7 @@ public class ZMSImplTest {
 
         zmsTestInitializer.getZms().putGroupMembership(ctx, domainName, groupName, "user.doe", zmsTestInitializer.getAuditRef(), gmbr);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "putGroupMembership");
-        
+
         // putGroupReview events
         ctx = contextWithMockPrincipal("putGroupReview");
 
@@ -27932,7 +27965,7 @@ public class ZMSImplTest {
         ctx = contextWithMockPrincipal("deleteAssertion");
         zmsTestInitializer.getZms().deleteAssertion(ctx, domainName, policyName, assertion.getId(), zmsTestInitializer.getAuditRef());
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyName, "deleteAssertion");
-        
+
         // putPolicyVersion events
         ctx = contextWithMockPrincipal("putPolicyVersion");
         String newVersion = "new-version";
@@ -27987,7 +28020,7 @@ public class ZMSImplTest {
         ctx = contextWithMockPrincipal("deleteAssertionCondition");
         zmsTestInitializer.getZms().deleteAssertionCondition(ctx, domainName, policyConditionName, assertionId, 1, zmsTestInitializer.getAuditRef());
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyConditionName, "deleteAssertionCondition");
-        
+
         // deleteAssertionConditions events
         ctx = contextWithMockPrincipal("deleteAssertionConditions");
         zmsTestInitializer.getZms().deleteAssertionConditions(ctx, domainName, policyConditionName, assertionId, zmsTestInitializer.getAuditRef());
@@ -27997,11 +28030,11 @@ public class ZMSImplTest {
         ctx = contextWithMockPrincipal("deletePolicy");
         zmsTestInitializer.getZms().deletePolicy(ctx, domainName, policyConditionName, zmsTestInitializer.getAuditRef());
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyConditionName, "deletePolicy");
-        
+
         // putServiceIdentity events
         String serviceName = "test-srv";
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, serviceName,
-            "http://localhost", "/usr/bin/test", "root", "users", "host1");
+                "http://localhost", "/usr/bin/test", "root", "users", "host1");
         ctx = contextWithMockPrincipal("putServiceIdentity");
         zmsTestInitializer.getZms().putServiceIdentity(ctx, domainName, serviceName, zmsTestInitializer.getAuditRef(), service);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), SERVICE, domainName, serviceName, "putServiceIdentity");
@@ -28030,9 +28063,9 @@ public class ZMSImplTest {
         // putTenancy events
         String tenantDomainName = domainName + "-tenant";
         TopLevelDomain tenDom = zmsTestInitializer.createTopLevelDomainObject(tenantDomainName,
-            "Test Tenant Provider Domain", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Tenant Provider Domain", "testOrg", zmsTestInitializer.getAdminUser());
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), tenDom);
-        
+
         Tenancy tenancy = zmsTestInitializer.createTenantObject(tenantDomainName, domainName + "." + serviceName);
         ctx = contextWithMockPrincipal("putTenancy");
         zmsTestInitializer.getZms().putTenancy(ctx, tenantDomainName, domainName + "." + serviceName, zmsTestInitializer.getAuditRef(), tenancy);
@@ -28040,7 +28073,7 @@ public class ZMSImplTest {
         assertEquals(changeMsgs.size(), 2);
         assertChange(changeMsgs.get(0), ROLE, tenantDomainName, "test-dom-change-msg-tenant:role.tenancy.test-dom-change-msg.test-srv.admin", "putTenancy");
         assertChange(changeMsgs.get(1), POLICY, tenantDomainName, "test-dom-change-msg-tenant:policy.tenancy.test-dom-change-msg.test-srv.admin", "putTenancy");
-        
+
         // deleteTenancy events
         ctx = contextWithMockPrincipal("deleteTenancy");
         zmsTestInitializer.getZms().deleteTenancy(ctx, tenantDomainName, domainName + "." + serviceName, zmsTestInitializer.getAuditRef());
@@ -28049,9 +28082,9 @@ public class ZMSImplTest {
         // putTenant events
         String tenantServiceName = serviceName + "-tenant";
         ServiceIdentity tenantService = zmsTestInitializer.createServiceObject(tenantDomainName, tenantServiceName,
-            "http://localhost", "/usr/bin/test", "root", "users", "host1");
+                "http://localhost", "/usr/bin/test", "root", "users", "host1");
         zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName, tenantServiceName, zmsTestInitializer.getAuditRef(), tenantService);
-        
+
         ctx = contextWithMockPrincipal("putTenant");
         Tenancy tenant = new Tenancy().setDomain(tenantDomainName).setService(domainName + "." + serviceName);
         zmsTestInitializer.getZms().putTenant(ctx, domainName, serviceName, tenantDomainName, zmsTestInitializer.getAuditRef(), tenant);
@@ -28059,7 +28092,7 @@ public class ZMSImplTest {
         assertEquals(changeMsgs.size(), 2);
         assertChange(changeMsgs.get(0), ROLE, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin", "putTenant");
         assertChange(changeMsgs.get(1), POLICY, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin", "putTenant");
-        
+
         // deleteTenant events
         ctx = contextWithMockPrincipal("deleteTenant");
         zmsTestInitializer.getZms().deleteTenant(ctx, domainName, serviceName, tenantDomainName, zmsTestInitializer.getAuditRef());
@@ -28071,9 +28104,9 @@ public class ZMSImplTest {
         // putProviderResourceGroupRoles events
         ctx = contextWithMockPrincipal("putProviderResourceGroupRoles");
         ProviderResourceGroupRoles providerRoles = new ProviderResourceGroupRoles()
-            .setDomain(domainName).setService(serviceName)
-            .setTenant(tenantDomainName).setRoles(Collections.singletonList(new TenantRoleAction().setRole("role").setAction("action")))
-            .setResourceGroup("set1-test");
+                .setDomain(domainName).setService(serviceName)
+                .setTenant(tenantDomainName).setRoles(Collections.singletonList(new TenantRoleAction().setRole("role").setAction("action")))
+                .setResourceGroup("set1-test");
         zmsTestInitializer.getZms().putProviderResourceGroupRoles(ctx, tenantDomainName, domainName, serviceName, "set1-test", zmsTestInitializer.getAuditRef(), providerRoles);
         changeMsgs = ctx.getDomainChangeMessages();
         assertEquals(changeMsgs.size(), 2);
@@ -28083,9 +28116,9 @@ public class ZMSImplTest {
         // putTenantResourceGroupRoles events
         ctx = contextWithMockPrincipal("putTenantResourceGroupRoles");
         TenantResourceGroupRoles tenantRoles = new TenantResourceGroupRoles().setDomain(domainName)
-            .setService(serviceName).setTenant(tenantDomainName)
-            .setRoles(Collections.singletonList(new TenantRoleAction().setRole("role").setAction("action")))
-            .setResourceGroup("set1-test");
+                .setService(serviceName).setTenant(tenantDomainName)
+                .setRoles(Collections.singletonList(new TenantRoleAction().setRole("role").setAction("action")))
+                .setResourceGroup("set1-test");
 
         zmsTestInitializer.getZms().putTenantResourceGroupRoles(ctx, domainName, serviceName, tenantDomainName, "set1-test", zmsTestInitializer.getAuditRef(), tenantRoles);
 
@@ -28108,7 +28141,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().deleteProviderResourceGroupRoles(ctx, tenantDomainName, domainName, serviceName, "set1-test", zmsTestInitializer.getAuditRef());
         changeMsgs = ctx.getDomainChangeMessages();
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, tenantDomainName, "tenancy.test-dom-change-msg.test-srv.res_group.set1-test.role", "deleteProviderResourceGroupRoles");
-        
+
         // deleteTenant events
         ctx = contextWithMockPrincipal("deleteTenant");
         zmsTestInitializer.getZms().deleteTenant(ctx, domainName, serviceName, tenantDomainName, zmsTestInitializer.getAuditRef());
@@ -28125,7 +28158,7 @@ public class ZMSImplTest {
         // deleteDomainRoleMember events
         role = zmsTestInitializer.createRoleObject(domainName, "some-role", null, "user.user222", "user.todelete");
         zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "some-role", zmsTestInitializer.getAuditRef(), role);
-        
+
         ctx = contextWithMockPrincipal("deleteDomainRoleMember");
         zmsTestInitializer.getZms().deleteDomainRoleMember(ctx, domainName, "user.todelete", zmsTestInitializer.getAuditRef());
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, "some-role", "deleteDomainRoleMember");
@@ -28133,7 +28166,7 @@ public class ZMSImplTest {
         // putQuota events
         ctx = contextWithMockPrincipal("putQuota");
         Quota quota = new Quota().setName(domainName)
-            .setRole(14).setRoleMember(15).setGroup(16);
+                .setRole(14).setRoleMember(15).setGroup(16);
         zmsTestInitializer.getZms().putQuota(ctx, domainName, zmsTestInitializer.getAuditRef(), quota);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "putQuota");
 
@@ -28141,13 +28174,13 @@ public class ZMSImplTest {
         ctx = contextWithMockPrincipal("deleteQuota");
         zmsTestInitializer.getZms().deleteQuota(ctx, domainName, zmsTestInitializer.getAuditRef());
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "deleteQuota");
-        
+
         // postSubDomain events
         RsrcCtxWrapper subCtx = contextWithMockPrincipal("postSubDomain");
 
         SubDomain subDomain = zmsTestInitializer.createSubDomainObject("AddSubDom1", domainName,
-            "Test Domain2", null, zmsTestInitializer.getAdminUser());
-        zmsTestInitializer.getZms().postSubDomain(subCtx,domainName, zmsTestInitializer.getAuditRef(), subDomain);
+                "Test Domain2", null, zmsTestInitializer.getAdminUser());
+        zmsTestInitializer.getZms().postSubDomain(subCtx, domainName, zmsTestInitializer.getAuditRef(), subDomain);
         assertSingleChangeMessage(subCtx.getDomainChangeMessages(), DOMAIN, "test-dom-change-msg.addsubdom1", "test-dom-change-msg.addsubdom1", "postSubDomain");
 
         // deleteSubDomain events
@@ -28160,7 +28193,7 @@ public class ZMSImplTest {
         zmsTestInitializer.getZms().deleteTopLevelDomain(deleteCtx, domainName, zmsTestInitializer.getAuditRef());
         assertSingleChangeMessage(deleteCtx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "deleteTopLevelDomain");
     }
-    
+
     private void assertSingleChangeMessage(List<DomainChangeMessage> changeMsgs, DomainChangeMessage.ObjectType objType,
                                            String domainName, String objName, String apiName) {
         assertEquals(changeMsgs.size(), 1);
@@ -28168,7 +28201,7 @@ public class ZMSImplTest {
     }
 
     private void assertChange(DomainChangeMessage change, DomainChangeMessage.ObjectType objType,
-                 String domainName, String objName, String apiName) {
+                              String domainName, String objName, String apiName) {
         assertEquals(change.getObjectType(), objType);
         assertEquals(change.getDomainName(), domainName);
         assertEquals(change.getObjectName(), objName);
@@ -28184,7 +28217,7 @@ public class ZMSImplTest {
     private RsrcCtxWrapper contextWithMockPrincipal(String apiName) {
         return contextWithMockPrincipal(apiName, "testadminuser");
     }
-    
+
     private RsrcCtxWrapper contextWithMockPrincipal(String apiName, String princName) {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
@@ -28195,9 +28228,9 @@ public class ZMSImplTest {
         Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String adminUnsignedCreds = "v=U1;d=user;n=" + princName;
         Principal principal = SimplePrincipal.create("user", princName, adminUnsignedCreds + ";s=signature",
-            0, adminPrincipalAuthority);
+                0, adminPrincipalAuthority);
         ((SimplePrincipal) principal).setUnsignedCreds(adminUnsignedCreds);
-                
+
         final Field principalField;
         try {
             principalField = ctx.getClass().getDeclaredField("principal");
@@ -28223,8 +28256,8 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         assertNotNull(zmsImpl.domainChangePublishers);
         List<String> topicNames = zmsImpl.domainChangePublishers.stream()
-            .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
-            .collect(Collectors.toList());
+                .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
+                .collect(Collectors.toList());
         assertThat(topicNames, containsInAnyOrder("topic1", "topic2"));
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
@@ -28237,21 +28270,21 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         assertNotNull(zmsImpl.domainChangePublishers);
         List<String> topicNames = zmsImpl.domainChangePublishers.stream()
-            .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
-            .collect(Collectors.toList());
+                .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
+                .collect(Collectors.toList());
         assertThat(topicNames, containsInAnyOrder("topic1"));
 
         ResourceContext mockContext = Mockito.mock(ResourceContext.class);
         when(mockContext.getApiName()).thenReturn("apiName");
         when(mockContext.getDomainChangeMessages()).
-            thenReturn(Collections.singletonList(new DomainChangeMessage()
-                .setDomainName("domainName")
-                .setObjectName("objectName")
-                .setObjectType(DOMAIN)
-                .setApiName("apiName")
-                .setPublished(Instant.now().toEpochMilli())
-                .setMessageId(java.util.UUID.randomUUID().toString())
-            ));
+                thenReturn(Collections.singletonList(new DomainChangeMessage()
+                        .setDomainName("domainName")
+                        .setObjectName("objectName")
+                        .setObjectType(DOMAIN)
+                        .setApiName("apiName")
+                        .setPublished(Instant.now().toEpochMilli())
+                        .setMessageId(java.util.UUID.randomUUID().toString())
+                ));
         zmsImpl.publishChangeMessage(mockContext, 200);
 
 
@@ -28272,12 +28305,12 @@ public class ZMSImplTest {
     private MockDomainChangePublisher.Recorder getEventRecorder(ZMSImpl zmsImpl) {
         return ((MockDomainChangePublisher) zmsImpl.domainChangePublishers.get(0)).getRecorder();
     }
-    
+
     @Test
     public void testPublisherNonSuccessErrorCode() {
         System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisherFactory");
         System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic1 , topic2");
-        
+
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         String apiName = "postTopLevelDomain";
         ResourceContext mockContext = Mockito.mock(ResourceContext.class);
@@ -28292,7 +28325,7 @@ public class ZMSImplTest {
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
     }
-    
+
     @Test
     public void testEmptyTopicName() {
         System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisherFactory");
@@ -28301,8 +28334,8 @@ public class ZMSImplTest {
         assertNotNull(zmsImpl.domainChangePublishers);
         assertEquals(zmsImpl.domainChangePublishers.size(), 2);
         List<String> topicNames = zmsImpl.domainChangePublishers.stream()
-            .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
-            .collect(Collectors.toList());
+                .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
+                .collect(Collectors.toList());
         assertThat(topicNames, containsInAnyOrder("topic1", "topic2"));
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);

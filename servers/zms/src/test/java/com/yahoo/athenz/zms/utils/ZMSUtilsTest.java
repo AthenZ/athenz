@@ -17,7 +17,9 @@ package com.yahoo.athenz.zms.utils;
 
 import static org.testng.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +36,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import javax.servlet.http.HttpServletRequestWrapper;
+import javax.validation.constraints.Max;
 
 public class ZMSUtilsTest {
 
@@ -385,5 +388,39 @@ public class ZMSUtilsTest {
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
         millis = ZMSUtils.configuredDueDateMillis(10, 0);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+    }
+
+    @Test
+    public void validateRoleNotRelatedToPolicy() {
+        String relatedRole = "role1";
+        Assertion assertion = new Assertion(){
+            {
+                role = relatedRole;
+                resource = "";
+                effect = AssertionEffect.ALLOW;
+                action = "";
+            }
+        };
+        Policy policy = new Policy(){
+            {
+                name = "policy1";
+                assertions =  new ArrayList<Assertion>(){{add(assertion);}};
+            }
+        };
+        List<Policy> policies = new ArrayList<Policy>(){
+            {
+             add(policy);
+            }
+        };
+
+        try {
+            ZMSUtils.validateRoleNotRelatedToPolicy(policies,relatedRole);
+            fail("should be fail");
+        } catch (ResourceException ex){
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("related to policy"));
+        }
+
+        ZMSUtils.validateRoleNotRelatedToPolicy(policies, "not_related_role");
     }
 }
