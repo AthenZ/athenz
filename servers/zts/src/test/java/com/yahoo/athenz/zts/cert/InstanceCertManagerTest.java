@@ -787,7 +787,8 @@ public class InstanceCertManagerTest {
         instanceManager.setSSHSigner(signer);
 
         String sshCsr = "{\"pubkey\":\"key\",\"certtype\":\"host\"";
-        boolean result = instanceManager.generateSSHIdentity(null, null, hostname,
+        InstanceIdentity identity = new InstanceIdentity().setName("athenz.test");
+        boolean result = instanceManager.generateSSHIdentity(null, identity, hostname,
                 sshCsr, null, new SSHCertRecord(), ZTSConsts.ZTS_SSH_HOST);
         assertFalse(result);
     }

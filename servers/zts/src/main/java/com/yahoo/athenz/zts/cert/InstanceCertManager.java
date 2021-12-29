@@ -774,11 +774,19 @@ public class InstanceCertManager {
             return true;
         }
 
+        // keep track of the fact if the client provided a csr or the
+        // expected ssh cert request object
+
+        boolean sshCsrProvided = !StringUtil.isEmpty(csr);
+
+        LOGGER.info("ssh certificate request - type: {}, data: {}, identity: {}",
+                certType, sshCsrProvided ? "csr" : "sshcertrequest", identity.getName());
+
         if (ZTSConsts.ZTS_SSH_HOST.equals(certType)) {
 
             // parse our host csr
 
-            if (!StringUtil.isEmpty(csr)) {
+            if (sshCsrProvided) {
 
                 SshHostCsr sshHostCsr = parseSshHostCsr(csr);
                 if (!StringUtil.isEmpty(hostname) && hostnameResolver != null) {
@@ -810,8 +818,7 @@ public class InstanceCertManager {
         // if we have a csr specified then we're going to generate a new
         // empty ssh cert request object with the csr field set
 
-        if (!StringUtil.isEmpty(csr)) {
-            LOGGER.info("processing ssh {} certificate request based on csr", certType);
+        if (sshCsrProvided) {
             sshCertRequest = new SSHCertRequest().setCsr(csr);
         }
 
