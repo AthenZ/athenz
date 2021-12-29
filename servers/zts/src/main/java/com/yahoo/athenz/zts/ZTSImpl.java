@@ -3624,7 +3624,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (sshCertAllowed) {
             Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
 
-            // generate a ssh object for recording
+            // generate an ssh object for recording
 
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, domain + "." + service, instanceId,
                     instancePrivateIp);
@@ -3706,8 +3706,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     InstanceIdentity processProviderSSHRefreshRequest(final Principal principal, final String domain,
             final String provider, final String instanceId, final String sshCsr, SSHCertRequest sshCertRequest,
             final String caller) {
-
-        LOGGER.info("User ssh certificate request from {}", principal.getFullName());
 
         final String principalName = principal.getFullName();
         final String principalDomain = principal.getDomain();
