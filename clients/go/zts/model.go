@@ -3466,6 +3466,132 @@ func (self *JWK) Validate() error {
 }
 
 //
+// OpenIDConfig -
+//
+type OpenIDConfig struct {
+
+	//
+	// url using the https scheme
+	//
+	Issuer string `json:"issuer"`
+
+	//
+	// oauth 2.0 authorization endpoint url
+	//
+	Authorization_endpoint string `json:"authorization_endpoint"`
+
+	//
+	// public server jwk set url
+	//
+	Jwks_uri string `json:"jwks_uri"`
+
+	//
+	// list of supported response types
+	//
+	Response_types_supported []string `json:"response_types_supported"`
+
+	//
+	// list of supported subject identifier types
+	//
+	Subject_types_supported []string `json:"subject_types_supported"`
+
+	//
+	// list of supported algorithms for issued id tokens
+	//
+	Id_token_signing_alg_values_supported []string `json:"id_token_signing_alg_values_supported"`
+
+	//
+	// list of supported id claims
+	//
+	Claims_supported []string `json:"claims_supported,omitempty" rdl:"optional"`
+}
+
+//
+// NewOpenIDConfig - creates an initialized OpenIDConfig instance, returns a pointer to it
+//
+func NewOpenIDConfig(init ...*OpenIDConfig) *OpenIDConfig {
+	var o *OpenIDConfig
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(OpenIDConfig)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *OpenIDConfig) Init() *OpenIDConfig {
+	if self.Response_types_supported == nil {
+		self.Response_types_supported = make([]string, 0)
+	}
+	if self.Subject_types_supported == nil {
+		self.Subject_types_supported = make([]string, 0)
+	}
+	if self.Id_token_signing_alg_values_supported == nil {
+		self.Id_token_signing_alg_values_supported = make([]string, 0)
+	}
+	return self
+}
+
+type rawOpenIDConfig OpenIDConfig
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a OpenIDConfig
+//
+func (self *OpenIDConfig) UnmarshalJSON(b []byte) error {
+	var m rawOpenIDConfig
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := OpenIDConfig(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *OpenIDConfig) Validate() error {
+	if self.Issuer == "" {
+		return fmt.Errorf("OpenIDConfig.issuer is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Issuer)
+		if !val.Valid {
+			return fmt.Errorf("OpenIDConfig.issuer does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Authorization_endpoint == "" {
+		return fmt.Errorf("OpenIDConfig.authorization_endpoint is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Authorization_endpoint)
+		if !val.Valid {
+			return fmt.Errorf("OpenIDConfig.authorization_endpoint does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Jwks_uri == "" {
+		return fmt.Errorf("OpenIDConfig.jwks_uri is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Jwks_uri)
+		if !val.Valid {
+			return fmt.Errorf("OpenIDConfig.jwks_uri does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Response_types_supported == nil {
+		return fmt.Errorf("OpenIDConfig: Missing required field: response_types_supported")
+	}
+	if self.Subject_types_supported == nil {
+		return fmt.Errorf("OpenIDConfig: Missing required field: subject_types_supported")
+	}
+	if self.Id_token_signing_alg_values_supported == nil {
+		return fmt.Errorf("OpenIDConfig: Missing required field: id_token_signing_alg_values_supported")
+	}
+	return nil
+}
+
+//
 // JWKList - JSON Web Key (JWK) List
 //
 type JWKList struct {

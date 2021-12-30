@@ -545,6 +545,20 @@ public class ZTSRDLGeneratedClient {
 
     }
 
+    public OpenIDConfig getOpenIDConfig() {
+        WebTarget target = base.path("/.well-known/openid-configuration");
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(OpenIDConfig.class);
+        default:
+            throw new ResourceException(code, response.readEntity(Object.class));
+        }
+
+    }
+
     public JWKList getJWKList(Boolean rfc) {
         WebTarget target = base.path("/oauth2/keys");
         if (rfc != null) {

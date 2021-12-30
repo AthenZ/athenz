@@ -325,6 +325,38 @@ public class RsrcCtxWrapperTest {
     }
 
     @Test
+    public void testLogPrincipalRoleName() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        principal.setRolePrincipalName("athenz.role");
+
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(com.yahoo.athenz.auth.Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(principal);
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(reqMock, resMock, authListMock, false,
+                authorizerMock, metricMock, timerMetricMock, "apiName");
+
+        wrapper.authenticate();
+        assertEquals("athenz.role", wrapper.logPrincipal());
+        assertEquals("hockey", wrapper.getPrincipalDomain());
+    }
+
+    @Test
     public void testThrowZtsException() {
 
         HttpServletRequest servletRequest = new MockHttpServletRequest();

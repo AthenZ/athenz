@@ -36,6 +36,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     private List<String> tenantDomains = null;
     private int jwkExcCode = 0;
     private int requestCount = 0;
+    private int openIDConfigExcCode = 0;
 
     Map<String, AWSTemporaryCredentials> credsMap = new HashMap<>();
 
@@ -573,5 +574,30 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         } else {
             throw new IllegalArgumentException();
         }
+    }
+
+    public void setOpenIDConfigFailure(int excCode) {
+        this.openIDConfigExcCode = excCode;
+    }
+
+    @Override
+    public OpenIDConfig getOpenIDConfig() {
+
+        if (openIDConfigExcCode != 0) {
+            if (openIDConfigExcCode < 500) {
+                throw new ResourceException(openIDConfigExcCode, "unable to retrieve openid config");
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        OpenIDConfig openIDConfig = new OpenIDConfig();
+        openIDConfig.setIssuer("https://athenz.cloud");
+        openIDConfig.setJwks_uri("https://athenz.cloud/oauth2/keys");
+        openIDConfig.setAuthorization_endpoint("https://athenz.cloud/access");
+        openIDConfig.setSubject_types_supported(Collections.singletonList("public"));
+        openIDConfig.setResponse_types_supported(Collections.singletonList("id_token"));
+        openIDConfig.setId_token_signing_alg_values_supported(Collections.singletonList("RS256"));
+        return openIDConfig;
     }
 }
