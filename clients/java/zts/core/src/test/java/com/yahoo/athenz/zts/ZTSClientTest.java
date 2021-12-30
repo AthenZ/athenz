@@ -1734,6 +1734,45 @@ public class ZTSClientTest {
     }
 
     @Test
+    public void testGetOpenIDConfig() {
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient();
+        ZTSClient.cancelPrefetch();
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        OpenIDConfig openIDConfig = client.getOpenIDConfig();
+        assertNotNull(openIDConfig);
+
+        assertEquals("https://athenz.cloud", openIDConfig.getIssuer());
+        assertEquals("https://athenz.cloud/oauth2/keys", openIDConfig.getJwks_uri());
+        assertEquals("https://athenz.cloud/access", openIDConfig.getAuthorization_endpoint());
+        assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
+        assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());
+        assertEquals(Collections.singletonList("public"), openIDConfig.getSubject_types_supported());
+
+        try {
+            ztsClientMock.setOpenIDConfigFailure(403);
+            client.getOpenIDConfig();
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        // with server exceptions we default back to 400
+
+        try {
+            ztsClientMock.setOpenIDConfigFailure(500);
+            client.getOpenIDConfig();
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.close();
+    }
+
+    @Test
     public void testGetJWKList() {
 
         Principal principal = SimplePrincipal.create("user_domain", "user",

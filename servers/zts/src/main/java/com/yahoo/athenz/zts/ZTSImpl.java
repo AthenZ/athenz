@@ -159,6 +159,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected boolean enableWorkloadStore = false;
     protected AuthzDetailsEntityList systemAuthzDetails = null;
     protected ObjectMapper jsonMapper;
+    protected OpenIDConfig openIDConfig;
+    protected String ztsOpenIDIssuer;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -342,6 +344,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // load the StatusChecker
 
         loadStatusChecker();
+
+        // setup open id config object
+
+        setupOpenIDConfig();
+    }
+
+    private void setupOpenIDConfig() {
+        openIDConfig = new OpenIDConfig();
+        openIDConfig.setIssuer(ztsOpenIDIssuer);
+        openIDConfig.setJwks_uri(ztsOpenIDIssuer + "/oauth2/keys?rfc=true");
+        openIDConfig.setAuthorization_endpoint(ztsOpenIDIssuer + "/access");
+        openIDConfig.setSubject_types_supported(Collections.singletonList("public"));
+        openIDConfig.setResponse_types_supported(Collections.singletonList("id_token"));
+        openIDConfig.setId_token_signing_alg_values_supported(
+                Collections.singletonList(privateKey.getAlgorithm().getValue()));
     }
 
     private void setNotificationManager() {
@@ -521,6 +538,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // retrieve our oauth settings
 
         ztsOAuthIssuer = System.getProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER, serverHostName);
+        ztsOpenIDIssuer = System.getProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, ztsOAuthIssuer);
 
         // set up our health check file
 
@@ -4323,7 +4341,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         return successServerStatus;
     }
-    
+
+    @Override
+    public OpenIDConfig getOpenIDConfig(ResourceContext ctx) {
+
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+
+        validateRequest(ctx.request(), principalDomain, caller);
+        return openIDConfig;
+    }
+
     @Override
     public Schema getRdlSchema(ResourceContext context) {
         return schema;

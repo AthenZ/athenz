@@ -943,6 +943,20 @@ public class ZTSClient implements Closeable {
     }
 
     /**
+     * Return OpenID Configuration Metadata object
+     * @return configuration object. ZTSClientException will be thrown in case of failure
+     */
+    public OpenIDConfig getOpenIDConfig() {
+        try {
+            return ztsClient.getOpenIDConfig();
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Retrieve list of ZTS Server public keys in Json WEB Key (JWK) format
      * @param rfcCurveNames EC curve names - use values defined in RFC only
      * @return list of public keys (JWKs) on success. ZTSClientException will be thrown in case of failure

@@ -412,6 +412,16 @@ func init() {
 	tJWK.Field("e", "String", true, nil, "rsa public exponent value")
 	sb.AddType(tJWK.Build())
 
+	tOpenIDConfig := rdl.NewStructTypeBuilder("Struct", "OpenIDConfig")
+	tOpenIDConfig.Field("issuer", "String", false, nil, "url using the https scheme")
+	tOpenIDConfig.Field("authorization_endpoint", "String", false, nil, "oauth 2.0 authorization endpoint url")
+	tOpenIDConfig.Field("jwks_uri", "String", false, nil, "public server jwk set url")
+	tOpenIDConfig.ArrayField("response_types_supported", "String", false, "list of supported response types")
+	tOpenIDConfig.ArrayField("subject_types_supported", "String", false, "list of supported subject identifier types")
+	tOpenIDConfig.ArrayField("id_token_signing_alg_values_supported", "String", false, "list of supported algorithms for issued id tokens")
+	tOpenIDConfig.ArrayField("claims_supported", "String", true, "list of supported id claims")
+	sb.AddType(tOpenIDConfig.Build())
+
 	tJWKList := rdl.NewStructTypeBuilder("Struct", "JWKList")
 	tJWKList.Comment("JSON Web Key (JWK) List")
 	tJWKList.ArrayField("keys", "JWK", false, "array of JWKs")
@@ -705,6 +715,9 @@ func init() {
 	mPostSSHCertRequest.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 	mPostSSHCertRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostSSHCertRequest.Build())
+
+	mGetOpenIDConfig := rdl.NewResourceBuilder("OpenIDConfig", "GET", "/.well-known/openid-configuration")
+	sb.AddResource(mGetOpenIDConfig.Build())
 
 	mGetJWKList := rdl.NewResourceBuilder("JWKList", "GET", "/oauth2/keys")
 	mGetJWKList.Input("rfc", "Bool", false, "rfc", "", true, false, "flag to indicate ec curve names are restricted to RFC values")

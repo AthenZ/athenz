@@ -34,6 +34,7 @@ public interface ZTSHandler {
     CertificateAuthorityBundle getCertificateAuthorityBundle(ResourceContext context, String name);
     Status getStatus(ResourceContext context);
     Response postSSHCertRequest(ResourceContext context, SSHCertRequest certRequest);
+    OpenIDConfig getOpenIDConfig(ResourceContext context);
     JWKList getJWKList(ResourceContext context, Boolean rfc);
     AccessTokenResponse postAccessTokenRequest(ResourceContext context, String request);
     RoleCertificate postRoleCertificateRequestExt(ResourceContext context, RoleCertificateRequest req);

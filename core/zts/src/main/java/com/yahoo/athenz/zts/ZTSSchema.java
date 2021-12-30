@@ -356,6 +356,15 @@ public class ZTSSchema {
             .field("n", "String", true, "rsa modulus value")
             .field("e", "String", true, "rsa public exponent value");
 
+        sb.structType("OpenIDConfig")
+            .field("issuer", "String", false, "url using the https scheme")
+            .field("authorization_endpoint", "String", false, "oauth 2.0 authorization endpoint url")
+            .field("jwks_uri", "String", false, "public server jwk set url")
+            .arrayField("response_types_supported", "String", false, "list of supported response types")
+            .arrayField("subject_types_supported", "String", false, "list of supported subject identifier types")
+            .arrayField("id_token_signing_alg_values_supported", "String", false, "list of supported algorithms for issued id tokens")
+            .arrayField("claims_supported", "String", true, "list of supported id claims");
+
         sb.structType("JWKList")
             .comment("JSON Web Key (JWK) List")
             .arrayField("keys", "JWK", false, "array of JWKs");
@@ -718,6 +727,9 @@ public class ZTSSchema {
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
+
+        sb.resource("OpenIDConfig", "GET", "/.well-known/openid-configuration")
+            .expected("OK");
 
         sb.resource("JWKList", "GET", "/oauth2/keys")
             .queryParam("rfc", "rfc", "Bool", false, "flag to indicate ec curve names are restricted to RFC values")

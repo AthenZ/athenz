@@ -176,6 +176,7 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES, "Athenz, Inc.|My Test Company|Athenz|Yahoo");
         System.setProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST, "/zts/v1/schema,/zts/v1/status");
         System.setProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "screwdriver");
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, "https://athenz.cloud:4443/zts/v1");
 
         // setup our metric class
 
@@ -4146,6 +4147,8 @@ public class ZTSImplTest {
         long expiry = 3600;
         RoleCertificateRequest req = new RoleCertificateRequest()
                 .setCsr(ROLE_CERT_CORETECH_REQUEST).setExpiryTime(expiry);
+        req.setPrevCertNotAfter(Timestamp.fromCurrentTime());
+        req.setPrevCertNotBefore(Timestamp.fromCurrentTime());
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
@@ -12892,5 +12895,22 @@ public class ZTSImplTest {
             "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
         ResourceContext context = createResourceContext(principal);
         ztsImpl.publishChangeMessage(context, 200);
+    }
+
+    @Test
+    public void testGetOpenIDConfig() {
+
+        ResourceContext ctx = createResourceContext(null);
+
+        OpenIDConfig openIDConfig = zts.getOpenIDConfig(ctx);
+        assertNotNull(openIDConfig);
+
+        assertEquals("https://athenz.cloud:4443/zts/v1", openIDConfig.getIssuer());
+        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true", openIDConfig.getJwks_uri());
+        assertEquals("https://athenz.cloud:4443/zts/v1/access", openIDConfig.getAuthorization_endpoint());
+
+        assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
+        assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());
+        assertEquals(Collections.singletonList("public"), openIDConfig.getSubject_types_supported());
     }
 }

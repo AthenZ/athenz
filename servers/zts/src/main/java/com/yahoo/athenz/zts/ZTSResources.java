@@ -752,6 +752,29 @@ public class ZTSResources {
     }
 
     @GET
+    @Path("/.well-known/openid-configuration")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "")
+    public OpenIDConfig getOpenIDConfig(
+        ) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getOpenIDConfig");
+            return this.delegate.getOpenIDConfig(context);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getOpenIDConfig");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/oauth2/keys")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "")

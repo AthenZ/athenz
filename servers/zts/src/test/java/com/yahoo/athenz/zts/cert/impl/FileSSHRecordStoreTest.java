@@ -51,6 +51,12 @@ public class FileSSHRecordStoreTest {
     }
 
     @Test
+    public void testEnableNotifications() {
+        FileSSHRecordStore store = new FileSSHRecordStore(new File("/tmp"));
+        assertFalse(store.enableNotifications(null, null, null));
+    }
+
+    @Test
     public void testFileSSHRecordStoreInvalidDirecory() {
         try {
             new FileSSHRecordStore(new File("/proc/usr/root"));
