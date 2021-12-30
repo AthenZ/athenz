@@ -18,6 +18,7 @@ package com.yahoo.athenz.container.log;
 import java.io.IOException;
 import java.util.Locale;
 
+import org.apache.http.conn.util.InetAddressUtils;
 import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -90,7 +91,7 @@ public class AthenzRequestLog extends NCSARequestLog {
         final Object addlQuery = request.getAttribute(REQUEST_URI_ADDL_QUERY);
         if (addlQuery != null) {
             buf.append('?');
-            buf.append(addlQuery.toString());
+            buf.append(addlQuery);
         }
     }
 
@@ -119,6 +120,20 @@ public class AthenzRequestLog extends NCSARequestLog {
         }
     }
 
+    private void logRemoteAddr(StringBuilder buf, Request request) {
+
+        String addr = request.getHeader(HttpHeader.X_FORWARDED_FOR.toString());
+
+        // if we have no x-forwarded-for header or if the value is specified,
+        // but it's not a valid ipv4 or ipv6 address, we'll fall back to the
+        // standard remote addr value from the request
+
+        if (addr == null || (!InetAddressUtils.isIPv4Address(addr) && !InetAddressUtils.isIPv6Address(addr))) {
+            addr = request.getRemoteAddr();
+        }
+        buf.append(addr);
+    }
+
     @Override
     public void log(Request request, Response response) {
         try {
@@ -129,11 +144,7 @@ public class AthenzRequestLog extends NCSARequestLog {
             StringBuilder buf = TLS_BUILDER.get();
             buf.setLength(0);
 
-            String addr = request.getHeader(HttpHeader.X_FORWARDED_FOR.toString());
-            if (addr == null) {
-                addr = request.getRemoteAddr();
-            }
-            buf.append(addr);
+            logRemoteAddr(buf, request);
             buf.append(" - ");
             logPrincipal(buf, request);
 
