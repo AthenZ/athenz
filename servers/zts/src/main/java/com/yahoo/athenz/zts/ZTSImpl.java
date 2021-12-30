@@ -1955,7 +1955,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         accessToken.setExpiryTime(iat + tokenTimeout);
         accessToken.setUserId(principalName);
         accessToken.setSubject(principalName);
-        accessToken.setIssuer(useOpenIDIssuer ? ztsOpenIDIssuer: ztsOAuthIssuer);
+        accessToken.setIssuer(useOpenIDIssuer ? ztsOpenIDIssuer : ztsOAuthIssuer);
         accessToken.setProxyPrincipal(proxyUser);
         accessToken.setScope(new ArrayList<>(roles));
         accessToken.setAuthorizationDetails(authzDetails);
