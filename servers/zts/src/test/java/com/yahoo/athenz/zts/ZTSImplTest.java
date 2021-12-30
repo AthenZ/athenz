@@ -9693,6 +9693,79 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testPostAccessTokenRequestOpenIdScopeOpenIDIssuer() throws UnsupportedEncodingException {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, "https://openid.athenz.cloud:4443/zts/v1");
+        System.setProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER, "https://oauth.athenz.cloud:4443/zts/v1");
+
+        testPostAccessTokenRequestOpenIdScope("https://openid.athenz.cloud:4443/zts/v1", "&openid_issuer=true");
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER);
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER);
+    }
+
+    @Test
+    public void testPostAccessTokenRequestOpenIdScopeOAuthIssuer() throws UnsupportedEncodingException {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, "https://openid.athenz.cloud:4443/zts/v1");
+        System.setProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER, "https://oauth.athenz.cloud:4443/zts/v1");
+
+        testPostAccessTokenRequestOpenIdScope("https://oauth.athenz.cloud:4443/zts/v1", "&openid_issuer=false");
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER);
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER);
+    }
+
+    private void testPostAccessTokenRequestOpenIdScope(final String issuer, final String reqComp) throws UnsupportedEncodingException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String scope = URLEncoder.encode("coretech:domain openid coretech:service.api", "UTF-8");
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=" + scope + "&expires_in=240" + reqComp);
+        assertNotNull(resp);
+        assertEquals("coretech:role.writers openid", resp.getScope());
+
+        String accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
+
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals(issuer, claims.getBody().getIssuer());
+        assertEquals("writers", claims.getBody().get("scope"));
+        assertEquals(240 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
+
+        String idTokenStr = resp.getId_token();
+        assertNotNull(idTokenStr);
+
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(idTokenStr);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals(issuer, claims.getBody().getIssuer());
+    }
+
+    @Test
     public void testPostAccessTokenRequestOpenIdScopeMaxTimeout() throws UnsupportedEncodingException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
