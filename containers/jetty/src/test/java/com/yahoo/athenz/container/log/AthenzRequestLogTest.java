@@ -72,6 +72,9 @@ public class AthenzRequestLogTest {
         Request request = Mockito.mock(Request.class);
         Response response = Mockito.mock(Response.class);
 
+        //invalid ip so it should be ignored
+        Mockito.when(request.getHeader(HttpHeader.X_FORWARDED_FOR.toString())).thenReturn("invalid-ip");
+
         Mockito.when(request.getRemoteAddr()).thenReturn("10.10.11.12");
         Mockito.when(request.getMethod()).thenReturn("GET");
         Mockito.when(request.getOriginalURI()).thenReturn("/original-uri");
@@ -109,6 +112,9 @@ public class AthenzRequestLogTest {
         Request request = Mockito.mock(Request.class);
         Response response = Mockito.mock(Response.class);
 
+        // valid IPv4 value which should be accepted
+        Mockito.when(request.getHeader(HttpHeader.X_FORWARDED_FOR.toString())).thenReturn("10.11.12.13");
+
         Mockito.when(request.getRemoteAddr()).thenReturn("10.10.11.12");
         Mockito.when(request.getMethod()).thenReturn("GET");
         Mockito.when(request.getOriginalURI()).thenReturn("/original-uri");
@@ -129,7 +135,7 @@ public class AthenzRequestLogTest {
         File file = new File(TEST_FILE);
         final String data = new String(Files.readAllBytes(file.toPath()));
 
-        assertTrue(data.startsWith("10.10.11.12 - - [01/Jan/1970:00:00:00 +0000] \"GET /original-uri HTTP/1.1\" 401 100 \"-\" \"-\" 10"), data);
+        assertTrue(data.startsWith("10.11.12.13 - - [01/Jan/1970:00:00:00 +0000] \"GET /original-uri HTTP/1.1\" 401 100 \"-\" \"-\" 10"), data);
         assertTrue(data.endsWith("Auth-None - -\n"), data);
 
         Files.delete(file.toPath());
@@ -145,6 +151,9 @@ public class AthenzRequestLogTest {
 
         Request request = Mockito.mock(Request.class);
         Response response = Mockito.mock(Response.class);
+
+        // valid IPv6 value which should be accepted
+        Mockito.when(request.getHeader(HttpHeader.X_FORWARDED_FOR.toString())).thenReturn("2001:0db8:85a3:0000:0000:8a2e:0370:7334");
 
         Mockito.when(request.getRemoteAddr()).thenReturn("10.10.11.12");
         Mockito.when(request.getMethod()).thenReturn("GET");
@@ -166,7 +175,7 @@ public class AthenzRequestLogTest {
         File file = new File(TEST_FILE);
         final String data = new String(Files.readAllBytes(file.toPath()));
 
-        assertTrue(data.startsWith("10.10.11.12 - - [01/Jan/1970:00:00:00 +0000] \"GET /original-uri HTTP/1.1\" 401 5 \"-\" \"-\" 3"), data);
+        assertTrue(data.startsWith("2001:0db8:85a3:0000:0000:8a2e:0370:7334 - - [01/Jan/1970:00:00:00 +0000] \"GET /original-uri HTTP/1.1\" 401 5 \"-\" \"-\" 3"), data);
         assertTrue(data.endsWith("Auth-None - -\n"), data);
 
         Files.delete(file.toPath());
