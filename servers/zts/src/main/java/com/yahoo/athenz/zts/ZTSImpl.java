@@ -190,6 +190,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String KEY_PROXY_FOR_PRINCIPAL = "proxy_for_principal";
     private static final String KEY_AUTHORIZATION_DETAILS = "authorization_details";
     private static final String KEY_PROXY_PRINCIPAL_SPIFFE_URIS = "proxy_principal_spiffe_uris";
+    private static final String KEY_OPENID_ISSUER = "openid_issuer";
     private static final String KEY_TYPE = "type";
 
     private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
@@ -1778,6 +1779,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         String authzDetails = null;
         List<String> proxyPrincipalsSpiffeUris = null;
         int expiryTime = 0;
+        boolean useOpenIDIssuer = false;
 
         String[] comps = request.split("&");
         for (String comp : comps) {
@@ -1819,6 +1821,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 case KEY_PROXY_PRINCIPAL_SPIFFE_URIS:
                     proxyPrincipalsSpiffeUris = getProxyPrincipalSpiffeUris(value.toLowerCase(),
                             principalDomain, caller);
+                    break;
+                case KEY_OPENID_ISSUER:
+                    useOpenIDIssuer = Boolean.parseBoolean(value);
                     break;
             }
         }
@@ -1950,7 +1955,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         accessToken.setExpiryTime(iat + tokenTimeout);
         accessToken.setUserId(principalName);
         accessToken.setSubject(principalName);
-        accessToken.setIssuer(ztsOAuthIssuer);
+        accessToken.setIssuer(useOpenIDIssuer ? ztsOpenIDIssuer : ztsOAuthIssuer);
         accessToken.setProxyPrincipal(proxyUser);
         accessToken.setScope(new ArrayList<>(roles));
         accessToken.setAuthorizationDetails(authzDetails);
@@ -1981,7 +1986,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             idToken.setVersion(1);
             idToken.setAudience(tokenRequest.getDomainName() + "." + serviceName);
             idToken.setSubject(principalName);
-            idToken.setIssuer(ztsOAuthIssuer);
+            idToken.setIssuer(useOpenIDIssuer ? ztsOpenIDIssuer : ztsOAuthIssuer);
 
             // id tokens are only valid for up to 12 hours max
             // (value configured as a system property).
