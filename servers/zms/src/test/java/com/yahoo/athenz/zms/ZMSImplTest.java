@@ -2599,6 +2599,97 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testDeleteRoleAssociatedToPolicy() {
+
+        String domain = "testDeleteRoleAssociatedToPolicy";
+        String role = "associatedRole";
+        String policy = "policy1";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domain,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        Role relatedRole = zmsTestInitializer.createRoleObject(domain, role, null, "user.joe",
+                "user.jane");
+        zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), domain, role, zmsTestInitializer.getAuditRef(), relatedRole);
+
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domain, policy, role,
+                "update_members", domain + ":role." + role, AssertionEffect.ALLOW);
+
+        zmsTestInitializer.getZms().putPolicy(zmsTestInitializer.getMockDomRsrcCtx(), domain, policy, zmsTestInitializer.getAuditRef(), policy1);
+
+        try {
+            zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(), domain, role, zmsTestInitializer.getAuditRef());
+            fail("should be fail");
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("it cannot be deleted"));
+        } finally {
+            zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domain, zmsTestInitializer.getAuditRef());
+        }
+    }
+
+    @Test
+    public void testValidateRoleNotAssociatedToPolicy() {
+        String relatedRole = "role1";
+        String domainName = "dom1";
+        String caller = "testValidateRoleNotAssociatedToPolicy";
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, "policy1", relatedRole, "", "", AssertionEffect.ALLOW );
+        List<Policy> policies = new ArrayList<Policy>(){
+            {
+                add(policy);
+            }
+        };
+
+        try {
+            zmsTestInitializer.getZms().validateRoleNotAssociatedToPolicy(policies, relatedRole, domainName, caller);
+            fail("should be fail");
+        } catch (ResourceException ex){
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("it cannot be deleted"));
+        }
+
+        zmsTestInitializer.getZms().validateRoleNotAssociatedToPolicy(policies, "not_related_role", domainName, caller);
+    }
+
+    @Test
+    public void testValidateRoleAssociatedIsExist(){
+        String caller = "testValidateRoleAssociatedIsExist";
+        String domainName = "dom1";
+        String existRole = "role1";
+        String doesNotExistRole = "role2";
+        Set<String> roleNames = new HashSet<String>(){
+            {
+                add("admin");
+                add(existRole);
+            }
+        };
+
+        zmsTestInitializer.getZms().validateRoleAssociatedIsExist(roleNames, ResourceUtils.roleResourceName(domainName, existRole), domainName, caller);
+        try {
+            zmsTestInitializer.getZms().validateRoleAssociatedIsExist(roleNames, ResourceUtils.roleResourceName(domainName, doesNotExistRole), "policy1", caller);
+            fail("should be fail");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("that associated to an assertion"));
+        }
+
+        // wild card case
+
+        String existWildCard = ResourceUtils.roleResourceName(domainName, "Role*".toLowerCase());
+        String doesNotExistWildCard = ResourceUtils.roleResourceName(domainName, "Wild*".toLowerCase());
+
+        zmsTestInitializer.getZms().validateRoleAssociatedIsExist(roleNames, existWildCard, domainName,  caller);
+        try {
+            zmsTestInitializer.getZms().validateRoleAssociatedIsExist(roleNames, ResourceUtils.roleResourceName(domainName, doesNotExistWildCard), domainName, caller);
+            fail("should be fail");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("that associated to an assertion"));
+        }
+
+    }
+
+    @Test
     public void testGetOverdueReview() {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("test-domain1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
@@ -3756,7 +3847,7 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("PolicyListDom1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
-
+        addRoleNeededForTest("PolicyListDom1", "Role1");
         Policy policyVer0 = zmsTestInitializer.createPolicyObject("PolicyListDom1", "PolicyName", null, true);
         zmsTestInitializer.getZms().putPolicy(zmsTestInitializer.getMockDomRsrcCtx(), "PolicyListDom1", "PolicyName", zmsTestInitializer.getAuditRef(), policyVer0);
         zmsTestInitializer.getZms().putPolicyVersion(zmsTestInitializer.getMockDomRsrcCtx(), "PolicyListDom1", "PolicyName", new PolicyOptions().setVersion("version1"), zmsTestInitializer.getAuditRef());
@@ -3862,7 +3953,7 @@ public class ZMSImplTest {
         assertEquals(obj.getAction(), "*");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
         assertEquals(obj.getResource(), "policygetdom1:*");
-        assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
 
         boolean foundError = false;
         System.err.println("testGetPolicy: Number of lines: " + aLogMsgs.size());
@@ -3873,7 +3964,7 @@ public class ZMSImplTest {
             assertTrue(msg.contains("CLIENT-IP=(" + ZMSTestInitializer.MOCKCLIENTADDR + ")"), msg);
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"*\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:*\"}]");
+            int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.admin\", \"action\": \"*\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:*\"}]");
             assertTrue(index < index2, msg);
             index2 = msg.indexOf("ERROR");
             assertEquals(index2, -1, msg);
@@ -3901,7 +3992,7 @@ public class ZMSImplTest {
             assertTrue(msg.contains("CLIENT-IP=(" + ZMSTestInitializer.MOCKCLIENTADDR + ")"), msg);
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"layup\", \"effect\": \"DENY\", \"resource\": \"policygetdom1:*\"}]");
+            int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.admin\", \"action\": \"layup\", \"effect\": \"DENY\", \"resource\": \"policygetdom1:*\"}]");
             assertTrue(index < index2, msg);
             index2 = msg.indexOf("ERROR");
             assertEquals(index2, -1, msg);
@@ -3964,7 +4055,7 @@ public class ZMSImplTest {
         assertEquals(obj.getAction(), "*");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
         assertEquals(obj.getResource(), "policygetdom1:*");
-        assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
         obj = assertList.get(1);
         assertEquals(obj.getAction(), "updatetest");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
@@ -3979,7 +4070,7 @@ public class ZMSImplTest {
         assertEquals(obj.getAction(), "*");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
         assertEquals(obj.getResource(), "policygetdom1:*");
-        assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
 
         // Verify assertion for New-Version2
         assertList = policyVer2.getAssertions();
@@ -3989,7 +4080,7 @@ public class ZMSImplTest {
         assertEquals(obj.getAction(), "*");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
         assertEquals(obj.getResource(), "policygetdom1:*");
-        assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
         obj = assertList.get(1);
         assertEquals(obj.getAction(), "updatetest");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
@@ -4005,7 +4096,7 @@ public class ZMSImplTest {
             assertTrue(msg.contains("CLIENT-IP=(" + ZMSTestInitializer.MOCKCLIENTADDR + ")"), msg);
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"*\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:*\"}]");
+            int index2 = msg.indexOf("\"added-assertions\": [{\"role\": \"policygetdom1:role.admin\", \"action\": \"*\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:*\"}]");
             assertTrue(index < index2, msg);
             index2 = msg.indexOf("ERROR");
             assertEquals(index2, -1, msg);
@@ -4123,7 +4214,7 @@ public class ZMSImplTest {
         assertEquals(obj.getAction(), "*");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
         assertEquals(obj.getResource(), "policygetdom1:*");
-        assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
 
         // Now we'll create a new version based on the now disabled version "0". This will contain that version's assertions instead of the active version.
         PolicyOptions policyOptions = new PolicyOptions();
@@ -4143,7 +4234,7 @@ public class ZMSImplTest {
         assertEquals(obj.getAction(), "*");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
         assertEquals(obj.getResource(), "policygetdom1:*");
-        assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
         obj = assertList.get(1);
         assertEquals(obj.getAction(), "updatetest");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
@@ -4160,9 +4251,32 @@ public class ZMSImplTest {
         assertEquals(obj.getAction(), "*");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
         assertEquals(obj.getResource(), "policygetdom1:*");
-        assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
 
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+    }
+
+    @Test
+    public void testPutPolicyWithAssociatedRoleDoesNotExist() {
+        String domainName = "PutPolicyDom1";
+        String policyName = "Policy1";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        when(zmsTestInitializer.getMockDomRsrcCtx().getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, policyName, "doesn't_exist_role", "", "", AssertionEffect.ALLOW);
+
+        // try to add - should be fill
+
+        try{
+            zmsTestInitializer.getZms().putPolicy(zmsTestInitializer.getMockDomRsrcCtx(), domainName, policyName, zmsTestInitializer.getAuditRef(), policy);
+            fail("should be fail");
+        } catch (ResourceException ex){
+            assertEquals(ex.getCode(), 400);
+        } finally {
+            zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+        }
     }
 
     @Test
@@ -4282,6 +4396,18 @@ public class ZMSImplTest {
         assertion.setEffect(AssertionEffect.DENY);
         assertion.setResource(domainName + ":test-resource");
         assertion.setRole(ResourceUtils.roleResourceName(domainName, "Role1"));
+
+        // we're not allowed to add an assertion that the associated role doesn't exist
+
+        try {
+            zmsImpl.putAssertionPolicyVersion(zmsTestInitializer.getMockDomRsrcCtx(), domainName, policyName, newVersion, zmsTestInitializer.getAuditRef(), assertion);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("does not exist"));
+            }
+        // add the doesn't exist role - now the addition should be successful
+        addRoleNeededForTest(domainName,"Role1");
         zmsImpl.putAssertionPolicyVersion(zmsTestInitializer.getMockDomRsrcCtx(), domainName, policyName, newVersion, zmsTestInitializer.getAuditRef(), assertion);
 
         // we're not allowed to create assertions in the admin policy
@@ -4338,7 +4464,7 @@ public class ZMSImplTest {
         assertEquals(obj.getAction(), "*");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
         assertEquals(obj.getResource(), "policygetdom1:*");
-        assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
         assertNull(obj.getConditions());
         obj = assertList.get(1);
         assertEquals(obj.getAction(), "testaction");
@@ -4403,7 +4529,7 @@ public class ZMSImplTest {
         assertEquals(newActivePolicy.getName(), "policygetdom1:policy.policy1");
         assertEquals(newActivePolicy.getAssertions().size(), 1);
         assertEquals(newActivePolicy.getAssertions().get(0).getResource(), "policygetdom1:*");
-        assertEquals(newActivePolicy.getAssertions().get(0).getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
+        assertEquals(newActivePolicy.getAssertions().get(0).getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
 
         // Verify fetching other versions show them as non-active
         Policy oldVersion = zmsImpl.getPolicyVersion(zmsTestInitializer.getMockDomRsrcCtx(), domainName, policyName, "0");
@@ -4472,6 +4598,7 @@ public class ZMSImplTest {
         when(zmsTestInitializer.getMockDomRsrcCtx().getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
         zmsImpl.postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
+        addRoleNeededForTest("PolicyGetDom1", "Role1");
         Policy policy1 = zmsTestInitializer.createPolicyObject("PolicyGetDom1", "Policy1", "Role1", "ActioN1", "PolicyGetDom1:SomeResourcE", AssertionEffect.ALLOW);
         policy1.setCaseSensitive(true);
         zmsImpl.putPolicy(zmsTestInitializer.getMockDomRsrcCtx(), "PolicyGetDom1", "Policy1", zmsTestInitializer.getAuditRef(), policy1);
@@ -4649,6 +4776,8 @@ public class ZMSImplTest {
         // Make the assertions in the policy case sensitive with regards to action and resource
         policy1.setCaseSensitive(true);
 
+        addRoleNeededForTest("PolicyAddDom1", "provider");
+
         // Create assertion2
         Assertion assertion2 = new Assertion();
         assertion2.setAction("ReaD");
@@ -4772,12 +4901,14 @@ public class ZMSImplTest {
 
         // now replace the old assertion with a new ones
         //
+        addRoleNeededForTest(domain, "librarian");
         Assertion assertionA = new Assertion();
         assertionA.setResource(domain + ":books");
         assertionA.setAction("READ");
         assertionA.setRole(domain + ":role.librarian");
         assertionA.setEffect(AssertionEffect.ALLOW);
 
+        addRoleNeededForTest(domain, "astronaut");
         Assertion assertionB = new Assertion();
         assertionB.setResource(domain + ":jupiter");
         assertionB.setAction("TRAVEL");
@@ -4799,6 +4930,11 @@ public class ZMSImplTest {
         assertEquals(newAssertions.size(), resAssertsB.size());
 
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domain, zmsTestInitializer.getAuditRef());
+    }
+
+    private void addRoleNeededForTest(String domain, String roleName){
+        Role role = zmsTestInitializer.createRoleObject(domain, roleName, null);
+        zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), domain, roleName, zmsTestInitializer.getAuditRef(), role);
     }
 
     @Test
@@ -5044,7 +5180,7 @@ public class ZMSImplTest {
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
             int index2 = msg.indexOf("{\"name\": \"policygetdom1:policy.policy1\", \"version\": \"new-version1\", \"active\": \"false\", \"modified\": ");
-            int index3 = msg.indexOf(", \"deleted-assertions\": [{\"role\": \"policygetdom1:role.role1\", \"action\": \"*\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:*\"}]");
+            int index3 = msg.indexOf(", \"deleted-assertions\": [{\"role\": \"policygetdom1:role.admin\", \"action\": \"*\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:*\"}]");
             assertTrue(index < index2, msg);
             assertTrue(index2 < index3, msg);
             index2 = msg.indexOf("ERROR");
@@ -5068,7 +5204,7 @@ public class ZMSImplTest {
         assertEquals(obj.getAction(), "*");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
         assertEquals(obj.getResource(), "policygetdom1:*");
-        assertEquals(obj.getRole(), "PolicyGetDom1:role.Role1".toLowerCase());
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
         obj = assertList.get(1);
         assertEquals(obj.getAction(), "updatetest");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
@@ -9760,6 +9896,7 @@ public class ZMSImplTest {
     @Test
     public void testGetDomainDataCheck() {
 
+        String caller = "testGetDomainDataCheck";
         String tenantDomainName = "testGetDomainDataCheck";
         TopLevelDomain tenDom = zmsTestInitializer.createTopLevelDomainObject(tenantDomainName,
                 "Test Provider Domain", "testOrg", zmsTestInitializer.getAdminUser());
@@ -9824,7 +9961,12 @@ public class ZMSImplTest {
         assertList = policy.getAssertions();
         assertList.add(assertion);
         policy.setAssertions(assertList);
-        zmsTestInitializer.getZms().putPolicy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName, "Policy2", zmsTestInitializer.getAuditRef(), policy);
+
+        // since we can't put policy that its assertion has a non-existent role
+        // we're going to access the store object directly to
+        // accomplish that for our unit test
+        AthenzObject.POLICY.convertToLowerCase(policy);
+        zmsTestInitializer.getZms().dbService.executePutPolicy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName.toLowerCase(), "Policy2".toLowerCase(), policy, zmsTestInitializer.getAuditRef(), caller);
 
         ddc = zmsTestInitializer.getZms().getDomainDataCheck(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName);
         assertNotNull(ddc);
@@ -9862,7 +10004,12 @@ public class ZMSImplTest {
         assertList = policy.getAssertions();
         assertList.add(assertion);
         policy.setAssertions(assertList);
-        zmsTestInitializer.getZms().putPolicy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName, "Policy2", zmsTestInitializer.getAuditRef(), policy);
+
+        // since we can't put policy that its assertion has a non-existent role
+        // we're going to access the store object directly to
+        // accomplish that for our unit test
+        AthenzObject.POLICY.convertToLowerCase(policy);
+        zmsTestInitializer.getZms().dbService.executePutPolicy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName.toLowerCase(), "Policy2".toLowerCase(), policy, zmsTestInitializer.getAuditRef(), caller);
 
         ddc = zmsTestInitializer.getZms().getDomainDataCheck(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName);
         assertNotNull(ddc);
@@ -9888,7 +10035,7 @@ public class ZMSImplTest {
         // test incomplete tenancy setup
         // put tenancy for provider
         String provEndPoint = "http://localhost:8090/provider";
-        String provSvc      = "storage";
+        String provSvc = "storage";
         ServiceIdentity service = zmsTestInitializer.createServiceObject(
                 provDomainSub, provSvc, provEndPoint,
                 "/usr/bin/java", "root", "users", "localhost");
@@ -9955,7 +10102,7 @@ public class ZMSImplTest {
 
         // test provider should report tenant is missing
         // remove the assume_role policies from the tenant
-        zmsTestInitializer.getZms().deleteTenancy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName,  provDomainSub + "." + provSvc, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTenancy(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName, provDomainSub + "." + provSvc, zmsTestInitializer.getAuditRef());
 
         ddc = zmsTestInitializer.getZms().getDomainDataCheck(zmsTestInitializer.getMockDomRsrcCtx(), provDomainSub);
         assertNotNull(ddc);
@@ -10148,7 +10295,6 @@ public class ZMSImplTest {
         // then everything in sync for this tenant
         zmsTestInitializer.getZms().deleteProviderResourceGroupRoles(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName, provDomainSub, provSvc,
                 "ravers", zmsTestInitializer.getAuditRef());
-
         ddc = zmsTestInitializer.getZms().getDomainDataCheck(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomainName);
         assertNotNull(ddc);
         assertEquals(7, ddc.getPolicyCount());
@@ -11276,6 +11422,7 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
+        addRoleNeededForTest(domainName, "role1");
         Assertion assertion = new Assertion();
         assertion.setAction("read");
         assertion.setEffect(AssertionEffect.ALLOW);
@@ -11301,6 +11448,7 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
+        addRoleNeededForTest(domainName, "Role1");
         Assertion assertion = new Assertion();
         assertion.setAction("read");
         assertion.setEffect(AssertionEffect.ALLOW);
@@ -11372,6 +11520,7 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
 
+        addRoleNeededForTest(domainName, "provider");
         Assertion assertion = new Assertion();
         assertion.setAction("read");
         assertion.setEffect(AssertionEffect.ALLOW);
@@ -12695,7 +12844,7 @@ public class ZMSImplTest {
         AthenzObject.POLICY.convertToLowerCase(policy);
         assertEquals(policy.getName(), "coretech:policy.newpolicy");
         Assertion assertion = policy.getAssertions().get(0);
-        assertEquals(assertion.getRole(), "coretech:role.role1");
+        assertEquals(assertion.getRole(), "coretech:role.admin");
     }
 
     @Test
@@ -15482,20 +15631,27 @@ public class ZMSImplTest {
     @Test
     public void testValidatePolicyAssertionsValid() {
 
+        String domainName = "domain1";
+        String roleName = "role1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+
+        addRoleNeededForTest(domainName, roleName);
         Assertion assertion = new Assertion();
         assertion.setAction("update");
         assertion.setEffect(AssertionEffect.ALLOW);
         assertion.setResource("domain1:resource1");
-        assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, roleName));
 
         List<Assertion> assertList = new ArrayList<>();
         assertList.add(assertion);
 
         assertion = new Assertion();
-        assertion.setAction("update");
+        assertion.setAction("play");
         assertion.setEffect(AssertionEffect.ALLOW);
         assertion.setResource("*:resource1");
-        assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, roleName));
 
         assertList.add(assertion);
 
@@ -15503,7 +15659,7 @@ public class ZMSImplTest {
         assertion.setAction("update");
         assertion.setEffect(AssertionEffect.ALLOW);
         assertion.setResource("domain1:");
-        assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, roleName));
 
         assertList.add(assertion);
 
@@ -15520,16 +15676,25 @@ public class ZMSImplTest {
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
+
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
     public void testValidatePolicyAssertionValid() {
 
+        String domainName = "domain1";
+        String roleName = "role1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+
+        addRoleNeededForTest(domainName, roleName);
         Assertion assertion = new Assertion();
         assertion.setAction("update");
         assertion.setEffect(AssertionEffect.ALLOW);
         assertion.setResource("domain1:resource1");
-        assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, roleName));
 
         try {
             zmsTestInitializer.getZms().validatePolicyAssertion(assertion, "unitTest");
@@ -15541,7 +15706,7 @@ public class ZMSImplTest {
         assertion.setAction("update");
         assertion.setEffect(AssertionEffect.ALLOW);
         assertion.setResource("*:resource1");
-        assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, roleName));
 
         try {
             zmsTestInitializer.getZms().validatePolicyAssertion(assertion, "unitTest");
@@ -15553,13 +15718,15 @@ public class ZMSImplTest {
         assertion.setAction("update");
         assertion.setEffect(AssertionEffect.ALLOW);
         assertion.setResource("domain1:");
-        assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, roleName));
 
         try {
             zmsTestInitializer.getZms().validatePolicyAssertion(assertion, "unitTest");
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
+
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -16436,6 +16603,7 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        addRoleNeededForTest(domainName, "Role1");
 
         // Create case-sensitive policy
         Policy policy = zmsTestInitializer.createPolicyObject(domainName, "policy1", "Role1", "ActioN1", "GeT-AssertioN:SomeResource", AssertionEffect.ALLOW);
@@ -16610,6 +16778,36 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testPutAssertionItsRoleDoesNotExist(){
+
+        final String domainName = "put-assertion";
+        final String policyName = "policy1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, policyName);
+        zmsTestInitializer.getZms().putPolicy(zmsTestInitializer.getMockDomRsrcCtx(), domainName, policyName, zmsTestInitializer.getAuditRef(), policy);
+
+        Assertion assertion = new Assertion();
+        assertion.setAction("update");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource(domainName + ":resource");
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "not-exist"));
+
+        // add the assertion - should be fail
+        try {
+            zmsTestInitializer.getZms().putAssertion(zmsTestInitializer.getMockDomRsrcCtx(), domainName, policyName, zmsTestInitializer.getAuditRef(), assertion);
+            fail("should be fail");
+        } catch (ResourceException ex){
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("that associated to an assertion"));
+        } finally {
+            zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+        }
+    }
+
+    @Test
     public void testPutAssertionCaseSensitive() {
 
         final String domainName = "put-assertion";
@@ -16750,6 +16948,27 @@ public class ZMSImplTest {
         }
 
         zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+    }
+
+    @Test
+    public void testPutAssertionWithoutDomainPrefixForRole() {
+
+        final String domainName = "put-invalid-assertion";;
+
+        Assertion assertion = new Assertion();
+        assertion.setAction("update");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource(domainName + ":resource");
+        assertion.setRole("role_with_out_prefix");
+
+        try {
+            zmsTestInitializer.getZms().putAssertion(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "policy1", zmsTestInitializer.getAuditRef(), assertion);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Missing domain name from assertion role"), ex.getMessage());
+        }
+
     }
 
     @Test
@@ -19155,8 +19374,8 @@ public class ZMSImplTest {
 
     private void cleanupPrincipalRoleSystemMetaDelete(ZMSImpl zms) {
 
-        zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(), "sys.auth", "metaroleadmin", zmsTestInitializer.getAuditRef());
         zmsTestInitializer.getZms().deletePolicy(zmsTestInitializer.getMockDomRsrcCtx(), "sys.auth", "metaroleadmin", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(), "sys.auth", "metaroleadmin", zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -19986,13 +20205,13 @@ public class ZMSImplTest {
     }
 
     private void cleanupPrincipalAuditedRoleApprovalByOrg(ZMSImpl zms, final String org) {
-        zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(), "sys.auth.audit.org", org, zmsTestInitializer.getAuditRef());
         zmsTestInitializer.getZms().deletePolicy(zmsTestInitializer.getMockDomRsrcCtx(), "sys.auth.audit.org", org, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(), "sys.auth.audit.org", org, zmsTestInitializer.getAuditRef());
     }
 
     private void cleanupPrincipalAuditedRoleApprovalByDomain(ZMSImpl zms, final String domainName) {
-        zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(), "sys.auth.audit.domain", domainName, zmsTestInitializer.getAuditRef());
         zmsTestInitializer.getZms().deletePolicy(zmsTestInitializer.getMockDomRsrcCtx(), "sys.auth.audit.domain", domainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(), "sys.auth.audit.domain", domainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -27542,6 +27761,8 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        addRoleNeededForTest(domainName, "Role1");
+        addRoleNeededForTest(domainName, "Role2");
 
         Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, "policy1");
         policy1.setVersion("1");
@@ -27940,6 +28161,7 @@ public class ZMSImplTest {
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyName, "putPolicyVersion");
 
         // putAssertionPolicyVersion events
+        addRoleNeededForTest(domainName, "Role1");
         ctx = contextWithMockPrincipal("putAssertionPolicyVersion");
         Assertion assertionWithVersion = new Assertion();
         assertionWithVersion.setAction("testAction");
