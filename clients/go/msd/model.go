@@ -1334,6 +1334,7 @@ const (
 	CLOUD_LB
 	CLOUD_NAT
 	EXTERNAL_APPLIANCE
+	VIP_LB
 )
 
 var namesStaticWorkloadType = []string{
@@ -1342,6 +1343,7 @@ var namesStaticWorkloadType = []string{
 	CLOUD_LB:             "CLOUD_LB",
 	CLOUD_NAT:            "CLOUD_NAT",
 	EXTERNAL_APPLIANCE:   "EXTERNAL_APPLIANCE",
+	VIP_LB:               "VIP_LB",
 }
 
 //

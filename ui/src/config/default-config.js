@@ -127,6 +127,7 @@ const config = {
             },
         ],
         templates: ['openhouse'],
+        msdAuthHeaderPath: '/var/lib/sia/tokens/msd-api-access/msd-api-access-token',
     },
     unittest: {
         athenzDomainService: 'athenz.unit-test',
@@ -156,6 +157,7 @@ const config = {
             },
         ],
         templates: ['openhouse'],
+        msdAuthHeaderPath: '/var/lib/sia/tokens/msd-api-access/msd-api-access-token',
     },
 };
 

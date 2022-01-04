@@ -10,7 +10,8 @@ type StaticWorkloadType Enum {
     ENTERPRISE_APPLIANCE, // represents generic network devices which can not be bootstrapped with an identity due to limitations
     CLOUD_LB, // represents a public cloud load balancer ( for ingress to public cloud )
     CLOUD_NAT, // represents a public cloud NAT gateway ( for egress from public cloud )
-    EXTERNAL_APPLIANCE // Appliance present outside of enterprise deployment locations. For SaaS / Third Party / Vendor use cases
+    EXTERNAL_APPLIANCE, // Appliance present outside of enterprise deployment locations. For SaaS / Third Party / Vendor use cases
+    VIP_LB // represents a virtual ip backed by a load balancer
 }
 
 

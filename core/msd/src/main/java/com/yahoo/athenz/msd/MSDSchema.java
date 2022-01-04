@@ -172,7 +172,8 @@ public class MSDSchema {
             .element("ENTERPRISE_APPLIANCE")
             .element("CLOUD_LB")
             .element("CLOUD_NAT")
-            .element("EXTERNAL_APPLIANCE");
+            .element("EXTERNAL_APPLIANCE")
+            .element("VIP_LB");
 
         sb.structType("DynamicWorkload")
             .comment("workload type describing workload bootstrapped with an identity")
