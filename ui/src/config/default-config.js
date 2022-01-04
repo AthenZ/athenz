@@ -110,6 +110,12 @@ const config = {
             'Athenz top level domain creation is manual. \n Please connect with your system administrator to create top level domains. \n',
         cspReportUri: '',
         cspImgSrc: '',
+        allPrefixes: [
+            {
+                name: 'AWS',
+                prefix: ':role.aws',
+            },
+        ],
         statusPath: process.env.UI_SESSION_SECRET_PATH || 'keys/cookie-session',
         featureFlag: true,
         serviceHeaderLinks: [
@@ -127,7 +133,8 @@ const config = {
             },
         ],
         templates: ['openhouse'],
-        msdAuthHeaderPath: '/var/lib/sia/tokens/msd-api-access/msd-api-access-token',
+        msdAuthHeaderPath:
+            '/var/lib/sia/tokens/msd-api-access/msd-api-access-token',
     },
     unittest: {
         athenzDomainService: 'athenz.unit-test',
@@ -141,6 +148,12 @@ const config = {
         authHeader: 'Athenz-Principal-Auth',
         cspReportUri: 'https://athenz.io/csp',
         cspImgSrc: 'https://athenz.com',
+        allPrefixes: [
+            {
+                name: 'AWS',
+                prefix: ':role.aws',
+            },
+        ],
         featureFlag: true,
         serviceHeaderLinks: [
             {
@@ -157,7 +170,8 @@ const config = {
             },
         ],
         templates: ['openhouse'],
-        msdAuthHeaderPath: '/var/lib/sia/tokens/msd-api-access/msd-api-access-token',
+        msdAuthHeaderPath:
+            '/var/lib/sia/tokens/msd-api-access/msd-api-access-token',
     },
 };
 

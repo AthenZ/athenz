@@ -80,7 +80,7 @@ docker exec --user mysql:mysql \
     "${ZMS_DB_HOST}" mysql \
     --database=zms_server \
     --user=root --password="${ZMS_DB_ROOT_PASS}" \
-    --execute="CREATE USER 'zms_admin'@'${ZMS_HOST}.${DOCKER_NETWORK}' IDENTIFIED BY '${ZMS_DB_ADMIN_PASS}'; GRANT ALL PRIVILEGES ON zms_server.* TO 'zms_admin'@'${ZMS_HOST}.${DOCKER_NETWORK}'; FLUSH PRIVILEGES;"
+    --execute="CREATE USER 'zms_admin'@'%' IDENTIFIED BY '${ZMS_DB_ADMIN_PASS}'; GRANT ALL PRIVILEGES ON zms_server.* TO 'zms_admin'@'%'; FLUSH PRIVILEGES;"
 docker exec --user mysql:mysql \
     "${ZMS_DB_HOST}" mysql \
     --database=mysql \
