@@ -40,6 +40,13 @@ export const TOTAL_STATIC_INSTANCES_LABEL = 'Total Static Instances';
 export const TOTAL_HEALTHY_DYNAMIC_INSTANCES_DESC =
     'List of only active dynamic instances(i.e. instances refreshed certs within last 7 days).';
 export const TOTAL_DYNAMIC_INSTANCES_LABEL = 'Total Dynamic Instances';
+export const SERVICE_NAME_LABEL = 'Service Name';
+export const SOURCE_NAME_LABEL = 'SOURCE NAME';
+export const DESTINATION_NAME_LABEL = 'DESTINATION NAME';
+export const IDENTIFIER_LABEL = 'Identifier';
+export const PROTOCOL_LABEL = 'Protocol';
+export const DESTINATION_PORTS_LABEL = 'DESTINATION PORT(S)';
+export const SOURCE_PORTS_LABEL = 'SOURCE PORT(S)';
 
 export const SERVICE_TABS = [
     {
@@ -149,3 +156,5 @@ export const ADD_ROLE_MEMBER_PLACEHOLDER =
 export const ADD_ROLE_REMINDER_PLACEHOLDER = 'Reminder (Optional)';
 export const ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER =
     'Enter Domain for Delegate Role';
+export const MICROSEG_CONDITION_DELETE_JUSTIFICATION =
+    'Microsegmentaion Assertion Condition deletion';

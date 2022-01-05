@@ -1910,6 +1910,21 @@ const Api = (req) => {
                     });
             });
         },
+
+        getGraphLayout(elements, style) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('graph-layout')
+                    .params({ elements, style })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
     };
 };
 
