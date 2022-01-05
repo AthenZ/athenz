@@ -11,11 +11,13 @@ LABEL org.label-schema.description="All in one image containing all Athenz CLI u
 LABEL org.label-schema.url="https://www.athenz.io/"
 LABEL org.label-schema.vcs-url="https://github.com/AthenZ/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
-# LABEL maintainer "YJ Athenz Team <>"
 
+# install base go from apk
+RUN apk add --no-cache --virtual .build-deps bash gcc musl-dev openssl make git
 
-# install go
-RUN apk add --no-cache --virtual .build-deps gcc musl-dev openssl make go git
+# get latest go from its own image, since its not available in apk
+COPY --from=golang:1.17.5-alpine /usr/local/go/ /usr/local/go/
+
 ENV GOPATH="/root/go"
 WORKDIR ${GOPATH}/src/github.com/AthenZ/athenz
 COPY . .
@@ -24,7 +26,9 @@ COPY . .
 # RUN mvn dependency:go-offline -DexcludeGroupIds="com.yahoo.athenz"
 
 RUN mkdir -p "${GOPATH}/bin"
-ENV PATH="${GOPATH}/bin:${PATH}"
+
+# add $GOPATH/bin and latest go bin to path
+ENV PATH="${GOPATH}/bin:/usr/local/go/bin:${PATH}"
 RUN GO111MODULE=on \
   CGO_ENABLED=0 \
   CGO_CXXFLAGS="-g -Ofast -march=native" \
@@ -32,13 +36,15 @@ RUN GO111MODULE=on \
   CGO_LDFLAGS="-g -Ofast -march=native" \
   GOOS=$(go env GOOS) \
   GOARCH=$(go env GOARCH) \
-  mvn install -Dmaven.test.skip=true -Djacoco.skip=true \
+  mvn -B install -Dmaven.test.skip=true -Djacoco.skip=true \
   -pl core/zms \
   -pl core/zts \
+  -pl core/msd \
   # go projects
   -pl rdl/rdl-gen-athenz-go-client \
   -pl clients/go/zms \
   -pl clients/go/zts \
+  -pl clients/go/msd \
   -pl libs/go/zmscli \
   -pl libs/go/athenzutils \
   -pl libs/go/athenzconf \

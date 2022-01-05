@@ -204,6 +204,7 @@ func init() {
 	tStaticWorkloadType.Element("CLOUD_LB", "represents a public cloud load balancer ( for ingress to public cloud )")
 	tStaticWorkloadType.Element("CLOUD_NAT", "represents a public cloud NAT gateway ( for egress from public cloud )")
 	tStaticWorkloadType.Element("EXTERNAL_APPLIANCE", "Appliance present outside of enterprise deployment locations. For SaaS / Third Party / Vendor use cases")
+	tStaticWorkloadType.Element("VIP_LB", "represents a virtual ip backed by a load balancer")
 	sb.AddType(tStaticWorkloadType.Build())
 
 	tDynamicWorkload := rdl.NewStructTypeBuilder("Struct", "DynamicWorkload")

@@ -12,6 +12,7 @@ JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.jdbc_password=${ZMS_DB_ADMIN_PASS}"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.zms.jdbc_ro_password=${ZMS_RODB_ADMIN_PASS}"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.ssl_key_store_password=${ZMS_KEYSTORE_PASS}"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.ssl_trust_store_password=${ZMS_TRUSTSTORE_PASS}"
+JAVA_OPTS="${JAVA_OPTS} -Djava.io.tmpdir=/tmp"
 
 ### !!! P.S. cannot quote JAVA_OPTS !!!
 ### reference: https://github.com/koalaman/shellcheck/wiki/SC2086
