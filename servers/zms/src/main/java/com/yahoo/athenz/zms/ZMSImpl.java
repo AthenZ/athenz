@@ -3624,6 +3624,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     void updateRoleMemberUserAuthorityExpiry(final Role role, final String caller) {
 
+        // getUserAuthorityExpiryAttr also verifies that we have a valid
+        // user authority configured in the server
+
         final String userAuthorityExpiry = getUserAuthorityExpiryAttr(role.getUserAuthorityExpiration());
         if (userAuthorityExpiry == null) {
             return;
@@ -4077,20 +4080,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     String getUserAuthorityExpiryAttr(final String userAuthorityExpiry) {
 
-        // we must have a valid user authority
+        // we must have a valid user authority and non-empty expiry setting
 
-        if (userAuthority == null) {
-            return null;
-        }
-
-        if (StringUtil.isEmpty(userAuthorityExpiry)) {
-            return null;
-        }
-
-        return userAuthorityExpiry;
+        return (userAuthority == null || StringUtil.isEmpty(userAuthorityExpiry)) ? null : userAuthorityExpiry;
     }
 
     Timestamp getUserAuthorityExpiry(final String userName, final String expiryAttrValue, final String caller) {
+
+        // getUserAuthorityExpiryAttr also verifies that we have a valid
+        // user authority configured in the server
 
         final String userAuthorityExpiry = getUserAuthorityExpiryAttr(expiryAttrValue);
         if (userAuthorityExpiry == null) {
@@ -8850,17 +8848,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public UserAuthorityAttributeMap getUserAuthorityAttributeMap(ResourceContext ctx) {
+
         final String caller = ctx.getApiName();
-
         logPrincipal(ctx);
-
         validateRequest(ctx.request(), caller);
 
-        Map<String, UserAuthorityAttributes> attriuteMap = new HashMap<>();
-        attriuteMap.put("bool", new UserAuthorityAttributes().setValues(new ArrayList<>(userAuthority.booleanAttributesSupported())));
-        attriuteMap.put("date", new UserAuthorityAttributes().setValues(new ArrayList<>(userAuthority.dateAttributesSupported())));
+        Map<String, UserAuthorityAttributes> attributeMap = new HashMap<>();
+        if (userAuthority != null) {
+            attributeMap.put("bool", new UserAuthorityAttributes().setValues(new ArrayList<>(userAuthority.booleanAttributesSupported())));
+            attributeMap.put("date", new UserAuthorityAttributes().setValues(new ArrayList<>(userAuthority.dateAttributesSupported())));
+        }
         UserAuthorityAttributeMap userAuthorityAttributeMap = new UserAuthorityAttributeMap();
-        userAuthorityAttributeMap.setAttributes(attriuteMap);
+        userAuthorityAttributeMap.setAttributes(attributeMap);
         return userAuthorityAttributeMap;
     }
 
@@ -9088,6 +9087,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void updateGroupMemberUserAuthorityExpiry(final Group group, final String caller) {
+
+        // getUserAuthorityExpiryAttr also verifies that we have a valid
+        // user authority configured in the server
 
         final String userAuthorityExpiry = getUserAuthorityExpiryAttr(group.getUserAuthorityExpiration());
         if (userAuthorityExpiry == null) {
@@ -9851,7 +9853,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     void validateUserAuthorityFilterAttribute(final String authorityFilter, final String caller)  {
 
-        if (authorityFilter != null && !authorityFilter.isEmpty()) {
+        if (!StringUtil.isEmpty(authorityFilter)) {
             if (userAuthority == null) {
                 throw ZMSUtils.requestError("User Authority filter specified without a valid user authority", caller);
             }
@@ -9865,12 +9867,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    /**
+     * All AssertionCondition objects part of AssertionConditions will share the same condition id.
+     * Since a logical condition can have multiple assertion conditions which are realized using
+     * AND operation. e.g. AssertionConditions has a list of AssertionCondition
+     * containing 3 conditions, A=1, B=2, C=3 then all these will go in to DB against the same
+     * condition id and will be evaluated as (A=1 AND B=2 AND C=3)
+     * If an assertion is required to have multiple of such tuples, this api call needs to be repeated for each.
+     */
     @Override
-// all AssertionCondition objects part of AssertionConditions will share the same condition id. Since a logical condition can have
-// multiple assertion conditions which are realized using AND operation. e.g. AssertionConditions has a list of AssertionCondition
-// containing 3 conditions, A=1, B=2, C=3 then all these will go in to DB against the same condition id and will be evaluated as
-// (A=1 AND B=2 AND C=3)
-// If an assertion is required to have multiple of such tuples, this api call needs to be repeated for each.
     public AssertionConditions putAssertionConditions(ResourceContext ctx, String domainName, String policyName, Long assertionId, String auditRef, AssertionConditions assertionConditions) {
 
         final String caller = ctx.getApiName();
@@ -10043,7 +10048,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     void validateUserAuthorityDateAttribute(final String authorityExpiration, final String caller) {
 
-        if (authorityExpiration != null && !authorityExpiration.isEmpty()) {
+        if (!StringUtil.isEmpty(authorityExpiration)) {
             if (userAuthority == null) {
                 throw ZMSUtils.requestError("User Authority expiry specified without a valid user authority", caller);
             }

@@ -124,7 +124,7 @@ public final class ZMSConsts {
     public static final String ZMS_PRIVATE_KEY_STORE_FACTORY_CLASS      = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
 
     public static final String ZMS_PROP_OBJECT_STORE_FACTORY_CLASS      = "athenz.zms.object_store_factory_class";
-    public static final String ZMS_OBJECT_STORE_FACTORY_CLASS           = "com.yahoo.athenz.zms.store.impl.FileObjectStoreFactory";
+    public static final String ZMS_OBJECT_STORE_FACTORY_CLASS           = "com.yahoo.athenz.zms.store.impl.JDBCObjectStoreFactory";
 
     public static final String ZMS_PROP_DOMAIN_META_STORE_FACTORY_CLASS = "athenz.zms.domain_meta_store_factory_class";
     public static final String ZMS_DOMAIN_META_STORE_FACTORY_CLASS      = "com.yahoo.athenz.common.server.metastore.impl.NoOpDomainMetaStoreFactory";
