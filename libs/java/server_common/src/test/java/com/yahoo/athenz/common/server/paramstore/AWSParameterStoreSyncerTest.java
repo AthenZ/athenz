@@ -96,7 +96,6 @@ public class AWSParameterStoreSyncerTest {
 		System.setProperty(DYNAMIC_PARAM_STORE_CLASS, "com.yahoo.athenz.common.server.paramstore.AWSParameterStoreSyncer");
 		initDynamicParameterStoreInstance();
 		DynamicParameterStore dynamicParameterStore = DynamicParameterStoreFactory.getInstance();
-		assertNull(getSsmClient((AWSParameterStoreSyncer)dynamicParameterStore));
 		assertNull(dynamicParameterStore.get("someParam"));
 		assertEquals(dynamicParameterStore.get("someParam", "def"), "def");
 		System.setProperty(DYNAMIC_PARAM_STORE_CLASS, "com.yahoo.athenz.common.server.paramstore.MockAWSParameterStoreSyncer");
@@ -148,17 +147,6 @@ public class AWSParameterStoreSyncerTest {
 			}
 			Assert.assertEquals(result.value, Integer.toString(counter));
 		};
-	}
-
-	private SsmClient getSsmClient(AWSParameterStoreSyncer awsParameterStoreSyncer) {
-		final Field ssmClientField;
-		try {
-			ssmClientField = awsParameterStoreSyncer.getClass().getDeclaredField("ssmClient");
-			ssmClientField.setAccessible(true);
-			return (SsmClient) ssmClientField.get(awsParameterStoreSyncer);
-		} catch (final NoSuchFieldException | IllegalAccessException ignored) {
-			throw new AssertionError("Failed to get AWSParameterStoreSyncer::ssmClient");
-		}
 	}
 
 	public static void initDynamicParameterStoreInstance() {
