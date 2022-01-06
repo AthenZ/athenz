@@ -20,16 +20,6 @@ if [ ! -f "$ZMS_CERT" ] ; then
   exit 1
 fi
 
-if [ ! -f "$ADMIN_USERNAME" ] ; then
-  echo "Admin User Name not found, setting to empty. Edit src/config/users_data.json to add user name"
-  ADMIN_USERNAME="";
-fi
-
-if [ ! -f "$ADMIN_FULLNAME" ] ; then
-  echo "Admin Full Name not found, setting to empty. Edit src/config/users_data.json to add full name"
-  ADMIN_FULLNAME="";
-fi
-
 # Generate Athenz UI Server Private Key
 
 echo "Generating private key for Athenz UI Server..."

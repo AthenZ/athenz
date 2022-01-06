@@ -70,14 +70,10 @@ credentials for configured AWS IAM roles.
 ## Install
 
 * [Development Environment](docs/dev_environment.md)
-* Local/Development Environment Setup
+* Local/Development/Production Environment Setup
     * [ZMS Server](docs/setup_zms.md)
     * [ZTS Server](docs/setup_zts.md)
     * [UI Server](docs/setup_ui.md)
-* Production Environment Setup
-    * [ZMS Server](docs/setup_zms_prod.md)
-    * [ZTS Server](docs/setup_zts_prod.md)
-    * [UI Server](docs/setup_ui_prod.md)
 * AWS Production Environment Setup
     * [Introduction](docs/aws_athenz_setup.md)
 

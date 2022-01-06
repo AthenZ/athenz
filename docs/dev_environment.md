@@ -45,6 +45,11 @@ However, it should compile and run without any issues with [OpenJDK 8](https://o
 
 Make sure you have set the $JAVA_HOME environment variable.
 
+```shell
+$ java -XshowSettings:properties -version 2>&1 > /dev/null | grep 'java.home'
+$ export $JAVA_HOME=<java-home-directory>
+````
+
 #### Maven
 
 Download and install [Apache Maven](http://maven.apache.org/download.cgi).
@@ -60,7 +65,14 @@ the git client is required.
 Install go 1.17.5 by following the directions at
 [Getting Started - The Go Programming Language](https://golang.org/doc/install).
 
-Make sure you have set the [$GOPATH environment variable](https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable) and that you have `$GOPATH/bin` in your `$PATH`.
+Make sure you have set the [$GOPATH environment variable](https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable)
+and that you have `$GOPATH/bin` in your `$PATH`.
+
+```shell
+$ export GOPATH=<gopath-directory>
+$ mkdir -p $GOPATH/bin
+$ export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+````
 
 #### Node JS
 
@@ -84,7 +96,8 @@ $ nodemon --version
 ## Build Steps
 
 To build Athenz components, change to the top level directory where
-Athenz code has been checked out and execute:
+you want to build the Athenz code and execute (skip the first command
+if you have already checked out the code using git):
 
 ```shell
 $ git clone https://github.com/AthenZ/athenz.git
