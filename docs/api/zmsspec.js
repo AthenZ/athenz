@@ -4,7 +4,9 @@ var zmsspec = {
     "title" : "ZMS Swagger",
     "version" : "1.0.0"
   },
-  "servers" : "/v1/api",
+  "servers" : [ {
+    "url" : "/v1/api"
+  } ],
   "paths" : {
     "/v1/domain/{domainName}/policy/{policyName}/assertion/{assertionId}" : {
       "get" : {
@@ -64,6 +66,228 @@ var zmsspec = {
           "name" : "policyName",
           "in" : "path",
           "description" : "name of the policy",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "assertionId",
+          "in" : "path",
+          "description" : "assertion id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "Y-Audit-Ref",
+          "in" : "header",
+          "description" : "Audit param required(not empty) if domain auditEnabled is true.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/v1/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/condition/{conditionId}" : {
+      "delete" : {
+        "description" : "Delete the assertion condition(s) for specified assertion id and condition id. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
+        "operationId" : "deleteAssertionCondition",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "policyName",
+          "in" : "path",
+          "description" : "name of the policy",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "assertionId",
+          "in" : "path",
+          "description" : "assertion id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "conditionId",
+          "in" : "path",
+          "description" : "condition id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "Y-Audit-Ref",
+          "in" : "header",
+          "description" : "Audit param required(not empty) if domain auditEnabled is true.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/v1/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/conditions" : {
+      "put" : {
+        "description" : "Add the specified conditions to the given assertion",
+        "operationId" : "putAssertionConditions",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "policyName",
+          "in" : "path",
+          "description" : "name of the policy",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "assertionId",
+          "in" : "path",
+          "description" : "assertion id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "Y-Audit-Ref",
+          "in" : "header",
+          "description" : "Audit param required(not empty) if domain auditEnabled is true.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "Assertion conditions object to be added to the given assertion",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AssertionConditions"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AssertionConditions"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "description" : "Delete all assertion conditions for specified assertion id. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
+        "operationId" : "deleteAssertionConditions",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "policyName",
+          "in" : "path",
+          "description" : "name of the policy",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "assertionId",
+          "in" : "path",
+          "description" : "assertion id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "Y-Audit-Ref",
+          "in" : "header",
+          "description" : "Audit param required(not empty) if domain auditEnabled is true.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/v1/domain/{domainName}/policy/{policyName}/version/{version}/assertion/{assertionId}" : {
+      "delete" : {
+        "description" : "Delete the specified policy version assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
+        "operationId" : "deleteAssertionPolicyVersion",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "policyName",
+          "in" : "path",
+          "description" : "name of the policy",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "name of the version",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -971,6 +1195,94 @@ var zmsspec = {
           "name" : "policyName",
           "in" : "path",
           "description" : "name of the policy to be deleted",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "Y-Audit-Ref",
+          "in" : "header",
+          "description" : "Audit param required(not empty) if domain auditEnabled is true.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/v1/domain/{domainName}/policy/{policyName}/version/{version}" : {
+      "get" : {
+        "description" : "Get the specified policy version.",
+        "operationId" : "getPolicyVersion",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "policyName",
+          "in" : "path",
+          "description" : "name of the policy",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "name of the version to be retrieved",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Policy"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "description" : "Delete the specified policy version. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
+        "operationId" : "deletePolicyVersion",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "policyName",
+          "in" : "path",
+          "description" : "name of the policy",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "name of the version to be deleted",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -2362,7 +2674,7 @@ var zmsspec = {
     },
     "/v1/domain" : {
       "get" : {
-        "description" : "Enumerate domains. Can be filtered by prefix and depth, and paginated. This operation can be expensive, as it may span multiple domains.",
+        "description" : "Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the query options that are looking for specific domain attributes (e.g. aws account, azure subscriptions, business service, tags, etc) are mutually exclusive. The server will only process the first query argument and ignore the others.",
         "operationId" : "getDomainList",
         "parameters" : [ {
           "name" : "limit",
@@ -2445,6 +2757,13 @@ var zmsspec = {
             "type" : "string"
           }
         }, {
+          "name" : "businessService",
+          "in" : "query",
+          "description" : "restrict to domain names that have specified business service name",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "name" : "If-Modified-Since",
           "in" : "header",
           "description" : "This header specifies to the server to return any domains modified since this HTTP date",
@@ -2496,6 +2815,40 @@ var zmsspec = {
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/Domain"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/domain/metastore" : {
+      "get" : {
+        "description" : "List all valid values for the given attribute and user",
+        "operationId" : "getDomainMetaStoreValidValuesList",
+        "parameters" : [ {
+          "name" : "attribute",
+          "in" : "query",
+          "description" : "name of attribute",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "user",
+          "in" : "query",
+          "description" : "restrict to values associated with the given user",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DomainMetaStoreValidValuesList"
                 }
               }
             }
@@ -2671,6 +3024,20 @@ var zmsspec = {
             "type" : "boolean",
             "default" : false
           }
+        }, {
+          "name" : "tagKey",
+          "in" : "query",
+          "description" : "flag to query all groups that have a given tagName",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "tagValue",
+          "in" : "query",
+          "description" : "flag to query all groups that have a given tag name and value",
+          "schema" : {
+            "type" : "string"
+          }
         } ],
         "responses" : {
           "default" : {
@@ -2697,16 +3064,27 @@ var zmsspec = {
           "schema" : {
             "type" : "string"
           }
+        }, {
+          "name" : "signaturep1363format",
+          "in" : "query",
+          "description" : "true if signature must be in P1363 format instead of ASN.1 DER",
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "name" : "If-None-Match",
+          "in" : "header",
+          "description" : "Retrieved from the previous request, this timestamp specifies to the server to return if the domain was modified since this time",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
         } ],
         "responses" : {
           "default" : {
             "description" : "default response",
             "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/JWSDomain"
-                }
-              }
+              "application/json" : { }
             }
           }
         }
@@ -2811,6 +3189,14 @@ var zmsspec = {
             "type" : "boolean",
             "default" : false
           }
+        }, {
+          "name" : "includeNonActive",
+          "in" : "query",
+          "description" : "include non-active policy versions",
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
         } ],
         "responses" : {
           "default" : {
@@ -2850,6 +3236,41 @@ var zmsspec = {
           "name" : "skip",
           "in" : "query",
           "description" : "restrict the set to those after the specified \"next\" token returned from a previous call",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PolicyList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/domain/{domainName}/policy/{policyName}/version" : {
+      "get" : {
+        "description" : "List policy versions.",
+        "operationId" : "getPolicyVersionList",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "policyName",
+          "in" : "path",
+          "description" : "name of the policy",
+          "required" : true,
           "schema" : {
             "type" : "string"
           }
@@ -3076,6 +3497,24 @@ var zmsspec = {
         }
       }
     },
+    "/v1/templatedetails" : {
+      "get" : {
+        "description" : "Get a list of Solution templates with meta data details defined in the server",
+        "operationId" : "getServerTemplateDetailsList",
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DomainTemplateDetailsList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/template" : {
       "get" : {
         "description" : "Get the list of solution templates defined in the server",
@@ -3199,7 +3638,7 @@ var zmsspec = {
     },
     "/v1/sys/modified_domains" : {
       "get" : {
-        "description" : "Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, dont add roles, policies or services, dont sign",
+        "description" : "Retrieve the list of modified domains since the specified timestamp. The server will return the list of all modified domains and the latest modification timestamp as the value of the ETag header. The client will need to use this value during its next call to request the changes since the previous request. When metaonly set to true, don't add roles, policies or services, don't sign",
         "operationId" : "getSignedDomains",
         "parameters" : [ {
           "name" : "domain",
@@ -3226,6 +3665,13 @@ var zmsspec = {
           "name" : "master",
           "in" : "query",
           "description" : "for system principals only - request data from master data store and not read replicas if any are configured",
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "name" : "conditions",
+          "in" : "query",
+          "description" : "for specific purpose only. If this flag is passed, assertion id and assertion conditions will be included in the response assertions if available",
           "schema" : {
             "type" : "boolean"
           }
@@ -3293,10 +3739,36 @@ var zmsspec = {
         }
       }
     },
+    "/v1/authority/user/attribute" : {
+      "get" : {
+        "description" : "Map of type to attribute values for the user authority",
+        "operationId" : "getUserAuthorityAttributeMap",
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserAuthorityAttributeMap"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/user" : {
       "get" : {
         "description" : "Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix",
         "operationId" : "getUserList",
+        "parameters" : [ {
+          "name" : "domain",
+          "in" : "query",
+          "description" : "name of the allowed user-domains and/or aliases",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
         "responses" : {
           "default" : {
             "description" : "default response",
@@ -3462,6 +3934,131 @@ var zmsspec = {
         } ],
         "requestBody" : {
           "description" : "Assertion object to be added to the given policy",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Assertion"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Assertion"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/condition" : {
+      "put" : {
+        "description" : "Add the specified condition to the existing assertion conditions of an assertion",
+        "operationId" : "putAssertionCondition",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "policyName",
+          "in" : "path",
+          "description" : "name of the policy",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "assertionId",
+          "in" : "path",
+          "description" : "assertion id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "Y-Audit-Ref",
+          "in" : "header",
+          "description" : "Audit param required(not empty) if domain auditEnabled is true.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "Assertion conditions object to be added to the given assertion",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AssertionCondition"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AssertionCondition"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/domain/{domainName}/policy/{policyName}/version/{version}/assertion" : {
+      "put" : {
+        "description" : "Add the specified assertion to the given policy version",
+        "operationId" : "putAssertionPolicyVersion",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "policyName",
+          "in" : "path",
+          "description" : "name of the policy",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "name of the version",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "Y-Audit-Ref",
+          "in" : "header",
+          "description" : "Audit param required(not empty) if domain auditEnabled is true.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "Assertion object to be added to the given policy version",
           "content" : {
             "application/json" : {
               "schema" : {
@@ -3893,6 +4490,56 @@ var zmsspec = {
         }
       }
     },
+    "/v1/domain/{domainName}/policy/{policyName}/version/create" : {
+      "put" : {
+        "description" : "Create a new disabled policy version based on active policy",
+        "operationId" : "putPolicyVersion",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "policyName",
+          "in" : "path",
+          "description" : "name of the policy to be added/updated",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "Y-Audit-Ref",
+          "in" : "header",
+          "description" : "Audit param required(not empty) if domain auditEnabled is true.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "name of the source version to copy from and name of new version",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PolicyOptions"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
     "/v1/domain/{domainName}/role/{roleName}/meta" : {
       "put" : {
         "description" : "Update the specified role metadata. Caller must have update privileges on the domain itself.",
@@ -4109,6 +4756,56 @@ var zmsspec = {
         }
       }
     },
+    "/v1/domain/{domainName}/policy/{policyName}/version/active" : {
+      "put" : {
+        "description" : "Mark the specified policy version as active",
+        "operationId" : "setActivePolicyVersion",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "policyName",
+          "in" : "path",
+          "description" : "name of the policy",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "Y-Audit-Ref",
+          "in" : "header",
+          "description" : "Audit param required(not empty) if domain auditEnabled is true.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "name of the version",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PolicyOptions"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
     "/application.wadl/{path}" : {
       "get" : {
         "operationId" : "getExternalGrammar",
@@ -4177,6 +4874,47 @@ var zmsspec = {
           },
           "caseSensitive" : {
             "type" : "boolean"
+          },
+          "conditions" : {
+            "$ref" : "#/components/schemas/AssertionConditions"
+          }
+        }
+      },
+      "AssertionCondition" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "conditionsMap" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/AssertionConditionData"
+            }
+          }
+        }
+      },
+      "AssertionConditionData" : {
+        "type" : "object",
+        "properties" : {
+          "operator" : {
+            "type" : "string",
+            "enum" : [ "EQUALS" ]
+          },
+          "value" : {
+            "type" : "string"
+          }
+        }
+      },
+      "AssertionConditions" : {
+        "type" : "object",
+        "properties" : {
+          "conditionsList" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AssertionCondition"
+            }
           }
         }
       },
@@ -4244,7 +4982,7 @@ var zmsspec = {
           "tags" : {
             "type" : "object",
             "additionalProperties" : {
-              "$ref" : "#/components/schemas/StringList"
+              "$ref" : "#/components/schemas/TagValueList"
             }
           },
           "businessService" : {
@@ -4261,7 +4999,7 @@ var zmsspec = {
           }
         }
       },
-      "StringList" : {
+      "TagValueList" : {
         "type" : "object",
         "properties" : {
           "list" : {
@@ -4341,6 +5079,17 @@ var zmsspec = {
           },
           "next" : {
             "type" : "string"
+          }
+        }
+      },
+      "DomainMetaStoreValidValuesList" : {
+        "type" : "object",
+        "properties" : {
+          "validValues" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           }
         }
       },
@@ -4525,6 +5274,12 @@ var zmsspec = {
             "type" : "integer",
             "format" : "int32"
           },
+          "tags" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/TagValueList"
+            }
+          },
           "name" : {
             "type" : "string"
           },
@@ -4661,26 +5416,6 @@ var zmsspec = {
           }
         }
       },
-      "JWSDomain" : {
-        "type" : "object",
-        "properties" : {
-          "payload" : {
-            "type" : "string"
-          },
-          "header" : {
-            "type" : "object",
-            "additionalProperties" : {
-              "type" : "string"
-            }
-          },
-          "signature" : {
-            "type" : "string"
-          },
-          "protected" : {
-            "type" : "string"
-          }
-        }
-      },
       "Membership" : {
         "type" : "object",
         "properties" : {
@@ -4794,6 +5529,12 @@ var zmsspec = {
             }
           },
           "caseSensitive" : {
+            "type" : "boolean"
+          },
+          "version" : {
+            "type" : "string"
+          },
+          "active" : {
             "type" : "boolean"
           }
         }
@@ -5580,10 +6321,14 @@ var zmsspec = {
             "type" : "integer",
             "format" : "int32"
           },
+          "groupReviewDays" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
           "tags" : {
             "type" : "object",
             "additionalProperties" : {
-              "$ref" : "#/components/schemas/StringList"
+              "$ref" : "#/components/schemas/TagValueList"
             }
           },
           "name" : {
@@ -5858,6 +6603,28 @@ var zmsspec = {
           }
         }
       },
+      "UserAuthorityAttributeMap" : {
+        "type" : "object",
+        "properties" : {
+          "attributes" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/UserAuthorityAttributes"
+            }
+          }
+        }
+      },
+      "UserAuthorityAttributes" : {
+        "type" : "object",
+        "properties" : {
+          "values" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
       "UserList" : {
         "type" : "object",
         "properties" : {
@@ -5944,7 +6711,7 @@ var zmsspec = {
           "tags" : {
             "type" : "object",
             "additionalProperties" : {
-              "$ref" : "#/components/schemas/StringList"
+              "$ref" : "#/components/schemas/TagValueList"
             }
           },
           "businessService" : {
@@ -6031,7 +6798,7 @@ var zmsspec = {
           "tags" : {
             "type" : "object",
             "additionalProperties" : {
-              "$ref" : "#/components/schemas/StringList"
+              "$ref" : "#/components/schemas/TagValueList"
             }
           },
           "businessService" : {
@@ -6115,7 +6882,7 @@ var zmsspec = {
           "tags" : {
             "type" : "object",
             "additionalProperties" : {
-              "$ref" : "#/components/schemas/StringList"
+              "$ref" : "#/components/schemas/TagValueList"
             }
           },
           "businessService" : {
@@ -6204,7 +6971,7 @@ var zmsspec = {
           "tags" : {
             "type" : "object",
             "additionalProperties" : {
-              "$ref" : "#/components/schemas/StringList"
+              "$ref" : "#/components/schemas/TagValueList"
             }
           },
           "businessService" : {
@@ -6265,6 +7032,12 @@ var zmsspec = {
           "serviceExpiryDays" : {
             "type" : "integer",
             "format" : "int32"
+          },
+          "tags" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/TagValueList"
+            }
           }
         }
       },
@@ -6273,6 +7046,17 @@ var zmsspec = {
         "properties" : {
           "auditEnabled" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "PolicyOptions" : {
+        "type" : "object",
+        "properties" : {
+          "version" : {
+            "type" : "string"
+          },
+          "fromVersion" : {
+            "type" : "string"
           }
         }
       },
@@ -6325,10 +7109,14 @@ var zmsspec = {
             "type" : "integer",
             "format" : "int32"
           },
+          "groupReviewDays" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
           "tags" : {
             "type" : "object",
             "additionalProperties" : {
-              "$ref" : "#/components/schemas/StringList"
+              "$ref" : "#/components/schemas/TagValueList"
             }
           }
         }
