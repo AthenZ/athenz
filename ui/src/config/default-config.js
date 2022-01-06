@@ -22,6 +22,8 @@ const config = {
         zms: process.env.ZMS_SERVER_URL || 'https://localhost:4443/zms/v1/',
         zmsLoginUrl:
             process.env.ZMS_LOGIN_URL || 'https://localhost:4443/zms/v1/',
+        zmsConnectSrcUrl:
+            process.env.ZMS_CONNECT_SRC_URL || 'https://localhost:4443',
         msd: process.env.MSD_LOGIN_URL || 'https://localhost:4443/msd/v1/',
         authHeader: 'Athenz-Principal-Auth',
         strictSSL: false,
@@ -137,6 +139,7 @@ const config = {
             '/var/lib/sia/tokens/msd-api-access/msd-api-access-token',
     },
     unittest: {
+        zmsConnectSrcUrl: 'https://localhost:4443',
         athenzDomainService: 'athenz.unit-test',
         authKeyVersion: '1',
         envLabel: 'unittest',

@@ -33,7 +33,7 @@ module.exports = function (expressApp, config, secrets) {
         }
         // to be used by local ZMS for ntoken based auth
         if (config.env === 'local') {
-            connectSrc.push(`https://localhost:4443`);
+            connectSrc.push(config.zmsConnectSrcUrl);
         }
         let contentSecurityPolicy = {
             directives: {

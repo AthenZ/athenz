@@ -45,6 +45,9 @@ fi
 if [ -z "${ZMS_LOGIN_URL}" ]; then
     export ZMS_LOGIN_URL=https://${ZMS_SERVER}:4443/zms/v1/
 fi
+if [ -z "${ZMS_CONNECT_SRC_URL}" ]; then
+    export ZMS_CONNECT_SRC_URL=https://${ZMS_SERVER}:4443
+fi
 # if we don't have ROOT variable defined we'll default
 # to the parent directory where the script is running from
 
