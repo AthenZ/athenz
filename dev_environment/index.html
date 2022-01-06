@@ -279,34 +279,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#maven" class="md-nav__link">
-    Maven
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#git-client" class="md-nav__link">
-    Git Client
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#go" class="md-nav__link">
-    Go
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#node-js" class="md-nav__link">
-    Node JS
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -341,13 +313,13 @@
       <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-3" type="checkbox" id="nav-1-3">
     
     <label class="md-nav__link" for="nav-1-3">
-      Local/Development Environment Setup
+      Local/Development/Production Environment Setup
       <span class="md-nav__icon md-icon"></span>
     </label>
-    <nav class="md-nav" aria-label="Local/Development Environment Setup" data-md-level="2">
+    <nav class="md-nav" aria-label="Local/Development/Production Environment Setup" data-md-level="2">
       <label class="md-nav__title" for="nav-1-3">
         <span class="md-nav__icon md-icon"></span>
-        Local/Development Environment Setup
+        Local/Development/Production Environment Setup
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -403,73 +375,11 @@
       <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-4" type="checkbox" id="nav-1-4">
     
     <label class="md-nav__link" for="nav-1-4">
-      Production Environment Setup
-      <span class="md-nav__icon md-icon"></span>
-    </label>
-    <nav class="md-nav" aria-label="Production Environment Setup" data-md-level="2">
-      <label class="md-nav__title" for="nav-1-4">
-        <span class="md-nav__icon md-icon"></span>
-        Production Environment Setup
-      </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../setup_zms_prod/" class="md-nav__link">
-      ZMS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../setup_zts_prod/" class="md-nav__link">
-      ZTS Server
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../setup_ui_prod/" class="md-nav__link">
-      UI Server
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item md-nav__item--nested">
-    
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-1-5" type="checkbox" id="nav-1-5">
-    
-    <label class="md-nav__link" for="nav-1-5">
       Service Identity Registration
       <span class="md-nav__icon md-icon"></span>
     </label>
     <nav class="md-nav" aria-label="Service Identity Registration" data-md-level="2">
-      <label class="md-nav__title" for="nav-1-5">
+      <label class="md-nav__title" for="nav-1-4">
         <span class="md-nav__icon md-icon"></span>
         Service Identity Registration
       </label>
@@ -1411,34 +1321,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#maven" class="md-nav__link">
-    Maven
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#git-client" class="md-nav__link">
-    Git Client
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#go" class="md-nav__link">
-    Go
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#node-js" class="md-nav__link">
-    Node JS
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1510,23 +1392,45 @@ written in Java and using embedded Jetty.</p>
 <p>Athenz has been developed and tested with Oracle Java Platform JDK 8.
 However, it should compile and run without any issues with <a href="https://openjdk.java.net/install/">OpenJDK 8</a> as well.</p>
 <p>Make sure you have set the $JAVA_HOME environment variable.</p>
-<h4 id="maven">Maven<a class="headerlink" href="#maven" title="Permanent link">&para;</a></h4>
-<p>Download and install <a href="http://maven.apache.org/download.cgi">Apache Maven</a>.</p>
-<h4 id="git-client">Git Client<a class="headerlink" href="#git-client" title="Permanent link">&para;</a></h4>
-<p>If you don't have git client installed on your host, you can download
-one from <a href="https://git-scm.com/downloads">Git website</a>. 2.x version of
-the git client is required.</p>
-<h4 id="go">Go<a class="headerlink" href="#go" title="Permanent link">&para;</a></h4>
-<p>Install go 1.17.5 by following the directions at
-<a href="https://golang.org/doc/install">Getting Started - The Go Programming Language</a>.</p>
-<p>Make sure you have set the <a href="https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable">$GOPATH environment variable</a> and that you have <code>$GOPATH/bin</code> in your <code>$PATH</code>.</p>
-<h4 id="node-js">Node JS<a class="headerlink" href="#node-js" title="Permanent link">&para;</a></h4>
-<p>Install node 14.x by following the directions at
-<a href="https://nodejs.org/en/">Node.js JavaScript Runtime</a></p>
-<p>Verify that you have the required minimum version of <code>node</code>,
-<code>npm</code> and <code>nodemon</code> binaries installed on your system and are included
-in your runtime path:</p>
-<div class="highlight"><pre><span></span><code>$ node --version
+<div class="highlight"><pre><span></span><code>$ java -XshowSettings:properties -version <span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span> &gt; /dev/null <span class="p">|</span> grep <span class="s1">&#39;java.home&#39;</span>
+$ <span class="nb">export</span> <span class="nv">$JAVA_HOME</span><span class="o">=</span>&lt;java-home-directory&gt;
+<span class="sb">````</span>
+
+<span class="c1">#### Maven</span>
+
+Download and install <span class="o">[</span>Apache Maven<span class="o">](</span>http://maven.apache.org/download.cgi<span class="o">)</span>.
+
+<span class="c1">#### Git Client</span>
+
+If you don<span class="err">&#39;</span>t have git client installed on your host, you can download
+one from <span class="o">[</span>Git website<span class="o">](</span>https://git-scm.com/downloads<span class="o">)</span>. <span class="m">2</span>.x version of
+the git client is required.
+
+<span class="c1">#### Go</span>
+
+Install go <span class="m">1</span>.17.5 by following the directions at
+<span class="o">[</span>Getting Started - The Go Programming Language<span class="o">](</span>https://golang.org/doc/install<span class="o">)</span>.
+
+Make sure you have <span class="nb">set</span> the <span class="o">[</span><span class="nv">$GOPATH</span> environment variable<span class="o">](</span>https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable<span class="o">)</span>
+and that you have <span class="sb">`</span><span class="nv">$GOPATH</span>/bin<span class="sb">`</span> <span class="k">in</span> your <span class="sb">`</span><span class="nv">$PATH</span><span class="sb">`</span>.
+
+<span class="sb">```</span>shell
+$ <span class="nb">export</span> <span class="nv">GOPATH</span><span class="o">=</span>&lt;gopath-directory&gt;
+$ mkdir -p <span class="nv">$GOPATH</span>/bin
+$ <span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/usr/local/go/bin:<span class="nv">$GOPATH</span>/bin
+<span class="sb">````</span>
+
+<span class="c1">#### Node JS</span>
+
+Install node <span class="m">14</span>.x by following the directions at
+<span class="o">[</span>Node.js JavaScript Runtime<span class="o">](</span>https://nodejs.org/en/<span class="o">)</span>
+
+Verify that you have the required minimum version of <span class="sb">`</span>node<span class="sb">`</span>,
+<span class="sb">`</span>npm<span class="sb">`</span> and <span class="sb">`</span>nodemon<span class="sb">`</span> binaries installed on your system and are included
+<span class="k">in</span> your runtime path:
+
+<span class="sb">```</span>shell
+$ node --version
 v14.18.2
 $ npm -v
 <span class="m">8</span>.3.0
@@ -1536,7 +1440,8 @@ $ nodemon --version
 </code></pre></div>
 <h2 id="build-steps">Build Steps<a class="headerlink" href="#build-steps" title="Permanent link">&para;</a></h2>
 <p>To build Athenz components, change to the top level directory where
-Athenz code has been checked out and execute:</p>
+you want to build the Athenz code and execute (skip the first command
+if you have already checked out the code using git):</p>
 <div class="highlight"><pre><span></span><code>$ git clone https://github.com/AthenZ/athenz.git
 $ <span class="nb">cd</span> athenz
 $ mvn clean install
