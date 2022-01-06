@@ -4,11 +4,13 @@ var ztsspec = {
     "title" : "ZTS Swagger",
     "version" : "1.0.0"
   },
-  "servers" : "v1/api",
+  "servers" : [ {
+    "url" : "/v1/api"
+  } ],
   "paths" : {
     "/v1/instance/{provider}/{domain}/{service}/{instanceId}" : {
       "post" : {
-        "description" : "only TLS Certificate authentication is allowed",
+        "description" : "Refresh the given service instance and issue a new x.509 service identity certificate once the provider validates the attestation data along with the request attributes. only TLS Certificate authentication is allowed",
         "operationId" : "postInstanceRefreshInformation",
         "parameters" : [ {
           "name" : "provider",
@@ -68,6 +70,7 @@ var ztsspec = {
         }
       },
       "delete" : {
+        "description" : "Delete the given service instance certificate record thus blocking any future refresh requests from the given instance for this service There are two possible authorization checks for this endpoint: 1) domain admin: authorize(\"delete\", \"{domain}:instance.{instanceId}\") the authorized user can remove the instance record from the datastore 2) provider itself: if the identity of the caller is the provider itself then the provider is notifying ZTS that the instance was deleted",
         "operationId" : "deleteInstanceIdentity",
         "parameters" : [ {
           "name" : "provider",
@@ -114,7 +117,7 @@ var ztsspec = {
     },
     "/v1/domain/{domainName}/role/{role}/creds" : {
       "get" : {
-        "description" : "perform an AWS AssumeRole of the target role and return the credentials. ZTS must have been granted the ability to assume the role in IAM, and granted the ability to ASSUME_AWS_ROLE in Athenz for this to succeed.",
+        "description" : "perform an AWS AssumeRole of the target role and return the credentials. ZTS must have been granted the ability to assume the role in IAM, and granted the ability to assume_aws_role in Athenz for this to succeed.",
         "operationId" : "getAWSTemporaryCredentials",
         "parameters" : [ {
           "name" : "domainName",
@@ -206,6 +209,7 @@ var ztsspec = {
     },
     "/v1/cacerts/{name}" : {
       "get" : {
+        "description" : "Return the request CA X.509 Certificate bundle",
         "operationId" : "getCertificateAuthorityBundle",
         "parameters" : [ {
           "name" : "name",
@@ -288,6 +292,57 @@ var ztsspec = {
         }
       }
     },
+    "/v1/instance/{provider}/{domain}/{service}/{instanceId}/token" : {
+      "get" : {
+        "description" : "Request a token for the given service to be bootstrapped for the given provider. The caller must have authorization to manage the service in the given domain. The token will be valid for 30 mins for one time use only for the initial registration. The token must be sent back in the register request as the value of the attestationData field in the InstanceRegisterInformation object",
+        "operationId" : "getInstanceRegisterToken",
+        "parameters" : [ {
+          "name" : "provider",
+          "in" : "path",
+          "description" : "the provider service name (i.e. \"aws.us-west-2\")",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "domain",
+          "in" : "path",
+          "description" : "the domain of the instance",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "service",
+          "in" : "path",
+          "description" : "the service this instance is supposed to run",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "instanceId",
+          "in" : "path",
+          "description" : "unique instance id within provider's namespace",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InstanceRegisterToken"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/oauth2/keys" : {
       "get" : {
         "operationId" : "getJWKList",
@@ -307,6 +362,23 @@ var ztsspec = {
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/JWKList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/.well-known/openid-configuration" : {
+      "get" : {
+        "operationId" : "getOpenIDConfig",
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OpenIDConfig"
                 }
               }
             }
@@ -564,6 +636,32 @@ var ztsspec = {
         }
       }
     },
+    "/v1/role/cert" : {
+      "get" : {
+        "description" : "Fetch all roles that are tagged as requiring role certificates for principal",
+        "operationId" : "getRolesRequireRoleCert",
+        "parameters" : [ {
+          "name" : "principal",
+          "in" : "query",
+          "description" : "If not present, will return roles for the user making the call",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RoleAccess"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/domain/{domainName}/service/{serviceName}" : {
       "get" : {
         "description" : "Get info for the specified ServiceIdentity.",
@@ -693,6 +791,100 @@ var ztsspec = {
         }
       }
     },
+    "/v1/domain/{domainName}/service/{serviceName}/transportRules" : {
+      "get" : {
+        "operationId" : "getTransportRules",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "serviceName",
+          "in" : "path",
+          "description" : "name of the service",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TransportRules"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workloads/{ip}" : {
+      "get" : {
+        "operationId" : "getWorkloadsByIP",
+        "parameters" : [ {
+          "name" : "ip",
+          "in" : "path",
+          "description" : "ip address to query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Workloads"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/domain/{domainName}/service/{serviceName}/workloads" : {
+      "get" : {
+        "operationId" : "getWorkloadsByService",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "serviceName",
+          "in" : "path",
+          "description" : "name of the service",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Workloads"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/oauth2/token" : {
       "post" : {
         "operationId" : "postAccessTokenRequest",
@@ -768,7 +960,7 @@ var ztsspec = {
     },
     "/v1/instance" : {
       "post" : {
-        "description" : "we have an authenticate enabled for this endpoint but in most cases the service owner might need to make it optional by setting the zts servers no_auth_uri list to include this endpoint. We need the authenticate in case the request comes with a client certificate and the provider needs to know who that principal was in the client certificate",
+        "description" : "Register a new service instance and issue an x.509 service identity certificate once the provider validates the attestation data along with the request attributes. We have an authenticate enabled for this endpoint but in most cases the service owner might need to make it optional by setting the zts servers no_auth_uri list to include this endpoint. We need the authenticate in case the request comes with a client certificate and the provider needs to know who that principal was in the client certificate",
         "operationId" : "postInstanceRegisterInformation",
         "requestBody" : {
           "content" : {
@@ -889,6 +1081,48 @@ var ztsspec = {
         }
       }
     },
+    "/v1/domain/{domainName}/policy/signed" : {
+      "post" : {
+        "description" : "Get a signed policy enumeration from the service, to transfer to a local store. An ETag is generated for the PolicyList that changes when any item in the list changes. If the If-None-Match header is provided, and it matches the ETag that would be returned, then a NOT_MODIFIED response is returned instead of the list.",
+        "operationId" : "postSignedPolicyRequest",
+        "parameters" : [ {
+          "name" : "domainName",
+          "in" : "path",
+          "description" : "name of the domain",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "If-None-Match",
+          "in" : "header",
+          "description" : "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "policy version request details",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SignedPolicyRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
     "/application.wadl/{path}" : {
       "get" : {
         "operationId" : "getExternalGrammar",
@@ -980,6 +1214,29 @@ var ztsspec = {
           }
         }
       },
+      "InstanceRegisterToken" : {
+        "type" : "object",
+        "properties" : {
+          "provider" : {
+            "type" : "string"
+          },
+          "domain" : {
+            "type" : "string"
+          },
+          "service" : {
+            "type" : "string"
+          },
+          "attestationData" : {
+            "type" : "string"
+          },
+          "attributes" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
       "JWK" : {
         "type" : "object",
         "properties" : {
@@ -1019,6 +1276,44 @@ var ztsspec = {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/JWK"
+            }
+          }
+        }
+      },
+      "OpenIDConfig" : {
+        "type" : "object",
+        "properties" : {
+          "issuer" : {
+            "type" : "string"
+          },
+          "authorization_endpoint" : {
+            "type" : "string"
+          },
+          "jwks_uri" : {
+            "type" : "string"
+          },
+          "response_types_supported" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "subject_types_supported" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "id_token_signing_alg_values_supported" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "claims_supported" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
             }
           }
         }
@@ -1725,6 +2020,88 @@ var ztsspec = {
           }
         }
       },
+      "TransportRule" : {
+        "type" : "object",
+        "properties" : {
+          "endPoint" : {
+            "type" : "string"
+          },
+          "sourcePortRange" : {
+            "type" : "string"
+          },
+          "port" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "protocol" : {
+            "type" : "string"
+          },
+          "direction" : {
+            "type" : "string",
+            "enum" : [ "IN", "OUT" ]
+          }
+        }
+      },
+      "TransportRules" : {
+        "type" : "object",
+        "properties" : {
+          "ingressRules" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TransportRule"
+            }
+          },
+          "egressRules" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TransportRule"
+            }
+          }
+        }
+      },
+      "Workload" : {
+        "type" : "object",
+        "properties" : {
+          "domainName" : {
+            "type" : "string"
+          },
+          "serviceName" : {
+            "type" : "string"
+          },
+          "uuid" : {
+            "type" : "string"
+          },
+          "ipAddresses" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "hostname" : {
+            "type" : "string"
+          },
+          "provider" : {
+            "type" : "string"
+          },
+          "updateTime" : {
+            "$ref" : "#/components/schemas/Timestamp"
+          },
+          "certExpiryTime" : {
+            "$ref" : "#/components/schemas/Timestamp"
+          }
+        }
+      },
+      "Workloads" : {
+        "type" : "object",
+        "properties" : {
+          "workloadList" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Workload"
+            }
+          }
+        }
+      },
       "AccessTokenResponse" : {
         "type" : "object",
         "properties" : {
@@ -1796,6 +2173,9 @@ var ztsspec = {
           "ssh" : {
             "type" : "string"
           },
+          "sshCertRequest" : {
+            "$ref" : "#/components/schemas/SSHCertRequest"
+          },
           "token" : {
             "type" : "boolean"
           },
@@ -1811,6 +2191,97 @@ var ztsspec = {
             "items" : {
               "type" : "string"
             }
+          }
+        }
+      },
+      "SSHCertRequest" : {
+        "type" : "object",
+        "properties" : {
+          "certRequestData" : {
+            "$ref" : "#/components/schemas/SSHCertRequestData"
+          },
+          "certRequestMeta" : {
+            "$ref" : "#/components/schemas/SSHCertRequestMeta"
+          },
+          "csr" : {
+            "type" : "string"
+          }
+        }
+      },
+      "SSHCertRequestData" : {
+        "type" : "object",
+        "properties" : {
+          "principals" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "sources" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "destinations" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "publicKey" : {
+            "type" : "string"
+          },
+          "touchPublicKey" : {
+            "type" : "string"
+          },
+          "caPubKeyAlgo" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "command" : {
+            "type" : "string"
+          }
+        }
+      },
+      "SSHCertRequestMeta" : {
+        "type" : "object",
+        "properties" : {
+          "requestor" : {
+            "type" : "string"
+          },
+          "origin" : {
+            "type" : "string"
+          },
+          "clientInfo" : {
+            "type" : "string"
+          },
+          "sshClientVersion" : {
+            "type" : "string"
+          },
+          "certType" : {
+            "type" : "string"
+          },
+          "keyIdPrincipals" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "athenzService" : {
+            "type" : "string"
+          },
+          "instanceId" : {
+            "type" : "string"
+          },
+          "prevCertValidFrom" : {
+            "$ref" : "#/components/schemas/Timestamp"
+          },
+          "prevCertValidTo" : {
+            "$ref" : "#/components/schemas/Timestamp"
+          },
+          "transId" : {
+            "type" : "string"
           }
         }
       },
@@ -1879,6 +2350,9 @@ var ztsspec = {
           "ssh" : {
             "type" : "string"
           },
+          "sshCertRequest" : {
+            "$ref" : "#/components/schemas/SSHCertRequest"
+          },
           "token" : {
             "type" : "boolean"
           },
@@ -1909,6 +2383,12 @@ var ztsspec = {
           "expiryTime" : {
             "type" : "integer",
             "format" : "int64"
+          },
+          "prevCertNotBefore" : {
+            "$ref" : "#/components/schemas/Timestamp"
+          },
+          "prevCertNotAfter" : {
+            "$ref" : "#/components/schemas/Timestamp"
           }
         }
       },
@@ -1920,72 +2400,17 @@ var ztsspec = {
           }
         }
       },
-      "SSHCertRequest" : {
+      "SignedPolicyRequest" : {
         "type" : "object",
         "properties" : {
-          "certRequestData" : {
-            "$ref" : "#/components/schemas/SSHCertRequestData"
-          },
-          "certRequestMeta" : {
-            "$ref" : "#/components/schemas/SSHCertRequestMeta"
-          },
-          "csr" : {
-            "type" : "string"
-          }
-        }
-      },
-      "SSHCertRequestData" : {
-        "type" : "object",
-        "properties" : {
-          "principals" : {
-            "type" : "array",
-            "items" : {
+          "policyVersions" : {
+            "type" : "object",
+            "additionalProperties" : {
               "type" : "string"
             }
           },
-          "sources" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          },
-          "destinations" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          },
-          "publicKey" : {
-            "type" : "string"
-          },
-          "touchPublicKey" : {
-            "type" : "string"
-          }
-        }
-      },
-      "SSHCertRequestMeta" : {
-        "type" : "object",
-        "properties" : {
-          "requestor" : {
-            "type" : "string"
-          },
-          "origin" : {
-            "type" : "string"
-          },
-          "clientInfo" : {
-            "type" : "string"
-          },
-          "sshClientVersion" : {
-            "type" : "string"
-          },
-          "certType" : {
-            "type" : "string"
-          },
-          "athenzService" : {
-            "type" : "string"
-          },
-          "instanceId" : {
-            "type" : "string"
+          "signatureP1363Format" : {
+            "type" : "boolean"
           }
         }
       }
