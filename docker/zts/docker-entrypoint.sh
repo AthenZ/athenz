@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 ZTS_STOP_TIMEOUT=${ZTS_STOP_TIMEOUT:-30}
 ZTS_CLASSPATH="${CLASSPATH}:${USER_CLASSPATH}"

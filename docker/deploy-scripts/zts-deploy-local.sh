@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -eu
 set -o pipefail
@@ -80,7 +80,7 @@ docker exec --user mysql:mysql \
     "${ZTS_DB_HOST}" mysql \
     --database=zts_store \
     --user=root --password="${ZTS_DB_ROOT_PASS}" \
-    --execute="CREATE USER 'zts_admin'@'${ZTS_HOST}.${DOCKER_NETWORK}' IDENTIFIED BY '${ZTS_DB_ADMIN_PASS}'; GRANT ALL PRIVILEGES ON zts_store.* TO 'zts_admin'@'${ZTS_HOST}.${DOCKER_NETWORK}'; FLUSH PRIVILEGES;"
+    --execute="CREATE USER 'zts_admin'@'%' IDENTIFIED BY '${ZTS_DB_ADMIN_PASS}'; GRANT ALL PRIVILEGES ON zts_store.* TO 'zts_admin'@'%'; FLUSH PRIVILEGES;"
 docker exec --user mysql:mysql \
     "${ZTS_DB_HOST}" mysql \
     --database=mysql \

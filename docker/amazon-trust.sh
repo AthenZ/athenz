@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 if test -e /etc/pki/tls/certs/ca-bundle.crt; then
   BASE_DIR=$(git rev-parse --show-toplevel)
