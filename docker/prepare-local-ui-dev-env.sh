@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 BASE_DIR=$(git rev-parse --show-toplevel)
 cp ${BASE_DIR}/docker/ui/var/keys/*.pem ${BASE_DIR}/ui/keys

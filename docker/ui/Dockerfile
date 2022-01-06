@@ -1,4 +1,4 @@
-FROM node:12.16.2-alpine AS builder
+FROM node:fermium-alpine AS builder
 
 RUN set -eux && apk update && apk add --no-cache --update ca-certificates libstdc++ libgcc tini make git
 
@@ -26,7 +26,7 @@ RUN rm -rf scripts \
     && rm -rf pom.xml \
     && rm -rf README.md
 
-FROM node:12.16.2-alpine
+FROM node:fermium-alpine
 # date -u +'%Y-%m-%dT%H:%M:%SZ'
 ARG BUILD_DATE
 # git rev-parse --short HEAD
@@ -43,9 +43,10 @@ LABEL org.label-schema.vcs-ref=$VCS_REF
 ARG GID=1001
 ARG UID=10001
 
+RUN mkdir -p /var/lib/sia/tokens/msd-api-access && touch /var/lib/sia/tokens/msd-api-access/msd-api-access-token
 # add athenz user
 RUN addgroup -g ${GID} athenz && \
-  adduser -S -D -H -s /sbin/nologin -u ${UID} -G athenz athenz
+  adduser -S -D -H -s /sbin/nologin -u ${UID} -G athenz athenz && chown -R athenz:athenz /var/lib/sia/tokens/msd-api-access
 USER athenz
 
 WORKDIR /opt/athenz/ui

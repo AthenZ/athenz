@@ -3,7 +3,7 @@ In this guide, you will be able to start a local ZMS server and do local ui deve
 
 ## Prerequisites
 
-Docker, Make toolchain, Node v12.14.0, nodemon v2.0.3
+Docker, Make toolchain, Node v14.x, nodemon v2.x
 
 ## Steps
 

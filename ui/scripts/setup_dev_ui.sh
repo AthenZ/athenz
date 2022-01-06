@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # Determine our run-time directory
 
@@ -68,5 +68,9 @@ if [ "$HOST_PLATFORM" != 'darwin' ] ; then
 elif [ "$HOST_PLATFORM" == 'darwin' ] ; then
   cat /dev/urandom | env LC_CTYPE=C tr -dc a-zA-Z0-9 | head -c 16 > "$ROOT"/keys/cookie-session
 fi
+
+echo "Creating a dummy token file"
+sudo mkdir -p /var/lib/sia/tokens/msd-api-access/ && sudo chown -R "$(id -u)":"$(id -g)" /var/lib/sia/tokens/msd-api-access
+touch /var/lib/sia/tokens/msd-api-access/msd-api-access-token
 
 echo "Athenz UI Dev Environment setup complete"

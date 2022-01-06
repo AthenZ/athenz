@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 nameservers=$( grep -v '^#' < /etc/resolv.conf | grep nameserver | awk '{print $2}')
 LOCAL_ENV_NS=""
