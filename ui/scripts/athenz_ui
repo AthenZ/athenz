@@ -42,7 +42,9 @@ fi
 if [ -z "${ZMS_SERVER_URL}" ]; then
     export ZMS_SERVER_URL=https://${ZMS_SERVER}:4443/zms/v1/
 fi
-
+if [ -z "${ZMS_LOGIN_URL}" ]; then
+    export ZMS_LOGIN_URL=https://${ZMS_SERVER}:4443/zms/v1/
+fi
 # if we don't have ROOT variable defined we'll default
 # to the parent directory where the script is running from
 
@@ -75,7 +77,7 @@ case $command in
         fi
 
         echo "Starting Athenz UI..."
-        nohup NODE_ENV=production nodemon -r dotenv/config app.js > "$log" 2>&1 < /dev/null &
+        nohup nodemon -r dotenv/config app.js > "$log" 2>&1 < /dev/null &
         echo $! > "$pid"
         sleep 2;
         if ! ps -p $! > /dev/null ; then

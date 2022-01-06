@@ -868,7 +868,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // get the list of allowed header names for cors requests
 
         final String headerList = System.getProperty(ZMSConsts.ZMS_PROP_CORS_HEADER_LIST,
-                "*,Accept,Accept-Language,Content-Language,Content-Type");
+                "*,Accept,Accept-Language,Content-Language,Content-Type,Authorization");
         corsRequestHeaderList = Arrays.stream(headerList.split(","))
                 .map(String::toLowerCase).collect(Collectors.toSet());
 
