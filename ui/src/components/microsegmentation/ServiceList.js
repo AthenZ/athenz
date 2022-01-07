@@ -64,9 +64,7 @@ const StyledLink = styled.a`
     cursor: pointer;
 `;
 
-const StyledInvalidLink = styled.a`
-    color: red;
-`;
+const StyledInvalidLink = styled.a``;
 
 const StyledMessageDiv = styled.div`
     min-width: 200px;
@@ -112,24 +110,7 @@ class ServiceList extends React.Component {
                             </StyledLink>
                         )}
 
-                        {item.includes('*') && (
-                            <StyledMenu
-                                placement='right'
-                                trigger={
-                                    <StyledInvalidLink>
-                                        {' '}
-                                        {item}{' '}
-                                    </StyledInvalidLink>
-                                }
-                            >
-                                <StyledMessageDiv>
-                                    <p>
-                                        Service is invalid as it contains
-                                        wildcard characters.
-                                    </p>
-                                </StyledMessageDiv>
-                            </StyledMenu>
-                        )}
+                        {item.includes('*') && <p>{item} </p>}
                     </StyledTd>
                 </StyledTr>
             );

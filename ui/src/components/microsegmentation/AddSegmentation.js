@@ -277,11 +277,9 @@ export default class AddSegmentation extends React.Component {
         }
         let names = NameUtils.splitNames(sourceServiceName);
         for (let i = 0; i < names.length; i++) {
-            if (!names[i].includes('*')) {
-                members.push({
-                    memberName: names[i],
-                });
-            }
+            members.push({
+                memberName: names[i],
+            });
         }
 
         if (this.state.isCategory) {
@@ -544,26 +542,6 @@ export default class AddSegmentation extends React.Component {
                 return 1;
             }
 
-            for (let member of this.state.members) {
-                if (member.memberName.includes('*')) {
-                    this.setState({
-                        errorMessage:
-                            'Service name cannot contain wildcard (*) characters',
-                        saving: 'todo',
-                    });
-                    return 1;
-                }
-            }
-
-            if (this.state.sourceServiceMembers.includes('*')) {
-                this.setState({
-                    errorMessage:
-                        'Service name cannot contain wildcard (*) characters',
-                    saving: 'todo',
-                });
-                return 1;
-            }
-
             if (!this.state.sourcePort || this.state.sourcePort === '') {
                 this.setState({
                     errorMessage: 'Source port is required.',
@@ -606,26 +584,6 @@ export default class AddSegmentation extends React.Component {
                 this.setState({
                     errorMessage:
                         'At least one destination service is required.',
-                    saving: 'todo',
-                });
-                return 1;
-            }
-
-            for (let member of this.state.members) {
-                if (member.memberName.includes('*')) {
-                    this.setState({
-                        errorMessage:
-                            'Service name cannot contain wildcard (*) characters',
-                        saving: 'todo',
-                    });
-                    return 1;
-                }
-            }
-
-            if (this.state.destinationServiceMembers.includes('*')) {
-                this.setState({
-                    errorMessage:
-                        'Service name cannot contain wildcard (*) characters',
                     saving: 'todo',
                 });
                 return 1;
