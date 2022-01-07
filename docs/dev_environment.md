@@ -47,7 +47,7 @@ Make sure you have set the $JAVA_HOME environment variable.
 
 ```shell
 $ java -XshowSettings:properties -version 2>&1 > /dev/null | grep 'java.home'
-$ export $JAVA_HOME=<java-home-directory>
+$ export JAVA_HOME=<java-home-directory>
 ````
 
 #### Maven
