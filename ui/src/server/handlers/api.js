@@ -804,72 +804,78 @@ Fetchr.registerService({
     name: 'assertionId',
     read(req, resource, params, config, callback) {
         const timeout = 1000;
+        const numberOfRetry = 2;
+        const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
-        const getPolicyWithRetry = (numberOfRetries) => {
+        const getAssertionId = (data) => {
+            data.assertions.forEach((assertion) => {
+                if (
+                    assertion.role ===
+                        params.domainName + ':role.' + params.roleName &&
+                    assertion.resource ===
+                        params.domainName + ':' + params.resource &&
+                    assertion.action === params.action &&
+                    assertion.effect === params.effect
+                ) {
+                    return assertion.id;
+                }
+            });
+            return -1;
+        };
+
+        const getPolicy = () => {
             return new Promise((resolve, reject) => {
-                const getPolicy = (n) => {
-                    return req.clients.zms.getPolicy(
-                        {
-                            policyName: params.policyName,
-                            domainName: params.domainName,
-                        },
-                        (err, data) => {
-                            if (data) {
-                                data.assertions.forEach((assertion) => {
-                                    if (
-                                        assertion.role ===
-                                            params.domainName +
-                                                ':role.' +
-                                                params.roleName &&
-                                        assertion.resource ===
-                                            params.domainName +
-                                                ':' +
-                                                params.resource &&
-                                        assertion.action === params.action &&
-                                        assertion.effect === params.effect
-                                    ) {
-                                        resolve(assertion.id);
-                                    }
-                                });
-
-                                if (n === 1) {
-                                    let error = {
-                                        status: 404,
-                                        message: {
-                                            message:
-                                                'Failed to get assertion for policy ' +
-                                                params.policyName +
-                                                '.',
-                                        },
-                                    };
-                                    reject(error);
-                                } else {
-                                    setTimeout(() => {
-                                        getPolicy(n - 1);
-                                    }, timeout);
-                                }
-                            } else {
-                                if (n === 1) {
-                                    reject(err);
-                                } else {
-                                    setTimeout(() => {
-                                        getPolicy(n - 1);
-                                    }, timeout);
-                                }
-                            }
+                return req.clients.zms.getPolicy(
+                    {
+                        policyName: params.policyName,
+                        domainName: params.domainName,
+                    },
+                    (err, data) => {
+                        if (data) {
+                            resolve(data);
+                        } else {
+                            reject(err);
                         }
-                    );
-                };
-                return getPolicy(numberOfRetries);
+                    }
+                );
             });
         };
 
-        getPolicyWithRetry(2)
+        async function retryGetPolicy() {
+            for (let i = 1; i <= numberOfRetry; i++) {
+                await getPolicy()
+                    .then(async (data) => {
+                        let assertionId = getAssertionId(data);
+                        if (assertionId == -1) {
+                            if (i == numberOfRetry) {
+                                let error = {
+                                    status: 404,
+                                    message: {
+                                        message:
+                                            'Failed to get assertion for policy ' +
+                                            params.policyName +
+                                            '.',
+                                    },
+                                };
+                                throw error;
+                            }
+                        }
+                    })
+                    .catch((err) => {
+                        if (i == numberOfRetry) {
+                            throw err;
+                        }
+                    });
+                await delay(timeout);
+            }
+        }
+
+        retryGetPolicy()
             .then((data) => {
-                return callback(null, data);
+                callback(null, data);
             })
             .catch((err) => {
-                return callback(errorHandler.fetcherError(err));
+                callback(errorHandler.fetcherError(err));
             });
     },
 });

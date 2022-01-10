@@ -19,15 +19,15 @@ import AddSegmentation from "../../../components/microsegmentation/AddSegmentati
 import API from "../../../api";
 
 describe('AddSegmentation', () => {
+    const pageFeatureFlag ={
+        'policyValidation': true
+    };
     it('should render', () => {
         let domain = 'domain';
         const showAddSegmentation = true;
         const cancel = function() {};
         const submit = function() {};
         let _csrf = 'csrf';
-        const pageFeatureFlag ={
-            "policyValidation": true
-        };
         const { getByTestId } = render(
             <AddSegmentation
                 api={API()}
@@ -58,10 +58,6 @@ describe('AddSegmentation', () => {
                 });
             },
         };
-        const pageFeatureFlag ={
-            "policyValidation": true
-        };
-
         const { getByTestId, getByText } =  render(
             <AddSegmentation
                 api={api}
