@@ -7,9 +7,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
-	"log"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/ardielle/ardielle-go/rdl"
@@ -116,7 +116,6 @@ func (cli Zms) SetGroupServiceExpiryDays(dn string, rn string, days int32) (*str
 
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
-
 
 func (cli Zms) AddGroup(dn string, gn string, groupMembers []*zms.GroupMember) (*string, error) {
 	fullResourceName := dn + ":group." + gn
@@ -458,14 +457,15 @@ func (cli Zms) AddGroupTags(dn string, gn, tagKey string, tagValues []string) (*
 	if err != nil {
 		return nil, err
 	}
+	meta := getGroupMetaObject(group)
 
 	tagValueArr := make([]zms.TagCompoundValue, 0)
 
-	if group.Tags == nil {
-		group.Tags = map[zms.CompoundName]*zms.TagValueList{}
+	if meta.Tags == nil {
+		meta.Tags = map[zms.CompoundName]*zms.TagValueList{}
 	} else {
 		// append current tags
-		currentTagValues := group.Tags[zms.CompoundName(tagKey)]
+		currentTagValues := meta.Tags[zms.CompoundName(tagKey)]
 		if currentTagValues != nil {
 			tagValueArr = append(tagValueArr, currentTagValues.List...)
 		}
@@ -475,45 +475,19 @@ func (cli Zms) AddGroupTags(dn string, gn, tagKey string, tagValues []string) (*
 		tagValueArr = append(tagValueArr, zms.TagCompoundValue(tagValue))
 	}
 
-	group.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+	meta.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
-	err = cli.Zms.PutGroup(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, group)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
-
-	group, output, err := cli.ShowGroup(dn, gn, false, false)
-	if err != nil || !verifyTagExists(group, tagKey, tagValues...) {
-		// due to mysql read after write issue it's possible that
-		// the group will not be updated after the put command.
-		// In this case we're going to do a quick sleep and retry request
-		time.Sleep(500 * time.Millisecond)
-		_, output, err = cli.ShowGroup(dn, gn, false, false)
-	}
-	return output, err
-}
-
-func verifyTagExists(group *zms.Group, tagKey string, tagValues ...string) bool {
-	// Verify key exists
-	if group.Tags == nil || group.Tags[zms.CompoundName(tagKey)] == nil {
-		return false
+	s := "[domain " + dn + " group " + gn + " tags successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
 	}
 
-	// Make set of current tag values
-	tagCurrentTagValues := make(map[string]bool)
-	for _, value := range group.Tags[zms.CompoundName(tagKey)].List {
-		tagCurrentTagValues[string(value)] = true
-	}
-
-	// Check if requested tag values appear
-	for _, value := range tagValues {
-		_,exist := tagCurrentTagValues[value]
-		if (!exist) {
-			return false;
-		}
-	}
-
-	return true;
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) DeleteGroupTags(dn string, gn, tagKey string, tagValue string) (*string, error) {
@@ -521,16 +495,16 @@ func (cli Zms) DeleteGroupTags(dn string, gn, tagKey string, tagValue string) (*
 	if err != nil {
 		return nil, err
 	}
+	meta := getGroupMetaObject(group)
 
 	tagValueArr := make([]zms.TagCompoundValue, 0)
-
-	if group.Tags == nil {
-		group.Tags = map[zms.CompoundName]*zms.TagValueList{}
+	if meta.Tags == nil {
+		meta.Tags = map[zms.CompoundName]*zms.TagValueList{}
 	}
 
 	// except given tagValue, set the same tags map
-	if tagValue != "" && group.Tags != nil {
-		currentTagValues := group.Tags[zms.CompoundName(tagKey)]
+	if tagValue != "" && meta.Tags != nil {
+		currentTagValues := meta.Tags[zms.CompoundName(tagKey)]
 		if currentTagValues != nil {
 			for _, curTagValue := range currentTagValues.List {
 				if tagValue != string(curTagValue) {
@@ -540,23 +514,19 @@ func (cli Zms) DeleteGroupTags(dn string, gn, tagKey string, tagValue string) (*
 		}
 	}
 
-	group.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+	meta.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
-	err = cli.Zms.PutGroup(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, group)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
-
-	group, output, err := cli.ShowGroup(dn, gn, false, false)
-	if err != nil || verifyTagExists(group, tagKey, tagValue) {
-		// due to mysql read after write issue it's possible that
-		// the group will not be updated after the put command.
-		// In this case we're going to do a quick sleep and retry request
-		time.Sleep(500 * time.Millisecond)
-		_, output, err = cli.ShowGroup(dn, gn, false, false)
+	s := "[domain " + dn + " group " + gn + " tags successfully deleted]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
 	}
 
-	return output, err
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) ShowGroups(dn string, tagKey string, tagValue string) (*string, error) {
