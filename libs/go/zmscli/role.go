@@ -515,14 +515,15 @@ func (cli Zms) AddRoleTags(dn string, rn, tagKey string, tagValues []string) (*s
 	if err != nil {
 		return nil, err
 	}
+	meta := getRoleMetaObject(role)
 
 	tagValueArr := make([]zms.TagCompoundValue, 0)
 
-	if role.Tags == nil {
-		role.Tags = map[zms.CompoundName]*zms.TagValueList{}
+	if meta.Tags == nil {
+		meta.Tags = map[zms.CompoundName]*zms.TagValueList{}
 	} else {
 		// append current tags
-		currentTagValues := role.Tags[zms.CompoundName(tagKey)]
+		currentTagValues := meta.Tags[zms.CompoundName(tagKey)]
 		if currentTagValues != nil {
 			tagValueArr = append(tagValueArr, currentTagValues.List...)
 		}
@@ -532,22 +533,19 @@ func (cli Zms) AddRoleTags(dn string, rn, tagKey string, tagValues []string) (*s
 		tagValueArr = append(tagValueArr, zms.TagCompoundValue(tagValue))
 	}
 
-	role.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+	meta.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
-	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, role)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
-
-	output, err := cli.ShowRole(dn, rn, false, false, false)
-	if err != nil {
-		// due to mysql read after write issue it's possible that
-		// we'll get 404 after writing our object so in that
-		// case we're going to do a quick sleep and retry request
-		time.Sleep(500 * time.Millisecond)
-		output, err = cli.ShowRole(dn, rn, false, false, false)
+	s := "[domain " + dn + " role " + rn + " tags successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
 	}
-	return output, err
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) DeleteRoleTags(dn string, rn, tagKey string, tagValue string) (*string, error) {
@@ -555,16 +553,17 @@ func (cli Zms) DeleteRoleTags(dn string, rn, tagKey string, tagValue string) (*s
 	if err != nil {
 		return nil, err
 	}
+	meta := getRoleMetaObject(role)
 
 	tagValueArr := make([]zms.TagCompoundValue, 0)
 
-	if role.Tags == nil {
-		role.Tags = map[zms.CompoundName]*zms.TagValueList{}
+	if meta.Tags == nil {
+		meta.Tags = map[zms.CompoundName]*zms.TagValueList{}
 	}
 
 	// except given tagValue, set the same tags map
-	if tagValue != "" && role.Tags != nil {
-		currentTagValues := role.Tags[zms.CompoundName(tagKey)]
+	if tagValue != "" && meta.Tags != nil {
+		currentTagValues := meta.Tags[zms.CompoundName(tagKey)]
 		if currentTagValues != nil {
 			for _, curTagValue := range currentTagValues.List {
 				if tagValue != string(curTagValue) {
@@ -574,22 +573,19 @@ func (cli Zms) DeleteRoleTags(dn string, rn, tagKey string, tagValue string) (*s
 		}
 	}
 
-	role.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+	meta.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
-	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, role)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
-
-	output, err := cli.ShowRole(dn, rn, false, false, false)
-	if err != nil {
-		// due to mysql read after write issue it's possible that
-		// we'll get 404 after writing our object so in that
-		// case we're going to do a quick sleep and retry request
-		time.Sleep(500 * time.Millisecond)
-		output, err = cli.ShowRole(dn, rn, false, false, false)
+	s := "[domain " + dn + " role " + rn + " tags successfully deleted]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
 	}
-	return output, err
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) ShowRoles(dn string, tagKey string, tagValue string) (*string, error) {
