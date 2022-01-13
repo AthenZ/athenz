@@ -19,7 +19,7 @@ include "Instance.rdli";
 include "DomainMetrics.rdli";
 include "Status.rdli";
 include "SSHCert.rdli";
-include "OAauth.rdli";
+include "OAuth.rdli";
 include "RoleCert.rdli";
 include "Workload.rdli";
 include "TransportRule.rdli";

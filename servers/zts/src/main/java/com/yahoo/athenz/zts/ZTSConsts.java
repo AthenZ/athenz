@@ -78,6 +78,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT     = "athenz.zts.role_token_max_timeout";
     public static final String ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT = "athenz.zts.role_token_default_timeout";
     public static final String ZTS_PROP_ID_TOKEN_MAX_TIMEOUT       = "athenz.zts.id_token_max_timeout";
+    public static final String ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT   = "athenz.zts.id_token_default_timeout";
     public static final String ZTS_PROP_SIGNED_POLICY_TIMEOUT      = "athenz.zts.signed_policy_timeout";
     public static final String ZTS_PROP_AUTHORIZED_PROXY_USERS     = "athenz.zts.authorized_proxy_users";
     public static final String ZTS_PROP_SECURE_REQUESTS_ONLY       = "athenz.zts.secure_requests_only";
@@ -239,4 +240,9 @@ public final class ZTSConsts {
     public static final String ZTS_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY_DEFAULT = "75";
     public static final String ZTS_PROP_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY = "athenz.zts.cert_priority_max_percent_high_priority";
     public static final String ZTS_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY_DEFAULT = "25";
+
+    public static final String ZTS_OPENID_RESPONSE_IT_ONLY    = "id_token";
+    public static final String ZTS_OPENID_RESPONSE_BOTH_IT_AT = "id_token token";
+    public static final String ZTS_OPENID_SUBJECT_TYPE_PUBLIC = "public";
+
 }

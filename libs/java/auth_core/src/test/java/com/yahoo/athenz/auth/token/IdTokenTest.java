@@ -26,6 +26,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Collections;
 
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertEquals;
@@ -45,6 +46,8 @@ public class IdTokenTest {
         token.setAudience("coretech");
         token.setVersion(1);
         token.setIssuer("athenz");
+        token.setNonce("nonce");
+        token.setGroups(Collections.singletonList("dev-team"));
         return token;
     }
 
@@ -56,6 +59,8 @@ public class IdTokenTest {
         assertEquals("coretech", token.getAudience());
         assertEquals(1, token.getVersion());
         assertEquals("athenz", token.getIssuer());
+        assertEquals("nonce", token.getNonce());
+        assertEquals(Collections.singletonList("dev-team"), token.getGroups());
     }
 
     @Test
@@ -125,5 +130,15 @@ public class IdTokenTest {
 
         IdToken checkToken = new IdToken(idJws, Crypto.loadPublicKey(ecPublicKey));
         validateIdToken(checkToken, now);
+    }
+
+    @Test
+    public void testIdTokenEmptyGroups() {
+
+        IdToken token = new IdToken();
+        token.setGroups(null);
+        assertNull(token.getGroups());
+        token.setGroups(Collections.emptyList());
+        assertNull(token.getGroups());
     }
 }

@@ -2284,7 +2284,7 @@ public class DataStoreTest {
             role2.setRoleMembers(members);
 
             TagValueList tagValueList = new TagValueList();
-            tagValueList.setList(Arrays.asList("true"));
+            tagValueList.setList(Collections.singletonList("true"));
             Map<String, TagValueList> tagsIssueRoleCert = new HashMap<>();
             tagsIssueRoleCert.put("zts.IssueRoleCerts", tagValueList);
             role2.setTags(tagsIssueRoleCert);
@@ -3161,8 +3161,7 @@ public class DataStoreTest {
         setupStore.processSignedDomain(createSignedDomain("finance", "weather"), true);
 
         DataStore store = new DataStore(clogStore, null, ztsMetric);
-        List<String> zmsList = new ArrayList<>();
-        zmsList.addAll(Arrays.asList("coretech", "sports", "mail", "fantasy", "profile",
+        List<String> zmsList = new ArrayList<>(Arrays.asList("coretech", "sports", "mail", "fantasy", "profile",
                 "news", "politics", "finance", "invalid"));
         ((MockZMSFileChangeLogStore) store.changeLogStore).setDomainList(zmsList);
 
@@ -3187,8 +3186,7 @@ public class DataStoreTest {
         setupStore.processSignedDomain(createSignedDomain("finance", "weather"), true);
 
         DataStore store = new DataStore(clogStore, null, ztsMetric);
-        List<String> zmsList = new ArrayList<>();
-        zmsList.addAll(Arrays.asList("coretech", "sports", "mail", "fantasy", "profile",
+        List<String> zmsList = new ArrayList<>(Arrays.asList("coretech", "sports", "mail", "fantasy", "profile",
                 "news", "politics", "finance", "invalid"));
         ((MockZMSFileChangeLogStore) store.changeLogStore).setDomainList(zmsList);
         ((MockZMSFileChangeLogStore) store.changeLogStore).setRefreshSupport(true);
@@ -4271,6 +4269,8 @@ public class DataStoreTest {
 
         assertNull(store.principalGroupCache.getIfPresent("user.user1"));
         assertNull(store.groupMemberCache.getIfPresent("coretech:group.dev-team"));
+        assertNull(store.getPrincipalGroups("user.user1", "coretech", null));
+        assertNull(store.getPrincipalGroups("user.user1", "coretech", Collections.singleton("dev-team")));
 
         // process a group with no members
 
@@ -4279,8 +4279,10 @@ public class DataStoreTest {
 
         assertTrue(store.groupMemberCache.getIfPresent("coretech:group.dev-team").isEmpty());
         assertNull(store.principalGroupCache.getIfPresent("user.user1"));
+        assertNull(store.getPrincipalGroups("user.user1", "coretech", null));
+        assertNull(store.getPrincipalGroups("user.user1", "coretech", Collections.singleton("dev-team")));
 
-        // update the group and add a two new members
+        // update the group and add two new members
 
         List<GroupMember> members = new ArrayList<>();
         members.add(new GroupMember().setMemberName("user.user1")
@@ -4335,6 +4337,22 @@ public class DataStoreTest {
         assertEquals(members.size(), 1);
         assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.pe-team"));
 
+        List<String> groupNames = store.getPrincipalGroups("user.user1", "coretech", null);
+        assertEquals(groupNames.size(), 2);
+        assertTrue(groupNames.contains("dev-team"));
+        assertTrue(groupNames.contains("pe-team"));
+
+        groupNames = store.getPrincipalGroups("user.user1", "coretech", Collections.singleton("dev-team"));
+        assertEquals(groupNames.size(), 1);
+        assertTrue(groupNames.contains("dev-team"));
+
+        assertNull(store.getPrincipalGroups("user.user1", "coretech", Collections.singleton("prod-team")));
+        assertNull(store.getPrincipalGroups("user.user1", "unknown-domain", Collections.singleton("dev-team")));
+
+        groupNames = store.getPrincipalGroups("user.user2", "coretech", null);
+        assertEquals(groupNames.size(), 1);
+        assertTrue(groupNames.contains("dev-team"));
+
         // delete user2 and add user3
 
         group = new Group().setName("coretech:group.dev-team");
@@ -4369,7 +4387,14 @@ public class DataStoreTest {
         assertEquals(members.size(), 1);
         assertTrue(ZTSTestUtils.verifyGroupMemberGroup(members, "coretech:group.dev-team"));
 
-        // add new members that are disabled and expired
+        groupNames = store.getPrincipalGroups("user.user1", "coretech", null);
+        assertEquals(groupNames.size(), 2);
+        assertTrue(groupNames.contains("dev-team"));
+        assertTrue(groupNames.contains("pe-team"));
+
+        assertNull(store.getPrincipalGroups("user.user2", "coretech", null));
+
+        // add new members that are disabled, expired and soon to be expired
 
         group = new Group().setName("coretech:group.dev-team");
         members = new ArrayList<>();
@@ -4392,17 +4417,22 @@ public class DataStoreTest {
                 .setPrincipalType(Principal.Type.USER.getValue())
                 .setGroupName("coretech:group.dev-team")
                 .setExpiration(Timestamp.fromMillis(1000)));
+        members.add(new GroupMember().setMemberName("user.user7")
+                .setPrincipalType(Principal.Type.USER.getValue())
+                .setGroupName("coretech:group.dev-team")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + 2000)));
         group.setGroupMembers(members);
         store.processGroup(group);
 
         members = store.groupMemberCache.getIfPresent("coretech:group.dev-team");
         assertNotNull(members);
-        assertEquals(members.size(), 5);
+        assertEquals(members.size(), 6);
         assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user1"));
         assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user3"));
         assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user4"));
         assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user5"));
         assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user6"));
+        assertTrue(ZTSTestUtils.verifyGroupMemberName(members, "user.user7"));
 
         members = store.principalGroupCache.getIfPresent("user.user1");
         assertNotNull(members);
@@ -4420,6 +4450,24 @@ public class DataStoreTest {
         assertNull(store.principalGroupCache.getIfPresent("user.user4"));
         assertNull(store.principalGroupCache.getIfPresent("user.user5"));
         assertNull(store.principalGroupCache.getIfPresent("user.user6"));
+
+        assertNull(store.getPrincipalGroups("user.user4", "coretech", null));
+        assertNull(store.getPrincipalGroups("user.user5", "coretech", null));
+        assertNull(store.getPrincipalGroups("user.user6", "coretech", null));
+
+        groupNames = store.getPrincipalGroups("user.user3", "coretech", null);
+        assertEquals(groupNames.size(), 1);
+        assertTrue(groupNames.contains("dev-team"));
+
+        // first get and then wait for 3 seconds for the user7 to expire
+
+        groupNames = store.getPrincipalGroups("user.user7", "coretech", null);
+        assertEquals(groupNames.size(), 1);
+        assertTrue(groupNames.contains("dev-team"));
+
+        ZTSTestUtils.sleep(3000);
+
+        assertNull(store.getPrincipalGroups("user.user7", "coretech", null));
 
         // now make user4 as enabled, expire user 3 and delete user6
 
@@ -4469,6 +4517,12 @@ public class DataStoreTest {
 
         assertNull(store.principalGroupCache.getIfPresent("user.user5"));
         assertNull(store.principalGroupCache.getIfPresent("user.user6"));
+
+        assertNull(store.getPrincipalGroups("user.user3", "coretech", null));
+
+        groupNames = store.getPrincipalGroups("user.user4", "coretech", null);
+        assertEquals(groupNames.size(), 1);
+        assertTrue(groupNames.contains("dev-team"));
 
         // now make user5 as valid as well
 

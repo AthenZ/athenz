@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.db.RolesProvider;
@@ -1474,6 +1475,52 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                 }
             }
         }
+    }
+
+    // API
+    public List<String> getPrincipalGroups(final String identity, final String domainName, final Set<String> requestedGroups) {
+
+        // get the list of groups that a given identity is part of
+
+        List<GroupMember> groupMembers = principalGroupCache.getIfPresent(identity);
+        if (groupMembers == null || groupMembers.isEmpty()) {
+            return null;
+        }
+
+        // extract and only keep active group names from the specified domain
+
+        List<String> groups = new ArrayList<>();
+        long currentTime = System.currentTimeMillis();
+        final String domainNamePrefix = domainName + AuthorityConsts.GROUP_SEP;
+
+        for (GroupMember member : groupMembers) {
+
+            final String groupFullName = member.getGroupName();
+
+            // skip any members that have already expired
+
+            if (AuthzHelper.isMemberExpired(member.getExpiration(), currentTime)) {
+                continue;
+            }
+
+            // skip any members from a different domain
+
+            if (!groupFullName.startsWith(domainNamePrefix)) {
+                continue;
+            }
+
+            final String groupName = groupFullName.substring(domainNamePrefix.length());
+
+            // skip if the given group is not in our requested set
+
+            if (requestedGroups != null && !requestedGroups.contains(groupName)) {
+                continue;
+            }
+
+            groups.add(groupName);
+        }
+
+        return groups.isEmpty() ? null : groups;
     }
 
     // Internal

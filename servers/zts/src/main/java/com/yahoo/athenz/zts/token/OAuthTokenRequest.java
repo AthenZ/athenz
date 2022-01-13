@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Oath Holdings Inc.
+ * Copyright Athenz Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,47 +13,66 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts;
+package com.yahoo.athenz.zts.token;
 
+import com.yahoo.athenz.zts.ResourceError;
+import com.yahoo.athenz.zts.ResourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
-public class AccessTokenRequest {
+public class OAuthTokenRequest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AccessTokenRequest.class);
-    private static boolean supportOpenidScope = Boolean.parseBoolean(
-            System.getProperty(ZTSConsts.ZTS_PROP_OAUTH_OPENID_SCOPE, "false"));
+    private static final Logger LOGGER = LoggerFactory.getLogger(OAuthTokenRequest.class);
 
     public static String OBJECT_DOMAIN  = ":domain";
     public static String OBJECT_ROLE    = ":role.";
+    public static String OBJECT_GROUP   = ":group.";
     public static String OBJECT_SERVICE = ":service.";
     public static String OBJECT_OPENID  = "openid";
+    public static String OBJECT_GROUPS  = "groups";
+    public static String OBJECT_ROLES   = "roles";
 
     String domainName = null;
     String serviceName = null;
     Set<String> roleNames;
+    Set<String> groupNames;
     boolean sendScopeResponse = false;
-    boolean openidScope = false;
+    boolean openIdScope = false;
+    boolean groupsScope = false;
+    boolean rolesScope = false;
 
-    public AccessTokenRequest(final String scope) {
+    public OAuthTokenRequest(final String scope) {
 
         final String[] scopeList = scope.split(" ");
 
-        // the format of our scopes for role access token are:
-        // <domainName>:domain
-        // <domainName>:role.<roleName>
-        // the format of our scopes for openid are:
-        // openid <domainName>:service.<serviceName>
+        // the format of our scopes for role access token and id tokens are:
+        // access token/id token combo:
+        //   <domainName>:domain
+        //   <domainName>:role.<roleName>
+        //   openid <domainName>:service.<serviceName>
+        // id token requests (service is required uri client_id parameter):
+        //   openid
+        //   openid [groups | roles]
+        //   openid <domainName>:role.<roleName>
+        //   openid <domainName>:group.<groupName>
 
         Set<String> scopeRoleNames = new HashSet<>();
+        Set<String> scopeGroupNames = new HashSet<>();
         for (String scopeItem : scopeList) {
 
-            // first check if we haven an openid scope requested
+            // first check if we have an openid scope requested
 
             if (OBJECT_OPENID.equalsIgnoreCase(scopeItem)) {
-                openidScope = true;
+                openIdScope = true;
+                continue;
+            } else if (OBJECT_GROUPS.equalsIgnoreCase(scopeItem)) {
+                groupsScope = true;
+                continue;
+            } else if (OBJECT_ROLES.equalsIgnoreCase(scopeItem)) {
+                rolesScope = true;
                 continue;
             }
 
@@ -62,6 +81,9 @@ public class AccessTokenRequest {
             int idx = scopeItem.indexOf(OBJECT_SERVICE);
             if (idx != -1) {
                 final String scopeDomainName = scopeItem.substring(0, idx);
+                if (scopeDomainName.isEmpty()) {
+                    throw error("Service name without domain name", scope);
+                }
                 if (domainName != null && !scopeDomainName.equals(domainName)) {
                     throw error("Multiple domains in scope", scope);
                 }
@@ -78,6 +100,9 @@ public class AccessTokenRequest {
 
             if (scopeItem.endsWith(OBJECT_DOMAIN)) {
                 final String scopeDomainName = scopeItem.substring(0, scopeItem.length() - OBJECT_DOMAIN.length());
+                if (scopeDomainName.isEmpty()) {
+                    throw error("Domain scope name without domain name", scope);
+                }
                 if (domainName != null && !scopeDomainName.equals(domainName)) {
                     throw error("Multiple domains in scope", scope);
                 }
@@ -86,11 +111,14 @@ public class AccessTokenRequest {
                 continue;
             }
 
-            // finally check if we have a role scope
+            // next check if we have a role scope
 
             idx = scopeItem.indexOf(OBJECT_ROLE);
             if (idx != -1) {
                 final String scopeDomainName = scopeItem.substring(0, idx);
+                if (scopeDomainName.isEmpty()) {
+                    throw error("Role name without domain name", scope);
+                }
                 if (domainName != null && !scopeDomainName.equals(domainName)) {
                     throw error("Multiple domains in scope", scope);
                 }
@@ -99,31 +127,47 @@ public class AccessTokenRequest {
                 continue;
             }
 
+            // finally, check if we have a group scope
+
+            idx = scopeItem.indexOf(OBJECT_GROUP);
+            if (idx != -1) {
+                final String scopeDomainName = scopeItem.substring(0, idx);
+                if (scopeDomainName.isEmpty()) {
+                    throw error("Group name without domain name", scope);
+                }
+                if (domainName != null && !scopeDomainName.equals(domainName)) {
+                    throw error("Multiple domains in scope", scope);
+                }
+                domainName = scopeDomainName;
+                scopeGroupNames.add(scopeItem.substring(idx + OBJECT_GROUP.length()));
+                continue;
+            }
+
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Skipping unknown scope {}", scopeItem);
             }
         }
 
-        // if we don't have a domain then it's invalid scope
-
-        if (domainName == null || domainName.isEmpty()) {
-            throw error("No domains in scope", scope);
-        }
-
         // if the scope response is set to true then we had
-        // an explicit request for all roles in the domain
-        // so we're going to ignore the role names requested
+        // an explicit request for all roles or groups in the domain
+        // then we're going to ignore the role and groups names requested,
+        // but we still need to set the role/group scope in case
+        // some role or group name was passed without the explicit scope
 
-        if (!sendScopeResponse && !scopeRoleNames.isEmpty()) {
-            roleNames = scopeRoleNames;
-        }
-
-        // for openid scope we must have the openid scope
-        // along with the service name since the audience
-        // must be set for that service only
-
-        if (openidScope && (serviceName == null || serviceName.isEmpty())) {
-            throw error("No audience service name for openid scope", scope);
+        if (!sendScopeResponse) {
+            if (!scopeRoleNames.isEmpty()) {
+                roleNames = scopeRoleNames;
+            }
+            if (!scopeGroupNames.isEmpty()) {
+                groupNames = scopeGroupNames;
+            }
+        } else {
+            if (!scopeRoleNames.isEmpty()) {
+                rolesScope = true;
+            }
+            if (!scopeGroupNames.isEmpty()) {
+                groupsScope = true;
+            }
         }
     }
 
@@ -139,16 +183,24 @@ public class AccessTokenRequest {
         return roleNames == null ? null : roleNames.toArray(new String[0]);
     }
 
+    public Set<String> getGroupNames() {
+        return groupNames;
+    }
+
     public boolean sendScopeResponse() {
         return sendScopeResponse;
     }
 
-    public boolean isOpenidScope() {
-        return supportOpenidScope && openidScope;
+    public boolean isOpenIdScope() {
+        return openIdScope;
     }
 
-    public static void setSupportOpenidScope(boolean value) {
-        supportOpenidScope = value;
+    public boolean isGroupsScope() {
+        return groupsScope;
+    }
+
+    public boolean isRolesScope() {
+        return rolesScope;
     }
 
     ResourceException error(final String message, final String scope) {
