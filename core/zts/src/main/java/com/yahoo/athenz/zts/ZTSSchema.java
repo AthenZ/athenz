@@ -371,6 +371,8 @@ public class ZTSSchema {
 
     
 
+    
+
         sb.structType("Workload")
             .field("domainName", "DomainName", false, "name of the domain, optional for getWorkloadsByService API call")
             .field("serviceName", "EntityName", false, "name of the service, , optional for getWorkloadsByService API call")
@@ -743,9 +745,30 @@ public class ZTSSchema {
 ;
 
         sb.resource("AccessTokenRequest", "POST", "/oauth2/token")
-            .input("request", "AccessTokenRequest", "")
+            .comment("Fetch OAuth2 Access Token")
+            .input("request", "AccessTokenRequest", "token request details include scope")
             .auth("", "", true)
             .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("OIDCResponse", "GET", "/oauth2/auth")
+            .comment("Fetch OAuth OpenID Connect ID Token")
+            .queryParam("response_type", "responseType", "String", null, "response type - currently only supporting id tokens - id_token")
+            .queryParam("client_id", "clientId", "ServiceName", null, "client id - must be valid athenz service identity name")
+            .queryParam("redirect_uri", "redirectUri", "String", null, "redirect uri for the response")
+            .queryParam("scope", "scope", "String", null, "id token scope")
+            .queryParam("state", "state", "EntityName", null, "optional state claim included in the response location header")
+            .queryParam("nonce", "nonce", "EntityName", null, "nonce claim included in the id token")
+            .output("Location", "location", "String", "return location header with id token")
+            .auth("", "", true)
+            .expected("FOUND")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")

@@ -57,6 +57,7 @@ import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.store.MockCloudStore;
 import com.yahoo.athenz.zts.store.MockZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.token.AccessTokenRequest;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
@@ -240,7 +241,7 @@ public class ZTSImplTest {
 
         // enable openid scope
 
-        AccessTokenRequest.setSupportOpenidScope(true);
+        AccessTokenRequest.setSupportOpenIdScope(true);
     }
 
     @AfterMethod
@@ -304,6 +305,10 @@ public class ZTSImplTest {
 
     private String generateRoleName(String domain, String role) {
         return domain + ":role." + role;
+    }
+
+    private String generateGroupName(String domain, String group) {
+        return domain + ":group." + group;
     }
 
     private String generatePolicyName(String domain, String policy) {
@@ -413,6 +418,7 @@ public class ZTSImplTest {
 
             ServiceIdentity service = new ServiceIdentity();
             service.setName(generateServiceIdentityName(domainName, serviceName));
+            service.setProviderEndpoint("https://localhost:4443/zts");
             setServicePublicKey(service, "0", ZTS_Y64_CERT0);
 
             List<String> hosts = new ArrayList<>();
@@ -9843,7 +9849,7 @@ public class ZTSImplTest {
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
-        AccessTokenRequest.setSupportOpenidScope(false);
+        AccessTokenRequest.setSupportOpenIdScope(false);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
@@ -12980,10 +12986,342 @@ public class ZTSImplTest {
 
         assertEquals("https://athenz.cloud:4443/zts/v1", openIDConfig.getIssuer());
         assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true", openIDConfig.getJwks_uri());
-        assertEquals("https://athenz.cloud:4443/zts/v1/access", openIDConfig.getAuthorization_endpoint());
+        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/auth", openIDConfig.getAuthorization_endpoint());
 
         assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
         assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());
         assertEquals(Collections.singletonList("public"), openIDConfig.getSubject_types_supported());
+    }
+
+    @Test
+    public void testExtractServiceEndpoint() {
+
+        DomainData domainData = new DomainData();
+
+        assertNull(zts.extractServiceEndpoint(null, "athenz.api"));
+        assertNull(zts.extractServiceEndpoint(domainData, "athenz.api"));
+        assertNull(zts.extractServiceEndpoint(domainData, "athenz.backend"));
+
+        List<com.yahoo.athenz.zms.ServiceIdentity> services = new ArrayList<>();
+        com.yahoo.athenz.zms.ServiceIdentity serviceBackend = new com.yahoo.athenz.zms.ServiceIdentity()
+                .setName("athenz.backend").setProviderEndpoint("https://localhost:4443/endpoint");
+        com.yahoo.athenz.zms.ServiceIdentity serviceApi = new com.yahoo.athenz.zms.ServiceIdentity()
+                .setName("athenz.api");
+        services.add(serviceBackend);
+        services.add(serviceApi);
+
+        domainData.setServices(services);
+
+        assertEquals(zts.extractServiceEndpoint(domainData, "athenz.backend"), "https://localhost:4443/endpoint");
+        assertNull(zts.extractServiceEndpoint(domainData, "athenz.api"));
+    }
+
+    @Test
+    public void testOidcError() {
+
+        Response response = zts.oidcError("bad request", "https://localhost", null);
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        assertEquals(response.getHeaderString("Location"), "https://localhost?error=invalid_request&error_description=bad+request");
+
+        response = zts.oidcError("bad request", "https://localhost", "");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        assertEquals(response.getHeaderString("Location"), "https://localhost?error=invalid_request&error_description=bad+request");
+
+        response = zts.oidcError("bad request", "https://localhost", "state");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        assertEquals(response.getHeaderString("Location"), "https://localhost?error=invalid_request&error_description=bad+request&state=state");
+
+        response = zts.oidcError(null, "https://localhost", "state");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        assertEquals(response.getHeaderString("Location"), "https://localhost?error=invalid_request");
+    }
+
+    @Test
+    public void testGetOIDCResponseFailures() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        // client id without domain
+
+        try {
+            zts.getOIDCResponse(context, "id_token", "coretech", "https://localhost:4443", "openid", null, "nonce");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Invalid client id"));
+        }
+
+        // unknown domain
+
+        try {
+            zts.getOIDCResponse(context, "id_token", "unknown-domain.api", "https://localhost:4443", "openid", null, "nonce");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("No such domain: unknown-domain"));
+        }
+
+        // no service endpoint - during the domain setup
+        // service backup has no endpoint while service api is
+        // registered with https://localhost:4443/zts
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true);
+        store.processSignedDomain(signedDomain, false);
+
+        try {
+            zts.getOIDCResponse(context, "id_token", "coretech.backup", "https://localhost:4443/zts", "openid", null, "nonce");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Invalid Service or empty service endpoint"));
+        }
+
+        // mismatch service endpoint
+
+        try {
+            zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443", "openid", "state", "nonce");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Unregistered redirect uri"));
+        }
+
+        // invalid response type
+
+        Response response = zts.getOIDCResponse(context, "token", "coretech.api", "https://localhost:4443/zts", "openid", null, "nonce");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        assertEquals(response.getHeaderString("Location"),
+                "https://localhost:4443/zts?error=invalid_request&error_description=invalid+response+type");
+
+        // empty scope
+
+        response = zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "", null, "nonce");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        assertEquals(response.getHeaderString("Location"),
+                "https://localhost:4443/zts?error=invalid_request&error_description=no+scope+provided");
+
+        response = zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", null, null, "nonce");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        assertEquals(response.getHeaderString("Location"),
+                "https://localhost:4443/zts?error=invalid_request&error_description=no+scope+provided");
+
+        // scope domain mismatch
+
+        response = zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid athenz:group.dev-team", null, "nonce");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        assertEquals(response.getHeaderString("Location"),
+                "https://localhost:4443/zts?error=invalid_request&error_description=domain+name+mismatch");
+    }
+
+    @Test
+    public void testGetOIDCResponseNoRulesGroups() {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid", null, "nonce");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        String location = response.getHeaderString("Location");
+
+        int idx = location.indexOf("#id_token=");
+        String idToken = location.substring(idx + 10);
+
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(idToken);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.user", claims.getBody().getSubject());
+        assertEquals("coretech.api", claims.getBody().getAudience());
+        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
+        List<String> groups = (List<String>) claims.getBody().get("groups");
+        assertNull(groups);
+    }
+
+    @Test
+    public void testGetOIDCResponseGroups() {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        Group groupDev = new Group();
+        final String groupDevName = generateGroupName("coretech", "dev-team");
+        groupDev.setName(groupDevName);
+        List<GroupMember> groupDevMembers = new ArrayList<>();
+        groupDevMembers.add(new GroupMember().setMemberName("user_domain.user").setGroupName(groupDevName));
+        groupDevMembers.add(new GroupMember().setMemberName("user_domain.user1").setGroupName(groupDevName));
+        groupDev.setGroupMembers(groupDevMembers);
+
+        Group groupPe = new Group();
+        final String groupPeName = generateGroupName("coretech", "pe-team");
+        groupPe.setName(groupPeName);
+        List<GroupMember> groupPeMembers = new ArrayList<>();
+        groupPeMembers.add(new GroupMember().setMemberName("user_domain.user").setGroupName(groupPeName));
+        groupPeMembers.add(new GroupMember().setMemberName("user_domain.user1").setGroupName(groupPeName));
+        groupPe.setGroupMembers(groupPeMembers);
+
+        List<Group> groups = new ArrayList<>();
+        groups.add(groupDev);
+        groups.add(groupPe);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true, groups);
+        store.processSignedDomain(signedDomain, false);
+
+        // get all the groups
+
+        Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid groups", null, "nonce");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        String location = response.getHeaderString("Location");
+
+        int idx = location.indexOf("#id_token=");
+        String idToken = location.substring(idx + 10);
+
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(idToken);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.user", claims.getBody().getSubject());
+        assertEquals("coretech.api", claims.getBody().getAudience());
+        assertEquals("nonce", claims.getBody().get("nonce", String.class));
+        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
+        List<String> userGroups = (List<String>) claims.getBody().get("groups");
+        assertNotNull(groups);
+        assertEquals(userGroups.size(), 2);
+        assertTrue(userGroups.contains("dev-team"));
+        assertTrue(userGroups.contains("pe-team"));
+
+        // get only one of the groups and include state
+
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid coretech:group.dev-team", "valid-state", "nonce");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        location = response.getHeaderString("Location");
+        final String stateComp = "&state=valid-state";
+        assertTrue(location.endsWith(stateComp));
+
+        idx = location.indexOf("#id_token=");
+        idToken = location.substring(idx + 10, location.length() - stateComp.length());
+
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(idToken);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.user", claims.getBody().getSubject());
+        assertEquals("coretech.api", claims.getBody().getAudience());
+        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
+        userGroups = (List<String>) claims.getBody().get("groups");
+        assertNotNull(groups);
+        assertEquals(userGroups.size(), 1);
+        assertTrue(userGroups.contains("dev-team"));
+
+        // requesting a group that the user is not part of
+
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid coretech:group.eng-team", null, "nonce");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        assertEquals(response.getHeaderString("Location"),
+                "https://localhost:4443/zts?error=invalid_request&error_description=principal+not+included+in+requested+groups");
+    }
+
+    @Test
+    public void testGetOIDCResponseRoles() {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true, null);
+        store.processSignedDomain(signedDomain, false);
+
+        // get all the roles
+
+        Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid roles", null, "nonce");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        String location = response.getHeaderString("Location");
+
+        int idx = location.indexOf("#id_token=");
+        String idToken = location.substring(idx + 10);
+
+        Jws<Claims> claims;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(idToken);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.user", claims.getBody().getSubject());
+        assertEquals("coretech.api", claims.getBody().getAudience());
+        assertEquals("nonce", claims.getBody().get("nonce", String.class));
+        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
+        List<String> userRoles = (List<String>) claims.getBody().get("groups");
+        assertNotNull(userRoles);
+        assertEquals(userRoles.size(), 1);
+        assertTrue(userRoles.contains("writers"));
+
+        // get only one of the groups
+
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid coretech:role.writers", null, "nonce");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        location = response.getHeaderString("Location");
+
+        idx = location.indexOf("#id_token=");
+        idToken = location.substring(idx + 10);
+
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(idToken);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
+        }
+        assertNotNull(claims);
+        assertEquals("user_domain.user", claims.getBody().getSubject());
+        assertEquals("coretech.api", claims.getBody().getAudience());
+        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
+        userRoles = (List<String>) claims.getBody().get("groups");
+        assertNotNull(userRoles);
+        assertEquals(userRoles.size(), 1);
+        assertTrue(userRoles.contains("writers"));
+
+        // requesting a group that the user is not part of
+
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid coretech:role.eng-team", null, "nonce");
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        assertEquals(response.getHeaderString("Location"),
+                "https://localhost:4443/zts?error=invalid_request&error_description=principal+not+included+in+requested+roles");
     }
 }

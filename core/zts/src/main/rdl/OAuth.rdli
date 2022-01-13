@@ -57,10 +57,32 @@ resource JWKList GET "/oauth2/keys?rfc={rfc}" {
 
 type AccessTokenRequest String;
 
+// Fetch OAuth2 Access Token
 resource AccessTokenResponse POST "/oauth2/token" {
     authenticate;
-    AccessTokenRequest request;
+    AccessTokenRequest request; //token request details include scope
     consumes application/x-www-form-urlencoded
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+    }
+}
+
+type OIDCResponse String;
+
+// Fetch OAuth OpenID Connect ID Token
+resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}" {
+    authenticate;
+    String responseType; //response type - currently only supporting id tokens - id_token
+    ServiceName clientId; //client id - must be valid athenz service identity name
+    String redirectUri; //redirect uri for the response
+    String scope; //id token scope
+    EntityName state (optional); //optional state claim included in the response location header
+    EntityName nonce; //nonce claim included in the id token
+    String location (header="Location", out); //return location header with id token
+    expected FOUND;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;

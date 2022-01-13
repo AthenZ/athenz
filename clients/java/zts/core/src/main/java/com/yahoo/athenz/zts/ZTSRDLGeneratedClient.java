@@ -598,6 +598,45 @@ public class ZTSRDLGeneratedClient {
 
     }
 
+    public String getOIDCResponse(String responseType, String clientId, String redirectUri, String scope, String state, String nonce, java.util.Map<String, java.util.List<String>> headers) {
+        WebTarget target = base.path("/oauth2/auth");
+        if (responseType != null) {
+            target = target.queryParam("response_type", responseType);
+        }
+        if (clientId != null) {
+            target = target.queryParam("client_id", clientId);
+        }
+        if (redirectUri != null) {
+            target = target.queryParam("redirect_uri", redirectUri);
+        }
+        if (scope != null) {
+            target = target.queryParam("scope", scope);
+        }
+        if (state != null) {
+            target = target.queryParam("state", state);
+        }
+        if (nonce != null) {
+            target = target.queryParam("nonce", nonce);
+        }
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        if (credsHeader != null) {
+            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
+                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+        }
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 302:
+            if (headers != null) {
+                headers.put("location", java.util.Arrays.asList((String) response.getHeaders().getFirst("Location")));
+            }
+            return response.readEntity(String.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
     public RoleCertificate postRoleCertificateRequestExt(RoleCertificateRequest req) {
         WebTarget target = base.path("/rolecert");
         Invocation.Builder invocationBuilder = target.request("application/json");

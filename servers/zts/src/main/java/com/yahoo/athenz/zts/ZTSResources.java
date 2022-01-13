@@ -808,9 +808,9 @@ public class ZTSResources {
     @Path("/oauth2/token")
     @Consumes("application/x-www-form-urlencoded")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "")
+    @Operation(description = "Fetch OAuth2 Access Token")
     public AccessTokenResponse postAccessTokenRequest(
-        @Parameter(description = "", required = true) String request) {
+        @Parameter(description = "token request details include scope", required = true) String request) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
@@ -834,6 +834,43 @@ public class ZTSResources {
             }
         } finally {
             this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/oauth2/auth")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Fetch OAuth OpenID Connect ID Token")
+    public Response getOIDCResponse(
+        @Parameter(description = "response type - currently only supporting id tokens - id_token", required = true) @QueryParam("response_type") String responseType,
+        @Parameter(description = "client id - must be valid athenz service identity name", required = true) @QueryParam("client_id") String clientId,
+        @Parameter(description = "redirect uri for the response", required = true) @QueryParam("redirect_uri") String redirectUri,
+        @Parameter(description = "id token scope", required = true) @QueryParam("scope") String scope,
+        @Parameter(description = "optional state claim included in the response location header", required = false) @QueryParam("state") String state,
+        @Parameter(description = "nonce claim included in the id token", required = true) @QueryParam("nonce") String nonce) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getOIDCResponse");
+            context.authenticate();
+            return this.delegate.getOIDCResponse(context, responseType, clientId, redirectUri, scope, state, nonce);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getOIDCResponse");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
             this.delegate.recordMetrics(context, code);
         }
     }

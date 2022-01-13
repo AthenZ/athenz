@@ -66,6 +66,8 @@ import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.athenz.zts.token.AccessTokenRequest;
+import com.yahoo.athenz.zts.token.IdTokenRequest;
 import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.*;
@@ -83,10 +85,7 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -124,6 +123,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected int roleTokenDefaultTimeout;
     protected int roleTokenMaxTimeout;
     protected int idTokenMaxTimeout;
+    protected int idTokenDefaultTimeout;
     protected DynamicConfigLong x509CertRefreshResetTime;
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
@@ -355,9 +355,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         openIDConfig = new OpenIDConfig();
         openIDConfig.setIssuer(ztsOpenIDIssuer);
         openIDConfig.setJwks_uri(ztsOpenIDIssuer + "/oauth2/keys?rfc=true");
-        openIDConfig.setAuthorization_endpoint(ztsOpenIDIssuer + "/access");
-        openIDConfig.setSubject_types_supported(Collections.singletonList("public"));
-        openIDConfig.setResponse_types_supported(Collections.singletonList("id_token"));
+        openIDConfig.setAuthorization_endpoint(ztsOpenIDIssuer + "/oauth2/auth");
+        openIDConfig.setSubject_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_SUBJECT_TYPE_PUBLIC));
+        openIDConfig.setResponse_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_RESPONSE_IT_ONLY));
         openIDConfig.setId_token_signing_alg_values_supported(
                 Collections.singletonList(privateKey.getAlgorithm().getValue()));
     }
@@ -449,11 +449,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         roleTokenMaxTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT, Long.toString(timeout)));
 
-        // default id token timeout - 12 hours
+        // default (1hr) and max (12hrs) id token timeouts
 
         timeout = TimeUnit.SECONDS.convert(12, TimeUnit.HOURS);
         idTokenMaxTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_TIMEOUT, Long.toString(timeout)));
+
+        timeout = TimeUnit.SECONDS.convert(1, TimeUnit.HOURS);
+        idTokenDefaultTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT, Long.toString(timeout)));
 
         // signedPolicyTimeout is in milliseconds but the config setting should be in seconds
         // to be consistent with other configuration properties
@@ -1748,6 +1752,195 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
+    public Response getOIDCResponse(ResourceContext ctx, String responseType, String clientId,
+                                    String redirectUri, String scope, String state, String nonce) {
+
+        final String caller = ctx.getApiName();
+
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+        validateRequest(ctx.request(), principalDomain, caller);
+
+        if (!StringUtil.isEmpty(state)) {
+            validate(state, TYPE_ENTITY_NAME, principalDomain, caller);
+        }
+        validate(nonce, TYPE_ENTITY_NAME, principalDomain, caller);
+        validate(clientId, TYPE_SERVICE_NAME, principalDomain, caller);
+        clientId = clientId.toLowerCase();
+
+        // get our principal's name
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        String principalName = principal.getFullName();
+
+        // verify we have a valid client id
+
+        final String domainName = AthenzUtils.extractPrincipalDomainName(clientId);
+        if (domainName == null) {
+            throw requestError("Invalid client id", caller, principal.getDomain(), principalDomain);
+        }
+        setRequestDomain(ctx, domainName);
+
+        // first retrieve our domain data object from the cache
+
+        DataCache data = dataStore.getDataCache(domainName);
+        if (data == null) {
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("No such domain: " + domainName, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        final String serviceEndpoint = extractServiceEndpoint(data.getDomainData(), clientId);
+        if (StringUtil.isEmpty(serviceEndpoint)) {
+            throw requestError("Invalid Service or empty service endpoint", caller, principal.getDomain(), principalDomain);
+        }
+
+        if (!serviceEndpoint.equalsIgnoreCase(redirectUri)) {
+            throw requestError("Unregistered redirect uri", caller, principal.getDomain(), principalDomain);
+        }
+
+        // validate the request data. For now, we only support the implicit flow
+        // of oidc and return id tokens without access tokens
+
+        if (!ZTSConsts.ZTS_OPENID_RESPONSE_IT_ONLY.equals(responseType)) {
+            return oidcError("invalid response type", redirectUri, state);
+        }
+
+        // we must have scope provided, so we know what access
+        // the client is looking for
+
+        if (StringUtil.isEmpty(scope)) {
+            return oidcError("no scope provided", redirectUri, state);
+        }
+
+        // our scopes are space separated list of values. Any groups
+        // scopes are preferred over any role scopes
+
+        IdTokenRequest tokenRequest = new IdTokenRequest(scope);
+
+        // make sure the domain specified in group/roles names matches our client id
+
+        if (tokenRequest.getDomainName() != null && !domainName.equalsIgnoreCase(tokenRequest.getDomainName())) {
+            return oidcError("domain name mismatch", redirectUri, state);
+        }
+
+        // check if the authorized service domain matches to the
+        // requested domain name
+
+        checkRoleTokenAuthorizedServiceRequest(principal, domainName, caller);
+
+        // validate principal object to make sure we're not
+        // processing a role identity, and instead we require
+        // a service identity
+
+        validatePrincipalNotRoleIdentity(principal, caller);
+
+        // now let's process our requests and see if we need to extract
+        // either groups or roles for our response
+
+        List<String> groups = null;
+        if (tokenRequest.isGroupsScope()) {
+
+            Set<String> groupNames = tokenRequest.getGroupNames();
+
+            // first validate the input
+
+            if (groupNames != null) {
+                for (String groupName : groupNames) {
+                    validate(groupName, TYPE_ENTITY_NAME, principalDomain, caller);
+                }
+            }
+
+            // process our request and retrieve the groups for the principal
+
+            groups = dataStore.getPrincipalGroups(principalName, domainName, groupNames);
+
+            // we return failure if we don't have access to any groups but
+            // the call specifically requested some
+
+            if (groupNames != null && groups == null) {
+                return oidcError("principal not included in requested groups", redirectUri, state);
+            }
+
+        } else if (tokenRequest.isRolesScope()) {
+
+            String[] requestedRoles = tokenRequest.getRoleNames();
+
+            // first validate the input
+
+            if (requestedRoles != null) {
+                for (String requestedRole : requestedRoles) {
+                    validate(requestedRole, TYPE_ENTITY_NAME, principalDomain, caller);
+                }
+            }
+
+            // process our request and retrieve the roles for the principal
+
+            Set<String> roles = new HashSet<>();
+            dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoles, roles, false);
+
+            // we return failure if we don't have access to any roles but
+            // the call specifically requested some
+
+            if (requestedRoles != null && roles.isEmpty()) {
+                return oidcError("principal not included in requested roles", redirectUri, state);
+            }
+
+            groups = new ArrayList<>(roles);
+        }
+
+        long iat = System.currentTimeMillis() / 1000;
+
+        IdToken idToken = new IdToken();
+        idToken.setVersion(1);
+        idToken.setAudience(clientId);
+        idToken.setSubject(principalName);
+        idToken.setIssuer(ztsOpenIDIssuer);
+        idToken.setNonce(nonce);
+        idToken.setGroups(groups);
+        idToken.setIssueTime(iat);
+        idToken.setAuthTime(iat);
+        idToken.setExpiryTime(iat + idTokenDefaultTimeout);
+
+        String location = redirectUri + "#id_token=" +
+                idToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
+        if (!StringUtil.isEmpty(state)) {
+            location += "&state=" + state;
+        }
+
+        return Response.status(ResourceException.FOUND).header("Location", location).build();
+    }
+
+    Response oidcError(final String errorMessage, final String redirectUri, final String state) {
+        String location;
+        try {
+            location = redirectUri + "?error=invalid_request&error_description=" + URLEncoder.encode(errorMessage, "UTF-8");
+            if (!StringUtil.isEmpty(state)) {
+                location += "&state=" + state;
+            }
+        } catch (Exception ex) {
+            location = redirectUri + "?error=invalid_request";
+        }
+        return Response.status(ResourceException.FOUND).header("Location", location).build();
+    }
+
+    String extractServiceEndpoint(DomainData domainData, final String serviceName) {
+
+        if (domainData == null) {
+            return null;
+        }
+
+        List<com.yahoo.athenz.zms.ServiceIdentity> services = domainData.getServices();
+        if (services != null) {
+            for (com.yahoo.athenz.zms.ServiceIdentity service : services) {
+                if (service.getName().equalsIgnoreCase(serviceName)) {
+                    return service.getProviderEndpoint();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    @Override
     public AccessTokenResponse postAccessTokenRequest(ResourceContext ctx, String request) {
 
         final String caller = ctx.getApiName();
@@ -1760,7 +1953,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         String principalName = principal.getFullName();
 
-        if (request == null || request.isEmpty()) {
+        if (StringUtil.isEmpty(request)) {
             throw requestError("Empty request body", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
@@ -1909,7 +2102,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // we also need to verify that we are not returning id tokens.
             // proxy principal functionality is only valid for access tokens
 
-            if (tokenRequest.isOpenidScope()) {
+            if (tokenRequest.isOpenIdScope()) {
                 throw requestError("Proxy Principal cannot request id tokens", caller,
                         domainName, principalDomain);
             }
@@ -1977,7 +2170,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // now let's check to see if we need to create openid token
 
         String idJwts = null;
-        if (tokenRequest.isOpenidScope()) {
+        if (tokenRequest.isOpenIdScope()) {
 
             final String serviceName = tokenRequest.getServiceName();
             validate(serviceName, TYPE_SIMPLE_NAME, principalDomain, caller);
@@ -2012,7 +2205,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             for (String role : roles) {
                 domainRoles.add(domainName + AccessTokenRequest.OBJECT_ROLE + role);
             }
-            if (tokenRequest.isOpenidScope()) {
+            if (tokenRequest.isOpenIdScope()) {
                 domainRoles.add(AccessTokenRequest.OBJECT_OPENID);
             }
             response.setScope(String.join(" ", domainRoles));

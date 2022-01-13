@@ -23,8 +23,15 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 
 public class IdToken extends OAuth2Token {
+
+    public static final String CLAIM_GROUPS = "groups";
+    public static final String CLAIM_NONCE  = "nonce";
+
+    private List<String> groups;
+    private String nonce;
 
     public IdToken() {
         super();
@@ -32,10 +39,33 @@ public class IdToken extends OAuth2Token {
 
     public IdToken(final String token, JwtsSigningKeyResolver keyResolver) {
         super(token, keyResolver);
+        setIdTokenFields();
     }
 
     public IdToken(final String token, PublicKey publicKey) {
         super(token, publicKey);
+        setIdTokenFields();
+    }
+
+    void setIdTokenFields() {
+        setNonce(body.get(CLAIM_NONCE, String.class));
+        setGroups(body.get(CLAIM_GROUPS, List.class));
+    }
+
+    public List<String> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(List<String> groups) {
+        this.groups = (groups == null || groups.isEmpty()) ? null : groups;
+    }
+
+    public String getNonce() {
+        return nonce;
+    }
+
+    public void setNonce(String nonce) {
+        this.nonce = nonce;
     }
 
     public String getSignedToken(final PrivateKey key, final String keyId,
@@ -48,6 +78,8 @@ public class IdToken extends OAuth2Token {
                 .setAudience(audience)
                 .claim(CLAIM_AUTH_TIME, authTime)
                 .claim(CLAIM_VERSION, version)
+                .claim(CLAIM_GROUPS, groups)
+                .claim(CLAIM_NONCE, nonce)
                 .setHeaderParam(HDR_KEY_ID, keyId)
                 .signWith(key, keyAlg)
                 .compact();
