@@ -214,7 +214,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected ZMSGroupMembersFetcher groupMemberFetcher = null;
     protected DomainMetaStore domainMetaStore = null;
     protected NotificationToEmailConverterCommon notificationToEmailConverterCommon;
-    protected List<ChangePublisher<DomainChangeMessage>> domainChangePublishers;
+    protected List<ChangePublisher<DomainChangeMessage>> domainChangePublishers = new ArrayList<>();
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -674,9 +674,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         for (String topic : topicNames.split(",")) {
             topic = topic.trim();
             if (!topic.isEmpty()) {
-                if (domainChangePublishers == null) {
-                    domainChangePublishers = new ArrayList<>();
-                }
                 ChangePublisher<DomainChangeMessage> publisher = createPublisher(topic);
                 if (publisher != null) {
                     domainChangePublishers.add(publisher);
@@ -686,15 +683,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private ChangePublisher<DomainChangeMessage> createPublisher(String topicName) {
-        ChangePublisherFactory<DomainChangeMessage> publisherFactory;
+        ChangePublisherFactory<DomainChangeMessage> publisherFactory = null;
         final String domainChangePublisherClassName = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS,
             ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT);
         try {
-            publisherFactory = (ChangePublisherFactory<DomainChangeMessage>) Class.forName(domainChangePublisherClassName).newInstance();
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
-            throw new ExceptionInInitializerError(e);
+            publisherFactory = (ChangePublisherFactory<DomainChangeMessage>) Class.forName(domainChangePublisherClassName).getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            LOG.error("unable to initialize publisher factory for: {}", domainChangePublisherClassName);
+            return null;
         }
-        return publisherFactory.create(keyStore, topicName);
+        if (publisherFactory != null) {
+            try {
+                return publisherFactory.create(keyStore, topicName);
+            } catch (Exception e) {
+                LOG.error("unable to create a publisher for topic: {}", topicName, e);
+            }
+        }
+        return null;
     }
 
     private void initializePrincipalStateUpdater() {
@@ -8274,7 +8279,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
-        boolean eventPublishersEnabled = domainChangePublishers != null && !domainChangePublishers.isEmpty();
+        boolean eventPublishersEnabled = !domainChangePublishers.isEmpty();
         return new RsrcCtxWrapper(request, response, authorities, optionalAuth, this,
                 timerMetric, apiName, eventPublishersEnabled);
     }
