@@ -26,6 +26,7 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.Base64URL;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.auth.token.PrincipalToken;
@@ -33,8 +34,11 @@ import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
+import com.yahoo.athenz.common.messaging.ChangePublisher;
+import com.yahoo.athenz.common.messaging.ChangePublisherFactory;
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.messaging.MockDomainChangePublisher;
+import com.yahoo.athenz.common.messaging.impl.NoOpDomainChangePublisher;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
@@ -84,8 +88,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.common.messaging.DomainChangeMessage.ObjectType.*;
-import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS;
-import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES;
+import static com.yahoo.athenz.zms.ZMSConsts.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.ArgumentMatchers.*;
@@ -28210,10 +28213,35 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testInvalidPublisherFactory() {
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic1,topic2");
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, "com.yahoo.athenz.common.messaging.NonExistingFactory");
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        assertEquals(zmsImpl.domainChangePublishers.size(), 0);
+
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testInvalidPublisher() {
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic1,topic2");
+        System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, "com.yahoo.athenz.zms.FaultyDomainChangeFactory");
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        assertEquals(zmsImpl.domainChangePublishers.size(), 0);
+
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
+        System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
+    }
+
+
+    @Test
     public void testNoConfiguredTopic() {
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
-        assertNull(zmsImpl.domainChangePublishers);
+        assertEquals(zmsImpl.domainChangePublishers.size(), 0);
     }
 
     @Test
@@ -28316,7 +28344,7 @@ public class ZMSImplTest {
         when(mockContext.getApiName()).thenReturn(apiName);
         when(mockContext.getDomainChangeMessages()).thenReturn(Collections.singletonList(new DomainChangeMessage()));
 
-        assertNull(zmsImpl.domainChangePublishers);
+        assertEquals(zmsImpl.domainChangePublishers.size(), 0);
         zmsImpl.publishChangeMessage(mockContext, 200);
     }
 
@@ -28350,6 +28378,8 @@ public class ZMSImplTest {
         // make sure no exceptions are thrown since we should catch and log them
         zmsImpl.recordMetrics(mockContext, 200);
     }
+
+
 
     @Test
     public void testIsSysAdminRoleMemberNotFoundRole() {
