@@ -344,7 +344,7 @@ Policy: api_providers
 * Create the provider’s role:
 
 ```
-$ zms-cli -d sys.auth add-group-role providers
+$ zms-cli -d sys.auth add-regular-role providers
 ```
 
 * Create the provider’s policy:
@@ -399,7 +399,7 @@ $ zms-cli -d sys.auth add-member providers openstack.cluster1
   * Register the dns suffix for the provider service. For example, cluster1.ostk.athenz.cloud
 
 ```
-$ zms-cli -d sys.auth add-group-role provider.openstack.providers openstack.cluster1
+$ zms-cli -d sys.auth add-regular-role provider.openstack.providers openstack.cluster1
 $ zms-cli -d sys.auth add-policy provider.openstack.providers grant launch to provider.openstack.providers on dns.cluster1.ostk.athenz.cloud
 ```
 
@@ -409,7 +409,7 @@ $ zms-cli -d sys.auth add-policy provider.openstack.providers grant launch to pr
 * Authorize provider service to launch its instances. For example, weater domain wants to authorize its service api to be launched by openstack.cluster1 provider.
 
 ```
-$ zms-cli -d weather add-group-role openstack_providers openstack.cluster1
+$ zms-cli -d weather add-regular-role openstack_providers openstack.cluster1
 $ zms-cli -d weather add-policy openstack_providers grant launch to openstack_providers on weather:service.api
 ```
 

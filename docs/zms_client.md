@@ -206,13 +206,13 @@ ZMS allows you to remove yourself from the `admin` role.
     Once you've been removed, you'll need to ask another domain
     administrator to re-add you to the `admin` role.
 
-## Adding a Group Role
-----------------------
+## Adding a Regular Role
+------------------------
 
-To add new group role to a domain, the administrator will execute the
+To add new regular role to a domain, the administrator will execute the
 following zms-cli command:
 
-    $ zms-cli -d <domain> add-group-role <role> <member> [<member> ...]
+    $ zms-cli -d <domain> add-regular-role <role> <member> [<member> ...]
 
 <h3 id="parameters-1">Parameters</h3>
 
@@ -236,10 +236,10 @@ administrator can add and/or delete members using the `add-member` and
 
 When the domain administrator executes the command below, a new role
 called `readers` will be added to the the domain `athenz.ci` will
-have the following members: user - `yby.john` and service -
+have the following members: user - `user.john` and service -
 `media.sports.storage`:
 
-    $ zms-cli -d athenz.ci add-group-role readers yby.john media.sports.storage
+    $ zms-cli -d athenz.ci add-regular-role readers user.john media.sports.storage
 
 ## Managing a Group Role Membership
 -----------------------------------

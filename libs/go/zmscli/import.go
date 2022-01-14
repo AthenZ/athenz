@@ -70,7 +70,7 @@ func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, validatedAdmins []st
 				}
 				b := cli.Verbose
 				cli.Verbose = true
-				_, err = cli.AddGroupRole(dn, rn, roleMembers)
+				_, err = cli.AddRegularRole(dn, rn, roleMembers)
 				cli.Verbose = b
 			}
 			if err != nil {
@@ -94,7 +94,7 @@ func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, validatedAdmins []st
 			roleMembers := make([]*zms.RoleMember, 0)
 			b := cli.Verbose
 			cli.Verbose = true
-			_, err := cli.AddGroupRole(dn, rn, roleMembers)
+			_, err := cli.AddRegularRole(dn, rn, roleMembers)
 			cli.Verbose = b
 			if err != nil {
 				if skipErrors {
@@ -145,7 +145,7 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 				}
 				b := cli.Verbose
 				cli.Verbose = true
-				_, err = cli.AddGroupRole(dn, rn, roleMembers)
+				_, err = cli.AddRegularRole(dn, rn, roleMembers)
 				cli.Verbose = b
 			}
 			if err != nil {
@@ -169,7 +169,7 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 			roleMembers := make([]*zms.RoleMember, 0)
 			b := cli.Verbose
 			cli.Verbose = true
-			_, err := cli.AddGroupRole(dn, rn, roleMembers)
+			_, err := cli.AddRegularRole(dn, rn, roleMembers)
 			cli.Verbose = b
 			if err != nil {
 				if skipErrors {

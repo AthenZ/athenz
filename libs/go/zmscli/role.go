@@ -122,7 +122,7 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 	return output, err
 }
 
-func (cli Zms) AddGroupRole(dn string, rn string, roleMembers []*zms.RoleMember) (*string, error) {
+func (cli Zms) AddRegularRole(dn string, rn string, roleMembers []*zms.RoleMember) (*string, error) {
 	fullResourceName := dn + ":role." + rn
 	var role zms.Role
 	_, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)

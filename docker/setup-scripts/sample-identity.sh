@@ -65,13 +65,13 @@ echo 'ZMS and ZTS sync-ed.' | colored_cat p
 echo '5. Setting up ZTS as provider'
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
-    -d sys.auth add-group-role providers sys.auth.zts
+    -d sys.auth add-regular-role providers sys.auth.zts
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
     -d sys.auth add-policy providers grant launch to providers on 'instance'
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
-    -d sys.auth add-group-role provider.sys.auth.zts sys.auth.zts
+    -d sys.auth add-regular-role provider.sys.auth.zts sys.auth.zts
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
     -d sys.auth add-policy provider.sys.auth.zts grant launch to provider.sys.auth.zts on 'dns.zts.athenz.cloud'
