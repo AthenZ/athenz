@@ -24,16 +24,17 @@ var _ = rdl.BaseTypeAny
 var _ = ioutil.NopCloser
 
 type ZTSClient struct {
-	URL         string
-	Transport   http.RoundTripper
-	CredsHeader *string
-	CredsToken  *string
-	Timeout     time.Duration
+	URL             string
+	Transport       http.RoundTripper
+	CredsHeader     *string
+	CredsToken      *string
+	Timeout         time.Duration
+	DisableRedirect bool
 }
 
 // NewClient creates and returns a new HTTP client object for the ZTS service
 func NewClient(url string, transport http.RoundTripper) ZTSClient {
-	return ZTSClient{url, transport, nil, nil, 0}
+	return ZTSClient{url, transport, nil, nil, 0, false}
 }
 
 // AddCredentials adds the credentials to the client for subsequent requests.
@@ -48,6 +49,11 @@ func (client ZTSClient) getClient() *http.Client {
 		c = &http.Client{Transport: client.Transport}
 	} else {
 		c = &http.Client{}
+	}
+	if client.DisableRedirect {
+		c.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
 	}
 	if client.Timeout > 0 {
 		c.Timeout = client.Timeout
@@ -1115,6 +1121,36 @@ func (client ZTSClient) PostAccessTokenRequest(request AccessTokenRequest) (*Acc
 			errobj.Message = string(contentBytes)
 		}
 		return data, errobj
+	}
+}
+
+func (client ZTSClient) GetOIDCResponse(responseType string, clientId ServiceName, redirectUri string, scope string, state EntityName, nonce EntityName) (*OIDCResponse, string, error) {
+	var data *OIDCResponse
+	url := client.URL + "/oauth2/auth" + encodeParams(encodeStringParam("response_type", string(responseType), ""), encodeStringParam("client_id", string(clientId), ""), encodeStringParam("redirect_uri", string(redirectUri), ""), encodeStringParam("scope", string(scope), ""), encodeStringParam("state", string(state), ""), encodeStringParam("nonce", string(nonce), ""))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 302:
+		data = nil
+		location := resp.Header.Get(rdl.FoldHttpHeaderName("Location"))
+		return data, location, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, "", err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return nil, "", errobj
 	}
 }
 

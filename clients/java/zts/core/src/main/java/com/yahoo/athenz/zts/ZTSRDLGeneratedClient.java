@@ -598,7 +598,7 @@ public class ZTSRDLGeneratedClient {
 
     }
 
-    public String getOIDCResponse(String responseType, String clientId, String redirectUri, String scope, String state, String nonce, java.util.Map<String, java.util.List<String>> headers) {
+    public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope, String state, String nonce, java.util.Map<String, java.util.List<String>> headers) {
         WebTarget target = base.path("/oauth2/auth");
         if (responseType != null) {
             target = target.queryParam("response_type", responseType);
@@ -630,7 +630,7 @@ public class ZTSRDLGeneratedClient {
             if (headers != null) {
                 headers.put("location", java.util.Arrays.asList((String) response.getHeaders().getFirst("Location")));
             }
-            return response.readEntity(String.class);
+            return response.readEntity(OIDCResponse.class);
         default:
             throw new ResourceException(code, response.readEntity(ResourceError.class));
         }

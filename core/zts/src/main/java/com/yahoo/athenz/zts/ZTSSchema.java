@@ -371,7 +371,8 @@ public class ZTSSchema {
 
     
 
-    
+        sb.structType("OIDCResponse")
+            .field("location", "String", false, "");
 
         sb.structType("Workload")
             .field("domainName", "DomainName", false, "name of the domain, optional for getWorkloadsByService API call")

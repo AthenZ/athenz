@@ -43,6 +43,10 @@
       <outputDirectory>bin</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>${basedir}/../../utils/zts-idtoken/target</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>${basedir}/../../utils/zts-svccert/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
