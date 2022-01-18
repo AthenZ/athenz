@@ -113,16 +113,17 @@ var _ = rdl.BaseTypeAny
 var _ = ioutil.NopCloser
 
 type {{client}} struct {
-	URL         string
-	Transport   http.RoundTripper
-	CredsHeader *string
-	CredsToken  *string
-	Timeout     time.Duration
+	URL             string
+	Transport       http.RoundTripper
+	CredsHeader     *string
+	CredsToken      *string
+	Timeout         time.Duration
+	DisableRedirect bool
 }
 
 // NewClient creates and returns a new HTTP client object for the {{.Name}} service
 func NewClient(url string, transport http.RoundTripper) {{client}} {
-	return {{client}}{url, transport, nil, nil, 0}
+	return {{client}}{url, transport, nil, nil, 0, false}
 }
 
 // AddCredentials adds the credentials to the client for subsequent requests.
@@ -137,6 +138,11 @@ func (client {{client}}) getClient() *http.Client {
 		c = &http.Client{Transport: client.Transport}
 	} else {
 		c = &http.Client{}
+	}
+	if client.DisableRedirect {
+		c.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
 	}
 	if client.Timeout > 0 {
 		c.Timeout = client.Timeout
@@ -622,12 +628,16 @@ func goMethodBody(reg rdl.TypeRegistry, r *rdl.Resource, precise bool) string {
 	expected = append(expected, rdl.StatusCode(r.Expected))
 	couldBeNoContent := "NO_CONTENT" == r.Expected
 	couldBeNotModified := "NOT_MODIFIED" == r.Expected
+	couldBeRedirect := "FOUND" == r.Expected
 	for _, e := range r.Alternatives {
 		if "NO_CONTENT" == e {
 			couldBeNoContent = true
 		}
 		if "NOT_MODIFIED" == e {
 			couldBeNotModified = true
+		}
+		if "FOUND" == e {
+			couldBeRedirect = true
 		}
 		expected = append(expected, rdl.StatusCode(e))
 	}
@@ -649,6 +659,8 @@ func goMethodBody(reg rdl.TypeRegistry, r *rdl.Resource, precise bool) string {
 			s += "\t\t\tif err != nil {\n\t\t\t\t" + errorReturn + "\n\t\t\t}\n"
 			s += "\t\t}\n"
 		}
+	} else if couldBeRedirect {
+		s += "\t\tdata = nil\n"
 	} else {
 		s += "\t\terr = json.NewDecoder(resp.Body).Decode(&data)\n"
 		s += "\t\tif err != nil {\n\t\t\t" + errorReturn + "\n\t\t}\n"

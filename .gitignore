@@ -103,7 +103,12 @@ utils/zts-roletoken/src/
 utils/zts-svccert/bin/
 utils/zts-svccert/pkg/
 utils/zts-svccert/src/
+utils/zts-accesstoken/bin/
 utils/zts-accesstoken/pkg/
+utils/zts-accesstoken/src/
+utils/zts-idtoken/bin/
+utils/zts-idtoken/pkg/
+utils/zts-idtoken/src/
 utils/zts-rolecert/bin/
 utils/zts-rolecert/pkg/
 utils/zts-rolecert/src/

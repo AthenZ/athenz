@@ -3657,6 +3657,57 @@ func (self *JWKList) Validate() error {
 type AccessTokenRequest string
 
 //
+// OIDCResponse -
+//
+type OIDCResponse struct {
+	Location string `json:"location"`
+}
+
+//
+// NewOIDCResponse - creates an initialized OIDCResponse instance, returns a pointer to it
+//
+func NewOIDCResponse(init ...*OIDCResponse) *OIDCResponse {
+	var o *OIDCResponse
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(OIDCResponse)
+	}
+	return o
+}
+
+type rawOIDCResponse OIDCResponse
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a OIDCResponse
+//
+func (self *OIDCResponse) UnmarshalJSON(b []byte) error {
+	var m rawOIDCResponse
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := OIDCResponse(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *OIDCResponse) Validate() error {
+	if self.Location == "" {
+		return fmt.Errorf("OIDCResponse.location is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Location)
+		if !val.Valid {
+			return fmt.Errorf("OIDCResponse.location does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // Workload -
 //
 type Workload struct {

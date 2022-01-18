@@ -24,16 +24,17 @@ var _ = rdl.BaseTypeAny
 var _ = ioutil.NopCloser
 
 type MSDClient struct {
-	URL         string
-	Transport   http.RoundTripper
-	CredsHeader *string
-	CredsToken  *string
-	Timeout     time.Duration
+	URL             string
+	Transport       http.RoundTripper
+	CredsHeader     *string
+	CredsToken      *string
+	Timeout         time.Duration
+	DisableRedirect bool
 }
 
 // NewClient creates and returns a new HTTP client object for the MSD service
 func NewClient(url string, transport http.RoundTripper) MSDClient {
-	return MSDClient{url, transport, nil, nil, 0}
+	return MSDClient{url, transport, nil, nil, 0, false}
 }
 
 // AddCredentials adds the credentials to the client for subsequent requests.
@@ -48,6 +49,11 @@ func (client MSDClient) getClient() *http.Client {
 		c = &http.Client{Transport: client.Transport}
 	} else {
 		c = &http.Client{}
+	}
+	if client.DisableRedirect {
+		c.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
 	}
 	if client.Timeout > 0 {
 		c.Timeout = client.Timeout
