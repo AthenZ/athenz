@@ -494,7 +494,7 @@ public class ZMSTestInitializer {
     }
 
     public Policy createPolicyObject(String domainName, String policyName) {
-        return createPolicyObject(domainName, policyName, "Role1", "*",
+        return createPolicyObject(domainName, policyName, "Admin", "*",
                 domainName + ":*", AssertionEffect.ALLOW, null, true);
     }
 
@@ -600,8 +600,8 @@ public class ZMSTestInitializer {
 
     public void cleanupPrincipalSystemMetaDelete(ZMSImpl zms) {
 
-        zms.deleteRole(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef);
         zms.deletePolicy(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef);
+        zms.deleteRole(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef);
     }
 
     public void setupTenantDomainProviderService(String tenantDomain, String providerDomain,

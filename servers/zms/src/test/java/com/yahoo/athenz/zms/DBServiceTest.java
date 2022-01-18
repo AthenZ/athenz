@@ -198,12 +198,12 @@ public class DBServiceTest {
     }
 
     private Policy createPolicyObject(String domainName, String policyName) {
-        return createPolicyObject(domainName, policyName, "role1", true, "*",
+        return createPolicyObject(domainName, policyName, "admin", true, "*",
                 domainName + ":*", AssertionEffect.ALLOW, null, true);
     }
 
     private Policy createPolicyObject(String domainName, String policyName, String version, boolean active) {
-        return createPolicyObject(domainName, policyName, "role1", true, "*",
+        return createPolicyObject(domainName, policyName, "admin", true, "*",
                 domainName + ":*", AssertionEffect.ALLOW, version, active);
     }
 
@@ -2662,7 +2662,7 @@ public class DBServiceTest {
         assertEquals(2, policy.getAssertions().size());
         Assertion assertion = policy.getAssertions().get(0); // this is the original assertion
         assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.role1", assertion.getRole());
+        assertEquals(domainName + ":role.admin", assertion.getRole());
         assertEquals("solutiontemplate-withpolicy:*", assertion.getResource());
 
         Assertion assertionAdded = policy.getAssertions().get(1); // this is the added assertion
