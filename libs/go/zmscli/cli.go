@@ -50,7 +50,7 @@ type Zms struct {
 }
 
 type SuccessMessage struct {
-	Status int
+	Status  int
 	Message string
 }
 
@@ -70,12 +70,12 @@ func (cli Zms) buildJSONOutput(res interface{}) (*string, error) {
 
 func (cli Zms) buildYAMLOutput(res interface{}) (*string, error) {
 	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
-	yamlOutput, err := yaml.Marshal(res)
-	if err != nil {
-		return nil, fmt.Errorf("failed to produce YAML output: %v", err)
-	}
-	output := string(yamlOutput)
-	return &output, nil
+		yamlOutput, err := yaml.Marshal(res)
+		if err != nil {
+			return nil, fmt.Errorf("failed to produce YAML output: %v", err)
+		}
+		output := string(yamlOutput)
+		return &output, nil
 	} else {
 		// For manual yaml, we just return the message as text. We should remove
 		// it once we removed the "manual yaml" option
@@ -487,9 +487,10 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.AddDelegatedRole(dn, args[0], args[1])
 			}
 		case "add-group-role":
+		case "add-regular-role":
 			if argc >= 1 {
 				roleMembers := cli.convertRoleMembers(args[1:])
-				return cli.AddGroupRole(dn, args[0], roleMembers)
+				return cli.AddRegularRole(dn, args[0], roleMembers)
 			}
 		case "add-provider-role-member", "add-provider-role-members":
 			if argc >= 4 {
@@ -989,7 +990,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetGroupSelfServe(dn, args[0], selfServe)
 			}
-        case "set-group-member-expiry-days":
+		case "set-group-member-expiry-days":
 			if argc == 2 {
 				days, err := cli.getInt32(args[1])
 				if err != nil {
@@ -1733,19 +1734,20 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " add-delegated-role tenant.sports.readers sports\n")
 	case "add-group-role":
+	case "add-regular-role":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " add-group-role role member [member ... ]\n")
+		buf.WriteString("   " + domainParam + " add-regular-role role member [member ... ]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain  : name of the domain that role belongs to\n")
 		}
-		buf.WriteString("   role    : name of the standard group role\n")
-		buf.WriteString("   member  : list of group members that could be either users or services\n")
+		buf.WriteString("   role    : name of the standard role\n")
+		buf.WriteString("   member  : list of members that could be either users or services\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domainExample + " add-group-role readers " + cli.UserDomain + ".john " + cli.UserDomain + ".joe media.sports.storage\n")
+		buf.WriteString("   " + domainExample + " add-regular-role readers " + cli.UserDomain + ".john " + cli.UserDomain + ".joe media.sports.storage\n")
 	case "add-member":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " add-member group_role user_or_service [user_or_service ...]\n")
+		buf.WriteString("   " + domainParam + " add-member regular_role user_or_service [user_or_service ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that role belongs to\n")
@@ -1756,7 +1758,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " add-member readers " + cli.UserDomain + ".john " + cli.UserDomain + ".joe media.sports.storage\n")
 	case "add-temporary-member":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " add-temporary-member group_role user_or_service expiration [review]\n")
+		buf.WriteString("   " + domainParam + " add-temporary-member regular_role user_or_service expiration [review]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that role belongs to\n")
@@ -1770,7 +1772,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " add-temporary-member readers " + cli.UserDomain + ",john 2017-03-02T15:04:05.999Z 2017-01-02T15:09:05.999Z\n")
 	case "add-reviewed-member":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " add-reviewed-member group_role user_or_service review\n")
+		buf.WriteString("   " + domainParam + " add-reviewed-member regular_role user_or_service review\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that role belongs to\n")
@@ -1782,7 +1784,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " add-reviewed-member readers " + cli.UserDomain + ",john 2017-03-02T15:04:05.999Z\n")
 	case "check-member":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " check-member group_role user_or_service [user_or_service ...]\n")
+		buf.WriteString("   " + domainParam + " check-member regular_role user_or_service [user_or_service ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that role belongs to\n")
@@ -1793,7 +1795,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " check-member readers " + cli.UserDomain + ".john " + cli.UserDomain + ".joe media.sports.storage\n")
 	case "check-active-member":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " check-active-member group_role user_or_service\n")
+		buf.WriteString("   " + domainParam + " check-active-member regular_role user_or_service\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that role belongs to\n")
@@ -1804,7 +1806,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " check-active-member readers " + cli.UserDomain + ".john\n")
 	case "delete-member":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " delete-member group_role user_or_service [user_or_service ...]\n")
+		buf.WriteString("   " + domainParam + " delete-member regular_role user_or_service [user_or_service ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that role belongs to\n")
@@ -1985,7 +1987,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " delete-group readers\n")
 	case "add-role-tag":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " add-role-tag group_role tag_key tag_value [tag_value ...]\n")
+		buf.WriteString("   " + domainParam + " add-role-tag regular_role tag_key tag_value [tag_value ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that role belongs to\n")
@@ -1997,7 +1999,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " add-role-tag readers readers-tag-key reader-tag-value-1 reader-tag-value-2\n")
 	case "delete-role-tag":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " delete-role-tag group_role tag_key [tag_value]\n")
+		buf.WriteString("   " + domainParam + " delete-role-tag regular_role tag_key [tag_value]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that role belongs to\n")
@@ -2886,37 +2888,37 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-roles [tag_key] [tag_value]\n")
 	buf.WriteString("   show-roles-principal\n")
 	buf.WriteString("   add-delegated-role role trusted_domain\n")
-	buf.WriteString("   add-group-role role member [member ... ]\n")
-	buf.WriteString("   add-member group_role user_or_service [user_or_service ...]\n")
-	buf.WriteString("   add-temporary-member group_role user_or_service expiration\n")
-	buf.WriteString("   add-reviewed-member group_role user_or_service review\n")
-	buf.WriteString("   check-member group_role user_or_service [user_or_service ...]\n")
-	buf.WriteString("   check-active-member group_role user_or_service\n")
-	buf.WriteString("   delete-member group_role user_or_service [user_or_service ...]\n")
+	buf.WriteString("   add-regular-role role member [member ... ]\n")
+	buf.WriteString("   add-member regular_role user_or_service [user_or_service ...]\n")
+	buf.WriteString("   add-temporary-member regular_role user_or_service expiration\n")
+	buf.WriteString("   add-reviewed-member regular_role user_or_service review\n")
+	buf.WriteString("   check-member regular_role user_or_service [user_or_service ...]\n")
+	buf.WriteString("   check-active-member regular_role user_or_service\n")
+	buf.WriteString("   delete-member regular_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   add-provider-role-member provider_service resource_group provider_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   show-provider-role-member provider_service resource_group provider_role\n")
 	buf.WriteString("   delete-provider-role-member provider_service resource_group provider_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   list-domain-role-members\n")
 	buf.WriteString("   delete-domain-role-member member\n")
 	buf.WriteString("   delete-role role\n")
-	buf.WriteString("   set-role-audit-enabled group_role audit-enabled\n")
-	buf.WriteString("   set-role-review-enabled group_role review-enabled\n")
-	buf.WriteString("   set-role-self-serve group_role self-serve\n")
-	buf.WriteString("   set-role-member-expiry-days group_role user-member-expiry-days\n")
-	buf.WriteString("   set-role-service-expiry-days group_role service-member-expiry-days\n")
-	buf.WriteString("   set-role-group-expiry-days group_role group-member-expiry-days\n")
-	buf.WriteString("   set-role-member-review-days group_role user-member-review-days\n")
-	buf.WriteString("   set-role-service-review-days group_role service-member-review-days\n")
-	buf.WriteString("   set-role-group-review-days group_role group-member-review-days\n")
-	buf.WriteString("   set-role-token-expiry-mins group_role token-expiry-mins\n")
-	buf.WriteString("   set-role-cert-expiry-mins group_role cert-expiry-mins\n")
-	buf.WriteString("   set-role-token-sign-algorithm group_role algorithm\n")
-	buf.WriteString("   set-role-notify-roles group_role rolename[,rolename...]\n")
-	buf.WriteString("   set-role-user-authority-filter group_role attribute[,attribute...]\n")
-	buf.WriteString("   set-role-user-authority-expiration group_role attribute\n")
-	buf.WriteString("   add-role-tag group_role tag_key tag_value [tag_value ...]\n")
-	buf.WriteString("   delete-role-tag group_role tag_key [tag_value]\n")
-	buf.WriteString("   put-membership-decision group_role user_or_service [expiration] decision\n")
+	buf.WriteString("   set-role-audit-enabled regular_role audit-enabled\n")
+	buf.WriteString("   set-role-review-enabled regular_role review-enabled\n")
+	buf.WriteString("   set-role-self-serve regular_role self-serve\n")
+	buf.WriteString("   set-role-member-expiry-days regular_role user-member-expiry-days\n")
+	buf.WriteString("   set-role-service-expiry-days regular_role service-member-expiry-days\n")
+	buf.WriteString("   set-role-group-expiry-days regular_role group-member-expiry-days\n")
+	buf.WriteString("   set-role-member-review-days regular_role user-member-review-days\n")
+	buf.WriteString("   set-role-service-review-days regular_role service-member-review-days\n")
+	buf.WriteString("   set-role-group-review-days regular_role group-member-review-days\n")
+	buf.WriteString("   set-role-token-expiry-mins regular_role token-expiry-mins\n")
+	buf.WriteString("   set-role-cert-expiry-mins regular_role cert-expiry-mins\n")
+	buf.WriteString("   set-role-token-sign-algorithm regular_role algorithm\n")
+	buf.WriteString("   set-role-notify-roles regular_role rolename[,rolename...]\n")
+	buf.WriteString("   set-role-user-authority-filter regular_role attribute[,attribute...]\n")
+	buf.WriteString("   set-role-user-authority-expiration regular_role attribute\n")
+	buf.WriteString("   add-role-tag regular_role tag_key tag_value [tag_value ...]\n")
+	buf.WriteString("   delete-role-tag regular_role tag_key [tag_value]\n")
+	buf.WriteString("   put-membership-decision regular_role user_or_service [expiration] decision\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Group commands:\n")
 	buf.WriteString("   list-group\n")
@@ -2934,7 +2936,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-group-review-enabled group review-enabled\n")
 	buf.WriteString("   set-group-self-serve group self-serve\n")
 	buf.WriteString("   set-group-member-expiry-days group user-member-expiry-days\n")
-    buf.WriteString("   set-group-service-expiry-days group service-member-expiry-days\n")
+	buf.WriteString("   set-group-service-expiry-days group service-member-expiry-days\n")
 	buf.WriteString("   set-group-notify-roles group rolename[,rolename...]\n")
 	buf.WriteString("   set-group-user-authority-filter group attribute[,attribute...]\n")
 	buf.WriteString("   set-group-user-authority-expiration group attribute\n")

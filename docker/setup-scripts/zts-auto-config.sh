@@ -213,7 +213,7 @@ zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${D
 echo '12. setup general providers role for all providers' | colored_cat g
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
-    -d sys.auth add-group-role providers sys.auth.zts athenz.aws.us-west-2 athenz.aws-ecs.us-west-2 athenz.aws-lambda.us-west-2
+    -d sys.auth add-regular-role providers sys.auth.zts athenz.aws.us-west-2 athenz.aws-ecs.us-west-2 athenz.aws-lambda.us-west-2
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
     -d sys.auth add-policy providers grant launch to providers on 'instance'
@@ -222,7 +222,7 @@ zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${D
 echo '13. setup ZTS as identity provider' | colored_cat g
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
-    -d sys.auth add-group-role provider.sys.auth.zts sys.auth.zts
+    -d sys.auth add-regular-role provider.sys.auth.zts sys.auth.zts
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
     -d sys.auth add-policy provider.sys.auth.zts grant launch to provider.sys.auth.zts on 'dns.zts.athenz.cloud'
@@ -233,19 +233,19 @@ zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${D
 echo '14. setup AWS identity provider' | colored_cat g
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
-    -d sys.auth add-group-role provider.athenz.aws.us-west-2 athenz.aws.us-west-2
+    -d sys.auth add-regular-role provider.athenz.aws.us-west-2 athenz.aws.us-west-2
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
     -d sys.auth add-policy provider.athenz.aws.us-west-2 grant launch to provider.athenz.aws.us-west-2 on 'dns.aws.athenz.cloud'
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
-    -d sys.auth add-group-role provider.athenz.aws-ecs.us-west-2 athenz.aws-ecs.us-west-2
+    -d sys.auth add-regular-role provider.athenz.aws-ecs.us-west-2 athenz.aws-ecs.us-west-2
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
     -d sys.auth add-policy provider.athenz.aws-ecs.us-west-2 grant launch to provider.athenz.aws-ecs.us-west-2 on 'dns.aws.athenz.cloud'
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
-    -d sys.auth add-group-role provider.athenz.aws-lambda.us-west-2 athenz.aws-lambda.us-west-2
+    -d sys.auth add-regular-role provider.athenz.aws-lambda.us-west-2 athenz.aws-lambda.us-west-2
 
 zms-cli -z "${ZMS_URL}/zms/v1" --key "${DOMAIN_ADMIN_CERT_KEY_PATH}" --cert "${DOMAIN_ADMIN_CERT_PATH}" -c "${ATHENZ_CA_PATH}" \
     -d sys.auth add-policy provider.athenz.aws-lambda.us-west-2 grant launch to provider.athenz.aws-lambda.us-west-2 on 'dns.aws.athenz.cloud'
