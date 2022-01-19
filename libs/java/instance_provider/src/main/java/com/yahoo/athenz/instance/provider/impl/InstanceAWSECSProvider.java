@@ -42,16 +42,13 @@ public class InstanceAWSECSProvider extends InstanceAWSProvider {
     }
     
     @Override
-    protected String getInstanceId(AWSAttestationData info, Struct instanceDocument) {
+    protected String getInstanceId(AWSAttestationData info, Struct instanceDocument, final String reqInstanceId) {
         
         // we're going to look for container task id first
         // only if that's not present (as backup), we'll
-        // return the instance document id
+        // return the instance request id
         
-        String instanceId = info.getTaskid();
-        if (instanceId == null || instanceId.isEmpty()) {
-            instanceId = instanceDocument.getString(ATTR_INSTANCE_ID);
-        }
-        return instanceId;
+        final String instanceId = info.getTaskid();
+        return (instanceId == null || instanceId.isEmpty()) ? reqInstanceId : instanceId;
     }
 }

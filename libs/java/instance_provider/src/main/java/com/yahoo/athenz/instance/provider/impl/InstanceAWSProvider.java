@@ -227,7 +227,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         // verify the request has the expected account id
         
-        final String infoInstanceId = getInstanceId(info, instanceDocument);
+        final String infoInstanceId = getInstanceId(info, instanceDocument, instanceId);
         if (!validateAWSInstanceId(instanceId, infoInstanceId, errMsg)) {
             return false;
         }
@@ -244,7 +244,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         return !checkTime || validateInstanceBootTime(instanceDocument, errMsg);
     }
     
-    protected String getInstanceId(AWSAttestationData info, Struct instanceDocument) {
+    protected String getInstanceId(AWSAttestationData info, Struct instanceDocument, final String reqInstanceId) {
         return instanceDocument.getString(ATTR_INSTANCE_ID);
     }
     
