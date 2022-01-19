@@ -98,17 +98,17 @@ public class InstanceAWSECSProviderTest {
 
         AWSAttestationData data = new AWSAttestationData();
         data.setTaskid("task1234");
-        assertEquals(provider.getInstanceId(data, null), "task1234");
+        assertEquals(provider.getInstanceId(data, null, "id-1234"), "task1234");
         
         data.setTaskid(null);
         Struct doc = new Struct();
         doc.put(InstanceAWSProvider.ATTR_INSTANCE_ID, "data1234");
-        assertEquals(provider.getInstanceId(data, doc), "data1234");
+        assertEquals(provider.getInstanceId(data, doc, "data1234"), "data1234");
 
         data.setTaskid("");
-        assertEquals(provider.getInstanceId(data, doc), "data1234");
+        assertEquals(provider.getInstanceId(data, doc, "id-1234"), "id-1234");
         
         data.setTaskid("task1234");
-        assertEquals(provider.getInstanceId(data, doc), "task1234");
+        assertEquals(provider.getInstanceId(data, doc, "id-1234"), "task1234");
     }
 }
