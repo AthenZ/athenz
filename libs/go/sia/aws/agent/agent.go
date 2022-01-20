@@ -418,15 +418,13 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 			fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
 			opts,
 		)
-	case "post":
-	case "register":
+	case "post", "register":
 		err := RegisterInstance(data, ztsUrl, opts, false)
 		if err != nil {
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
 		log.Printf("identity registered for services: %s\n", svcs)
-	case "rotate":
-	case "refresh":
+	case "rotate", "refresh":
 		err = RefreshInstance(data, ztsUrl, opts)
 		if err != nil {
 			log.Fatalf("Refresh identity failed, err: %v\n", err)
