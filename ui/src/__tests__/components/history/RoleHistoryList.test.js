@@ -21,8 +21,8 @@ describe('RoleHistoryList', () => {
     // TODO - move this test from snapshot test
     // update this test every 15 months as the min date of start date is 15 months in CollectionHistoryList.js
     it('should render', () => {
-        const startDate = '2021-01-20 07:51';
-        const endDate = '2021-01-20 07:55';
+        const startDate = '2022-01-20 07:51';
+        const endDate = '2022-01-20 07:55';
         const { getByTestId } = render(
             <CollectionHistoryList startDate={startDate} endDate={endDate} />
         );
