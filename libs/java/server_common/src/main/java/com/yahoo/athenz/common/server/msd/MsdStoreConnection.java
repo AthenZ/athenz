@@ -77,7 +77,7 @@ public interface MsdStoreConnection extends Closeable {
      * @param assertionIdList list of assertion IDs to  lookup
      * @return TransportPolicyValidationResponseList object containing list of TransportPolicyValidationResponse
      */
-    default TransportPolicyValidationResponseList getTransportPolicyValidationStatus(List<Integer> assertionIdList) {
+    default TransportPolicyValidationResponseList getTransportPolicyValidationStatus(List<Long> assertionIdList) {
         TransportPolicyValidationResponseList responseList = new TransportPolicyValidationResponseList();
         responseList.setResponseList(new ArrayList<>());
         return responseList;
