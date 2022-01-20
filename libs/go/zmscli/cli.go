@@ -9,7 +9,6 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -486,8 +485,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 2 {
 				return cli.AddDelegatedRole(dn, args[0], args[1])
 			}
-		case "add-group-role":
-		case "add-regular-role":
+		case "add-group-role", "add-regular-role":
 			if argc >= 1 {
 				roleMembers := cli.convertRoleMembers(args[1:])
 				return cli.AddRegularRole(dn, args[0], roleMembers)
@@ -1733,8 +1731,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   trust_domain : name of the cross/trusted domain name\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " add-delegated-role tenant.sports.readers sports\n")
-	case "add-group-role":
-	case "add-regular-role":
+	case "add-group-role", "add-regular-role":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " add-regular-role role member [member ... ]\n")
 		buf.WriteString(" parameters:\n")
