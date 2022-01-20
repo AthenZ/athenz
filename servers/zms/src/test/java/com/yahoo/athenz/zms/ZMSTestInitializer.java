@@ -133,9 +133,8 @@ public class ZMSTestInitializer {
                 "uri1,uri2,uri3+uri4");
         System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS,
                 "role,group,policy,service,domain,entity,tenancy,template");
-
+        System.setProperty(ZMSConsts.ZMS_PROP_VALIDATE_ASSERTION_ROLES, "true");
         System.setProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER, "true");
-
         System.setProperty(ZMSConsts.ZMS_PROP_MAX_POLICY_VERSIONS, "5");
 
         auditLogger = new DefaultAuditLogger();

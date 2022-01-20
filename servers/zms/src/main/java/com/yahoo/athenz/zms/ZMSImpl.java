@@ -175,6 +175,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected DynamicConfigBoolean readOnlyMode;
     protected DynamicConfigBoolean validateServiceRoleMembers;
     protected DynamicConfigBoolean validateUserRoleMembers;
+    protected DynamicConfigBoolean validatePolicyAssertionRoles;
     protected boolean useMasterCopyForSignedDomains = false;
     protected Set<String> validateServiceMemberSkipDomains;
     protected static Validator validator;
@@ -788,8 +789,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // check to see if we need to validate all user and service members
         // when adding them to roles
+
         validateServiceRoleMembers = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS, false);
         validateUserRoleMembers = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_VALIDATE_USER_MEMBERS, false);
+        validatePolicyAssertionRoles = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_VALIDATE_ASSERTION_ROLES, false);
 
         // there are going to be domains like our ci/cd dynamic project domain
         // where we can't verify the service role members so for those we're
@@ -1476,6 +1479,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return createTopLevelDomain(ctx, topLevelDomain, adminUsers, solutionTemplates, auditRef);
     }
 
+    @Override
     public void deleteTopLevelDomain(ResourceContext ctx, String domainName, String auditRef) {
 
         final String caller = ctx.getApiName();
@@ -1764,6 +1768,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return accessStatus == AccessStatus.ALLOWED;
     }
 
+    @Override
     public void deleteSubDomain(ResourceContext ctx, String parent, String name, String auditRef) {
 
         final String caller = ctx.getApiName();
@@ -1793,6 +1798,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         deleteDomain(ctx, auditRef, domainName, caller);
     }
 
+    @Override
     public void deleteUserDomain(ResourceContext ctx, String name, String auditRef) {
 
         final String caller = ctx.getApiName();
@@ -2461,6 +2467,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller);
     }
 
+    @Override
     public void deleteDomainTemplate(ResourceContext ctx, String domainName, String templateName, String auditRef) {
 
         final String caller = ctx.getApiName();
@@ -3080,6 +3087,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return entity;
     }
 
+    @Override
     public void deleteEntity(ResourceContext ctx, String domainName, String entityName, String auditRef) {
 
         final String caller = ctx.getApiName();
@@ -3803,6 +3811,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    @Override
     public void deleteRole(ResourceContext ctx, String domainName, String roleName, String auditRef) {
 
         final String caller = ctx.getApiName();
@@ -3829,22 +3838,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
-        /* we are not going to allow any user to delete
-         * the admin role and policy since those are required
-         * for standard domain operations */
+        // we are not going to allow any user to delete
+        // the admin role and policy since those are required
+        // for standard domain operations */
 
         if (roleName.equalsIgnoreCase(ADMIN_ROLE_NAME)) {
             throw ZMSUtils.requestError("deleteRole: admin role cannot be deleted", caller);
         }
 
-        /* we are not going to allow any user to delete
-         * role that related to any assertion of any policy */
+        // if enabled, we are not going to allow any user to delete a
+        // role that is referenced in any assertion of any policy
 
-        List<Policy> policyList = getPolicyList(domainName, caller);
-
-        if (policyList != null) {
-            validateRoleNotAssociatedToPolicy(policyList, roleName, domainName, caller);
-        }
+        validateRoleNotAssociatedToPolicy(getPolicyList(domainName, caller), roleName, domainName, caller);
 
         dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
     }
@@ -3858,7 +3863,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void validateRoleNotAssociatedToPolicy(List<Policy> policies, String roleName, String domainName, String caller) {
-       roleName = ResourceUtils.roleResourceName(domainName, roleName);
+
+        if (validatePolicyAssertionRoles.get() != Boolean.TRUE) {
+            return;
+        }
+
+        roleName = ResourceUtils.roleResourceName(domainName, roleName);
         for (Policy policy : policies) {
             if (policy.getAssertions() == null) {
                 continue;
@@ -4226,6 +4236,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         notificationManager.sendNotifications(notifications);
     }
 
+    @Override
     public void deletePendingMembership(ResourceContext ctx, String domainName, String roleName,
             String memberName, String auditRef) {
 
@@ -4269,6 +4280,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeletePendingMembership(ctx, domainName, roleName, memberName, auditRef, caller);
     }
 
+    @Override
     public void deleteMembership(ResourceContext ctx, String domainName, String roleName,
             String memberName, String auditRef) {
 
@@ -4386,6 +4398,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executePutQuota(ctx, domainName, quota, auditRef, caller);
     }
 
+    @Override
     public void deleteQuota(ResourceContext ctx, String domainName, String auditRef) {
 
         final String caller = ctx.getApiName();
@@ -4803,19 +4816,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate to make sure we have expected values for assertion fields
         // - and also to make sure that the associated role exists
 
-        validatePolicyAssertion(assertion, caller);
+        validatePolicyAssertion(assertion, domainName, new HashSet<>(), caller);
 
         dbService.executePutAssertion(ctx, domainName, policyName, null, assertion, auditRef, caller);
         return assertion;
-    }
-
-    private List<String> getRoleNameList(String domainName, String caller) {
-
-        List<String> names = dbService.listRoles(domainName);
-        if (names.isEmpty()) {
-            throw ZMSUtils.requestError("The domain: " + domainName + "has no roles", caller);
-        }
-        return names;
     }
 
     @Override
@@ -4860,25 +4864,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate to make sure we have expected values for assertion fields
         // - and also to make sure that the associated role exists
 
-        validatePolicyAssertion(assertion, caller);
+        validatePolicyAssertion(assertion, domainName, new HashSet<>(), caller);
 
         dbService.executePutAssertion(ctx, domainName, policyName, version, assertion, auditRef, caller);
         return assertion;
     }
 
     void validateRoleAssociatedIsExist(Set<String> roleNames, String lookingForRole, String domainName, String caller) {
+
         String shortRoleName = ZMSUtils.removeDomainPrefix(lookingForRole, domainName, ROLE_PREFIX);
-        if (shortRoleName.lastIndexOf("*") != -1) {
-            if (!isWildCardMatch(roleNames, shortRoleName)) {
-                throw ZMSUtils.requestError("The role: " + lookingForRole + " that associated to an assertion does not match to any existing role", caller);
-            }
-        } else {
-            if (!roleNames.contains(shortRoleName)) {
-                throw ZMSUtils.requestError("The role: " + lookingForRole + " that associated to an assertion does not exist", caller);
-            }
+        if (!roleNames.contains(shortRoleName)) {
+            throw ZMSUtils.requestError("The role: " + lookingForRole + " that associated to an assertion does not exist", caller);
         }
     }
 
+    @Override
     public void deleteAssertion(ResourceContext ctx, String domainName, String policyName,
             Long assertionId, String auditRef) {
 
@@ -4956,25 +4956,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteAssertion(ctx, domainName, policyName, version, assertionId, auditRef, caller);
     }
 
-    void validatePolicyAssertions(List<Assertion> assertions, String caller) {
+    void validatePolicyAssertions(List<Assertion> assertions, final String roleDomainName, final String caller) {
 
         if (assertions == null) {
             return;
         }
 
-        // send this to func 'validatePolicyAssertion' since it doesn't need to retrieve the roleList for every assertion
-        Set<String> roleNamesCache = new HashSet<>();
+        // send this to func 'validatePolicyAssertion' since it doesn't need to
+        // retrieve the roleList for every assertion
 
+        Set<String> roleNamesCache = new HashSet<>();
         for (Assertion assertion : assertions) {
-            validatePolicyAssertion(assertion, caller, roleNamesCache);
+            validatePolicyAssertion(assertion, roleDomainName, roleNamesCache, caller);
         }
     }
 
-    void validatePolicyAssertion(Assertion assertion, String caller) {
-        validatePolicyAssertion(assertion, caller, new HashSet<>());
-    }
-
-    void validatePolicyAssertion(Assertion assertion, String caller, Set<String> roleNamesSet) {
+    void validatePolicyAssertion(Assertion assertion, final String roleDomainName, Set<String> roleNamesSet, final String caller) {
 
         // extract the domain name from the resource
 
@@ -5015,20 +5012,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     + resource, caller);
         }
 
-        // we are not going to allow any user to add/update
+        // if enabled, we are not going to allow any user to add/update
         // an assertion that the associated role does not exist
-        int endDomainName = assertion.getRole().indexOf(":");
-        if (endDomainName == -1) {
-            throw ZMSUtils.requestError("Missing domain name from assertion role: "
-                    + assertion.getRole(), caller);
-        }
-        String domain = assertion.getRole().substring(0, endDomainName);
+        // retrieve role list only if it hasn't been made for
+        // another assertion in the same domain already
 
-        // retrieve role list only if it hasn't been made for another assertion in the same domain already
-        if (roleNamesSet.isEmpty()) {
-            roleNamesSet.addAll(getRoleNameList(domain, caller));
+        if (validatePolicyAssertionRoles.get() == Boolean.TRUE) {
+
+            if (roleNamesSet.isEmpty()) {
+                roleNamesSet.addAll(dbService.listRoles(roleDomainName));
+            }
+
+            validateRoleAssociatedIsExist(roleNamesSet, assertion.getRole(), roleDomainName, caller);
         }
-        validateRoleAssociatedIsExist(roleNamesSet, assertion.getRole(), domain, caller);
     }
 
     boolean isConsistentPolicyName(final String domainName, final String policyName, Policy policy) {
@@ -5105,11 +5101,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate to make sure we have expected values for assertion fields
         // also that all the roles that associates does exists
 
-        validatePolicyAssertions(policy.getAssertions(), caller);
+        validatePolicyAssertions(policy.getAssertions(), domainName, caller);
 
         dbService.executePutPolicy(ctx, domainName, policyName, policy, auditRef, caller);
     }
 
+    @Override
     public void deletePolicy(ResourceContext ctx, String domainName, String policyName, String auditRef) {
 
         final String caller = ctx.getApiName();
@@ -5534,6 +5531,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return service;
     }
 
+    @Override
     public void deleteServiceIdentity(ResourceContext ctx, String domainName,
             String serviceName, String auditRef) {
 
@@ -5678,6 +5676,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return entry;
     }
 
+    @Override
     public void deletePublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
             String keyId, String auditRef) {
 
@@ -6969,7 +6968,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // look for dangling roles and policies
         //
         int assertionCount = 0;
-        int roleWildcardCount = 0;
         Set<String> usedRoleSet = new HashSet<>(); // keep track of roles used by policies
         Set<String> providerSet = new HashSet<>(); // keep track of providers from assume_role policies
 
@@ -7024,20 +7022,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
 
                 String roleName = assertion.getRole();
-
-                // check for wildcard role
-                if (roleName.lastIndexOf('*') != -1) {
-                    roleWildcardCount++;
-                    boolean wildCardMatch = isWildCardMatch(roleSet, roleName);
-                    if (!wildCardMatch) { // dangling policy
-                        DanglingPolicy dp = new DanglingPolicy();
-                        // we need to remove the domain:role. and domain:policy prefixes
-                        // according to RDL definitions for role and policy names
-                        dp.setRoleName(ZMSUtils.removeDomainPrefix(roleName, domainName, ROLE_PREFIX));
-                        dp.setPolicyName(ZMSUtils.removeDomainPrefix(pname, domainName, POLICY_PREFIX));
-                        danglingPolicies.add(dp);
-                    }
-                } else if (roleSet.contains(roleName)) {
+                if (roleSet.contains(roleName)) {
                     usedRoleSet.add(roleName);
                 } else { // dangling policy
                     DanglingPolicy dp = new DanglingPolicy();
@@ -7053,7 +7038,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         DomainDataCheck ddc = new DomainDataCheck();
         ddc.setPolicyCount(policies.size());
         ddc.setAssertionCount(assertionCount);
-        ddc.setRoleWildCardCount(roleWildcardCount);
         if (!danglingPolicies.isEmpty()) {
             ddc.setDanglingPolicies(danglingPolicies);
         }
@@ -7072,8 +7056,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getDomainDataCheck: domain={} policy-count={} assertion-count={} wildcard-count={} dangling-policies={} dangling-roles={}",
-                    domainName, policies.size(), assertionCount, roleWildcardCount, danglingPolicies.size(), roleSet.size());
+            LOG.debug("getDomainDataCheck: domain={} policy-count={} assertion-count={} dangling-policies={} dangling-roles={}",
+                    domainName, policies.size(), assertionCount, danglingPolicies.size(), roleSet.size());
         }
 
         // Tenant Domain Check: does each provider fully support this tenant?
@@ -7198,20 +7182,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return ddc;
     }
 
-    private boolean isWildCardMatch(Set<String> roleSet, String roleName) {
-        // make sure there is at least 1 role that can match
-        // this wildcard - else its a dangling policy
-        String rolePattern = StringUtils.patternFromGlob(roleName);
-        boolean wildCardMatch = false;
-        for (String role: roleSet) {
-            if (role.matches(rolePattern)) {
-                wildCardMatch = true;
-                break;
-            }
-        }
-        return wildCardMatch;
-    }
-
+    @Override
     public void deleteProviderResourceGroupRoles(ResourceContext ctx, String tenantDomain,
              String provSvcDomain, String provSvcName, String resourceGroup, String auditRef) {
 
@@ -7551,6 +7522,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return troles;
     }
 
+    @Override
     public void deleteTenantResourceGroupRoles(ResourceContext ctx, String provSvcDomain,
             String provSvcName, String tenantDomain, String resourceGroup, String auditRef) {
 
@@ -10174,6 +10146,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    @Override
     public void recordMetrics(ResourceContext ctx, int httpStatus) {
         try {
             final String principalDomainName = getPrincipalDomain(ctx);
