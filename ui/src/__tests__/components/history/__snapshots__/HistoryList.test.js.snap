@@ -383,7 +383,7 @@ exports[`HistoryList should render 1`] = `
           data-testid="flatPicker"
           placeholder="Start Date (Optional)"
           type="hidden"
-          value="2020-10-20 07:51"
+          value="2021-10-20 07:51"
         />
         <input
           class=" form-control input"
@@ -406,7 +406,7 @@ exports[`HistoryList should render 1`] = `
           data-testid="flatPicker"
           placeholder="End Date (Optional)"
           type="hidden"
-          value="2021-01-20 07:55"
+          value="2022-01-20 07:55"
         />
         <input
           class=" form-control input"
