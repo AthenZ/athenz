@@ -3,7 +3,16 @@ planning to work on. At Verizon Media, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
-# Q4 2021
+# Q1 2022
+
+- Micro Segmentation: Service Identity based ACLs
+- Support Athenz as OIDC Provider in AWS EKS
+- Design and implement an interface/API for service provider to register domains as in-use with their service
+- Role consistency check when deleting roles or adding assertions
+- Approve role memberships for non-admins through web ui
+- OAuth2 authorization well known metadata endpoint support
+
+- # Q4 2021
 
 - Micro Segmentation: Service Identity based ACLs
 - Support publishing domain change events through an interface (Pulsar integration)
