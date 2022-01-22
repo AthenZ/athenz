@@ -18,7 +18,11 @@ let CLIENTS = require('../clients');
 const errorHandler = require('../utils/errorHandler');
 const userService = require('../services/userService');
 const debug = require('debug')('AthenzUI:server:handlers:api');
+const cytoscape = require('cytoscape');
+let dagre = require('cytoscape-dagre');
+
 let appConfig = {};
+
 let domainHistoryApi = undefined;
 try {
     domainHistoryApi = require('./domain-history');
@@ -2542,6 +2546,37 @@ Fetchr.registerService({
                 }
             }
         );
+    },
+});
+
+Fetchr.registerService({
+    name: 'graph-layout',
+    read(req, resource, params, config, callback) {
+        cytoscape.use(dagre);
+        const cy = cytoscape({
+            container: null,
+            elements: params.elements,
+            headless: true,
+            styleEnabled: true,
+            animate: null,
+            style: params.style,
+        });
+
+        const layout = cy.layout({
+            name: 'dagre',
+            animate: null,
+            rankDir: 'LR',
+        });
+
+        layout.pon('layoutstop').then(() => {
+            let result = {};
+            cy.nodes().map((node) => {
+                result[node.id()] = node.position();
+            });
+            return callback(null, result);
+        });
+
+        layout.run();
     },
 });
 

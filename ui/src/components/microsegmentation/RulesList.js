@@ -20,6 +20,9 @@ import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
 import RuleTable from './RuleTable';
 import AddSegmentation from './AddSegmentation';
+import { DnToggle } from '@denali-design/react';
+import GroupTable from './GroupTable';
+import 'denali-css/css/denali.css';
 
 const MembersSectionDiv = styled.div`
     margin: 20px;
@@ -34,6 +37,10 @@ const AddContainerDiv = styled.div`
     float: right;
 `;
 
+const StyledToggleDiv = styled.div`
+    margin-right: 10px;
+`;
+
 export default class RulesList extends React.Component {
     constructor(props) {
         super(props);
@@ -42,8 +49,11 @@ export default class RulesList extends React.Component {
             segmentationData: props.data,
             errorMessage: null,
             showAddSegmentation: false,
+            tabularView: true,
+            graphicalView: false,
         };
         this.toggleAddSegmentation = this.toggleAddSegmentation.bind(this);
+        this.toggleView = this.toggleView.bind(this);
         this.closeModal = this.closeModal.bind(this);
         this.reloadData = this.reloadData.bind(this);
     }
@@ -52,6 +62,23 @@ export default class RulesList extends React.Component {
         this.setState({
             showAddSegmentation: !this.state.showAddSegmentation,
         });
+    }
+
+    toggleView(evt) {
+        switch (evt.target.name) {
+            case 'tabular':
+                this.setState({
+                    tabularView: true,
+                    graphicalView: false,
+                });
+                break;
+            case 'graphical':
+                this.setState({
+                    tabularView: false,
+                    graphicalView: true,
+                });
+                break;
+        }
     }
 
     reloadData() {
@@ -84,6 +111,7 @@ export default class RulesList extends React.Component {
     }
 
     render() {
+        debugger;
         const { domain } = this.props;
         let addSegmentationButton = '';
         let addSegmentation = this.state.showAddSegmentation ? (
@@ -102,6 +130,28 @@ export default class RulesList extends React.Component {
 
         addSegmentationButton = (
             <AddContainerDiv>
+                <StyledToggleDiv>
+                    <DnToggle isRadioToggle isSmall>
+                        <DnToggle.RadioItem
+                            defaultChecked={this.state.tabularView}
+                            id='tabular'
+                            isDisabled={false}
+                            name='tabular'
+                            radioLabel='Tabular'
+                            radioValue='tabular'
+                            onChange={this.toggleView}
+                        />
+                        <DnToggle.RadioItem
+                            defaultChecked={this.state.graphicalView}
+                            id='graphical'
+                            isDisabled={false}
+                            name='graphical'
+                            radioLabel='Graphical'
+                            radioValue='graphical'
+                            onChange={this.toggleView}
+                        />
+                    </DnToggle>
+                </StyledToggleDiv>
                 <div>
                     <Button secondary onClick={this.toggleAddSegmentation}>
                         Add ACL Policy
@@ -113,10 +163,12 @@ export default class RulesList extends React.Component {
 
         let showInbound =
             this.state.segmentationData &&
-            this.state.segmentationData.inbound.length > 0;
+            this.state.segmentationData.inbound.length > 0 &&
+            this.state.tabularView;
         let showOutbound =
             this.state.segmentationData &&
-            this.state.segmentationData.outbound.length > 0;
+            this.state.segmentationData.outbound.length > 0 &&
+            this.state.tabularView;
 
         return (
             <MembersSectionDiv data-testid='segmentation-data-list'>
@@ -147,12 +199,22 @@ export default class RulesList extends React.Component {
                         justificationRequired={this.props.isDomainAuditEnabled}
                     />
                 ) : null}
-                {!showInbound && !showOutbound ? (
+                {!showInbound && !showOutbound && this.state.tabularView ? (
                     <div>
                         Use the Add ACL Policy button to add inbound and
                         outbound rules.
                     </div>
                 ) : null}
+                {this.state.graphicalView && (
+                    <GroupTable
+                        domain={domain}
+                        api={this.api}
+                        _csrf={this.props._csrf}
+                        onSubmit={this.reloadData}
+                        data={this.state.segmentationData}
+                        justificationRequired={this.props.isDomainAuditEnabled}
+                    />
+                )}
             </MembersSectionDiv>
         );
     }

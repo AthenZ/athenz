@@ -101,8 +101,6 @@ export async function getServerSideProps(context) {
         error = response.error;
         return [{}, {}, {}, {}, {}, {}, {}];
     });
-    console.log ({groupDetails: JsonUtils.omitUndefined(details[6]),
-        roles: JsonUtils.omitUndefined(details[3].memberRoles)});
     return {
         props: {
             reload,

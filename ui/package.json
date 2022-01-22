@@ -86,7 +86,12 @@
         "tslib": "2.3.1",
         "typescript": "4.5.4",
         "uuid": "8.3.2",
-        "xml-crypto": "2.1.3"
+        "xml-crypto": "2.1.3",
+        "@denali-design/icons": "1.1.0",
+        "@denali-design/react": "1.0.0-alpha.1",
+        "cytoscape": "3.20.0",
+        "cytoscape-dagre": "2.3.2",
+        "react-flow-renderer": "9.7.2"
     },
     "devDependencies": {
         "@babel/core": "7.16.7",
