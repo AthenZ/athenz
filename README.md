@@ -96,6 +96,7 @@ credentials for configured AWS IAM roles.
     * [Private Key Store](docs/private_key_store.md)
     * [Certificate Signer](docs/cert_signer.md)
     * [Service Identity X.509 Certificate Support Requirements - Copper Argos](docs/copper_argos_dev.md)
+    * [OIDC Authentication Provider Support for AWS EKS](docs/oidc_aws_eks.md)
 * User Guide
     * [ZMS Client Utility](docs/zms_client.md)
     * [ZPU Utility](docs/setup_zpu.md)

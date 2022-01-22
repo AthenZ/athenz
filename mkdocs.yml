@@ -63,6 +63,7 @@ nav:
     - Athenz Service Identity X.509 Certificate for AWS EKS pods: service_x509_credentials_aws_eks.md
     - Athenz Service Identity X.509 Certificate for AWS Lambda functions: service_x509_credentials_aws_lambda.md
     - Obtaining OAuth2 Access Tokens from ZTS: zts_access_token_guide.md
+    - Athenz OIDC Authentication Provider Support for AWS EKS: oidc_aws_eks.md
 - AWS Setup:
     - AWS Temp Credentials: aws_temp_creds.md
     - Introduction: aws_athenz_setup.md
