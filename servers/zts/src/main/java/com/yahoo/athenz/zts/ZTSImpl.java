@@ -358,8 +358,23 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         openIDConfig.setAuthorization_endpoint(ztsOpenIDIssuer + "/oauth2/auth");
         openIDConfig.setSubject_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_SUBJECT_TYPE_PUBLIC));
         openIDConfig.setResponse_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_RESPONSE_IT_ONLY));
-        openIDConfig.setId_token_signing_alg_values_supported(
-                Collections.singletonList(privateKey.getAlgorithm().getValue()));
+        openIDConfig.setId_token_signing_alg_values_supported(getSupportedSigningAlgValues());
+    }
+
+    List<String> getSupportedSigningAlgValues() {
+
+        List<String> algValues = new ArrayList<>();
+        algValues.add(privateKey.getAlgorithm().getValue());
+
+        // since we always give preference to EC keys there is no need
+        // to check for privateECKey. instead, we only need to check if the
+        // rsa private key is valid and not
+
+        if (privateRSAKey != null && !algValues.contains(privateRSAKey.getAlgorithm().getValue())) {
+            algValues.add(privateRSAKey.getAlgorithm().getValue());
+        }
+
+        return algValues;
     }
 
     private void setNotificationManager() {
@@ -1752,19 +1767,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
-    public Response getOIDCResponse(ResourceContext ctx, String responseType, String clientId,
-                                    String redirectUri, String scope, String state, String nonce) {
+    public Response getOIDCResponse(ResourceContext ctx, String responseType, String clientId, String redirectUri,
+                                    String scope, String state, String nonce, String keyType) {
 
         final String caller = ctx.getApiName();
 
         final String principalDomain = logPrincipalAndGetDomain(ctx);
         validateRequest(ctx.request(), principalDomain, caller);
 
+        validate(nonce, TYPE_ENTITY_NAME, principalDomain, caller);
+        validate(clientId, TYPE_SERVICE_NAME, principalDomain, caller);
         if (!StringUtil.isEmpty(state)) {
             validate(state, TYPE_ENTITY_NAME, principalDomain, caller);
         }
-        validate(nonce, TYPE_ENTITY_NAME, principalDomain, caller);
-        validate(clientId, TYPE_SERVICE_NAME, principalDomain, caller);
+        if (!StringUtil.isEmpty(keyType)) {
+            validate(keyType, TYPE_SIMPLE_NAME, principalDomain, caller);
+        }
         clientId = clientId.toLowerCase();
 
         // get our principal's name
@@ -1900,13 +1918,42 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         idToken.setAuthTime(iat);
         idToken.setExpiryTime(iat + idTokenDefaultTimeout);
 
+        ServerPrivateKey signPrivateKey = getSignPrivateKey(keyType);
         String location = redirectUri + "#id_token=" +
-                idToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
+                idToken.getSignedToken(signPrivateKey.getKey(), signPrivateKey.getId(), signPrivateKey.getAlgorithm());
         if (!StringUtil.isEmpty(state)) {
             location += "&state=" + state;
         }
 
         return Response.status(ResourceException.FOUND).header("Location", location).build();
+    }
+
+    ServerPrivateKey getSignPrivateKey(final String keyType) {
+
+        // if we don't have a key-type requested then we'll just
+        // to our standard server signing key
+
+        if (StringUtil.isEmpty(keyType)) {
+            return privateKey;
+        }
+
+        // otherwise, look for the expected key type. if the key type
+        // is invalid or the server doesn't have it configured, then
+        // we'll fall back to the server standard signing key as well
+
+        ServerPrivateKey serverPrivateKey = null;
+        switch (keyType.toUpperCase()) {
+            case ZTSConsts.RSA:
+                serverPrivateKey = privateRSAKey;
+                break;
+            case ZTSConsts.EC:
+                serverPrivateKey = privateECKey;
+                break;
+        }
+        if (serverPrivateKey == null) {
+            serverPrivateKey = privateKey;
+        }
+        return serverPrivateKey;
     }
 
     Response oidcError(final String errorMessage, final String redirectUri, final String state) {

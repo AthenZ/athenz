@@ -27,7 +27,7 @@ var (
 )
 
 func usage() {
-	fmt.Println("usage: zts-idtoken <credentials> -zts <ZTS url> -scope <scope> -redirect-uri <redirect-uri> -nonce <nonce> -client-id <client-id> -state <state>")
+	fmt.Println("usage: zts-idtoken <credentials> -zts <ZTS url> -scope <scope> -redirect-uri <redirect-uri> -nonce <nonce> -client-id <client-id> -state <state> -key-type <RSA|EC>")
 	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-svc-cacert-file <ca-cert-file>]")
 	fmt.Println("       zts-idtoken -validate -id-token <id-token> -conf <athenz-conf-path> [-claims]")
 	os.Exit(1)
@@ -42,7 +42,7 @@ func printVersion() {
 }
 
 func main() {
-	var clientId, scope, state, redirectUri, nonce, svcKeyFile, svcCertFile, svcCACertFile, ztsURL, conf, idToken string
+	var clientId, scope, state, redirectUri, nonce, svcKeyFile, svcCertFile, svcCACertFile, ztsURL, conf, idToken, keyType string
 	var proxy, validate, claims, showVersion bool
 	flag.StringVar(&clientId, "client-id", "", "client-id for the token")
 	flag.StringVar(&redirectUri, "redirect-uri", "", "redirect uri registered for the client-id")
@@ -58,6 +58,7 @@ func main() {
 	flag.BoolVar(&validate, "validate", false, "validate id token")
 	flag.BoolVar(&claims, "claims", false, "display all claims from id token")
 	flag.StringVar(&idToken, "id-token", "", "id token to validate")
+	flag.StringVar(&keyType, "key-type", "RSA", "signing key type: RSA or EC")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.Parse()
 
@@ -69,7 +70,7 @@ func main() {
 	if validate {
 		validateIdToken(idToken, conf, claims)
 	} else {
-		fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, proxy)
+		fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, proxy)
 	}
 }
 
@@ -114,7 +115,7 @@ func validateIdToken(idToken, conf string, showClaims bool) {
 	fmt.Println("Id Token successfully validated")
 }
 
-func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state string, proxy bool) {
+func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType string, proxy bool) {
 
 	if ztsURL == "" {
 		usage()
@@ -127,7 +128,7 @@ func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redi
 	client.DisableRedirect = true
 
 	// request an id token
-	_, location, err := client.GetOIDCResponse("id_token", zts.ServiceName(clientId), redirectUri, scope, zts.EntityName(state), zts.EntityName(nonce))
+	_, location, err := client.GetOIDCResponse("id_token", zts.ServiceName(clientId), redirectUri, scope, zts.EntityName(state), zts.EntityName(nonce), zts.SimpleName(keyType))
 	if err != nil {
 		log.Fatalln(err)
 	}

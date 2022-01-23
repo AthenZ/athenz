@@ -75,13 +75,14 @@ type OIDCResponse Struct {
 };
 
 // Fetch OAuth OpenID Connect ID Token
-resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}" {
+resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&keyType={keyType}" {
     String responseType; //response type - currently only supporting id tokens - id_token
     ServiceName clientId; //client id - must be valid athenz service identity name
     String redirectUri; //redirect uri for the response
     String scope; //id token scope
     EntityName state (optional); //optional state claim included in the response location header
     EntityName nonce; //nonce claim included in the id token
+    SimpleName keyType (optional); //optional signing key type - RSA or EC. Might be ignored if server doesn't have the requested type configured
     String location (header="Location", out); //return location header with id token
     authenticate;
     expected FOUND;
