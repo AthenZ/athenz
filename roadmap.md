@@ -1,5 +1,5 @@
 The following is the list of features that the Athenz team is working or
-planning to work on. At Verizon Media, we review our list every quarter
+planning to work on. At Yahoo, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
@@ -12,7 +12,7 @@ we implement several smaller features as they're requested by our customers.
 - Approve role memberships for non-admins through web ui
 - OAuth2 authorization well known metadata endpoint support
 
-- # Q4 2021
+# Q4 2021
 
 - Micro Segmentation: Service Identity based ACLs
 - Support publishing domain change events through an interface (Pulsar integration)
