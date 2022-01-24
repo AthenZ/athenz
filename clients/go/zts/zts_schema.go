@@ -749,6 +749,7 @@ func init() {
 	mGetOIDCResponse.Input("scope", "String", false, "scope", "", false, nil, "id token scope")
 	mGetOIDCResponse.Input("state", "EntityName", false, "state", "", true, nil, "optional state claim included in the response location header")
 	mGetOIDCResponse.Input("nonce", "EntityName", false, "nonce", "", false, nil, "nonce claim included in the id token")
+	mGetOIDCResponse.Input("keyType", "SimpleName", false, "keyType", "", true, nil, "optional signing key type - RSA or EC. Might be ignored if server doesn't have the requested type configured")
 	mGetOIDCResponse.Output("location", "String", "Location", false, "return location header with id token")
 	mGetOIDCResponse.Auth("", "", true, "")
 	mGetOIDCResponse.Expected("FOUND")

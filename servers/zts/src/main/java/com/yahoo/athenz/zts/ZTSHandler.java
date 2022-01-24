@@ -37,7 +37,7 @@ public interface ZTSHandler {
     OpenIDConfig getOpenIDConfig(ResourceContext context);
     JWKList getJWKList(ResourceContext context, Boolean rfc);
     AccessTokenResponse postAccessTokenRequest(ResourceContext context, String request);
-    Response getOIDCResponse(ResourceContext context, String responseType, String clientId, String redirectUri, String scope, String state, String nonce);
+    Response getOIDCResponse(ResourceContext context, String responseType, String clientId, String redirectUri, String scope, String state, String nonce, String keyType);
     RoleCertificate postRoleCertificateRequestExt(ResourceContext context, RoleCertificateRequest req);
     RoleAccess getRolesRequireRoleCert(ResourceContext context, String principal);
     Workloads getWorkloadsByService(ResourceContext context, String domainName, String serviceName);

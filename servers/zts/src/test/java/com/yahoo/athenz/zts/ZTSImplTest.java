@@ -22,6 +22,7 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.Base64URL;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
@@ -66,6 +67,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
+import org.eclipse.jetty.util.StringUtil;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -11009,6 +11011,10 @@ public class ZTSImplTest {
         assertEquals(zts.privateKey, zts.privateECKey);
         assertNull(zts.privateRSAKey);
 
+        List<String> algValues = zts.getSupportedSigningAlgValues();
+        assertEquals(1, algValues.size());
+        assertTrue(algValues.contains("ES256"));
+
         // now let's try the rsa key
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -11019,6 +11025,10 @@ public class ZTSImplTest {
         assertNotNull(zts.privateRSAKey);
         assertEquals(zts.privateKey, zts.privateRSAKey);
         assertNull(zts.privateECKey);
+
+        algValues = zts.getSupportedSigningAlgValues();
+        assertEquals(1, algValues.size());
+        assertTrue(algValues.contains("RS256"));
 
         // now back to our regular key setup
 
@@ -13046,7 +13056,7 @@ public class ZTSImplTest {
         // client id without domain
 
         try {
-            zts.getOIDCResponse(context, "id_token", "coretech", "https://localhost:4443", "openid", null, "nonce");
+            zts.getOIDCResponse(context, "id_token", "coretech", "https://localhost:4443", "openid", null, "nonce", "RSA");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -13056,7 +13066,7 @@ public class ZTSImplTest {
         // unknown domain
 
         try {
-            zts.getOIDCResponse(context, "id_token", "unknown-domain.api", "https://localhost:4443", "openid", null, "nonce");
+            zts.getOIDCResponse(context, "id_token", "unknown-domain.api", "https://localhost:4443", "openid", null, "nonce", "EC");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -13071,7 +13081,7 @@ public class ZTSImplTest {
         store.processSignedDomain(signedDomain, false);
 
         try {
-            zts.getOIDCResponse(context, "id_token", "coretech.backup", "https://localhost:4443/zts", "openid", null, "nonce");
+            zts.getOIDCResponse(context, "id_token", "coretech.backup", "https://localhost:4443/zts", "openid", null, "nonce", "RSA");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -13081,7 +13091,7 @@ public class ZTSImplTest {
         // mismatch service endpoint
 
         try {
-            zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443", "openid", "state", "nonce");
+            zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443", "openid", "state", "nonce", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -13090,26 +13100,26 @@ public class ZTSImplTest {
 
         // invalid response type
 
-        Response response = zts.getOIDCResponse(context, "token", "coretech.api", "https://localhost:4443/zts", "openid", null, "nonce");
+        Response response = zts.getOIDCResponse(context, "token", "coretech.api", "https://localhost:4443/zts", "openid", null, "nonce", "");
         assertEquals(response.getStatus(), ResourceException.FOUND);
         assertEquals(response.getHeaderString("Location"),
                 "https://localhost:4443/zts?error=invalid_request&error_description=invalid+response+type");
 
         // empty scope
 
-        response = zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "", null, "nonce");
+        response = zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "", null, "nonce", "rsa");
         assertEquals(response.getStatus(), ResourceException.FOUND);
         assertEquals(response.getHeaderString("Location"),
                 "https://localhost:4443/zts?error=invalid_request&error_description=no+scope+provided");
 
-        response = zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", null, null, "nonce");
+        response = zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", null, null, "nonce", "unknown");
         assertEquals(response.getStatus(), ResourceException.FOUND);
         assertEquals(response.getHeaderString("Location"),
                 "https://localhost:4443/zts?error=invalid_request&error_description=no+scope+provided");
 
         // scope domain mismatch
 
-        response = zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid athenz:group.dev-team", null, "nonce");
+        response = zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid athenz:group.dev-team", null, "nonce", null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         assertEquals(response.getHeaderString("Location"),
                 "https://localhost:4443/zts?error=invalid_request&error_description=domain+name+mismatch");
@@ -13133,7 +13143,7 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true);
         store.processSignedDomain(signedDomain, false);
 
-        Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid", null, "nonce");
+        Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid", null, "nonce", "RSA");
         assertEquals(response.getStatus(), ResourceException.FOUND);
         String location = response.getHeaderString("Location");
 
@@ -13194,7 +13204,7 @@ public class ZTSImplTest {
 
         // get all the groups
 
-        Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid groups", null, "nonce");
+        Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid groups", null, "nonce", "EC");
         assertEquals(response.getStatus(), ResourceException.FOUND);
         String location = response.getHeaderString("Location");
 
@@ -13220,7 +13230,7 @@ public class ZTSImplTest {
 
         // get only one of the groups and include state
 
-        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid coretech:group.dev-team", "valid-state", "nonce");
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid coretech:group.dev-team", "valid-state", "nonce", "RSA");
         assertEquals(response.getStatus(), ResourceException.FOUND);
         location = response.getHeaderString("Location");
         final String stateComp = "&state=valid-state";
@@ -13245,7 +13255,7 @@ public class ZTSImplTest {
 
         // requesting a group that the user is not part of
 
-        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid coretech:group.eng-team", null, "nonce");
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid coretech:group.eng-team", null, "nonce", null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         assertEquals(response.getHeaderString("Location"),
                 "https://localhost:4443/zts?error=invalid_request&error_description=principal+not+included+in+requested+groups");
@@ -13271,7 +13281,7 @@ public class ZTSImplTest {
 
         // get all the roles
 
-        Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid roles", null, "nonce");
+        Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid roles", null, "nonce", "");
         assertEquals(response.getStatus(), ResourceException.FOUND);
         String location = response.getHeaderString("Location");
 
@@ -13296,7 +13306,7 @@ public class ZTSImplTest {
 
         // get only one of the groups
 
-        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid coretech:role.writers", null, "nonce");
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid coretech:role.writers", null, "nonce", "RSA");
         assertEquals(response.getStatus(), ResourceException.FOUND);
         location = response.getHeaderString("Location");
 
@@ -13319,9 +13329,54 @@ public class ZTSImplTest {
 
         // requesting a group that the user is not part of
 
-        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid coretech:role.eng-team", null, "nonce");
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts", "openid coretech:role.eng-team", null, "nonce", "EC");
         assertEquals(response.getStatus(), ResourceException.FOUND);
         assertEquals(response.getHeaderString("Location"),
                 "https://localhost:4443/zts?error=invalid_request&error_description=principal+not+included+in+requested+roles");
+    }
+
+    @Test
+    public void testGeSignPrivateKey() {
+
+        assertEquals(zts.privateKey, zts.getSignPrivateKey(null));
+        assertEquals(zts.privateKey, zts.getSignPrivateKey(""));
+        assertEquals(zts.privateKey, zts.getSignPrivateKey("unknown"));
+
+        List<String> algValues = zts.getSupportedSigningAlgValues();
+        assertEquals(1, algValues.size());
+        assertTrue(algValues.contains("RS256"));
+
+        // load our ec and rsa private keys
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY, "src/test/resources/unit_test_zts_private_ec.pem");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY, "src/test/resources/unit_test_zts_private.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+
+        zts.loadServicePrivateKey();
+
+        algValues = zts.getSupportedSigningAlgValues();
+        assertEquals(2, algValues.size());
+        assertTrue(algValues.contains("RS256"));
+        assertTrue(algValues.contains("ES256"));
+
+        assertEquals(zts.privateECKey, zts.getSignPrivateKey("EC"));
+        assertEquals(zts.privateECKey, zts.getSignPrivateKey("ec"));
+
+        assertEquals(zts.privateRSAKey, zts.getSignPrivateKey("RSA"));
+        assertEquals(zts.privateRSAKey, zts.getSignPrivateKey("rsa"));
+
+        // now back to our regular key setup - we only have a single key
+        // so we have a match always
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY);
+
+        zts.loadServicePrivateKey();
+
+        assertEquals(zts.privateKey, zts.getSignPrivateKey("RSA"));
+        assertEquals(zts.privateKey, zts.getSignPrivateKey("rsa"));
+        assertEquals(zts.privateKey, zts.getSignPrivateKey("EC"));
+        assertEquals(zts.privateKey, zts.getSignPrivateKey("ec"));
     }
 }
