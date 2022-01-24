@@ -24,7 +24,9 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.util.Crypto;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,33 +81,57 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
     }
 
     private static AWSKMS initAWSKMS() {
-        String s3Region = System.getProperty(ATHENZ_PROP_AWS_KMS_REGION);
-        ///CLOVER:OFF
-        if (null != s3Region && !s3Region.isEmpty()) {
-            return AWSKMSClientBuilder.standard().withRegion(s3Region).build();
-        }
-        return AWSKMSClientBuilder.defaultClient();
-        ///CLOVER:ON
+        final String kmsRegion = System.getProperty(ATHENZ_PROP_AWS_KMS_REGION);
+        return StringUtil.isEmpty(kmsRegion) ? AWSKMSClientBuilder.defaultClient() : AWSKMSClientBuilder.standard().withRegion(kmsRegion).build();
     }
 
     private static AmazonS3 initAmazonS3() {
-        String s3Region = System.getProperty(ATHENZ_PROP_AWS_S3_REGION);
-        ///CLOVER:OFF
-        if (null != s3Region && !s3Region.isEmpty()) {
-            return AmazonS3ClientBuilder.standard().withRegion(s3Region).build();
-       }
-        return AmazonS3ClientBuilder.defaultClient();
-        ///CLOVER:ON
+        final String s3Region = System.getProperty(ATHENZ_PROP_AWS_S3_REGION);
+        return StringUtil.isEmpty(s3Region) ? AmazonS3ClientBuilder.defaultClient() : AmazonS3ClientBuilder.standard().withRegion(s3Region).build();
     }
     
     public AwsPrivateKeyStore(final AmazonS3 s3, final AWSKMS kms) {
         this.s3 = s3;
         this.kms = kms;
     }
-    
+
     @Override
-    public PrivateKey getPrivateKey(String service, String serverHostName,
-            StringBuilder privateKeyId) {
+    public ServerPrivateKey getPrivateKey(String service, String serverHostName, String serverRegion, String algorithm) {
+
+        final String bucketName;
+        String keyName;
+        String keyIdName;
+
+        final String objectSuffix = "." + algorithm.toLowerCase();
+        if (ZMS_SERVICE.equals(service)) {
+            bucketName = System.getProperty(ATHENZ_PROP_ZMS_BUCKET_NAME);
+            keyName = System.getProperty(ATHENZ_PROP_ZMS_KEY_NAME, ATHENZ_DEFAULT_KEY_NAME) + objectSuffix;
+            keyIdName = System.getProperty(ATHENZ_PROP_ZMS_KEY_ID_NAME, ATHENZ_DEFAULT_KEY_ID_NAME) + objectSuffix;
+        } else if (ZTS_SERVICE.equals(service)) {
+            bucketName = System.getProperty(ATHENZ_PROP_ZTS_BUCKET_NAME);
+            keyName = System.getProperty(ATHENZ_PROP_ZTS_KEY_NAME, ATHENZ_DEFAULT_KEY_NAME) + objectSuffix;
+            keyIdName = System.getProperty(ATHENZ_PROP_ZTS_KEY_ID_NAME, ATHENZ_DEFAULT_KEY_ID_NAME) + objectSuffix;
+        } else {
+            LOG.error("Unknown service specified: {}", service);
+            return null;
+        }
+
+        if (bucketName == null) {
+            LOG.error("No bucket name specified with system property");
+            return null;
+        }
+
+        PrivateKey pkey = null;
+        try {
+            pkey = Crypto.loadPrivateKey(getDecryptedData(bucketName, keyName));
+        } catch (Exception ex) {
+            LOG.error("unable to load private key", ex);
+        }
+        return pkey == null ? null : new ServerPrivateKey(pkey, getDecryptedData(bucketName, keyIdName));
+    }
+
+    @Override
+    public PrivateKey getPrivateKey(String service, String serverHostName, StringBuilder privateKeyId) {
         
         String bucketName;
         String keyName;
@@ -158,11 +184,9 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
             
             byte[] buffer = new byte[1024];
             int length;
-            ///CLOVER:OFF
             while ((length = s3InputStream.read(buffer)) != -1) {
                 result.write(buffer, 0, length);
             }
-            ///CLOVER:ON
             // if key should be decrypted, do so with KMS
 
             if (kmsDecrypt) {
