@@ -214,4 +214,11 @@ public interface ObjectStoreConnection extends Closeable {
     boolean deleteAssertionConditions(long assertionId);
     boolean insertAssertionCondition(long assertionId, AssertionCondition assertionCondition);
     boolean deleteAssertionCondition(long assertionId, int conditionId);
+
+    // Domain Dependencies Commands
+
+    boolean insertDomainDependency(String domainName, String service);
+    boolean deleteDomainDependency(String domainName, String service);
+    List<String> listServiceDependencies(String domainName);
+    List<String> listDomainDependencies(String service);
 }

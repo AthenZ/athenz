@@ -565,6 +565,15 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN policy ON policy.policy_id=assertion.policy_id "
             + "WHERE policy.domain_id=? ORDER BY assertion.assertion_id, assertion_condition.condition_id;";
 
+    private static final String SQL_INSERT_DOMAIN_DEPENDENCY = "INSERT INTO service_domain_dependency (domain, service)"
+            + "VALUES (?,?);";
+    private static final String SQL_DELETE_DOMAIN_DEPENDENCY = "DELETE FROM service_domain_dependency "
+            + "WHERE domain=? AND service=?;";
+    private static final String SQL_LIST_SERVICE_DEPENDENCIES = "SELECT service FROM service_domain_dependency "
+            + "WHERE domain=?;";
+    private static final String SQL_LIST_DOMAIN_DEPENDENCIES = "SELECT domain FROM service_domain_dependency "
+            + "WHERE service=?;";
+
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
     private static final String CACHE_GROUP     = "g:";
@@ -6515,6 +6524,76 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
         return affectedRows > 0;
+    }
+
+    @Override
+    public List<String> listServiceDependencies(String domainName) {
+
+        final String caller = "listServiceDependencies";
+
+        List<String> services = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_SERVICE_DEPENDENCIES)) {
+            ps.setString(1, domainName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    services.add(rs.getString(1));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        Collections.sort(services);
+        return services;
+    }
+
+    @Override
+    public List<String> listDomainDependencies(String service) {
+
+        final String caller = "listServiceDependencies";
+
+        List<String> domains = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_DOMAIN_DEPENDENCIES)) {
+            ps.setString(1, service);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    domains.add(rs.getString(1));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        Collections.sort(domains);
+        return domains;
+    }
+
+    @Override
+    public boolean insertDomainDependency(String dependencyDomainName, String service) {
+        int affectedRows;
+        final String caller = "insertDomainDependency";
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_DOMAIN_DEPENDENCY)) {
+            ps.setString(1, dependencyDomainName);
+            ps.setString(2, service);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean deleteDomainDependency(String dependencyDomainName, String service) {
+        int affectedRows;
+        final String caller = "deleteDomainDependency";
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_DOMAIN_DEPENDENCY)) {
+            ps.setString(1, dependencyDomainName);
+            ps.setString(2, service);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
     }
 
     Policy savePolicySettings(final String domainName, final String policyName,  ResultSet rs) throws SQLException {

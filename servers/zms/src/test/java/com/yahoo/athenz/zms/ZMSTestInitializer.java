@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -689,5 +690,37 @@ public class ZMSTestInitializer {
 
     public NotificationManager getMockNotificationManager() {
         return mockNotificationManager;
+    }
+
+    public RsrcCtxWrapper contextWithMockPrincipal(String apiName) {
+        return contextWithMockPrincipal(apiName, "testadminuser");
+    }
+
+    public RsrcCtxWrapper contextWithMockPrincipal(String apiName, String princName) {
+        return contextWithMockPrincipal(apiName, "user", princName);
+    }
+
+    public RsrcCtxWrapper contextWithMockPrincipal(String apiName, String princDomainName, String princName) {
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+        MockHttpServletResponse servletResponse = new MockHttpServletResponse();
+        RsrcCtxWrapper wrapperCtx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+                null, new Object(), apiName, true);
+        com.yahoo.athenz.common.server.rest.ResourceContext ctx = wrapperCtx.context();
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=" + princDomainName + ";n=" + princName;
+        Principal principal = SimplePrincipal.create(princDomainName, princName, adminUnsignedCreds + ";s=signature",
+                0, adminPrincipalAuthority);
+        ((SimplePrincipal) principal).setUnsignedCreds(adminUnsignedCreds);
+
+        final Field principalField;
+        try {
+            principalField = ctx.getClass().getDeclaredField("principal");
+            principalField.setAccessible(true);
+            principalField.set(ctx, principal);
+        } catch (final NoSuchFieldException | IllegalAccessException ignored) {
+            throw new AssertionError("Failed to get Principal::principal");
+        }
+        return wrapperCtx;
     }
 }

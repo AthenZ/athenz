@@ -26,3 +26,4 @@ include "Quota.rdli";
 include "Status.rdli";
 include "DomainRoleMembership.rdli"
 include "Authority.rdli"
+include "Dependency.rdli"

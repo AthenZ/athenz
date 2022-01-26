@@ -2342,6 +2342,56 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecutePutDomainDependencyFailure() {
+
+        String domainName = "putDomainDependencyFail1";
+        String serviceName = "svc1";
+
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.insertDomainDependency(eq(domainName), eq(serviceName)))
+                .thenReturn(false);
+        Domain domain = new Domain().setName(domainName);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.putDomainDependency(mockDomRsrcCtx, domainName, serviceName, auditRef, "putDomainDependency");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteDomainDependencyFailure() {
+
+        String domainName = "deleteDomainDependencyFail1";
+        String serviceName = "svc1";
+
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.deleteDomainDependency(eq(domainName), eq(serviceName)))
+                .thenReturn(false);
+        Domain domain = new Domain().setName(domainName);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.deleteDomainDependency(mockDomRsrcCtx, domainName, serviceName, auditRef, "deleteDomainDependency");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
     public void testExecutePutRoleRetryFailure() {
 
         String domainName = "executeputroledom1";
@@ -2363,6 +2413,63 @@ public class DBServiceTest {
 
         try {
             zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testPutDomainDependencyRetryFailure() {
+
+        String domainName = "putDomainDependencyRetryFail1";
+        String serviceName = "service1";
+
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.insertDomainDependency(eq(domainName), eq(serviceName)))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT));
+        Domain domain = new Domain().setName(domainName);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.putDomainDependency(mockDomRsrcCtx, domainName, serviceName, auditRef, "putDomainDependency");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        }
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
+
+
+    @Test
+    public void testDeleteDomainDependencyRetryFailure() {
+
+        String domainName = "deleteDomainDependencyRetryFail1";
+        String serviceName = "service-retry1";
+
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.deleteDomainDependency(eq(domainName), eq(serviceName)))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT));
+        Domain domain = new Domain().setName(domainName);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.deleteDomainDependency(mockDomRsrcCtx, domainName, serviceName, auditRef, "deleteDomainDependency");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.CONFLICT);

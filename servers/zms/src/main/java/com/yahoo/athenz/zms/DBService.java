@@ -385,7 +385,7 @@ public class DBService implements RolesProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
-                
+
                 return domain;
 
             } catch (ResourceException ex) {
@@ -7747,6 +7747,172 @@ public class DBService implements RolesProvider {
                     throw ex;
                 }
             }
+        }
+    }
+
+    public void putDomainDependency(ResourceContext ctx, String domainName, String service, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                final String principal = getPrincipalName(ctx);
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal, AUDIT_TYPE_DOMAIN);
+
+                // verify domain exists
+
+                Domain domain = con.getDomain(domainName);
+                if (domain == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
+                }
+
+                // now process the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                if (!processDomainDependency(con, domainName, service, auditDetails)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.internalServerError("unable to put dependency on domain " + domainName + " for service " + service, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        service, auditDetails.toString());
+
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, service, DomainChangeMessage.ObjectType.DOMAIN);
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    public void deleteDomainDependency(ResourceContext ctx, String domainName, String service, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                final String principal = getPrincipalName(ctx);
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, principal, AUDIT_TYPE_DOMAIN);
+
+                // verify domain exists
+
+                Domain domain = con.getDomain(domainName);
+                if (domain == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
+                }
+
+                // now process the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                if (!processDeleteDomainDependency(con, domainName, service, auditDetails)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.internalServerError("unable to delete dependency on domain " + domainName + " for service " + service, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                        service, auditDetails.toString());
+
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, service, DomainChangeMessage.ObjectType.DOMAIN);
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    private boolean processDomainDependency(ObjectStoreConnection con, String domainName, String service,
+                                            StringBuilder auditDetails) {
+
+        boolean requestSuccess = con.insertDomainDependency(domainName, service);
+
+        // if we didn't insert a dependency then we need to return failure
+
+        if (!requestSuccess) {
+            return false;
+        }
+
+        // open our audit record and log the dependency
+
+        auditDetails.append("{\"domain-dependencies\": ");
+        auditDetails.append("{\"domain\": \"").append(domainName)
+                .append("\", \"service\": \"").append(service).append("\"}")
+                .append('}');
+
+        return true;
+    }
+
+    private boolean processDeleteDomainDependency(ObjectStoreConnection con, String domainName, String service,
+                                                  StringBuilder auditDetails) {
+
+        boolean requestSuccess = con.deleteDomainDependency(domainName, service);
+
+        // if we didn't delete the dependency then we need to return failure
+
+        if (!requestSuccess) {
+            return false;
+        }
+
+        // open our audit record and log the dependency
+
+        auditDetails.append("{\"delete-domain-dependencies\": ");
+        auditDetails.append("{\"domain\": \"").append(domainName)
+                .append("\", \"service\": \"").append(service).append("\"}")
+                .append('}');
+
+        return true;
+    }
+
+    public ServiceIdentityList listServiceDependencies(String domainName) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            ServiceIdentityList serviceIdentityList = new ServiceIdentityList();
+            serviceIdentityList.setNames(con.listServiceDependencies(domainName));
+            return serviceIdentityList;
+        }
+    }
+
+    public DomainList listDomainDependencies(String service) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            DomainList domainList = new DomainList();
+            domainList.setNames(con.listDomainDependencies(service));
+            return domainList;
         }
     }
 

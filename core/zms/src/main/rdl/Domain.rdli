@@ -21,12 +21,6 @@ resource Domain GET "/domain/{domain}" {
     }
 }
 
-//A paginated list of domains.
-type DomainList Struct {
-    Array<DomainName> names; //list of domain names
-    String next (optional); //if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter.
-}
-
 //Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the
 //query options that are looking for specific domain attributes (e.g. aws account,
 //azure subscriptions, business service, tags, etc) are mutually exclusive. The server
