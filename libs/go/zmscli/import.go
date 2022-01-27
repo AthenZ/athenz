@@ -283,39 +283,55 @@ func (cli Zms) generatePublicKeys(lstPublicKeys []interface{}) []*zms.PublicKeyE
 	return publicKeys
 }
 
-func (cli Zms) importServices(dn string, lstServices []*zms.ServiceIdentity) error {
+func (cli Zms) importServices(dn string, lstServices []*zms.ServiceIdentity, skipErrors bool) error {
 	for _, service := range lstServices {
 		name := string(service.Name)
 		_, _ = fmt.Fprintf(os.Stdout, "Processing service "+name+"...\n")
 		publicKeys := service.PublicKeys
 		_, err := cli.AddServiceWithKeys(dn, name, publicKeys)
 		if err != nil {
-			return err
+			if skipErrors {
+				fmt.Println("***", err)
+			} else {
+				return err
+			}
 		}
 		if service.ProviderEndpoint != "" {
 			_, err = cli.SetServiceEndpoint(dn, name, service.ProviderEndpoint)
 			if err != nil {
-				return err
+				if skipErrors {
+					fmt.Println("***", err)
+				} else {
+					return err
+				}
 			}
 		}
 
 		if service.User != "" || service.Group != "" || service.Executable != "" {
 			_, err = cli.SetServiceExe(dn, name, service.Executable, service.User, service.Group)
 			if err != nil {
-				return err
+				if skipErrors {
+					fmt.Println("***", err)
+				} else {
+					return err
+				}
 			}
 		}
 		if len(service.Hosts) > 0 {
 			_, err = cli.AddServiceHost(dn, name, service.Hosts)
 			if err != nil {
-				return err
+				if skipErrors {
+					fmt.Println("***", err)
+				} else {
+					return err
+				}
 			}
 		}
 	}
 	return nil
 }
 
-func (cli Zms) importServicesOld(dn string, lstServices []interface{}) error {
+func (cli Zms) importServicesOld(dn string, lstServices []interface{}, skipErrors bool) error {
 	for _, service := range lstServices {
 		serviceMap := service.(map[interface{}]interface{})
 		name := serviceMap["name"].(string)
@@ -334,7 +350,11 @@ func (cli Zms) importServicesOld(dn string, lstServices []interface{}) error {
 			if endpoint != "" {
 				_, err = cli.SetServiceEndpoint(dn, name, endpoint)
 				if err != nil {
-					return err
+					if skipErrors {
+						fmt.Println("***", err)
+					} else {
+						return err
+					}
 				}
 			}
 		}
@@ -353,7 +373,11 @@ func (cli Zms) importServicesOld(dn string, lstServices []interface{}) error {
 		if user != "" || group != "" || exe != "" {
 			_, err = cli.SetServiceExe(dn, name, exe, user, group)
 			if err != nil {
-				return err
+				if skipErrors {
+					fmt.Println("***", err)
+				} else {
+					return err
+				}
 			}
 		}
 		if val, ok := serviceMap["hosts"]; ok {
@@ -364,7 +388,11 @@ func (cli Zms) importServicesOld(dn string, lstServices []interface{}) error {
 			}
 			_, err = cli.AddServiceHost(dn, name, hosts)
 			if err != nil {
-				return err
+				if skipErrors {
+					fmt.Println("***", err)
+				} else {
+					return err
+				}
 			}
 		}
 	}

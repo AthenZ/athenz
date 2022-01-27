@@ -97,7 +97,7 @@ func (cli Zms) ImportDomainNew(dn string, filename string, admins []string, newD
 	}
 
 	if newDomain {
-		if (signedDomain.YpmId == nil && cli.ProductIdSupport && strings.LastIndex(dn, ".") < 0) {
+		if signedDomain.YpmId == nil && cli.ProductIdSupport && strings.LastIndex(dn, ".") < 0 {
 			return nil, fmt.Errorf("top level domains require an integer number specified for the Product ID")
 		}
 		_, err = cli.AddDomain(dn, signedDomain.YpmId, true, admins)
@@ -116,17 +116,17 @@ func (cli Zms) ImportDomainNew(dn string, filename string, admins []string, newD
 		return nil, err
 	}
 
+	err = cli.importServices(dn, signedDomain.Services, !newDomain)
+	if err != nil {
+		return nil, err
+	}
+
 	err = cli.importRoles(dn, signedDomain.Roles, validatedAdmins, !newDomain)
 	if err != nil {
 		return nil, err
 	}
 
 	err = cli.importPolicies(dn, signedDomain.Policies.Contents.Policies, !newDomain)
-	if err != nil {
-		return nil, err
-	}
-
-	err = cli.importServices(dn, signedDomain.Services)
 	if err != nil {
 		return nil, err
 	}
@@ -200,6 +200,12 @@ func (cli Zms) ImportDomainOld(dn string, filename string, admins []string) (*st
 	if err != nil {
 		return nil, err
 	}
+	if lstServices, ok := dnSpec["services"].([]interface{}); ok {
+		err = cli.importServicesOld(dn, lstServices, false)
+		if err != nil {
+			return nil, err
+		}
+	}
 	lstRoles := dnSpec["roles"].([]interface{})
 	err = cli.importRolesOld(dn, lstRoles, validatedAdmins, false)
 	if err != nil {
@@ -209,12 +215,6 @@ func (cli Zms) ImportDomainOld(dn string, filename string, admins []string) (*st
 	err = cli.importPoliciesOld(dn, lstPolicies, false)
 	if err != nil {
 		return nil, err
-	}
-	if lstServices, ok := dnSpec["services"].([]interface{}); ok {
-		err = cli.importServicesOld(dn, lstServices)
-		if err != nil {
-			return nil, err
-		}
 	}
 	s := "[imported domain '" + dn + "' successfully]"
 	return &s, nil
@@ -272,6 +272,12 @@ func (cli Zms) UpdateDomainOld(dn string, filename string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
+	if lstServices, ok := dnSpec["services"].([]interface{}); ok {
+		err = cli.importServicesOld(dn, lstServices, true)
+		if err != nil {
+			return nil, err
+		}
+	}
 	if lstRoles, ok := dnSpec["roles"].([]interface{}); ok {
 		err = cli.importRolesOld(dn, lstRoles, nil, true)
 		if err != nil {
@@ -280,12 +286,6 @@ func (cli Zms) UpdateDomainOld(dn string, filename string) (*string, error) {
 	}
 	if lstPolicies, ok := dnSpec["policies"].([]interface{}); ok {
 		err = cli.importPoliciesOld(dn, lstPolicies, true)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if lstServices, ok := dnSpec["services"].([]interface{}); ok {
-		err = cli.importServicesOld(dn, lstServices)
 		if err != nil {
 			return nil, err
 		}
