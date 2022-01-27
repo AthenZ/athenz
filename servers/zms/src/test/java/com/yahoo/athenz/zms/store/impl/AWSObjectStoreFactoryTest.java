@@ -60,7 +60,6 @@ public class AWSObjectStoreFactoryTest {
 
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_INSTANCE, "instance");
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER, "rds-user");
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_IAM_ROLE, "role");
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "1");
 
         System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
@@ -81,7 +80,6 @@ public class AWSObjectStoreFactoryTest {
 
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_INSTANCE, "instance");
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER, "rds-user");
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_IAM_ROLE, "role");
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "30000");
 
         System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
@@ -110,7 +108,6 @@ public class AWSObjectStoreFactoryTest {
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_INSTANCE, "instance");
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE, "replica");
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER, "rds-user");
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_IAM_ROLE, "role");
         System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "30000");
 
         AWSObjectStoreFactory factory = new TestAWSObjectStoreFactory();
