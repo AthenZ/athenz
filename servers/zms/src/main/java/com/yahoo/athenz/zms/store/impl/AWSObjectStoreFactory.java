@@ -39,13 +39,14 @@ import com.yahoo.athenz.zms.store.impl.jdbc.JDBCObjectStore;
 public class AWSObjectStoreFactory implements ObjectStoreFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(AWSObjectStoreFactory.class);
-    
+
+    private static final String JDBC_TLS_VERSIONS = "TLSv1.2,TLSv1.3";
+
     private static Properties mysqlMasterConnectionProperties = new Properties();
     private static Properties mysqlReplicaConnectionProperties = new Properties();
     @SuppressWarnings("FieldCanBeLocal")
     private static ScheduledExecutorService scheduledThreadPool;
     private static String rdsUser = null;
-    private static String rdsIamRole = null;
     private static String rdsMaster = null;
     private static String rdsReplica = null;
     private int rdsPort = 3306;
@@ -54,28 +55,21 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
     public ObjectStore create(PrivateKeyStore keyStore) {
         
         rdsUser = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER);
-        rdsIamRole = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_IAM_ROLE);
         rdsMaster = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_INSTANCE);
         rdsReplica = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
         rdsPort = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_PORT, "3306"));
         
         final String rdsEngine = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_ENGINE, "mysql");
-        final String rdsDatabase = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_DATABASE, "zms_store");
+        final String rdsDatabase = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_DATABASE, "zms_server");
         final String jdbcMasterStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine,
                 rdsMaster, rdsPort, rdsDatabase);
-        final String rdsMasterToken = getAuthToken(rdsMaster, rdsPort, rdsUser, rdsIamRole);
+        final String rdsMasterToken = getAuthToken(rdsMaster, rdsPort, rdsUser);
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("Connecting to master {} with auth token {}", jdbcMasterStore, rdsMasterToken);
         }
-        
-        mysqlMasterConnectionProperties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
-                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "true"));
-        mysqlMasterConnectionProperties.setProperty(ZMSConsts.DB_PROP_USE_SSL,
-                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "true"));
-        mysqlMasterConnectionProperties.setProperty(ZMSConsts.DB_PROP_USER, rdsUser);
-        mysqlMasterConnectionProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, rdsMasterToken);
-        
+
+        setConnectionProperties(mysqlMasterConnectionProperties, rdsMasterToken);
         PoolableDataSource dataMasterSource = DataSourceFactory.create(jdbcMasterStore, mysqlMasterConnectionProperties);
         
         // now check to see if we also have a read-only replica jdbc store configured
@@ -85,19 +79,13 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
             
             final String jdbcReplicaStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine,
                     rdsReplica, rdsPort, rdsDatabase);
-            final String rdsReplicaToken = getAuthToken(rdsReplica, rdsPort, rdsUser, rdsIamRole);
+            final String rdsReplicaToken = getAuthToken(rdsReplica, rdsPort, rdsUser);
             
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Connecting to replica {} with auth token {}", jdbcReplicaStore, rdsReplicaToken);
             }
-            
-            mysqlReplicaConnectionProperties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
-                    System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "true"));
-            mysqlReplicaConnectionProperties.setProperty(ZMSConsts.DB_PROP_USE_SSL,
-                    System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "true"));
-            mysqlReplicaConnectionProperties.setProperty(ZMSConsts.DB_PROP_USER, rdsUser);
-            mysqlReplicaConnectionProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, rdsReplicaToken);
-            
+
+            setConnectionProperties(mysqlReplicaConnectionProperties, rdsReplicaToken);
             dataReplicaSource = DataSourceFactory.create(jdbcReplicaStore, mysqlReplicaConnectionProperties);
         }
         
@@ -110,6 +98,17 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
                 credsRefreshTime, TimeUnit.SECONDS);
         
         return new JDBCObjectStore(dataMasterSource, dataReplicaSource);
+    }
+
+    void setConnectionProperties(Properties mysqlProperties, final String token) {
+        mysqlProperties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
+                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "true"));
+        mysqlProperties.setProperty(ZMSConsts.DB_PROP_USE_SSL,
+                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "true"));
+        mysqlProperties.setProperty(ZMSConsts.DB_PROP_TLS_PROTOCOLS,
+                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_TLS_VERSIONS, JDBC_TLS_VERSIONS));
+        mysqlProperties.setProperty(ZMSConsts.DB_PROP_USER, rdsUser);
+        mysqlProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, token);
     }
 
     InstanceProfileCredentialsProvider getNewInstanceCredentialsProvider() {
@@ -127,7 +126,7 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
                 .build());
     }
 
-    String getAuthToken(String hostname, int port, String rdsUser, String rdsIamRole) {
+    String getAuthToken(String hostname, int port, String rdsUser) {
 
         InstanceProfileCredentialsProvider awsCredProvider = getNewInstanceCredentialsProvider();
         
@@ -141,8 +140,7 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
                 .build();
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Instance {} Port {} User {} Region: {} Role: {}", hostname, port, rdsUser,
-                    getRegion(), rdsIamRole);
+            LOG.debug("Instance {} Port {} User {} Region: {}", hostname, port, rdsUser, getRegion());
         }
         
         return getGeneratorAuthToken(generator, hostname, port, rdsUser);
@@ -159,10 +157,10 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
         // obtain iam role credentials and update the properties object
         
         try {
-            final String rdsToken = getAuthToken(hostname, rdsPort, rdsUser, rdsIamRole);
+            final String rdsToken = getAuthToken(hostname, rdsPort, rdsUser);
             mysqlProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, rdsToken);
         } catch (Exception ex) {
-            LOG.error("CredentialsUpdater: unable to update auth token: {}", ex.getMessage());
+            LOG.error("CredentialsUpdater: unable to update auth token", ex);
         }
     }
     
