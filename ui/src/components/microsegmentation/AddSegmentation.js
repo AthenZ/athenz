@@ -307,7 +307,7 @@ export default class AddSegmentation extends React.Component {
         this.setState({ members });
     }
 
-    createPolicy(policyName, roleName, resource, action, roleCreated) {
+    createPolicy(policyName, roleName, resource, action) {
         //Validating ACL policy and adding/updating assertion. if get policy threw a 404 then create a new policy
         var foundAssertionMatch = false;
 
@@ -320,7 +320,7 @@ export default class AddSegmentation extends React.Component {
                             foundAssertionMatch = true;
                         }
                     });
-                    if (foundAssertionMatch && roleCreated) {
+                    if (foundAssertionMatch) {
                         this.api
                             .deleteRole(
                                 this.props.domain,
@@ -336,10 +336,6 @@ export default class AddSegmentation extends React.Component {
                             .catch((err) => {
                                 reject(RequestUtils.xhrErrorCheckHelper(err));
                             });
-                    } else if (foundAssertionMatch) {
-                        if (!this.state.errorMessage) {
-                            this.props.onSubmit();
-                        }
                     } else {
                         this.api
                             .addAssertion(
@@ -805,8 +801,7 @@ export default class AddSegmentation extends React.Component {
                     policyName,
                     role.name,
                     resource,
-                    action,
-                    true
+                    action
                 );
             })
             .catch((err) => {
@@ -1294,30 +1289,35 @@ export default class AddSegmentation extends React.Component {
                         filterable
                     />
                 </SectionDiv>
-                <SectionDiv>
-                    <StyledInputLabel>Validation</StyledInputLabel>
-                    <CheckBoxSectionDiv>
-                        <StyledCheckBox
-                            checked={this.state.validationCheckbox}
-                            name={
-                                'checkbox-validate-policy' +
-                                this.state.isCategory
-                            }
-                            id={
-                                'checkbox-validate-policy' +
-                                this.state.isCategory
-                            }
-                            key={
-                                'checkbox-validate-policy' +
-                                this.state.isCategory
-                            }
-                            label='Validate Microsegmentation policy against PES network policy'
-                            onChange={(event) =>
-                                this.inputChanged(event, 'validationCheckbox')
-                            }
-                        />
-                    </CheckBoxSectionDiv>
-                </SectionDiv>
+                {this.props.pageFeatureFlag['policyValidation'] && (
+                    <SectionDiv>
+                        <StyledInputLabel>Validation</StyledInputLabel>
+                        <CheckBoxSectionDiv>
+                            <StyledCheckBox
+                                checked={this.state.validationCheckbox}
+                                name={
+                                    'checkbox-validate-policy' +
+                                    this.state.isCategory
+                                }
+                                id={
+                                    'checkbox-validate-policy' +
+                                    this.state.isCategory
+                                }
+                                key={
+                                    'checkbox-validate-policy' +
+                                    this.state.isCategory
+                                }
+                                label='Validate Microsegmentation policy against PES network policy'
+                                onChange={(event) =>
+                                    this.inputChanged(
+                                        event,
+                                        'validationCheckbox'
+                                    )
+                                }
+                            />
+                        </CheckBoxSectionDiv>
+                    </SectionDiv>
+                )}
                 {this.props.justificationRequired && (
                     <SectionDiv>
                         <StyledInputLabel>Justification</StyledInputLabel>

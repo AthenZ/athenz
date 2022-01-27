@@ -131,6 +131,7 @@ export default class RuleTable extends React.Component {
                     onUpdateSuccess={this.props.onSubmit}
                     _csrf={this.props._csrf}
                     justificationRequired={this.props.justificationRequired}
+                    pageFeatureFlag={this.props.pageFeatureFlag}
                 />
             );
         });

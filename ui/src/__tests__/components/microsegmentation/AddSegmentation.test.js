@@ -19,13 +19,15 @@ import AddSegmentation from "../../../components/microsegmentation/AddSegmentati
 import API from "../../../api";
 
 describe('AddSegmentation', () => {
+    const pageFeatureFlag ={
+        'policyValidation': true
+    };
     it('should render', () => {
         let domain = 'domain';
         const showAddSegmentation = true;
         const cancel = function() {};
         const submit = function() {};
         let _csrf = 'csrf';
-
         const { getByTestId } = render(
             <AddSegmentation
                 api={API()}
@@ -35,6 +37,7 @@ describe('AddSegmentation', () => {
                 _csrf={_csrf}
                 showAddSegment={showAddSegmentation}
                 justificationRequired={false}
+                pageFeatureFlag={pageFeatureFlag}
             />
         );
         const addsegment = getByTestId('add-segment');
@@ -64,6 +67,7 @@ describe('AddSegmentation', () => {
                 _csrf={_csrf}
                 showAddSegment={showAddSegmentation}
                 justificationRequired={false}
+                pageFeatureFlag={pageFeatureFlag}
             />
         );
         const addSegmentation = getByTestId('add-modal-message');

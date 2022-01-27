@@ -120,6 +120,11 @@ const config = {
         ],
         statusPath: process.env.UI_SESSION_SECRET_PATH || 'keys/cookie-session',
         featureFlag: true,
+        pageFeatureFlag: {
+            microsegmentation: {
+                policyValidation: true,
+            },
+        },
         serviceHeaderLinks: [
             {
                 description:

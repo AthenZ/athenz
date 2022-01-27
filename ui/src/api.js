@@ -1757,6 +1757,21 @@ const Api = (req) => {
             });
         },
 
+        getPageFeatureFlag(pageName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('page-feature-flag')
+                    .params({ pageName })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         getInstances(domainName, serviceName, category) {
             return new Promise((resolve, reject) => {
                 fetchr
