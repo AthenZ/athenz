@@ -1404,6 +1404,15 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   admin     : additional list of administrators to be added to the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   import-domain coretech coretech.yaml " + cli.UserDomain + ".john\n")
+	case "update-domain":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] update-domain domain [file.yaml [admin ...]] - no file means stdin\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   domain    : name of the domain being updated\n")
+		buf.WriteString("   file.yaml : file that contains domain contents in yaml format\n")
+		buf.WriteString("   admin     : additional list of administrators to be added to the domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   update-domain coretech coretech.yaml " + cli.UserDomain + ".john\n")
 	case "export-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] export-domain domain [file.yaml or file.json] - no file means stdout\n")
