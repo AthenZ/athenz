@@ -32,11 +32,11 @@ func GetFargateData(metaEndPoint string) (string, string, string, error) {
 	// ECS Fargate and retrieve our account number and
 	// task id from our data. we're going to use v4 and
 	// then fallback to v3 and v2 endpoints
-	document, err := meta.GetData(os.Getenv("ECS_CONTAINER_METADATA_URI_V4"), "task")
+	document, err := meta.GetDataV1(os.Getenv("ECS_CONTAINER_METADATA_URI_V4"), "/task")
 	if err != nil {
-		document, err = meta.GetData(os.Getenv("ECS_CONTAINER_METADATA_URI"), "task")
+		document, err = meta.GetDataV1(os.Getenv("ECS_CONTAINER_METADATA_URI"), "/task")
 		if err != nil {
-			document, err = meta.GetData(metaEndPoint, "/v2/metadata")
+			document, err = meta.GetDataV1(metaEndPoint, "/v2/metadata")
 			if err != nil {
 				return "", "", "", err
 			}
@@ -54,7 +54,7 @@ func initTaskConfig(config *options.Config, metaEndpoint string) (*options.Confi
 	if uri == "" {
 		return nil, nil, fmt.Errorf("cannot fetch AWS_CONTAINER_CREDENTIALS_RELATIVE_URI env variable")
 	}
-	document, err := meta.GetData(metaEndpoint, uri)
+	document, err := meta.GetDataV1(metaEndpoint, uri)
 	if err != nil {
 		return nil, nil, err
 	}
