@@ -104,10 +104,8 @@ public class AthenzJettyContainer {
                 InetAddress localhost = java.net.InetAddress.getLocalHost();
                 serverHostName = localhost.getCanonicalHostName();
             } catch (java.net.UnknownHostException e) {
-                ///CLOVER:OFF
                 LOG.info("Unable to determine local hostname: {}", e.getMessage());
                 serverHostName = "localhost";
-                ///CLOVER:ON
             }
         }
         
@@ -127,7 +125,7 @@ public class AthenzJettyContainer {
         
         RequestLogHandler requestLogHandler = new RequestLogHandler();
         
-        // check to see if have a slf4j logger name specified. if we don't
+        // check to see if we have a slf4j logger name specified. if we don't
         // then we'll just use our NCSARequestLog extended Athenz logger
         // when using the slf4j logger we don't have the option to pass
         // our audit logger to keep track of unauthenticated requests
@@ -298,7 +296,7 @@ public class AthenzJettyContainer {
         webappProvider.setExtractWars(true);
         webappProvider.setConfigurationManager(new PropertiesConfigurationManager());
         webappProvider.setParentLoaderPriority(true);
-        //setup a Default web.xml file.  file is applied to a Web application before it's own WEB_INF/web.xml 
+        //set up a Default web.xml file.  file is applied to a Web application before it's own WEB_INF/web.xml
         setDefaultsDescriptor(webappProvider, jettyHome);
         final String jettyTemp = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_TEMP, jettyHome + "/temp");
         webappProvider.setTempDir(new File(jettyTemp));
@@ -308,7 +306,7 @@ public class AthenzJettyContainer {
     }
 
     private void setDefaultsDescriptor(WebAppProvider webappProvider, String jettyHome) {
-        //setup a Default web.xml file.  file is applied to a Web application before it's own WEB_INF/web.xml 
+        //set up a Default web.xml file. file is applied to a Web application before it's own WEB_INF/web.xml
         //check for file existence
         String webDefaultXML = jettyHome + DEFAULT_WEBAPP_DESCRIPTOR;
         File file = new File(webDefaultXML);
@@ -427,8 +425,7 @@ public class AthenzJettyContainer {
         
         ServerConnector connector;
         if (proxyProtocol) {
-            connector = new ServerConnector(server, new ProxyConnectionFactory(),
-                    new HttpConnectionFactory(httpConfig));
+            connector = new ServerConnector(server, new ProxyConnectionFactory(), new HttpConnectionFactory(httpConfig));
         } else {
             connector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
         }
@@ -477,6 +474,7 @@ public class AthenzJettyContainer {
         server.addConnector(sslConnector);
 
         // Reload the key-store if the file is changed
+
         final int reloadSslContextSeconds = Integer.parseInt(System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_RELOAD_SEC, "0"));
         if ((reloadSslContextSeconds > 0) && (sslContextFactory.getKeyStorePath() != null)) {
             try {
@@ -484,7 +482,8 @@ public class AthenzJettyContainer {
                 keystoreScanner.setScanInterval(reloadSslContextSeconds);
                 server.addBean(keystoreScanner);
             } catch (IllegalArgumentException exception) {
-                LOG.error("Keystore cant be automatically reloaded when \"{}\" is changed: {}", sslContextFactory.getKeyStorePath(), exception.getMessage());
+                LOG.error("Keystore cant be automatically reloaded when \"{}\" is changed: {}",
+                        sslContextFactory.getKeyStorePath(), exception.getMessage());
                 throw exception;
             }
         }
@@ -592,25 +591,25 @@ public class AthenzJettyContainer {
     }
 
     public static void initConfigManager() {
-        System.getProperties().remove("socksProxyHost");
 
-        // First load initial properties (to get parameter store path)
-        String propFile = System.getProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME,
-                getRootDir() + "/conf/athenz/athenz.properties");
-        ConfigProperties.loadProperties(propFile);
+        // We're going to configure any dynamic config sources first since those parameters
+        // will take precedence over parameters configured in the properties file. These
+        // config sources must be specified as part of the server startup script
+
+        // Manage AWS parameter store configurations as the first config source
 
         final String awsParameterStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_AWS_PARAM_STORE_PATH);
         if (!StringUtil.isEmpty(awsParameterStorePath)) {
-            // Manage AWS parameter store configurations (as the first config source, AWS parameters will take precedence over parameters
-            // configured in the properties file.
             CONFIG_MANAGER.addConfigSource(ConfigProviderAwsParametersStore.PROVIDER_DESCRIPTION_PREFIX + awsParameterStorePath);
         }
 
         // Manage properties file configurations
+
+        String propFile = System.getProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME,
+                getRootDir() + "/conf/athenz/athenz.properties");
         CONFIG_MANAGER.addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
     }
 
-    ///CLOVER:OFF
     public void run() {
         try {
             server.start();
@@ -643,6 +642,4 @@ public class AthenzJettyContainer {
             throw exc;
         }
     }
-
-    ///CLOVER:ON
 }
