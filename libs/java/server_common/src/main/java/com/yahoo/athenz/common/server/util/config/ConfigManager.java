@@ -374,26 +374,49 @@ public class ConfigManager implements Closeable {
 
     /** Given a list of changes - log and call change-callbacks */
     private void digestChangeLogs(List<ChangeLog> changeLogs) {
+
         if (changeLogs.isEmpty()) {
+            LOG.info("No configuration changes");
             return;
         }
 
-        // Log all changes.
-        if (LOG.isDebugEnabled()) {
+        // Log all changes
+
+        if (LOG.isInfoEnabled()) {
             StringBuilder changesDescription = new StringBuilder();
             for (ChangeLog changeLog : changeLogs) {
                 if ((changeLog.oldEntry != null) && (changeLog.newEntry != null)) {
-                    changesDescription.append("\n    Update config: ").append(Utils.jsonSerializeForLog(changeLog.newEntry.key)).append(" = ").append(Utils.jsonSerializeForLog(changeLog.newEntry.value)).append(" from ").append(changeLog.newEntry.describeSource()).append("    Old-value: ").append(Utils.jsonSerializeForLog(changeLog.oldEntry.value)).append(" from ").append(changeLog.oldEntry.describeSource());
+                    changesDescription.append("\n    Update config: ")
+                            .append(Utils.jsonSerializeForLog(changeLog.newEntry.key))
+                            .append(" = ")
+                            .append(Utils.jsonSerializeForLog(changeLog.newEntry.value))
+                            .append(" from ")
+                            .append(changeLog.newEntry.describeSource())
+                            .append("    Old-value: ")
+                            .append(Utils.jsonSerializeForLog(changeLog.oldEntry.value))
+                            .append(" from ")
+                            .append(changeLog.oldEntry.describeSource());
                 } else if (changeLog.newEntry != null) {
-                    changesDescription.append("\n       New config: ").append(Utils.jsonSerializeForLog(changeLog.newEntry.key)).append(" = ").append(Utils.jsonSerializeForLog(changeLog.newEntry.value)).append(" from ").append(changeLog.newEntry.describeSource());
+                    changesDescription.append("\n       New config: ")
+                            .append(Utils.jsonSerializeForLog(changeLog.newEntry.key))
+                            .append(" = ")
+                            .append(Utils.jsonSerializeForLog(changeLog.newEntry.value))
+                            .append(" from ")
+                            .append(changeLog.newEntry.describeSource());
                 } else if (changeLog.oldEntry != null) {
-                    changesDescription.append("\n    Delete config: ").append(Utils.jsonSerializeForLog(changeLog.oldEntry.key)).append("    Old-value: ").append(Utils.jsonSerializeForLog(changeLog.oldEntry.value)).append(" from ").append(changeLog.oldEntry.describeSource());
+                    changesDescription.append("\n    Delete config: ")
+                            .append(Utils.jsonSerializeForLog(changeLog.oldEntry.key))
+                            .append("    Old-value: ")
+                            .append(Utils.jsonSerializeForLog(changeLog.oldEntry.value))
+                            .append(" from ")
+                            .append(changeLog.oldEntry.describeSource());
                 }
             }
-            LOG.debug("{} configurations changed:{}", changeLogs.size(), changesDescription);
+            LOG.info("{} configurations changed:{}", changeLogs.size(), changesDescription);
         }
 
-        // Call change-callbacks.
+        // Call change-callbacks
+
         callChangeCallbacksNow();
     }
 
