@@ -4,9 +4,7 @@
 package main
 
 import (
-	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
 	"flag"
 	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zts"
@@ -96,7 +94,7 @@ func validateAccessToken(accessToken, conf string, showClaims bool) {
 	if err != nil {
 		log.Fatalf("Public key fetch failure: %v\n", err)
 	}
-	publicKey, err := loadPublicKey(publicKeyPEM)
+	publicKey, err := athenzutils.LoadPublicKey(publicKeyPEM)
 	if err != nil {
 		log.Fatalf("Public key load failure: %v\n", err)
 	}
@@ -173,17 +171,4 @@ func ztsNtokenClient(ztsURL, ntokenFile, hdr string) (*zts.ZTSClient, error) {
 	client := zts.NewClient(ztsURL, nil)
 	client.AddCredentials(hdr, ntoken)
 	return &client, nil
-}
-
-// NewVerifier creates an instance of Verifier using the given public key.
-func loadPublicKey(publicKeyPEM []byte) (interface{}, error) {
-	block, _ := pem.Decode(publicKeyPEM)
-	if block == nil {
-		return nil, fmt.Errorf("unable to load public key")
-	}
-	if !strings.HasSuffix(block.Type, "PUBLIC KEY") {
-		return nil, fmt.Errorf("invalid public key type: %s", block.Type)
-	}
-
-	return x509.ParsePKIXPublicKey(block.Bytes)
 }
