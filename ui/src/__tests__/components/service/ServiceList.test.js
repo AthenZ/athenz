@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, fireEvent, waitForElement } from '@testing-library/react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import ServiceList from '../../../components/service/ServiceList';
 const pageConfig = {
     servicePageConfig: {
@@ -62,7 +62,7 @@ describe('ServiceList', () => {
         );
         fireEvent.click(getByText('Add Service'));
         expect(
-            await waitForElement(() => getByTestId('service-list'))
+            await waitFor(() => getByTestId('service-list'))
         ).toMatchSnapshot();
     });
 
@@ -87,11 +87,11 @@ describe('ServiceList', () => {
         );
         fireEvent.click(getByTitle('trash'));
 
-        await waitForElement(() =>
+        await waitFor(() =>
             fireEvent.click(getByTestId('delete-modal-delete'))
         );
         expect(
-            await waitForElement(() => getByTestId('service-list'))
+            await waitFor(() => getByTestId('service-list'))
         ).toMatchSnapshot();
     });
 
@@ -119,14 +119,14 @@ describe('ServiceList', () => {
         );
         fireEvent.click(getByTitle('trash'));
 
-        await waitForElement(() =>
+        await waitFor(() =>
             fireEvent.click(getByTestId('delete-modal-delete'))
         );
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
         expect(
-            await waitForElement(() => getByTestId('service-list'))
+            await waitFor(() => getByTestId('service-list'))
         ).toMatchSnapshot();
     });
 
@@ -155,12 +155,12 @@ describe('ServiceList', () => {
         );
         fireEvent.click(getByTitle('trash'));
 
-        await waitForElement(() =>
+        await waitFor(() =>
             fireEvent.click(getByTestId('delete-modal-delete'))
         );
 
         expect(
-            await waitForElement(() => getByTestId('service-list'))
+            await waitFor(() => getByTestId('service-list'))
         ).toMatchSnapshot();
     });
 
@@ -189,12 +189,12 @@ describe('ServiceList', () => {
         );
         fireEvent.click(getByTitle('trash'));
 
-        await waitForElement(() =>
+        await waitFor(() =>
             fireEvent.click(getByTestId('delete-modal-cancel'))
         );
 
         expect(
-            await waitForElement(() => getByTestId('service-list'))
+            await waitFor(() => getByTestId('service-list'))
         ).toMatchSnapshot();
     });
 });

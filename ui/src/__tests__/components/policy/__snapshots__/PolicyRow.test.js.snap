@@ -190,20 +190,24 @@ exports[`PolicyRow should render 1`] = `
       data-testid="radiobutton-wrapper"
     >
       <input
-        id="radiobutton-sections-undefined-active-undefined-active"
-        name="sections-undefined-active-undefined"
+        checked=""
+        disabled=""
+        id="radiobutton-sections-undefined-active-true-active"
+        name="sections-undefined-active-true"
         type="radio"
         value="active"
       />
       <label
-        for="radiobutton-sections-undefined-active-undefined-active"
+        for="radiobutton-sections-undefined-active-true-active"
       />
     </div>
   </td>
   <td
     class="emotion-5 emotion-3"
     width="20%"
-  />
+  >
+    sections
+  </td>
   <td
     class="emotion-7 emotion-3"
     width="15%"

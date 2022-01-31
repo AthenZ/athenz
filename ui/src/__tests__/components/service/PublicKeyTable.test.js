@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, fireEvent, waitForElement } from '@testing-library/react';
+import {render, fireEvent, waitForElement, waitFor} from '@testing-library/react';
 import PublicKeyTable from '../../../components/service/PublicKeyTable';
 
 describe('PublicKeyTable', () => {
@@ -77,7 +77,7 @@ describe('PublicKeyTable', () => {
         fireEvent.click(getByText('Add Key'));
 
         expect(
-            await waitForElement(() => getByTestId('add-key'))
+            await waitFor(() => getByTestId('add-key'))
         ).toMatchSnapshot();
     });
 
@@ -116,7 +116,7 @@ describe('PublicKeyTable', () => {
         fireEvent.click(getByTitle('trash'));
 
         expect(
-            await waitForElement(() => getByText('This deletion is permanent'))
+            await waitFor(() => getByText('This deletion is permanent'))
         ).toMatchSnapshot();
     });
 
@@ -154,7 +154,7 @@ describe('PublicKeyTable', () => {
         );
         fireEvent.click(getByTitle('trash'));
         fireEvent.click(
-            await waitForElement(() => getByTestId('delete-modal-cancel'))
+            await waitFor(() => getByTestId('delete-modal-cancel'))
         );
         expect(queryByText('This deletion is permanent')).toBeNull();
     });
@@ -194,7 +194,7 @@ describe('PublicKeyTable', () => {
         );
 
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 
@@ -240,10 +240,10 @@ describe('PublicKeyTable', () => {
         );
         fireEvent.click(getByTitle('trash'));
         fireEvent.click(
-            await waitForElement(() => getByTestId('delete-modal-delete'))
+            await waitFor(() => getByTestId('delete-modal-delete'))
         );
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 
@@ -292,10 +292,10 @@ describe('PublicKeyTable', () => {
         );
         fireEvent.click(getByTitle('trash'));
         fireEvent.click(
-            await waitForElement(() => getByTestId('delete-modal-delete'))
+            await waitFor(() => getByTestId('delete-modal-delete'))
         );
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 
@@ -347,10 +347,10 @@ describe('PublicKeyTable', () => {
         );
         fireEvent.click(getByTitle('trash'));
         fireEvent.click(
-            await waitForElement(() => getByTestId('delete-modal-delete'))
+            await waitFor(() => getByTestId('delete-modal-delete'))
         );
         expect(
-            await waitForElement(() => getByTestId('public-key-table'))
+            await waitFor(() => getByTestId('public-key-table'))
         ).toMatchSnapshot();
     });
 
@@ -405,10 +405,10 @@ describe('PublicKeyTable', () => {
         );
         fireEvent.click(getByTitle('trash'));
         fireEvent.click(
-            await waitForElement(() => getByTestId('delete-modal-delete'))
+            await waitFor(() => getByTestId('delete-modal-delete'))
         );
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 });

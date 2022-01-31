@@ -22,13 +22,14 @@ describe('AddMember', () => {
     it('should render', () => {
         let domain = 'domain';
         let role ='roleName';
-
+        const onCancelMock = jest.fn();
         const { getByTestId } = render(
             <AddMember
                 api={API()}
                 domain={domain}
                 role={role}
                 justificationRequired={true}
+                onCancel={onCancelMock}
             />
         );
         const roleMemberForm = getByTestId('add-member');

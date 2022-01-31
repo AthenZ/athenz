@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, fireEvent, waitForElement } from '@testing-library/react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import ServiceRow from '../../../components/service/ServiceRow';
 
 const allProviders = [
@@ -99,21 +99,21 @@ describe('ServiceRow', () => {
         fireEvent.click(getByTitle('key'));
 
         expect(
-            await waitForElement(() => getByText('Details'))
+            await waitFor(() => getByText('Details'))
         ).toMatchSnapshot();
 
         expect(
-            await waitForElement(() => getByText(toReturn.description))
+            await waitFor(() => getByText(toReturn.description))
         ).toMatchSnapshot();
 
         expect(
-            await waitForElement(() =>
+            await waitFor(() =>
                 getByText('Public Key Version: ' + toReturn.publicKeys[0].id)
             )
         ).toMatchSnapshot();
 
         expect(
-            await waitForElement(() =>
+            await waitFor(() =>
                 getByText('Public Key Version: ' + toReturn.publicKeys[1].id)
             )
         ).toMatchSnapshot();
@@ -156,7 +156,7 @@ describe('ServiceRow', () => {
         fireEvent.click(getByTitle('cloud'));
 
         expect(
-            await waitForElement(() =>
+            await waitFor(() =>
                 getByText(
                     'AWS EC2/EKS/Fargate launches instances for the service'
                 )

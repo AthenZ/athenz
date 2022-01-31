@@ -21,12 +21,15 @@ import API from "../../../api";
 describe('AddRole', () => {
     it('should render', () => {
         let domain = 'domain';
+        const onCancelMock = jest.fn();
 
         const { getByTestId } = render(
             <AddRole
                 api={API()}
                 domain={domain}
                 justificationRequired={true}
+                showAddRole={true}
+                onCancel={onCancelMock}
             />
         );
         const addRoleForm = getByTestId('add-role');

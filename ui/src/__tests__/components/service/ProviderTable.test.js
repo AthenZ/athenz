@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, fireEvent, waitForElement } from '@testing-library/react';
+import {render, fireEvent, waitForElement, waitFor} from '@testing-library/react';
 import ProviderTable from '../../../components/service/ProviderTable';
 
 const allProviders = [
@@ -101,7 +101,7 @@ describe('ProviderTable', () => {
         );
         fireEvent.click(getByText('Allow'));
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 
@@ -192,7 +192,7 @@ describe('ProviderTable', () => {
         );
         fireEvent.click(getByText('Allow'));
         expect(
-            await waitForElement(() => getByTitle('checkmark'))
+            await waitFor(() => getByTitle('checkmark'))
         ).toMatchSnapshot();
     });
 });

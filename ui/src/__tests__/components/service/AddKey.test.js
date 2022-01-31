@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, fireEvent, waitForElement } from '@testing-library/react';
+import {render, fireEvent, waitFor} from '@testing-library/react';
 import AddKey from '../../../components/service/AddKey';
 
 describe('AddKey', () => {
@@ -44,7 +44,7 @@ describe('AddKey', () => {
         );
         fireEvent.click(getByText('Cancel'));
         expect(
-            await waitForElement(() => getByTestId('add-key'))
+            await waitFor(() => getByTestId('add-key'))
         ).toMatchSnapshot();
     });
 
@@ -63,7 +63,7 @@ describe('AddKey', () => {
         );
         fireEvent.click(getByText('Submit'));
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 
@@ -86,9 +86,9 @@ describe('AddKey', () => {
             },
         });
 
-        await waitForElement(() => fireEvent.click(getByText('Submit')));
+        await waitFor(() => fireEvent.click(getByText('Submit')));
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 
@@ -119,9 +119,9 @@ describe('AddKey', () => {
             },
         });
 
-        await waitForElement(() => fireEvent.click(getByText('Submit')));
+        await waitFor(() => fireEvent.click(getByText('Submit')));
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 
@@ -155,9 +155,9 @@ describe('AddKey', () => {
             },
         });
 
-        await waitForElement(() => fireEvent.click(getByText('Submit')));
+        await waitFor(() => fireEvent.click(getByText('Submit')));
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 
@@ -195,7 +195,7 @@ describe('AddKey', () => {
             },
         });
 
-        await waitForElement(() => fireEvent.click(getByText('Submit')));
-        expect(await waitForElement(() => test)).toEqual(2);
+        await waitFor(() => fireEvent.click(getByText('Submit')));
+        expect(await waitFor(() => test)).toEqual(2);
     });
 });
