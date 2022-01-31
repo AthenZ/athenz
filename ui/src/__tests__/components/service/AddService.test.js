@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, fireEvent, waitForElement } from '@testing-library/react';
+import {render, fireEvent, waitFor, waitForElement} from '@testing-library/react';
 import AddService from '../../../components/service/AddService';
 const pageConfig = {
     servicePageConfig: {
@@ -93,7 +93,7 @@ describe('AddService', () => {
                 pageConfig={pageConfig}
             />
         );
-        const addServiceInput = await waitForElement(() =>
+        const addServiceInput = await waitFor(() =>
             getAllByTestId('input-node')
         );
         fireEvent.change(addServiceInput[0], {
@@ -106,9 +106,9 @@ describe('AddService', () => {
                 value: 'test-key',
             },
         });
-        fireEvent.click(await waitForElement(() => getByText('Submit')));
+        fireEvent.click(await waitFor(() => getByText('Submit')));
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 
@@ -162,7 +162,7 @@ describe('AddService', () => {
                 pageConfig={pageConfig}
             />
         );
-        const addServiceInput = await waitForElement(() =>
+        const addServiceInput = await waitFor(() =>
             getAllByTestId('input-node')
         );
         fireEvent.change(addServiceInput[0], {
@@ -175,9 +175,9 @@ describe('AddService', () => {
                 value: 'test-key',
             },
         });
-        fireEvent.click(await waitForElement(() => getByText('Submit')));
+        fireEvent.click(await waitFor(() => getByText('Submit')));
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 
@@ -231,7 +231,7 @@ describe('AddService', () => {
                 pageConfig={pageConfig}
             />
         );
-        const addServiceInput = await waitForElement(() =>
+        const addServiceInput = await waitFor(() =>
             getAllByTestId('input-node')
         );
         fireEvent.change(addServiceInput[0], {
@@ -244,7 +244,7 @@ describe('AddService', () => {
                 value: 'test-key',
             },
         });
-        fireEvent.click(await waitForElement(() => getByText('Submit')));
+        fireEvent.click(await waitFor(() => getByText('Submit')));
         expect(await waitForElement(() => test)).toEqual(1);
     });
 
@@ -281,9 +281,9 @@ describe('AddService', () => {
                 pageConfig={pageConfig}
             />
         );
-        fireEvent.click(await waitForElement(() => getByText('Submit')));
+        fireEvent.click(await waitFor(() => getByText('Submit')));
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 
@@ -333,7 +333,7 @@ describe('AddService', () => {
                 pageConfig={pageConfig}
             />
         );
-        const addServiceInput = await waitForElement(() =>
+        const addServiceInput = await waitFor(() =>
             getAllByTestId('input-node')
         );
         fireEvent.change(addServiceInput[0], {
@@ -346,9 +346,9 @@ describe('AddService', () => {
                 value: 'test-key',
             },
         });
-        fireEvent.click(await waitForElement(() => getByText('Submit')));
+        fireEvent.click(await waitFor(() => getByText('Submit')));
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 
@@ -400,7 +400,7 @@ describe('AddService', () => {
                 pageConfig={pageConfig}
             />
         );
-        const addServiceInput = await waitForElement(() =>
+        const addServiceInput = await waitFor(() =>
             getAllByTestId('input-node')
         );
         fireEvent.change(addServiceInput[0], {
@@ -413,9 +413,9 @@ describe('AddService', () => {
                 value: 'test-key',
             },
         });
-        fireEvent.click(await waitForElement(() => getByText('Submit')));
+        fireEvent.click(await waitFor(() => getByText('Submit')));
         expect(
-            await waitForElement(() => getByTestId('error-message'))
+            await waitFor(() => getByTestId('error-message'))
         ).toMatchSnapshot();
     });
 });

@@ -38,6 +38,7 @@ describe('AddMemberToRoles', () => {
             memberReviewDays: 30,
             serviceReviewDays: null,
         };
+        const onCancelMock = jest.fn();
         roles.push(role1);
         roles.push(role2);
 
@@ -47,6 +48,7 @@ describe('AddMemberToRoles', () => {
                 domain={domain}
                 roles={roles}
                 justificationRequired={true}
+                onCancel={onCancelMock}
             />
         );
         const roleMemberForm = getByTestId('add-member-to-roles-form');

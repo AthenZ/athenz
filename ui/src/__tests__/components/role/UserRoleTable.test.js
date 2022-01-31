@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import {render, waitFor} from '@testing-library/react';
 import UserRoleTable from '../../../components/role/UserRoleTable';
 import API from '../../../api';
 
 describe('UserRoleTable', () => {
-    it('should render', () => {
-        let domains = [];
+    it('should render', async () => {
+        let domain = 'athens';
         let roles = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
         let role1 = {
             name: 'a',
         };
@@ -32,9 +30,49 @@ describe('UserRoleTable', () => {
         };
         roles.push(role1);
         roles.push(role2);
-        const { getByTestId } = render(
-            <UserRoleTable roles={roles} api={API()} domain={domains} />
+        const api = {
+            getRoleMembers(domain) {
+                return new Promise((resolve, reject) => {
+                    // reject({
+                    //     statusCode: 500,
+                    //     body: {
+                    //         message: "Test error"
+                    //     }
+                    // });
+                    let member = {
+                        members: [
+                            {
+                                memberName: "user.test1",
+                                memberRoles: ['role1'],
+                                memberFullName: 'testing1'
+                            },
+                            {
+                                memberName: "user.test2",
+                                memberRoles: ['role2'],
+                                memberFullName: 'testing2'
+                            }
+                        ],
+                    };
+                    resolve(member)
+                });
+            },
+        };
+
+        // for (let i = 0; i < members.members.length; i++) {
+        //                     let name = members.members[i].memberName;
+        //                     expand[name] = members.members[i].memberRoles;
+        //                     fullNameArr[name] = members.members[i].memberFullName;
+        //                     contents[name] = null;
+        //                     expandArray[name] = false;
+        //                 }
+
+        const {getByTestId, queryByText} = render(
+            <UserRoleTable roles={roles} api={api} domain={domain} searchText={'test'}/>
         );
+        await waitFor(() => {
+            expect(queryByText("test"));
+        });
+
         const userroletable = getByTestId('userroletable');
 
         expect(userroletable).toMatchSnapshot();

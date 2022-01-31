@@ -21,6 +21,7 @@ describe('DomainDetails', () => {
     it('should render', () => {
         const domainMetadata = {
             modified: '2020-02-12T21:44:37.792Z',
+            auditEnabled: false,
         };
 
         const { getByTestId } = render(

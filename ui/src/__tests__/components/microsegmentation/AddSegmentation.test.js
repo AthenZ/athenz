@@ -22,6 +22,17 @@ describe('AddSegmentation', () => {
     const pageFeatureFlag ={
         'policyValidation': true
     };
+    const api = {
+        getServices(domain) {
+            return new Promise((resolve, reject) => {
+                resolve([{
+                    'name': 'user.test1'
+                }, {
+                    'name': 'user.test2'
+                }]);
+            });
+        },
+    };
     it('should render', () => {
         let domain = 'domain';
         const showAddSegmentation = true;
@@ -30,7 +41,7 @@ describe('AddSegmentation', () => {
         let _csrf = 'csrf';
         const { getByTestId } = render(
             <AddSegmentation
-                api={API()}
+                api={api}
                 domain={domain}
                 onSubmit={submit}
                 onCancel={cancel}
@@ -51,13 +62,6 @@ describe('AddSegmentation', () => {
         let role ='roleName';
         const submit = function() {};
         let _csrf = 'csrf';
-        const api = {
-            getServices(domain) {
-                return new Promise((resolve, reject) => {
-                    resolve(['a, b']);
-                });
-            },
-        };
         const { getByTestId, getByText } =  render(
             <AddSegmentation
                 api={api}

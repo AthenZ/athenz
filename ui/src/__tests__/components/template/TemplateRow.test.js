@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import {fireEvent, render, waitForElement} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import TemplateRow from '../../../components/template/TemplateRow';
 import { colors } from '../../../components/denali/styles';
 
@@ -84,12 +84,12 @@ describe('TemplateRow', () => {
                 </tbody>
             </table>
         );
-        await waitForElement(() =>
+        await waitFor(() =>
             fireEvent.click(getByTitle('information-circle'))
         );
 
         expect(
-            await waitForElement(() => getByTestId('template-row'))
+            await waitFor(() => getByTestId('template-row'))
         ).toMatchSnapshot();
     });
 
@@ -149,7 +149,7 @@ describe('TemplateRow', () => {
         );
         const templateRow = getByTestId('template-row');
         expect(
-            await waitForElement(() => getByTestId('template-row'))
+            await waitFor(() => getByTestId('template-row'))
         ).toMatchSnapshot();
     });
 });

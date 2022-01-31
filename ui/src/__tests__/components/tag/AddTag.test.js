@@ -97,7 +97,7 @@ describe('AddTag', () => {
 
     it('should include tag value', async () => {
         let addTagProps = {
-            onCancel: {onCancel},
+            onCancel: onCancel,
             showAddTag: true,
             api: API(),
             resource: 'tag-resource',

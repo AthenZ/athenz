@@ -74,7 +74,7 @@ describe('SettingRow', () => {
                         label='Test'
                         type='input'
                         desc='desc for testing'
-                        value={15}
+                        value={"15"}
                         justificationRequired={true}
                     />
                 </tbody>

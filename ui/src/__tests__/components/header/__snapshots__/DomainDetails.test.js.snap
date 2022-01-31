@@ -224,7 +224,7 @@ exports[`DomainDetails should render 1`] = `
             id="switch-auditDomainDetails"
             name="auditDomainDetails"
             type="checkbox"
-            value=""
+            value="false"
           />
           <label
             for="switch-auditDomainDetails"

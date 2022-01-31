@@ -32,7 +32,7 @@ describe('PolicyRow', () => {
         const { getByTestId } = render(
             <table>
                 <tbody>
-                    <PolicyRow name={name} color={color} api={api} />
+                    <PolicyRow name={name} color={color} api={api} isActive={true} />
                 </tbody>
             </table>
         );
