@@ -13004,6 +13004,29 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testGetOAuthConfig() {
+
+        ResourceContext ctx = createResourceContext(null);
+
+        OAuthConfig oauthConfig = zts.getOAuthConfig(ctx);
+        assertNotNull(oauthConfig);
+
+        assertEquals("https://athenz.cloud:4443/zts/v1", oauthConfig.getIssuer());
+        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true", oauthConfig.getJwks_uri());
+        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/auth", oauthConfig.getAuthorization_endpoint());
+        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/token", oauthConfig.getToken_endpoint());
+
+        assertEquals(Collections.singletonList("RS256"), oauthConfig.getToken_endpoint_auth_signing_alg_values_supported());
+
+        List<String> supportedTypes = oauthConfig.getResponse_types_supported();
+        assertEquals(supportedTypes.size(), 2);
+        assertTrue(supportedTypes.contains("token"));
+        assertTrue(supportedTypes.contains("id_token token"));
+
+        assertEquals(Collections.singletonList("client_credentials"), oauthConfig.getGrant_types_supported());
+    }
+
+    @Test
     public void testExtractServiceEndpoint() {
 
         DomainData domainData = new DomainData();

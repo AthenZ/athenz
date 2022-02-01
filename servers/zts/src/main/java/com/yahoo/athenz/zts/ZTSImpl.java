@@ -160,6 +160,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected AuthzDetailsEntityList systemAuthzDetails = null;
     protected ObjectMapper jsonMapper;
     protected OpenIDConfig openIDConfig;
+    protected OAuthConfig oauthConfig;
     protected String ztsOpenIDIssuer;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
@@ -346,12 +347,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         loadStatusChecker();
 
-        // setup open id config object
+        // setup open id and oauth config objects
 
-        setupOpenIDConfig();
+        setupMetaConfigObjects();
     }
 
-    private void setupOpenIDConfig() {
+    private void setupMetaConfigObjects() {
+
         openIDConfig = new OpenIDConfig();
         openIDConfig.setIssuer(ztsOpenIDIssuer);
         openIDConfig.setJwks_uri(ztsOpenIDIssuer + "/oauth2/keys?rfc=true");
@@ -359,6 +361,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         openIDConfig.setSubject_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_SUBJECT_TYPE_PUBLIC));
         openIDConfig.setResponse_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_RESPONSE_IT_ONLY));
         openIDConfig.setId_token_signing_alg_values_supported(getSupportedSigningAlgValues());
+
+        oauthConfig = new OAuthConfig();
+        oauthConfig.setIssuer(ztsOpenIDIssuer);
+        oauthConfig.setJwks_uri(ztsOpenIDIssuer + "/oauth2/keys?rfc=true");
+        oauthConfig.setAuthorization_endpoint(ztsOpenIDIssuer + "/oauth2/auth");
+        oauthConfig.setToken_endpoint(ztsOpenIDIssuer + "/oauth2/token");
+        oauthConfig.setGrant_types_supported(Collections.singletonList(OAUTH_GRANT_CREDENTIALS));
+        oauthConfig.setResponse_types_supported(
+                Arrays.asList(ZTSConsts.ZTS_OPENID_RESPONSE_AT_ONLY, ZTSConsts.ZTS_OPENID_RESPONSE_BOTH_IT_AT));
+        oauthConfig.setToken_endpoint_auth_signing_alg_values_supported(getSupportedSigningAlgValues());
     }
 
     List<String> getSupportedSigningAlgValues() {
@@ -4595,6 +4607,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         validateRequest(ctx.request(), principalDomain, caller);
         return openIDConfig;
+    }
+
+    @Override
+    public OAuthConfig getOAuthConfig(ResourceContext ctx) {
+
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+
+        validateRequest(ctx.request(), principalDomain, caller);
+        return oauthConfig;
     }
 
     @Override

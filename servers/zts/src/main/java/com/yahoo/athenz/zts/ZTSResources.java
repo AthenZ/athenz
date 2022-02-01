@@ -765,8 +765,35 @@ public class ZTSResources {
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getOpenIDConfig");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/.well-known/oauth-authorization-server")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "")
+    public OAuthConfig getOAuthConfig(
+        ) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getOAuthConfig");
+            return this.delegate.getOAuthConfig(context);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getOAuthConfig");
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {
@@ -784,16 +811,11 @@ public class ZTSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getJWKList");
-            context.authenticate();
             return this.delegate.getJWKList(context, rfc);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.NOT_FOUND:
-                throw typedException(code, e, ResourceError.class);
-            case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getJWKList");

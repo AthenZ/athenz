@@ -27,12 +27,22 @@ type JWK Struct {
 
 type OpenIDConfig Struct {
     String issuer; //url using the https scheme
-    String authorization_endpoint; // oauth 2.0 authorization endpoint url
-    String jwks_uri; // public server jwk set url
-    Array<String> response_types_supported; // list of supported response types
-    Array<String> subject_types_supported; // list of supported subject identifier types
-    Array<String> id_token_signing_alg_values_supported; // list of supported algorithms for issued id tokens
-    Array<String> claims_supported (optional); // list of supported id claims
+    String authorization_endpoint; //oauth 2.0 authorization endpoint url
+    String jwks_uri; //public server jwk set url
+    Array<String> response_types_supported; //list of supported response types
+    Array<String> subject_types_supported; //list of supported subject identifier types
+    Array<String> id_token_signing_alg_values_supported; //list of supported algorithms for issued id tokens
+    Array<String> claims_supported (optional); //list of supported id claims
+}
+
+type OAuthConfig Struct {
+    String issuer; //url using the https scheme
+    String authorization_endpoint; //oauth 2.0 authorization endpoint url
+    String token_endpoint; //authorization server token endpoint
+    String jwks_uri; //public server jwk set url
+    Array<String> response_types_supported; //list of supported response types
+    Array<String> grant_types_supported; //supported grant types
+    Array<String> token_endpoint_auth_signing_alg_values_supported; //list of supported algorithms for issued access tokens
 }
 
 //JSON Web Key (JWK) List
@@ -40,18 +50,25 @@ type JWKList Struct {
     Array<JWK> keys; //array of JWKs
 }
 
-resource OpenIDConfig Get "/.well-known/openid-configuration" {
+resource OpenIDConfig GET "/.well-known/openid-configuration" {
     expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+    }
+}
+
+resource OAuthConfig GET "/.well-known/oauth-authorization-server" {
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+    }
 }
 
 resource JWKList GET "/oauth2/keys?rfc={rfc}" {
     Bool rfc (optional, default=false); //flag to indicate ec curve names are restricted to RFC values
-    authenticate;
     expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
-        ResourceError UNAUTHORIZED;
-        ResourceError NOT_FOUND;
     }
 }
 

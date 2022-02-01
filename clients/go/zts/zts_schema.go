@@ -422,6 +422,16 @@ func init() {
 	tOpenIDConfig.ArrayField("claims_supported", "String", true, "list of supported id claims")
 	sb.AddType(tOpenIDConfig.Build())
 
+	tOAuthConfig := rdl.NewStructTypeBuilder("Struct", "OAuthConfig")
+	tOAuthConfig.Field("issuer", "String", false, nil, "url using the https scheme")
+	tOAuthConfig.Field("authorization_endpoint", "String", false, nil, "oauth 2.0 authorization endpoint url")
+	tOAuthConfig.Field("token_endpoint", "String", false, nil, "authorization server token endpoint")
+	tOAuthConfig.Field("jwks_uri", "String", false, nil, "public server jwk set url")
+	tOAuthConfig.ArrayField("response_types_supported", "String", false, "list of supported response types")
+	tOAuthConfig.ArrayField("grant_types_supported", "String", false, "supported grant types")
+	tOAuthConfig.ArrayField("token_endpoint_auth_signing_alg_values_supported", "String", false, "list of supported algorithms for issued access tokens")
+	sb.AddType(tOAuthConfig.Build())
+
 	tJWKList := rdl.NewStructTypeBuilder("Struct", "JWKList")
 	tJWKList.Comment("JSON Web Key (JWK) List")
 	tJWKList.ArrayField("keys", "JWK", false, "array of JWKs")
@@ -721,14 +731,16 @@ func init() {
 	sb.AddResource(mPostSSHCertRequest.Build())
 
 	mGetOpenIDConfig := rdl.NewResourceBuilder("OpenIDConfig", "GET", "/.well-known/openid-configuration")
+	mGetOpenIDConfig.Exception("BAD_REQUEST", "ResourceError", "")
 	sb.AddResource(mGetOpenIDConfig.Build())
+
+	mGetOAuthConfig := rdl.NewResourceBuilder("OAuthConfig", "GET", "/.well-known/oauth-authorization-server")
+	mGetOAuthConfig.Exception("BAD_REQUEST", "ResourceError", "")
+	sb.AddResource(mGetOAuthConfig.Build())
 
 	mGetJWKList := rdl.NewResourceBuilder("JWKList", "GET", "/oauth2/keys")
 	mGetJWKList.Input("rfc", "Bool", false, "rfc", "", true, false, "flag to indicate ec curve names are restricted to RFC values")
-	mGetJWKList.Auth("", "", true, "")
 	mGetJWKList.Exception("BAD_REQUEST", "ResourceError", "")
-	mGetJWKList.Exception("NOT_FOUND", "ResourceError", "")
-	mGetJWKList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetJWKList.Build())
 
 	mPostAccessTokenRequest := rdl.NewResourceBuilder("AccessTokenResponse", "POST", "/oauth2/token")

@@ -365,6 +365,15 @@ public class ZTSSchema {
             .arrayField("id_token_signing_alg_values_supported", "String", false, "list of supported algorithms for issued id tokens")
             .arrayField("claims_supported", "String", true, "list of supported id claims");
 
+        sb.structType("OAuthConfig")
+            .field("issuer", "String", false, "url using the https scheme")
+            .field("authorization_endpoint", "String", false, "oauth 2.0 authorization endpoint url")
+            .field("token_endpoint", "String", false, "authorization server token endpoint")
+            .field("jwks_uri", "String", false, "public server jwk set url")
+            .arrayField("response_types_supported", "String", false, "list of supported response types")
+            .arrayField("grant_types_supported", "String", false, "supported grant types")
+            .arrayField("token_endpoint_auth_signing_alg_values_supported", "String", false, "list of supported algorithms for issued access tokens");
+
         sb.structType("JWKList")
             .comment("JSON Web Key (JWK) List")
             .arrayField("keys", "JWK", false, "array of JWKs");
@@ -732,17 +741,19 @@ public class ZTSSchema {
 ;
 
         sb.resource("OpenIDConfig", "GET", "/.well-known/openid-configuration")
-            .expected("OK");
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+;
+
+        sb.resource("OAuthConfig", "GET", "/.well-known/oauth-authorization-server")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+;
 
         sb.resource("JWKList", "GET", "/oauth2/keys")
             .queryParam("rfc", "rfc", "Bool", false, "flag to indicate ec curve names are restricted to RFC values")
-            .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
-
-            .exception("NOT_FOUND", "ResourceError", "")
-
-            .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
         sb.resource("AccessTokenRequest", "POST", "/oauth2/token")
