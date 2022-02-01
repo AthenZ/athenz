@@ -4,18 +4,14 @@
 package main
 
 import (
-	"crypto/x509"
-	"encoding/pem"
 	"flag"
 	"fmt"
-	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/athenzconf"
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 	"log"
 	"os"
-	"strings"
 )
 
 var (
@@ -27,7 +23,7 @@ var (
 )
 
 func usage() {
-	fmt.Println("usage: zts-idtoken <credentials> -zts <ZTS url> -scope <scope> -redirect-uri <redirect-uri> -nonce <nonce> -client-id <client-id> -state <state> -key-type <RSA|EC>")
+	fmt.Println("usage: zts-idtoken <credentials> -zts <ZTS url> -scope <scope> -redirect-uri <redirect-uri> -nonce <nonce> -client-id <client-id> -state <state> -key-type <RSA|EC> -format <token|kubectl>")
 	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-svc-cacert-file <ca-cert-file>]")
 	fmt.Println("       zts-idtoken -validate -id-token <id-token> -conf <athenz-conf-path> [-claims]")
 	os.Exit(1)
@@ -42,7 +38,7 @@ func printVersion() {
 }
 
 func main() {
-	var clientId, scope, state, redirectUri, nonce, svcKeyFile, svcCertFile, svcCACertFile, ztsURL, conf, idToken, keyType string
+	var clientId, scope, state, redirectUri, nonce, svcKeyFile, svcCertFile, svcCACertFile, ztsURL, conf, idToken, keyType, format string
 	var proxy, validate, claims, showVersion bool
 	flag.StringVar(&clientId, "client-id", "", "client-id for the token")
 	flag.StringVar(&redirectUri, "redirect-uri", "", "redirect uri registered for the client-id")
@@ -60,6 +56,7 @@ func main() {
 	flag.StringVar(&idToken, "id-token", "", "id token to validate")
 	flag.StringVar(&keyType, "key-type", "RSA", "signing key type: RSA or EC")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
+	flag.StringVar(&format, "format", "token", "Output format: token | kubectl")
 	flag.Parse()
 
 	if showVersion {
@@ -70,7 +67,7 @@ func main() {
 	if validate {
 		validateIdToken(idToken, conf, claims)
 	} else {
-		fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, proxy)
+		fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format, proxy)
 	}
 }
 
@@ -90,7 +87,7 @@ func validateIdToken(idToken, conf string, showClaims bool) {
 	if err != nil {
 		log.Fatalf("Public key fetch failure: %v\n", err)
 	}
-	publicKey, err := loadPublicKey(publicKeyPEM)
+	publicKey, err := athenzutils.LoadPublicKey(publicKeyPEM)
 	if err != nil {
 		log.Fatalf("Public key load failure: %v\n", err)
 	}
@@ -115,47 +112,24 @@ func validateIdToken(idToken, conf string, showClaims bool) {
 	fmt.Println("Id Token successfully validated")
 }
 
-func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType string, proxy bool) {
+func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format string, proxy bool) {
 
 	if ztsURL == "" {
 		usage()
 	}
 
-	client, err := athenzutils.ZtsClient(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, proxy)
+	idToken, err := athenzutils.FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, proxy)
 	if err != nil {
-		log.Fatalf("unable to create zts client: %v\n", err)
-	}
-	client.DisableRedirect = true
-
-	// request an id token
-	_, location, err := client.GetOIDCResponse("id_token", zts.ServiceName(clientId), redirectUri, scope, zts.EntityName(state), zts.EntityName(nonce), zts.SimpleName(keyType))
-	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("unable to fetch id token: %v\n", err)
 	}
 
-	//the format of the location header is <redirect-uri>#id_token=<token>&state=<state>
-	idTokenLabel := "#id_token="
-	startIdx := strings.Index(location, idTokenLabel)
-	if startIdx == -1 {
-		log.Fatalln("Location header does not contain id_token field")
+	if format == "kubectl" {
+		output, err := athenzutils.GetK8SClientAuthCredential(idToken)
+		if err != nil {
+			log.Fatalf("unable to generate kubectl supported output: %v\n", err)
+		}
+		fmt.Println(output)
+	} else {
+		fmt.Println(idToken)
 	}
-	idToken := location[startIdx+len(idTokenLabel):]
-	endIdx := strings.Index(idToken, "&state")
-	if endIdx != -1 {
-		idToken = idToken[:endIdx]
-	}
-	fmt.Println(idToken)
-}
-
-// NewVerifier creates an instance of Verifier using the given public key.
-func loadPublicKey(publicKeyPEM []byte) (interface{}, error) {
-	block, _ := pem.Decode(publicKeyPEM)
-	if block == nil {
-		return nil, fmt.Errorf("unable to load public key")
-	}
-	if !strings.HasSuffix(block.Type, "PUBLIC KEY") {
-		return nil, fmt.Errorf("invalid public key type: %s", block.Type)
-	}
-
-	return x509.ParsePKIXPublicKey(block.Bytes)
 }

@@ -4,10 +4,8 @@
 package zpu
 
 import (
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"github.com/AthenZ/athenz/utils/zpe-updater/metrics"
@@ -315,7 +313,7 @@ func ValidateJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, jwsP
 	if err != nil {
 		return nil, err
 	}
-	publicKey, err := loadPublicKey([]byte(ztsPublicKey))
+	publicKey, err := athenzutils.LoadPublicKey([]byte(ztsPublicKey))
 	if err != nil {
 		return nil, err
 	}
@@ -327,18 +325,6 @@ func ValidateJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, jwsP
 		return nil, err
 	}
 	return jwsPolicyBytes, nil
-}
-
-func loadPublicKey(publicKeyPEM []byte) (interface{}, error) {
-	block, _ := pem.Decode(publicKeyPEM)
-	if block == nil {
-		return nil, fmt.Errorf("unable to load public key")
-	}
-	if !strings.HasSuffix(block.Type, "PUBLIC KEY") {
-		return nil, fmt.Errorf("invalid public key type: %s", block.Type)
-	}
-
-	return x509.ParsePKIXPublicKey(block.Bytes)
 }
 
 func verify(input, signature, publicKey string) error {
