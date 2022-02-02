@@ -554,7 +554,21 @@ public class ZTSRDLGeneratedClient {
         case 200:
             return response.readEntity(OpenIDConfig.class);
         default:
-            throw new ResourceException(code, response.readEntity(Object.class));
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        }
+
+    }
+
+    public OAuthConfig getOAuthConfig() {
+        WebTarget target = base.path("/.well-known/oauth-authorization-server");
+        Invocation.Builder invocationBuilder = target.request("application/json");
+        Response response = invocationBuilder.get();
+        int code = response.getStatus();
+        switch (code) {
+        case 200:
+            return response.readEntity(OAuthConfig.class);
+        default:
+            throw new ResourceException(code, response.readEntity(ResourceError.class));
         }
 
     }
@@ -565,10 +579,6 @@ public class ZTSRDLGeneratedClient {
             target = target.queryParam("rfc", rfc);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
-        if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
-        }
         Response response = invocationBuilder.get();
         int code = response.getStatus();
         switch (code) {

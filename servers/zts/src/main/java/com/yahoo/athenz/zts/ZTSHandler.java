@@ -35,6 +35,7 @@ public interface ZTSHandler {
     Status getStatus(ResourceContext context);
     Response postSSHCertRequest(ResourceContext context, SSHCertRequest certRequest);
     OpenIDConfig getOpenIDConfig(ResourceContext context);
+    OAuthConfig getOAuthConfig(ResourceContext context);
     JWKList getJWKList(ResourceContext context, Boolean rfc);
     AccessTokenResponse postAccessTokenRequest(ResourceContext context, String request);
     Response getOIDCResponse(ResourceContext context, String responseType, String clientId, String redirectUri, String scope, String state, String nonce, String keyType);
