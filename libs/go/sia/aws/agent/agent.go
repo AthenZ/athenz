@@ -17,6 +17,7 @@
 package agent
 
 import (
+	"bufio"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/json"
@@ -375,26 +376,60 @@ func updateSSH(sshCertFile, sshConfigFile, hostCert string) error {
 	}
 
 	//Now update the config file, if needed. The format of the line we're going
-	//to comment is #HostCertificate <sshCertFile> and we'll just remove the #
+	//to insert is HostCertificate <sshCertFile>. so we'll see if the line exists
+	//or not and if not we'll insert one at the end of the file
 	if sshConfigFile != "" {
-		data, err := ioutil.ReadFile(sshConfigFile)
+		configPresent, err := hostCertificateLinePresent(sshConfigFile)
+		if err != nil {
+			log.Printf("unable to check host certificate line for %s - error %v\n", sshConfigFile, err)
+			return err
+		}
+		if configPresent {
+			return nil
+		}
+		//update the sshconfig file to include HostCertificate line
+		err = updateSSHConfigFile(sshConfigFile, sshCertFile)
 		if err != nil {
 			return err
 		}
-		conf := string(data)
-		certLine := fmt.Sprintf("#HostCertificate %s", sshCertFile)
-		i := strings.Index(conf, certLine)
-		if i >= 0 {
-			conf = conf[:i] + conf[i+1:]
-			err = util.UpdateFile(sshConfigFile, []byte(conf), 0, 0, 0644)
-			if err != nil {
-				return err
-			}
-			//and restart sshd to notice the changes.
-			return restartSshdService()
-		}
+		//and restart sshd to notice the changes.
+		return restartSshdService()
 	}
 	return nil
+}
+
+func updateSSHConfigFile(sshConfigFile, sshCertFile string) error {
+	//update the sshconfig file to include HostCertificate line
+	file, err := os.OpenFile(sshConfigFile, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	certLine := fmt.Sprintf("\nHostCertificate %s\n", sshCertFile)
+	_, err = file.Write([]byte(certLine))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func hostCertificateLinePresent(sshConfigFile string) (bool, error) {
+
+	file, err := os.Open(sshConfigFile)
+	if err != nil {
+		return false, err
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		line := strings.Trim(scanner.Text(), " \t")
+		if strings.HasPrefix(line, "HostCertificate ") {
+			log.Printf("ssh configuration file already includes expected line: %s\n", line)
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
