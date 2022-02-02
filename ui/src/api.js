@@ -26,7 +26,7 @@ const Api = (req) => {
     let localDate = new DateUtils();
     const fetchr = new Fetchr({
         xhrPath: '/api/v1',
-        xhrTimeout: 10000,
+        xhrTimeout: 30000,
         req,
     });
     return {
@@ -1926,11 +1926,49 @@ const Api = (req) => {
             });
         },
 
-        getGraphLayout(elements, style) {
+        updateGraphLayout(elements, style, _csrf) {
             return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
                 fetchr
-                    .read('graph-layout')
+                    .update('graph-layout')
                     .params({ elements, style })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        deleteTransportRule(
+            domainName,
+            policyName,
+            assertionId,
+            roleName,
+            auditRef,
+            _csrf
+        ) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                fetchr
+                    .delete('transport-rule')
+                    .params({
+                        domainName,
+                        policyName,
+                        assertionId,
+                        roleName,
+                        auditRef,
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);

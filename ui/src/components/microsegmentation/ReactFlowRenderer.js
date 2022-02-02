@@ -26,7 +26,7 @@ import ReactFlow, {
     useStoreState,
 } from 'react-flow-renderer';
 
-const getLayoutedElements = (elements, nodes, api) => {
+const getLayoutedElements = (elements, nodes, api, _csrf) => {
     let graphLayoutElements = [];
     let graphLayoutStyle = [];
 
@@ -55,7 +55,7 @@ const getLayoutedElements = (elements, nodes, api) => {
         }
     });
 
-    return api.getGraphLayout(graphLayoutElements, graphLayoutStyle);
+    return api.updateGraphLayout(graphLayoutElements, graphLayoutStyle, _csrf);
 };
 
 const nodeHasDimension = (el) => el.__rf.width && el.__rf.height;
@@ -66,8 +66,7 @@ const nodeTypes = {
 };
 
 const ReactFlowRenderer = (props) => {
-    debugger;
-    const { elements, api } = props;
+    const { elements, api, _csrf } = props;
     const [shouldLayout, setShouldLayout] = useState(true);
 
     const nodes = useStoreState((state) => state.nodes);
@@ -96,35 +95,42 @@ const ReactFlowRenderer = (props) => {
             const elementsWithLayoutPromise = getLayoutedElements(
                 elements,
                 nodes,
-                api
+                api,
+                _csrf
             );
-            elementsWithLayoutPromise.then((resultLayout) => {
-                const elementsWithLayout = elements.map((el) => {
-                    if (isNode(el)) {
-                        const nodeWithPosition = resultLayout[el.id];
-                        el.targetPosition = Position.Left;
-                        el.sourcePosition = Position.Right;
+            elementsWithLayoutPromise
+                .then((resultLayout) => {
+                    const elementsWithLayout = elements.map((el) => {
+                        if (isNode(el)) {
+                            const nodeWithPosition = resultLayout[el.id];
+                            el.targetPosition = Position.Left;
+                            el.sourcePosition = Position.Right;
 
-                        el.position = {
-                            x:
-                                nodeWithPosition.x -
-                                el.__rf.width / 2 +
-                                Math.random() / 1000,
-                            y: nodeWithPosition.y - el.__rf.height / 2,
-                        };
-                        el.__rf.position = {
-                            x:
-                                nodeWithPosition.x -
-                                el.__rf.width / 2 +
-                                Math.random() / 1000,
-                            y: nodeWithPosition.y - el.__rf.height / 2,
-                        };
+                            el.position = {
+                                x:
+                                    nodeWithPosition.x -
+                                    el.__rf.width / 2 +
+                                    Math.random() / 1000,
+                                y: nodeWithPosition.y - el.__rf.height / 2,
+                            };
+                            el.__rf.position = {
+                                x:
+                                    nodeWithPosition.x -
+                                    el.__rf.width / 2 +
+                                    Math.random() / 1000,
+                                y: nodeWithPosition.y - el.__rf.height / 2,
+                            };
+                        }
+                        return el;
+                    });
+                    setElements(elementsWithLayout);
+                    setShouldLayout(false);
+                })
+                .catch((err) => {
+                    if (err.statusCode === 0) {
+                        window.location.reload();
                     }
-                    return el;
                 });
-                setElements(elementsWithLayout);
-                setShouldLayout(false);
-            });
         }
     }, [shouldLayout, nodes]);
 

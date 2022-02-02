@@ -49,6 +49,59 @@ const responseHandler = function (err, data) {
     }
 };
 
+const deleteAssertion = (
+    domainName,
+    policyName,
+    assertionId,
+    auditRef,
+    req
+) => {
+    return new Promise((resolve, reject) => {
+        req.clients.zms.deleteAssertion(
+            {
+                domainName: domainName,
+                policyName: policyName,
+                assertionId: assertionId,
+                auditRef: auditRef,
+            },
+            (err, json) => {
+                if (err) {
+                    if (err.status === 404) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                } else {
+                    resolve();
+                }
+            }
+        );
+    });
+};
+
+const deleteRole = (domainName, roleName, auditRef, req) => {
+    return new Promise((resolve, reject) => {
+        req.clients.zms.deleteRole(
+            {
+                domainName: domainName,
+                roleName: roleName,
+                auditRef: auditRef,
+            },
+            (err, json) => {
+                if (err) {
+                    if (err.status === 404) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                } else {
+                    resolve();
+                }
+            }
+        );
+    });
+};
+
 Fetchr.registerService({
     name: 'assertion',
     create(req, resource, params, body, config, callback) {
@@ -2577,7 +2630,7 @@ Fetchr.registerService({
 
 Fetchr.registerService({
     name: 'graph-layout',
-    read(req, resource, params, config, callback) {
+    update(req, resource, params, body, config, callback) {
         cytoscape.use(dagre);
         const cy = cytoscape({
             container: null,
@@ -2616,6 +2669,36 @@ Fetchr.registerService({
                 req,
             })
         );
+    },
+});
+
+Fetchr.registerService({
+    name: 'transport-rule',
+    delete(req, resource, params, config, callback) {
+        deleteAssertion(
+            params.domainName,
+            params.policyName,
+            params.assertionId,
+            params.auditRef,
+            req
+        )
+            .then(() => {
+                deleteRole(
+                    params.domainName,
+                    params.roleName,
+                    params.auditRef,
+                    req
+                )
+                    .then(() => {
+                        callback(null, []);
+                    })
+                    .catch((err) => {
+                        callback(errorHandler.fetcherError(err));
+                    });
+            })
+            .catch((err) => {
+                callback(errorHandler.fetcherError(err));
+            });
     },
 });
 

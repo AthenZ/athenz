@@ -114,30 +114,29 @@ export default class GraphicalServiceRow extends React.Component {
             nodeDataSourcePort = policyRule['source_port'];
             category = 'outbound';
 
-            edgeSource = policyRule['assertionIdx'] + index + '';
+            edgeSource = policyRule['assertionIdx'] + '-' + index;
             edgeTarget = '0';
             edgeSourceHandle = type;
-            edgeTargetHandle = policyRule['assertionIdx'] + '_outbound';
+            edgeTargetHandle = policyRule['assertionIdx'] + '_' + type;
         } else if (type === 'outbound') {
             nodeDataName = policyRule['destination_services'][index];
             nodeDataSourcePort = policyRule['destination_port'];
             category = 'inbound';
 
             edgeSource = '0';
-            edgeTarget = policyRule['assertionIdx'] + index + '';
-            edgeSourceHandle = policyRule['assertionIdx'] + '_inbound';
+            edgeTarget = policyRule['assertionIdx'] + '-' + index;
+            edgeSourceHandle = policyRule['assertionIdx'] + '_' + type;
             edgeTargetHandle = type;
         }
-
         let node = {
-            id: policyRule['assertionIdx'] + index + '',
+            id: policyRule['assertionIdx'] + '-' + index,
             type: type + 'Node',
             data: {
                 name: nodeDataName,
                 assertionIdx: policyRule['assertionIdx'],
                 source_port: nodeDataSourcePort,
                 category: category,
-                id: policyRule['assertionIdx'] + index + '',
+                id: policyRule['assertionIdx'] + '-' + index,
             },
             position,
         };

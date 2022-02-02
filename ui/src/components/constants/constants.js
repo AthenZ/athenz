@@ -157,4 +157,6 @@ export const ADD_ROLE_REMINDER_PLACEHOLDER = 'Reminder (Optional)';
 export const ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER =
     'Enter Domain for Delegate Role';
 export const MICROSEG_CONDITION_DELETE_JUSTIFICATION =
-    'Microsegmentaion Assertion Condition deletion';
+    'Microsegmentation Assertion Condition deletion';
+export const MICROSEG_TRANSPORT_RULE_DELETE_JUSTIFICATION =
+    'Microsegmentation Transport Rule deletion';
