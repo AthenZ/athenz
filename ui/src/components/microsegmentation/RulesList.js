@@ -111,8 +111,8 @@ export default class RulesList extends React.Component {
     }
 
     render() {
-        debugger;
         const { domain } = this.props;
+
         let addSegmentationButton = '';
         let addSegmentation = this.state.showAddSegmentation ? (
             <AddSegmentation
@@ -185,6 +185,7 @@ export default class RulesList extends React.Component {
                         data={this.state.segmentationData.inbound}
                         caption='Inbound'
                         justificationRequired={this.props.isDomainAuditEnabled}
+                        pageFeatureFlag={this.props.pageFeatureFlag}
                     />
                 ) : null}
                 <br />

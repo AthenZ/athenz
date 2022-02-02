@@ -25,6 +25,7 @@ import ServiceList from './ServiceList';
 import { css, keyframes } from '@emotion/react';
 import EnforcementStateList from './EnforcementStateList';
 import AddSegmentation from './AddSegmentation';
+import { MICROSEG_TRANSPORT_RULE_DELETE_JUSTIFICATION } from '../constants/constants';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -148,29 +149,23 @@ export default class RuleRow extends React.Component {
             return;
         }
 
-        let deletePolicyName =
+        const deletePolicyName =
             'acl.' + this.state.deleteName + '.' + this.props.category;
-        let deleteRoleName =
+        const deleteRoleName =
             deletePolicyName + '-' + this.props.details['identifier'];
-        Promise.all([
-            this.api.deleteAssertion(
+        const auditRef =
+            this.state.justification ||
+            MICROSEG_TRANSPORT_RULE_DELETE_JUSTIFICATION;
+
+        this.api
+            .deleteTransportRule(
                 domain,
                 deletePolicyName,
                 this.state.assertionId,
-                this.state.justification
-                    ? this.state.justification
-                    : 'Microsegmentaion assertion deletion',
-                this.props._csrf
-            ),
-            this.api.deleteRole(
-                domain,
                 deleteRoleName,
-                this.state.justification
-                    ? this.state.justification
-                    : 'Microsegmentaion Role deletion',
+                auditRef,
                 this.props._csrf
-            ),
-        ])
+            )
             .then(() => {
                 this.setState({
                     showDelete: false,
@@ -178,16 +173,9 @@ export default class RuleRow extends React.Component {
                 this.props.onUpdateSuccess();
             })
             .catch((err) => {
-                if (err.statusCode === 404) {
-                    this.setState({
-                        showDelete: false,
-                    });
-                    this.props.onUpdateSuccess();
-                } else {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                }
+                this.setState({
+                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                });
             });
     }
 
@@ -308,6 +296,7 @@ export default class RuleRow extends React.Component {
 
         let editData = data;
         editData['category'] = this.props.category;
+
         let addSegmentation = this.state.showEditSegmentation ? (
             <AddSegmentation
                 api={this.api}

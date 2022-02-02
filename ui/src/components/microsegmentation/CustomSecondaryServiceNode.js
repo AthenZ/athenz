@@ -30,18 +30,6 @@ const StyledDiv = styled.div`
     background: rgb(255, 255, 255);
     border: 1px solid rgb(213, 213, 213);
     border-radius: 4px;
-    ${(props) =>
-        props.category === 'outbound' &&
-        css`
-            border-right-width: 4px;
-            border-right-color: rgb(21, 192, 70);
-        `}
-    ${(props) =>
-        props.category === 'inbound' &&
-        css`
-            border-left-width: 4px;
-            border-left-color: rgb(234, 0, 0);
-        `}
 `;
 
 const StyledLabelNameDiv = styled.div`
@@ -108,7 +96,6 @@ export default class CustomSecondaryServiceNode extends React.Component {
 
     render() {
         const { data } = this.props;
-
         let contentHandle;
         let label;
         if (data['category'] === 'inbound') {
