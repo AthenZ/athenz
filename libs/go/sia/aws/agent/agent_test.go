@@ -19,6 +19,7 @@ package agent
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"testing"
 	"time"
@@ -299,5 +300,67 @@ func TestShouldSkipRegister(test *testing.T) {
 	opts.EC2StartTime = &startTime
 	if !shouldSkipRegister(opts) {
 		test.Errorf("31 mins ago time is considered not expired incorrectly")
+	}
+}
+
+func TestHostCertificateLinePresent(test *testing.T) {
+	tests := []struct {
+		name   string
+		data   string
+		result bool
+	}{
+		{"valid-start", "HostCertificate /sshd.config", true},
+		{"valid-mid", "PermitTunnel no\nHostCertificate /sshd.config\nUseDNS no", true},
+		{"valid-mid-space", "PermitTunnel no\n  HostCertificate /sshd.config\nUseDNS no", true},
+		{"valid-mid-tab", "PermitTunnel no\n\tHostCertificate /sshd.config\nUseDNS no", true},
+		{"valid-mid-mix", "PermitTunnel no\n \t HostCertificate /sshd.config\nUseDNS no", true},
+		{"valid-end", "PermitTunnel no\nHostCertificate /sshd.config", true},
+		{"valid-commented", "PermitTunnel no\n#HostCertificate /sshd.config\nUseDNS no", false},
+		{"valid-not-present1", "PermitTunnel no\nHostCertificateOther /sshd.config\nUseDNS no", false},
+		{"valid-not-present2", "PermitTunnel no\nHostCertificate/sshd.config\nUseDNS no", false},
+		{"valid-not-present3", "PermitTunnel no\n\nUseDNS no\n", false},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			tmpFile, err := ioutil.TempFile(os.TempDir(), "sia-agent-test-")
+			if err != nil {
+				log.Fatal("Cannot create temporary file", err)
+			}
+			defer os.Remove(tmpFile.Name())
+			ioutil.WriteFile(tmpFile.Name(), []byte(tt.data), 644)
+			result, _ := hostCertificateLinePresent(tmpFile.Name())
+			if result != tt.result {
+				test.Errorf("%s: invalid value returned - expected: %v, received %v", tt.name, tt.result, result)
+			}
+		})
+	}
+}
+
+func TestUpdateSSHConfigFile(test *testing.T) {
+	tests := []struct {
+		name   string
+		data   string
+		result string
+	}{
+		{"test1", "PermitTunnel no\nUseDNS no", "PermitTunnel no\nUseDNS no\nHostCertificate /sshd.config\n"},
+		{"test2", "PermitTunnel no\n#HostCertificate /sshd.config\nUseDNS no\n", "PermitTunnel no\n#HostCertificate /sshd.config\nUseDNS no\n\nHostCertificate /sshd.config\n"},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			tmpFile, err := ioutil.TempFile(os.TempDir(), "sia-agent-test-")
+			if err != nil {
+				log.Fatal("Cannot create temporary file", err)
+			}
+			defer os.Remove(tmpFile.Name())
+			ioutil.WriteFile(tmpFile.Name(), []byte(tt.data), 644)
+			err = updateSSHConfigFile(tmpFile.Name(), "/sshd.config")
+			if err != nil {
+				test.Errorf("%s: unable to update file %s - error: %v", tt.name, tmpFile.Name(), err)
+			}
+			data, _ := ioutil.ReadFile(tmpFile.Name())
+			if tt.result != string(data) {
+				test.Errorf("%s: invalid value returned - expected: %v, received %v", tt.name, tt.result, string(data))
+			}
+		})
 	}
 }
