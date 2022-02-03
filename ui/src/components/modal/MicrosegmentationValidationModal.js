@@ -87,7 +87,7 @@ export default class MicrosegmentationValidationModal extends React.Component {
                     </ModifiedButton>
                     <ModifiedButton
                         secondary
-                        nClick={(event) => this.props.submit(event, true)}
+                        onClick={(event) => this.props.submit(event, true)}
                     >
                         Create Policy
                         <StyledLoaderSpan>

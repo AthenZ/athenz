@@ -1269,5 +1269,90 @@ describe('Fetchr Client API Test', () => {
             result = await api.getDomainTemplateDetailsList({});
             expect(result).toEqual(DATA);
         });
+        afterEach(() => fetchrStub.restore());
+    });
+    describe('deleteTransportRule test', () => {
+        it('deleteTransportRule test success', async () => {
+            myDataService = {
+                name: 'transport-rule',
+                delete: function (req, resource, params, config, callback){
+                    callback(null, DATA);
+                }
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataService);
+            result = await api.deleteTransportRule('dummyDom', 'dummyPol', '123', 'dummyRole', 'dummyAuditRef', '1234');
+            expect(result).toEqual(DATA);
+        });
+        it('deleteTransportRule test error', async () => {
+            myDataServiceErr = {
+                name: 'transport-rule',
+                delete: function (req, resource, params, config, callback){
+                    return callback({}, null);
+                }
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataServiceErr);
+            await api.deleteTransportRule('dummyDom', 'dummyPol', '123', 'dummyRole', 'dummyAuditRef', '1234').catch((err) => {
+                expect(err).not.toBeNull();
+            });
+        });
+        afterEach(() => fetchrStub.restore());
+    });
+    describe('validateMicrosegmentationPolicy test', () => {
+        it('validateMicrosegmentationPolicy test success', async () => {
+            myDataService = {
+                name: 'validateMicrosegmentation',
+                read: function (req, resource, params, config, callback){
+                    callback(null, DATA);
+                }
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataService);
+            result = await api.validateMicrosegmentationPolicy('inbound', 'dummyRoleMembers', 'service1', 'service2', '123-234', '1024');
+            expect(result).toEqual(DATA);
+        });
+        it('validateMicrosegmentationPolicy test error', async () => {
+            myDataServiceErr = {
+                name: 'validateMicrosegmentation',
+                read: function (req, resource, params, config, callback){
+                    return callback({}, null);
+                }
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataServiceErr);
+            await api.validateMicrosegmentationPolicy('inbound', 'dummyRoleMembers', 'service1', 'service2', '123-234', '1024').catch((err) => {
+                expect(err).not.toBeNull();
+            });
+        });
+        afterEach(() => fetchrStub.restore());
+    });
+    describe('editMicrosegmentation test', () => {
+        it('editMicrosegmentation test success', async () => {
+            myDataService = {
+                name: 'microsegmentation',
+                update: function (req, resource, params, body, config, callback) {
+                    callback(null, DATA);
+                }
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataService);
+            result = await api.editMicrosegmentation('domain1', 'false', 'false', 'true', 'dummyData', '1024');
+            expect(result).toEqual(DATA);
+        });
+        it('editMicrosegmentation test error', async () => {
+            myDataServiceErr = {
+                name: 'microsegmentation',
+                update: function (req, resource, params, body, config, callback) {
+                    return callback({}, null);
+                }
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataServiceErr);
+            await api.editMicrosegmentation('domain1', 'false', 'false', 'true', 'dummyData', '1024').catch((err) => {
+                expect(err).not.toBeNull();
+            });
+        });
+        afterEach(() => fetchrStub.restore());
     });
 });

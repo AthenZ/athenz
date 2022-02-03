@@ -926,7 +926,7 @@ export default class AddSegmentation extends React.Component {
         }
 
         this.validateMicrosegmentationPolicy(
-            this.props.category,
+            this.state.category,
             this.state.members,
             this.state.inboundDestinationService,
             this.state.outboundSourceService,
@@ -934,32 +934,51 @@ export default class AddSegmentation extends React.Component {
             destination.port,
             this.state.protocol,
             skipValidation
-        ).then(() => {
-            if (roleChanged || assertionChanged || assertionConditionChanged) {
-                this.api
-                    .editMicrosegmentation(
-                        this.props.domain,
-                        roleChanged,
-                        assertionChanged,
-                        assertionConditionChanged,
-                        updatedData,
-                        this.props._csrf
-                    )
-                    .then(() => {
-                        this.props.onSubmit();
-                    })
-                    .catch((err) => {
-                        this.setState({
-                            errorMessage:
-                                RequestUtils.fetcherErrorCheckHelper(err),
-                            saving: 'todo',
-                            validationError: 'none',
+        )
+            .then(() => {
+                if (
+                    roleChanged ||
+                    assertionChanged ||
+                    assertionConditionChanged
+                ) {
+                    this.api
+                        .editMicrosegmentation(
+                            this.props.domain,
+                            roleChanged,
+                            assertionChanged,
+                            assertionConditionChanged,
+                            updatedData,
+                            this.props._csrf
+                        )
+                        .then(() => {
+                            this.props.onSubmit();
+                        })
+                        .catch((err) => {
+                            this.setState({
+                                errorMessage:
+                                    RequestUtils.fetcherErrorCheckHelper(err),
+                                saving: 'todo',
+                                validationError: 'none',
+                            });
                         });
+                } else {
+                    this.props.onCancel();
+                }
+            })
+            .catch((err) => {
+                if (skipValidation) {
+                    this.setState({
+                        errorMessage: err,
+                        saving: 'todo',
+                        validationError: 'none',
                     });
-            } else {
-                this.props.onCancel();
-            }
-        });
+                } else {
+                    this.setState({
+                        errorMessage: err,
+                        saving: 'todo',
+                    });
+                }
+            });
     }
 
     loadServices() {
