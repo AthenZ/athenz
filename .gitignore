@@ -91,6 +91,8 @@ utils/zms-cli/bin/
 utils/athenz-conf/pkg/
 utils/athenz-conf/src/
 utils/athenz-conf/bin/
+utils/hostdoc/pkg/
+utils/hostdoc/target/
 utils/zms-svctoken/bin/
 utils/zms-svctoken/pkg/
 utils/zms-svctoken/src/

@@ -1,0 +1,1 @@
+{"domain":"athenz.examples","profile":"webserver","service":"httpd,yamas","uuid":"7716086","ip":["10.196.66.191","  2a00:1288:110:c30:0:0:0:1027   ", "unknown"],"provider":"infra.provider-baremetal"}

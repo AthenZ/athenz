@@ -17,6 +17,7 @@
 package hostcert
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -70,7 +71,7 @@ func makeHostCert(sshDir, keyId, certBaseName string) (string, error) {
 }
 
 // makeHostCertFromKey works with both RSA and ECDSA keys
-func makeHostCertFromKey(keyId string, prikey interface{}, pubkey interface{}, certType uint32) (*ssh.Certificate, error) {
+func makeHostCertFromKey(keyId string, prikey crypto.PrivateKey, pubkey crypto.PublicKey, certType uint32) (*ssh.Certificate, error) {
 	pkey, _ := ssh.NewPublicKey(pubkey)
 	cert := &ssh.Certificate{
 		KeyId:       keyId,
