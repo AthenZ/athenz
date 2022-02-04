@@ -7580,3 +7580,111 @@ func (self *UserAuthorityAttributeMap) Validate() error {
 	}
 	return nil
 }
+
+//
+// Stats - The representation for a stats object
+//
+type Stats struct {
+
+	//
+	// name of the domain object, null for system stats
+	//
+	Name DomainName `json:"name,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// number of subdomains allowed (applied at top level domain level)
+	//
+	Subdomain int32 `json:"subdomain"`
+
+	//
+	// number of roles allowed
+	//
+	Role int32 `json:"role"`
+
+	//
+	// number of members a role may have
+	//
+	RoleMember int32 `json:"roleMember"`
+
+	//
+	// number of policies allowed
+	//
+	Policy int32 `json:"policy"`
+
+	//
+	// total number of assertions a policy may have
+	//
+	Assertion int32 `json:"assertion"`
+
+	//
+	// total number of entity objects
+	//
+	Entity int32 `json:"entity"`
+
+	//
+	// number of services allowed
+	//
+	Service int32 `json:"service"`
+
+	//
+	// number of hosts allowed per service
+	//
+	ServiceHost int32 `json:"serviceHost"`
+
+	//
+	// number of public keys per service
+	//
+	PublicKey int32 `json:"publicKey"`
+
+	//
+	// number of groups per domain
+	//
+	Group int32 `json:"group"`
+
+	//
+	// number of members a group may have
+	//
+	GroupMember int32 `json:"groupMember"`
+}
+
+//
+// NewStats - creates an initialized Stats instance, returns a pointer to it
+//
+func NewStats(init ...*Stats) *Stats {
+	var o *Stats
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(Stats)
+	}
+	return o
+}
+
+type rawStats Stats
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a Stats
+//
+func (self *Stats) UnmarshalJSON(b []byte) error {
+	var m rawStats
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := Stats(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *Stats) Validate() error {
+	if self.Name != "" {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("Stats.name does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	return nil
+}

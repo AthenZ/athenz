@@ -2927,6 +2927,42 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testGetStats() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Stats stats = new Stats().setName("athenz").setAssertion(10).setEntity(11)
+                .setPolicy(12).setPublicKey(13).setRole(14).setRoleMember(15)
+                .setService(16).setServiceHost(17).setSubdomain(18);
+        Mockito.when(c.getStats("athenz")).thenReturn(stats)
+                .thenThrow(new ZMSClientException(401, "fail"))
+                .thenThrow(new IllegalArgumentException("other-error"));
+
+        Stats statsRes = client.getStats("athenz");
+        assertNotNull(statsRes);
+        assertEquals(statsRes.getPolicy(), 12);
+        assertEquals(statsRes.getRole(), 14);
+
+        // second time it fails
+
+        try {
+            client.getStats("athenz");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(401, ex.getCode());
+        }
+
+        // last time with std exception
+
+        try {
+            client.getStats("athenz");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+    }
+
+    @Test
     public void testGetQuota() {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);

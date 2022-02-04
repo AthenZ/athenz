@@ -1,0 +1,39 @@
+// Copyright Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//User API
+include "Names.tdl";
+
+//The representation for a stats object
+type Stats Struct {
+    DomainName name (optional); //name of the domain object, null for system stats
+    Int32 subdomain; //number of subdomains in this domain (all levels)
+    Int32 role; //number of roles
+    Int32 roleMember; //number of members in all the roles
+    Int32 policy; //number of policies
+    Int32 assertion; //total number of assertions in all policies
+    Int32 entity; //total number of entity objects
+    Int32 service; //number of services
+    Int32 serviceHost; //number of hosts defined in all services
+    Int32 publicKey; //number of public keys in all services
+    Int32 group; //number of groups
+    Int32 groupMember; //number of members in all the groups
+}
+
+//Retrieve the stats object defined for the domain
+resource Stats GET "/domain/{name}/stats" {
+    DomainName name; //name of the domain
+    authenticate;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+    }
+}
+
+//Retrieve the stats object defined for the system
+resource Stats GET "/sys/stats" (name=getSystemStats) {
+    authorize ("get", "sys.auth:stats");
+    exceptions {
+        ResourceError BAD_REQUEST;
+    }
+}

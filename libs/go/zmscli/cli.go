@@ -213,7 +213,6 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				Status:  200,
 				Message: s,
 			}
-
 			return cli.dumpByFormat(message, cli.buildYAMLOutput)
 		case "show-domain":
 			if argc == 1 {
@@ -378,6 +377,12 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			} else if argc == 1 {
 				return cli.ShowGroupsPrincipal(args[0], dn)
 			}
+		case "stats", "get-stats":
+			if argc == 1 {
+				//override the default domain
+				dn = args[0]
+			}
+			return cli.GetStats(dn)
 		case "help":
 			return cli.helpCommand(args)
 		default:
@@ -2816,6 +2821,15 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   approval   : true/false depicting whether membership is approved or rejected\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " put-group-membership-decision readers " + cli.UserDomain + ".john true\n")
+	case "get-stats", "stats":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] get-stats [domain]\n")
+		buf.WriteString("   [-o json] " + domainParam + " get-stats\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   domain : retrieve statistics for this domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   get-stats coretech.hosted\n")
+		buf.WriteString("   " + domainExample + " get-stats\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")
@@ -2870,6 +2884,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-quota [attrs ...]\n")
 	buf.WriteString("   delete-quota\n")
 	buf.WriteString("   overdue-review [domain]\n")
+	buf.WriteString("   get-stats [domain]\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Policy commands:\n")
 	buf.WriteString("   list-policy\n")

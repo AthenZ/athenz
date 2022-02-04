@@ -620,6 +620,21 @@ public class ZMSSchema {
             .comment("Map of user authority attributes")
             .mapField("attributes", "SimpleName", "UserAuthorityAttributes", false, "map of type to attribute values");
 
+        sb.structType("Stats")
+            .comment("The representation for a stats object")
+            .field("name", "DomainName", true, "name of the domain object, null for system stats")
+            .field("subdomain", "Int32", false, "number of subdomains allowed (applied at top level domain level)")
+            .field("role", "Int32", false, "number of roles allowed")
+            .field("roleMember", "Int32", false, "number of members a role may have")
+            .field("policy", "Int32", false, "number of policies allowed")
+            .field("assertion", "Int32", false, "total number of assertions a policy may have")
+            .field("entity", "Int32", false, "total number of entity objects")
+            .field("service", "Int32", false, "number of services allowed")
+            .field("serviceHost", "Int32", false, "number of hosts allowed per service")
+            .field("publicKey", "Int32", false, "number of public keys per service")
+            .field("group", "Int32", false, "number of groups per domain")
+            .field("groupMember", "Int32", false, "number of members a group may have");
+
 
         sb.resource("Domain", "GET", "/domain/{domain}")
             .comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
@@ -2686,6 +2701,24 @@ public class ZMSSchema {
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Stats", "GET", "/domain/{name}/stats")
+            .comment("Retrieve the stats object defined for the domain")
+            .pathParam("name", "DomainName", "name of the domain")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+;
+
+        sb.resource("Stats", "GET", "/sys/stats")
+            .comment("Retrieve the stats object defined for the system (authorized)")
+            .name("getSystemStats")
+            .auth("get", "sys.auth:stats")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
 ;
 
 

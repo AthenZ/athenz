@@ -4140,6 +4140,60 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/domain/{name}/stats")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Retrieve the stats object defined for the domain")
+    public Stats getStats(
+        @Parameter(description = "name of the domain", required = true) @PathParam("name") String name) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getStats");
+            context.authenticate();
+            return this.delegate.getStats(context, name);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getStats");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/sys/stats")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Retrieve the stats object defined for the system (authorized)")
+    public Stats getSystemStats(
+        ) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getSystemStats");
+            context.authorize("get", "sys.auth:stats", null);
+            return this.delegate.getSystemStats(context);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getSystemStats");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Get RDL Schema")

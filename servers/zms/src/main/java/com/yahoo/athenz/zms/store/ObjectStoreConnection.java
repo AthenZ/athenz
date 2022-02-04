@@ -171,6 +171,10 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateQuota(String domainName, Quota quota);
     boolean deleteQuota(String domainName);
 
+    // Stats command
+
+    Stats getStats(String domainName);
+
     Map<String, List<DomainRoleMember>> getPendingDomainRoleMembers(String principal);
     Map<String, List<DomainRoleMember>> getExpiredPendingDomainRoleMembers(int pendingRoleMemberLifespan);
     Set<String> getPendingMembershipApproverRoles(String server, long timestamp);
