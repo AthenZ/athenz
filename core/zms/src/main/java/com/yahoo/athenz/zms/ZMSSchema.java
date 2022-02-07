@@ -620,6 +620,21 @@ public class ZMSSchema {
             .comment("Map of user authority attributes")
             .mapField("attributes", "SimpleName", "UserAuthorityAttributes", false, "map of type to attribute values");
 
+        sb.structType("Stats")
+            .comment("The representation for a stats object")
+            .field("name", "DomainName", true, "name of the domain object, null for system stats")
+            .field("subdomain", "Int32", false, "number of subdomains in this domain (all levels)")
+            .field("role", "Int32", false, "number of roles")
+            .field("roleMember", "Int32", false, "number of members in all the roles")
+            .field("policy", "Int32", false, "number of policies")
+            .field("assertion", "Int32", false, "total number of assertions in all policies")
+            .field("entity", "Int32", false, "total number of entity objects")
+            .field("service", "Int32", false, "number of services")
+            .field("serviceHost", "Int32", false, "number of hosts defined in all services")
+            .field("publicKey", "Int32", false, "number of public keys in all services")
+            .field("group", "Int32", false, "number of groups")
+            .field("groupMember", "Int32", false, "number of members in all the groups");
+
         sb.structType("DependentService")
             .comment("Dependent service provider details")
             .field("service", "ServiceName", false, "name of the service");
@@ -2690,6 +2705,24 @@ public class ZMSSchema {
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Stats", "GET", "/domain/{name}/stats")
+            .comment("Retrieve the stats object defined for the domain")
+            .pathParam("name", "DomainName", "name of the domain")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+;
+
+        sb.resource("Stats", "GET", "/sys/stats")
+            .comment("Retrieve the stats object defined for the system")
+            .name("getSystemStats")
+            .auth("get", "sys.auth:stats")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
 ;
 
         sb.resource("DependentService", "PUT", "/dependency/domain/{domainName}")

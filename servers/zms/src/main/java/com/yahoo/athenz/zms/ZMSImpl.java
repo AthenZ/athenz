@@ -4380,6 +4380,36 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
     }
 
+    @Override
+    public Stats getStats(ResourceContext ctx, String domainName) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        return dbService.getStats(domainName);
+    }
+
+    @Override
+    public Stats getSystemStats(ResourceContext ctx) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        return dbService.getStats(null);
+    }
+
+    @Override
     public Quota getQuota(ResourceContext ctx, String domainName) {
 
         final String caller = ctx.getApiName();

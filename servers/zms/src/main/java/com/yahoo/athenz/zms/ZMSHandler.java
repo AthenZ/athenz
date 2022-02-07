@@ -122,6 +122,8 @@ public interface ZMSHandler {
     Status getStatus(ResourceContext context);
     DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext context, String principal);
     UserAuthorityAttributeMap getUserAuthorityAttributeMap(ResourceContext context);
+    Stats getStats(ResourceContext context, String name);
+    Stats getSystemStats(ResourceContext context);
     void putDomainDependency(ResourceContext context, String domainName, String auditRef, DependentService service);
     void deleteDomainDependency(ResourceContext context, String domainName, String service, String auditRef);
     ServiceIdentityList getDependentServiceList(ResourceContext context, String domainName);

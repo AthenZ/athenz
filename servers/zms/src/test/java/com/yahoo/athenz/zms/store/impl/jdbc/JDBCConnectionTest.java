@@ -13126,4 +13126,60 @@ public class JDBCConnectionTest {
         }
         jdbcConn.close();
     }
+
+    @Test
+    public void testGetObjectSystemCount() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(false).thenThrow(new SQLException("sql error"));
+
+        assertEquals(jdbcConn.getObjectSystemCount("role"), 0);
+        try {
+            jdbcConn.getObjectSystemCount("role");
+        } catch (RuntimeException rx){
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetObjectDomainCount() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(false).thenThrow(new SQLException("sql error"));
+
+        assertEquals(jdbcConn.getObjectDomainCount("role", 101), 0);
+        try {
+            jdbcConn.getObjectDomainCount("role", 101);
+        } catch (RuntimeException rx){
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetObjectDomainComponentCount() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(false).thenThrow(new SQLException("sql error"));
+
+        assertEquals(jdbcConn.getObjectDomainComponentCount("select count (*) from role where domain_id=?", 101), 0);
+        try {
+            jdbcConn.getObjectDomainComponentCount("select count (*) from role where domain_id=?", 101);
+        } catch (RuntimeException rx){
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetSubdomainPrefixCount() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(false).thenThrow(new SQLException("sql error"));
+
+        assertEquals(jdbcConn.getSubdomainPrefixCount("stats"), 0);
+        try {
+            jdbcConn.getSubdomainPrefixCount("stats");
+        } catch (RuntimeException rx){
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
 }

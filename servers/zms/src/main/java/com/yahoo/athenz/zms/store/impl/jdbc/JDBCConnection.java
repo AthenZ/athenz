@@ -41,6 +41,18 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final int MYSQL_ER_OPTION_PREVENTS_STATEMENT = 1290;
     private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
 
+    private static final String SQL_TABLE_DOMAIN = "domain";
+    private static final String SQL_TABLE_ROLE = "role";
+    private static final String SQL_TABLE_ROLE_MEMBER = "role_member";
+    private static final String SQL_TABLE_POLICY = "policy";
+    private static final String SQL_TABLE_ASSERTION = "assertion";
+    private static final String SQL_TABLE_PRINCIPAL_GROUP = "principal_group";
+    private static final String SQL_TABLE_PRINCIPAL_GROUP_MEMBER = "principal_group_member";
+    private static final String SQL_TABLE_SERVICE = "service";
+    private static final String SQL_TABLE_PUBLIC_KEY = "public_key";
+    private static final String SQL_TABLE_SERVICE_HOST = "service_host";
+    private static final String SQL_TABLE_ENTITY = "entity";
+
     private static final String SQL_DELETE_DOMAIN = "DELETE FROM domain WHERE name=?;";
     private static final String SQL_GET_DOMAIN = "SELECT * FROM domain WHERE name=?;";
     private static final String SQL_GET_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=?;";
@@ -565,6 +577,16 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN policy ON policy.policy_id=assertion.policy_id "
             + "WHERE policy.domain_id=? ORDER BY assertion.assertion_id, assertion_condition.condition_id;";
 
+    private static final String SQL_GET_OBJECT_SYSTEM_COUNT = "SELECT COUNT(*) FROM ";
+    private static final String SQL_GET_OBJECT_DOMAIN_COUNT = "SELECT COUNT(*) FROM ";
+    private static final String SQL_GET_OBJECT_DOMAIN_COUNT_QUERY = " WHERE domain_id=?";
+    private static final String SQL_GET_DOMAIN_ASSERTION_COUNT = "SELECT COUNT(*) from assertion JOIN policy on policy.policy_id=assertion.policy_id WHERE policy.domain_id=?;";
+    private static final String SQL_GET_DOMAIN_ROLE_MEMBER_COUNT = "SELECT COUNT(*) from role_member JOIN role on role.role_id=role_member.role_id WHERE role.domain_id=?;";
+    private static final String SQL_GET_DOMAIN_GROUP_MEMBER_COUNT = "SELECT COUNT(*) from principal_group_member JOIN principal_group on principal_group.group_id=principal_group_member.group_id WHERE principal_group.domain_id=?;";
+    private static final String SQL_GET_DOMAIN_SERVICE_HOST_COUNT = "SELECT COUNT(*) from service_host JOIN service on service_host.service_id=service.service_id WHERE service.domain_id=?;";
+    private static final String SQL_GET_DOMAIN_SERVICE_PUBLIC_KEY_COUNT = "SELECT COUNT(*) from public_key JOIN service on public_key.service_id=service.service_id WHERE service.domain_id=?;";
+    private static final String SQL_GET_DOMAIN_PREFIX_COUNT = "SELECT COUNT(*) FROM domain WHERE name>=? AND name<?;";
+
     private static final String SQL_INSERT_DOMAIN_DEPENDENCY = "INSERT INTO service_domain_dependency (domain, service)"
             + "VALUES (?,?);";
     private static final String SQL_DELETE_DOMAIN_DEPENDENCY = "DELETE FROM service_domain_dependency "
@@ -989,7 +1011,6 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         return ps;
     }
-
 
     PreparedStatement prepareScanByRoleStatement(String roleMember, String roleName)
             throws SQLException {
@@ -4245,6 +4266,136 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         return rsrcAccessList;
+    }
+
+    @Override
+    public Stats getStats(String domainName) {
+
+        final String caller = "getStats";
+
+        if (!StringUtil.isEmpty(domainName)) {
+            int domainId = getDomainId(domainName);
+            if (domainId == 0) {
+                throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+            }
+            return getDomainStats(domainName, domainId);
+        } else {
+            return getSystemStats();
+        }
+    }
+
+    Stats getSystemStats() {
+        Stats stats = new Stats();
+        stats.setAssertion(getObjectSystemCount(SQL_TABLE_ASSERTION));
+        stats.setRole(getObjectSystemCount(SQL_TABLE_ROLE));
+        stats.setRoleMember(getObjectSystemCount(SQL_TABLE_ROLE_MEMBER));
+        stats.setPolicy(getObjectSystemCount(SQL_TABLE_POLICY));
+        stats.setService(getObjectSystemCount(SQL_TABLE_SERVICE));
+        stats.setServiceHost(getObjectSystemCount(SQL_TABLE_SERVICE_HOST));
+        stats.setPublicKey(getObjectSystemCount(SQL_TABLE_PUBLIC_KEY));
+        stats.setEntity(getObjectSystemCount(SQL_TABLE_ENTITY));
+        stats.setSubdomain(getObjectSystemCount(SQL_TABLE_DOMAIN));
+        stats.setGroup(getObjectSystemCount(SQL_TABLE_PRINCIPAL_GROUP));
+        stats.setGroupMember(getObjectSystemCount(SQL_TABLE_PRINCIPAL_GROUP_MEMBER));
+        return stats;
+    }
+
+    Stats getDomainStats(final String domainName, int domainId) {
+
+        Stats stats = new Stats().setName(domainName);
+        stats.setRole(getObjectDomainCount(SQL_TABLE_ROLE, domainId));
+        stats.setPolicy(getObjectDomainCount(SQL_TABLE_POLICY, domainId));
+        stats.setEntity(getObjectDomainCount(SQL_TABLE_ENTITY, domainId));
+        stats.setService(getObjectDomainCount(SQL_TABLE_SERVICE, domainId));
+        stats.setGroup(getObjectDomainCount(SQL_TABLE_PRINCIPAL_GROUP, domainId));
+
+        stats.setAssertion(getObjectDomainComponentCount(SQL_GET_DOMAIN_ASSERTION_COUNT, domainId));
+        stats.setRoleMember(getObjectDomainComponentCount(SQL_GET_DOMAIN_ROLE_MEMBER_COUNT, domainId));
+        stats.setGroupMember(getObjectDomainComponentCount(SQL_GET_DOMAIN_GROUP_MEMBER_COUNT, domainId));
+        stats.setServiceHost(getObjectDomainComponentCount(SQL_GET_DOMAIN_SERVICE_HOST_COUNT, domainId));
+        stats.setPublicKey(getObjectDomainComponentCount(SQL_GET_DOMAIN_SERVICE_PUBLIC_KEY_COUNT, domainId));
+
+        stats.setSubdomain(getSubdomainPrefixCount(domainName));
+        return stats;
+    }
+
+    int getObjectSystemCount(final String tableName) {
+
+        final String caller = "getObjectSystemCount";
+
+        int count = 0;
+        final String sqlCommand = SQL_GET_OBJECT_SYSTEM_COUNT + tableName;
+        try (PreparedStatement ps = con.prepareStatement(sqlCommand)) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+
+    int getObjectDomainCount(final String tableName, int domainId) {
+
+        final String caller = "getObjectDomainCount";
+
+        int count = 0;
+        final String sqlCommand = SQL_GET_OBJECT_DOMAIN_COUNT + tableName + SQL_GET_OBJECT_DOMAIN_COUNT_QUERY;
+        try (PreparedStatement ps = con.prepareStatement(sqlCommand)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+
+    int getObjectDomainComponentCount(final String sqlCommand, int domainId) {
+
+        final String caller = "getObjectDomainComponentCount";
+
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(sqlCommand)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+
+    int getSubdomainPrefixCount(final String domainName) {
+
+        final String caller = "getSubdomainPrefixCount";
+
+        final String domainPrefix = domainName + ".";
+        int len = domainPrefix.length();
+        char c = (char) (domainPrefix.charAt(len - 1) + 1);
+        final String stop = domainPrefix.substring(0, len - 1) + c;
+
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_PREFIX_COUNT)) {
+            ps.setString(1, domainPrefix);
+            ps.setString(2, stop);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
     }
 
     @Override

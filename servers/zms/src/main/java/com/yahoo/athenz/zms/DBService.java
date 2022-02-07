@@ -1107,7 +1107,7 @@ public class DBService implements RolesProvider {
 
                         // copy assertion conditions for new assertion id
 
-                        if (assertionConditions != null && assertionConditions.getConditionsList() != null && !assertionConditions.getConditionsList().isEmpty()) {
+                        if (assertionConditions.getConditionsList() != null && !assertionConditions.getConditionsList().isEmpty()) {
                             if (!con.insertAssertionConditions(assertion.getId(), assertionConditions)) {
                                 con.rollbackChanges();
                                 throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() + ", version: " + version + ", fail inserting assertion conditions", caller);
@@ -5256,6 +5256,12 @@ public class DBService implements RolesProvider {
     public Quota getQuota(String domainName) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return quotaCheck.getDomainQuota(con, domainName);
+        }
+    }
+
+    public Stats getStats(String domainName) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.getStats(domainName);
         }
     }
 

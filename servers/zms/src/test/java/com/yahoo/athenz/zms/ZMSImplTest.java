@@ -28648,7 +28648,6 @@ public class ZMSImplTest {
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
     }
 
-
     @Test
     public void testNoConfiguredTopic() {
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
@@ -28693,7 +28692,6 @@ public class ZMSImplTest {
                 .setMessageId(java.util.UUID.randomUUID().toString())
             ));
         zmsImpl.publishChangeMessage(mockContext, 200);
-
 
         // verify publish messages
         MockDomainChangePublisher.Recorder evtRecorder = getEventRecorder(zmsImpl);
@@ -28790,8 +28788,6 @@ public class ZMSImplTest {
         // make sure no exceptions are thrown since we should catch and log them
         zmsImpl.recordMetrics(mockContext, 200);
     }
-
-
 
     @Test
     public void testIsSysAdminRoleMemberNotFoundRole() {

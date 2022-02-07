@@ -2670,7 +2670,7 @@ public class ZMSClient implements Closeable {
     }
 
     /**
-     * Retrieve the quota deatails for the specified domain
+     * Retrieve the quota details for the specified domain
      *
      * @param domainName name of the domain
      * @return quota object
@@ -2680,6 +2680,24 @@ public class ZMSClient implements Closeable {
         updatePrincipal();
         try {
             return client.getQuota(domainName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Retrieve the stats for the specified domain
+     *
+     * @param domainName name of the domain
+     * @return stats object
+     * @throws ZMSClientException in case of failure
+     */
+    public Stats getStats(String domainName) {
+        updatePrincipal();
+        try {
+            return client.getStats(domainName);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
