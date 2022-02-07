@@ -37,6 +37,26 @@ func parseRoleMember(memberStruct map[interface{}]interface{}) *zms.RoleMember {
 	return roleMember
 }
 
+func shouldReportError(commandSkipErrors, clientSkipErrors bool, err error) bool {
+	// if we have no error then there is nothing to check
+	if err == nil {
+		return false
+	}
+	// if the skip errors argument is false then we're going
+	// to report the error
+	if !commandSkipErrors {
+		return true
+	}
+	// output the error
+	fmt.Println("***", err)
+	// if the client requested skip error option is disabled then
+	// we're only going to skip any errors where the object already exists
+	if clientSkipErrors {
+		return false
+	}
+	return !strings.Contains(err.Error(), "already exists")
+}
+
 func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, validatedAdmins []string, skipErrors bool) error {
 	for _, role := range lstRoles {
 		rn := localName(string(role.Name), ":role.")
@@ -73,22 +93,14 @@ func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, validatedAdmins []st
 				_, err = cli.AddRegularRole(dn, rn, roleMembers)
 				cli.Verbose = b
 			}
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		} else if role.Trust != "" {
 			trust := string(role.Trust)
 			_, err := cli.AddDelegatedRole(dn, rn, trust)
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		} else {
 			roleMembers := make([]*zms.RoleMember, 0)
@@ -96,12 +108,8 @@ func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, validatedAdmins []st
 			cli.Verbose = true
 			_, err := cli.AddRegularRole(dn, rn, roleMembers)
 			cli.Verbose = b
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		}
 	}
@@ -148,22 +156,14 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 				_, err = cli.AddRegularRole(dn, rn, roleMembers)
 				cli.Verbose = b
 			}
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		} else if val, ok := roleMap["trust"]; ok {
 			trust := val.(string)
 			_, err := cli.AddDelegatedRole(dn, rn, trust)
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		} else {
 			roleMembers := make([]*zms.RoleMember, 0)
@@ -171,12 +171,8 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 			cli.Verbose = true
 			_, err := cli.AddRegularRole(dn, rn, roleMembers)
 			cli.Verbose = b
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		}
 	}
@@ -202,12 +198,8 @@ func (cli Zms) importPolicies(dn string, lstPolicies []*zms.Policy, skipErrors b
 
 		if name != "admin" {
 			_, err := cli.AddPolicyWithAssertions(dn, name, assertions)
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		}
 	}
@@ -233,12 +225,8 @@ func (cli Zms) importPoliciesOld(dn string, lstPolicies []interface{}, skipError
 					}
 					assertion := strings.Split(a.(string), " ")
 					newAssertion, err := parseAssertion(dn, assertion)
-					if err != nil {
-						if skipErrors {
-							fmt.Println("***", err)
-						} else {
-							return err
-						}
+					if shouldReportError(skipErrors, cli.SkipErrors, err) {
+						return err
 					}
 					assertions = append(assertions, newAssertion)
 				}
@@ -246,12 +234,8 @@ func (cli Zms) importPoliciesOld(dn string, lstPolicies []interface{}, skipError
 		}
 		if name != "admin" {
 			_, err := cli.AddPolicyWithAssertions(dn, name, assertions)
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		}
 	}
@@ -289,42 +273,25 @@ func (cli Zms) importServices(dn string, lstServices []*zms.ServiceIdentity, ski
 		_, _ = fmt.Fprintf(os.Stdout, "Processing service "+name+"...\n")
 		publicKeys := service.PublicKeys
 		_, err := cli.AddServiceWithKeys(dn, name, publicKeys)
-		if err != nil {
-			if skipErrors {
-				fmt.Println("***", err)
-			} else {
-				return err
-			}
+		if shouldReportError(skipErrors, cli.SkipErrors, err) {
+			return err
 		}
 		if service.ProviderEndpoint != "" {
 			_, err = cli.SetServiceEndpoint(dn, name, service.ProviderEndpoint)
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		}
-
 		if service.User != "" || service.Group != "" || service.Executable != "" {
 			_, err = cli.SetServiceExe(dn, name, service.Executable, service.User, service.Group)
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		}
 		if len(service.Hosts) > 0 {
 			_, err = cli.AddServiceHost(dn, name, service.Hosts)
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		}
 	}
@@ -349,12 +316,8 @@ func (cli Zms) importServicesOld(dn string, lstServices []interface{}, skipError
 			endpoint := val.(string)
 			if endpoint != "" {
 				_, err = cli.SetServiceEndpoint(dn, name, endpoint)
-				if err != nil {
-					if skipErrors {
-						fmt.Println("***", err)
-					} else {
-						return err
-					}
+				if shouldReportError(skipErrors, cli.SkipErrors, err) {
+					return err
 				}
 			}
 		}
@@ -372,12 +335,8 @@ func (cli Zms) importServicesOld(dn string, lstServices []interface{}, skipError
 		}
 		if user != "" || group != "" || exe != "" {
 			_, err = cli.SetServiceExe(dn, name, exe, user, group)
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		}
 		if val, ok := serviceMap["hosts"]; ok {
@@ -387,12 +346,8 @@ func (cli Zms) importServicesOld(dn string, lstServices []interface{}, skipError
 				hosts = append(hosts, host.(string))
 			}
 			_, err = cli.AddServiceHost(dn, name, hosts)
-			if err != nil {
-				if skipErrors {
-					fmt.Println("***", err)
-				} else {
-					return err
-				}
+			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+				return err
 			}
 		}
 	}

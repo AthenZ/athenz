@@ -106,7 +106,6 @@ func (cli Zms) ShowPolicyVersion(dn string, policy string, version string) (*str
 	return cli.dumpByFormat(policyVersion, oldYamlConverter)
 }
 
-
 func parseAssertion(dn string, lst []string) (*zms.Assertion, error) {
 	err := fmt.Errorf("bad assertion syntax. should be '<effect> <action> to <role> on <resource>'")
 	n := len(lst)
@@ -155,12 +154,22 @@ func parseAssertion(dn string, lst []string) (*zms.Assertion, error) {
 
 func (cli Zms) AddPolicyWithAssertions(dn string, pn string, assertions []*zms.Assertion) (*string, error) {
 	fullResourceName := dn + ":policy." + pn
+	_, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
+	if err == nil {
+		return nil, fmt.Errorf("policy already exists: %v", fullResourceName)
+	}
+	switch v := err.(type) {
+	case rdl.ResourceError:
+		if v.Code != 404 {
+			return nil, v
+		}
+	}
 	policy := zms.Policy{
 		Name:       zms.ResourceName(fullResourceName),
 		Modified:   nil,
 		Assertions: assertions,
 	}
-	err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &policy)
+	err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &policy)
 	if err != nil {
 		return nil, err
 	}
