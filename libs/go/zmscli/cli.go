@@ -47,6 +47,7 @@ type Zms struct {
 	ProductIdSupport bool
 	Debug            bool
 	AddSelf          bool
+	SkipErrors       bool
 }
 
 type SuccessMessage struct {
