@@ -516,7 +516,9 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 					fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
 					opts,
 				)
-				certUpdates <- true
+				if opts.SDSUdsPath != "" {
+					certUpdates <- true
+				}
 
 				select {
 				case <-stop:

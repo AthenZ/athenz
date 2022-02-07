@@ -124,6 +124,10 @@ public interface ZMSHandler {
     UserAuthorityAttributeMap getUserAuthorityAttributeMap(ResourceContext context);
     Stats getStats(ResourceContext context, String name);
     Stats getSystemStats(ResourceContext context);
+    void putDomainDependency(ResourceContext context, String domainName, String auditRef, DependentService service);
+    void deleteDomainDependency(ResourceContext context, String domainName, String service, String auditRef);
+    ServiceIdentityList getDependentServiceList(ResourceContext context, String domainName);
+    DomainList getDependentDomainList(ResourceContext context, String service);
     Schema getRdlSchema(ResourceContext context);
     ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
     void recordMetrics(ResourceContext ctx, int httpStatus);

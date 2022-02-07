@@ -216,6 +216,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected DomainMetaStore domainMetaStore = null;
     protected NotificationToEmailConverterCommon notificationToEmailConverterCommon;
     protected List<ChangePublisher<DomainChangeMessage>> domainChangePublishers = new ArrayList<>();
+    protected ServiceProviderManager serviceProviderManager;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -664,7 +665,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // system disabled from UserAuthority
 
         initializePrincipalStateUpdater();
-        
+
+        // Initialize Service Provider Manager
+
+        initializeServiceProviderManager();
+
         // load the DomainChangePublisher
         
         loadDomainChangePublisher();
@@ -707,6 +712,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_ENABLE_PRINCIPAL_STATE_UPDATER, "false"))) {
             new PrincipalStateUpdater(this.dbService, this.userAuthority);
         }
+    }
+
+    private void initializeServiceProviderManager() {
+        serviceProviderManager = new ServiceProviderManager(dbService);
     }
 
     private void setNotificationManager() {
@@ -1534,9 +1543,37 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             groupMemberConsistencyCheck(domainName, group.getName(), true, caller);
         }
 
-        // consistency checks are ok so we can go ahead and delete the domain
+        // consistency checks are ok. Now make sure no service is dependent on the domain
+
+        verifyNoServiceDependenciesOnDomain(domainName, caller);
+
+        // no service is dependent on the domain, we can go ahead and delete the domain
 
         dbService.executeDeleteDomain(ctx, domainName, auditRef, caller);
+    }
+
+    private void verifyNoServiceDependenciesOnDomain(String domainName, String caller) {
+        ServiceIdentityList serviceIdentityList = dbService.listServiceDependencies(domainName);
+        if (serviceIdentityList.getNames() != null && !serviceIdentityList.getNames().isEmpty()) {
+            StringBuilder msgBuilder = new StringBuilder("Remove domain '");
+            msgBuilder.append(domainName);
+            msgBuilder.append("' dependency from the following service(s):");
+            msgBuilder.append(String.join(", ", serviceIdentityList.getNames()));
+            throw ZMSUtils.forbiddenError(msgBuilder.toString(), caller);
+        }
+    }
+
+    private void verifyNoDomainDependenciesOnService(String serviceName, String caller) {
+        if (serviceProviderManager.isServiceProvider(serviceName)) {
+            DomainList domainList = dbService.listDomainDependencies(serviceName);
+            if (domainList.getNames() != null && !domainList.getNames().isEmpty()) {
+                StringBuilder msgBuilder = new StringBuilder("Remove service '");
+                msgBuilder.append(serviceName);
+                msgBuilder.append("' dependency from the following domain(s):");
+                msgBuilder.append(String.join(", ", domainList.getNames()));
+                throw ZMSUtils.forbiddenError(msgBuilder.toString(), caller);
+            }
+        }
     }
 
     boolean isVirtualDomain(String domain) {
@@ -5588,6 +5625,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that request is properly authenticated for this request
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        // make sure no domain is dependent on the service
+
+        verifyNoDomainDependenciesOnService(domainName + "." + serviceName, caller);
 
         dbService.executeDeleteServiceIdentity(ctx, domainName, serviceName, auditRef, caller);
     }
@@ -10126,6 +10167,121 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
         dbService.executeDeleteAssertionCondition(ctx, domainName, policyName, assertionId, conditionId, auditRef, caller);
+    }
+
+    @Override
+    public void putDomainDependency(ResourceContext ctx, String domainName, String auditRef, DependentService dependentService) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode.get()) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        String service = (dependentService != null) ? dependentService.getService() : null;
+        service = getAuthorizedProviderService((RsrcCtxWrapper) ctx, service, caller);
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(service, TYPE_SERVICE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        service = service.toLowerCase();
+
+        dbService.putDomainDependency(ctx, domainName, service, auditRef, caller);
+    }
+
+    @Override
+    public void deleteDomainDependency(ResourceContext ctx, String domainName, String service, String auditRef) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode.get()) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        service = getAuthorizedProviderService((RsrcCtxWrapper) ctx, service, caller);
+
+        validateRequest(ctx.request(), caller);
+
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(service, TYPE_SERVICE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        service = service.toLowerCase();
+
+        dbService.deleteDomainDependency(ctx, domainName, service, auditRef, caller);
+    }
+
+    String getAuthorizedProviderService(RsrcCtxWrapper ctx, String service, String caller) {
+        // If system administrator - service is mandatory
+        // Otherwise ignore it and use the principal as dependent service
+
+        Principal principal = ctx.principal();
+        boolean isSysAdminUser = isSysAdminUser(principal);
+        if (isSysAdminUser) {
+            if (StringUtil.isEmpty(service)) {
+                throw ZMSUtils.requestError("service is mandatory", caller);
+            }
+        } else {
+            service = principal.getFullName();
+        }
+        service = service.toLowerCase();
+
+        if (!serviceProviderManager.isServiceProvider(service)) {
+            throw ZMSUtils.unauthorizedError(service + " is not an authorized service provider", caller);
+        }
+        return service;
+    }
+
+    @Override
+    public ServiceIdentityList getDependentServiceList(ResourceContext ctx, String domainName) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        return dbService.listServiceDependencies(domainName);
+    }
+
+    @Override
+    public DomainList getDependentDomainList(ResourceContext ctx, String service) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(service, TYPE_SERVICE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        service = service.toLowerCase();
+
+        if (serviceProviderManager.isServiceProvider(service)) {
+            return dbService.listDomainDependencies(service);
+        } else {
+            throw ZMSUtils.requestError(service + " is not a registered service provider", caller);
+        }
     }
 
     void validateAssertionConditions(AssertionConditions assertionConditions, String caller) {

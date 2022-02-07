@@ -144,6 +144,11 @@ public class ZMSSchema {
             .comment("A list of domain objects with their meta attributes.")
             .arrayField("domains", "Domain", false, "list of domain objects");
 
+        sb.structType("DomainList")
+            .comment("A paginated list of domains.")
+            .arrayField("names", "DomainName", false, "list of domain names")
+            .field("next", "String", true, "if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter.");
+
         sb.structType("RoleList")
             .comment("The representation for an enumeration of roles in the namespace, with pagination.")
             .arrayField("names", "EntityName", false, "list of role names")
@@ -364,11 +369,6 @@ public class ZMSSchema {
         sb.structType("DomainTemplateDetailsList")
             .comment("List of templates with metadata details given a domain")
             .arrayField("metaData", "TemplateMetaData", false, "list of template metadata");
-
-        sb.structType("DomainList")
-            .comment("A paginated list of domains.")
-            .arrayField("names", "DomainName", false, "list of domain names")
-            .field("next", "String", true, "if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter.");
 
         sb.structType("TopLevelDomain", "DomainMeta")
             .comment("Top Level Domain object. The required attributes include the name of the domain and list of domain administrators.")
@@ -623,17 +623,21 @@ public class ZMSSchema {
         sb.structType("Stats")
             .comment("The representation for a stats object")
             .field("name", "DomainName", true, "name of the domain object, null for system stats")
-            .field("subdomain", "Int32", false, "number of subdomains allowed (applied at top level domain level)")
-            .field("role", "Int32", false, "number of roles allowed")
-            .field("roleMember", "Int32", false, "number of members a role may have")
-            .field("policy", "Int32", false, "number of policies allowed")
-            .field("assertion", "Int32", false, "total number of assertions a policy may have")
+            .field("subdomain", "Int32", false, "number of subdomains in this domain (all levels)")
+            .field("role", "Int32", false, "number of roles")
+            .field("roleMember", "Int32", false, "number of members in all the roles")
+            .field("policy", "Int32", false, "number of policies")
+            .field("assertion", "Int32", false, "total number of assertions in all policies")
             .field("entity", "Int32", false, "total number of entity objects")
-            .field("service", "Int32", false, "number of services allowed")
-            .field("serviceHost", "Int32", false, "number of hosts allowed per service")
-            .field("publicKey", "Int32", false, "number of public keys per service")
-            .field("group", "Int32", false, "number of groups per domain")
-            .field("groupMember", "Int32", false, "number of members a group may have");
+            .field("service", "Int32", false, "number of services")
+            .field("serviceHost", "Int32", false, "number of hosts defined in all services")
+            .field("publicKey", "Int32", false, "number of public keys in all services")
+            .field("group", "Int32", false, "number of groups")
+            .field("groupMember", "Int32", false, "number of members in all the groups");
+
+        sb.structType("DependentService")
+            .comment("Dependent service provider details")
+            .field("service", "ServiceName", false, "name of the service");
 
 
         sb.resource("Domain", "GET", "/domain/{domain}")
@@ -2714,11 +2718,83 @@ public class ZMSSchema {
 ;
 
         sb.resource("Stats", "GET", "/sys/stats")
-            .comment("Retrieve the stats object defined for the system (authorized)")
+            .comment("Retrieve the stats object defined for the system")
             .name("getSystemStats")
             .auth("get", "sys.auth:stats")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
+;
+
+        sb.resource("DependentService", "PUT", "/dependency/domain/{domainName}")
+            .comment("Register domain as a dependency to service There are two possible authorization checks for this endpoint: 1) System Administrator 2) Authorized Service Provider")
+            .name("putDomainDependency")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("service", "DependentService", "Dependent service provider details")
+            .auth("", "", true)
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ServiceName", "DELETE", "/dependency/domain/{domainName}/service/{service}")
+            .comment("De-register domain as a dependency to service There are two possible authorization checks for this endpoint: 1) System Administrator 2) Authorized Service Provider")
+            .name("deleteDomainDependency")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("service", "ServiceName", "name of the service")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .auth("", "", true)
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ServiceIdentityList", "GET", "/dependency/domain/{domainName}")
+            .comment("List registered services for domain")
+            .name("getDependentServiceList")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("DomainList", "GET", " /dependency/service/{service}")
+            .comment("List dependent domains for service")
+            .name("getDependentDomainList")
+            .pathParam("service", "ServiceName", "name of the service")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
 

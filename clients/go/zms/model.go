@@ -717,6 +717,79 @@ func (self *DomainMetaList) Validate() error {
 }
 
 //
+// DomainList - A paginated list of domains.
+//
+type DomainList struct {
+
+	//
+	// list of domain names
+	//
+	Names []DomainName `json:"names"`
+
+	//
+	// if the response is a paginated list, this attribute specifies the value to
+	// be used in the next domain list request as the value for the skip query
+	// parameter.
+	//
+	Next string `json:"next" rdl:"optional" yaml:",omitempty"`
+}
+
+//
+// NewDomainList - creates an initialized DomainList instance, returns a pointer to it
+//
+func NewDomainList(init ...*DomainList) *DomainList {
+	var o *DomainList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainList)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *DomainList) Init() *DomainList {
+	if self.Names == nil {
+		self.Names = make([]DomainName, 0)
+	}
+	return self
+}
+
+type rawDomainList DomainList
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DomainList
+//
+func (self *DomainList) UnmarshalJSON(b []byte) error {
+	var m rawDomainList
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainList(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DomainList) Validate() error {
+	if self.Names == nil {
+		return fmt.Errorf("DomainList: Missing required field: names")
+	}
+	if self.Next != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Next)
+		if !val.Valid {
+			return fmt.Errorf("DomainList.next does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
 // RoleList - The representation for an enumeration of roles in the namespace,
 // with pagination.
 //
@@ -3580,79 +3653,6 @@ func (self *DomainTemplateDetailsList) UnmarshalJSON(b []byte) error {
 func (self *DomainTemplateDetailsList) Validate() error {
 	if self.MetaData == nil {
 		return fmt.Errorf("DomainTemplateDetailsList: Missing required field: metaData")
-	}
-	return nil
-}
-
-//
-// DomainList - A paginated list of domains.
-//
-type DomainList struct {
-
-	//
-	// list of domain names
-	//
-	Names []DomainName `json:"names"`
-
-	//
-	// if the response is a paginated list, this attribute specifies the value to
-	// be used in the next domain list request as the value for the skip query
-	// parameter.
-	//
-	Next string `json:"next" rdl:"optional" yaml:",omitempty"`
-}
-
-//
-// NewDomainList - creates an initialized DomainList instance, returns a pointer to it
-//
-func NewDomainList(init ...*DomainList) *DomainList {
-	var o *DomainList
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(DomainList)
-	}
-	return o.Init()
-}
-
-//
-// Init - sets up the instance according to its default field values, if any
-//
-func (self *DomainList) Init() *DomainList {
-	if self.Names == nil {
-		self.Names = make([]DomainName, 0)
-	}
-	return self
-}
-
-type rawDomainList DomainList
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a DomainList
-//
-func (self *DomainList) UnmarshalJSON(b []byte) error {
-	var m rawDomainList
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := DomainList(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *DomainList) Validate() error {
-	if self.Names == nil {
-		return fmt.Errorf("DomainList: Missing required field: names")
-	}
-	if self.Next != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.Next)
-		if !val.Valid {
-			return fmt.Errorf("DomainList.next does not contain a valid String (%v)", val.Error)
-		}
 	}
 	return nil
 }
@@ -7592,27 +7592,27 @@ type Stats struct {
 	Name DomainName `json:"name,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// number of subdomains allowed (applied at top level domain level)
+	// number of subdomains in this domain (all levels)
 	//
 	Subdomain int32 `json:"subdomain"`
 
 	//
-	// number of roles allowed
+	// number of roles
 	//
 	Role int32 `json:"role"`
 
 	//
-	// number of members a role may have
+	// number of members in all the roles
 	//
 	RoleMember int32 `json:"roleMember"`
 
 	//
-	// number of policies allowed
+	// number of policies
 	//
 	Policy int32 `json:"policy"`
 
 	//
-	// total number of assertions a policy may have
+	// total number of assertions in all policies
 	//
 	Assertion int32 `json:"assertion"`
 
@@ -7622,27 +7622,27 @@ type Stats struct {
 	Entity int32 `json:"entity"`
 
 	//
-	// number of services allowed
+	// number of services
 	//
 	Service int32 `json:"service"`
 
 	//
-	// number of hosts allowed per service
+	// number of hosts defined in all services
 	//
 	ServiceHost int32 `json:"serviceHost"`
 
 	//
-	// number of public keys per service
+	// number of public keys in all services
 	//
 	PublicKey int32 `json:"publicKey"`
 
 	//
-	// number of groups per domain
+	// number of groups
 	//
 	Group int32 `json:"group"`
 
 	//
-	// number of members a group may have
+	// number of members in all the groups
 	//
 	GroupMember int32 `json:"groupMember"`
 }
@@ -7684,6 +7684,61 @@ func (self *Stats) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "DomainName", self.Name)
 		if !val.Valid {
 			return fmt.Errorf("Stats.name does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// DependentService - Dependent service provider details
+//
+type DependentService struct {
+
+	//
+	// name of the service
+	//
+	Service ServiceName `json:"service"`
+}
+
+//
+// NewDependentService - creates an initialized DependentService instance, returns a pointer to it
+//
+func NewDependentService(init ...*DependentService) *DependentService {
+	var o *DependentService
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DependentService)
+	}
+	return o
+}
+
+type rawDependentService DependentService
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DependentService
+//
+func (self *DependentService) UnmarshalJSON(b []byte) error {
+	var m rawDependentService
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DependentService(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DependentService) Validate() error {
+	if self.Service == "" {
+		return fmt.Errorf("DependentService.service is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "ServiceName", self.Service)
+		if !val.Valid {
+			return fmt.Errorf("DependentService.service does not contain a valid ServiceName (%v)", val.Error)
 		}
 	}
 	return nil
