@@ -129,7 +129,7 @@ func getAuthNToken(identity, authorizedServices, zmsUrl string, tr *http.Transpo
 	}
 	tok, err := zmsClient.GetUserToken(zms.SimpleName(user), authorizedServices, nil)
 	if err != nil {
-		return "", fmt.Errorf("Cannot get user token for user: %s error: %v", user, err)
+		return "", fmt.Errorf("cannot get user token for user: %s error: %v", user, err)
 	}
 	if tok.Token != "" {
 		ntokenFile := os.Getenv("HOME") + "/.ntoken"
@@ -148,6 +148,7 @@ func usage() string {
 	buf.WriteString("   -c cacert_file      CA Certificate file path\n")
 	buf.WriteString("   -cert x509_cert     Athenz X.509 Certificate file for authentication\n")
 	buf.WriteString("   -d domain           The domain used for every command that takes a domain argument\n")
+	buf.WriteString("   -e skip_errors      Skip errors during import domain operation\n")
 	buf.WriteString("   -f ntoken_file      Principal Authority NToken file used for authentication\n")
 	buf.WriteString("   -i identity         User identity to authenticate as if NToken file is not specified\n")
 	buf.WriteString("                       (default=" + defaultIdentity() + ")\n")
@@ -203,6 +204,7 @@ func main() {
 	pX509KeyFile := flag.String("key", "", "x.509 private key file for authentication")
 	pX509CertFile := flag.String("cert", "", "x.509 certificate key file for authentication")
 	pShowVersion := flag.Bool("version", false, "Show version")
+	pSkipErrors := flag.Bool("e", true, "Skip all errors during import domain operation")
 
 	flag.Usage = func() {
 		fmt.Println(usage())
@@ -270,6 +272,7 @@ func main() {
 		Debug:            *pDebug,
 		AddSelf:          *pAddSelf,
 		OutputFormat:     *pOutputFormat,
+		SkipErrors:       *pSkipErrors,
 	}
 
 	if *pX509KeyFile != "" && *pX509CertFile != "" {
