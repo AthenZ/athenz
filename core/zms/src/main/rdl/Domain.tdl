@@ -43,3 +43,9 @@ type Domain DomainMeta {
 type DomainMetaList Struct {
     Array<Domain> domains; //list of domain objects
 }
+
+//A paginated list of domains.
+type DomainList Struct {
+    Array<DomainName> names; //list of domain names
+    String next (optional); //if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter.
+}

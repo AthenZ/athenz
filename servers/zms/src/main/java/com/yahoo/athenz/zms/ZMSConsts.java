@@ -328,6 +328,13 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_PRINCIPAL_STATE_UPDATER_FREQUENCY_DEFAULT = "30"; // in minutes
     public static final String ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER = "athenz.zms.disable_principal_state_updater_timer_task";
 
+    public static final String ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS = "athenz.zms.service_provider_manager_frequency_seconds";
+    public static final String ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS_DEFAULT = "300";
+    public static final String ZMS_PROP_SERVICE_PROVIDER_MANAGER_DOMAIN = "athenz.zms.service_provider_manager_domain";
+    public static final String ZMS_PROP_SERVICE_PROVIDER_MANAGER_DOMAIN_DEFAULT = "sys.auth";
+    public static final String ZMS_PROP_SERVICE_PROVIDER_MANAGER_ROLE = "athenz.zms.service_provider_manager_role";
+    public static final String ZMS_PROP_SERVICE_PROVIDER_MANAGER_ROLE_DEFAULT = "service_providers";
+
     public static final String ZMS_PROP_QUOTA_ASSERTION_CONDITIONS = "athenz.zms.quota_assertion_conditions";
 
     public static final String ZMS_PROP_MAX_POLICY_VERSIONS_DEFAULT = "3";

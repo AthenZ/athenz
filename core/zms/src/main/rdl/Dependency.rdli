@@ -1,0 +1,70 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Domain.tdl";
+include "ServiceIdentity.tdl";
+include "Dependency.tdl";
+
+//Register domain as a dependency to service
+// There are two possible authorization checks for this endpoint:
+// 1) System Administrator
+// 2) Authorized Service Provider
+resource DependentService PUT "/dependency/domain/{domainName}" (name=putDomainDependency) {
+    DomainName domainName; //name of the domain
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    DependentService service; //Dependent service provider details
+    authenticate;
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//De-register domain as a dependency to service
+// There are two possible authorization checks for this endpoint:
+// 1) System Administrator
+// 2) Authorized Service Provider
+resource ServiceName DELETE "/dependency/domain/{domainName}/service/{service}" (name=deleteDomainDependency) {
+    DomainName domainName; //name of the domain
+    ServiceName service; //name of the service
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    authenticate;
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//List registered services for domain
+resource ServiceIdentityList GET "/dependency/domain/{domainName}" (name=getDependentServiceList) {
+    DomainName domainName;//name of the domain
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//List dependent domains for service
+resource DomainList GET " /dependency/service/{service}" (name=getDependentDomainList) {
+    ServiceName service; //name of the service
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

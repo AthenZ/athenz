@@ -4052,4 +4052,27 @@ public class ZMSCoreTest {
         assertTrue(userAuthoritylAttributes.equals(userAuthoritylAttributes2));
     }
 
+    @Test
+    public void testDependentService() {
+
+        DependentService a = new DependentService().setService("testService");
+        assertEquals(a.getService(), "testService");
+        assertTrue(a.equals(a));
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+        Result result = validator.validate(a, "DependentService");
+        assertTrue(result.valid);
+
+        assertFalse(a.equals(null));
+
+        DependentService a2 = new DependentService();
+        assertFalse(a2.equals(a));
+        a2.setService("testService2");
+        assertFalse(a2.equals(a));
+        a2.setService("testService");
+        assertTrue(a2.equals(a));
+
+        assertFalse(a.equals(new String()));
+    }
 }
