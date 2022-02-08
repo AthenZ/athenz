@@ -384,6 +384,10 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				dn = args[0]
 			}
 			return cli.GetStats(dn)
+		case "get-dependent-domain-list":
+			if argc == 1 {
+				return cli.GetDependentDomainList(args[0])
+			}
 		case "help":
 			return cli.helpCommand(args)
 		default:
@@ -1076,6 +1080,18 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				return cli.DeleteDomainTags(dn, args[0], "")
 			} else if argc == 2 {
 				return cli.DeleteDomainTags(dn, args[0], args[1])
+			}
+		case "put-domain-dependency":
+			if argc == 1 {
+				return cli.PutDomainDependency(dn, args[0])
+			}
+		case "delete-domain-dependency":
+			if argc == 1 {
+				return cli.DeleteDomainDependency(dn, args[0])
+			}
+		case "get-dependent-service-list":
+			if argc == 0 {
+				return cli.GetDependentServiceList(dn)
 			}
 		default:
 			return nil, fmt.Errorf("unrecognized command '%v'. type 'zms-cli help' to see help information", cmd)
@@ -2831,6 +2847,42 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   get-stats coretech.hosted\n")
 		buf.WriteString("   " + domainExample + " get-stats\n")
+	case "put-domain-dependency":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " put-domain-dependency service\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain    : name of the domain\n")
+		}
+		buf.WriteString("   service    : name of the dependent service\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " put-domain-dependency media.sports.storage\n")
+	case "delete-domain-dependency":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-domain-dependency service\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain    : name of the domain\n")
+		}
+		buf.WriteString("   service    : name of the service to detach\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-domain-dependency media.sports.storage\n")
+	case "get-dependent-service-list":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " get-dependent-service-list\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain    : name of the domain\n")
+		}
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " get-dependent-service-list\n")
+	case "get-dependent-domain-list":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("    get-dependent-domain-list service\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   service    : name of the dependent service\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   get-dependent-domain-list media.sports.storage\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")
@@ -2886,6 +2938,12 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   delete-quota\n")
 	buf.WriteString("   overdue-review [domain]\n")
 	buf.WriteString("   get-stats [domain]\n")
+	buf.WriteString("\n")
+	buf.WriteString(" Dependency commands:\n")
+	buf.WriteString("   get-dependent-service-list\n")
+	buf.WriteString("   get-dependent-domain-list service\n")
+	buf.WriteString("   put-domain-dependency service\n")
+	buf.WriteString("   delete-domain-dependency service\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Policy commands:\n")
 	buf.WriteString("   list-policy\n")

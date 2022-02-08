@@ -58,7 +58,7 @@ resource ServiceIdentityList GET "/dependency/domain/{domainName}" (name=getDepe
 }
 
 //List dependent domains for service
-resource DomainList GET " /dependency/service/{service}" (name=getDependentDomainList) {
+resource DomainList GET "/dependency/service/{service}" (name=getDependentDomainList) {
     ServiceName service; //name of the service
     authenticate;
     exceptions {

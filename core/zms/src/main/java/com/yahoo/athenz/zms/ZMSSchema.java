@@ -2782,7 +2782,7 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("DomainList", "GET", " /dependency/service/{service}")
+        sb.resource("DomainList", "GET", "/dependency/service/{service}")
             .comment("List dependent domains for service")
             .name("getDependentDomainList")
             .pathParam("service", "ServiceName", "name of the service")

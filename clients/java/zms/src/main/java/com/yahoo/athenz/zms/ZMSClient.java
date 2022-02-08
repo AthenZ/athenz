@@ -3299,4 +3299,76 @@ public class ZMSClient implements Closeable {
         }
     }
 
+    /**
+     * Register domain as a dependency to service
+     *
+     * @param domainName name of the domain
+     * @param auditRef string containing audit specification or ticket number
+     * @param dependentService Dependent service provider details
+     * @throws ZMSClientException in case of failure
+     */
+    public DependentService putDomainDependency(String domainName, String auditRef, DependentService dependentService) {
+        updatePrincipal();
+        try {
+            return client.putDomainDependency(domainName, auditRef, dependentService);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * De-register domain as a dependency to service
+     *
+     * @param domainName name of the domain
+     * @param service Dependent service name
+     * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public String deleteDomainDependency(String domainName, String service, String auditRef) {
+        updatePrincipal();
+        try {
+            return client.deleteDomainDependency(domainName, service, auditRef);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * List registered provider services for domain
+     *
+     * @param domainName name of the domain
+     * @throws ZMSClientException in case of failure
+     */
+    public ServiceIdentityList getDependentServiceList(String domainName) {
+        updatePrincipal();
+        try {
+            return client.getDependentServiceList(domainName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * List dependent domains for provider service
+     *
+     * @param service name of the provider service
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainList getDependentDomainList(String service) {
+        updatePrincipal();
+        try {
+            return client.getDependentDomainList(service);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
 }
