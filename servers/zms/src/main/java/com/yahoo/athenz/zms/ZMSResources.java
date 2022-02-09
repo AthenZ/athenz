@@ -4305,7 +4305,7 @@ public class ZMSResources {
     }
 
     @GET
-    @Path(" /dependency/service/{service}")
+    @Path("/dependency/service/{service}")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List dependent domains for service")
     public DomainList getDependentDomainList(

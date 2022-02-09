@@ -1085,3 +1085,78 @@ func (cli Zms) ListPendingDomainRoleMembers(principal string) (*string, error) {
 
 	return cli.dumpByFormat(domainMembership, oldYamlConverter)
 }
+
+func (cli Zms) PutDomainDependency(dn string, service string) (*string, error) {
+	var dependentService zms.DependentService
+	dependentService.Service = zms.ServiceName(service)
+	err := cli.Zms.PutDomainDependency(zms.DomainName(dn), cli.AuditRef, &dependentService)
+	if err != nil {
+		return nil, err
+	}
+
+	s := "[domain " + dn + " service " + service + " domain-dependency successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) DeleteDomainDependency(dn string, service string) (*string, error) {
+	err := cli.Zms.DeleteDomainDependency(zms.DomainName(dn), zms.ServiceName(service), cli.AuditRef)
+	if err != nil {
+		return nil, err
+	}
+
+	s := "[domain " + dn + " service " + service + " domain-dependency successfully deleted]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) GetDependentServiceList(dn string) (*string, error) {
+	dependentServicelist, err := cli.Zms.GetDependentServiceList(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	dependentServices := make([]string, 0)
+	for _, n := range dependentServicelist.Names {
+		dependentServices = append(dependentServices, string(n))
+	}
+
+	oldYamlConverter := func(res interface{}) (*string, error) {
+		var buf bytes.Buffer
+		buf.WriteString("dependent-services:\n")
+		cli.dumpObjectList(&buf, dependentServices, dn, "service")
+		s := buf.String()
+		return &s, nil
+	}
+
+	return cli.dumpByFormat(dependentServices, oldYamlConverter)
+}
+
+func (cli Zms) GetDependentDomainList(service string) (*string, error) {
+	domainList, err := cli.Zms.GetDependentDomainList(zms.ServiceName(service))
+	if err != nil {
+		return nil, err
+	}
+	dependentDomains := make([]string, 0)
+	for _, n := range domainList.Names {
+		dependentDomains = append(dependentDomains, string(n))
+	}
+
+	oldYamlConverter := func(res interface{}) (*string, error) {
+		var buf bytes.Buffer
+		buf.WriteString("dependent-domains:\n")
+		cli.dumpObjectList(&buf, dependentDomains, service, "domain")
+		s := buf.String()
+		return &s, nil
+	}
+
+	return cli.dumpByFormat(dependentDomains, oldYamlConverter)
+}
+

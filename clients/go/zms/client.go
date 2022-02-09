@@ -4053,7 +4053,7 @@ func (client ZMSClient) GetDependentServiceList(domainName DomainName) (*Service
 
 func (client ZMSClient) GetDependentDomainList(service ServiceName) (*DomainList, error) {
 	var data *DomainList
-	url := client.URL + " /dependency/service/" + fmt.Sprint(service)
+	url := client.URL + "/dependency/service/" + fmt.Sprint(service)
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

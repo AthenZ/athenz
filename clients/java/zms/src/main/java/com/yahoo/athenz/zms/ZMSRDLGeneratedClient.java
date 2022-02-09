@@ -2717,7 +2717,7 @@ public class ZMSRDLGeneratedClient {
     }
 
     public DomainList getDependentDomainList(String service) {
-        WebTarget target = base.path(" /dependency/service/{service}")
+        WebTarget target = base.path("/dependency/service/{service}")
             .resolveTemplate("service", service);
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {

@@ -2358,7 +2358,7 @@ func init() {
 	mGetDependentServiceList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetDependentServiceList.Build())
 
-	mGetDependentDomainList := rdl.NewResourceBuilder("DomainList", "GET", " /dependency/service/{service}")
+	mGetDependentDomainList := rdl.NewResourceBuilder("DomainList", "GET", "/dependency/service/{service}")
 	mGetDependentDomainList.Comment("List dependent domains for service")
 	mGetDependentDomainList.Name("getDependentDomainList")
 	mGetDependentDomainList.Input("service", "ServiceName", true, "", "", false, nil, "name of the service")

@@ -4386,4 +4386,115 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 401);
         }
     }
+
+    @Test
+    public void testPutDomainDependency() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        String domainName = "put-domain-dependency";
+        try {
+            DependentService dependentService = new DependentService().setService(domainName + ".service1");
+            Mockito.when(c.putDomainDependency(domainName, AUDIT_REF, dependentService)).thenThrow(new ResourceException(403));
+            client.putDomainDependency(domainName, AUDIT_REF, dependentService);
+            fail();
+        } catch  (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+        try {
+            DependentService dependentService = new DependentService().setService(domainName + ".service2");
+            Mockito.when(c.putDomainDependency(domainName, AUDIT_REF, dependentService)).thenThrow(new NullPointerException());
+            client.putDomainDependency(domainName, AUDIT_REF, dependentService);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // Should succeed
+        DependentService dependentService = new DependentService().setService(domainName + ".service3");
+        Mockito.when(c.putDomainDependency(domainName, AUDIT_REF, dependentService)).thenReturn(dependentService);
+        client.putDomainDependency(domainName, AUDIT_REF, dependentService);
+    }
+
+    @Test
+    public void testDeleteDomainDependency() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        String domainName = "delete-domain-dependency";
+        try {
+            Mockito.when(c.deleteDomainDependency(domainName, domainName + ".service1", AUDIT_REF)).thenThrow(new ResourceException(403));
+            client.deleteDomainDependency(domainName, domainName + ".service1", AUDIT_REF);
+            fail();
+        } catch  (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+        try {
+            Mockito.when(c.deleteDomainDependency(domainName, domainName + ".service2", AUDIT_REF)).thenThrow(new NullPointerException());
+            client.deleteDomainDependency(domainName, domainName + ".service2", AUDIT_REF);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // Should succeed
+        Mockito.when(c.deleteDomainDependency(domainName, domainName + ".service3", AUDIT_REF)).thenReturn("");
+        client.deleteDomainDependency(domainName, domainName + ".service3", AUDIT_REF);
+    }
+
+    @Test
+    public void testGetDependentServiceList() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        String domainName = "get-dependent-service-list";
+        try {
+            Mockito.when(c.getDependentServiceList(domainName)).thenThrow(new ResourceException(404));
+            client.getDependentServiceList(domainName);
+            fail();
+        } catch  (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+        try {
+            Mockito.when(c.getDependentServiceList(domainName + "1")).thenThrow(new NullPointerException());
+            client.getDependentServiceList(domainName + "1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // Should succeed
+        Mockito.when(c.getDependentServiceList(domainName + "2")).thenReturn(new ServiceIdentityList());
+        client.getDependentServiceList(domainName + "2");
+    }
+
+    @Test
+    public void testGetDependentDomainList() {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        String service = "get-dependent-domain-list";
+        try {
+            Mockito.when(c.getDependentDomainList(service)).thenThrow(new ResourceException(404));
+            client.getDependentDomainList(service);
+            fail();
+        } catch  (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+        try {
+            Mockito.when(c.getDependentDomainList(service + "1")).thenThrow(new NullPointerException());
+            client.getDependentDomainList(service + "1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // Should succeed
+        Mockito.when(c.getDependentDomainList(service + "2")).thenReturn(new DomainList());
+        client.getDependentDomainList(service + "2");
+    }
 }
