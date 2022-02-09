@@ -7,5 +7,6 @@
             "user": "nobody",
             "account": "123456789012"
         }
-    ]
+    ],
+    "refresh_interval": 120
 }

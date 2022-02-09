@@ -81,6 +81,7 @@ type Config struct {
 	SDSUdsPath      string                   `json:"sds_uds_path,omitempty"`      //uds path if the agent should support uds connections
 	SDSUdsUid       int                      `json:"sds_uds_uid,omitempty"`       //uds connections must be from the given user uid
 	ExpiryTime      int                      `json:"expiry_time,omitempty"`       //service and role certificate expiry in minutes
+	RefreshInterval int                      `json:"refresh_interval,omitempty"`  //specifies refresh interval in minutes
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -277,6 +278,12 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 			config.ExpiryTime = expiryTime
 		}
 	}
+	if config.RefreshInterval == 0 {
+		refreshInterval := util.ParseEnvIntFlag(os.Getenv("ATHENZ_SIA_REFRESH_INTERVAL"), 0)
+		if refreshInterval > 0 {
+			config.RefreshInterval = refreshInterval
+		}
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -309,6 +316,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 	generateRoleKey := false
 	rotateKey := false
 	expiryTime := 0
+	refreshInterval := 24 * 60
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
@@ -316,6 +324,9 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		sdsUdsPath = config.SDSUdsPath
 		sdsUdsUid = config.SDSUdsUid
 		expiryTime = config.ExpiryTime
+		if config.RefreshInterval > 0 {
+			refreshInterval = config.RefreshInterval
+		}
 
 		//update account user/group settings if override provided at the config level
 		if account.User == "" && config.User != "" {
@@ -438,7 +449,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		RotateKey:        rotateKey,
 		BackUpDir:        fmt.Sprintf("%s/backup", siaDir),
 		SDSUdsPath:       sdsUdsPath,
-		RefreshInterval:  24 * 60,
+		RefreshInterval:  refreshInterval,
 	}, nil
 }
 
