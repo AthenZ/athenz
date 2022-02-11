@@ -81,6 +81,8 @@ type Config struct {
 	SDSUdsPath      string                   `json:"sds_uds_path,omitempty"`      //uds path if the agent should support uds connections
 	SDSUdsUid       int                      `json:"sds_uds_uid,omitempty"`       //uds connections must be from the given user uid
 	ExpiryTime      int                      `json:"expiry_time,omitempty"`       //service and role certificate expiry in minutes
+	RefreshInterval int                      `json:"refresh_interval,omitempty"`  //specifies refresh interval in minutes
+	ZTSRegion       string                   `json:"zts_region,omitempty"`        //specifies zts region for the requests
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -152,6 +154,7 @@ type Options struct {
 	SDSUdsPath         string                //UDS path if the agent should support uds connections
 	SDSUdsUid          int                   //UDS connections must be from the given user uid
 	RefreshInterval    int                   //refresh interval for certificates - default 24 hours
+	ZTSRegion          string                //ZTS region in case the client needs this information
 }
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string) (string, error) {
@@ -277,6 +280,15 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 			config.ExpiryTime = expiryTime
 		}
 	}
+	if config.RefreshInterval == 0 {
+		refreshInterval := util.ParseEnvIntFlag(os.Getenv("ATHENZ_SIA_REFRESH_INTERVAL"), 0)
+		if refreshInterval > 0 {
+			config.RefreshInterval = refreshInterval
+		}
+	}
+	if config.ZTSRegion == "" {
+		config.ZTSRegion = os.Getenv("ATHENZ_SIA_ZTS_REGION")
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -309,6 +321,8 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 	generateRoleKey := false
 	rotateKey := false
 	expiryTime := 0
+	refreshInterval := 24 * 60
+	ztsRegion := ""
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
@@ -316,6 +330,10 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		sdsUdsPath = config.SDSUdsPath
 		sdsUdsUid = config.SDSUdsUid
 		expiryTime = config.ExpiryTime
+		ztsRegion = config.ZTSRegion
+		if config.RefreshInterval > 0 {
+			refreshInterval = config.RefreshInterval
+		}
 
 		//update account user/group settings if override provided at the config level
 		if account.User == "" && config.User != "" {
@@ -438,7 +456,8 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		RotateKey:        rotateKey,
 		BackUpDir:        fmt.Sprintf("%s/backup", siaDir),
 		SDSUdsPath:       sdsUdsPath,
-		RefreshInterval:  24 * 60,
+		RefreshInterval:  refreshInterval,
+		ZTSRegion:        ztsRegion,
 	}, nil
 }
 

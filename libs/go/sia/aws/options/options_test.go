@@ -167,6 +167,8 @@ func TestOptionsWithConfig(t *testing.T) {
 	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
+	assert.True(t, opts.RefreshInterval == 1440)
+	assert.True(t, opts.ZTSRegion == "")
 
 	// Make sure services are set
 	assert.True(t, len(opts.Services) == 3)
@@ -194,6 +196,8 @@ func TestOptionsNoServices(t *testing.T) {
 	config, configAccount, _ := getConfig("data/sia_no_services", "-service", "http://localhost:80", false, "us-west-2")
 	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
+	assert.True(t, opts.RefreshInterval == 120)
+	assert.True(t, opts.ZTSRegion == "us-west-2")
 
 	// Make sure one service is set
 	assert.True(t, len(opts.Services) == 1)
