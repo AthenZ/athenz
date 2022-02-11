@@ -71,15 +71,15 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.44.v20210927</jetty.version>
+    <jetty.version>9.4.45.v20220203</jetty.version>
     <jersey.version>2.35</jersey.version>
     <jackson.version>2.13.1</jackson.version>
     <rdl.version>1.5.4</rdl.version>
     <bouncycastle.version>1.70</bouncycastle.version>
-    <aws.version>1.12.147</aws.version>
-    <aws2.version>2.17.118</aws2.version>
+    <aws.version>1.12.157</aws.version>
+    <aws2.version>2.17.128</aws2.version>
     <guava.version>31.0.1-jre</guava.version>
-    <slf4j.version>1.7.35</slf4j.version>
+    <slf4j.version>1.7.36</slf4j.version>
     <logback.version>1.2.10</logback.version>
     <javax.version>3.1.0</javax.version>
     <javax.ws.version>2.1.1</javax.ws.version>
@@ -87,10 +87,11 @@
     <jmockit.version>1.49</jmockit.version>
     <jjwt.version>0.11.2</jjwt.version>
     <jaxb.version>2.3.3</jaxb.version>
+    <nimbus.jose.version>9.19</nimbus.jose.version>
     <mysql.connector.version>8.0.28</mysql.connector.version>
     <commons.daemon.version>1.2.4</commons.daemon.version>
     <apache.httpclient.version>4.5.13</apache.httpclient.version>
-    <jboss.resteasy.version>4.7.4.Final</jboss.resteasy.version>
+    <jboss.resteasy.version>4.7.5.Final</jboss.resteasy.version>
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
     <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
     <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
@@ -98,7 +99,7 @@
     <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
     <exec-maven-plugin.version>1.1.1</exec-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
-    <swagger.version>2.1.12</swagger.version>
+    <swagger.version>2.1.13</swagger.version>
     <hamcrest.version>2.2</hamcrest.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
