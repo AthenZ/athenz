@@ -30,6 +30,8 @@ import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.common.server.rest.ResourceException;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
@@ -53,6 +55,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
+
+import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
 /**
  * This is an implementation of the Yahoo's Crypki certificate signer.
@@ -81,8 +85,8 @@ public class HttpCertSigner implements CertSigner {
     private final SslContextFactory sslContextFactory;
 
     String serverBaseUri;
-    int certsignRequestRetryCount;
-    boolean retryConnFailuresOnly;
+    DynamicConfigInteger certsignRequestRetryCount;
+    DynamicConfigBoolean retryConnFailuresOnly;
     int maxCertExpiryTimeMins;
     String defaultProviderSignerKeyId = X509_KEY_META_IDENTIFIER;
     Map<String, String> providerSignerKeys = new ConcurrentHashMap<>();
@@ -96,8 +100,8 @@ public class HttpCertSigner implements CertSigner {
         int connectionTimeoutSec = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_CONNECT_TIMEOUT, "10"));
         int readTimeoutSec = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT, "25"));
 
-        certsignRequestRetryCount = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_RETRY_COUNT, "2"));
-        retryConnFailuresOnly = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_RETRY_CONN_ONLY, "true"));
+        certsignRequestRetryCount = new DynamicConfigInteger(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_CERTSIGN_RETRY_COUNT, 2);
+        retryConnFailuresOnly = new DynamicConfigBoolean(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_CERTSIGN_RETRY_CONN_ONLY, true);
 
         // max expiry time in minutes.  Max is 30 days
 
@@ -286,16 +290,16 @@ public class HttpCertSigner implements CertSigner {
 
         // Retry configured number of times before returning failure
 
-        for (int i = 0; i < certsignRequestRetryCount; i++) {
+        for (int i = 0; i < certsignRequestRetryCount.get(); i++) {
             try {
                 return processHttpResponse(httpPost, 201);
             } catch (ConnectException ex) {
                 LOGGER.error("Unable to process x509 certificate request to url {}, retrying {}/{}, {}",
-                        x509CertUri, i + 1, certsignRequestRetryCount, ex);
+                        x509CertUri, i + 1, certsignRequestRetryCount.get(), ex);
             } catch (IOException ex) {
                 LOGGER.error("Unable to process x509 certificate request to url {}, try: {}",
                         x509CertUri, i + 1, ex);
-                if (retryConnFailuresOnly) {
+                if (retryConnFailuresOnly.get()) {
                     break;
                 }
             }
