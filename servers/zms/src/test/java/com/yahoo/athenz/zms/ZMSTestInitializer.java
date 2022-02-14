@@ -723,4 +723,18 @@ public class ZMSTestInitializer {
         }
         return wrapperCtx;
     }
+
+    public RsrcCtxWrapper generateServiceSysAdmin(String caller, String admindomain, String serviceprincipal) {
+        RsrcCtxWrapper sysAdminCtx = contextWithMockPrincipal(caller);
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(admindomain,
+                "Test Domain1", "testOrg", getAdminUser());
+        getZms().postTopLevelDomain(sysAdminCtx, getAuditRef(), dom1);
+
+
+        Membership membership = new Membership();
+        membership.setMemberName(admindomain + "." + serviceprincipal);
+        getZms().putMembership(sysAdminCtx, "sys.auth", "admin", admindomain + "." + serviceprincipal, getAuditRef(), membership);
+        return contextWithMockPrincipal(caller, admindomain, serviceprincipal);
+    }
 }
