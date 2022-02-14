@@ -1782,14 +1782,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean isSysAdminUser(Principal principal) {
+        return isSysAdminUser(principal, true);
+    }
+
+    boolean isSysAdminUser(Principal principal, boolean prefixMustBeUserDomain) {
 
         // verify we're dealing with system administrator
         // authorize ("CREATE", "sys.auth:domain");
 
-        // first check - the domain must be the user domain
-
-        if (!principal.getDomain().equals(userDomain)) {
-            return false;
+        if (prefixMustBeUserDomain) {
+            if (!principal.getDomain().equals(userDomain)) {
+                return false;
+            }
         }
 
         AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
@@ -10229,7 +10233,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // Otherwise ignore it and use the principal as dependent service
 
         Principal principal = ctx.principal();
-        boolean isSysAdminUser = isSysAdminUser(principal);
+        boolean isSysAdminUser = isSysAdminUser(principal, false);
         if (isSysAdminUser) {
             if (StringUtil.isEmpty(service)) {
                 throw ZMSUtils.requestError("service is mandatory", caller);

@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import static com.yahoo.athenz.zms.ZMSConsts.*;
-import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 public class DomainDependencyTest {
@@ -497,6 +496,12 @@ public class DomainDependencyTest {
         assertEquals(authorizedProviderService, "service.provider");
         RsrcCtxWrapper serviceProviderCtx = zmsTestInitializer.contextWithMockPrincipal(caller, "service", "provider");
         authorizedProviderService = zmsImpl.getAuthorizedProviderService(serviceProviderCtx, "service.provider", caller);
+        assertEquals(authorizedProviderService, "service.provider");
+
+        // Also Successful for system administrator that isn't human
+
+        RsrcCtxWrapper serviceSysAdminCtx = zmsTestInitializer.generateServiceSysAdmin(caller, "admindomain", "serviceprincipal");
+        authorizedProviderService = zmsImpl.getAuthorizedProviderService(serviceSysAdminCtx, "service.provider", caller);
         assertEquals(authorizedProviderService, "service.provider");
     }
 }
