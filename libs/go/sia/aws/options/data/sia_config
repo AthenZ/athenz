@@ -3,7 +3,9 @@
     "service": "api",
     "services": {
         "api": {},
-        "ui": {},
+        "ui": {
+            "user": "root"
+        },
         "yamas": {
             "user": "nobody",
             "group": "sys"
