@@ -20812,7 +20812,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testGetPendingDomainRoleMembersList() {
+    public void testGetPendingDomainRoleMembersListByPrincipal() {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1", "Approval Test Domain1",
                 "testOrg", "user.user1");
@@ -20852,7 +20852,7 @@ public class ZMSImplTest {
 
         // first request using specific principal
 
-        DomainRoleMembership domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury");
+        DomainRoleMembership domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury", null);
 
         assertNotNull(domainRoleMembership);
         assertNotNull(domainRoleMembership.getDomainRoleMembersList());
@@ -20876,7 +20876,115 @@ public class ZMSImplTest {
         when(zmsTestInitializer.getMockDomRsrcCtx().principal()).thenReturn(mockPrincipal);
         when(mockPrincipal.getDomain()).thenReturn("user");
         when(mockPrincipal.getFullName()).thenReturn("user.fury");
-        domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), null);
+        domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), null, null);
+
+        assertNotNull(domainRoleMembership);
+        assertNotNull(domainRoleMembership.getDomainRoleMembersList());
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().size(), 1);
+        for (DomainRoleMembers drm : domainRoleMembership.getDomainRoleMembersList()) {
+            assertEquals(drm.getDomainName(), "testdomain1");
+            assertNotNull(drm.getMembers());
+            for (DomainRoleMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (MemberRole mr : mem.getMemberRoles()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getRoleName(), "testrole1");
+                }
+            }
+        }
+
+        zmsTestInitializer.cleanupPrincipalSystemMetaDelete(zmsTestInitializer.getZms());
+        cleanupPrincipalAuditedRoleApprovalByOrg(zmsTestInitializer.getZms(), "testOrg");
+
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", zmsTestInitializer.getAuditRef());
+    }
+
+    @Test
+    public void testGetPendingDomainRoleMembersListByDomain() {
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1", "Approval Test Domain1",
+                "testOrg", "user.user1");
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+
+        setupPrincipalAuditedRoleApprovalByOrg(zmsTestInitializer.getZms(), "user.fury", "testorg");
+
+        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testorg",
+                true, true, "12345", 1001);
+        zmsTestInitializer.getZms().putDomainMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", zmsTestInitializer.getAuditRef(), meta);
+        zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "auditenabled", zmsTestInitializer.getAuditRef(), meta);
+        zmsTestInitializer.setupPrincipalSystemMetaDelete(zmsTestInitializer.getZms(), zmsTestInitializer.getMockDomRsrcCtx().principal().getFullName(), "testdomain1", "org");
+        zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "org", zmsTestInitializer.getAuditRef(), meta);
+
+        Role auditedRole = zmsTestInitializer.createRoleObject("testdomain1", "testrole1", null, "user.john", "user.jane");
+        zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole1", zmsTestInitializer.getAuditRef(), auditedRole);
+        RoleSystemMeta rsm = createRoleSystemMetaObject(true);
+        zmsTestInitializer.getZms().putRoleSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole1", "auditenabled", zmsTestInitializer.getAuditRef(), rsm);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zmsTestInitializer.getZms().putMembership(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole1", "user.bob", zmsTestInitializer.getAuditRef(), mbr);
+
+        mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zmsTestInitializer.getZms().putMembershipDecision(zmsTestInitializer.getMockDomRsrcCtx(), "testdomain1", "testrole1", "user.bob", zmsTestInitializer.getAuditRef(), mbr);
+            fail();
+        } catch (ResourceException r) {
+            assertEquals(r.code, 403);
+        }
+
+        // first request using specific principal
+
+        DomainRoleMembership domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), null, "testdomain1");
+
+        assertNotNull(domainRoleMembership);
+        assertNotNull(domainRoleMembership.getDomainRoleMembersList());
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().size(), 1);
+        for (DomainRoleMembers drm : domainRoleMembership.getDomainRoleMembersList()) {
+            assertEquals(drm.getDomainName(), "testdomain1");
+            assertNotNull(drm.getMembers());
+            for (DomainRoleMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (MemberRole mr : mem.getMemberRoles()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getRoleName(), "testrole1");
+                }
+            }
+        }
+
+        // repeat using all domains
+        domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), null, "*");
+
+        assertNotNull(domainRoleMembership);
+        assertNotNull(domainRoleMembership.getDomainRoleMembersList());
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().size(), 1);
+        for (DomainRoleMembers drm : domainRoleMembership.getDomainRoleMembersList()) {
+            assertEquals(drm.getDomainName(), "testdomain1");
+            assertNotNull(drm.getMembers());
+            for (DomainRoleMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (MemberRole mr : mem.getMemberRoles()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getRoleName(), "testrole1");
+                }
+            }
+        }
+
+        // repeat the request using context principal
+
+        Principal mockPrincipal = Mockito.mock(Principal.class);
+        when(zmsTestInitializer.getMockDomRsrcCtx().principal()).thenReturn(mockPrincipal);
+        when(mockPrincipal.getDomain()).thenReturn("user");
+        when(mockPrincipal.getFullName()).thenReturn("user.fury");
+        domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), null, null);
 
         assertNotNull(domainRoleMembership);
         assertNotNull(domainRoleMembership.getDomainRoleMembersList());
@@ -22552,7 +22660,7 @@ public class ZMSImplTest {
 
         // first request using admin principal
 
-        DomainRoleMembership domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury");
+        DomainRoleMembership domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury", null);
 
         assertNotNull(domainRoleMembership);
         assertNotNull(domainRoleMembership.getDomainRoleMembersList());
@@ -22592,7 +22700,7 @@ public class ZMSImplTest {
 
         // check the list to see there are no pending requests
 
-        domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury");
+        domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury", null);
         assertNotNull(domainRoleMembership);
         assertTrue(domainRoleMembership.getDomainRoleMembersList().isEmpty());
 
@@ -22661,7 +22769,7 @@ public class ZMSImplTest {
 
         // first request using admin principal
 
-        DomainRoleMembership domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury");
+        DomainRoleMembership domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury", null);
 
         assertNotNull(domainRoleMembership);
         assertNotNull(domainRoleMembership.getDomainRoleMembersList());
@@ -22700,7 +22808,7 @@ public class ZMSImplTest {
 
         // check the list to see there are no pending requests
 
-        domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury");
+        domainRoleMembership = zmsTestInitializer.getZms().getPendingDomainRoleMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury", null);
         assertNotNull(domainRoleMembership);
         assertTrue(domainRoleMembership.getDomainRoleMembersList().isEmpty());
 
@@ -25014,7 +25122,7 @@ public class ZMSImplTest {
     public void testGPendingDomainGroupMembersListInvalidPrincipal() {
 
         try {
-            zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.unknwon");
+            zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.unknwon", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -25053,7 +25161,7 @@ public class ZMSImplTest {
 
         // first request using admin principal
 
-        DomainGroupMembership domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury");
+        DomainGroupMembership domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury", null);
 
         assertNotNull(domainGroupMembership);
         assertNotNull(domainGroupMembership.getDomainGroupMembersList());
@@ -25093,7 +25201,7 @@ public class ZMSImplTest {
 
         // check the list to see there are no pending requests
 
-        domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury");
+        domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury", null);
         assertNotNull(domainGroupMembership);
         assertTrue(domainGroupMembership.getDomainGroupMembersList().isEmpty());
 
@@ -25157,7 +25265,7 @@ public class ZMSImplTest {
 
         // first request using admin principal
 
-        DomainGroupMembership domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.user1");
+        DomainGroupMembership domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.user1", null);
 
         assertNotNull(domainGroupMembership);
         assertNotNull(domainGroupMembership.getDomainGroupMembersList());
@@ -25196,7 +25304,7 @@ public class ZMSImplTest {
 
         // check the list to see there are no pending requests
 
-        domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.user1");
+        domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.user1", null);
         assertNotNull(domainGroupMembership);
         assertTrue(domainGroupMembership.getDomainGroupMembersList().isEmpty());
 
@@ -25204,7 +25312,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testGetPendingDomainGroupMembersList() {
+    public void testGetPendingDomainGroupMembersListByPrincipal() {
 
         final String domainName = "pend-dom-grp-mbr-list";
         final String groupName = "group1";
@@ -25248,7 +25356,7 @@ public class ZMSImplTest {
 
         // first request using specific principal
 
-        DomainGroupMembership domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury");
+        DomainGroupMembership domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), "user.fury", null);
 
         assertNotNull(domainGroupMembership);
         assertNotNull(domainGroupMembership.getDomainGroupMembersList());
@@ -25272,7 +25380,118 @@ public class ZMSImplTest {
         when(zmsTestInitializer.getMockDomRsrcCtx().principal()).thenReturn(mockPrincipal);
         when(mockPrincipal.getDomain()).thenReturn("user");
         when(mockPrincipal.getFullName()).thenReturn("user.fury");
-        domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), null);
+        domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), null, null);
+
+        assertNotNull(domainGroupMembership);
+        assertNotNull(domainGroupMembership.getDomainGroupMembersList());
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().size(), 1);
+        for (DomainGroupMembers drm : domainGroupMembership.getDomainGroupMembersList()) {
+            assertEquals(drm.getDomainName(), domainName);
+            assertNotNull(drm.getMembers());
+            for (DomainGroupMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (GroupMember mr : mem.getMemberGroups()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getGroupName(), groupName);
+                }
+            }
+        }
+
+        zmsTestInitializer.cleanupPrincipalSystemMetaDelete(zmsTestInitializer.getZms());
+        cleanupPrincipalAuditedRoleApprovalByOrg(zmsTestInitializer.getZms(), "testOrg");
+
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+    }
+
+    @Test
+    public void testGetPendingDomainGroupMembersListByDomain() {
+
+        final String domainName = "pend-dom-grp-mbr-list";
+        final String groupName = "group2";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1", "testOrg", "user.user1");
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+
+        setupPrincipalAuditedRoleApprovalByOrg(zmsTestInitializer.getZms(), "user.fury", "testorg");
+
+        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testorg",
+                true, true, "12345", 1001);
+        zmsTestInitializer.getZms().putDomainMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef(), meta);
+        zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "auditenabled", zmsTestInitializer.getAuditRef(), meta);
+        zmsTestInitializer.setupPrincipalSystemMetaDelete(zmsTestInitializer.getZms(), zmsTestInitializer.getMockDomRsrcCtx().principal().getFullName(), domainName, "org");
+        zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "org", zmsTestInitializer.getAuditRef(), meta);
+
+        Group auditedGroup = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), auditedGroup);
+        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        zmsTestInitializer.getZms().putGroupSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "auditenabled", zmsTestInitializer.getAuditRef(), rsm);
+        GroupMeta rm = new GroupMeta().setSelfServe(true);
+        zmsTestInitializer.getZms().putGroupMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), rm);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zmsTestInitializer.getZms().putGroupMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "user.bob", zmsTestInitializer.getAuditRef(), mbr);
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zmsTestInitializer.getZms().putGroupMembershipDecision(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "user.bob", zmsTestInitializer.getAuditRef(), mbr);
+            fail();
+        } catch (ResourceException r) {
+            assertEquals(r.code, 403);
+        }
+
+        // first request using specific principal
+
+        DomainGroupMembership domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), null, domainName);
+
+        assertNotNull(domainGroupMembership);
+        assertNotNull(domainGroupMembership.getDomainGroupMembersList());
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().size(), 1);
+        for (DomainGroupMembers drm : domainGroupMembership.getDomainGroupMembersList()) {
+            assertEquals(drm.getDomainName(), domainName);
+            assertNotNull(drm.getMembers());
+            for (DomainGroupMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (GroupMember mr : mem.getMemberGroups()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getGroupName(), groupName);
+                }
+            }
+        }
+
+        // repeat the request using context principal
+
+        Principal mockPrincipal = Mockito.mock(Principal.class);
+        when(zmsTestInitializer.getMockDomRsrcCtx().principal()).thenReturn(mockPrincipal);
+        when(mockPrincipal.getDomain()).thenReturn("user");
+        when(mockPrincipal.getFullName()).thenReturn("user.fury");
+        domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), null, null);
+
+        assertNotNull(domainGroupMembership);
+        assertNotNull(domainGroupMembership.getDomainGroupMembersList());
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().size(), 1);
+        for (DomainGroupMembers drm : domainGroupMembership.getDomainGroupMembersList()) {
+            assertEquals(drm.getDomainName(), domainName);
+            assertNotNull(drm.getMembers());
+            for (DomainGroupMember mem : drm.getMembers()) {
+                assertNotNull(mem);
+                assertEquals(mem.getMemberName(), "user.bob");
+                for (GroupMember mr : mem.getMemberGroups()) {
+                    assertNotNull(mr);
+                    assertEquals(mr.getGroupName(), groupName);
+                }
+            }
+        }
+
+        domainGroupMembership = zmsTestInitializer.getZms().getPendingDomainGroupMembersList(zmsTestInitializer.getMockDomRsrcCtx(), null, "*");
 
         assertNotNull(domainGroupMembership);
         assertNotNull(domainGroupMembership.getDomainGroupMembersList());

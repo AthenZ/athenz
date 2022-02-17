@@ -6687,46 +6687,83 @@ public class DBService implements RolesProvider {
         }
     }
 
-    DomainRoleMembership getPendingDomainRoleMembers(final String principal) {
+    DomainRoleMembership getPendingDomainRoleMembers(final String principal, final String domainName) {
 
         DomainRoleMembership domainRoleMembership = new DomainRoleMembership();
         List<DomainRoleMembers> domainRoleMembersList = new ArrayList<>();
-        DomainRoleMembers domainRoleMembers;
+        boolean emptyDomainName = StringUtil.isEmpty(domainName);
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            Map<String, List<DomainRoleMember>> domainRoleMembersMap = con.getPendingDomainRoleMembers(principal);
-            if (domainRoleMembersMap != null) {
-                for (String domain : domainRoleMembersMap.keySet()) {
-                    domainRoleMembers = new DomainRoleMembers();
-                    domainRoleMembers.setDomainName(domain);
-                    domainRoleMembers.setMembers(domainRoleMembersMap.get(domain));
-                    domainRoleMembersList.add(domainRoleMembers);
+            // if principal/domain is provided then get pending role members by principal/domain
+            // if principal and domain is provided then filter the result to only include role members of given domain name
+
+            if (principal != null) {
+                Map<String, List<DomainRoleMember>> domainRoleMembersMap = con.getPendingDomainRoleMembersByPrincipal(principal);
+                if (domainRoleMembersMap != null) {
+                    for (String domain : domainRoleMembersMap.keySet()) {
+                        if (emptyDomainName || domain.equals(domainName) || "*".equals(domainName)) {
+                            domainRoleMembersList.add(getDomainRoleMembers(domain, domainRoleMembersMap));
+                        }
+                    }
+                    domainRoleMembership.setDomainRoleMembersList(domainRoleMembersList);
                 }
-                domainRoleMembership.setDomainRoleMembersList(domainRoleMembersList);
+            } else if (!emptyDomainName) {
+                Map<String, List<DomainRoleMember>> domainRoleMembersMap = con.getPendingDomainRoleMembersByDomain(domainName);
+                if (domainRoleMembersMap != null) {
+                    for (String domain : domainRoleMembersMap.keySet()) {
+                        domainRoleMembersList.add(getDomainRoleMembers(domain, domainRoleMembersMap));
+                    }
+                    domainRoleMembership.setDomainRoleMembersList(domainRoleMembersList);
+                }
             }
         }
         return domainRoleMembership;
     }
 
-    DomainGroupMembership getPendingDomainGroupMembers(final String principal) {
-
+    DomainGroupMembership getPendingDomainGroupMembers(final String principal, final String domainName) {
         DomainGroupMembership domainGroupMembership = new DomainGroupMembership();
         List<DomainGroupMembers> domainGroupMembersList = new ArrayList<>();
-        DomainGroupMembers domainGroupMembers;
+        boolean emptyDomainName = StringUtil.isEmpty(domainName);
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            Map<String, List<DomainGroupMember>> domainGroupMembersMap = con.getPendingDomainGroupMembers(principal);
-            if (domainGroupMembersMap != null) {
-                for (String domain : domainGroupMembersMap.keySet()) {
-                    domainGroupMembers = new DomainGroupMembers();
-                    domainGroupMembers.setDomainName(domain);
-                    domainGroupMembers.setMembers(domainGroupMembersMap.get(domain));
-                    domainGroupMembersList.add(domainGroupMembers);
+            // if principal is provided then get pending group members by principal
+            // if domain is also provided then filter the result to only include group members of given domain name
+
+            if (!StringUtil.isEmpty(principal)) {
+                Map<String, List<DomainGroupMember>> domainGroupMembersMap = con.getPendingDomainGroupMembersByPrincipal(principal);
+                if (domainGroupMembersMap != null) {
+                    for (String domain : domainGroupMembersMap.keySet()) {
+                        if (emptyDomainName || domain.equals(domainName) || "*".equals(domainName)) {
+                                domainGroupMembersList.add(getDomainGroupMembers(domain, domainGroupMembersMap));
+                        }
+                    }
+                    domainGroupMembership.setDomainGroupMembersList(domainGroupMembersList);
                 }
-                domainGroupMembership.setDomainGroupMembersList(domainGroupMembersList);
+            } else if (!emptyDomainName) {
+                Map<String, List<DomainGroupMember>> domainGroupMembersMap = con.getPendingDomainGroupMembersByDomain(domainName);
+                if (domainGroupMembersMap != null) {
+                    for (String domain : domainGroupMembersMap.keySet()) {
+                        domainGroupMembersList.add(getDomainGroupMembers(domain, domainGroupMembersMap));
+                    }
+                    domainGroupMembership.setDomainGroupMembersList(domainGroupMembersList);
+                }
             }
         }
         return domainGroupMembership;
+    }
+
+    DomainGroupMembers getDomainGroupMembers(String domainName, Map<String, List<DomainGroupMember>> domainGroupMembersMap) {
+        DomainGroupMembers domainGroupMembers = new DomainGroupMembers();
+        domainGroupMembers.setDomainName(domainName);
+        domainGroupMembers.setMembers(domainGroupMembersMap.get(domainName));
+        return domainGroupMembers;
+    }
+
+    DomainRoleMembers getDomainRoleMembers(String domainName, Map<String, List<DomainRoleMember>> domainRoleMembersMap) {
+        DomainRoleMembers domainRoleMembers = new DomainRoleMembers();
+        domainRoleMembers.setDomainName(domainName);
+        domainRoleMembers.setMembers(domainRoleMembersMap.get(domainName));
+        return domainRoleMembers;
     }
 
     public Set<String> getPendingMembershipApproverRoles(int delayDays) {

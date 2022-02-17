@@ -1232,10 +1232,13 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public DomainGroupMembership getPendingDomainGroupMembersList(String principal) {
+    public DomainGroupMembership getPendingDomainGroupMembersList(String principal, String domainName) {
         WebTarget target = base.path("/pending_group_members");
         if (principal != null) {
             target = target.queryParam("principal", principal);
+        }
+        if (domainName != null) {
+            target = target.queryParam("domain", domainName);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {
@@ -2576,10 +2579,13 @@ public class ZMSRDLGeneratedClient {
 
     }
 
-    public DomainRoleMembership getPendingDomainRoleMembersList(String principal) {
+    public DomainRoleMembership getPendingDomainRoleMembersList(String principal, String domainName) {
         WebTarget target = base.path("/pending_members");
         if (principal != null) {
             target = target.queryParam("principal", principal);
+        }
+        if (domainName != null) {
+            target = target.queryParam("domain", domainName);
         }
         Invocation.Builder invocationBuilder = target.request("application/json");
         if (credsHeader != null) {

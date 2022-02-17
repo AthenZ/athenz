@@ -1929,9 +1929,9 @@ func (client ZMSClient) PutGroupReview(domainName DomainName, groupName EntityNa
 	}
 }
 
-func (client ZMSClient) GetPendingDomainGroupMembersList(principal EntityName) (*DomainGroupMembership, error) {
+func (client ZMSClient) GetPendingDomainGroupMembersList(principal EntityName, domainName string) (*DomainGroupMembership, error) {
 	var data *DomainGroupMembership
-	url := client.URL + "/pending_group_members" + encodeParams(encodeStringParam("principal", string(principal), ""))
+	url := client.URL + "/pending_group_members" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("domain", string(domainName), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err
@@ -3827,9 +3827,9 @@ func (client ZMSClient) GetStatus() (*Status, error) {
 	}
 }
 
-func (client ZMSClient) GetPendingDomainRoleMembersList(principal EntityName) (*DomainRoleMembership, error) {
+func (client ZMSClient) GetPendingDomainRoleMembersList(principal EntityName, domainName string) (*DomainRoleMembership, error) {
 	var data *DomainRoleMembership
-	url := client.URL + "/pending_members" + encodeParams(encodeStringParam("principal", string(principal), ""))
+	url := client.URL + "/pending_members" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("domain", string(domainName), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

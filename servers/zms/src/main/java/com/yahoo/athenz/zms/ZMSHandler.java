@@ -62,7 +62,7 @@ public interface ZMSHandler {
     void putGroupMeta(ResourceContext context, String domainName, String groupName, String auditRef, GroupMeta detail);
     void putGroupMembershipDecision(ResourceContext context, String domainName, String groupName, String memberName, String auditRef, GroupMembership membership);
     void putGroupReview(ResourceContext context, String domainName, String groupName, String auditRef, Group group);
-    DomainGroupMembership getPendingDomainGroupMembersList(ResourceContext context, String principal);
+    DomainGroupMembership getPendingDomainGroupMembersList(ResourceContext context, String principal, String domainName);
     PolicyList getPolicyList(ResourceContext context, String domainName, Integer limit, String skip);
     Policies getPolicies(ResourceContext context, String domainName, Boolean assertions, Boolean includeNonActive);
     Policy getPolicy(ResourceContext context, String domainName, String policyName);
@@ -120,7 +120,7 @@ public interface ZMSHandler {
     void putQuota(ResourceContext context, String name, String auditRef, Quota quota);
     void deleteQuota(ResourceContext context, String name, String auditRef);
     Status getStatus(ResourceContext context);
-    DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext context, String principal);
+    DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext context, String principal, String domainName);
     UserAuthorityAttributeMap getUserAuthorityAttributeMap(ResourceContext context);
     Stats getStats(ResourceContext context, String name);
     Stats getSystemStats(ResourceContext context);

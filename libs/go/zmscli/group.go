@@ -433,8 +433,8 @@ func (cli Zms) PutGroupMembershipDecision(dn string, group string, mbr string, a
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
-func (cli Zms) ListPendingDomainGroupMembers(principal string) (*string, error) {
-	domainMembership, err := cli.Zms.GetPendingDomainGroupMembersList(zms.EntityName(principal))
+func (cli Zms) ListPendingDomainGroupMembers(principal, domainName string) (*string, error) {
+	domainMembership, err := cli.Zms.GetPendingDomainGroupMembersList(zms.EntityName(principal), domainName)
 	if err != nil {
 		return nil, err
 	}

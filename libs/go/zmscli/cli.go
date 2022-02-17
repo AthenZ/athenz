@@ -354,18 +354,18 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.DeleteUser(args[0])
 			}
-		case "list-pending-members":
+		case "list-pending-members", "list-pending-role-members":
 			principal := ""
 			if argc == 1 {
 				principal = args[0]
 			}
-			return cli.ListPendingDomainRoleMembers(principal)
+			return cli.ListPendingDomainRoleMembers(principal, "")
 		case "list-pending-group-members":
 			principal := ""
 			if argc == 1 {
 				principal = args[0]
 			}
-			return cli.ListPendingDomainGroupMembers(principal)
+			return cli.ListPendingDomainGroupMembers(principal, "")
 		case "show-roles-principal":
 			if argc == 0 {
 				return cli.ShowRolesPrincipal("", dn)
@@ -1093,6 +1093,10 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 0 {
 				return cli.GetDependentServiceList(dn)
 			}
+		case "list-pending-domain-role-members":
+			return cli.ListPendingDomainRoleMembers("", dn)
+		case "list-pending-domain-group-members":
+			return cli.ListPendingDomainGroupMembers("", dn)
 		default:
 			return nil, fmt.Errorf("unrecognized command '%v'. type 'zms-cli help' to see help information", cmd)
 		}
@@ -2708,14 +2712,23 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   attribute : user authority expiration attribute name\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-role-user-authority-expiration writers elevated-clearance\n")
-	case "list-pending-members":
+	case "list-pending-role-members":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   list-pending-members [principal]\n")
+		buf.WriteString("   list-pending-role-members [principal]\n")
 		buf.WriteString(" parameters:\n")
-		buf.WriteString("   principal : list of principal to list pending members for\n")
+		buf.WriteString("   principal : principal to get list of pending role members for\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   list-pending-members\n")
-		buf.WriteString("   list-pending-members user.john\n")
+		buf.WriteString("   list-pending-role-members\n")
+		buf.WriteString("   list-pending-role-members user.john\n")
+	case "list-pending-domain-role-members":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " list-pending-domain-role-members\n")
+		if !interactive {
+			buf.WriteString(" parameters:\n")
+			buf.WriteString("   domain : name of the domain to retrieve the list of pending members for\n")
+		}
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " list-pending-domain-role-members\n")
 	case "put-membership-decision":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " put-membership-decision role member [expiration] approval\n")
@@ -2822,10 +2835,19 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   list-pending-group-members [principal]\n")
 		buf.WriteString(" parameters:\n")
-		buf.WriteString("   principal : list of principal to list pending group members for\n")
+		buf.WriteString("   principal : principal to list pending group members for\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   list-pending-group-members\n")
 		buf.WriteString("   list-pending-group-members user.john\n")
+	case "list-pending-domain-group-members":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " list-pending-domain-group-members\n")
+		if !interactive {
+			buf.WriteString(" parameters:\n")
+			buf.WriteString("   domain : name of the domain to retrieve the list of pending group members for\n")
+		}
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " list-pending-domain-group-members\n")
 	case "put-group-membership-decision":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " put-group-membership-decision group member approval\n")
@@ -3073,7 +3095,10 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("\n")
 	buf.WriteString(" Other commands:\n")
 	buf.WriteString("   get-user-token [authorized_service]\n")
-	buf.WriteString("   list-pending-members\n")
+	buf.WriteString("   list-pending-role-members\n")
+	buf.WriteString("   list-pending-domain-role-members\n")
+	buf.WriteString("   list-pending-group-members\n")
+	buf.WriteString("   list-pending-domain-group-members\n")
 	buf.WriteString("   version\n")
 	buf.WriteString("\n")
 	return buf.String()

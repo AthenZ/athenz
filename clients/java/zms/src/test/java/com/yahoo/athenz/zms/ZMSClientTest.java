@@ -3982,10 +3982,14 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
+        DomainRoleMembership domainRoleMembership = mock(DomainRoleMembership.class);
 
-        Mockito.when(c.getPendingDomainRoleMembersList("user.joe"))
+        Mockito.when(c.getPendingDomainRoleMembersList("user.joe", null))
+                .thenReturn(domainRoleMembership)
                 .thenThrow(new ResourceException(403))
                 .thenThrow(new NullPointerException());
+
+        client.getPendingDomainRoleMembersList("user.joe");
 
         try {
             client.getPendingDomainRoleMembersList("user.joe");
@@ -3996,6 +4000,36 @@ public class ZMSClientTest {
 
         try {
             client.getPendingDomainRoleMembersList("user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testGetPendingDomainRoleMembersListWithDomain() {
+
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        DomainRoleMembership domainRoleMembership = mock(DomainRoleMembership.class);
+
+        Mockito.when(c.getPendingDomainRoleMembersList("user.joe", "testdomain1"))
+                .thenReturn(domainRoleMembership)
+                .thenThrow(new ResourceException(403))
+                .thenThrow(new NullPointerException());
+
+        client.getPendingDomainRoleMembersList("user.joe", "testdomain1");
+
+        try {
+            client.getPendingDomainRoleMembersList("user.joe", "testdomain1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            client.getPendingDomainRoleMembersList("user.joe", "testdomain1");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -4192,10 +4226,15 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
+        DomainGroupMembership domainGroupMembership = mock(DomainGroupMembership.class);
 
-        Mockito.when(c.getPendingDomainGroupMembersList("user.joe"))
+        Mockito.when(c.getPendingDomainGroupMembersList("user.joe", null))
+                .thenReturn(domainGroupMembership)
                 .thenThrow(new ResourceException(403))
                 .thenThrow(new NullPointerException());
+
+        DomainGroupMembership domainGroupMembership1 = client.getPendingDomainGroupMembersList("user.joe");
+        assertEquals(domainGroupMembership1, domainGroupMembership);
 
         try {
             client.getPendingDomainGroupMembersList("user.joe");
@@ -4206,6 +4245,37 @@ public class ZMSClientTest {
 
         try {
             client.getPendingDomainGroupMembersList("user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testGetPendingDomainGroupMembersListWithDomain() {
+
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        DomainGroupMembership domainGroupMembership = mock(DomainGroupMembership.class);
+
+        Mockito.when(c.getPendingDomainGroupMembersList("user.joe", "testdomain1"))
+                .thenReturn(domainGroupMembership)
+                .thenThrow(new ResourceException(403))
+                .thenThrow(new NullPointerException());
+
+        DomainGroupMembership domainGroupMembership1 = client.getPendingDomainGroupMembersList("user.joe", "testdomain1");
+        assertEquals(domainGroupMembership1, domainGroupMembership);
+
+        try {
+            client.getPendingDomainGroupMembersList("user.joe", "testdomain1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            client.getPendingDomainGroupMembersList("user.joe", "testdomain1");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);

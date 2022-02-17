@@ -175,7 +175,8 @@ public interface ObjectStoreConnection extends Closeable {
 
     Stats getStats(String domainName);
 
-    Map<String, List<DomainRoleMember>> getPendingDomainRoleMembers(String principal);
+    Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersByPrincipal(String principal);
+    Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersByDomain(String domainName);
     Map<String, List<DomainRoleMember>> getExpiredPendingDomainRoleMembers(int pendingRoleMemberLifespan);
     Set<String> getPendingMembershipApproverRoles(String server, long timestamp);
     boolean updatePendingRoleMembersNotificationTimestamp(String server, long timestamp, int delayDays);
@@ -188,7 +189,8 @@ public interface ObjectStoreConnection extends Closeable {
 
     DomainRoleMembers listOverdueReviewRoleMembers(String domainName);
 
-    Map<String, List<DomainGroupMember>> getPendingDomainGroupMembers(String principal);
+    Map<String, List<DomainGroupMember>> getPendingDomainGroupMembersByPrincipal(String principal);
+    Map<String, List<DomainGroupMember>> getPendingDomainGroupMembersByDomain(String domainName);
     Map<String, List<DomainGroupMember>> getExpiredPendingDomainGroupMembers(int pendingGroupMemberLifespan);
     Set<String> getPendingGroupMembershipApproverRoles(String server, long timestamp);
     boolean updatePendingGroupMembersNotificationTimestamp(String server, long timestamp, int delayDays);

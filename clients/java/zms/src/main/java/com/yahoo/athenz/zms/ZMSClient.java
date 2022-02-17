@@ -2871,7 +2871,27 @@ public class ZMSClient implements Closeable {
     public DomainRoleMembership getPendingDomainRoleMembersList(String principal) {
         updatePrincipal();
         try {
-            return client.getPendingDomainRoleMembersList(principal);
+            return client.getPendingDomainRoleMembersList(principal, null);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Return all the list of pending requests for the given principal or domain. If the principal
+     * is null, the server will return the list for the authenticated principal
+     * making the call
+     * @param principal name of the approver principal (optional)
+     * @param domainName name of the domain to get pending requests for (optional)
+     * @return DomainRoleMembership object listing all pending users
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainRoleMembership getPendingDomainRoleMembersList(String principal, String domainName) {
+        updatePrincipal();
+        try {
+            return client.getPendingDomainRoleMembersList(principal, domainName);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -3074,7 +3094,7 @@ public class ZMSClient implements Closeable {
 
     /**
      * Return all the list of pending requests for the given principal. If the principal
-     * is null, the server will return the list for the authenticated principal
+     * is null, the server will return the list for the authenticated principal.
      * making the call
      * @param principal name of the approver principal (optional)
      * @return DomainGroupMembership object listing all pending users
@@ -3083,7 +3103,27 @@ public class ZMSClient implements Closeable {
     public DomainGroupMembership getPendingDomainGroupMembersList(String principal) {
         updatePrincipal();
         try {
-            return client.getPendingDomainGroupMembersList(principal);
+            return client.getPendingDomainGroupMembersList(principal, null);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Return all the list of pending requests for the given principal or given domain. If the principal
+     * is null, the server will return the list for the authenticated principal.
+     * making the call
+     * @param principal name of the approver principal (optional)
+     * @param domainName name of the domain to get pending requests for (optional)
+     * @return DomainGroupMembership object listing all pending users
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainGroupMembership getPendingDomainGroupMembersList(String principal, String domainName) {
+        updatePrincipal();
+        try {
+            return client.getPendingDomainGroupMembersList(principal, domainName);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

@@ -6041,9 +6041,86 @@ public class DBServiceTest {
 
     @Test
     public void testGetPendingDomainRoleMembersListEmptyMap() {
-        DomainRoleMembership domainRoleMembership = zms.dbService.getPendingDomainRoleMembers("user.user1");
+        DomainRoleMembership domainRoleMembership = zms.dbService.getPendingDomainRoleMembers("user.user1", null);
         assertNotNull(domainRoleMembership);
         assertTrue(domainRoleMembership.getDomainRoleMembersList().isEmpty());
+    }
+
+    @Test
+    public void testGetPendingDomainGroupMembersListEmptyMap() {
+        DomainGroupMembership domainGroupMembership = zms.dbService.getPendingDomainGroupMembers("user.user1", null);
+        assertNotNull(domainGroupMembership);
+        assertTrue(domainGroupMembership.getDomainGroupMembersList().isEmpty());
+    }
+
+    @Test
+    public void testGetPendingDomainGroupMembersList() {
+        String domainName = "domain1";
+        String principal = "user.user1";
+        Map<String, List<DomainGroupMember>> dummyResult = new LinkedHashMap<>();
+        dummyResult.put(domainName, Collections.singletonList(new DomainGroupMember()));
+        dummyResult.put("domain2", Collections.singletonList(new DomainGroupMember()));
+
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getPendingDomainGroupMembersByPrincipal(principal)).thenReturn(dummyResult);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        DomainGroupMembership domainGroupMembership = zms.dbService.getPendingDomainGroupMembers(principal, domainName);
+        assertNotNull(domainGroupMembership);
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().size(), 1);
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().get(0).domainName, domainName);
+
+        domainGroupMembership = zms.dbService.getPendingDomainGroupMembers(principal, "domain2");
+        assertNotNull(domainGroupMembership);
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().size(), 1);
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().get(0).domainName, "domain2");
+
+        domainGroupMembership = zms.dbService.getPendingDomainGroupMembers(principal, "*");
+        assertNotNull(domainGroupMembership);
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().size(), 2);
+
+        domainGroupMembership = zms.dbService.getPendingDomainGroupMembers(principal, null);
+        assertNotNull(domainGroupMembership);
+        assertEquals(domainGroupMembership.getDomainGroupMembersList().size(), 2);
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testGetPendingDomainRoleMembersList() {
+        String domainName = "domain1";
+        String principal = "user.user1";
+        Map<String, List<DomainRoleMember>> dummyResult = new LinkedHashMap<>();
+        dummyResult.put(domainName, Collections.singletonList(new DomainRoleMember()));
+        dummyResult.put("domain2", Collections.singletonList(new DomainRoleMember()));
+
+        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
+        Mockito.when(mockJdbcConn.getPendingDomainRoleMembersByPrincipal(principal)).thenReturn(dummyResult);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        DomainRoleMembership domainRoleMembership = zms.dbService.getPendingDomainRoleMembers(principal, domainName);
+        assertNotNull(domainRoleMembership);
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().size(), 1);
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().get(0).domainName, domainName);
+
+        domainRoleMembership = zms.dbService.getPendingDomainRoleMembers(principal, "domain2");
+        assertNotNull(domainRoleMembership);
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().size(), 1);
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().get(0).domainName, "domain2");
+
+        domainRoleMembership = zms.dbService.getPendingDomainRoleMembers(principal, "*");
+        assertNotNull(domainRoleMembership);
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().size(), 2);
+
+        domainRoleMembership = zms.dbService.getPendingDomainRoleMembers(principal, null);
+        assertNotNull(domainRoleMembership);
+        assertEquals(domainRoleMembership.getDomainRoleMembersList().size(), 2);
+
+        zms.dbService.store = saveStore;
     }
 
     @Test
