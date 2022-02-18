@@ -23,6 +23,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os/exec"
 	"os/user"
 	"strconv"
 	"strings"
@@ -158,7 +159,7 @@ func TestOptionsNoConfig(t *testing.T) {
 	assert.True(t, len(opts.Services) == 1)
 	assert.True(t, opts.Domain == "athenz")
 	assert.True(t, opts.Name == "athenz.hockey")
-	assert.True(t, assertService(opts.Services[0], Service{Name: "hockey", Uid: 0, Gid: 0, FileMode: 288}))
+	assert.True(t, assertService(opts.Services[0], Service{Name: "hockey", Uid: idCommandId("-u"), Gid: idCommandId("-g"), FileMode: 288}))
 }
 
 // TestOptionsWithConfig test the scenario when /etc/sia/sia_config is present
@@ -177,7 +178,7 @@ func TestOptionsWithConfig(t *testing.T) {
 
 	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
 	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288}))
-	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui"}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui", User: "root", Uid: 0, Gid: 0, FileMode: 288}))
 	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys")}))
 }
 
@@ -218,4 +219,17 @@ func TestOptionsWithRotateKeyConfig(t *testing.T) {
 	opts, e := setOptions(config, configAccount, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.RotateKey == true)
+}
+
+func idCommandId(arg string) int {
+	out, err := exec.Command("id", arg).Output()
+	if err != nil {
+		log.Fatalf("Cannot exec 'id %s': %v\n", arg, err)
+	}
+	s := strings.Trim(string(out), "\n\r ")
+	id, err := strconv.Atoi(s)
+	if err != nil {
+		log.Fatalf("Unexpected UID/GID format in user record: %s\n", string(out))
+	}
+	return id
 }

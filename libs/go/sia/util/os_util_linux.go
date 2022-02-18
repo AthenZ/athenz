@@ -158,7 +158,13 @@ func gidForGroup(groupname string) int {
 func idCommand(username, arg string) int {
 	//shelling out to id is used here because the os/user package
 	//requires cgo, which doesn't cross-compile
-	out, err := exec.Command("id", arg, username).Output()
+	var out []byte
+	var err error
+	if username == "" {
+		out, err = exec.Command("id", arg).Output()
+	} else {
+		out, err = exec.Command("id", arg, username).Output()
+	}
 	if err != nil {
 		log.Fatalf("Cannot exec 'id %s %s': %v\n", arg, username, err)
 	}
@@ -171,9 +177,6 @@ func idCommand(username, arg string) int {
 }
 
 func uidGidForUser(username string) (int, int) {
-	if username == "" {
-		return 0, 0
-	}
 	uid := idCommand(username, "-u")
 	gid := idCommand(username, "-g")
 	return uid, gid
