@@ -127,9 +127,32 @@ func TestGetRegionFromDoc(test *testing.T) {
 	metaServer.start(router)
 	defer metaServer.stop()
 
-	region := GetRegion(metaServer.httpUrl())
+	region := GetRegion(metaServer.httpUrl(), false)
 	if region != "us-west-1" {
-		test.Errorf("Unable to expected region: %s", region)
+		test.Errorf("Unable to match expected region: %s", region)
+	}
+}
+
+func TestGetRegionPreferEnv(test *testing.T) {
+	// Mock the metadata endpoints
+	router := httptreemux.New()
+	router.GET("/latest/dynamic/instance-identity/document", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /latest/dynamic/instance-identity/document")
+		io.WriteString(w, "{ \"test\": \"document\", \"region\": \"us-west-1\"}")
+	})
+	os.Setenv("AWS_REGION", "us-east-1")
+
+	metaServer := &testServer{}
+	metaServer.start(router)
+	defer metaServer.stop()
+
+	region := GetRegion(metaServer.httpUrl(), true)
+	if region != "us-east-1" {
+		test.Errorf("Unable to match expected region: %s", region)
+	}
+	region = GetRegion(metaServer.httpUrl(), false)
+	if region != "us-west-1" {
+		test.Errorf("Unable to match expected region: %s", region)
 	}
 }
 
@@ -147,16 +170,24 @@ func TestGetRegionFromEnv(test *testing.T) {
 	metaServer.start(router)
 	defer metaServer.stop()
 
-	region := GetRegion(metaServer.httpUrl())
+	region := GetRegion(metaServer.httpUrl(), false)
 	if region != "us-east-1" {
-		test.Errorf("Unable to expected region: %s", region)
+		test.Errorf("Unable to match expected region: %s", region)
+	}
+	region = GetRegion(metaServer.httpUrl(), true)
+	if region != "us-east-1" {
+		test.Errorf("Unable to match expected region: %s", region)
 	}
 	os.Setenv("AWS_REGION", "")
 
 	//without doc/env we should default to us-west-2
-	region = GetRegion(metaServer.httpUrl())
+	region = GetRegion(metaServer.httpUrl(), false)
 	if region != "us-west-2" {
-		test.Errorf("Unable to expected region: %s", region)
+		test.Errorf("Unable to match expected region: %s", region)
+	}
+	region = GetRegion(metaServer.httpUrl(), true)
+	if region != "us-west-2" {
+		test.Errorf("Unable to match expected region: %s", region)
 	}
 }
 

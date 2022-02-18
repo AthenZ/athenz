@@ -219,6 +219,7 @@ func GenerateX509CSR(key *rsa.PrivateKey, csrDetails CertReqDetails) (string, er
 }
 
 func GenerateKeyPair(bits int) (*rsa.PrivateKey, error) {
+	log.Println("Generating RSA 2048 bit private key...")
 	return rsa.GenerateKey(rand.Reader, bits)
 }
 
@@ -243,6 +244,7 @@ func FileExists(path string) bool {
 }
 
 func PrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
+	log.Printf("Reading private key from %s...\n", filename)
 	pemBytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -255,6 +257,8 @@ func PrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 }
 
 func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider string, ztsDomains []string, wildCardDnsName, instanceIdSanDNS bool) (string, error) {
+
+	log.Println("Generating X.509 Service Certificate CSR...")
 
 	//note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
 	//it is used, not the CN. So, we will always put the Athenz name in the CN
@@ -296,6 +300,8 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, servi
 
 func GenerateRoleCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, roleName, instanceId, provider, emailDomain string) (string, error) {
 
+	log.Println("Generating Role Certificate CSR...")
+
 	// for role certificates we're putting the role name in the CN
 	var csrDetails CertReqDetails
 	csrDetails.CommonName = roleName
@@ -330,6 +336,9 @@ func GenerateRoleCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, serv
 }
 
 func GenerateSSHHostCSR(sshPubKeyFile string, domain, service, ip string, ztsAwsDomains []string) (string, error) {
+
+	log.Println("Generating SSH Host Certificate CSR...")
+
 	pubkey, err := ioutil.ReadFile(sshPubKeyFile)
 	if err != nil {
 		log.Printf("Skipping SSH CSR Request - Unable to read SSH Public Key File: %v\n", err)
