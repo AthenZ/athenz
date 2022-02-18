@@ -8957,7 +8957,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext ctx, String principal) {
+    public DomainRoleMembership getPendingDomainRoleMembersList(ResourceContext ctx, String principal, String domainName) {
 
         final String caller = ctx.getApiName();
 
@@ -8966,19 +8966,31 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        String checkPrincipal;
-        if (principal != null && !principal.isEmpty()) {
+        // validate domain if not null/empty or * (for all domains)
+        String checkDomainName = null;
+        if (!StringUtil.isEmpty(domainName)) {
+            if (!("*".equals(domainName))) {
+                validate(domainName, TYPE_DOMAIN_NAME, caller);
+            }
+            checkDomainName = domainName.toLowerCase();
+        }
+
+        // validate principal if not null/empty
+        // get principal from certificate if domain and principal is null
+
+        String checkPrincipal = null;
+        if (!StringUtil.isEmpty(principal)) {
             validate(principal, TYPE_ENTITY_NAME, caller);
             checkPrincipal = normalizeDomainAliasUser(principal.toLowerCase());
-        } else {
+        } else if (StringUtil.isEmpty(checkDomainName)) {
             checkPrincipal = ctxPrincipal.getFullName();
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getpendingdomainrolememberslist principal: ({})", checkPrincipal);
+            LOG.debug("getpendingdomainrolememberslist principal: ({}), domainName: ({})", checkPrincipal, checkDomainName);
         }
 
-        return dbService.getPendingDomainRoleMembers(checkPrincipal);
+        return dbService.getPendingDomainRoleMembers(checkPrincipal, checkDomainName);
     }
 
     @Override
@@ -9963,7 +9975,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public DomainGroupMembership getPendingDomainGroupMembersList(ResourceContext ctx, String principal) {
+    public DomainGroupMembership getPendingDomainGroupMembersList(ResourceContext ctx, String principal, String domainName) {
         final String caller = ctx.getApiName();
 
         final Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
@@ -9971,19 +9983,31 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
 
-        String checkPrincipal;
-        if (principal != null && !principal.isEmpty()) {
+        // validate domain if not null/empty or * (for all domains)
+        String checkDomainName = null;
+        if (!StringUtil.isEmpty(domainName)) {
+            if (!("*".equals(domainName))) {
+                validate(domainName, TYPE_DOMAIN_NAME, caller);
+            }
+            checkDomainName = domainName.toLowerCase();
+        }
+
+        // validate principal if not null/empty
+        // get principal from certificate if domain and principal is null
+
+        String checkPrincipal = null;
+        if (!StringUtil.isEmpty(principal)) {
             validate(principal, TYPE_ENTITY_NAME, caller);
             checkPrincipal = normalizeDomainAliasUser(principal.toLowerCase());
-        } else {
+        } else if (StringUtil.isEmpty(checkDomainName)) {
             checkPrincipal = ctxPrincipal.getFullName();
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getpendingdomaingroupmemberslist principal: ({})", checkPrincipal);
+            LOG.debug("getpendingdomaingroupmemberslist principal: ({}), domainName: ({})", checkPrincipal, checkDomainName);
         }
 
-        return dbService.getPendingDomainGroupMembers(checkPrincipal);
+        return dbService.getPendingDomainGroupMembers(checkPrincipal, checkDomainName);
     }
 
     void validateUserAuthorityFilterAttribute(final String authorityFilter, final String caller)  {

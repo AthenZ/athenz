@@ -248,8 +248,9 @@ resource Group PUT "/domain/{domainName}/group/{groupName}/review" (name=PutGrou
 
 //List of domains containing groups and corresponding members to be approved by either
 //calling or specified principal
-resource DomainGroupMembership GET "/pending_group_members?principal={principal}" (name=getPendingDomainGroupMembersList) {
+resource DomainGroupMembership GET "/pending_group_members?principal={principal}&domain={domainName}" (name=getPendingDomainGroupMembersList) {
     EntityName principal (optional); //If present, return pending list for this principal
+    String domainName (optional); //If present, return pending list for this domain
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;

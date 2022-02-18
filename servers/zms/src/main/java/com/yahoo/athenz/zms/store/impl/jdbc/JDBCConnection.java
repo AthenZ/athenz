@@ -338,6 +338,18 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "ON role.domain_id=domain.domain_id JOIN role_member ON role.role_id=role_member.role_id "
             + "WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin' ) "
             + "order by do.name, ro.name, principal.name;";
+    private static final String SQL_PENDING_DOMAIN_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
+            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "FROM principal JOIN pending_role_member rmo "
+            + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
+            + "WHERE ro.domain_id=? AND (ro.self_serve=true OR ro.review_enabled=true OR ro.audit_enabled=true) "
+            + "order by do.name, ro.name, principal.name;";
+    private static final String SQL_PENDING_ALL_DOMAIN_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
+            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "FROM principal JOIN pending_role_member rmo "
+            + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
+            + "WHERE (ro.self_serve=true OR ro.review_enabled=true OR ro.audit_enabled=true)"
+            + "order by do.name, ro.name, principal.name;";
 
     private static final String SQL_AUDIT_ENABLED_PENDING_MEMBERSHIP_REMINDER_ENTRIES =
             "SELECT distinct d.org, d.name FROM pending_role_member rm " +
@@ -504,6 +516,18 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE (grp.self_serve=true OR grp.review_enabled=true) AND grp.domain_id IN ( SELECT domain.domain_id FROM domain JOIN role "
             + "ON role.domain_id=domain.domain_id JOIN role_member ON role.role_id=role_member.role_id "
             + "WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin' ) "
+            + "order by do.name, grp.name, principal.name;";
+    private static final String SQL_PENDING_DOMAIN_GROUP_MEMBER_LIST = "SELECT do.name AS domain, grp.name AS group_name, "
+            + "principal.name AS member, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
+            + "FROM principal JOIN pending_principal_group_member pgm "
+            + "ON pgm.principal_id=principal.principal_id JOIN principal_group grp ON grp.group_id=pgm.group_id JOIN domain do ON grp.domain_id=do.domain_id "
+            + "WHERE grp.domain_id=? AND (grp.self_serve=true OR grp.review_enabled=true OR grp.audit_enabled=true) "
+            + "order by do.name, grp.name, principal.name;";
+    private static final String SQL_PENDING_ALL_DOMAIN_GROUP_MEMBER_LIST = "SELECT do.name AS domain, grp.name AS group_name, "
+            + "principal.name AS member, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
+            + "FROM principal JOIN pending_principal_group_member pgm "
+            + "ON pgm.principal_id=principal.principal_id JOIN principal_group grp ON grp.group_id=pgm.group_id JOIN domain do ON grp.domain_id=do.domain_id "
+            + "WHERE (grp.self_serve=true OR grp.review_enabled=true OR grp.audit_enabled=true) "
             + "order by do.name, grp.name, principal.name;";
     private static final String SQL_GET_EXPIRED_PENDING_GROUP_MEMBERS = "SELECT d.name, grp.name, p.name, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
             + "FROM principal p JOIN pending_principal_group_member pgm "
@@ -4586,7 +4610,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Map<String, List<DomainGroupMember>> getPendingDomainGroupMembers(String principal) {
+    public Map<String, List<DomainGroupMember>> getPendingDomainGroupMembersByPrincipal(String principal) {
 
         final String caller = "getPendingDomainGroupMembersList";
         int principalId = getPrincipalId(principal);
@@ -4619,6 +4643,52 @@ public class JDBCConnection implements ObjectStoreConnection {
             }
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
+        }
+
+        return domainGroupMembersMap;
+    }
+
+    @Override
+    public Map<String, List<DomainGroupMember>> getPendingDomainGroupMembersByDomain(String domainName) {
+
+        final String caller = "getPendingDomainGroupMembersList";
+        final boolean allDomains = "*".equals(domainName);
+        int domainId = 0;
+
+        if (!allDomains) {
+            domainId = getDomainId(domainName);
+            if (domainId == 0) {
+                throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+            }
+        }
+
+        Map<String, List<DomainGroupMember>> domainGroupMembersMap = new LinkedHashMap<>();
+        if (allDomains) {
+            // retrieve all members pending approval in principal group across all domains
+
+            try (PreparedStatement ps = con.prepareStatement(SQL_PENDING_ALL_DOMAIN_GROUP_MEMBER_LIST)) {
+                try (ResultSet rs = executeQuery(ps, caller)) {
+                    while (rs.next()) {
+                        populateDomainGroupMembersMapFromResultSet(domainGroupMembersMap, rs);
+                    }
+                }
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
+        } else {
+            // retrieve all the members that are waiting for approval
+            // in review enabled, self serve and audit enabled groups for given domain
+
+            try (PreparedStatement ps = con.prepareStatement(SQL_PENDING_DOMAIN_GROUP_MEMBER_LIST)) {
+                ps.setInt(1, domainId);
+                try (ResultSet rs = executeQuery(ps, caller)) {
+                    while (rs.next()) {
+                        populateDomainGroupMembersMapFromResultSet(domainGroupMembersMap, rs);
+                    }
+                }
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
         }
 
         return domainGroupMembersMap;
@@ -4886,7 +4956,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Map<String, List<DomainRoleMember>> getPendingDomainRoleMembers(String principal) {
+    public Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersByPrincipal(String principal) {
 
         final String caller = "getPendingDomainRoleMembersList";
         int principalId = getPrincipalId(principal);
@@ -4917,6 +4987,53 @@ public class JDBCConnection implements ObjectStoreConnection {
             }
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
+        }
+
+        return domainRoleMembersMap;
+    }
+
+    @Override
+    public Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersByDomain(String domainName) {
+
+        final String caller = "getPendingDomainRoleMembersList";
+        final boolean allDomains = "*".equals(domainName);
+
+        int domainId = 0;
+        if (!allDomains) {
+            domainId = getDomainId(domainName);
+            if (domainId == 0) {
+                throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+            }
+        }
+
+        Map<String, List<DomainRoleMember>> domainRoleMembersMap = new LinkedHashMap<>();
+
+        if (allDomains) {
+            // retrieve all the members waiting approval across all domains
+
+            try (PreparedStatement ps = con.prepareStatement(SQL_PENDING_ALL_DOMAIN_ROLE_MEMBER_LIST)) {
+                try (ResultSet rs = executeQuery(ps, caller)) {
+                    while (rs.next()) {
+                        populateDomainRoleMembersMapFromResultSet(domainRoleMembersMap, rs);
+                    }
+                }
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
+        } else {
+            // retrieve all the members that are waiting for approval
+            // in audit_enabled,review_enabled and self serve roles in given domain
+
+            try (PreparedStatement ps = con.prepareStatement(SQL_PENDING_DOMAIN_ROLE_MEMBER_LIST)) {
+                ps.setInt(1, domainId);
+                try (ResultSet rs = executeQuery(ps, caller)) {
+                    while (rs.next()) {
+                        populateDomainRoleMembersMapFromResultSet(domainRoleMembersMap, rs);
+                    }
+                }
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
         }
 
         return domainRoleMembersMap;

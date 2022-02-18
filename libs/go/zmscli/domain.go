@@ -1067,8 +1067,8 @@ func (cli Zms) SetDefaultAdmins(dn string, admins []string) (*string, error) {
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
-func (cli Zms) ListPendingDomainRoleMembers(principal string) (*string, error) {
-	domainMembership, err := cli.Zms.GetPendingDomainRoleMembersList(zms.EntityName(principal))
+func (cli Zms) ListPendingDomainRoleMembers(principal, domainName string) (*string, error) {
+	domainMembership, err := cli.Zms.GetPendingDomainRoleMembersList(zms.EntityName(principal), domainName)
 	if err != nil {
 		return nil, err
 	}

@@ -6,8 +6,9 @@ include "DomainRoleMembership.tdl";
 
 //List of domains containing roles and corresponding members to be approved by either
 //calling or specified principal
-resource DomainRoleMembership GET "/pending_members?principal={principal}" (name=getPendingDomainRoleMembersList) {
+resource DomainRoleMembership GET "/pending_members?principal={principal}&domain={domainName}" (name=getPendingDomainRoleMembersList) {
     EntityName principal (optional); //If present, return pending list for this principal
+    String domainName (optional); //If present, return pending list for this domain
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;

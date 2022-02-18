@@ -1926,13 +1926,14 @@ public class ZMSResources {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List of domains containing groups and corresponding members to be approved by either calling or specified principal")
     public DomainGroupMembership getPendingDomainGroupMembersList(
-        @Parameter(description = "If present, return pending list for this principal", required = false) @QueryParam("principal") String principal) {
+        @Parameter(description = "If present, return pending list for this principal", required = false) @QueryParam("principal") String principal,
+        @Parameter(description = "If present, return pending list for this domain", required = false) @QueryParam("domain") String domainName) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getPendingDomainGroupMembersList");
             context.authenticate();
-            return this.delegate.getPendingDomainGroupMembersList(context, principal);
+            return this.delegate.getPendingDomainGroupMembersList(context, principal, domainName);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -4078,13 +4079,14 @@ public class ZMSResources {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List of domains containing roles and corresponding members to be approved by either calling or specified principal")
     public DomainRoleMembership getPendingDomainRoleMembersList(
-        @Parameter(description = "If present, return pending list for this principal", required = false) @QueryParam("principal") String principal) {
+        @Parameter(description = "If present, return pending list for this principal", required = false) @QueryParam("principal") String principal,
+        @Parameter(description = "If present, return pending list for this domain", required = false) @QueryParam("domain") String domainName) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.request, this.response, "getPendingDomainRoleMembersList");
             context.authenticate();
-            return this.delegate.getPendingDomainRoleMembersList(context, principal);
+            return this.delegate.getPendingDomainRoleMembersList(context, principal, domainName);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
