@@ -4525,7 +4525,8 @@ public class DBService implements RolesProvider {
     }
 
     void executePutProviderRoles(ResourceContext ctx, String tenantDomain, String provSvcDomain,
-            String provSvcName, String resourceGroup, List<String> roles, String auditRef, String caller) {
+            String provSvcName, String resourceGroup, List<String> roles, Boolean skipPrincipalMember,
+            String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -4561,7 +4562,7 @@ public class DBService implements RolesProvider {
                     // add those members to other roles in our list
 
                     List<RoleMember> roleMembers = new ArrayList<>();
-                    if (principalName != null) {
+                    if (principalName != null && skipPrincipalMember != Boolean.TRUE) {
                         RoleMember roleMember = new RoleMember();
                         roleMember.setMemberName(principalName);
                         roleMembers.add(roleMember);

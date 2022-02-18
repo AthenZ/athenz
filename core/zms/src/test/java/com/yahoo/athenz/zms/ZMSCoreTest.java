@@ -3026,6 +3026,7 @@ public class ZMSCoreTest {
         assertNull(prgr2.getCreateAdminRole());
         prgr2.init();
         assertTrue(prgr2.getCreateAdminRole());
+        assertFalse(prgr2.getSkipPrincipalMember());
 
         assertTrue(prgr2.equals(prgr));
         assertTrue(prgr.equals(prgr));
@@ -3033,23 +3034,37 @@ public class ZMSCoreTest {
         prgr2.setResourceGroup(null);
         assertFalse(prgr2.equals(prgr));
         prgr2.setResourceGroup("test-group");
+
         prgr2.setRoles(null);
         assertFalse(prgr2.equals(prgr));
         prgr2.setRoles(tral);
+
         prgr2.setTenant(null);
         assertFalse(prgr2.equals(prgr));
         prgr2.setTenant("test.tenant");
+
         prgr2.setService(null);
         assertFalse(prgr2.equals(prgr));
         prgr2.setService("test-service");
+
         prgr2.setDomain(null);
         assertFalse(prgr2.equals(prgr));
         prgr2.setDomain("test.domain");
+
         prgr2.setCreateAdminRole(null);
         assertFalse(prgr2.equals(prgr));
         prgr2.setCreateAdminRole(false);
         assertFalse(prgr2.equals(prgr));
         prgr2.setCreateAdminRole(true);
+        assertTrue(prgr2.equals(prgr));
+
+        prgr2.setSkipPrincipalMember(null);
+        assertFalse(prgr2.equals(prgr));
+        prgr2.setSkipPrincipalMember(true);
+        assertFalse(prgr2.equals(prgr));
+        prgr2.setSkipPrincipalMember(false);
+        assertTrue(prgr2.equals(prgr));
+
         assertFalse(prgr2.equals(null));
         assertFalse(prgr.equals(new String()));
 

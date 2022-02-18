@@ -6044,6 +6044,12 @@ type ProviderResourceGroupRoles struct {
 	// optional flag indicating whether to create a default tenancy admin role
 	//
 	CreateAdminRole *bool `json:"createAdminRole,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// optional flag indicating to skip adding the caller principal into the
+	// resource role
+	//
+	SkipPrincipalMember *bool `json:"skipPrincipalMember,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 //
@@ -6069,6 +6075,10 @@ func (self *ProviderResourceGroupRoles) Init() *ProviderResourceGroupRoles {
 	if self.CreateAdminRole == nil {
 		d := true
 		self.CreateAdminRole = &d
+	}
+	if self.SkipPrincipalMember == nil {
+		d := false
+		self.SkipPrincipalMember = &d
 	}
 	return self
 }

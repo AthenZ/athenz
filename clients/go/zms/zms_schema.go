@@ -605,6 +605,7 @@ func init() {
 	tProviderResourceGroupRoles.ArrayField("roles", "TenantRoleAction", false, "the role/action pairs to provision")
 	tProviderResourceGroupRoles.Field("resourceGroup", "EntityName", false, nil, "tenant resource group")
 	tProviderResourceGroupRoles.Field("createAdminRole", "Bool", true, true, "optional flag indicating whether to create a default tenancy admin role")
+	tProviderResourceGroupRoles.Field("skipPrincipalMember", "Bool", true, false, "optional flag indicating to skip adding the caller principal into the resource role")
 	sb.AddType(tProviderResourceGroupRoles.Build())
 
 	tAccess := rdl.NewStructTypeBuilder("Struct", "Access")

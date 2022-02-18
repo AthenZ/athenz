@@ -7398,8 +7398,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     /**
-     * This sets up the assume roles in the tenant. If the tenants admin user
-     * token has been authorized by the provider, the providers domain will be
+     * This sets up the assume roles in the tenant. If the tenant's admin user
+     * token has been authorized by the provider, the provider's domain will be
      * updated as well, thus completing the tenancy on-boarding in a single step.
     **/
     @Override
@@ -7458,11 +7458,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!Boolean.FALSE.equals(detail.getCreateAdminRole())) {
             // set up our tenant admin policy so provider can check admin's access
-
             dbService.setupTenantAdminPolicy(ctx, tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
         }
 
-        // now we're going to setup our roles
+        // now we're going to set up our roles
 
         List<TenantRoleAction> roleActions = detail.getRoles();
         List<String> roles = new ArrayList<>();
@@ -7474,7 +7473,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // based on its action and set the caller as a member in each role
 
         dbService.executePutProviderRoles(ctx, tenantDomain, provSvcDomain, provSvcName, resourceGroup,
-            roles, auditRef, caller);
+            roles, detail.getSkipPrincipalMember(), auditRef, caller);
 
         // at this point the tenant side is complete. If the token was a chained
         // token signed by the provider service then we're going to process the
@@ -7483,7 +7482,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
         if (isAuthorizedProviderService(authorizedService, provSvcDomain, provSvcName, ((RsrcCtxWrapper) ctx).principal())) {
 
-            // first we need to setup the admin roles in case this
+            // first we need to set up the admin roles in case this
             // happens to be the first resource group
 
             setupTenantAdminPolicyInProvider(ctx, provSvcDomain, provSvcName, tenantDomain,
