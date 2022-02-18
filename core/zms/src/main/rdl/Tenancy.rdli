@@ -35,6 +35,7 @@ type ProviderResourceGroupRoles Struct {
     Array<TenantRoleAction> roles; //the role/action pairs to provision
     EntityName resourceGroup; //tenant resource group
     Bool createAdminRole (optional, default=true); //optional flag indicating whether to create a default tenancy admin role
+    Bool skipPrincipalMember (optional, default=false); //optional flag indicating to skip adding the caller principal into the resource role
 }
 
 //Register the provider service in the tenant's domain.

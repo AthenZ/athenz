@@ -22,6 +22,9 @@ public class ProviderResourceGroupRoles {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean createAdminRole;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean skipPrincipalMember;
 
     public ProviderResourceGroupRoles setDomain(String domain) {
         this.domain = domain;
@@ -65,6 +68,13 @@ public class ProviderResourceGroupRoles {
     public Boolean getCreateAdminRole() {
         return createAdminRole;
     }
+    public ProviderResourceGroupRoles setSkipPrincipalMember(Boolean skipPrincipalMember) {
+        this.skipPrincipalMember = skipPrincipalMember;
+        return this;
+    }
+    public Boolean getSkipPrincipalMember() {
+        return skipPrincipalMember;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -91,6 +101,9 @@ public class ProviderResourceGroupRoles {
             if (createAdminRole == null ? a.createAdminRole != null : !createAdminRole.equals(a.createAdminRole)) {
                 return false;
             }
+            if (skipPrincipalMember == null ? a.skipPrincipalMember != null : !skipPrincipalMember.equals(a.skipPrincipalMember)) {
+                return false;
+            }
         }
         return true;
     }
@@ -101,6 +114,9 @@ public class ProviderResourceGroupRoles {
     public ProviderResourceGroupRoles init() {
         if (createAdminRole == null) {
             createAdminRole = true;
+        }
+        if (skipPrincipalMember == null) {
+            skipPrincipalMember = false;
         }
         return this;
     }

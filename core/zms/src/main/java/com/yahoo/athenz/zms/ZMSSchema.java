@@ -519,7 +519,8 @@ public class ZMSSchema {
             .field("tenant", "DomainName", false, "name of the tenant domain")
             .arrayField("roles", "TenantRoleAction", false, "the role/action pairs to provision")
             .field("resourceGroup", "EntityName", false, "tenant resource group")
-            .field("createAdminRole", "Bool", true, "optional flag indicating whether to create a default tenancy admin role", true);
+            .field("createAdminRole", "Bool", true, "optional flag indicating whether to create a default tenancy admin role", true)
+            .field("skipPrincipalMember", "Bool", true, "optional flag indicating to skip adding the caller principal into the resource role", false);
 
         sb.structType("Access")
             .comment("Access can be checked and returned as this resource.")
