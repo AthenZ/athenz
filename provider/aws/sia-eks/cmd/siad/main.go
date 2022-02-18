@@ -71,7 +71,7 @@ func main() {
 		log.Fatalln("missing providerprefix argument")
 	}
 
-	region := meta.GetRegion(*eksMetaEndPoint)
+	region := meta.GetRegion(*eksMetaEndPoint, true)
 
 	config, configAccount, err := sia.GetEKSConfig(*pConf, *eksMetaEndPoint, *useRegionalSTS, region)
 	if err != nil {

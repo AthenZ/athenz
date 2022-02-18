@@ -67,7 +67,7 @@ func getSTSToken(useRegionalSTS bool, region, account, role string) (*sts.Assume
 	}
 	stsService := sts.New(stsSession)
 	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", account, role)
-	log.Printf("trying to assume role: %v\n", roleArn)
+	log.Printf("Trying to assume role: %v\n", roleArn)
 	return stsService.AssumeRole(&sts.AssumeRoleInput{
 		RoleArn:         &roleArn,
 		RoleSessionName: &role,

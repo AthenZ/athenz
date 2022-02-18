@@ -90,20 +90,37 @@ func processHttpRequest(base, path, method string, headers map[string]string) ([
 }
 
 // GetRegion get current region from identity document
-func GetRegion(metaEndPoint string) string {
+func GetRegion(metaEndPoint string, preferEnv bool) string {
 	var region string
-	document, err := GetData(metaEndPoint, "/latest/dynamic/instance-identity/document")
-	if err == nil {
-		log.Println("Trying to determine region from identity document ...")
-		region, _ = doc.GetDocumentEntry(document, "region")
-	}
-	if region == "" {
-		log.Println("Trying to determine region from AWS_REGION environment variable...")
-		region = os.Getenv("AWS_REGION")
+	if preferEnv {
+		region = getRegionFromEnv()
+		if region == "" {
+			region = getRegionFromInstanceDocument(metaEndPoint)
+		}
+	} else {
+		region = getRegionFromInstanceDocument(metaEndPoint)
+		if region == "" {
+			region = getRegionFromEnv()
+		}
 	}
 	if region == "" {
 		log.Println("No region information available. Defaulting to us-west-2")
 		region = "us-west-2"
+	}
+	return region
+}
+
+func getRegionFromEnv() string {
+	log.Println("Trying to determine region from AWS_REGION environment variable...")
+	return os.Getenv("AWS_REGION")
+}
+
+func getRegionFromInstanceDocument(metaEndPoint string) string {
+	var region string
+	log.Println("Trying to determine region from identity document ...")
+	document, err := GetData(metaEndPoint, "/latest/dynamic/instance-identity/document")
+	if err == nil {
+		region, _ = doc.GetDocumentEntry(document, "region")
 	}
 	return region
 }
