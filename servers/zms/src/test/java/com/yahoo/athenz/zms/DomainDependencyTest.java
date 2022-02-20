@@ -498,7 +498,7 @@ public class DomainDependencyTest {
         authorizedProviderService = zmsImpl.getAuthorizedProviderService(serviceProviderCtx, "service.provider", caller);
         assertEquals(authorizedProviderService, "service.provider");
 
-        // Also Successful for system administrator that isn't human
+        // Successful for system administrator that isn't human
 
         RsrcCtxWrapper serviceSysAdminCtx = zmsTestInitializer.generateServiceSysAdmin(caller, "admindomain", "serviceprincipal");
         authorizedProviderService = zmsImpl.getAuthorizedProviderService(serviceSysAdminCtx, "service.provider", caller);

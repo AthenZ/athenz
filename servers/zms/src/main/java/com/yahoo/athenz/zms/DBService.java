@@ -4351,6 +4351,13 @@ public class DBService implements RolesProvider {
 
                 checkDomainAuditEnabled(con, provSvcDomain, auditRef, caller, principalName, AUDIT_TYPE_TENANCY);
 
+                // verify tenant domain exists
+
+                if (con.getDomain(tenantDomain) == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": Unknown tenant domain: " + tenantDomain, caller);
+                }
+
                 String trustedRolePrefix = ZMSUtils.getTrustedResourceGroupRolePrefix(provSvcDomain,
                         provSvcName, tenantDomain, resourceGroup);
 
