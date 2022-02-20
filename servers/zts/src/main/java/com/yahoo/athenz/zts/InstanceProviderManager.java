@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,11 +43,13 @@ public class InstanceProviderManager {
     private static final String SCHEME_HTTPS = "https";
     private static final String SCHEME_CLASS = "class";
     private static final String ZTS_PROVIDER = "sys.auth.zts";
+    private static final String ATHENZ_CLIENT_USER = "athenz.client";
 
     private final ConcurrentHashMap<String, InstanceProvider> providerMap;
     private final DataStore dataStore;
     private final KeyStore keyStore;
-    private final SSLContext sslContext;
+    private final SSLContext athenzServerSSLContext;
+    private final SSLContext athenzClientSSLContext;
     private final ServerPrivateKey serverPrivateKey;
     List<String> providerEndpoints = Collections.emptyList();
 
@@ -56,12 +59,13 @@ public class InstanceProviderManager {
         CLASS
     }
     
-    public InstanceProviderManager(DataStore dataStore, SSLContext sslContext, ServerPrivateKey serverPrivateKey,
-                                   KeyStore keyStore) {
+    public InstanceProviderManager(DataStore dataStore, SSLContext athenzServerSSLContext, SSLContext athenzClientSSLContext,
+                                   ServerPrivateKey serverPrivateKey, KeyStore keyStore) {
         
         this.dataStore = dataStore;
         this.keyStore = keyStore;
-        this.sslContext = sslContext;
+        this.athenzServerSSLContext = athenzServerSSLContext;
+        this.athenzClientSSLContext = athenzClientSSLContext;
         this.serverPrivateKey = serverPrivateKey;
 
         providerMap = new ConcurrentHashMap<>();
@@ -77,14 +81,14 @@ public class InstanceProviderManager {
     InstanceProvider getProvider(String provider, HostnameResolver hostnameResolver) {
         int idx = provider.lastIndexOf('.');
         if (idx == -1) {
-            LOGGER.error("getProviderClient: Invalid provider service name: {}", provider);
+            LOGGER.error("Invalid provider service name: {}", provider);
             return null;
         }
         
         final String domainName = provider.substring(0, idx);
         DataCache dataCache = dataStore.getDataCache(domainName);
         if (dataCache == null) {
-            LOGGER.error("getProviderClient: Unknown domain: {}", domainName);
+            LOGGER.error("Unknown domain: {}", domainName);
             return null;
         }
         
@@ -92,7 +96,7 @@ public class InstanceProviderManager {
         boolean validProviderName = false;
         List<com.yahoo.athenz.zms.ServiceIdentity> services = dataCache.getDomainData().getServices();
         if (services == null) {
-            LOGGER.error("getProviderClient: Unknown provider service: {}", provider);
+            LOGGER.error("Unknown provider service: {}", provider);
             return null;
         }
         
@@ -106,13 +110,11 @@ public class InstanceProviderManager {
 
         // if we don't have an endpoint then we have an invalid and/or no service
         
-        if (providerEndpoint == null || providerEndpoint.isEmpty()) {
+        if (StringUtil.isEmpty(providerEndpoint)) {
             if (validProviderName) {
-                LOGGER.error("getProviderClient: Unknown provider service name: {}",
-                        provider);
+                LOGGER.error("Unknown provider service name: {}", provider);
             } else {
-                LOGGER.error("getProviderClient: Provider service {} does not have endpoint defined",
-                        provider);
+                LOGGER.error("Provider service {} does not have endpoint defined", provider);
             }
             return null;
         }
@@ -125,8 +127,7 @@ public class InstanceProviderManager {
         try {
             uri = new URI(providerEndpoint);
         } catch (URISyntaxException ex) {
-            LOGGER.error("getProviderClient: Unable to parse {}: {}", providerEndpoint,
-                    ex.getMessage());
+            LOGGER.error("Unable to parse {}: {}", providerEndpoint, ex.getMessage());
             return null;
         }
         
@@ -134,7 +135,12 @@ public class InstanceProviderManager {
         switch (schemeType) {
         case HTTPS:
             instanceProvider = new InstanceHttpProvider();
-            instanceProvider.initialize(provider, providerEndpoint, sslContext, keyStore);
+            // if the uri has athenz.client as the authenticated user then
+            // we're going to use our client ssl context otherwise we'll
+            // default to our server ssl context
+            boolean useClientSSLContext = ATHENZ_CLIENT_USER.equals(uri.getUserInfo());
+            instanceProvider.initialize(provider, getProviderEndpoint(uri, useClientSSLContext, providerEndpoint),
+                    getSSLContext(useClientSSLContext), keyStore);
             break;
         case CLASS:
             instanceProvider = getClassProvider(uri.getHost(), provider, hostnameResolver);
@@ -145,7 +151,7 @@ public class InstanceProviderManager {
         
         return instanceProvider;
     }
-    
+
     InstanceProvider getClassProvider(String className, String providerName, HostnameResolver hostnameResolver) {
         final String classKey = className + "-" + providerName;
         InstanceProvider provider = providerMap.get(classKey);
@@ -156,17 +162,16 @@ public class InstanceProviderManager {
         try {
             instanceClass = Class.forName(className);
         } catch (ClassNotFoundException e) {
-            LOGGER.error("getClassInstance: Provider class {} not found", className);
+            LOGGER.error("Provider class {} not found", className);
             return null;
         }
         try {
             provider = (InstanceProvider) instanceClass.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
-            LOGGER.error("getClassInstance: Unable to get new instance for provider {} error {}",
-                    className, ex.getMessage());
+            LOGGER.error("Unable to get new instance for provider {} error {}", className, ex.getMessage());
             return null;
         }
-        provider.initialize(providerName, className, sslContext, keyStore);
+        provider.initialize(providerName, className, athenzServerSSLContext, keyStore);
         provider.setHostnameResolver(hostnameResolver);
         if (ZTS_PROVIDER.equals(providerName)) {
             provider.setPrivateKey(serverPrivateKey.getKey(), serverPrivateKey.getId(), serverPrivateKey.getAlgorithm());
@@ -175,12 +180,27 @@ public class InstanceProviderManager {
         providerMap.put(classKey, provider);
         return provider;
     }
-    
+
+    String getProviderEndpoint(URI uri, boolean useClientSSLContext, final String providerEndpoint) {
+        // if we're using the athenz client context then we need to remove
+        // the authenticated user information from the endpoint
+        return useClientSSLContext ? providerEndpoint.replace(uri.getRawUserInfo() + "@", "") : providerEndpoint;
+    }
+
+    SSLContext getSSLContext(boolean useClientSSLContext) {
+        // if the requested ssl context is null we'll default to returning the other
+        // type in order to avoid any cloverfailures if the provider accepts both types
+        if (useClientSSLContext) {
+            return athenzClientSSLContext != null ? athenzClientSSLContext : athenzServerSSLContext;
+        } else {
+            return athenzServerSSLContext != null ? athenzServerSSLContext : athenzClientSSLContext;
+        }
+    }
+
     ProviderScheme getProviderScheme(URI uri) {
         final String scheme = uri.getScheme();
         if (scheme == null) {
-            LOGGER.error("verifyProviderEndpoint: Provider endpoint {} has no scheme component",
-                    uri.toString());
+            LOGGER.error("Provider endpoint {} has no scheme component", uri);
             return ProviderScheme.UNKNOWN;
         }
         
@@ -221,22 +241,20 @@ public class InstanceProviderManager {
         
         String host = uri.getHost();
         if (host == null) {
-            LOGGER.error("verifyProviderEndpoint: Provider endpoint {} has no host component",
-                    uri.toString());
+            LOGGER.error("Provider endpoint {} has no host component", uri);
             return ProviderScheme.UNKNOWN;
         }
         host = host.toLowerCase();
         
         String scheme = uri.getScheme();
         if (scheme == null) {
-            LOGGER.error("verifyProviderEndpoint: Provider endpoint {} has no scheme component",
-                    uri.toString());
+            LOGGER.error("Provider endpoint {} has no scheme component", uri);
             return ProviderScheme.UNKNOWN;
         }
         
         ProviderScheme schemeType = getProviderScheme(uri);
         if (schemeType == ProviderScheme.UNKNOWN) {
-            LOGGER.error("verifyProviderEndpoint: Unknown scheme in URI {}", uri.toString());
+            LOGGER.error("Unknown scheme in URI {}", uri);
             return ProviderScheme.UNKNOWN;
         }
         
@@ -247,8 +265,7 @@ public class InstanceProviderManager {
         }
         
         if (!verifyProviderEndpoint(host)) {
-            LOGGER.error("verifyProviderEndpoint: Provider host {} does not match with any of the configured domains",
-                    host);
+            LOGGER.error("Provider host {} does not match with any of the configured domains", host);
             return ProviderScheme.UNKNOWN;
         }
 
