@@ -72,8 +72,6 @@ public class ZTSUtils {
     private static final String ATHENZ_PROP_TRUSTSTORE_TYPE                     = "athenz.ssl_trust_store_type";
     private static final String ATHENZ_PROP_PUBLIC_CERT_PATH_FOR_SSL            = "athenz.ssl_client_public_cert_path";
     private static final String ATHENZ_PROP_PRIVATE_KEY_PATH_FOR_SSL            = "athenz.ssl_client_private_key_path";
-    private static final String ATHENZ_PROP_USE_FILE_CERT_AND_KEY_FOR_SSL       = "athenz.ssl_client_use_file_cert_and_key";
-    private static final String ATHENZ_DEFAULT_USE_FILE_CERT_AND_KEY_FOR_SSL    = "false";
 
     private static final String ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME   = "athenz.ssl_key_store_password_appname";
     private static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME = "athenz.ssl_trust_store_password_appname";
@@ -291,15 +289,7 @@ public class ZTSUtils {
         return new Identity().setName(cn).setCertificate(pemCert);
     }
 
-    public static SSLContext createServerClientSSLContext(PrivateKeyStore privateKeyStore) {
-        if (Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_USE_FILE_CERT_AND_KEY_FOR_SSL, ATHENZ_DEFAULT_USE_FILE_CERT_AND_KEY_FOR_SSL))) {
-            return getSslContextUsingKeyCertFiles(privateKeyStore);
-        } else {
-            return getSslContextUsingKeyStores(privateKeyStore);
-        }
-    }
-
-    private static SSLContext getSslContextUsingKeyCertFiles(PrivateKeyStore privateKeyStore) {
+    public static SSLContext getAthenzClientSSLContext(PrivateKeyStore privateKeyStore) {
         final String trustStorePath = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PATH);
         if (trustStorePath == null) {
             LOGGER.error("Unable to create client ssl context: no truststore path specified");
@@ -338,7 +328,7 @@ public class ZTSUtils {
         }
     }
 
-    private static SSLContext getSslContextUsingKeyStores(PrivateKeyStore privateKeyStore) {
+    public static SSLContext getAthenzServerSSLContext(PrivateKeyStore privateKeyStore) {
         final String keyStorePath = System.getProperty(ATHENZ_PROP_KEYSTORE_PATH);
         if (keyStorePath == null) {
             LOGGER.error("Unable to create client ssl context: no keystore path specified");
