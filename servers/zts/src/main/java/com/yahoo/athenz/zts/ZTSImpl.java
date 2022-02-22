@@ -3345,8 +3345,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY,
                 getInstanceRegisterQueryLog(provider, certReqInstanceId, info.getHostname()));
 
-        InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider, domain,
-                service, info.getAttestationData(), certReqInstanceId, info.getHostname(), null,
+        InstanceConfirmation instance = newInstanceConfirmationForRegister(ctx, provider, domain,
+                service, info.getAttestationData(), certReqInstanceId, info.getHostname(),
                 certReq, instanceProvider.getProviderScheme());
 
         // Store sanIP from CSR in a variable since instance attributes go through bunch of manipulations.
@@ -3638,7 +3638,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             attributes.put(InstanceProvider.ZTS_INSTANCE_HOSTNAME, instanceHostname);
         }
 
-        // finally we're going to include the principal if we have one in our request
+        // we're going to include the principal if we have one in our request
 
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         if (principal != null) {
@@ -3648,7 +3648,27 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         instance.setAttributes(attributes);
         return instance;
     }
-    
+
+    InstanceConfirmation newInstanceConfirmationForRegister(ResourceContext ctx, final String provider,
+                                                            final String domain, final String service, final String attestationData,
+                                                            final String instanceId, final String instanceHostname, X509CertRequest certReq,
+                                                            InstanceProvider.Scheme providerScheme) {
+        InstanceConfirmation instanceConfirmation = generateInstanceConfirmObject(ctx, provider,
+                domain, service, attestationData, instanceId,
+                instanceHostname, null, certReq, providerScheme
+        );
+
+        // include the request cert attributes, if available
+        X509Certificate[] certs = (X509Certificate[]) ctx.request().getAttribute(Http.JAVAX_CERT_ATTR);
+        if (certs != null && certs.length != 0) {
+            instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN, X509CertUtils.extractIssuerDn(certs));
+            instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, X509CertUtils.extractSubjectDn(certs));
+            instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_RSA_MOD_HASH, X509CertUtils.hexKeyMod(certs, true));
+        }
+
+        return instanceConfirmation;
+    }
+
     @Override
     public InstanceIdentity postInstanceRefreshInformation(ResourceContext ctx, String provider,
             String domain, String service, String instanceId, InstanceRefreshInformation info) {

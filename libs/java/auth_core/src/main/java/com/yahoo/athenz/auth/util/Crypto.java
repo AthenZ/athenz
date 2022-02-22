@@ -1230,9 +1230,13 @@ public class Crypto {
         return strWriter.toString();
     }
 
-    public static String extractX509CertSubjectField(X509Certificate x509Cert, ASN1ObjectIdentifier id) {
-
-        String principalName = x509Cert.getSubjectX500Principal().getName();
+    /**
+     * extractX500DnField extracts a sub part from the DN
+     * @param principalName a string representing the DN
+     * @param id ASN1ObjectIdentifier for the sub part
+     * @return string with the subpart of the DN
+     */
+    public static String extractX500DnField(String principalName, ASN1ObjectIdentifier id) {
         ///CLOVER:OFF
         if (principalName == null || principalName.isEmpty()) {
             return null;
@@ -1253,6 +1257,35 @@ public class Crypto {
         }
         ///CLOVER:ON
         return IETFUtils.valueToString(rdns[0].getFirst().getValue());
+    }
+
+    /**
+     * extractX509CertSubjectField returns the sub part from the Subject DN
+     * @param x509Cert X509Certificate to extract the Subject Field from
+     * @param id ASN1ObjectIdentifier for the sub part
+     * @return string representing Subject field requested
+     */
+    public static String extractX509CertSubjectField(X509Certificate x509Cert, ASN1ObjectIdentifier id) {
+        return extractX500DnField(x509Cert.getSubjectX500Principal().getName(), id);
+    }
+
+    /**
+     * extractX509CertIssuerDnField returns the sub part from the Issuer DN
+     * @param x509Cert X509Certificate to extract the Issuer DN Field from
+     * @param id ASN1ObjectIdentifier for the sub part
+     * @return string representing Issuer DN field requested
+     */
+    public static String extractX509CertIssuerDnField(X509Certificate x509Cert, ASN1ObjectIdentifier id) {
+        return extractX500DnField(x509Cert.getIssuerX500Principal().getName(), id);
+    }
+
+    /**
+     * extractX509CertIssuerCommonName returns the CN from the Issuer DN
+     * @param x509Cert X509Certificate to extract the Issuer CN from
+     * @return string representing the Issuer CN
+     */
+    public static String extractX509CertIssuerCommonName(X509Certificate x509Cert) {
+        return extractX509CertIssuerDnField(x509Cert, BCStyle.CN);
     }
 
     public static long extractX509CertIssueTime(X509Certificate x509Cert) {

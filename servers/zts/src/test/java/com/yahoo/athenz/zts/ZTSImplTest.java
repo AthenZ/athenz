@@ -22,7 +22,6 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.Base64URL;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
@@ -30,6 +29,7 @@ import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
@@ -52,6 +52,7 @@ import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.cert.X509CertRequest;
 import com.yahoo.athenz.zts.cert.X509RoleCertRequest;
+import com.yahoo.athenz.zts.cert.X509ServiceCertRequest;
 import com.yahoo.athenz.zts.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zts.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.zts.store.CloudStore;
@@ -67,7 +68,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
-import org.eclipse.jetty.util.StringUtil;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -13401,5 +13401,61 @@ public class ZTSImplTest {
         assertEquals(zts.privateKey, zts.getSignPrivateKey("rsa"));
         assertEquals(zts.privateKey, zts.getSignPrivateKey("EC"));
         assertEquals(zts.privateKey, zts.getSignPrivateKey("ec"));
+    }
+
+    @Test
+    public void testGenerateInstanceConfirmObjectWithCtxCert() throws IOException {
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        Mockito.when(mockCloudStore.getAzureSubscription("athenz")).thenReturn("12345");
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        Path path = Paths.get("src/test/resources//athenz.instanceid.hostname.pem");
+        X509Certificate cert = Crypto.loadX509Certificate(path.toFile());
+        X509Certificate[] certs = new X509Certificate[]{cert};
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.getAttribute(Http.JAVAX_CERT_ATTR)).thenReturn(certs).thenReturn(null);
+
+        ResourceContext context = createResourceContext(null, servletRequest);
+
+        path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+        X509CertRequest certRequest = new X509ServiceCertRequest(certCsr);
+
+        InstanceConfirmation confirmation = ztsImpl.newInstanceConfirmationForRegister(context,
+                "secureboot.provider",
+                "athenz",
+                "production",
+                "attestationData",
+                "1001",
+                "athenz-example1.host.com",
+                certRequest,
+                InstanceProvider.Scheme.CLASS
+        );
+
+        assertNotNull(confirmation);
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN), "CN=self.signer.root");
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN), "CN=athenz.production,OU=Testing Domain,O=Athenz,L=LA,ST=CA,C=US");
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_RSA_MOD_HASH), "72332cafbe1f874b4d89f6277508d03494c0dd4258e32a6999a7b8328eaa0e07");
+
+        // Ensure the cert issuer/key modulus/subject attributes are empty, when the context doesn't have certificates
+        // Mocking is set up to return null for certs on a second call
+        confirmation = ztsImpl.newInstanceConfirmationForRegister(context,
+                "secureboot.provider",
+                "athenz",
+                "production",
+                "attestationData",
+                "1001",
+                "athenz-example1.host.com",
+                certRequest,
+                InstanceProvider.Scheme.CLASS
+        );
+        assertNotNull(confirmation);
+        assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN));
+        assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN));
+        assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_RSA_MOD_HASH));
     }
 }
