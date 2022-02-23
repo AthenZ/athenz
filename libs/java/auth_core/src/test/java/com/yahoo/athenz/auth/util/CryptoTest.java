@@ -681,6 +681,16 @@ public class CryptoTest {
     }
 
     @Test
+    public void testExtractX509CertIssuerCommonName() throws Exception {
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            assertEquals(Crypto.extractX509CertIssuerCommonName(cert), "athenz.syncer");
+        }
+    }
+
+    @Test
     public void testIsRestrictedCertificateNotSet() throws Exception {
         GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
 
