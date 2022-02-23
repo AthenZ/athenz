@@ -21,10 +21,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
-	"os/exec"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -131,7 +128,7 @@ func TestUpdateFileNew(test *testing.T) {
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	os.Remove(fileName)
 	testContents := "sia-unit-test"
-	err := UpdateFile(fileName, []byte(testContents), 0, 0, 0644)
+	err := UpdateFile(fileName, []byte(testContents), ExecIdCommand("-u"), ExecIdCommand("-g"), 0644)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -161,7 +158,7 @@ func TestUpdateFileExisting(test *testing.T) {
 		return
 	}
 	testNewContents := "sia-unit"
-	err = UpdateFile(fileName, []byte(testNewContents), 0, 0, 0644)
+	err = UpdateFile(fileName, []byte(testNewContents), ExecIdCommand("-u"), ExecIdCommand("-g"), 0644)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -188,8 +185,8 @@ func TestPrivateKeySupport(test *testing.T) {
 	}
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
-	uid := localIdCommand("-u")
-	gid := localIdCommand("-g")
+	uid := ExecIdCommand("-u")
+	gid := ExecIdCommand("-g")
 	err = UpdateFile(fileName, []byte(PrivatePem(key)), uid, gid, 0644)
 	if err != nil {
 		test.Errorf("Unable to save private key file - %v", err)
@@ -201,19 +198,6 @@ func TestPrivateKeySupport(test *testing.T) {
 		test.Errorf("Unable to read private key file - %v", err)
 		return
 	}
-}
-
-func localIdCommand(arg string) int {
-	out, err := exec.Command("id", arg).Output()
-	if err != nil {
-		log.Fatalf("Cannot exec 'id %s': %v", arg, err)
-	}
-	s := strings.Trim(string(out), "\n\r ")
-	id, err := strconv.Atoi(s)
-	if err != nil {
-		log.Fatalf("Unexpected UID/GID format in user record: %s", string(out))
-	}
-	return id
 }
 
 func TestGenerateSvcCertCSR(test *testing.T) {

@@ -109,7 +109,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 
 		// we have the role certificate
 		// write the cert to pem file using Role.Filename
-		err = util.UpdateFile(certFilePem, []byte(roleCert.X509Certificate), 0, 0, 0444)
+		err = util.UpdateFile(certFilePem, []byte(roleCert.X509Certificate), opts.Services[0].Uid, opts.Services[0].Gid, 0444)
 		if err != nil {
 			failures += 1
 			continue

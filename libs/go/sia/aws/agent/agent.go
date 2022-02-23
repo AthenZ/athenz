@@ -23,7 +23,12 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/sds"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
+	"github.com/ardielle/ardielle-go/rdl"
 	"io/ioutil"
 	"log"
 	"os"
@@ -32,12 +37,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
-	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/ardielle/ardielle-go/rdl"
 )
 
 func readCertificate(certFile string) (*x509.Certificate, error) {

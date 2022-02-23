@@ -18,6 +18,7 @@ package sia
 
 import (
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/devel/ztsmock"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/options"
@@ -70,6 +71,8 @@ func TestRegisterInstance(test *testing.T) {
 		Services: []options.Service{
 			{
 				Name: "hockey",
+				Uid:  util.ExecIdCommand("-u"),
+				Gid:  util.ExecIdCommand("-g"),
 			},
 		},
 		KeyDir:           siaDir,
@@ -125,8 +128,15 @@ func TestRegisterInstanceMultiple(test *testing.T) {
 	opts := &options.Options{
 		Domain: "athenz",
 		Services: []options.Service{
-			{Name: "hockey"},
-			{Name: "soccer"},
+			{Name: "hockey",
+				Uid: util.ExecIdCommand("-u"),
+				Gid: util.ExecIdCommand("-g"),
+			},
+			{
+				Name: "soccer",
+				Uid:  util.ExecIdCommand("-u"),
+				Gid:  util.ExecIdCommand("-g"),
+			},
 		},
 		KeyDir:           siaDir,
 		CertDir:          siaDir,
@@ -210,6 +220,8 @@ func TestRefreshInstance(test *testing.T) {
 		Services: []options.Service{
 			{
 				Name: "hockey",
+				Uid:  util.ExecIdCommand("-u"),
+				Gid:  util.ExecIdCommand("-g"),
 			},
 		},
 		KeyDir:           siaDir,
@@ -270,6 +282,8 @@ func TestRoleCertificateRequest(test *testing.T) {
 		Services: []options.Service{
 			{
 				Name: "hockey",
+				Uid:  util.ExecIdCommand("-u"),
+				Gid:  util.ExecIdCommand("-g"),
 			},
 		},
 		Roles: map[string]options.ConfigRole{
@@ -285,7 +299,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 
 	result := GetRoleCertificate("http://127.0.0.1:5081/zts/v1", keyFile, certFile, opts)
 	if !result {
-		test.Errorf("Unable to get role certificate: %v", err)
+		test.Errorf("Unable to get role certificate")
 		return
 	}
 

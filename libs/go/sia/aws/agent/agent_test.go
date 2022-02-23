@@ -54,7 +54,7 @@ func TestUpdateFileNew(test *testing.T) {
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	_ = os.Remove(fileName)
 	testContents := "sia-unit-test"
-	err := util.UpdateFile(fileName, []byte(testContents), 0, 0, 0644)
+	err := util.UpdateFile(fileName, []byte(testContents), util.ExecIdCommand("-u"), util.ExecIdCommand("-g"), 0644)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -85,7 +85,7 @@ func TestUpdateFileExisting(test *testing.T) {
 		return
 	}
 	testNewContents := "sia-unit"
-	err = util.UpdateFile(fileName, []byte(testNewContents), 0, 0, 0644)
+	err = util.UpdateFile(fileName, []byte(testNewContents), util.ExecIdCommand("-u"), util.ExecIdCommand("-g"), 0644)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -121,6 +121,8 @@ func TestRegisterInstance(test *testing.T) {
 		Services: []options.Service{
 			{
 				Name: "hockey",
+				Uid:  util.ExecIdCommand("-u"),
+				Gid:  util.ExecIdCommand("-g"),
 			},
 		},
 		KeyDir:           siaDir,
@@ -196,6 +198,8 @@ func TestRefreshInstance(test *testing.T) {
 		Services: []options.Service{
 			{
 				Name: "hockey",
+				Uid:  util.ExecIdCommand("-u"),
+				Gid:  util.ExecIdCommand("-g"),
 			},
 		},
 		KeyDir:           siaDir,
@@ -254,6 +258,8 @@ func TestRoleCertificateRequest(test *testing.T) {
 		Services: []options.Service{
 			{
 				Name: "hockey",
+				Uid:  util.ExecIdCommand("-u"),
+				Gid:  util.ExecIdCommand("-g"),
 			},
 		},
 		Roles: map[string]options.ConfigRole{
