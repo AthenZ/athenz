@@ -112,4 +112,67 @@ describe('apiUtils test', () => {
         expect(promises).not.toBeNull;
         expect(promises.length).toEqual(2);
     });
+    test('should return extracted assertion id', () => {
+        let data = {
+            assertions: [
+                {
+                    role: 'testdomain:role.testrole',
+                    resource: 'testdomain:testresource',
+                    action: 'testaction',
+                    effect: 'testeffect',
+                    id: 1,
+                },
+                {
+                    role: 'testdomain1:role.testrole1',
+                    resource: 'testdomain1:testresource1',
+                    action: 'testaction1',
+                    effect: 'testeffect1',
+                    id: 2,
+                },
+            ],
+        };
+        let assertionId = apiUtils.extractAssertionId(
+            data,
+            'testdomain1',
+            'testrole1',
+            'testaction1',
+            'testeffect1',
+            'testresource1'
+        );
+        expect(assertionId).not.toBeNull;
+        expect(assertionId).toEqual(2);
+    });
+    test('should return getPolicy promise', () => {
+        let req = {
+            clients: {
+                zms: {
+                    getPolicy: jest.fn((x) => true),
+                },
+            },
+        };
+        let promises = apiUtils.getPolicy('testpolicy', 'testdomain', req);
+        expect(promises).not.toBeNull;
+        promises
+            .then((data) => {})
+            .catch((err) => {
+                fail();
+            });
+
+        req = {
+            clients: {
+                zms: {
+                    getPolicy: jest.fn((x) => {
+                        throw 'testError';
+                    }),
+                },
+            },
+        };
+        promises = apiUtils.getPolicy('testpolicy', 'testdomain', req);
+        expect(promises).not.toBeNull;
+        promises
+            .then((data) => {
+                fail();
+            })
+            .catch((err) => {});
+    });
 });

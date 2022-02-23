@@ -142,6 +142,7 @@ const config = {
         templates: ['openhouse'],
         msdAuthHeaderPath:
             '/var/lib/sia/tokens/msd-api-access/msd-api-access-token',
+        numberOfRetry: 2,
     },
     unittest: {
         zmsConnectSrcUrl: 'https://localhost:4443',
@@ -180,6 +181,7 @@ const config = {
         templates: ['openhouse'],
         msdAuthHeaderPath:
             '/var/lib/sia/tokens/msd-api-access/msd-api-access-token',
+        numberOfRetry: 2,
     },
 };
 

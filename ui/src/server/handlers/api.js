@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 const Fetchr = require('fetchr');
 let CLIENTS = require('../clients');
 const errorHandler = require('../utils/errorHandler');
@@ -807,6 +808,7 @@ Fetchr.registerService({
             responseHandler.bind({ caller: 'getPolicy', callback, req })
         );
     },
+
     create(req, resource, params, body, config, callback) {
         req.clients.zms.getPolicy(params, (err) => {
             if (err) {
@@ -889,78 +891,62 @@ Fetchr.registerService({
     name: 'assertionId',
     read(req, resource, params, config, callback) {
         const timeout = 1000;
-        const numberOfRetry = 2;
-        const delay = (ms) => new Promise((res) => setTimeout(res, ms));
-
-        const getAssertionId = (data) => {
-            data.assertions.forEach((assertion) => {
-                if (
-                    assertion.role ===
-                        params.domainName + ':role.' + params.roleName &&
-                    assertion.resource ===
-                        params.domainName + ':' + params.resource &&
-                    assertion.action === params.action &&
-                    assertion.effect === params.effect
-                ) {
-                    return assertion.id;
-                }
-            });
-            return -1;
-        };
-
-        const getPolicy = () => {
-            return new Promise((resolve, reject) => {
-                return req.clients.zms.getPolicy(
-                    {
-                        policyName: params.policyName,
-                        domainName: params.domainName,
-                    },
-                    (err, data) => {
-                        if (data) {
-                            resolve(data);
-                        } else {
-                            reject(err);
-                        }
-                    }
-                );
-            });
-        };
+        const numberOfRetry = appConfig.numberOfRetry;
+        const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
         async function retryGetPolicy() {
+            let assertionFound = false;
+            let assertionId = -1;
+            let error = undefined;
+
             for (let i = 1; i <= numberOfRetry; i++) {
-                await getPolicy()
-                    .then(async (data) => {
-                        let assertionId = getAssertionId(data);
-                        if (assertionId == -1) {
-                            if (i == numberOfRetry) {
-                                let error = {
-                                    status: 404,
-                                    message: {
-                                        message:
-                                            'Failed to get assertion for policy ' +
-                                            params.policyName +
-                                            '.',
-                                    },
-                                };
-                                throw error;
-                            }
+                await apiUtils
+                    .getPolicy(params.policyName, params.domainName, req)
+                    .then((data) => {
+                        assertionId = apiUtils.extractAssertionId(
+                            data,
+                            params.domainName,
+                            params.roleName,
+                            params.action,
+                            params.effect,
+                            params.resource
+                        );
+                        if (assertionId !== -1 && i === numberOfRetry) {
+                            assertionFound = true;
+                        } else if (i === numberOfRetry) {
+                            error = {
+                                status: 404,
+                                message: {
+                                    message:
+                                        'Failed to get assertion for policy ' +
+                                        params.policyName +
+                                        '.',
+                                },
+                            };
                         }
                     })
                     .catch((err) => {
-                        if (i == numberOfRetry) {
-                            throw err;
+                        if (i === numberOfRetry) {
+                            error = err;
                         }
                     });
-                await delay(timeout);
+
+                if (assertionFound) {
+                    return Promise.resolve(assertionId);
+                } else if (!!error) {
+                    return Promise.reject(error);
+                } else {
+                    await delay(timeout);
+                }
             }
         }
 
         retryGetPolicy()
-            .then((data) => {
-                callback(null, data);
+            .then((assertionId) => {
+                return callback(null, assertionId);
             })
             .catch((err) => {
-                callback(errorHandler.fetcherError(err));
+                return callback(errorHandler.fetcherError(err));
             });
     },
 });
@@ -2101,15 +2087,26 @@ Fetchr.registerService({
                             item.assertions &&
                                 item.assertions.forEach(
                                     (assertionItem, assertionIdx) => {
+                                        if (
+                                            !apiUtils
+                                                .getMicrosegmentationActionRegex()
+                                                .test(assertionItem.action)
+                                        ) {
+                                            return;
+                                        }
                                         let tempData = {};
                                         let tempProtocol =
                                             assertionItem.action.split('-');
-                                        tempData['layer'] = tempProtocol[0];
+                                        tempData['layer'] =
+                                            apiUtils.omitUndefined(
+                                                tempProtocol[0]
+                                            );
                                         let tempPort =
                                             assertionItem.action.split(':');
-                                        tempData['source_port'] = tempPort[1];
+                                        tempData['source_port'] =
+                                            apiUtils.omitUndefined(tempPort[1]);
                                         tempData['destination_port'] =
-                                            tempPort[2];
+                                            apiUtils.omitUndefined(tempPort[2]);
                                         if (assertionItem.conditions) {
                                             tempData['conditionsList'] = [];
 
@@ -2464,6 +2461,9 @@ Fetchr.registerService({
                         },
                         (err, data) => {
                             if (err) {
+                                if (err.status === 404) {
+                                    resolve();
+                                }
                                 reject(err);
                             } else {
                                 return resolve(data);
@@ -2505,61 +2505,58 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'validateMicrosegmentation',
 
-    read(req, resource, params, config, callback) {
+    getPorts(portList, protocol) {
+        let ports = [];
+        portList.forEach((port) => {
+            let portArr = port.split('-');
+            ports.push({
+                port: portArr[0],
+                endPort: portArr[1],
+                protocol: protocol,
+            });
+        });
+        return ports;
+    },
+
+    getEntitySelectorService(domainName, serviceName) {
+        return {
+            domainName: domainName,
+            serviceName: serviceName,
+        };
+    },
+
+    update(req, resource, params, body, config, callback) {
         let entitySelectorService = '';
+        let entitySelectorServiceName = '';
         let entitySelectorPorts = [];
         let peerPorts = [];
+        let trafficDirection = '';
+        let allEntitySelectorPort,
+            allPeerPort = '';
 
         if (params.category === 'inbound') {
             trafficDirection = 'INGRESS';
-            entitySelectorService = {
-                domainName: params.domainName,
-                serviceName: params.inboundDestinationService,
-            };
-            let port = params.destinationPort.split('-');
-            let entitySelectorPort = {
-                port: port[0],
-                endPort: port[1],
-                protocol: params.protocol,
-            };
-            entitySelectorPorts.push(entitySelectorPort);
-
-            let peerPortList = params.sourcePort.split(',');
-            for (var i = 0; i < peerPortList.length; i++) {
-                let port = peerPortList[i].split('-');
-                let peerPort = {
-                    port: port[0],
-                    endPort: port[1],
-                    protocol: params.protocol,
-                };
-                peerPorts.push(peerPort);
-            }
+            entitySelectorServiceName = params.inboundDestinationService;
+            allEntitySelectorPort = params.destinationPort;
+            allPeerPort = params.sourcePort;
         } else {
             trafficDirection = 'EGRESS';
-            entitySelectorService = {
-                domainName: params.domainName,
-                serviceName: params.outboundSourceService,
-            };
-
-            let port = params.sourcePort.split('-');
-            let entitySelectorPort = {
-                port: port[0],
-                endPort: port[1],
-                protocol: params.protocol,
-            };
-            entitySelectorPorts.push(entitySelectorPort);
-
-            let peerPortList = params.destinationPort.split(',');
-            for (var i = 0; i < peerPortList.length; i++) {
-                let port = peerPortList[i].split('-');
-                let peerPort = {
-                    port: port[0],
-                    endPort: port[1],
-                    protocol: params.protocol,
-                };
-                peerPorts.push(peerPort);
-            }
+            entitySelectorServiceName = params.outboundSourceService;
+            allEntitySelectorPort = params.sourcePort;
+            allPeerPort = params.destinationPort;
         }
+
+        entitySelectorService = this.getEntitySelectorService(
+            params.domainName,
+            entitySelectorServiceName
+        );
+        let entitySelectorPortList = allEntitySelectorPort.split(',');
+        entitySelectorPorts = this.getPorts(
+            entitySelectorPortList,
+            params.protocol
+        );
+        let peerPortList = allPeerPort.split(',');
+        peerPorts = this.getPorts(peerPortList, params.protocol);
 
         let athenzServices = [];
         for (var i = 0; i < params.roleMembers.length; i++) {
@@ -2725,6 +2722,7 @@ module.exports.load = function (config, secrets) {
         pageFeatureFlag: config.pageFeatureFlag,
         serviceHeaderLinks: config.serviceHeaderLinks,
         templates: config.templates,
+        numberOfRetry: config.numberOfRetry,
     };
     return CLIENTS.load(config, secrets);
 };
