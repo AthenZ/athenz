@@ -24,6 +24,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/AthenZ/athenz/libs/go/sia/verify"
 	"golang.org/x/crypto/ssh"
 
 	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
@@ -31,16 +32,15 @@ import (
 
 const GENERIC_LINK = "ssh_host_cert.pub"
 
-var sshcaKeyId = "AthenzSSHCA"
-
-func Update(hostCertFile, hostCert, sshDir string) error {
+// Update writes the hostCert to disk at hostCertFile as long as it is signed by the same CA as existing one
+func Update(hostCertFile, hostCert, sshDir, caKeyId string) error {
 	// if we have no hostCert, we have nothing to update for ssh access
 	if hostCert == "" {
 		return errors.New("ZTS did not generate a host cert for this provider")
 	}
 
 	// Setting 644 as other public keys created by ssh-keygen -A on ssh start up have 644
-	err := siafile.Update(hostCertFile, []byte(hostCert), 0, 0, 0644, Verify)
+	err := siafile.Update(hostCertFile, []byte(hostCert), 0, 0, 0644, verifyFn(caKeyId))
 	if err != nil {
 		return err
 	}
@@ -68,22 +68,25 @@ func Symlink(source, link string) error {
 	return nil
 }
 
-func Verify(old, new string) error {
-	if siafile.Exists(old) {
-		cert, err := Load(old)
-		if err != nil {
-			return err
+func verifyFn(caKeyId string) verify.VerifyFn {
+	return func(old, new string)  error {
+		if siafile.Exists(old) {
+			cert, err := Load(old)
+			if err != nil {
+				return err
+			}
+
+			if !strings.Contains(cert.KeyId, caKeyId) {
+				return fmt.Errorf("existing cert: %q is not signed by %q, use caution while replacing", old, caKeyId)
+			}
 		}
 
-		if !strings.Contains(cert.KeyId, sshcaKeyId) {
-			return fmt.Errorf("existing cert: %q is not signed by YahooSSHCA, use caution while replacing", old)
-		}
+		// Add any new additional checks on new cert here
+		return nil
 	}
-
-	// Add any new additional checks on new cert here
-	return nil
 }
 
+// Load takes in a filepath and returns a parsed ssh.Certificate
 func Load(f string) (*ssh.Certificate, error) {
 	bytes, err := ioutil.ReadFile(f)
 	if err != nil {
