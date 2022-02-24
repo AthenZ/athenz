@@ -36,13 +36,15 @@ import (
 
 const EC_HOST_CERT = "ssh_host_ecdsa_key-cert.pub"
 
+const sshcaKeyId = "AthenzSSHCA"
+
 func makeSshDir() (string, string, error) {
 	sshDir, err := ioutil.TempDir("", "ssh.")
 	if err != nil {
 		return "", "", err
 	}
 
-	defaultCert, err := makeHostCert(sshDir, "AthenzSSHCA", EC_HOST_CERT)
+	defaultCert, err := makeHostCert(sshDir, sshcaKeyId, EC_HOST_CERT)
 	if err != nil {
 		return "", "", err
 	}
@@ -140,8 +142,7 @@ func TestLoad(t *testing.T) {
 	}
 }
 
-func TestVerify(t *testing.T) {
-
+func TestVerifyFn(t *testing.T) {
 	sshDir, validCert, err := makeSshDir()
 	defer os.RemoveAll(sshDir)
 	require.Nilf(t, err, "unexpected err: %v", err)
@@ -196,7 +197,8 @@ func TestVerify(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Verify(tt.args.old, tt.args.new); (err != nil) != tt.wantErr {
+			fn := verifyFn(sshcaKeyId)
+			if err := fn(tt.args.old, tt.args.new); (err != nil) != tt.wantErr {
 				t.Errorf("Verify() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -251,7 +253,7 @@ func TestUpdate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Update(tt.args.hostCertFile, tt.args.hostCert, tt.args.sshDir)
+			err := Update(tt.args.hostCertFile, tt.args.hostCert, tt.args.sshDir, sshcaKeyId)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 			}
