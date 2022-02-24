@@ -33,6 +33,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -714,4 +715,17 @@ func Nonce() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(b), nil
+}
+
+func ExecIdCommand(arg string) int {
+	out, err := exec.Command("id", arg).Output()
+	if err != nil {
+		log.Fatalf("Cannot exec 'id %s': %v", arg, err)
+	}
+	s := strings.Trim(string(out), "\n\r ")
+	id, err := strconv.Atoi(s)
+	if err != nil {
+		log.Fatalf("Unexpected UID/GID format in user record: %s", string(out))
+	}
+	return id
 }

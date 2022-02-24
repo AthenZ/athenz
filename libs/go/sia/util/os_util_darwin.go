@@ -69,7 +69,8 @@ func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode
 		log.Printf("Removing backup file %s...\n", bakFileName)
 		os.Remove(bakFileName)
 	}
-	if uid != 0 || gid != 0 {
+	currentUid, currentGid := uidGidForUser("")
+	if currentUid != uid || currentGid != gid {
 		log.Printf("Changing file %s ownership to %d:%d...\n", fileName, uid, gid)
 		err = os.Chown(fileName, uid, gid)
 		if err != nil {
