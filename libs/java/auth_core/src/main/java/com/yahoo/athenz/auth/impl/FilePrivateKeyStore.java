@@ -38,6 +38,7 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
 
     private static final String ZMS_SERVICE = "zms";
     private static final String ZTS_SERVICE = "zts";
+    private static final String MSD_SERVICE = "msd";
 
     private static final String ALGO_RSA = "RSA";
     private static final String ALGO_EC = "EC";
@@ -51,7 +52,8 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
 
         // validate our service and algorithm values
 
-        if (!ZMS_SERVICE.equalsIgnoreCase(service) && !ZTS_SERVICE.equalsIgnoreCase(service)) {
+        if (!ZMS_SERVICE.equalsIgnoreCase(service) && !ZTS_SERVICE.equalsIgnoreCase(service) &&
+                !MSD_SERVICE.equalsIgnoreCase(service)) {
             LOG.error("FilePrivateKeyStore: unknown service: {}", service);
             return null;
         }
