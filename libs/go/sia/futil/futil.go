@@ -16,7 +16,9 @@
 
 package futil
 
-import "os"
+import (
+	"os"
+)
 
 func Exists(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -25,3 +27,32 @@ func Exists(path string) bool {
 	return true
 }
 
+// MakeDirs creates dirs, if they don't exist
+func MakeDirs(dirs []string, perm os.FileMode) error {
+	for _, d := range dirs {
+		if !Exists(d) {
+			err := os.MkdirAll(d, perm)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// WriteFile is analogous to os.WriteFile, with an explicit call to Sync
+// right after a successful Write operation
+func WriteFile(name string, data []byte, perm os.FileMode) error {
+	f, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
+	if err != nil {
+		return err
+	}
+	if _, err = f.Write(data); err == nil {
+		err = f.Sync()
+	}
+	if err1 := f.Close(); err1 != nil && err == nil {
+		err = err1
+	}
+	return err
+}
