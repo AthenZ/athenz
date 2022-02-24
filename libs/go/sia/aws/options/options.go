@@ -269,19 +269,19 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 		config.SDSUdsPath = os.Getenv("ATHENZ_SIA_SDS_UDS_PATH")
 	}
 	if config.SDSUdsUid == 0 {
-		uid := util.ParseEnvIntFlag(os.Getenv("ATHENZ_SIA_SDS_UDS_UID"), 0)
+		uid := util.ParseEnvIntFlag("ATHENZ_SIA_SDS_UDS_UID", 0)
 		if uid > 0 {
 			config.SDSUdsUid = uid
 		}
 	}
 	if config.ExpiryTime == 0 {
-		expiryTime := util.ParseEnvIntFlag(os.Getenv("ATHENZ_SIA_EXPIRY_TIME"), 0)
+		expiryTime := util.ParseEnvIntFlag("ATHENZ_SIA_EXPIRY_TIME", 0)
 		if expiryTime > 0 {
 			config.ExpiryTime = expiryTime
 		}
 	}
 	if config.RefreshInterval == 0 {
-		refreshInterval := util.ParseEnvIntFlag(os.Getenv("ATHENZ_SIA_REFRESH_INTERVAL"), 0)
+		refreshInterval := util.ParseEnvIntFlag("ATHENZ_SIA_REFRESH_INTERVAL", 0)
 		if refreshInterval > 0 {
 			config.RefreshInterval = refreshInterval
 		}
