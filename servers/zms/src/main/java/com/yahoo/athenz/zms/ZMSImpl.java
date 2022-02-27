@@ -6726,6 +6726,30 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (authzServiceTokenOperation) {
             setupTenantAdminPolicyInProvider(ctx, provSvcDomain, provSvcName, tenantDomain,
                     false, auditRef, caller);
+
+            // If listed as service provider, register dependency between the provider service and the tenant domain (unless dependency exist
+            // following creation of a previous resource group)
+
+            tenancyRegisterDomainDependency(ctx, tenantDomain, provider, auditRef, caller);
+        }
+    }
+
+    private void tenancyRegisterDomainDependency(ResourceContext ctx, String tenantDomain, String provider, String auditRef, String caller) {
+        if (serviceProviderManager.isServiceProvider(provider)) {
+            DomainList domainList = dbService.listDomainDependencies(provider);
+            if (!domainList.getNames().contains(tenantDomain)) {
+                dbService.putDomainDependency(ctx, tenantDomain, provider, auditRef, caller);
+            }
+        }
+    }
+
+    private void tenancyDeregisterDomainDependency(ResourceContext ctx, String tenantDomain, String provSvcDomain, String provSvcName, String auditRef, String caller) {
+        String serviceToDeregister = provSvcDomain + "." + provSvcName;
+        if (serviceProviderManager.isServiceProvider(serviceToDeregister)) {
+            boolean tenantDomainRolesExist = isTenantDomainRolesExist(tenantDomain, provSvcDomain, provSvcName);
+            if (!tenantDomainRolesExist) {
+                dbService.deleteDomainDependency(ctx, tenantDomain, serviceToDeregister, auditRef, caller);
+            }
         }
     }
 
@@ -6776,6 +6800,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (authzServiceTokenOperation) {
             dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain, null,
                 auditRef, caller);
+
+            // If listed as service provider, check if there are remaining resource group roles. If not - de-register dependency between the provider service and the tenant domain
+
+            tenancyDeregisterDomainDependency(ctx, tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
         }
 
         // now clean-up local domain roles and policies for this tenant
@@ -6820,7 +6848,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // validate our detail object against uri components
 
-        if (!validateTenancyObject(detail, tenantDomain, providerDomain + "." + providerService)) {
+        final String provider = providerDomain + "." + providerService;
+        if (!validateTenancyObject(detail, tenantDomain, provider)) {
             throw ZMSUtils.requestError("Invalid tenancy object", caller);
         }
 
@@ -6834,6 +6863,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         setupTenantAdminPolicyInProvider(ctx, providerDomain, providerService, tenantDomain,
                 false, auditRef, caller);
+
+        // If listed as service provider, register dependency between the provider service and the tenant domain (unless dependency exist
+        // following creation of a previous resource group)
+
+        tenancyRegisterDomainDependency(ctx, tenantDomain, provider, auditRef, caller);
     }
 
     @Override
@@ -6872,6 +6906,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executeDeleteTenantRoles(ctx, providerDomain, providerService, tenantDomain,
                 null, auditRef, caller);
+
+        // If listed as service provider, check if there are remaining resource group roles. If not - de-register dependency between the provider service and the tenant domain
+
+        tenancyDeregisterDomainDependency(ctx, tenantDomain, providerDomain, providerService, auditRef, caller);
     }
 
     boolean validateTenancyObject(Tenancy tenant, final String tenantDomain, final String providerService) {
@@ -6991,6 +7029,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                 resourceGroup, detail.getRoles(), false, auditRef, caller);
+
+        // If listed as service provider, register dependency between the provider service and the tenant domain (unless dependency exist
+        // following creation of a previous resource group)
+
+        final String provider = provSvcDomain + "." + provSvcName;
+        tenancyRegisterDomainDependency(ctx, tenantDomain, provider, auditRef, caller);
+
         return detail;
     }
 
@@ -7303,7 +7348,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                 resourceGroup, auditRef, caller);
+
+            // If listed as service provider, check if there are remaining resource group roles. If not - de-register dependency between the provider service and the tenant domain
+
+            tenancyDeregisterDomainDependency(ctx, tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
         }
+    }
+
+    private boolean isTenantDomainRolesExist(String tenantDomain, String provSvcDomain, String provSvcName) {
+        final String rolePrefix = ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, null);
+        // find roles matching the prefix
+
+        List<String> tenantDomainRoles = dbService.listRoles(provSvcDomain);
+        return tenantDomainRoles.stream()
+                .filter(role -> dbService.isTenantRolePrefixMatch(role, rolePrefix, null, tenantDomain))
+                .findAny()
+                .isPresent();
     }
 
     public ProviderResourceGroupRoles getProviderResourceGroupRoles(ResourceContext ctx, String tenantDomain,
@@ -7492,6 +7552,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             dbService.executePutTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                     resourceGroup, roleActions, false, auditRef, caller);
+
+            // If listed as service provider, register dependency between the provider service and the tenant domain (unless dependency exist
+            // following creation of a previous resource group)
+
+            tenancyRegisterDomainDependency(ctx, tenantDomain, authorizedService, auditRef, caller);
         }
 
         return detail;
@@ -7630,6 +7695,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                 resourceGroup, auditRef, caller);
+
+        // If listed as service provider, check if there are remaining resource group roles. If not - de-register dependency between the provider service and the tenant domain
+
+        tenancyDeregisterDomainDependency(ctx, tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
     }
 
     void validateRequest(HttpServletRequest request, String caller) {
@@ -10252,6 +10321,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     String getAuthorizedProviderService(RsrcCtxWrapper ctx, String service, String caller) {
+
         // If system administrator - service is mandatory
         // Otherwise ignore it and use the principal as dependent service
 
