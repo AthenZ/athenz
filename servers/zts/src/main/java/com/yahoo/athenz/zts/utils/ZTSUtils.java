@@ -64,24 +64,24 @@ public class ZTSUtils {
     public static final long CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY = Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY, ZTSConsts.ZTS_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY_DEFAULT));
     public static final long CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY = Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY, ZTSConsts.ZTS_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY_DEFAULT));
 
-    private static final String ATHENZ_PROP_KEYSTORE_PASSWORD                   = "athenz.ssl_key_store_password";
-    private static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD                 = "athenz.ssl_trust_store_password";
-    private static final String ATHENZ_PROP_KEYSTORE_PATH                       = "athenz.ssl_key_store";
-    private static final String ATHENZ_PROP_KEYSTORE_TYPE                       = "athenz.ssl_key_store_type";
-    private static final String ATHENZ_PROP_TRUSTSTORE_PATH                     = "athenz.ssl_trust_store";
-    private static final String ATHENZ_PROP_TRUSTSTORE_TYPE                     = "athenz.ssl_trust_store_type";
-    private static final String ATHENZ_PROP_PUBLIC_CERT_PATH_FOR_SSL            = "athenz.ssl_client_public_cert_path";
-    private static final String ATHENZ_PROP_PRIVATE_KEY_PATH_FOR_SSL            = "athenz.ssl_client_private_key_path";
-
+    private static final String ATHENZ_PROP_KEYSTORE_PATH               = "athenz.ssl_key_store";
+    private static final String ATHENZ_PROP_KEYSTORE_TYPE               = "athenz.ssl_key_store_type";
+    private static final String ATHENZ_PROP_KEYSTORE_PASSWORD           = "athenz.ssl_key_store_password";
     private static final String ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME   = "athenz.ssl_key_store_password_appname";
+
+    private static final String ATHENZ_PROP_TRUSTSTORE_PATH             = "athenz.ssl_trust_store";
+    private static final String ATHENZ_PROP_TRUSTSTORE_TYPE             = "athenz.ssl_trust_store_type";
+    private static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD         = "athenz.ssl_trust_store_password";
     private static final String ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME = "athenz.ssl_trust_store_password_appname";
 
+    private static final String ATHENZ_PROP_PROVIDER_CLIENT_PUBLIC_CERT_PATH            = "athenz.zts.provider.ssl_client_public_cert_path";
+    private static final String ATHENZ_PROP_PROVIDER_CLIENT_PRIVATE_KEY_PATH            = "athenz.zts.provider.ssl_client_private_key_path";
+    private static final String ATHENZ_PROP_PROVIDER_CLIENT_TRUSTSTORE_PATH             = "athenz.zts.provider.ssl_client_trust_store";
+    private static final String ATHENZ_PROP_PROVIDER_CLIENT_TRUSTSTORE_PASSWORD         = "athenz.zts.provider.ssl_client_trust_store_password";
+    private static final String ATHENZ_PROP_PROVIDER_CLIENT_TRUSTSTORE_PASSWORD_APPNAME = "athenz.zts.provider.ssl_client_trust_store_password_appname";
+
     private final static char[] EMPTY_PASSWORD = "".toCharArray();
-    
-    public static SslContextFactory createSSLContextObject(String[] clientProtocols) {
-        return createSSLContextObject(clientProtocols, null);
-    }
-    
+
     public static SslContextFactory createSSLContextObject(final String[] clientProtocols,
             final PrivateKeyStore privateKeyStore) {
         
@@ -281,7 +281,8 @@ public class ZTSUtils {
         
         // generate a certificate for this certificate request
 
-        String pemCert = certManager.generateX509Certificate(provider, certIssuer, csr, certUsage, expiryTime, Priority.Unspecified_priority);
+        String pemCert = certManager.generateX509Certificate(provider, certIssuer, csr, certUsage, expiryTime,
+                Priority.Unspecified_priority);
         if (pemCert == null || pemCert.isEmpty()) {
             return null;
         }
@@ -289,13 +290,18 @@ public class ZTSUtils {
         return new Identity().setName(cn).setCertificate(pemCert);
     }
 
-    public static SSLContext getAthenzClientSSLContext(PrivateKeyStore privateKeyStore) {
-        final String trustStorePath = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PATH);
+    public static SSLContext getAthenzProviderClientSSLContext(PrivateKeyStore privateKeyStore) {
+
+        // for truststore settings, we're going to default to the server truststore
+        // settings if the client ones are not defined
+
+        final String serverTrustStorePath = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PATH);
+        final String trustStorePath = System.getProperty(ATHENZ_PROP_PROVIDER_CLIENT_TRUSTSTORE_PATH, serverTrustStorePath);
         if (trustStorePath == null) {
             LOGGER.error("Unable to create client ssl context: no truststore path specified");
             return null;
         }
-        final String certPath = System.getProperty(ATHENZ_PROP_PUBLIC_CERT_PATH_FOR_SSL);
+        final String certPath = System.getProperty(ATHENZ_PROP_PROVIDER_CLIENT_PUBLIC_CERT_PATH);
         if (certPath == null) {
             LOGGER.error("Unable to create client ssl context: no local ssl cert path specified");
             return null;
@@ -304,7 +310,7 @@ public class ZTSUtils {
             LOGGER.error("Unable to create client ssl context: ssl cert not found in {}", certPath);
             return null;
         }
-        final String keyPath = System.getProperty(ATHENZ_PROP_PRIVATE_KEY_PATH_FOR_SSL);
+        final String keyPath = System.getProperty(ATHENZ_PROP_PROVIDER_CLIENT_PRIVATE_KEY_PATH);
         if (keyPath == null) {
             LOGGER.error("Unable to create client ssl context: no local ssl key path specified");
             return null;
@@ -314,8 +320,12 @@ public class ZTSUtils {
             return null;
         }
 
-        final String trustStorePassword = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PASSWORD);
-        final String trustStorePasswordAppName = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME);
+        final String serverTrustStorePassword = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PASSWORD);
+        final String trustStorePassword = System.getProperty(ATHENZ_PROP_PROVIDER_CLIENT_TRUSTSTORE_PASSWORD,
+                serverTrustStorePassword);
+        final String serverTrustStorePasswordAppName = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME);
+        final String trustStorePasswordAppName = System.getProperty(ATHENZ_PROP_PROVIDER_CLIENT_TRUSTSTORE_PASSWORD_APPNAME,
+                serverTrustStorePasswordAppName);
         final String password = getApplicationSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
         char[] passwordChars = getPasswordChars(password);
         try {
