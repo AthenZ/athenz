@@ -26,7 +26,6 @@ import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.store.DataStore;
-import com.yahoo.athenz.zts.store.DataStoreTest;
 import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;

@@ -336,7 +336,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 readOnlyMode.get(), userAuthority);
 
         instanceProviderManager = new InstanceProviderManager(dataStore, ZTSUtils.getAthenzServerSSLContext(privateKeyStore),
-                ZTSUtils.getAthenzClientSSLContext(privateKeyStore), privateKey, this);
+                ZTSUtils.getAthenzProviderClientSSLContext(privateKeyStore), privateKey, this);
         
         // make sure to set the keystore for any instance that requires it
         
