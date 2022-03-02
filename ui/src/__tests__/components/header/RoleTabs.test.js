@@ -28,9 +28,14 @@ describe('Tabs', () => {
         };
 
         let domain = 'home.mujibur';
-        let role = 'admin'
+        let role = 'admin';
         const { getByTestId } = render(
-            <RoleTabs domain={domain} role={role} selectedName='members' api={api} />
+            <RoleTabs
+                domain={domain}
+                role={role}
+                selectedName='members'
+                api={api}
+            />
         );
         const tabs = getByTestId('tabgroup');
         const tab = tabs.querySelectorAll('.denali-tab');

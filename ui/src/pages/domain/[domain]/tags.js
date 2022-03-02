@@ -25,8 +25,9 @@ import Tabs from '../../../components/header/Tabs';
 import RequestUtils from '../../../components/utils/RequestUtils';
 import Error from '../../_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
 import TagList from '../../../components/tag/TagList';
+import DomainNameHeader from '../../../components/header/DomainNameHeader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -85,11 +86,12 @@ export async function getServerSideProps(context) {
         api.getFeatureFlag(),
         api.getMeta(bServicesParams),
         api.getMeta(bServicesParamsAll),
+        api.getPendingDomainMembersCountByDomain(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}, {}, {}, {}, {}, {}, {}];
     });
     let businessServiceOptions = [];
     if (tagsData[5] && tagsData[5].validValues) {
@@ -137,7 +139,8 @@ export async function getServerSideProps(context) {
             featureFlag: tagsData[4],
             validBusinessServices: businessServiceOptions,
             validBusinessServicesAll: businessServiceOptionsAll,
-        }
+            domainPendingMemberCount: tagsData[7],
+        },
     };
 }
 
@@ -152,13 +155,13 @@ export default class TagsPage extends React.Component {
     }
 
     render() {
-        const {domain, reload, domainDetails, _csrf} = this.props;
+        const { domain, reload, domainDetails, _csrf } = this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
 
         return (
@@ -177,7 +180,13 @@ export default class TagsPage extends React.Component {
                             <TagsContainerDiv>
                                 <TagsContentDiv>
                                     <PageHeaderDiv>
-                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainNameHeader
+                                            domainName={this.props.domain}
+                                            pendingCount={
+                                                this.props
+                                                    .domainPendingMemberCount
+                                            }
+                                        />
                                         <DomainDetails
                                             domainDetails={domainDetails}
                                             api={this.api}

@@ -27,9 +27,9 @@ function getUserFullName(userName) {
         const shortId = userArr[1];
         return shortId !== undefined && usersHash[shortId] !== undefined
             ? usersHash[shortId].name
-            : undefined;
+            : null;
     }
-    return undefined;
+    return null;
 }
 
 function prepareUserData(userData, userDomains) {

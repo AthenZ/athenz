@@ -28,8 +28,10 @@ describe('logger middleware test', () => {
     test('should execute middleware as expected', async () => {
         expressApp.get('/ping', (req, res) => res.status(200).send('pong'));
         logger(expressApp);
-        await request(expressApp).get('/ping').then(res => {
-            expect(res.status).toEqual(200);
-        });
+        await request(expressApp)
+            .get('/ping')
+            .then((res) => {
+                expect(res.status).toEqual(200);
+            });
     });
 });

@@ -22,7 +22,8 @@ const Icon = (props) => {
     const icon = ICONS[props.icon];
     const width = props.size ? props.size : props.width;
     const height = props.size ? props.size : props.height;
-    const viewBoxDimensions = '0 0 ' + props.viewBoxWidth + ' ' + props.viewBoxHeight;
+    const viewBoxDimensions =
+        '0 0 ' + props.viewBoxWidth + ' ' + props.viewBoxHeight;
     return (
         <svg
             viewBox={viewBoxDimensions}
@@ -37,7 +38,9 @@ const Icon = (props) => {
             ref={props.innerRef}
             data-testid='icon'
         >
-            {props.enableTitle && <title>{props.title? props.title : props.icon}</title>}
+            {props.enableTitle && (
+                <title>{props.title ? props.title : props.icon}</title>
+            )}
             {icon.map((path, index) => (
                 <path key={index} d={path} />
             ))}
@@ -66,7 +69,7 @@ Icon.propTypes = {
     /*By default icon will display name on hover. Setting this to false will stop it*/
     enableTitle: PropTypes.bool,
     /*Tooltip that will appear instead of the icon name on hover*/
-    title: PropTypes.string
+    title: PropTypes.string,
 };
 
 Icon.defaultProps = {
@@ -75,7 +78,7 @@ Icon.defaultProps = {
     viewBoxWidth: '1024',
     viewBoxHeight: '1024',
     verticalAlign: 'text-bottom',
-    enableTitle: true
+    enableTitle: true,
 };
 
 export default Icon;

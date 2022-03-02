@@ -33,9 +33,7 @@ const config = {
     createDomainMessage: '',
     servicePageConfig: '',
     productMasterLink: '',
-    userData: () => {
-
-    },
+    userData: () => {},
     serviceHeaderLinks: [],
 };
 const secrets = {};
@@ -43,14 +41,13 @@ const expressApp = require('express')();
 const request = require('supertest');
 const bodyParser = require('body-parser');
 
-
 describe('Fetchr Server API Test', () => {
     describe('success tests', () => {
         beforeAll(() => {
             sinon.stub(CLIENTS, 'load').returns(Promise.resolve());
             sinon.stub(CLIENTS, 'middleware').returns((req, res, next) => {
                 req.clients = {
-                    zms: {}
+                    zms: {},
                 };
                 next();
             });
@@ -72,7 +69,8 @@ describe('Fetchr Server API Test', () => {
             CLIENTS.middleware.restore();
         });
         it('get domain history test success', async () => {
-            await request(expressApp).get('/api/v1/domain-history')
+            await request(expressApp)
+                .get('/api/v1/domain-history')
                 .then((res) => {
                     expect(res.body).toEqual([
                         {
@@ -83,8 +81,8 @@ describe('Fetchr Server API Test', () => {
                             when: '2020-01-01T10:00:00.000Z',
                             details: 'detailed json',
                             epoch: 'epoch timestamp',
-                            why: 'justification'
-                        }
+                            why: 'justification',
+                        },
                     ]);
                 });
         });

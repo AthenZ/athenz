@@ -19,7 +19,7 @@ import AddAssertionForRole from '../../../components/role-policy/AddAssertionFor
 
 describe('AddAssertionForRole', () => {
     it('should render', () => {
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const role = 'roleName';
         const api = {
@@ -30,14 +30,19 @@ describe('AddAssertionForRole', () => {
             },
         };
         const { getByTestId } = render(
-            <AddAssertionForRole cancel={cancel} domain={domain} role={role} api={api} />
+            <AddAssertionForRole
+                cancel={cancel}
+                domain={domain}
+                role={role}
+                api={api}
+            />
         );
         const addPolicy = getByTestId('add-assertion-for-role');
         expect(addPolicy).toMatchSnapshot();
     });
 
     it('should render failed to submit action is required', () => {
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const role = 'roleName';
         const api = {
@@ -48,7 +53,12 @@ describe('AddAssertionForRole', () => {
             },
         };
         const { getByTestId, getByText } = render(
-            <AddAssertionForRole cancel={cancel} domain={domain} role={role} api={api} />
+            <AddAssertionForRole
+                cancel={cancel}
+                domain={domain}
+                role={role}
+                api={api}
+            />
         );
         const addPolicy = getByTestId('add-assertion-for-role');
         expect(addPolicy).toMatchSnapshot();

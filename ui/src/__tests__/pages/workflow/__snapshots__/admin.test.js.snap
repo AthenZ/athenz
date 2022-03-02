@@ -500,26 +500,121 @@ exports[`PendingApprovalPage should render 1`] = `
 }
 
 .emotion-26 {
-  padding: 20px 30px;
+  background: linear-gradient(to top, #f2f2f2, #fff);
+  padding: 20px 30px 0px 30px;
 }
 
 .emotion-28 {
+  padding-bottom: 20px;
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
 .emotion-30 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: #f5f8fe;
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(2, 1fr);
+  margin-top: 0;
+  min-width: 80px;
+  position: relative;
+}
+
+.emotion-30.vertical {
+  background: #f5f8fe;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  height: 100%;
+  min-width: 300px;
+  overflow-y: scroll;
+  padding: 12px 0px 40px 0px;
+  width: 300px;
+}
+
+.emotion-31 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #f5f8fe;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  padding: 8px 20px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-31:hover {
+  color: #3570f4;
+}
+
+.emotion-31.active {
+  background: #fff;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-31.active:hover {
+  color: #303030;
+}
+
+.emotion-31.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-31.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-31.vertical.active:hover {
+  color: #303030;
+}
+
+.emotion-33 {
   width: calc(100vw - 23em);
   overflow-x: scroll;
   overflow-y: visible;
 }
 
-.emotion-32 {
+.emotion-35 {
   margin-top: 20px;
   width: 100%;
   border-spacing: 0;
 }
 
-.emotion-34 {
+.emotion-37 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -532,7 +627,7 @@ exports[`PendingApprovalPage should render 1`] = `
   width: 1%;
 }
 
-.emotion-36 {
+.emotion-39 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -545,7 +640,7 @@ exports[`PendingApprovalPage should render 1`] = `
   vertical-align: middle;
 }
 
-.emotion-36>input[type='checkbox'] {
+.emotion-39>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -554,7 +649,7 @@ exports[`PendingApprovalPage should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-36>input[type='checkbox']+label {
+.emotion-39>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -567,7 +662,7 @@ exports[`PendingApprovalPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-36>input[type='checkbox']+label:before {
+.emotion-39>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -583,33 +678,33 @@ exports[`PendingApprovalPage should render 1`] = `
   width: 16px;
 }
 
-.emotion-36>input[type='checkbox']:hover+label:before {
+.emotion-39>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-36>input[type='checkbox']:focus+label:before {
+.emotion-39>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-36>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-36>input[type='checkbox']:checked+label:before {
+.emotion-39>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-39>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-36>input[type='checkbox']:disabled+label {
+.emotion-39>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-36>input[type='checkbox']:disabled+label:before {
+.emotion-39>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-36>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-39>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-36>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-39>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -624,7 +719,7 @@ exports[`PendingApprovalPage should render 1`] = `
   width: 8px;
 }
 
-.emotion-36>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-39>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -644,7 +739,7 @@ exports[`PendingApprovalPage should render 1`] = `
   width: 4.5px;
 }
 
-.emotion-37 {
+.emotion-40 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -656,7 +751,7 @@ exports[`PendingApprovalPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-39 {
+.emotion-42 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -669,7 +764,7 @@ exports[`PendingApprovalPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-49 {
+.emotion-52 {
   border-bottom: 2px solid #d5d5d5;
   font-weight: 600;
   font-size: 0.7rem;
@@ -679,7 +774,7 @@ exports[`PendingApprovalPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-51 {
+.emotion-54 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -696,7 +791,7 @@ exports[`PendingApprovalPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-51>textarea {
+.emotion-54>textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -725,43 +820,43 @@ exports[`PendingApprovalPage should render 1`] = `
   width: auto;
 }
 
-.emotion-51>textarea::-webkit-input-placeholder {
+.emotion-54>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-51>textarea::-moz-placeholder {
+.emotion-54>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-51>textarea:-ms-input-placeholder {
+.emotion-54>textarea:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-51>textarea::placeholder {
+.emotion-54>textarea::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-51>textarea:active,
-.emotion-51>textarea:focus {
+.emotion-54>textarea:active,
+.emotion-54>textarea:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-51>textarea:invalid {
+.emotion-54>textarea:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-51>textarea[disabled] {
+.emotion-54>textarea[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-51 .message {
+.emotion-54 .message {
   font-size: 12px;
   color: #303030;
   left: 0;
@@ -770,11 +865,11 @@ exports[`PendingApprovalPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-52>textarea {
+.emotion-55>textarea {
   resize: vertical;
 }
 
-.emotion-56>div input {
+.emotion-59>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   background-color: #d5d5d5;
@@ -800,13 +895,13 @@ exports[`PendingApprovalPage should render 1`] = `
   width: 10em;
 }
 
-.emotion-58 {
+.emotion-61 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-64 {
+.emotion-67 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -823,17 +918,17 @@ exports[`PendingApprovalPage should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-66 {
+.emotion-69 {
   margin-top: 10px;
 }
 
-.emotion-68 {
+.emotion-71 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-69 {
+.emotion-72 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -851,7 +946,7 @@ exports[`PendingApprovalPage should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-76 {
+.emotion-79 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -863,7 +958,7 @@ exports[`PendingApprovalPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-96 {
+.emotion-99 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -881,7 +976,7 @@ exports[`PendingApprovalPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-98 {
+.emotion-101 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -900,7 +995,215 @@ exports[`PendingApprovalPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-100 {
+.emotion-103 {
+  background-color: #3570f40D;
+}
+
+.emotion-105 {
+  text-align: left;
+  vertical-align: middle;
+  word-break: break-all;
+  padding: 5px 0px 5px 15px;
+  white-space: nowrap;
+}
+
+.emotion-108 {
+  text-align: left;
+  vertical-align: middle;
+  word-break: break-all;
+  padding: 5px 0px 5px 0px;
+}
+
+.emotion-114 {
+  text-align: left;
+  vertical-align: middle;
+  padding: 5px 0px 5px 15px;
+}
+
+.emotion-124 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: column nowrap;
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-124>textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: auto;
+  line-height: 1.5;
+  margin: 0;
+  outline: none;
+  padding: 0.25em 0.75rem;
+  text-align: left;
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  width: auto;
+}
+
+.emotion-124>textarea::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-124>textarea::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-124>textarea:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-124>textarea::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-124>textarea:active,
+.emotion-124>textarea:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-124>textarea:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-124>textarea[disabled] {
+  background: rgba(48,48,48,0.05);
+  border-bottom: 2px solid rgba(48,48,48,0.05);
+  color: rgba(48,48,48,0.25);
+  cursor: not-allowed;
+}
+
+.emotion-124 .message {
+  font-size: 12px;
+  color: #303030;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-129>div input {
+  position: relative;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  background-color: rgba(53, 112, 244, 0.05);
+  box-shadow: none;
+  color: rgb(48, 48, 48);
+  height: 16px;
+  min-width: 50px;
+  text-align: left;
+  border-width: 2px;
+  border-style: solid;
+  border-color: transparent;
+  border-image: initial;
+  border-radius: 2px;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  margin: 0px;
+  margin-top: 5px;
+  outline: none;
+  padding: 0.6em 12px;
+  -webkit-transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  width: 10em;
+}
+
+.emotion-137 {
+  vertical-align: middle;
+  word-break: break-all;
+  text-align: center;
+  position: absolute;
+  width: 11em;
+  right: 11em;
+  height: 96px;
+  background-color: rgba(244, 248, 254, 1);
+  padding: 5px 0px 5px 14px;
+}
+
+.emotion-139 {
+  margin-top: 45px;
+}
+
+.emotion-141 {
+  fill: #1dad51;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-142 {
+  vertical-align: middle;
+  word-break: break-all;
+  text-align: center;
+  border-right: none;
+  position: absolute;
+  width: 11em;
+  right: 0em;
+  height: 96px;
+  background-color: rgba(244, 248, 254, 1);
+  padding: 5px 0px 5px 0px;
+}
+
+.emotion-146 {
+  fill: #ea0000;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-181 {
+  vertical-align: middle;
+  word-break: break-all;
+  text-align: center;
+  position: absolute;
+  width: 11em;
+  right: 11em;
+  height: 96px;
+  background-color: rgba(255, 255, 255, 1);
+  padding: 5px 0px 5px 14px;
+}
+
+.emotion-186 {
+  vertical-align: middle;
+  word-break: break-all;
+  text-align: center;
+  border-right: none;
+  position: absolute;
+  width: 11em;
+  right: 0em;
+  height: 96px;
+  background-color: rgba(255, 255, 255, 1);
+  padding: 5px 0px 5px 0px;
+}
+
+.emotion-191 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -926,7 +1229,7 @@ exports[`PendingApprovalPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-102 {
+.emotion-193 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
@@ -1015,10 +1318,10 @@ exports[`PendingApprovalPage should render 1`] = `
             width="25px"
           >
             <title>
-              notification
+              notification-solid
             </title>
             <path
-              d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
+              d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007z"
             />
           </svg>
           <div
@@ -1070,12 +1373,29 @@ exports[`PendingApprovalPage should render 1`] = `
               >
                 Pending Items for Approval
               </div>
+              <div
+                class="emotion-30 denali-tab-group"
+                data-testid="tabgroup"
+              >
+                <div
+                  class="emotion-31 denali-tab active"
+                  data-active="true"
+                >
+                  Admin View
+                </div>
+                <div
+                  class="emotion-31 denali-tab"
+                  data-active="false"
+                >
+                  Domain View
+                </div>
+              </div>
             </div>
             <div
-              class="emotion-30 emotion-31"
+              class="emotion-33 emotion-34"
             >
               <table
-                class="emotion-32 emotion-33"
+                class="emotion-35 emotion-36"
                 data-testid="pending-approval-table"
               >
                 <thead>
@@ -1083,10 +1403,10 @@ exports[`PendingApprovalPage should render 1`] = `
                     data-testid="pending-approval-table-header"
                   >
                     <th
-                      class="emotion-34 emotion-35"
+                      class="emotion-37 emotion-38"
                     >
                       <div
-                        class="emotion-36 denali-checkbox"
+                        class="emotion-39 denali-checkbox"
                         data-testid="checkbox-wrapper"
                       >
                         <input
@@ -1101,33 +1421,33 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </th>
                     <th
-                      class="emotion-37 emotion-38"
+                      class="emotion-40 emotion-41"
                     >
                       <div>
                          Select All 
                       </div>
                     </th>
                     <th
-                      class="emotion-39 emotion-40"
+                      class="emotion-42 emotion-43"
                     />
                     <th
-                      class="emotion-39 emotion-40"
+                      class="emotion-42 emotion-43"
                     />
                     <th
-                      class="emotion-39 emotion-40"
+                      class="emotion-42 emotion-43"
                       colspan="3"
                     />
                     <th
-                      class="emotion-39 emotion-40"
+                      class="emotion-42 emotion-43"
                     />
                     <th
-                      class="emotion-39 emotion-40"
+                      class="emotion-42 emotion-43"
                     />
                     <th
-                      class="emotion-49 emotion-50"
+                      class="emotion-52 emotion-53"
                     >
                       <div
-                        class="emotion-51 denali-textarea emotion-52 emotion-53"
+                        class="emotion-54 denali-textarea emotion-55 emotion-56"
                         data-testid="textarea-wrapper"
                       >
                         <textarea
@@ -1139,10 +1459,10 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </th>
                     <th
-                      class="emotion-49 emotion-50"
+                      class="emotion-52 emotion-53"
                     >
                       <div
-                        class="emotion-56 emotion-57"
+                        class="emotion-59 emotion-60"
                         disabled=""
                       >
                         <div
@@ -1167,7 +1487,7 @@ exports[`PendingApprovalPage should render 1`] = `
                             data-clear=""
                           >
                             <svg
-                              class="emotion-58"
+                              class="emotion-61"
                               data-testid="icon"
                               height="1.25em"
                               viewBox="0 0 1024 1024"
@@ -1185,10 +1505,10 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </th>
                     <th
-                      class="emotion-49 emotion-50"
+                      class="emotion-52 emotion-53"
                     >
                       <div
-                        class="emotion-56 emotion-57"
+                        class="emotion-59 emotion-60"
                         disabled=""
                       >
                         <div
@@ -1213,7 +1533,7 @@ exports[`PendingApprovalPage should render 1`] = `
                             data-clear=""
                           >
                             <svg
-                              class="emotion-58"
+                              class="emotion-61"
                               data-testid="icon"
                               height="1.25em"
                               viewBox="0 0 1024 1024"
@@ -1231,13 +1551,13 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </th>
                     <th
-                      class="emotion-64 emotion-65"
+                      class="emotion-67 emotion-68"
                     >
                       <div
-                        class="emotion-66 emotion-67"
+                        class="emotion-69 emotion-70"
                       >
                         <svg
-                          class="emotion-68"
+                          class="emotion-71"
                           data-testid="icon"
                           height="1.25em"
                           viewBox="0 0 1024 1024"
@@ -1256,13 +1576,13 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </th>
                     <th
-                      class="emotion-69 emotion-70"
+                      class="emotion-72 emotion-73"
                     >
                       <div
-                        class="emotion-66 emotion-67"
+                        class="emotion-69 emotion-70"
                       >
                         <svg
-                          class="emotion-68"
+                          class="emotion-71"
                           data-testid="icon"
                           height="1.25em"
                           viewBox="0 0 1024 1024"
@@ -1280,72 +1600,529 @@ exports[`PendingApprovalPage should render 1`] = `
                   </tr>
                   <tr>
                     <th
-                      class="emotion-39 emotion-75"
+                      class="emotion-42 emotion-78"
                     />
                     <th
-                      class="emotion-76 emotion-77"
+                      class="emotion-79 emotion-80"
                     >
                       Domain
                     </th>
                     <th
-                      class="emotion-39 emotion-75"
+                      class="emotion-42 emotion-78"
                     >
                       Type
                     </th>
                     <th
-                      class="emotion-39 emotion-75"
+                      class="emotion-42 emotion-78"
                     >
                       Name
                     </th>
                     <th
-                      class="emotion-39 emotion-75"
+                      class="emotion-42 emotion-78"
                     >
                       Member
                     </th>
                     <th
-                      class="emotion-39 emotion-75"
+                      class="emotion-42 emotion-78"
                       colspan="2"
                     >
                       User Comment
                     </th>
                     <th
-                      class="emotion-39 emotion-75"
+                      class="emotion-42 emotion-78"
                     >
                       Requester
                     </th>
                     <th
-                      class="emotion-39 emotion-75"
+                      class="emotion-42 emotion-78"
                     >
                       Request Time
                     </th>
                     <th
-                      class="emotion-39 emotion-75"
+                      class="emotion-42 emotion-78"
                     >
                       Audit Reference
                     </th>
                     <th
-                      class="emotion-39 emotion-75"
+                      class="emotion-42 emotion-78"
                     >
                       Expiration Date
                     </th>
                     <th
-                      class="emotion-39 emotion-75"
+                      class="emotion-42 emotion-78"
                     >
                       Reminder Date
                     </th>
                     <th
-                      class="emotion-96 emotion-97"
+                      class="emotion-99 emotion-100"
                     >
                       Approve
                     </th>
                     <th
-                      class="emotion-98 emotion-99"
+                      class="emotion-101 emotion-102"
                     >
                       Reject
                     </th>
                   </tr>
                 </thead>
-                <tbody />
+                <tbody>
+                  <tr
+                    class="emotion-103 emotion-104"
+                    color="#3570f40D"
+                    data-testid="pending-approval-table-row"
+                  >
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      <div
+                        class="emotion-39 denali-checkbox"
+                        data-testid="checkbox-wrapper"
+                      >
+                        <input
+                          data-partial="false"
+                          id="home.domain1user.test1testrole1"
+                          name="checkbox-row"
+                          type="checkbox"
+                        />
+                        <label
+                          for="home.domain1user.test1testrole1"
+                        />
+                      </div>
+                    </td>
+                    <td
+                      class="emotion-108 emotion-109"
+                    >
+                      home.domain1
+                    </td>
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      role
+                    </td>
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      testrole1
+                    </td>
+                    <td
+                      class="emotion-114 emotion-115"
+                    >
+                      <p>
+                        Test
+                      </p>
+                      <p>
+                        (
+                        user.test1
+                        )
+                      </p>
+                    </td>
+                    <td
+                      class="emotion-114 emotion-115"
+                      colspan="2"
+                    >
+                      testing1
+                    </td>
+                    <td
+                      class="emotion-114 emotion-115"
+                    >
+                      <p>
+                        Test
+                      </p>
+                      <p>
+                        (
+                        user.craman
+                        )
+                      </p>
+                    </td>
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      2022-02-15 18:14 UTC
+                    </td>
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      <div
+                        class="emotion-124 denali-textarea emotion-55 emotion-126"
+                        data-testid="textarea-wrapper"
+                      >
+                        <textarea
+                          data-testid="textarea"
+                          id="home.domain1user.test1testrole1"
+                          placeholder="Justification"
+                          rows="4"
+                        />
+                      </div>
+                    </td>
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      <div
+                        class="emotion-129 emotion-130"
+                      >
+                        <div
+                          class="fp-home_domain1user_test1testrole1expiry"
+                        >
+                          <input
+                            class="flatpickr-input"
+                            data-input=""
+                            data-testid="flatPicker"
+                            placeholder="Expiration (Optional)"
+                            type="hidden"
+                            value=""
+                          />
+                          <input
+                            class=" form-control input"
+                            placeholder="Expiration (Optional)"
+                            readonly="readonly"
+                            tabindex="0"
+                            type="text"
+                          />
+                          <a
+                            data-clear=""
+                          >
+                            <svg
+                              class="emotion-61"
+                              data-testid="icon"
+                              height="1.25em"
+                              viewBox="0 0 1024 1024"
+                              width="1.25em"
+                            >
+                              <title>
+                                close
+                              </title>
+                              <path
+                                d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+                              />
+                            </svg>
+                          </a>
+                        </div>
+                      </div>
+                    </td>
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      <div
+                        class="emotion-129 emotion-130"
+                      >
+                        <div
+                          class="fp-home_domain1user_test1testrole1reviewReminder"
+                        >
+                          <input
+                            class="flatpickr-input"
+                            data-input=""
+                            data-testid="flatPicker"
+                            placeholder="Reminder (Optional)"
+                            type="hidden"
+                            value=""
+                          />
+                          <input
+                            class=" form-control input"
+                            placeholder="Reminder (Optional)"
+                            readonly="readonly"
+                            tabindex="0"
+                            type="text"
+                          />
+                          <a
+                            data-clear=""
+                          >
+                            <svg
+                              class="emotion-61"
+                              data-testid="icon"
+                              height="1.25em"
+                              viewBox="0 0 1024 1024"
+                              width="1.25em"
+                            >
+                              <title>
+                                close
+                              </title>
+                              <path
+                                d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+                              />
+                            </svg>
+                          </a>
+                        </div>
+                      </div>
+                    </td>
+                    <td
+                      class="emotion-137 emotion-138"
+                      color="rgba(244, 248, 254, 1)"
+                    >
+                      <div
+                        class="emotion-139 emotion-140"
+                      >
+                        <svg
+                          class="emotion-141"
+                          data-testid="icon"
+                          height="1.25em"
+                          viewBox="0 0 1024 1024"
+                          width="1.25em"
+                        >
+                          <title>
+                            check-circle
+                          </title>
+                          <path
+                            d="M512 128c212.077 0 384 171.923 384 384s-171.923 384-384 384c-212.077 0-384-171.923-384-384v0c0-212.077 171.923-384 384-384v0zM512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0z"
+                          />
+                          <path
+                            d="M396.16 691.413l-126.293-126.293c-8.506-8.066-13.798-19.448-13.798-32.066 0-9.118 2.763-17.59 7.498-24.625l-0.1 0.158c7.83-10.919 20.483-17.949 34.778-17.949 11.841 0 22.556 4.824 30.286 12.613l0.003 0.003 98.133 97.707 268.373-268.373c7.549-6.884 17.635-11.1 28.706-11.1 23.564 0 42.667 19.103 42.667 42.667 0 11.017-4.176 21.060-11.031 28.63l0.032-0.036-298.667 298.667c-7.733 7.795-18.45 12.621-30.293 12.621s-22.56-4.826-30.291-12.618l-0.003-0.003z"
+                          />
+                        </svg>
+                      </div>
+                    </td>
+                    <td
+                      class="emotion-142 emotion-143"
+                      color="rgba(244, 248, 254, 1)"
+                    >
+                      <div
+                        class="emotion-139 emotion-140"
+                      >
+                        <svg
+                          class="emotion-146"
+                          data-testid="icon"
+                          height="1.25em"
+                          viewBox="0 0 1024 1024"
+                          width="1.25em"
+                        >
+                          <title>
+                            decline
+                          </title>
+                          <path
+                            d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM130.133 467.2c22.95-192.169 184.962-339.729 381.44-339.729 90.864 0 174.356 31.559 240.114 84.314l-0.754-0.585-539.733 539.733c-52.076-65.227-83.563-148.885-83.563-239.896 0-15.446 0.907-30.681 2.671-45.653l-0.174 1.816zM554.667 893.867c-12.252 1.372-26.457 2.154-40.844 2.154-92.264 0-177.012-32.182-243.63-85.933l0.741 0.579 539.733-537.6c53.445 64.395 85.876 147.901 85.876 238.983 0 15.772-0.972 31.316-2.861 46.577l0.184-1.826c-22.136 177.253-161.672 316.060-337.376 336.891l-1.824 0.176z"
+                          />
+                        </svg>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr
+                    class="emotion-147 emotion-104"
+                    color=""
+                    data-testid="pending-approval-table-row"
+                  >
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      <div
+                        class="emotion-39 denali-checkbox"
+                        data-testid="checkbox-wrapper"
+                      >
+                        <input
+                          data-partial="false"
+                          id="home.domain2user.test2add-test"
+                          name="checkbox-row"
+                          type="checkbox"
+                        />
+                        <label
+                          for="home.domain2user.test2add-test"
+                        />
+                      </div>
+                    </td>
+                    <td
+                      class="emotion-108 emotion-109"
+                    >
+                      home.domain2
+                    </td>
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      role
+                    </td>
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      add-test
+                    </td>
+                    <td
+                      class="emotion-114 emotion-115"
+                    >
+                      <p>
+                        Test
+                      </p>
+                      <p>
+                        (
+                        user.test2
+                        )
+                      </p>
+                    </td>
+                    <td
+                      class="emotion-114 emotion-115"
+                      colspan="2"
+                    >
+                      test
+                    </td>
+                    <td
+                      class="emotion-114 emotion-115"
+                    >
+                      <p>
+                        Test
+                      </p>
+                      <p>
+                        (
+                        user.craman
+                        )
+                      </p>
+                    </td>
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      2022-02-16 16:02 UTC
+                    </td>
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      <div
+                        class="emotion-124 denali-textarea emotion-55 emotion-126"
+                        data-testid="textarea-wrapper"
+                      >
+                        <textarea
+                          data-testid="textarea"
+                          id="home.domain2user.test2add-test"
+                          placeholder="Justification"
+                          rows="4"
+                        />
+                      </div>
+                    </td>
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      <div
+                        class="emotion-129 emotion-130"
+                      >
+                        <div
+                          class="fp-home_domain2user_test2add_testexpiry"
+                        >
+                          <input
+                            class="flatpickr-input"
+                            data-input=""
+                            data-testid="flatPicker"
+                            placeholder="Expiration (Optional)"
+                            type="hidden"
+                            value=""
+                          />
+                          <input
+                            class=" form-control input"
+                            placeholder="Expiration (Optional)"
+                            readonly="readonly"
+                            tabindex="0"
+                            type="text"
+                          />
+                          <a
+                            data-clear=""
+                          >
+                            <svg
+                              class="emotion-61"
+                              data-testid="icon"
+                              height="1.25em"
+                              viewBox="0 0 1024 1024"
+                              width="1.25em"
+                            >
+                              <title>
+                                close
+                              </title>
+                              <path
+                                d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+                              />
+                            </svg>
+                          </a>
+                        </div>
+                      </div>
+                    </td>
+                    <td
+                      class="emotion-105 emotion-106"
+                    >
+                      <div
+                        class="emotion-129 emotion-130"
+                      >
+                        <div
+                          class="fp-home_domain2user_test2add_testreviewReminder"
+                        >
+                          <input
+                            class="flatpickr-input"
+                            data-input=""
+                            data-testid="flatPicker"
+                            placeholder="Reminder (Optional)"
+                            type="hidden"
+                            value=""
+                          />
+                          <input
+                            class=" form-control input"
+                            placeholder="Reminder (Optional)"
+                            readonly="readonly"
+                            tabindex="0"
+                            type="text"
+                          />
+                          <a
+                            data-clear=""
+                          >
+                            <svg
+                              class="emotion-61"
+                              data-testid="icon"
+                              height="1.25em"
+                              viewBox="0 0 1024 1024"
+                              width="1.25em"
+                            >
+                              <title>
+                                close
+                              </title>
+                              <path
+                                d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+                              />
+                            </svg>
+                          </a>
+                        </div>
+                      </div>
+                    </td>
+                    <td
+                      class="emotion-181 emotion-138"
+                      color="rgba(255, 255, 255, 1)"
+                    >
+                      <div
+                        class="emotion-139 emotion-140"
+                      >
+                        <svg
+                          class="emotion-141"
+                          data-testid="icon"
+                          height="1.25em"
+                          viewBox="0 0 1024 1024"
+                          width="1.25em"
+                        >
+                          <title>
+                            check-circle
+                          </title>
+                          <path
+                            d="M512 128c212.077 0 384 171.923 384 384s-171.923 384-384 384c-212.077 0-384-171.923-384-384v0c0-212.077 171.923-384 384-384v0zM512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0z"
+                          />
+                          <path
+                            d="M396.16 691.413l-126.293-126.293c-8.506-8.066-13.798-19.448-13.798-32.066 0-9.118 2.763-17.59 7.498-24.625l-0.1 0.158c7.83-10.919 20.483-17.949 34.778-17.949 11.841 0 22.556 4.824 30.286 12.613l0.003 0.003 98.133 97.707 268.373-268.373c7.549-6.884 17.635-11.1 28.706-11.1 23.564 0 42.667 19.103 42.667 42.667 0 11.017-4.176 21.060-11.031 28.63l0.032-0.036-298.667 298.667c-7.733 7.795-18.45 12.621-30.293 12.621s-22.56-4.826-30.291-12.618l-0.003-0.003z"
+                          />
+                        </svg>
+                      </div>
+                    </td>
+                    <td
+                      class="emotion-186 emotion-143"
+                      color="rgba(255, 255, 255, 1)"
+                    >
+                      <div
+                        class="emotion-139 emotion-140"
+                      >
+                        <svg
+                          class="emotion-146"
+                          data-testid="icon"
+                          height="1.25em"
+                          viewBox="0 0 1024 1024"
+                          width="1.25em"
+                        >
+                          <title>
+                            decline
+                          </title>
+                          <path
+                            d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM130.133 467.2c22.95-192.169 184.962-339.729 381.44-339.729 90.864 0 174.356 31.559 240.114 84.314l-0.754-0.585-539.733 539.733c-52.076-65.227-83.563-148.885-83.563-239.896 0-15.446 0.907-30.681 2.671-45.653l-0.174 1.816zM554.667 893.867c-12.252 1.372-26.457 2.154-40.844 2.154-92.264 0-177.012-32.182-243.63-85.933l0.741 0.579 539.733-537.6c53.445 64.395 85.876 147.901 85.876 238.983 0 15.772-0.972 31.316-2.861 46.577l0.184-1.826c-22.136 177.253-161.672 316.060-337.376 336.891l-1.824 0.176z"
+                          />
+                        </svg>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
               </table>
             </div>
           </div>
@@ -1355,11 +2132,11 @@ exports[`PendingApprovalPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-100 emotion-101"
+          class="emotion-191 emotion-192"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-102"
+            class="emotion-193"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"

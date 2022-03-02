@@ -26,7 +26,8 @@ import RequestUtils from '../../../components/utils/RequestUtils';
 import Tabs from '../../../components/header/Tabs';
 import Error from '../../_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
+import DomainNameHeader from '../../../components/header/DomainNameHeader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -58,11 +59,6 @@ const PageHeaderDiv = styled.div`
     padding: 20px 30px 0;
 `;
 
-const TitleDiv = styled.div`
-    font: 600 20px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
-    margin-bottom: 10px;
-`;
-
 export async function getServerSideProps(context) {
     let api = API(context.req);
     let reload = false;
@@ -90,11 +86,12 @@ export async function getServerSideProps(context) {
         api.getFeatureFlag(),
         api.getMeta(bServicesParams),
         api.getMeta(bServicesParamsAll),
+        api.getPendingDomainMembersCountByDomain(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
     });
     let businessServiceOptions = [];
     if (domains[9] && domains[9].validValues) {
@@ -147,7 +144,8 @@ export async function getServerSideProps(context) {
             nonce: context.req.headers.rid,
             validBusinessServices: businessServiceOptions,
             validBusinessServicesAll: businessServiceOptionsAll,
-        }
+            domainPendingMemberCount: domains[11],
+        },
     };
 }
 
@@ -162,13 +160,13 @@ export default class ServicePage extends React.Component {
     }
 
     render() {
-        const {domain, reload, domainDetails, services, _csrf} = this.props;
+        const { domain, reload, domainDetails, services, _csrf } = this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
         return (
             <CacheProvider value={this.cache}>
@@ -186,7 +184,13 @@ export default class ServicePage extends React.Component {
                             <ServicesContainerDiv>
                                 <ServicesContentDiv>
                                     <PageHeaderDiv>
-                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainNameHeader
+                                            domainName={this.props.domain}
+                                            pendingCount={
+                                                this.props
+                                                    .domainPendingMemberCount
+                                            }
+                                        />
                                         <DomainDetails
                                             domainDetails={domainDetails}
                                             api={this.api}

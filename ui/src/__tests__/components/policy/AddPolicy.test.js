@@ -20,7 +20,7 @@ import AddPolicy from '../../../components/policy/AddPolicy';
 describe('AddPolicy', () => {
     it('should render', () => {
         const showAddPolicy = true;
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {
             listRoles(domain) {
@@ -43,7 +43,7 @@ describe('AddPolicy', () => {
 
     it('should render fail to submit policy name is required', () => {
         const showAddPolicy = true;
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {
             listRoles(domain) {
@@ -70,7 +70,7 @@ describe('AddPolicy', () => {
 
     it('should render failed to submit action is required', () => {
         const showAddPolicy = true;
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {
             listRoles(domain) {
@@ -100,7 +100,7 @@ describe('AddPolicy', () => {
 
     it('should render failed to submit role name is required', () => {
         const showAddPolicy = true;
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {
             listRoles(domain) {

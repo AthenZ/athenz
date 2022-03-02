@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import {render, waitFor} from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import UserRoleTable from '../../../components/role/UserRoleTable';
 import API from '../../../api';
 
@@ -42,18 +42,18 @@ describe('UserRoleTable', () => {
                     let member = {
                         members: [
                             {
-                                memberName: "user.test1",
+                                memberName: 'user.test1',
                                 memberRoles: ['role1'],
-                                memberFullName: 'testing1'
+                                memberFullName: 'testing1',
                             },
                             {
-                                memberName: "user.test2",
+                                memberName: 'user.test2',
                                 memberRoles: ['role2'],
-                                memberFullName: 'testing2'
-                            }
+                                memberFullName: 'testing2',
+                            },
                         ],
                     };
-                    resolve(member)
+                    resolve(member);
                 });
             },
         };
@@ -66,11 +66,16 @@ describe('UserRoleTable', () => {
         //                     expandArray[name] = false;
         //                 }
 
-        const {getByTestId, queryByText} = render(
-            <UserRoleTable roles={roles} api={api} domain={domain} searchText={'test'}/>
+        const { getByTestId, queryByText } = render(
+            <UserRoleTable
+                roles={roles}
+                api={api}
+                domain={domain}
+                searchText={'test'}
+            />
         );
         await waitFor(() => {
-            expect(queryByText("test"));
+            expect(queryByText('test'));
         });
 
         const userroletable = getByTestId('userroletable');

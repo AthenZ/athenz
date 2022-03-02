@@ -28,7 +28,7 @@ import Error from '../../../../_error';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import SettingTable from '../../../../../components/settings/SettingTable';
-import JsonUtils from "../../../../../components/utils/JsonUtils";
+import JsonUtils from '../../../../../components/utils/JsonUtils';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -85,22 +85,24 @@ export async function getServerSideProps(context) {
         error = response.error;
         return [{}, {}, {}, {}, {}, {}, {}];
     });
-    return { props: {
-        reload,
-        notFound,
-        error,
-        domains: roles[0],
-        role: context.query.role,
-        headerDetails: roles[1],
-        domainDeails: roles[2],
-        auditEnabled: roles[2].auditEnabled,
-        roleDetails: JsonUtils.omitUndefined(roles[3]),
-        domain: context.query.domain,
-        pending: roles[4],
-        _csrf: roles[5],
-        userAuthorityAttributes: roles[6],
-        nonce: context.req.headers.rid,
-    }};
+    return {
+        props: {
+            reload,
+            notFound,
+            error,
+            domains: roles[0],
+            role: context.query.role,
+            headerDetails: roles[1],
+            domainDeails: roles[2],
+            auditEnabled: roles[2].auditEnabled,
+            roleDetails: JsonUtils.omitUndefined(roles[3]),
+            domain: context.query.domain,
+            pending: roles[4],
+            _csrf: roles[5],
+            userAuthorityAttributes: roles[6],
+            nonce: context.req.headers.rid,
+        },
+    };
 }
 
 export default class SettingPage extends React.Component {

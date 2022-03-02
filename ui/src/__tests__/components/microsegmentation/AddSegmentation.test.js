@@ -14,30 +14,33 @@
  * limitations under the License.
  */
 import React from 'react';
-import {fireEvent, render} from '@testing-library/react';
-import AddSegmentation from "../../../components/microsegmentation/AddSegmentation";
-import API from "../../../api";
+import { fireEvent, render } from '@testing-library/react';
+import AddSegmentation from '../../../components/microsegmentation/AddSegmentation';
+import API from '../../../api';
 
 describe('AddSegmentation', () => {
-    const pageFeatureFlag ={
-        'policyValidation': true
+    const pageFeatureFlag = {
+        policyValidation: true,
     };
     const api = {
         getServices(domain) {
             return new Promise((resolve, reject) => {
-                resolve([{
-                    'name': 'user.test1'
-                }, {
-                    'name': 'user.test2'
-                }]);
+                resolve([
+                    {
+                        name: 'user.test1',
+                    },
+                    {
+                        name: 'user.test2',
+                    },
+                ]);
             });
         },
     };
     it('should render', () => {
         let domain = 'domain';
         const showAddSegmentation = true;
-        const cancel = function() {};
-        const submit = function() {};
+        const cancel = function () {};
+        const submit = function () {};
         let _csrf = 'csrf';
         const { getByTestId } = render(
             <AddSegmentation
@@ -57,12 +60,12 @@ describe('AddSegmentation', () => {
 
     it('should render fail to submit add-segmentation: destinationService is required', () => {
         const showAddSegmentation = true;
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
-        let role ='roleName';
-        const submit = function() {};
+        let role = 'roleName';
+        const submit = function () {};
         let _csrf = 'csrf';
-        const { getByTestId, getByText } =  render(
+        const { getByTestId, getByText } = render(
             <AddSegmentation
                 api={api}
                 domain={domain}
@@ -77,5 +80,4 @@ describe('AddSegmentation', () => {
         const addSegmentation = getByTestId('add-modal-message');
         expect(addSegmentation).toMatchSnapshot();
     });
-
 });

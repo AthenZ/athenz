@@ -21,7 +21,7 @@ import API from '../../../api';
 describe('MemberList', () => {
     it('should render', () => {
         let members = [];
-        let domain= 'domain';
+        let domain = 'domain';
         let role = 'roleName';
         const roleDetails = {
             trust: null,
@@ -31,26 +31,33 @@ describe('MemberList', () => {
         let user1 = {
             memberName: 'user1',
             approved: true,
-        }
+        };
         let user2 = {
             memberName: 'user2',
             approved: false,
-        }
+        };
         let user3 = {
             memberName: 'user3',
             approved: false,
-        }
+        };
         let user4 = {
             memberName: 'user4',
             approved: true,
-        }
+        };
         members.push(user1);
         members.push(user2);
         members.push(user3);
         members.push(user4);
 
         const { getByTestId } = render(
-            <MemberList api={API()} domain={domain} collection={role} collectionDetails={roleDetails} members={members} isDomainAuditEnabled={true}/>
+            <MemberList
+                api={API()}
+                domain={domain}
+                collection={role}
+                collectionDetails={roleDetails}
+                members={members}
+                isDomainAuditEnabled={true}
+            />
         );
         const memberlist = getByTestId('member-list');
 
@@ -58,7 +65,7 @@ describe('MemberList', () => {
     });
     it('should render delegated role', () => {
         let members = [];
-        let domain= 'domain';
+        let domain = 'domain';
         let role = 'roleName';
         const roleDetails = {
             trust: 'domain.delegated',
@@ -68,26 +75,33 @@ describe('MemberList', () => {
         let user1 = {
             memberName: 'user1',
             approved: true,
-        }
+        };
         let user2 = {
             memberName: 'user2',
             approved: false,
-        }
+        };
         let user3 = {
             memberName: 'user3',
             approved: false,
-        }
+        };
         let user4 = {
             memberName: 'user4',
             approved: true,
-        }
+        };
         members.push(user1);
         members.push(user2);
         members.push(user3);
         members.push(user4);
 
         const { getByTestId } = render(
-            <MemberList api={API()} domain={domain} collection={role} collectionDetails={roleDetails} members={members} isDomainAuditEnabled={true}/>
+            <MemberList
+                api={API()}
+                domain={domain}
+                collection={role}
+                collectionDetails={roleDetails}
+                members={members}
+                isDomainAuditEnabled={true}
+            />
         );
         const memberlist = getByTestId('member-list');
 

@@ -26,7 +26,8 @@ import RequestUtils from '../../../components/utils/RequestUtils';
 import Tabs from '../../../components/header/Tabs';
 import Error from '../../_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
+import DomainNameHeader from '../../../components/header/DomainNameHeader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -91,11 +92,12 @@ export async function getServerSideProps(context) {
         api.getMeta(bServicesParams),
         api.getMeta(bServicesParamsAll),
         api.getServerTemplateDetailsList(),
+        api.getPendingDomainMembersCountByDomain(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
     });
     let businessServiceOptions = [];
     if (domains[10] && domains[10].validValues) {
@@ -150,7 +152,8 @@ export async function getServerSideProps(context) {
             featureFlag: domains[9],
             validBusinessServices: businessServiceOptions,
             validBusinessServicesAll: businessServiceOptionsAll,
-        }
+            domainPendingMemberCount: domains[13],
+        },
     };
 }
 
@@ -176,10 +179,10 @@ export default class TemplatePage extends React.Component {
         } = this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
         return (
             <CacheProvider value={this.cache}>
@@ -197,7 +200,13 @@ export default class TemplatePage extends React.Component {
                             <ServicesContainerDiv>
                                 <ServicesContentDiv>
                                     <PageHeaderDiv>
-                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainNameHeader
+                                            domainName={this.props.domain}
+                                            pendingCount={
+                                                this.props
+                                                    .domainPendingMemberCount
+                                            }
+                                        />
                                         <DomainDetails
                                             domainDetails={domainDetails}
                                             api={this.api}

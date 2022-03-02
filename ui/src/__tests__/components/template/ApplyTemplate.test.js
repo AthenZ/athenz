@@ -24,14 +24,19 @@ describe('ApplyTemplate', () => {
     }
 
     it('should render', () => {
-        const showApplyTemplate=true;
-        const onSubmit=onClickUpdateTemplate;
-        const onCancel=onClickUpdateTemplate;
-        const keywordsList = "";
+        const showApplyTemplate = true;
+        const onSubmit = onClickUpdateTemplate;
+        const onCancel = onClickUpdateTemplate;
+        const keywordsList = '';
         const { getByTestId } = render(
             <table>
                 <tbody>
-                <ApplyTemplate keywords={keywordsList} showApplyTemplate={showApplyTemplate} onSubmit={onSubmit} onCancel={onCancel}/>
+                    <ApplyTemplate
+                        keywords={keywordsList}
+                        showApplyTemplate={showApplyTemplate}
+                        onSubmit={onSubmit}
+                        onCancel={onCancel}
+                    />
                 </tbody>
             </table>
         );
@@ -41,15 +46,15 @@ describe('ApplyTemplate', () => {
 
     it('should render with keywords', () => {
         const color = colors.row;
-        const item = "_service_";
-        const showApplyTemplate=true;
-        const onSubmit=onClickUpdateTemplate;
-        const onCancel=onClickUpdateTemplate;
-        const keywordsList = "_service_";
-        const templateName = "aws";
-        const domain="testdom";
+        const item = '_service_';
+        const showApplyTemplate = true;
+        const onSubmit = onClickUpdateTemplate;
+        const onCancel = onClickUpdateTemplate;
+        const keywordsList = '_service_';
+        const templateName = 'aws';
+        const domain = 'testdom';
         const api = {
-            updateTemplate: function(params, csrf) {
+            updateTemplate: function (params, csrf) {
                 return new Promise((resolve, reject) => {
                     resolve([]);
                 });
@@ -59,17 +64,16 @@ describe('ApplyTemplate', () => {
         const { getByTestId } = render(
             <table>
                 <tbody>
-                <ApplyTemplate item={item}
-                               keywords={keywordsList}
-                               showApplyTemplate={showApplyTemplate}
-                               onSubmit={onSubmit}
-                               onCancel={onCancel}
-                               api={api}
-                               domain={domain}
-                               templateName={templateName}
-
-
-                />
+                    <ApplyTemplate
+                        item={item}
+                        keywords={keywordsList}
+                        showApplyTemplate={showApplyTemplate}
+                        onSubmit={onSubmit}
+                        onCancel={onCancel}
+                        api={api}
+                        domain={domain}
+                        templateName={templateName}
+                    />
                 </tbody>
             </table>
         );

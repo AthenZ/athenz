@@ -20,10 +20,10 @@ import DeleteModal from '../../../components/modal/DeleteModal';
 describe('DeleteModal', () => {
     it('should render', () => {
         const isOpen = true;
-        const cancel = function() {};
+        const cancel = function () {};
         const message = 'test';
         const name = 'name';
-        const submit = function() {};
+        const submit = function () {};
         const { getByTestId } = render(
             <DeleteModal
                 isOpen={isOpen}
@@ -39,10 +39,10 @@ describe('DeleteModal', () => {
 
     it('should render with Domain input field', () => {
         const isOpen = true;
-        const cancel = function() {};
+        const cancel = function () {};
         const message = 'test';
         const name = 'name';
-        const submit = function() {};
+        const submit = function () {};
         const { getByTestId } = render(
             <DeleteModal
                 isOpen={isOpen}

@@ -32,6 +32,12 @@ class PageUtils {
     static servicePage(domain) {
         return `/domain/${domain}/service`;
     }
+    static workflowAdminPage() {
+        return `/workflow/admin`;
+    }
+    static workflowDomainPage() {
+        return `/workflow/domain`;
+    }
 }
 
 export default PageUtils;

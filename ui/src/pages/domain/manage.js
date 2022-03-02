@@ -22,10 +22,10 @@ import Head from 'next/head';
 
 import ManageDomains from '../../components/domain/ManageDomains';
 import RequestUtils from '../../components/utils/RequestUtils';
-import {MODAL_TIME_OUT} from '../../components/constants/constants';
+import { MODAL_TIME_OUT } from '../../components/constants/constants';
 import Error from '../_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -135,7 +135,7 @@ export async function getServerSideProps(context) {
             nonce: context.req.headers.rid,
             validBusinessServices: businessServiceOptions,
             validBusinessServicesAll: businessServiceOptionsAll,
-        }
+        },
     };
 }
 
@@ -186,13 +186,13 @@ export default class ManageDomainsPage extends React.Component {
     }
 
     render() {
-        const {reload} = this.props;
+        const { reload } = this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
         return (
             <CacheProvider value={this.cache}>

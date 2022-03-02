@@ -23,10 +23,15 @@ describe('Header', () => {
         let role = 'admin';
         let roleDetails = {
             trust: null,
-            auditEnabled: false
+            auditEnabled: false,
         };
         const { getByTestId } = render(
-            <NameHeader showSearch={false} domain={domain} collection={role} collectionDetails={roleDetails} />
+            <NameHeader
+                showSearch={false}
+                domain={domain}
+                collection={role}
+                collectionDetails={roleDetails}
+            />
         );
         const header = getByTestId('collection-name-header');
         expect(header).toMatchSnapshot();
@@ -36,10 +41,15 @@ describe('Header', () => {
         let role = 'audit.role';
         let roleDetails = {
             trust: null,
-            auditEnabled: true
+            auditEnabled: true,
         };
         const { getByTestId } = render(
-            <NameHeader showSearch={false} domain={domain} collection={role} collectionDetails={roleDetails} />
+            <NameHeader
+                showSearch={false}
+                domain={domain}
+                collection={role}
+                collectionDetails={roleDetails}
+            />
         );
         const header = getByTestId('collection-name-header');
         expect(header).toMatchSnapshot();
@@ -49,12 +59,17 @@ describe('Header', () => {
         let role = 'delegated.role';
         let roleDetails = {
             trust: 'home.hga',
-            auditEnabled: false
+            auditEnabled: false,
         };
         const { getByTestId } = render(
-            <NameHeader showSearch={false} domain={domain} collection={role} collectionDetails={roleDetails} />
+            <NameHeader
+                showSearch={false}
+                domain={domain}
+                collection={role}
+                collectionDetails={roleDetails}
+            />
         );
         const header = getByTestId('collection-name-header');
-        expect(header).toMatchSnapshot();;
+        expect(header).toMatchSnapshot();
     });
 });

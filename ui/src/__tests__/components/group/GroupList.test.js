@@ -15,8 +15,8 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import GroupList from "../../../components/group/GroupList";
-import API from "../../../api";
+import GroupList from '../../../components/group/GroupList';
+import API from '../../../api';
 
 describe('GroupList', () => {
     it('should render', () => {
@@ -45,7 +45,8 @@ describe('GroupList', () => {
                 _csrf={_csrf}
                 isDomainAuditEnabled={true}
                 userProfileLink={headerDetails.userData.userLink}
-            />);
+            />
+        );
         const grouplist = getByTestId('grouplist');
 
         expect(grouplist).toMatchSnapshot();

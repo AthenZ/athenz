@@ -14,28 +14,27 @@
  * limitations under the License.
  */
 import React from 'react';
-import API from "../../../api";
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
-import AddTag from "../../../components/tag/AddTag";
+import API from '../../../api';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import AddTag from '../../../components/tag/AddTag';
 
 describe('AddTag', () => {
     const onCancel = jest.fn();
 
     it('should render on new tag', () => {
         const { getByTestId } = render(
-            <AddTag
-                onCancel={onCancel}
-                showAddTag={true}
-                api={API()}
-            />
+            <AddTag onCancel={onCancel} showAddTag={true} api={API()} />
         );
         const addTagForm = getByTestId('add-modal-message');
         expect(addTagForm).toMatchSnapshot();
-        expect(screen.getByPlaceholderText('Enter New Tag Name')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Enter New Tag Value')).toBeInTheDocument();
-
+        expect(
+            screen.getByPlaceholderText('Enter New Tag Name')
+        ).toBeInTheDocument();
+        expect(
+            screen.getByPlaceholderText('Enter New Tag Value')
+        ).toBeInTheDocument();
     });
-    
+
     it('should render on edit tag with err message', () => {
         render(
             <AddTag
@@ -49,9 +48,13 @@ describe('AddTag', () => {
                 errorMessage={'some-err-msg'}
             />
         );
-        expect(screen.getByPlaceholderText('Enter New Tag Name')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Enter New Tag Value')).toBeInTheDocument();
-        
+        expect(
+            screen.getByPlaceholderText('Enter New Tag Name')
+        ).toBeInTheDocument();
+        expect(
+            screen.getByPlaceholderText('Enter New Tag Value')
+        ).toBeInTheDocument();
+
         // tag name and values are presented
         expect(screen.getByDisplayValue('edit-tag-name')).toBeInTheDocument();
         expect(screen.getByText('tag1')).toBeInTheDocument();
@@ -59,7 +62,7 @@ describe('AddTag', () => {
         expect(screen.getByText('some-err-msg')).toBeInTheDocument();
         expect(screen.getByText('Edit edit-tag-name Tag')).toBeInTheDocument();
     });
-    
+
     it('should include tag name', async () => {
         render(
             <AddTag
@@ -71,28 +74,24 @@ describe('AddTag', () => {
             />
         );
         await waitFor(() => screen.getByText('Add Tag to tag-resource'));
-        expect(screen.getByPlaceholderText('Enter New Tag Name')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Enter New Tag Value')).toBeInTheDocument();
-        
+        expect(
+            screen.getByPlaceholderText('Enter New Tag Name')
+        ).toBeInTheDocument();
+        expect(
+            screen.getByPlaceholderText('Enter New Tag Value')
+        ).toBeInTheDocument();
+
         // click Submit button
-        fireEvent.click(
-            screen.getByText('Submit')
-        );
+        fireEvent.click(screen.getByText('Submit'));
         expect(screen.getByText('Tag name is required.')).toBeInTheDocument();
 
         // add tag name
-        fireEvent.change(
-            screen.getByPlaceholderText('Enter New Tag Name'),
-            {
-                target: { value: 'tag-name' },
-            }
-        );
+        fireEvent.change(screen.getByPlaceholderText('Enter New Tag Name'), {
+            target: { value: 'tag-name' },
+        });
         // click Submit button
-        fireEvent.click(
-            screen.getByText('Submit')
-        );
+        fireEvent.click(screen.getByText('Submit'));
         expect(screen.getByText('Tag already exist.')).toBeInTheDocument();
-
     });
 
     it('should include tag value', async () => {
@@ -102,62 +101,48 @@ describe('AddTag', () => {
             api: API(),
             resource: 'tag-resource',
             validateTagExist: jest.fn().mockReturnValue(false),
-            addNewTag: jest.fn()
-        }
+            addNewTag: jest.fn(),
+        };
         render(<AddTag {...addTagProps} />);
         await waitFor(() => screen.getByText('Add Tag to tag-resource'));
-        expect(screen.getByPlaceholderText('Enter New Tag Name')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Enter New Tag Value')).toBeInTheDocument();
-        
+        expect(
+            screen.getByPlaceholderText('Enter New Tag Name')
+        ).toBeInTheDocument();
+        expect(
+            screen.getByPlaceholderText('Enter New Tag Value')
+        ).toBeInTheDocument();
+
         // add tag name
-        fireEvent.change(
-            screen.getByPlaceholderText('Enter New Tag Name'),
-            {
-                target: { value: 'tag-name' },
-            }
-        );
+        fireEvent.change(screen.getByPlaceholderText('Enter New Tag Name'), {
+            target: { value: 'tag-name' },
+        });
         // click Submit button
-        fireEvent.click(
-            screen.getByText('Submit')
-        );
+        fireEvent.click(screen.getByText('Submit'));
         expect(screen.getByText('Tag value is required.')).toBeInTheDocument();
 
         // click add before value exist - should do nothing
-        fireEvent.click(
-            screen.getByText('Add')
-        );
-        
+        fireEvent.click(screen.getByText('Add'));
+
         // add tag values
-        fireEvent.change(
-            screen.getByPlaceholderText('Enter New Tag Value'),
-            {
-                target: { value: 'first,second' },
-            }
-        );
+        fireEvent.change(screen.getByPlaceholderText('Enter New Tag Value'), {
+            target: { value: 'first,second' },
+        });
         // click add button
-        fireEvent.click(
-            screen.getByText('Add')
-        );
+        fireEvent.click(screen.getByText('Add'));
         expect(screen.getByText('first')).toBeInTheDocument();
         expect(screen.getByText('second')).toBeInTheDocument();
 
         // add third tag without add button
-        fireEvent.change(
-            screen.getByPlaceholderText('Enter New Tag Value'),
-            {
-                target: { value: 'third' },
-            }
-        );
-        
+        fireEvent.change(screen.getByPlaceholderText('Enter New Tag Value'), {
+            target: { value: 'third' },
+        });
+
         // click Submit button
-        fireEvent.click(
-            screen.getByText('Submit')
-        );
-        
+        fireEvent.click(screen.getByText('Submit'));
+
         // verify addNewTag
         await waitFor(() => {
-            expect(addTagProps.addNewTag.mock.calls.length).toBe(1)
+            expect(addTagProps.addNewTag.mock.calls.length).toBe(1);
         });
     });
-
 });

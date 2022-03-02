@@ -16,20 +16,16 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { colors } from '../../../components/denali/styles';
-import RuleRow from "../../../components/microsegmentation/RuleRow";
+import RuleRow from '../../../components/microsegmentation/RuleRow';
 
 describe('RuleRow', () => {
     it('should render', () => {
         let details = {
-            "source_service": "serviceA",
-            "source_port": "1111",
-            "destination_port": "2222",
-            "destination_services": [
-                "serviceB",
-                "serviceC",
-                "serviceD"
-            ],
-            "layer" : "tcp"
+            source_service: 'serviceA',
+            source_port: '1111',
+            destination_port: '2222',
+            destination_services: ['serviceB', 'serviceC', 'serviceD'],
+            layer: 'tcp',
         };
         let domain = 'domain';
         let role = 'roleName';
@@ -38,15 +34,15 @@ describe('RuleRow', () => {
         const { getByTestId } = render(
             <table>
                 <tbody>
-                   <RuleRow
-                       category={'inbound'}
-                       domain={domain}
-                       details={details}
-                       idx={idx}
-                       color={color}
-                       key={idx}
-                       _csrf={'_csrf'}
-                   />
+                    <RuleRow
+                        category={'inbound'}
+                        domain={domain}
+                        details={details}
+                        idx={idx}
+                        color={color}
+                        key={idx}
+                        _csrf={'_csrf'}
+                    />
                 </tbody>
             </table>
         );

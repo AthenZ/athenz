@@ -16,26 +16,18 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { colors } from '../../../components/denali/styles';
-import ServiceList from "../../../components/microsegmentation/ServiceList";
+import ServiceList from '../../../components/microsegmentation/ServiceList';
 import API from '../../../api';
 
 describe('ServiceList', () => {
     it('should render', () => {
-        let details = [
-                "serviceB",
-                "serviceC",
-                "serviceD"
-            ];
+        let details = ['serviceB', 'serviceC', 'serviceD'];
 
         let domain = 'domain';
         const { getByTestId } = render(
             <table>
                 <tbody>
-                   <ServiceList
-                       list={details}
-                       api={API()}
-                       domain={domain}
-                   />
+                    <ServiceList list={details} api={API()} domain={domain} />
                 </tbody>
             </table>
         );

@@ -16,18 +16,32 @@
 
 import React from 'react';
 import RegexUtils from '../../../components/utils/RegexUtils';
-import {StaticWorkloadType} from "../../../components/constants/constants";
+import { StaticWorkloadType } from '../../../components/constants/constants';
 
 describe('RegexUtils', () => {
     it('should test regex pattern match', () => {
-        expect(RegexUtils.validate('a.b.c.d', StaticWorkloadType[0].pattern)).toEqual(true);
-        expect(RegexUtils.validate('a.b.c.**', StaticWorkloadType[0].pattern)).toEqual(false);
-        expect(RegexUtils.validate('a.(.c.d', StaticWorkloadType[0].pattern)).toEqual(false);
+        expect(
+            RegexUtils.validate('a.b.c.d', StaticWorkloadType[0].pattern)
+        ).toEqual(true);
+        expect(
+            RegexUtils.validate('a.b.c.**', StaticWorkloadType[0].pattern)
+        ).toEqual(false);
+        expect(
+            RegexUtils.validate('a.(.c.d', StaticWorkloadType[0].pattern)
+        ).toEqual(false);
 
-        expect(RegexUtils.validate('a:b:c_asd_9892', StaticWorkloadType[1].pattern)).toEqual(true);
-        expect(RegexUtils.validate('a:b:c_asd.9892', StaticWorkloadType[1].pattern)).toEqual(false);
+        expect(
+            RegexUtils.validate('a:b:c_asd_9892', StaticWorkloadType[1].pattern)
+        ).toEqual(true);
+        expect(
+            RegexUtils.validate('a:b:c_asd.9892', StaticWorkloadType[1].pattern)
+        ).toEqual(false);
 
-        expect(RegexUtils.validate('10.8.9.9', StaticWorkloadType[4].pattern)).toEqual(true);
-        expect(RegexUtils.validate('a.8.9.9', StaticWorkloadType[4].pattern)).toEqual(null);
+        expect(
+            RegexUtils.validate('10.8.9.9', StaticWorkloadType[4].pattern)
+        ).toEqual(true);
+        expect(
+            RegexUtils.validate('a.8.9.9', StaticWorkloadType[4].pattern)
+        ).toEqual(null);
     });
 });

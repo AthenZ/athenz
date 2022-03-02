@@ -20,10 +20,10 @@ import AddModal from '../../../components/modal/AddModal';
 describe('AddModal', () => {
     it('should render', () => {
         const isOpen = true;
-        const cancel = function() {};
+        const cancel = function () {};
         const title = 'test';
         const sections = 'sections';
-        const submit = function() {};
+        const submit = function () {};
         const { getByTestId } = render(
             <AddModal
                 isOpen={isOpen}
@@ -39,10 +39,10 @@ describe('AddModal', () => {
 
     it('should render error message', () => {
         const isOpen = true;
-        const cancel = function() {};
+        const cancel = function () {};
         const title = 'test';
         const sections = 'sections';
-        const submit = function() {};
+        const submit = function () {};
         const errorMessage = 'this is error';
         const { getByText } = render(
             <AddModal

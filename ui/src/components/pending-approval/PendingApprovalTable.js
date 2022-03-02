@@ -194,6 +194,7 @@ export default class PendingApprovalTable extends React.Component {
                     selectAllAuditMissing: false,
                     selectAllDateExpiry: '',
                     selectAllReviewReminder: '',
+                    error: '',
                 });
             })
             .catch((err) => {
@@ -247,9 +248,35 @@ export default class PendingApprovalTable extends React.Component {
                         )
                     );
                 });
-                Promise.all(promises)
-                    .then(() => {
-                        this.initialLoad();
+                Promise.allSettled(promises)
+                    .then((values) => {
+                        let error = '';
+                        for (let i = 0; i < values.length; i++) {
+                            if (values[i].status === 'rejected') {
+                                error =
+                                    error +
+                                    "Couldn't approve/deny request for domain:" +
+                                    this.state.pendingMap[
+                                        this.state.checkedList[i]
+                                    ].domainName +
+                                    ', role: ' +
+                                    this.state.pendingMap[
+                                        this.state.checkedList[i]
+                                    ].roleName +
+                                    ', member: ' +
+                                    this.state.pendingMap[
+                                        this.state.checkedList[i]
+                                    ].memberName +
+                                    '\n';
+                            }
+                        }
+                        if (error !== '') {
+                            this.setState({
+                                errorMessage: error,
+                            });
+                        } else {
+                            this.initialLoad();
+                        }
                     })
                     .catch((err) => {
                         this.setState({
@@ -294,7 +321,16 @@ export default class PendingApprovalTable extends React.Component {
         }
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (prevProps.pendingData !== this.props.pendingData) {
+            this.setState({
+                pendingMap: this.props.pendingData,
+            });
+        }
+    }
+
     render() {
+        const { view } = this.props;
         let contents = [];
         let pendingDecision = this.pendingDecision.bind(this);
         let auditRefChange = this.auditRefChange.bind(this);
@@ -356,14 +392,23 @@ export default class PendingApprovalTable extends React.Component {
                         requestedReviewReminder={
                             this.state.pendingMap[key].reviewReminder
                         }
+                        view={view}
                     />
                 );
             });
         }
+
+        let newErrorMessage = '';
+        if (this.state.errorMessage) {
+            newErrorMessage = this.state.errorMessage
+                .split('\n')
+                .map((str) => <p>{str}</p>);
+        }
+
         return (
             <Fragment>
                 {this.state.errorMessage && (
-                    <Color name={'red600'}>{this.state.errorMessage}</Color>
+                    <Color name={'red600'}>{newErrorMessage}</Color>
                 )}
                 <DomainListTable data-testid='pending-approval-table'>
                     <thead>
@@ -380,10 +425,13 @@ export default class PendingApprovalTable extends React.Component {
                             clearReviewReminder={
                                 this.state.selectAllDateReviewReminder
                             }
+                            view={view}
                         />
                         <tr>
                             <TableHeader />
-                            <TableHeaderDomain>Domain</TableHeaderDomain>
+                            {view === 'admin' && (
+                                <TableHeaderDomain>Domain</TableHeaderDomain>
+                            )}
                             <TableHeader>Type</TableHeader>
                             <TableHeader>Name</TableHeader>
                             <TableHeader>Member</TableHeader>

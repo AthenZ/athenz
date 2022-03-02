@@ -21,14 +21,12 @@ import { colors } from '../../../components/denali/styles';
 describe('GroupRow', () => {
     it('should render', () => {
         let details = {
-            "domainName": null,
-            "serviceName": null,
-            "uuid": "instance-id-aws-1",
-            "ipAddresses": [
-                "10.3.1.1"
-            ],
-            "provider": "aws",
-            "updateTime": "2021-03-28T21:38:26.983Z"
+            domainName: null,
+            serviceName: null,
+            uuid: 'instance-id-aws-1',
+            ipAddresses: ['10.3.1.1'],
+            provider: 'aws',
+            updateTime: '2021-03-28T21:38:26.983Z',
         };
 
         let domain = 'domain';

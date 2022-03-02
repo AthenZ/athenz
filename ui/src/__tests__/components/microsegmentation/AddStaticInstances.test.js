@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 import React from 'react';
-import {fireEvent, render} from '@testing-library/react';
-import AddStaticinstances from "../../../components/microsegmentation/AddStaticInstances";
-import API from "../../../api";
+import { fireEvent, render } from '@testing-library/react';
+import AddStaticinstances from '../../../components/microsegmentation/AddStaticInstances';
+import API from '../../../api';
 
 describe('AddStaticInstances', () => {
     it('should render', () => {
         let domain = 'domain';
         const showAddStaticinstances = true;
-        const cancel = function() {};
-        const submit = function() {};
+        const cancel = function () {};
+        const submit = function () {};
         let _csrf = 'csrf';
 
         const { getByTestId } = render(
@@ -43,12 +43,12 @@ describe('AddStaticInstances', () => {
 
     it('should render fail to submit add-segmentation: ResourceType is required', () => {
         const showAddStaticinstances = true;
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
-        let role ='roleName';
-        const submit = function() {};
-        let _csrf = 'csrf';;
-        const { getByTestId, getByText } =  render(
+        let role = 'roleName';
+        const submit = function () {};
+        let _csrf = 'csrf';
+        const { getByTestId, getByText } = render(
             <AddStaticinstances
                 api={API()}
                 domain={domain}
@@ -65,5 +65,4 @@ describe('AddStaticInstances', () => {
 
         expect(getByText('Resource Type is required.')).not.toBeNull();
     });
-
 });

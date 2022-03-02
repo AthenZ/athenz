@@ -125,20 +125,13 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 4.5px;
 }
 
-.emotion-5 {
-  text-align: left;
-  vertical-align: middle;
-  word-break: break-all;
-  padding: 5px 0px 5px 0px;
-}
-
-.emotion-11 {
+.emotion-9 {
   text-align: left;
   vertical-align: middle;
   padding: 5px 0px 5px 15px;
 }
 
-.emotion-21 {
+.emotion-19 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -155,7 +148,7 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 100%;
 }
 
-.emotion-21>textarea {
+.emotion-19>textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -184,43 +177,43 @@ exports[`PendingApprovalTable should render 1`] = `
   width: auto;
 }
 
-.emotion-21>textarea::-webkit-input-placeholder {
+.emotion-19>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-21>textarea::-moz-placeholder {
+.emotion-19>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-21>textarea:-ms-input-placeholder {
+.emotion-19>textarea:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-21>textarea::placeholder {
+.emotion-19>textarea::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-21>textarea:active,
-.emotion-21>textarea:focus {
+.emotion-19>textarea:active,
+.emotion-19>textarea:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-21>textarea:invalid {
+.emotion-19>textarea:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-21>textarea[disabled] {
+.emotion-19>textarea[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-21 .message {
+.emotion-19 .message {
   font-size: 12px;
   color: #303030;
   left: 0;
@@ -229,11 +222,11 @@ exports[`PendingApprovalTable should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-22>textarea {
+.emotion-20>textarea {
   resize: vertical;
 }
 
-.emotion-26>div input {
+.emotion-24>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   background-color: rgba(53, 112, 244, 0.05);
@@ -259,13 +252,13 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 10em;
 }
 
-.emotion-28 {
+.emotion-26 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-34 {
+.emotion-32 {
   vertical-align: middle;
   word-break: break-all;
   text-align: center;
@@ -277,17 +270,17 @@ exports[`PendingApprovalTable should render 1`] = `
   padding: 5px 0px 5px 14px;
 }
 
-.emotion-36 {
+.emotion-34 {
   margin-top: 45px;
 }
 
-.emotion-38 {
+.emotion-36 {
   fill: #1dad51;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-39 {
+.emotion-37 {
   vertical-align: middle;
   word-break: break-all;
   text-align: center;
@@ -300,7 +293,7 @@ exports[`PendingApprovalTable should render 1`] = `
   padding: 5px 0px 5px 0px;
 }
 
-.emotion-43 {
+.emotion-41 {
   fill: #ea0000;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -330,11 +323,6 @@ exports[`PendingApprovalTable should render 1`] = `
     </div>
   </td>
   <td
-    class="emotion-5 emotion-6"
-  >
-    a
-  </td>
-  <td
     class="emotion-2 emotion-3"
   />
   <td
@@ -343,7 +331,7 @@ exports[`PendingApprovalTable should render 1`] = `
     c
   </td>
   <td
-    class="emotion-11 emotion-12"
+    class="emotion-9 emotion-10"
   >
     <p />
     <p>
@@ -353,13 +341,13 @@ exports[`PendingApprovalTable should render 1`] = `
     </p>
   </td>
   <td
-    class="emotion-11 emotion-12"
+    class="emotion-9 emotion-10"
     colspan="2"
   >
     d
   </td>
   <td
-    class="emotion-11 emotion-12"
+    class="emotion-9 emotion-10"
   >
     <p />
     <p>
@@ -376,7 +364,7 @@ exports[`PendingApprovalTable should render 1`] = `
     class="emotion-2 emotion-3"
   >
     <div
-      class="emotion-21 denali-textarea emotion-22 emotion-23"
+      class="emotion-19 denali-textarea emotion-20 emotion-21"
       data-testid="textarea-wrapper"
     >
       <textarea
@@ -391,7 +379,7 @@ exports[`PendingApprovalTable should render 1`] = `
     class="emotion-2 emotion-3"
   >
     <div
-      class="emotion-26 emotion-27"
+      class="emotion-24 emotion-25"
     >
       <div
         class="fp-abcexpiry"
@@ -415,7 +403,7 @@ exports[`PendingApprovalTable should render 1`] = `
           data-clear=""
         >
           <svg
-            class="emotion-28"
+            class="emotion-26"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -436,7 +424,7 @@ exports[`PendingApprovalTable should render 1`] = `
     class="emotion-2 emotion-3"
   >
     <div
-      class="emotion-26 emotion-27"
+      class="emotion-24 emotion-25"
     >
       <div
         class="fp-abcreviewReminder"
@@ -460,7 +448,7 @@ exports[`PendingApprovalTable should render 1`] = `
           data-clear=""
         >
           <svg
-            class="emotion-28"
+            class="emotion-26"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -478,14 +466,14 @@ exports[`PendingApprovalTable should render 1`] = `
     </div>
   </td>
   <td
-    class="emotion-34 emotion-35"
+    class="emotion-32 emotion-33"
     color="rgba(255, 255, 255, 1)"
   >
     <div
-      class="emotion-36 emotion-37"
+      class="emotion-34 emotion-35"
     >
       <svg
-        class="emotion-38"
+        class="emotion-36"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -504,14 +492,14 @@ exports[`PendingApprovalTable should render 1`] = `
     </div>
   </td>
   <td
-    class="emotion-39 emotion-40"
+    class="emotion-37 emotion-38"
     color="rgba(255, 255, 255, 1)"
   >
     <div
-      class="emotion-36 emotion-37"
+      class="emotion-34 emotion-35"
     >
       <svg
-        class="emotion-43"
+        class="emotion-41"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"

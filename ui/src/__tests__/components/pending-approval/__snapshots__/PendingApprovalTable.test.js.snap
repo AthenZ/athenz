@@ -157,7 +157,7 @@ exports[`PendingApprovalTable should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-17 {
+.emotion-15 {
   border-bottom: 2px solid #d5d5d5;
   font-weight: 600;
   font-size: 0.7rem;
@@ -167,7 +167,7 @@ exports[`PendingApprovalTable should render 1`] = `
   text-align: left;
 }
 
-.emotion-19 {
+.emotion-17 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -184,7 +184,7 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 100%;
 }
 
-.emotion-19>textarea {
+.emotion-17>textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -213,43 +213,43 @@ exports[`PendingApprovalTable should render 1`] = `
   width: auto;
 }
 
-.emotion-19>textarea::-webkit-input-placeholder {
+.emotion-17>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-19>textarea::-moz-placeholder {
+.emotion-17>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-19>textarea:-ms-input-placeholder {
+.emotion-17>textarea:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-19>textarea::placeholder {
+.emotion-17>textarea::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-19>textarea:active,
-.emotion-19>textarea:focus {
+.emotion-17>textarea:active,
+.emotion-17>textarea:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-19>textarea:invalid {
+.emotion-17>textarea:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-19>textarea[disabled] {
+.emotion-17>textarea[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-19 .message {
+.emotion-17 .message {
   font-size: 12px;
   color: #303030;
   left: 0;
@@ -258,11 +258,11 @@ exports[`PendingApprovalTable should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-20>textarea {
+.emotion-18>textarea {
   resize: vertical;
 }
 
-.emotion-24>div input {
+.emotion-22>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   background-color: #d5d5d5;
@@ -288,13 +288,13 @@ exports[`PendingApprovalTable should render 1`] = `
   width: 10em;
 }
 
-.emotion-26 {
+.emotion-24 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-32 {
+.emotion-30 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -311,17 +311,17 @@ exports[`PendingApprovalTable should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-34 {
+.emotion-32 {
   margin-top: 10px;
 }
 
-.emotion-36 {
+.emotion-34 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-37 {
+.emotion-35 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -339,19 +339,7 @@ exports[`PendingApprovalTable should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-44 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  font-size: 0.7rem;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 0px;
-  text-align: left;
-}
-
-.emotion-64 {
+.emotion-60 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -369,7 +357,7 @@ exports[`PendingApprovalTable should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-66 {
+.emotion-62 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -426,9 +414,6 @@ exports[`PendingApprovalTable should render 1`] = `
       />
       <th
         class="emotion-7 emotion-8"
-      />
-      <th
-        class="emotion-7 emotion-8"
         colspan="3"
       />
       <th
@@ -438,10 +423,10 @@ exports[`PendingApprovalTable should render 1`] = `
         class="emotion-7 emotion-8"
       />
       <th
-        class="emotion-17 emotion-18"
+        class="emotion-15 emotion-16"
       >
         <div
-          class="emotion-19 denali-textarea emotion-20 emotion-21"
+          class="emotion-17 denali-textarea emotion-18 emotion-19"
           data-testid="textarea-wrapper"
         >
           <textarea
@@ -453,10 +438,10 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="emotion-17 emotion-18"
+        class="emotion-15 emotion-16"
       >
         <div
-          class="emotion-24 emotion-25"
+          class="emotion-22 emotion-23"
           disabled=""
         >
           <div
@@ -481,7 +466,7 @@ exports[`PendingApprovalTable should render 1`] = `
               data-clear=""
             >
               <svg
-                class="emotion-26"
+                class="emotion-24"
                 data-testid="icon"
                 height="1.25em"
                 viewBox="0 0 1024 1024"
@@ -499,10 +484,10 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="emotion-17 emotion-18"
+        class="emotion-15 emotion-16"
       >
         <div
-          class="emotion-24 emotion-25"
+          class="emotion-22 emotion-23"
           disabled=""
         >
           <div
@@ -527,7 +512,7 @@ exports[`PendingApprovalTable should render 1`] = `
               data-clear=""
             >
               <svg
-                class="emotion-26"
+                class="emotion-24"
                 data-testid="icon"
                 height="1.25em"
                 viewBox="0 0 1024 1024"
@@ -545,13 +530,13 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="emotion-32 emotion-33"
+        class="emotion-30 emotion-31"
       >
         <div
-          class="emotion-34 emotion-35"
+          class="emotion-32 emotion-33"
         >
           <svg
-            class="emotion-36"
+            class="emotion-34"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -570,13 +555,13 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="emotion-37 emotion-38"
+        class="emotion-35 emotion-36"
       >
         <div
-          class="emotion-34 emotion-35"
+          class="emotion-32 emotion-33"
         >
           <svg
-            class="emotion-36"
+            class="emotion-34"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -594,66 +579,61 @@ exports[`PendingApprovalTable should render 1`] = `
     </tr>
     <tr>
       <th
-        class="emotion-7 emotion-43"
+        class="emotion-7 emotion-41"
       />
       <th
-        class="emotion-44 emotion-45"
-      >
-        Domain
-      </th>
-      <th
-        class="emotion-7 emotion-43"
+        class="emotion-7 emotion-41"
       >
         Type
       </th>
       <th
-        class="emotion-7 emotion-43"
+        class="emotion-7 emotion-41"
       >
         Name
       </th>
       <th
-        class="emotion-7 emotion-43"
+        class="emotion-7 emotion-41"
       >
         Member
       </th>
       <th
-        class="emotion-7 emotion-43"
+        class="emotion-7 emotion-41"
         colspan="2"
       >
         User Comment
       </th>
       <th
-        class="emotion-7 emotion-43"
+        class="emotion-7 emotion-41"
       >
         Requester
       </th>
       <th
-        class="emotion-7 emotion-43"
+        class="emotion-7 emotion-41"
       >
         Request Time
       </th>
       <th
-        class="emotion-7 emotion-43"
+        class="emotion-7 emotion-41"
       >
         Audit Reference
       </th>
       <th
-        class="emotion-7 emotion-43"
+        class="emotion-7 emotion-41"
       >
         Expiration Date
       </th>
       <th
-        class="emotion-7 emotion-43"
+        class="emotion-7 emotion-41"
       >
         Reminder Date
       </th>
       <th
-        class="emotion-64 emotion-65"
+        class="emotion-60 emotion-61"
       >
         Approve
       </th>
       <th
-        class="emotion-66 emotion-67"
+        class="emotion-62 emotion-63"
       >
         Reject
       </th>

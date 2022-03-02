@@ -20,19 +20,19 @@ import API from '../../../api';
 
 describe('InstanceTable', () => {
     it('should render', () => {
-        let domain = "test.domain";
+        let domain = 'test.domain';
         let _csrf = '_csrfToken';
         let api = API();
-        let instances = [{
-            "domainName": null,
-            "serviceName": null,
-            "uuid": "host1",
-            "ipAddresses": [
-                "host1"
-            ],
-            "provider": "aws",
-            "updateTime": "2021-03-28T21:38:27.070Z"
-        }];
+        let instances = [
+            {
+                domainName: null,
+                serviceName: null,
+                uuid: 'host1',
+                ipAddresses: ['host1'],
+                provider: 'aws',
+                updateTime: '2021-03-28T21:38:27.070Z',
+            },
+        ];
         const { getByTestId } = render(
             <InstanceTable
                 instances={instances}

@@ -46,13 +46,15 @@ describe('ManageDomains', () => {
             },
         ];
         const api = {
-            getMeta: function(params) {
+            getMeta: function (params) {
                 return new Promise((resolve, reject) => {
                     resolve([]);
                 });
             },
         };
-        const { getByTestId } = render(<ManageDomains domains={domains} api={api}/>);
+        const { getByTestId } = render(
+            <ManageDomains domains={domains} api={api} />
+        );
         const managedomains = getByTestId('manage-domains');
 
         expect(managedomains).toMatchSnapshot();
@@ -86,13 +88,15 @@ describe('ManageDomains', () => {
             },
         ];
         const api = {
-            getMeta: function(params) {
+            getMeta: function (params) {
                 return new Promise((resolve, reject) => {
                     resolve([]);
                 });
             },
         };
-        const { getByTestId } = render(<ManageDomains domains={domains} api={api}/>);
+        const { getByTestId } = render(
+            <ManageDomains domains={domains} api={api} />
+        );
         const managedomains = getByTestId('manage-domains');
 
         expect(managedomains).toMatchSnapshot();
@@ -126,13 +130,15 @@ describe('ManageDomains', () => {
             },
         ];
         const api = {
-            getMeta: function(params) {
+            getMeta: function (params) {
                 return new Promise((resolve, reject) => {
                     resolve([]);
                 });
             },
         };
-        const { getByTestId } = render(<ManageDomains domains={domains} api={api}/>);
+        const { getByTestId } = render(
+            <ManageDomains domains={domains} api={api} />
+        );
         const managedomains = getByTestId('manage-domains');
 
         expect(managedomains).toMatchSnapshot();
@@ -166,13 +172,15 @@ describe('ManageDomains', () => {
             },
         ];
         const api = {
-            getMeta: function(params) {
+            getMeta: function (params) {
                 return new Promise((resolve, reject) => {
                     resolve([]);
                 });
             },
         };
-        const { getByTestId } = render(<ManageDomains domains={domains} api={api}/>);
+        const { getByTestId } = render(
+            <ManageDomains domains={domains} api={api} />
+        );
         const managedomains = getByTestId('manage-domains');
 
         expect(managedomains).toMatchSnapshot();

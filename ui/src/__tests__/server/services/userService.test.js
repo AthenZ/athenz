@@ -25,20 +25,30 @@ describe('userService test', () => {
         let metadata = {
             ContentLength: 100,
         };
-        sandbox.stub(userServiceImpl, 'checkUsersUpdate').returns(Promise.resolve(metadata));
+        sandbox
+            .stub(userServiceImpl, 'checkUsersUpdate')
+            .returns(Promise.resolve(metadata));
         let userData = [
             {
                 is_human: 1,
                 login: 'testuser',
                 gecos: 'full name',
                 enabled_status: 1,
-            }
-        ]
-        sandbox.stub(userServiceImpl, 'fetchUpdatedUsers').returns(Promise.resolve( JSON.stringify(userData)));
-        userService.refreshUserData({userFilePath: 'data', userFileName: 'users_data.json', userDomains: 'user,unix'})
+            },
+        ];
+        sandbox
+            .stub(userServiceImpl, 'fetchUpdatedUsers')
+            .returns(Promise.resolve(JSON.stringify(userData)));
+        userService
+            .refreshUserData({
+                userFilePath: 'data',
+                userFileName: 'users_data.json',
+                userDomains: 'user,unix',
+            })
             .then(() => {
-                expect(userService.getUserFullName('user.testuser')).toEqual('full name');
+                expect(userService.getUserFullName('user.testuser')).toEqual(
+                    'full name'
+                );
             });
-
     });
 });

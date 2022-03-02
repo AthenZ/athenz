@@ -26,7 +26,8 @@ import RequestUtils from '../../../components/utils/RequestUtils';
 import Tabs from '../../../components/header/Tabs';
 import Error from '../../_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
+import DomainNameHeader from '../../../components/header/DomainNameHeader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -88,11 +89,12 @@ export async function getServerSideProps(context) {
         api.getFeatureFlag(),
         api.getMeta(bServicesParams),
         api.getMeta(bServicesParamsAll),
+        api.getPendingDomainMembersCountByDomain(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
     });
     let businessServiceOptions = [];
     if (domains[8] && domains[8].validValues) {
@@ -144,7 +146,8 @@ export async function getServerSideProps(context) {
             featureFlag: domains[7],
             validBusinessServices: businessServiceOptions,
             validBusinessServicesAll: businessServiceOptionsAll,
-        }
+            domainPendingMemberCount: domains[10],
+        },
     };
 }
 
@@ -159,13 +162,13 @@ export default class PolicyPage extends React.Component {
     }
 
     render() {
-        const {domain, reload, domainDetails, policies, _csrf} = this.props;
+        const { domain, reload, domainDetails, policies, _csrf } = this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
         return (
             <CacheProvider value={this.cache}>
@@ -183,7 +186,13 @@ export default class PolicyPage extends React.Component {
                             <PoliciesContainerDiv>
                                 <PoliciesContentDiv>
                                     <PageHeaderDiv>
-                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainNameHeader
+                                            domainName={this.props.domain}
+                                            pendingCount={
+                                                this.props
+                                                    .domainPendingMemberCount
+                                            }
+                                        />
                                         <DomainDetails
                                             domainDetails={domainDetails}
                                             api={this.api}

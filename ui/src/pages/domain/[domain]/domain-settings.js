@@ -25,8 +25,9 @@ import RequestUtils from '../../../components/utils/RequestUtils';
 import Tabs from '../../../components/header/Tabs';
 import Error from '../../_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
 import SettingTable from '../../../components/settings/SettingTable';
+import DomainNameHeader from '../../../components/header/DomainNameHeader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -88,11 +89,12 @@ export async function getServerSideProps(context) {
         api.getMeta(bServicesParams),
         api.getMeta(bServicesParamsAll),
         api.getAuthorityAttributes(),
+        api.getPendingDomainMembersCountByDomain(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
     });
     let businessServiceOptions = [];
     if (domains[7] && domains[7].validValues) {
@@ -145,7 +147,8 @@ export async function getServerSideProps(context) {
             validBusinessServices: businessServiceOptions,
             validBusinessServicesAll: businessServiceOptionsAll,
             userAuthorityAttributes: domains[9],
-        }
+            domainPendingMemberCount: domains[10],
+        },
     };
 }
 
@@ -160,13 +163,13 @@ export default class DomainSettingsPage extends React.Component {
     }
 
     render() {
-        const {domain, reload, domainDetails, users, _csrf} = this.props;
+        const { domain, reload, domainDetails, users, _csrf } = this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
 
         return (
@@ -185,7 +188,13 @@ export default class DomainSettingsPage extends React.Component {
                             <DomainSettingsContainerDiv>
                                 <DomainSettingsContentDiv>
                                     <PageHeaderDiv>
-                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainNameHeader
+                                            domainName={this.props.domain}
+                                            pendingCount={
+                                                this.props
+                                                    .domainPendingMemberCount
+                                            }
+                                        />
                                         <DomainDetails
                                             domainDetails={domainDetails}
                                             api={this.api}

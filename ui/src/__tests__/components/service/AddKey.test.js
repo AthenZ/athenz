@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import React from 'react';
-import {render, fireEvent, waitFor} from '@testing-library/react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import AddKey from '../../../components/service/AddKey';
 
 describe('AddKey', () => {
     it('should render', () => {
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {};
         const { getByTestId } = render(
@@ -31,32 +31,30 @@ describe('AddKey', () => {
 
     it('should render nothing after cancel', async () => {
         const api = {
-            addKey: function(domainName, serviceName, keyId, keyValue, _csrf) {
+            addKey: function (domainName, serviceName, keyId, keyValue, _csrf) {
                 return new Promise((resolve, reject) => {
                     resolve([]);
                 });
             },
         };
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const { getByText, getByTestId, getByTitle } = render(
             <AddKey cancel={cancel} domain={domain} api={api} />
         );
         fireEvent.click(getByText('Cancel'));
-        expect(
-            await waitFor(() => getByTestId('add-key'))
-        ).toMatchSnapshot();
+        expect(await waitFor(() => getByTestId('add-key'))).toMatchSnapshot();
     });
 
     it('should render error after submit without keyID', async () => {
         const api = {
-            addKey: function(domainName, serviceName, keyId, keyValue, _csrf) {
+            addKey: function (domainName, serviceName, keyId, keyValue, _csrf) {
                 return new Promise((resolve, reject) => {
                     resolve([]);
                 });
             },
         };
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const { getByText, getByTestId, getByTitle } = render(
             <AddKey cancel={cancel} domain={domain} api={api} />
@@ -69,13 +67,13 @@ describe('AddKey', () => {
 
     it('should render error after submit without keyValue', async () => {
         const api = {
-            addKey: function(domainName, serviceName, keyId, keyValue, _csrf) {
+            addKey: function (domainName, serviceName, keyId, keyValue, _csrf) {
                 return new Promise((resolve, reject) => {
                     resolve([]);
                 });
             },
         };
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const { getByText, getByTestId, getByTitle } = render(
             <AddKey cancel={cancel} domain={domain} api={api} />
@@ -94,7 +92,7 @@ describe('AddKey', () => {
 
     it('should render error after submit throws error(refresh)', async () => {
         const api = {
-            addKey: function(domainName, serviceName, keyId, keyValue, _csrf) {
+            addKey: function (domainName, serviceName, keyId, keyValue, _csrf) {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 0,
@@ -102,7 +100,7 @@ describe('AddKey', () => {
                 });
             },
         };
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const { getByText, getByTestId, getByTitle } = render(
             <AddKey cancel={cancel} domain={domain} api={api} />
@@ -127,7 +125,7 @@ describe('AddKey', () => {
 
     it('should render error after submit throws error(other)', async () => {
         const api = {
-            addKey: function(domainName, serviceName, keyId, keyValue, _csrf) {
+            addKey: function (domainName, serviceName, keyId, keyValue, _csrf) {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 1,
@@ -138,7 +136,7 @@ describe('AddKey', () => {
                 });
             },
         };
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const { getByText, getByTestId, getByTitle } = render(
             <AddKey cancel={cancel} domain={domain} api={api} />
@@ -163,17 +161,17 @@ describe('AddKey', () => {
 
     it('should trigger onSubmit after submit succeeds', async () => {
         const api = {
-            addKey: function(domainName, serviceName, keyId, keyValue, _csrf) {
+            addKey: function (domainName, serviceName, keyId, keyValue, _csrf) {
                 return new Promise((resolve, reject) => {
                     resolve([]);
                 });
             },
         };
         let test = 1;
-        const submit = function() {
+        const submit = function () {
             test = 2;
         };
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const { getByText, getByTestId, getByTitle } = render(
             <AddKey

@@ -14,27 +14,30 @@
  * limitations under the License.
  */
 import React from 'react';
-import {render, fireEvent, waitFor} from '@testing-library/react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import AddServiceForm from '../../../components/service/AddServiceForm';
 const pageConfig = {
     servicePageConfig: {
         keyCreationLink: {
             title: 'Key Creation',
-            url:
-                'https://test.com',
+            url: 'https://test.com',
             target: '_blank',
         },
-        keyCreationMessage:
-            'Test Message',
-    }
+        keyCreationMessage: 'Test Message',
+    },
 };
 describe('AddServiceForm', () => {
     it('should render', () => {
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {};
         const { getByTestId } = render(
-            <AddServiceForm cancel={cancel} domain={domain} api={api} pageConfig={pageConfig} />
+            <AddServiceForm
+                cancel={cancel}
+                domain={domain}
+                api={api}
+                pageConfig={pageConfig}
+            />
         );
         const addServiceForm = getByTestId('add-service-form');
         expect(addServiceForm).toMatchSnapshot();
@@ -44,11 +47,16 @@ describe('AddServiceForm', () => {
         const domain = 'domain';
         const api = {};
         let test = 1;
-        const onChange = function() {
+        const onChange = function () {
             test = test + 1;
         };
         const { getByTestId, getAllByTestId } = render(
-            <AddServiceForm domain={domain} api={api} onChange={onChange} pageConfig={pageConfig} />
+            <AddServiceForm
+                domain={domain}
+                api={api}
+                onChange={onChange}
+                pageConfig={pageConfig}
+            />
         );
         const addServiceInput = getAllByTestId('input-node');
         fireEvent.change(addServiceInput[0], {
@@ -67,11 +75,16 @@ describe('AddServiceForm', () => {
         const domain = 'domain';
         const api = {};
         let test = 1;
-        const onChange = function() {
+        const onChange = function () {
             test = test + 1;
         };
         const { getByTestId, getAllByTestId } = render(
-            <AddServiceForm domain={domain} api={api} onChange={onChange} pageConfig={pageConfig} />
+            <AddServiceForm
+                domain={domain}
+                api={api}
+                onChange={onChange}
+                pageConfig={pageConfig}
+            />
         );
         const addServiceInput = getAllByTestId('input-node');
         fireEvent.change(addServiceInput[1], {
@@ -89,11 +102,16 @@ describe('AddServiceForm', () => {
         const domain = 'domain';
         const api = {};
         let test = 1;
-        const onChange = function() {
+        const onChange = function () {
             test = test + 1;
         };
         const { getByTestId, getAllByTestId } = render(
-            <AddServiceForm domain={domain} api={api} onChange={onChange} pageConfig={pageConfig} />
+            <AddServiceForm
+                domain={domain}
+                api={api}
+                onChange={onChange}
+                pageConfig={pageConfig}
+            />
         );
         const addServiceInput = getAllByTestId('input-node');
         fireEvent.change(addServiceInput[2], {

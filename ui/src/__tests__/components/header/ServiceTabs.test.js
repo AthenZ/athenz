@@ -16,7 +16,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import RoleTabs from '../../../components/header/RoleTabs';
-import ServiceTabs from "../../../components/header/ServiceTabs";
+import ServiceTabs from '../../../components/header/ServiceTabs';
 
 describe('Service Tabs', () => {
     it('should render', () => {
@@ -29,9 +29,14 @@ describe('Service Tabs', () => {
         };
 
         let domain = 'home.mujibur';
-        let service = 'openstack'
+        let service = 'openstack';
         const { getByTestId } = render(
-            <ServiceTabs domain={domain} service={service} selectedName='dynamic' api={api} />
+            <ServiceTabs
+                domain={domain}
+                service={service}
+                selectedName='dynamic'
+                api={api}
+            />
         );
         const tabs = getByTestId('tabgroup');
         const tab = tabs.querySelectorAll('.denali-tab');

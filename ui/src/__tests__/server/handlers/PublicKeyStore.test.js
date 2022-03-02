@@ -20,16 +20,19 @@ const fs = require('fs');
 const auth_core = jest.requireActual('@athenz/auth-core');
 const YBase64 = auth_core.YBase64;
 
-
 describe('PublicKeyStore handler test', () => {
     test('should be able to get zms key correctly', () => {
         let fsStub = sinon.stub(fs, 'readFileSync');
-        fsStub.returns(JSON.stringify({
-            zmsPublicKeys: [{
-                    id: '0',
-                    key: 'dummypublickey'
-                }]
-        }));
+        fsStub.returns(
+            JSON.stringify({
+                zmsPublicKeys: [
+                    {
+                        id: '0',
+                        key: 'dummypublickey',
+                    },
+                ],
+            })
+        );
         const result = publicKeyStore.getPublicKey('sys.auth', 'zms', '0');
         expect(result).toEqual(YBase64.ybase64Decode('dummypublickey'));
         fsStub.restore();

@@ -27,11 +27,11 @@ describe('authUtils test', () => {
     });
     test('should clear cookies on flag', () => {
         let req = {
-            clearCookie: true
+            clearCookie: true,
         };
         let res = {};
         res.clearCookie = jest.fn();
-        authUtils.postAuth(req, res, {cookieName: 'a'});
+        authUtils.postAuth(req, res, { cookieName: 'a' });
         expect(res.clearCookie).toHaveBeenCalled();
     });
     test('should clear cookies on flag', () => {
@@ -41,7 +41,7 @@ describe('authUtils test', () => {
         };
         let res = {};
         res.cookie = jest.fn();
-        authUtils.postAuth(req, res, {cookieName: 'a', cookieMaxAge: 60});
+        authUtils.postAuth(req, res, { cookieName: 'a', cookieMaxAge: 60 });
         expect(res.cookie).toHaveBeenCalled();
     });
 });
