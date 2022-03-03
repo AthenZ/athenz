@@ -603,6 +603,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../oidc_aws_eks/" class="md-nav__link">
+      Athenz OIDC Authentication Provider Support for AWS EKS
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1390,17 +1402,17 @@ Athenz code comes bundled with AWS EC2 instance provider which verifies instance
 <li>We will be using Athenz's Service Identity Agent Daemon ( siad ) for EC2 to get the identity. Drop a config file <code>/etc/sia/sia_config</code> which will be used by siad
   with following content -</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-  <span class="nt">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
-  <span class="nt">&quot;service&quot;</span><span class="p">:</span> <span class="s2">&quot;aws-demo&quot;</span><span class="p">,</span>
-  <span class="nt">&quot;ssh&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
-  <span class="nt">&quot;accounts&quot;</span><span class="p">:</span> <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="nt">&quot;domain&quot;</span><span class="p">:</span> <span class="s2">&quot;athenz&quot;</span><span class="p">,</span>
-      <span class="nt">&quot;account&quot;</span><span class="p">:</span> <span class="s2">&quot;111111111111&quot;</span>
-    <span class="p">}</span>
-  <span class="p">]</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;service&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;aws-demo&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;ssh&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;accounts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;domain&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;athenz&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;account&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;111111111111&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">]</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </code></pre></div>
 <p>Athenz ZTS can issue SSH certificates as well, but for now we will not be using that option. Replace the account id in the config above.</p>
 <ul>

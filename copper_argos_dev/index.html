@@ -603,6 +603,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../oidc_aws_eks/" class="md-nav__link">
+      Athenz OIDC Authentication Provider Support for AWS EKS
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1899,7 +1911,7 @@ Policy: api_providers
 <ul>
 <li>Create the provider’s role:</li>
 </ul>
-<div class="highlight"><pre><span></span><code>$ zms-cli -d sys.auth add-group-role providers
+<div class="highlight"><pre><span></span><code>$ zms-cli -d sys.auth add-regular-role providers
 </code></pre></div>
 <ul>
 <li>Create the provider’s policy:</li>
@@ -1949,7 +1961,7 @@ $ openssl rsa -in service_private.key -pubout &gt; service_public.key
 <ul>
 <li>Register the dns suffix for the provider service. For example, cluster1.ostk.athenz.cloud</li>
 </ul>
-<div class="highlight"><pre><span></span><code>$ zms-cli -d sys.auth add-group-role provider.openstack.providers openstack.cluster1
+<div class="highlight"><pre><span></span><code>$ zms-cli -d sys.auth add-regular-role provider.openstack.providers openstack.cluster1
 $ zms-cli -d sys.auth add-policy provider.openstack.providers grant launch to provider.openstack.providers on dns.cluster1.ostk.athenz.cloud
 </code></pre></div>
 <h3 id="tenant-service-registration">Tenant Service Registration<a class="headerlink" href="#tenant-service-registration" title="Permanent link">&para;</a></h3>
@@ -1957,7 +1969,7 @@ $ zms-cli -d sys.auth add-policy provider.openstack.providers grant launch to pr
 <ul>
 <li>Authorize provider service to launch its instances. For example, weater domain wants to authorize its service api to be launched by openstack.cluster1 provider.</li>
 </ul>
-<div class="highlight"><pre><span></span><code>$ zms-cli -d weather add-group-role openstack_providers openstack.cluster1
+<div class="highlight"><pre><span></span><code>$ zms-cli -d weather add-regular-role openstack_providers openstack.cluster1
 $ zms-cli -d weather add-policy openstack_providers grant launch to openstack_providers on weather:service.api
 </code></pre></div>
 <h3 id="provider-client-implementation">Provider Client Implementation<a class="headerlink" href="#provider-client-implementation" title="Permanent link">&para;</a></h3>

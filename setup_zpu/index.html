@@ -603,6 +603,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../oidc_aws_eks/" class="md-nav__link">
+      Athenz OIDC Authentication Provider Support for AWS EKS
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1470,10 +1482,10 @@ configure what domains are provisioned on the host so the
 utility can retrieve the policy files for those domains
 only. Create a configuration settings file with the
 following content:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-  <span class="nt">&quot;domains&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;domain1&gt;,&lt;domain2&gt;&quot;</span><span class="p">,</span>
-  <span class="nt">&quot;caCertFile&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;path to caCert file&gt;&quot;</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;domains&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;domain1&gt;,&lt;domain2&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;caCertFile&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;path to caCert file&gt;&quot;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </code></pre></div>
 <p>In the json file, edit the value for the "domains" field
 and specify a comma separated list of domain names.</p>

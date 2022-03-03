@@ -603,6 +603,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../oidc_aws_eks/" class="md-nav__link">
+      Athenz OIDC Authentication Provider Support for AWS EKS
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1173,11 +1185,11 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adding-a-group-role" class="md-nav__link">
-    Adding a Group Role
+  <a href="#adding-a-regular-role" class="md-nav__link">
+    Adding a Regular Role
   </a>
   
-    <nav class="md-nav" aria-label="Adding a Group Role">
+    <nav class="md-nav" aria-label="Adding a Regular Role">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1480,11 +1492,11 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adding-a-group-role" class="md-nav__link">
-    Adding a Group Role
+  <a href="#adding-a-regular-role" class="md-nav__link">
+    Adding a Regular Role
   </a>
   
-    <nav class="md-nav" aria-label="Adding a Group Role">
+    <nav class="md-nav" aria-label="Adding a Regular Role">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1726,15 +1738,15 @@ administrators by adding or removing members in the <code>admin</code> role.</p>
 </code></pre></div>
 
 <p>ZMS allows you to remove yourself from the <code>admin</code> role.</p>
-<div class="codehilite"><pre><span></span><code><span class="n">Once</span> <span class="n">you</span><span class="s1">&#39;ve been removed, you&#39;</span><span class="n">ll</span> <span class="n">need</span> <span class="k">to</span> <span class="n">ask</span> <span class="n">another</span> <span class="n">domain</span>
-<span class="n">administrator</span> <span class="k">to</span> <span class="n">re</span><span class="o">-</span><span class="k">add</span> <span class="n">you</span> <span class="k">to</span> <span class="n">the</span> <span class="n n-Quoted">`admin`</span> <span class="k">role</span><span class="p">.</span>
+<div class="codehilite"><pre><span></span><code><span class="n">Once</span><span class="w"> </span><span class="n">you</span><span class="s1">&#39;ve been removed, you&#39;</span><span class="n">ll</span><span class="w"> </span><span class="n">need</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="n">ask</span><span class="w"> </span><span class="n">another</span><span class="w"> </span><span class="n">domain</span><span class="w"></span>
+<span class="n">administrator</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="n">re</span><span class="o">-</span><span class="k">add</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n n-Quoted">`admin`</span><span class="w"> </span><span class="k">role</span><span class="p">.</span><span class="w"></span>
 </code></pre></div>
 
-<h2 id="adding-a-group-role">Adding a Group Role<a class="headerlink" href="#adding-a-group-role" title="Permanent link">&para;</a></h2>
+<h2 id="adding-a-regular-role">Adding a Regular Role<a class="headerlink" href="#adding-a-regular-role" title="Permanent link">&para;</a></h2>
 <hr />
-<p>To add new group role to a domain, the administrator will execute the
+<p>To add new regular role to a domain, the administrator will execute the
 following zms-cli command:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain&gt; add-group-role &lt;role&gt; &lt;member&gt; <span class="o">[</span>&lt;member&gt; ...<span class="o">]</span>
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain&gt; add-regular-role &lt;role&gt; &lt;member&gt; <span class="o">[</span>&lt;member&gt; ...<span class="o">]</span>
 </code></pre></div>
 
 <h3 id="parameters-1">Parameters</h3>
@@ -1758,9 +1770,9 @@ administrator can add and/or delete members using the <code>add-member</code> an
 <h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h3>
 <p>When the domain administrator executes the command below, a new role
 called <code>readers</code> will be added to the the domain <code>athenz.ci</code> will
-have the following members: user - <code>yby.john</code> and service -
+have the following members: user - <code>user.john</code> and service -
 <code>media.sports.storage</code>:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d athenz.ci add-group-role readers yby.john media.sports.storage
+<div class="codehilite"><pre><span></span><code>$ zms-cli -d athenz.ci add-regular-role readers user.john media.sports.storage
 </code></pre></div>
 
 <h2 id="managing-a-group-role-membership">Managing a Group Role Membership<a class="headerlink" href="#managing-a-group-role-membership" title="Permanent link">&para;</a></h2>
