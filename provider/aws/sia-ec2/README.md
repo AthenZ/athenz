@@ -21,7 +21,7 @@ which require the use of the EC2 instance-profile role in the name format of
 ```
 
 The AWS Account administrator must create an IAM Role called
-'<property-domain-name>.<property-service-name>" and this role must be setup
+`<property-domain-name>.<property-service-name>` and this role must be setup
 with a trusted relationship with the role that the EC2 instance is
 configured to run as.
 
