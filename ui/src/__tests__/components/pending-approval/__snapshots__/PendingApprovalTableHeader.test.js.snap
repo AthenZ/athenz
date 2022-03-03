@@ -151,7 +151,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-15 {
+.emotion-13 {
   border-bottom: 2px solid #d5d5d5;
   font-weight: 600;
   font-size: 0.7rem;
@@ -161,7 +161,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   text-align: left;
 }
 
-.emotion-17 {
+.emotion-15 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -178,7 +178,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   width: 100%;
 }
 
-.emotion-17>textarea {
+.emotion-15>textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -207,43 +207,43 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   width: auto;
 }
 
-.emotion-17>textarea::-webkit-input-placeholder {
+.emotion-15>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-17>textarea::-moz-placeholder {
+.emotion-15>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-17>textarea:-ms-input-placeholder {
+.emotion-15>textarea:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-17>textarea::placeholder {
+.emotion-15>textarea::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-17>textarea:active,
-.emotion-17>textarea:focus {
+.emotion-15>textarea:active,
+.emotion-15>textarea:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-17>textarea:invalid {
+.emotion-15>textarea:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-17>textarea[disabled] {
+.emotion-15>textarea[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-17 .message {
+.emotion-15 .message {
   font-size: 12px;
   color: #303030;
   left: 0;
@@ -252,11 +252,11 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-18>textarea {
+.emotion-16>textarea {
   resize: vertical;
 }
 
-.emotion-22>div input {
+.emotion-20>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   background-color: #d5d5d5;
@@ -282,13 +282,13 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   width: 10em;
 }
 
-.emotion-24 {
+.emotion-22 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-30 {
+.emotion-28 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -305,17 +305,17 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-32 {
+.emotion-30 {
   margin-top: 10px;
 }
 
-.emotion-34 {
+.emotion-32 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-35 {
+.emotion-33 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -366,9 +366,6 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   />
   <th
     class="emotion-5 emotion-6"
-  />
-  <th
-    class="emotion-5 emotion-6"
     colspan="3"
   />
   <th
@@ -378,10 +375,10 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     class="emotion-5 emotion-6"
   />
   <th
-    class="emotion-15 emotion-16"
+    class="emotion-13 emotion-14"
   >
     <div
-      class="emotion-17 denali-textarea emotion-18 emotion-19"
+      class="emotion-15 denali-textarea emotion-16 emotion-17"
       data-testid="textarea-wrapper"
     >
       <textarea
@@ -393,10 +390,10 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-15 emotion-16"
+    class="emotion-13 emotion-14"
   >
     <div
-      class="emotion-22 emotion-23"
+      class="emotion-20 emotion-21"
       disabled=""
     >
       <div
@@ -421,7 +418,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
           data-clear=""
         >
           <svg
-            class="emotion-24"
+            class="emotion-22"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -439,10 +436,10 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-15 emotion-16"
+    class="emotion-13 emotion-14"
   >
     <div
-      class="emotion-22 emotion-23"
+      class="emotion-20 emotion-21"
       disabled=""
     >
       <div
@@ -467,7 +464,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
           data-clear=""
         >
           <svg
-            class="emotion-24"
+            class="emotion-22"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -485,13 +482,13 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-30 emotion-31"
+    class="emotion-28 emotion-29"
   >
     <div
-      class="emotion-32 emotion-33"
+      class="emotion-30 emotion-31"
     >
       <svg
-        class="emotion-34"
+        class="emotion-32"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -510,13 +507,13 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-35 emotion-36"
+    class="emotion-33 emotion-34"
   >
     <div
-      class="emotion-32 emotion-33"
+      class="emotion-30 emotion-31"
     >
       <svg
-        class="emotion-34"
+        class="emotion-32"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"

@@ -26,8 +26,9 @@ import Tabs from '../../../components/header/Tabs';
 import RequestUtils from '../../../components/utils/RequestUtils';
 import Error from '../../_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
-import JsonUtils from "../../../components/utils/JsonUtils";
+import { CacheProvider } from '@emotion/react';
+import JsonUtils from '../../../components/utils/JsonUtils';
+import DomainNameHeader from '../../../components/header/DomainNameHeader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -90,11 +91,12 @@ export async function getServerSideProps(context) {
         api.getFeatureFlag(),
         api.getMeta(bServicesParams),
         api.getMeta(bServicesParamsAll),
+        api.getPendingDomainMembersCountByDomain(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
     });
     let businessServiceOptions = [];
     if (historyData[9] && historyData[9].validValues) {
@@ -147,7 +149,8 @@ export async function getServerSideProps(context) {
             featureFlag: historyData[8],
             validBusinessServices: businessServiceOptions,
             validBusinessServicesAll: businessServiceOptionsAll,
-        }
+            domainPendingMemberCount: historyData[11],
+        },
     };
 }
 
@@ -162,14 +165,14 @@ export default class HistoryPage extends React.Component {
     }
 
     render() {
-        const {domain, reload, domainDetails, historyrows, roles, _csrf} =
+        const { domain, reload, domainDetails, historyrows, roles, _csrf } =
             this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
 
         return (
@@ -188,7 +191,13 @@ export default class HistoryPage extends React.Component {
                             <HistoryContainerDiv>
                                 <HistoryContentDiv>
                                     <PageHeaderDiv>
-                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainNameHeader
+                                            domainName={this.props.domain}
+                                            pendingCount={
+                                                this.props
+                                                    .domainPendingMemberCount
+                                            }
+                                        />
                                         <DomainDetails
                                             domainDetails={domainDetails}
                                             api={this.api}

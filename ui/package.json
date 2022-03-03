@@ -30,7 +30,7 @@
         "regen-snap": "jest --updateSnapshot",
         "build": "NODE_ENV=production next build",
         "start": "NODE_ENV=production node app.js",
-        "fix-lint": "prettier --write *.js src/*.js src/config/*.js src/pages/*.js src/components/*/*.js src/server/*.js src/server/*/*.js src/__tests__/*/*.js __mocks__/*/*.js",
+        "fix-lint": "prettier --write *.js src/** __mocks__/*/*.js",
         "single-test": "jest -i src/__tests__/pages/index.test.js -t HomePage",
         "func:local:wd": "webdriver-manager update && webdriver-manager start --seleniumPort 4445",
         "func:local:ui": "DEBUG=AthenzUI:functional:* APP_ENV=functional-local PLATFORM=$(uname -s) wdio run src/__tests__/spec/wdio.conf.js --baseUrl=$BASEURL",
@@ -39,7 +39,7 @@
         "ci-cleanup": "./scripts/ci/ci-cleanup.sh",
         "ci-deploy": "./scripts/ci/ci-deploy.sh",
         "ci-func-test": "./scripts/ci/ci-run-functional.sh",
-        "ci-lint": "prettier --list-different *.js src/*.js src/config/*.js src/pages/*.js src/components/*/*.js src/server/*.js src/server/*/*.js src/__tests__/*/*.js __mocks__/*/*.js",
+        "ci-lint": "prettier --list-different *.js src/** __mocks__/*/*.js",
         "ci-unit-test": "jest -i",
         "functional": "wdio run src/__tests__/spec/wdio.conf.js"
     },

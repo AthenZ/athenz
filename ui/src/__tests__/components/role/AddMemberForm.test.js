@@ -15,19 +15,22 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import AddMemberForm from "../../../components/role/AddMemberForm";
-import API from "../../../api";
+import AddMemberForm from '../../../components/role/AddMemberForm';
+import API from '../../../api';
 
 describe('AddMemberForm', () => {
     it('should render', () => {
         let domain = 'domain';
-        let roleName ='roleName';
+        let roleName = 'roleName';
         let role = {
-            roleMembers: [{ memberName: 'user.test1' }, { memberName: 'user.test2' }],
+            roleMembers: [
+                { memberName: 'user.test1' },
+                { memberName: 'user.test2' },
+            ],
             memberExpiryDays: 30,
             serviceExpiryDays: 20,
             memberReviewDays: 70,
-            serviceReviewDays:80
+            serviceReviewDays: 80,
         };
 
         const { getByTestId } = render(

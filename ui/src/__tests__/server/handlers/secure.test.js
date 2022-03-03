@@ -19,7 +19,7 @@ const request = require('supertest');
 const express = require('express');
 let expressApp = express();
 expressApp.get('/test', async (req, res) => {
-    res.json({message: 'pass!'})
+    res.json({ message: 'pass!' });
 });
 let appConfig = require('../../../config/config')();
 
@@ -28,18 +28,20 @@ describe('secure test', () => {
         test('should register all security middlewares', () => {
             const app = {};
             app.use = jest.fn();
-            secure(app, {}, {cookieSession: '1234'});
+            secure(app, {}, { cookieSession: '1234' });
             expect(app.use).toHaveBeenCalledTimes(7);
         });
     });
     describe('middleware calls test', () => {
         beforeAll(() => {
-            secure(expressApp, appConfig, {cookieSession: '1234'});
+            secure(expressApp, appConfig, { cookieSession: '1234' });
         });
         test('should call CSP middleware', async () => {
-            await request(expressApp).get('/test').then((res) => {
-                expect(res.statusCode).toEqual(200);
-            });
+            await request(expressApp)
+                .get('/test')
+                .then((res) => {
+                    expect(res.statusCode).toEqual(200);
+                });
         });
     });
 });

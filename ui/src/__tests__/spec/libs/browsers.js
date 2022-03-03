@@ -7,25 +7,25 @@ module.exports = {
         'goog:chromeOptions': {
             perfLoggingPrefs: {
                 enableNetwork: true,
-                enablePage: false
-            }
+                enablePage: false,
+            },
         },
         'goog:loggingPrefs': {
             performance: 'ALL',
-            browser: 'ALL'
-        }
+            browser: 'ALL',
+        },
     },
     edge: {
         name: 'Edge',
         browserName: 'MicrosoftEdge',
         platform: 'Windows 10',
-        version: 'latest'
+        version: 'latest',
     },
     firefox: {
         name: 'Firefox',
         browserName: 'firefox',
         platform: 'Windows 10',
-        version: 'latest'
+        version: 'latest',
     },
     safari: {
         name: 'Safari',
@@ -33,7 +33,7 @@ module.exports = {
         browserVersion: 'latest',
         platform: 'macOS 10.14',
         'sauce:options': {
-            screenResolution: '1280x960'
-        }
-    }
+            screenResolution: '1280x960',
+        },
+    },
 };

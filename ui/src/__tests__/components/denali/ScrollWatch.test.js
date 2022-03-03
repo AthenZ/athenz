@@ -40,9 +40,7 @@ describe('ScrollWatch', () => {
     afterEach(() => jest.resetAllMocks());
 
     it('should handle scrolling with throttling', async () => {
-        throttle.mockImplementationOnce(
-            jest.requireActual('lodash/throttle')
-        );
+        throttle.mockImplementationOnce(jest.requireActual('lodash/throttle'));
         createRefSpy;
 
         const { getByTestId } = render(
@@ -260,9 +258,7 @@ describe('ScrollWatch', () => {
     });
 
     it('should ignore scrolledToBottom', () => {
-        throttle.mockImplementationOnce(
-            jest.requireActual('lodash/throttle')
-        );
+        throttle.mockImplementationOnce(jest.requireActual('lodash/throttle'));
         createRefSpy;
 
         const { getByTestId } = render(

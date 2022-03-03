@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, fireEvent, waitFor, screen, cleanup } from '@testing-library/react';
+import {
+    render,
+    fireEvent,
+    waitFor,
+    screen,
+    cleanup,
+} from '@testing-library/react';
 import AddGroup from '../../../components/group/AddGroup';
-import API from "../../../api";
-import {GROUP_MEMBER_PLACEHOLDER} from "../../../components/constants/constants";
+import API from '../../../api';
+import { GROUP_MEMBER_PLACEHOLDER } from '../../../components/constants/constants';
 
 describe('AddGroup', () => {
     afterEach(() => {
@@ -47,7 +53,7 @@ describe('AddGroup', () => {
         const _csrf = '_csrf';
         let api = API();
 
-        const{ getByText } = render(
+        const { getByText } = render(
             <AddGroup
                 _csrf={_csrf}
                 api={api}
@@ -59,27 +65,24 @@ describe('AddGroup', () => {
             />
         );
         expect(
-            screen.getByPlaceholderText("Enter New Group Name")
+            screen.getByPlaceholderText('Enter New Group Name')
         ).toBeInTheDocument();
+        fireEvent.change(screen.getByPlaceholderText('Enter New Group Name'), {
+            target: { value: 'testgroup:test' },
+        });
         fireEvent.change(
-            screen.getByPlaceholderText("Enter New Group Name"),
-            {
-                target: { value: 'testgroup:test' },
-            }
-        );
-        fireEvent.change(
-            screen.getByPlaceholderText("Enter justification here"),
+            screen.getByPlaceholderText('Enter justification here'),
             {
                 target: { value: 'justification' },
             }
         );
-        const button = getByText('Submit')
+        const button = getByText('Submit');
         fireEvent.click(button);
         await waitFor(() => {
             expect(
-                screen.getByText('Group name doesn\'t match regex:',
-                    { exact: false }
-                    ),
+                screen.getByText("Group name doesn't match regex:", {
+                    exact: false,
+                })
             ).toBeInTheDocument();
         });
     });
@@ -91,7 +94,7 @@ describe('AddGroup', () => {
         const _csrf = '_csrf';
         let api = API();
 
-        const{ getByText } = render(
+        const { getByText } = render(
             <AddGroup
                 _csrf={_csrf}
                 api={api}
@@ -103,28 +106,25 @@ describe('AddGroup', () => {
             />
         );
         expect(
-            screen.getByPlaceholderText("Enter New Group Name")
+            screen.getByPlaceholderText('Enter New Group Name')
         ).toBeInTheDocument();
 
         fireEvent.change(
-            screen.getByPlaceholderText("Enter justification here"),
+            screen.getByPlaceholderText('Enter justification here'),
             {
                 target: { value: 'justification' },
             }
         );
-        fireEvent.change(
-            screen.getByPlaceholderText("Enter New Group Name"),
-            {
-                target: { value: 'group(123)' },
-            }
-        );
-        const button = getByText('Submit')
+        fireEvent.change(screen.getByPlaceholderText('Enter New Group Name'), {
+            target: { value: 'group(123)' },
+        });
+        const button = getByText('Submit');
         fireEvent.click(button);
         await waitFor(() => {
             expect(
-                screen.getByText('Group name doesn\'t match regex:',
-                    { exact: false }
-                ),
+                screen.getByText("Group name doesn't match regex:", {
+                    exact: false,
+                })
             ).toBeInTheDocument();
         });
     });
@@ -136,7 +136,7 @@ describe('AddGroup', () => {
         const _csrf = '_csrf';
         let api = API();
 
-        const{ getByText } = render(
+        const { getByText } = render(
             <AddGroup
                 _csrf={_csrf}
                 api={api}
@@ -148,46 +148,40 @@ describe('AddGroup', () => {
             />
         );
         expect(
-            screen.getByPlaceholderText("Enter New Group Name")
+            screen.getByPlaceholderText('Enter New Group Name')
         ).toBeInTheDocument();
 
         fireEvent.change(
-            screen.getByPlaceholderText("Enter justification here"),
+            screen.getByPlaceholderText('Enter justification here'),
             {
                 target: { value: 'justification' },
             }
         );
-        fireEvent.change(
-            screen.getByPlaceholderText("Enter New Group Name"),
-            {
-                target: { value: 'group/123' },
-            }
-        );
-        const button = getByText('Submit')
+        fireEvent.change(screen.getByPlaceholderText('Enter New Group Name'), {
+            target: { value: 'group/123' },
+        });
+        const button = getByText('Submit');
         fireEvent.click(button);
         await waitFor(() => {
             expect(
-                screen.getByText('Group name doesn\'t match regex:',
-                    { exact: false }
-                ),
+                screen.getByText("Group name doesn't match regex:", {
+                    exact: false,
+                })
             ).toBeInTheDocument();
         });
     });
 
     it('should not throw error for group name', async () => {
-
         let domain = 'domain';
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
         let api = API();
         api = {
-            listGroups: jest.fn(() =>
-                Promise.resolve([])
-            ),
+            listGroups: jest.fn(() => Promise.resolve([])),
             addGroup: jest.fn(() => Promise.resolve()),
-        }
-        const{ getByText } = render(
+        };
+        const { getByText } = render(
             <AddGroup
                 _csrf={_csrf}
                 api={api}
@@ -199,24 +193,21 @@ describe('AddGroup', () => {
             />
         );
         expect(
-            screen.getByPlaceholderText("Enter New Group Name")
+            screen.getByPlaceholderText('Enter New Group Name')
         ).toBeInTheDocument();
 
         fireEvent.change(
-            screen.getByPlaceholderText("Enter justification here"),
+            screen.getByPlaceholderText('Enter justification here'),
             {
                 target: { value: 'justification' },
             }
         );
-        const button = getByText('Submit')
-        fireEvent.change(
-            screen.getByPlaceholderText("Enter New Group Name"),
-            {
-                target: { value: 'group.test' },
-            }
-        );
+        const button = getByText('Submit');
+        fireEvent.change(screen.getByPlaceholderText('Enter New Group Name'), {
+            target: { value: 'group.test' },
+        });
         fireEvent.click(button);
-        await waitFor( () => {
+        await waitFor(() => {
             expect(onSubmit.mock.calls.length).toBe(1);
         });
     });
@@ -228,7 +219,7 @@ describe('AddGroup', () => {
         const _csrf = '_csrf';
         let api = API();
 
-        const{ getByText } = render(
+        const { getByText } = render(
             <AddGroup
                 _csrf={_csrf}
                 api={api}
@@ -244,7 +235,7 @@ describe('AddGroup', () => {
         ).toBeInTheDocument();
 
         fireEvent.change(
-            screen.getByPlaceholderText("Enter justification here"),
+            screen.getByPlaceholderText('Enter justification here'),
             {
                 target: { value: 'justification' },
             }
@@ -255,13 +246,13 @@ describe('AddGroup', () => {
                 target: { value: 'home.test:group.test' },
             }
         );
-        const button = getByText('Add')
+        const button = getByText('Add');
         fireEvent.click(button);
         await waitFor(() => {
             expect(
-                screen.getByText('Member name doesn\'t match regex: ',
-                    { exact: false }
-                ),
+                screen.getByText("Member name doesn't match regex: ", {
+                    exact: false,
+                })
             ).toBeInTheDocument();
         });
     });
@@ -273,7 +264,7 @@ describe('AddGroup', () => {
         const _csrf = '_csrf';
         let api = API();
 
-        const{ getByText } = render(
+        const { getByText } = render(
             <AddGroup
                 _csrf={_csrf}
                 api={api}
@@ -289,7 +280,7 @@ describe('AddGroup', () => {
         ).toBeInTheDocument();
 
         fireEvent.change(
-            screen.getByPlaceholderText("Enter justification here"),
+            screen.getByPlaceholderText('Enter justification here'),
             {
                 target: { value: 'justification' },
             }
@@ -300,13 +291,13 @@ describe('AddGroup', () => {
                 target: { value: 'user.test1.' },
             }
         );
-        const button = getByText('Add')
+        const button = getByText('Add');
         fireEvent.click(button);
         await waitFor(() => {
             expect(
-                screen.getByText('Member name doesn\'t match regex: ',
-                    { exact: false }
-                ),
+                screen.getByText("Member name doesn't match regex: ", {
+                    exact: false,
+                })
             ).toBeInTheDocument();
         });
     });
@@ -318,7 +309,7 @@ describe('AddGroup', () => {
         const _csrf = '_csrf';
         let api = API();
 
-        const{ getByText } = render(
+        const { getByText } = render(
             <AddGroup
                 _csrf={_csrf}
                 api={api}
@@ -334,7 +325,7 @@ describe('AddGroup', () => {
         ).toBeInTheDocument();
 
         fireEvent.change(
-            screen.getByPlaceholderText("Enter justification here"),
+            screen.getByPlaceholderText('Enter justification here'),
             {
                 target: { value: 'justification' },
             }
@@ -345,31 +336,28 @@ describe('AddGroup', () => {
                 target: { value: 'unix.service.test/' },
             }
         );
-        const button = getByText('Add')
+        const button = getByText('Add');
         fireEvent.click(button);
         await waitFor(() => {
             expect(
-                screen.getByText('Member name doesn\'t match regex: ',
-                    { exact: false }
-                ),
+                screen.getByText("Member name doesn't match regex: ", {
+                    exact: false,
+                })
             ).toBeInTheDocument();
         });
     });
 
     it('should not throw error for group member name', async () => {
-
         let domain = 'domain';
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
         let api = API();
         api = {
-            listGroups: jest.fn(() =>
-                Promise.resolve([])
-            ),
+            listGroups: jest.fn(() => Promise.resolve([])),
             addGroup: jest.fn(() => Promise.resolve()),
-        }
-        const{ getByText } = render(
+        };
+        const { getByText } = render(
             <AddGroup
                 _csrf={_csrf}
                 api={api}
@@ -381,22 +369,19 @@ describe('AddGroup', () => {
             />
         );
         expect(
-            screen.getByPlaceholderText("Enter New Group Name")
+            screen.getByPlaceholderText('Enter New Group Name')
         ).toBeInTheDocument();
 
         fireEvent.change(
-            screen.getByPlaceholderText("Enter justification here"),
+            screen.getByPlaceholderText('Enter justification here'),
             {
                 target: { value: 'justification' },
             }
         );
-        const button = getByText('Submit')
-        fireEvent.change(
-            screen.getByPlaceholderText("Enter New Group Name"),
-            {
-                target: { value: 'group.test' },
-            }
-        );
+        const button = getByText('Submit');
+        fireEvent.change(screen.getByPlaceholderText('Enter New Group Name'), {
+            target: { value: 'group.test' },
+        });
         fireEvent.change(
             screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER),
             {
@@ -404,7 +389,7 @@ describe('AddGroup', () => {
             }
         );
         fireEvent.click(button);
-        await waitFor( () => {
+        await waitFor(() => {
             expect(onSubmit.mock.calls.length).toBe(1);
         });
     });

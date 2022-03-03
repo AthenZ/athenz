@@ -5,7 +5,6 @@ const artifactsDir =
     process.env.TEST_DIR || path.resolve(process.cwd(), 'artifacts');
 const screenshotsDir = path.resolve(artifactsDir, 'screenshots');
 
-
 /**
  * Check if element exists
  * @param {Object} elementFn Element getter function
@@ -34,7 +33,7 @@ module.exports.scrollBottom = async () => {
  * @param {Object} elementFn Element getter function
  * @async
  */
-module.exports.scrollToEl = async elementFn => {
+module.exports.scrollToEl = async (elementFn) => {
     const el = await elementFn;
 
     await el.scrollIntoView();

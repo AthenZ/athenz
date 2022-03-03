@@ -23,14 +23,14 @@ import Head from 'next/head';
 
 import CollectionDetails from '../../../../../components/header/CollectionDetails';
 import RequestUtils from '../../../../../components/utils/RequestUtils';
-import JsonUtils from "../../../../../components/utils/JsonUtils";
+import JsonUtils from '../../../../../components/utils/JsonUtils';
 import NameHeader from '../../../../../components/header/NameHeader';
 import Error from '../../../../_error';
 import GroupTabs from '../../../../../components/header/GroupTabs';
 import GroupRoleTable from '../../../../../components/group/GroupRoleTable';
 import SearchInput from '../../../../../components/denali/SearchInput';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -117,7 +117,7 @@ export async function getServerSideProps(context) {
             pending: details[4],
             _csrf: details[5],
             nonce: context.req.headers.rid,
-        }
+        },
     };
 }
 
@@ -145,14 +145,14 @@ export default class GroupRolesPage extends React.Component {
     };
 
     render() {
-        const {domain, reload, groupDetails, group, prefix, _csrf} =
+        const { domain, reload, groupDetails, group, prefix, _csrf } =
             this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
 
         let roles = this.state.roles;
@@ -220,8 +220,8 @@ export default class GroupRolesPage extends React.Component {
                                                     onChange={(event) =>
                                                         this.setState({
                                                             searchText:
-                                                            event.target
-                                                                .value,
+                                                                event.target
+                                                                    .value,
                                                             error: false,
                                                         })
                                                     }

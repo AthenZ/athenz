@@ -27,8 +27,8 @@ import NameHeader from '../../../../../components/header/NameHeader';
 import RequestUtils from '../../../../../components/utils/RequestUtils';
 import Error from '../../../../_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
-import JsonUtils from "../../../../../components/utils/JsonUtils";
+import { CacheProvider } from '@emotion/react';
+import JsonUtils from '../../../../../components/utils/JsonUtils';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -93,7 +93,7 @@ export async function getServerSideProps(context) {
             pending: historyData[4],
             _csrf: historyData[5],
             nonce: context.req.headers.rid,
-        }
+        },
     };
 }
 
@@ -108,14 +108,14 @@ export default class RoleHistoryPage extends React.Component {
     }
 
     render() {
-        const {domain, reload, roleDetails, role, historyRows, _csrf} =
+        const { domain, reload, roleDetails, role, historyRows, _csrf } =
             this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
         return (
             <CacheProvider value={this.cache}>

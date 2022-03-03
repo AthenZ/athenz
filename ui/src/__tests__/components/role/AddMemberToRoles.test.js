@@ -15,8 +15,8 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import AddMemberToRoles from "../../../components/role/AddMemberToRoles";
-import API from "../../../api";
+import AddMemberToRoles from '../../../components/role/AddMemberToRoles';
+import API from '../../../api';
 
 describe('AddMemberToRoles', () => {
     it('should render', () => {
@@ -24,7 +24,10 @@ describe('AddMemberToRoles', () => {
         let roles = [];
         let role1 = {
             name: 'domain:role.role1',
-            roleMembers: [{ memberName: 'user.test1' }, { memberName: 'user.test2' }],
+            roleMembers: [
+                { memberName: 'user.test1' },
+                { memberName: 'user.test2' },
+            ],
             memberExpiryDays: 30,
             serviceExpiryDays: 20,
             memberReviewDays: 70,
@@ -32,7 +35,10 @@ describe('AddMemberToRoles', () => {
         };
         let role2 = {
             name: 'domain:role.role2',
-            roleMembers: [{ memberName: 'user.test3' }, { memberName: 'user.test4' }],
+            roleMembers: [
+                { memberName: 'user.test3' },
+                { memberName: 'user.test4' },
+            ],
             memberExpiryDays: null,
             serviceExpiryDays: 20,
             memberReviewDays: 30,

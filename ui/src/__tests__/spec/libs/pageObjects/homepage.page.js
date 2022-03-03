@@ -16,7 +16,6 @@ class HomePage extends Page {
     get body() {
         return $('body');
     }
-
 }
 
 module.exports = new HomePage();

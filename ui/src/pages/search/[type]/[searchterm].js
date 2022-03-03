@@ -128,7 +128,7 @@ export async function getServerSideProps(context) {
             error,
             reload,
             nonce: context.req && context.req.headers.rid,
-        }
+        },
     };
 }
 

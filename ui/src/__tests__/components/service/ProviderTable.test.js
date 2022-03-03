@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 import React from 'react';
-import {render, fireEvent, waitForElement, waitFor} from '@testing-library/react';
+import {
+    render,
+    fireEvent,
+    waitForElement,
+    waitFor,
+} from '@testing-library/react';
 import ProviderTable from '../../../components/service/ProviderTable';
 
 const allProviders = [
@@ -66,7 +71,7 @@ describe('ProviderTable', () => {
         };
         const color = '';
         const api = {
-            allowProviderTemplate: function(
+            allowProviderTemplate: function (
                 domainName,
                 serviceName,
                 provider,
@@ -116,7 +121,7 @@ describe('ProviderTable', () => {
         };
         const color = '';
         const api = {
-            allowProviderTemplate: function(
+            allowProviderTemplate: function (
                 domainName,
                 serviceName,
                 provider,
@@ -162,7 +167,7 @@ describe('ProviderTable', () => {
         };
         const color = '';
         const api = {
-            allowProviderTemplate: function(
+            allowProviderTemplate: function (
                 domainName,
                 serviceName,
                 provider,
@@ -191,8 +196,6 @@ describe('ProviderTable', () => {
             </table>
         );
         fireEvent.click(getByText('Allow'));
-        expect(
-            await waitFor(() => getByTitle('checkmark'))
-        ).toMatchSnapshot();
+        expect(await waitFor(() => getByTitle('checkmark'))).toMatchSnapshot();
     });
 });

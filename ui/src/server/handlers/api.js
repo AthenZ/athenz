@@ -17,6 +17,7 @@ const Fetchr = require('fetchr');
 let CLIENTS = require('../clients');
 const errorHandler = require('../utils/errorHandler');
 const userService = require('../services/userService');
+const apiUtils = require('../utils/apiUtils');
 const debug = require('debug')('AthenzUI:server:handlers:api');
 const cytoscape = require('cytoscape');
 let dagre = require('cytoscape-dagre');
@@ -511,6 +512,33 @@ Fetchr.registerService({
                 );
                 callback(errorHandler.fetcherError(err));
             });
+    },
+});
+
+Fetchr.registerService({
+    name: 'all-domain-list',
+    read(req, resource, params, config, callback) {
+        let domains = [];
+        req.clients.zms.getDomainList(function (err, json) {
+            if (err) {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error from ZMS while calling getDomainList API for AllDomainList: ${JSON.stringify(
+                        err
+                    )}`
+                );
+                return callback(errorHandler.fetcherError(err));
+            } else if (Array.isArray(json.names)) {
+                json.names.forEach((domainName) => {
+                    let domainData = { name: domainName, value: domainName };
+                    domains.push(domainData);
+                });
+                return callback(null, domains);
+            } else {
+                return callback(null, domains);
+            }
+        });
     },
 });
 
@@ -1383,96 +1411,11 @@ Fetchr.registerService({
             username = req.session.shortId;
         }
         params.principal = username;
-        Promise.all([
-            new Promise((resolve, reject) => {
-                req.clients.zms.getPendingDomainGroupMembersList(
-                    params,
-                    (err, data) => {
-                        if (err) {
-                            reject(err);
-                        }
-                        if (data) {
-                            resolve(data);
-                        }
-                    }
-                );
-            }),
-            new Promise((resolve, reject) => {
-                req.clients.zms.getPendingDomainRoleMembersList(
-                    params,
-                    (err, data) => {
-                        if (err) {
-                            reject(err);
-                        }
-                        if (data) {
-                            resolve(data);
-                        }
-                    }
-                );
-            }),
-        ])
-            .then((values) => {
-                let data = values[1];
-                let pendingMap = {};
-                data.domainRoleMembersList.forEach((domain) => {
-                    const domainName = domain.domainName;
-                    domain.members.forEach((member) => {
-                        const memberName = member.memberName;
-                        member.memberRoles.forEach((role) => {
-                            const roleName = role.roleName;
-                            const expiryDate = role.expiration;
-                            const userComment = role.auditRef;
-                            const key = domainName + memberName + roleName;
-                            pendingMap[key] = {
-                                category: 'role',
-                                domainName: domainName,
-                                memberName: memberName,
-                                memberNameFull:
-                                    userService.getUserFullName(memberName),
-                                roleName: roleName,
-                                userComment: userComment,
-                                auditRef: '',
-                                requestPrincipal: role.requestPrincipal,
-                                requestPrincipalFull:
-                                    userService.getUserFullName(
-                                        role.requestPrincipal
-                                    ),
-                                requestTime: role.requestTime,
-                                expiryDate: expiryDate,
-                            };
-                        });
-                    });
-                });
-                values[0].domainGroupMembersList.forEach((domain) => {
-                    const domainName = domain.domainName;
-                    domain.members.forEach((member) => {
-                        const memberName = member.memberName;
-                        member.memberGroups.forEach((group) => {
-                            const groupName = group.groupName;
-                            const expiryDate = group.expiration;
-                            const userComment = group.auditRef;
-                            const key = domainName + memberName + groupName;
-                            pendingMap[key] = {
-                                category: 'group',
-                                domainName: domainName,
-                                memberName: memberName,
-                                memberNameFull:
-                                    userService.getUserFullName(memberName),
-                                roleName: groupName,
-                                userComment: userComment,
-                                auditRef: '',
-                                requestPrincipal: group.requestPrincipal,
-                                requestPrincipalFull:
-                                    userService.getUserFullName(
-                                        group.requestPrincipal
-                                    ),
-                                requestTime: group.requestTime,
-                                expiryDate: expiryDate,
-                            };
-                        });
-                    });
-                });
+        let promises = apiUtils.getPendingDomainMembersPromise(params, req);
 
+        Promise.all(promises)
+            .then((values) => {
+                let pendingMap = apiUtils.getPendingDomainMemberData(values);
                 return callback(null, pendingMap);
             })
             .catch((err) => {
@@ -1480,7 +1423,7 @@ Fetchr.registerService({
                     debug(
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
-                        } Error from ZMS while calling domainRoleMemberList API: ${JSON.stringify(
+                        } Error from ZMS while calling getPendingDomainMembersList API: ${JSON.stringify(
                             err
                         )}`
                     );
@@ -1488,6 +1431,70 @@ Fetchr.registerService({
                 } else {
                     // 404 from domainRoleMemberList is ok, no pending approvals.
                     callback(null, []);
+                }
+            });
+    },
+});
+
+Fetchr.registerService({
+    name: 'pending-approval-domain',
+    read(req, resource, params, config, callback) {
+        if (params.domainName === null) {
+            return callback(null, []);
+        }
+
+        let promises = apiUtils.getPendingDomainMembersPromise(params, req);
+        Promise.all(promises)
+            .then((values) => {
+                let pendingMap = apiUtils.getPendingDomainMemberData(values);
+                return callback(null, pendingMap);
+            })
+            .catch((err) => {
+                if (err.status !== 404) {
+                    debug(
+                        `principal: ${req.session.shortId} rid: ${
+                            req.headers.rid
+                        } Error from ZMS while calling getPendingDomainMembersListByDomain API: ${JSON.stringify(
+                            err
+                        )}`
+                    );
+                    callback(errorHandler.fetcherError(err));
+                } else {
+                    // 404 from domainRoleMemberList is ok, no pending approvals.
+                    callback(null, []);
+                }
+            });
+    },
+});
+
+Fetchr.registerService({
+    name: 'pending-approval-domain-count',
+    read(req, resource, params, config, callback) {
+        if (params.domainName === null) {
+            return callback(null, 0);
+        }
+        let promises = apiUtils.getPendingDomainMembersPromise(params, req);
+        Promise.all(promises)
+            .then((values) => {
+                let count = 0;
+                count +=
+                    values[1].domainRoleMembersList.length +
+                    values[0].domainGroupMembersList.length;
+                return callback(null, count);
+            })
+            .catch((err) => {
+                if (err.status !== 404) {
+                    debug(
+                        `principal: ${req.session.shortId} rid: ${
+                            req.headers.rid
+                        } Error from ZMS while calling getPendingDomainMembersCountByDomain API: ${JSON.stringify(
+                            err
+                        )}`
+                    );
+                    callback(errorHandler.fetcherError(err));
+                } else {
+                    // 404 from domainRoleMemberList is ok, no pending approvals.
+                    callback(null, 0);
                 }
             });
     },

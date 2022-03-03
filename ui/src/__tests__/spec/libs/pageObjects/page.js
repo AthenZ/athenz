@@ -5,7 +5,7 @@ const {
     scrollBottom,
     scrollToEl,
     scrollTop,
-    textPresence
+    textPresence,
 } = require('../actions');
 const debug = require('debug')('AthenzUI:functional:page');
 /**
@@ -64,19 +64,27 @@ module.exports = class Page {
      * Open status.html page
      * @async
      */
-    async openStatus({ baseUrl = browser.config.baseUrl, pathname = '/status.html', query = {} } = {}) {
+    async openStatus({
+        baseUrl = browser.config.baseUrl,
+        pathname = '/status.html',
+        query = {},
+    } = {}) {
         const url = new URL(pathname, baseUrl);
         const urlString = url.toString();
         return browser.url(urlString);
     }
 
-    async setLoginCookies({ okta_at = '', okta_it = '', domain = '.dev-ui.zms.athens.yahoo.com'}) {
+    async setLoginCookies({
+        okta_at = '',
+        okta_it = '',
+        domain = '.dev-ui.zms.athens.yahoo.com',
+    }) {
         browser.setCookies({
             name: 'okta_it',
             value: okta_it,
             domain: domain,
             isSecure: true,
-            isHttpOnly: true
+            isHttpOnly: true,
         });
 
         browser.setCookies({
@@ -84,7 +92,7 @@ module.exports = class Page {
             value: okta_at,
             domain: domain,
             isSecure: true,
-            isHttpOnly: true
+            isHttpOnly: true,
         });
         return browser;
     }
@@ -94,7 +102,11 @@ module.exports = class Page {
      * @param {URL} obj URL class properties
      * @async
      */
-    async open({ baseUrl = browser.config.baseUrl, pathname = '/', query = {} } = {}) {
+    async open({
+        baseUrl = browser.config.baseUrl,
+        pathname = '/',
+        query = {},
+    } = {}) {
         const url = new URL(pathname, baseUrl);
         // url.search = new URLSearchParams({
         //     ...query
@@ -158,7 +170,7 @@ module.exports = class Page {
             const browserLogs = await browser.getLogs('performance');
             if (browserLogs.length) {
                 // ensure request was fired based on text
-                const request = browserLogs.filter(log => {
+                const request = browserLogs.filter((log) => {
                     const m = JSON.parse(log.message).message;
                     return (
                         m.method === 'Network.requestWillBeSent' &&

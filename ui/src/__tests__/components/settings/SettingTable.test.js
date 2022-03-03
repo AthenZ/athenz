@@ -20,7 +20,7 @@ import API from '../../../api';
 
 describe('SettingTable', () => {
     it('should render setting table', () => {
-        let domain= 'domain';
+        let domain = 'domain';
         let role = 'roleName';
         const roleDetails = {
             reviewEnabled: true,
@@ -29,10 +29,18 @@ describe('SettingTable', () => {
             serviceExpiryDays: 3,
             tokenExpiryMins: 15,
             certExpiryMins: 15,
-        }
+        };
 
         const { getByTestId } = render(
-            <SettingTable api={API()} category={'role'} domain={domain} collection={role} collectionDetails={roleDetails} justificationRequired={true} userAuthorityAttributes={[]} />
+            <SettingTable
+                api={API()}
+                category={'role'}
+                domain={domain}
+                collection={role}
+                collectionDetails={roleDetails}
+                justificationRequired={true}
+                userAuthorityAttributes={[]}
+            />
         );
         const settingTable = getByTestId('setting-table');
 

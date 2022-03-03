@@ -31,7 +31,7 @@ describe('server errorHandler test', () => {
         let err = {
             status: 403,
             message: {
-                message: 'err msg'
+                message: 'err msg',
             },
         };
         let errResp = errorHandler.fetcherError(err);

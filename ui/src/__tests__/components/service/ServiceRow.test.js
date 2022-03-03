@@ -59,13 +59,11 @@ describe('ServiceRow', () => {
             description: 'This is a service',
             publicKeys: [
                 {
-                    key:
-                        'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2…wQ1UKVFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t',
+                    key: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2…wQ1UKVFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t',
                     id: '0',
                 },
                 {
-                    key:
-                        'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2…wQ1UKVFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t',
+                    key: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2…wQ1UKVFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t',
                     id: '1',
                 },
             ],
@@ -73,7 +71,7 @@ describe('ServiceRow', () => {
         };
 
         const api = {
-            getService: function(domainName, serviceName) {
+            getService: function (domainName, serviceName) {
                 return new Promise((resolve, reject) => {
                     resolve(toReturn);
                 });
@@ -98,9 +96,7 @@ describe('ServiceRow', () => {
 
         fireEvent.click(getByTitle('key'));
 
-        expect(
-            await waitFor(() => getByText('Details'))
-        ).toMatchSnapshot();
+        expect(await waitFor(() => getByText('Details'))).toMatchSnapshot();
 
         expect(
             await waitFor(() => getByText(toReturn.description))
@@ -130,7 +126,7 @@ describe('ServiceRow', () => {
             allProviders: allProviders,
         };
         const api = {
-            getProvider: function(domainName, serviceName) {
+            getProvider: function (domainName, serviceName) {
                 return new Promise((resolve, reject) => {
                     resolve(toReturn);
                 });

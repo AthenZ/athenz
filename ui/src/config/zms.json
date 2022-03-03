@@ -383,6 +383,29 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
+                "name": "DomainList",
+                "comment": "A paginated list of domains.",
+                "fields": [
+                    {
+                        "name": "names",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of domain names",
+                        "items": "DomainName"
+                    },
+                    {
+                        "name": "next",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter."
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
                 "name": "RoleList",
                 "comment": "The representation for an enumeration of roles in the namespace, with pagination.",
                 "fields": [
@@ -1484,29 +1507,6 @@
         },
         {
             "StructTypeDef": {
-                "type": "Struct",
-                "name": "DomainList",
-                "comment": "A paginated list of domains.",
-                "fields": [
-                    {
-                        "name": "names",
-                        "type": "Array",
-                        "optional": false,
-                        "comment": "list of domain names",
-                        "items": "DomainName"
-                    },
-                    {
-                        "name": "next",
-                        "type": "String",
-                        "optional": true,
-                        "comment": "if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter."
-                    }
-                ],
-                "closed": false
-            }
-        },
-        {
-            "StructTypeDef": {
                 "type": "DomainMeta",
                 "name": "TopLevelDomain",
                 "comment": "Top Level Domain object. The required attributes include the name of the domain and list of domain administrators.",
@@ -1949,6 +1949,14 @@
                         "type": "Int32",
                         "optional": true,
                         "comment": "all services in the group will have specified max expiry days"
+                    },
+                    {
+                        "name": "tags",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "key-value pair tags, tag might contain multiple values",
+                        "items": "TagValueList",
+                        "keys": "CompoundName"
                     }
                 ],
                 "closed": false
@@ -2261,6 +2269,13 @@
                         "optional": true,
                         "comment": "optional flag indicating whether to create a default tenancy admin role",
                         "default": true
+                    },
+                    {
+                        "name": "skipPrincipalMember",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "optional flag indicating to skip adding the caller principal into the resource role",
+                        "default": false
                     }
                 ],
                 "closed": false
@@ -2736,6 +2751,104 @@
                         "comment": "map of type to attribute values",
                         "items": "UserAuthorityAttributes",
                         "keys": "SimpleName"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "Stats",
+                "comment": "The representation for a stats object",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "DomainName",
+                        "optional": true,
+                        "comment": "name of the domain object, null for system stats"
+                    },
+                    {
+                        "name": "subdomain",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "number of subdomains in this domain (all levels)"
+                    },
+                    {
+                        "name": "role",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "number of roles"
+                    },
+                    {
+                        "name": "roleMember",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "number of members in all the roles"
+                    },
+                    {
+                        "name": "policy",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "number of policies"
+                    },
+                    {
+                        "name": "assertion",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "total number of assertions in all policies"
+                    },
+                    {
+                        "name": "entity",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "total number of entity objects"
+                    },
+                    {
+                        "name": "service",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "number of services"
+                    },
+                    {
+                        "name": "serviceHost",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "number of hosts defined in all services"
+                    },
+                    {
+                        "name": "publicKey",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "number of public keys in all services"
+                    },
+                    {
+                        "name": "group",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "number of groups"
+                    },
+                    {
+                        "name": "groupMember",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "number of members in all the groups"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "DependentService",
+                "comment": "Dependent service provider details",
+                "fields": [
+                    {
+                        "name": "service",
+                        "type": "ServiceName",
+                        "optional": false,
+                        "comment": "name of the service"
                     }
                 ],
                 "closed": false
@@ -4735,9 +4848,7 @@
                 }
             ],
             "auth": {
-                "authenticate": false,
-                "action": "update",
-                "resource": "{domainName}:role.{roleName}"
+                "authenticate": true
             },
             "expected": "NO_CONTENT",
             "exceptions": {
@@ -4926,6 +5037,24 @@
                     "optional": false,
                     "flag": false,
                     "default": false
+                },
+                {
+                    "name": "tagKey",
+                    "type": "CompoundName",
+                    "comment": "flag to query all groups that have a given tagName",
+                    "pathParam": false,
+                    "queryParam": "tagKey",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "tagValue",
+                    "type": "CompoundName",
+                    "comment": "flag to query all groups that have a given tag name and value",
+                    "pathParam": false,
+                    "queryParam": "tagValue",
+                    "optional": true,
+                    "flag": false
                 }
             ],
             "auth": {
@@ -5750,6 +5879,15 @@
                     "comment": "If present, return pending list for this principal",
                     "pathParam": false,
                     "queryParam": "principal",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "domainName",
+                    "type": "String",
+                    "comment": "If present, return pending list for this domain",
+                    "pathParam": false,
+                    "queryParam": "domain",
                     "optional": true,
                     "flag": false
                 }
@@ -9090,6 +9228,15 @@
                     "queryParam": "principal",
                     "optional": true,
                     "flag": false
+                },
+                {
+                    "name": "domainName",
+                    "type": "String",
+                    "comment": "If present, return pending list for this domain",
+                    "pathParam": false,
+                    "queryParam": "domain",
+                    "optional": true,
+                    "flag": false
                 }
             ],
             "auth": {
@@ -9138,6 +9285,238 @@
                     "type": "ResourceError"
                 }
             }
+        },
+        {
+            "type": "Stats",
+            "method": "GET",
+            "path": "/domain/{name}/stats",
+            "comment": "Retrieve the stats object defined for the domain",
+            "inputs": [
+                {
+                    "name": "name",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "Stats",
+            "method": "GET",
+            "path": "/sys/stats",
+            "comment": "Retrieve the stats object defined for the system",
+            "auth": {
+                "authenticate": false,
+                "action": "get",
+                "resource": "sys.auth:stats"
+            },
+            "expected": "OK",
+            "exceptions": {
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getSystemStats"
+        },
+        {
+            "type": "DependentService",
+            "method": "PUT",
+            "path": "/dependency/domain/{domainName}",
+            "comment": "Register domain as a dependency to service There are two possible authorization checks for this endpoint: 1) System Administrator 2) Authorized Service Provider",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "service",
+                    "type": "DependentService",
+                    "comment": "Dependent service provider details",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "putDomainDependency"
+        },
+        {
+            "type": "ServiceName",
+            "method": "DELETE",
+            "path": "/dependency/domain/{domainName}/service/{service}",
+            "comment": "De-register domain as a dependency to service There are two possible authorization checks for this endpoint: 1) System Administrator 2) Authorized Service Provider",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "service",
+                    "type": "ServiceName",
+                    "comment": "name of the service",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "deleteDomainDependency"
+        },
+        {
+            "type": "ServiceIdentityList",
+            "method": "GET",
+            "path": "/dependency/domain/{domainName}",
+            "comment": "List registered services for domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getDependentServiceList"
+        },
+        {
+            "type": "DomainList",
+            "method": "GET",
+            "path": "/dependency/service/{service}",
+            "comment": "List dependent domains for service",
+            "inputs": [
+                {
+                    "name": "service",
+                    "type": "ServiceName",
+                    "comment": "name of the service",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getDependentDomainList"
         }
     ]
 }

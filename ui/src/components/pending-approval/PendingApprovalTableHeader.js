@@ -187,7 +187,7 @@ export default class PendingApprovalTableHeader extends React.Component {
                 <TableHeaderSelectAll>
                     <div> Select All </div>
                 </TableHeaderSelectAll>
-                <TableHeader />
+                {this.props.view === 'admin' && <TableHeader />}
                 <TableHeader />
                 <TableHeader colSpan={3} />
                 <TableHeader />

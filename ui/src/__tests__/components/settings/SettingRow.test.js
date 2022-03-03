@@ -20,7 +20,7 @@ import { colors } from '../../../components/denali/styles';
 
 describe('SettingRow', () => {
     it('should render switch type setting row', () => {
-        let domain= 'domain';
+        let domain = 'domain';
         let role = 'roleName';
         const roleDetails = {
             reviewEnabled: true,
@@ -29,7 +29,7 @@ describe('SettingRow', () => {
             serviceExpiryDays: 3,
             tokenExpiryMins: 15,
             certExpiryMins: 15,
-        }
+        };
         const { getByTestId } = render(
             <table>
                 <tbody>
@@ -53,7 +53,7 @@ describe('SettingRow', () => {
         expect(settingRow).toMatchSnapshot();
     });
     it('should render input type setting row', () => {
-        let domain= 'domain';
+        let domain = 'domain';
         let role = 'roleName';
         const roleDetails = {
             reviewEnabled: true,
@@ -62,7 +62,7 @@ describe('SettingRow', () => {
             serviceExpiryDays: 3,
             tokenExpiryMins: 15,
             certExpiryMins: 15,
-        }
+        };
         const { getByTestId } = render(
             <table>
                 <tbody>
@@ -74,7 +74,7 @@ describe('SettingRow', () => {
                         label='Test'
                         type='input'
                         desc='desc for testing'
-                        value={"15"}
+                        value={'15'}
                         justificationRequired={true}
                     />
                 </tbody>

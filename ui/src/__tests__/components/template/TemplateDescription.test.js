@@ -21,11 +21,14 @@ import { colors } from '../../../components/denali/styles';
 describe('TemplateDescription', () => {
     it('should render', () => {
         const color = colors.row;
-        const description = "test description";
+        const description = 'test description';
         const { getByTestId } = render(
             <table>
                 <tbody>
-                <TemplateDescription description={description} color={{color}} />
+                    <TemplateDescription
+                        description={description}
+                        color={{ color }}
+                    />
                 </tbody>
             </table>
         );

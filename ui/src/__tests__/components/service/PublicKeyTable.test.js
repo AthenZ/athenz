@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 import React from 'react';
-import {render, fireEvent, waitForElement, waitFor} from '@testing-library/react';
+import {
+    render,
+    fireEvent,
+    waitForElement,
+    waitFor,
+} from '@testing-library/react';
 import PublicKeyTable from '../../../components/service/PublicKeyTable';
 
 describe('PublicKeyTable', () => {
@@ -76,9 +81,7 @@ describe('PublicKeyTable', () => {
         );
         fireEvent.click(getByText('Add Key'));
 
-        expect(
-            await waitFor(() => getByTestId('add-key'))
-        ).toMatchSnapshot();
+        expect(await waitFor(() => getByTestId('add-key'))).toMatchSnapshot();
     });
 
     it('should render deleteKey after click trash icon', async () => {
@@ -214,7 +217,7 @@ describe('PublicKeyTable', () => {
         };
         const color = '';
         const api = {
-            deleteKey: function(domainName, serviceName, keyId, _csrf) {
+            deleteKey: function (domainName, serviceName, keyId, _csrf) {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 0,
@@ -263,7 +266,7 @@ describe('PublicKeyTable', () => {
         };
         const color = '';
         const api = {
-            deleteKey: function(domainName, serviceName, keyId, _csrf) {
+            deleteKey: function (domainName, serviceName, keyId, _csrf) {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 1,
@@ -315,12 +318,12 @@ describe('PublicKeyTable', () => {
         };
         const color = '';
         const api = {
-            deleteKey: function(domainName, serviceName, keyId, _csrf) {
+            deleteKey: function (domainName, serviceName, keyId, _csrf) {
                 return new Promise((resolve, reject) => {
                     resolve();
                 });
             },
-            getService: function(domainName, serviceName) {
+            getService: function (domainName, serviceName) {
                 return new Promise((resolve, reject) => {
                     resolve({
                         description: 'delete-succeed',
@@ -370,19 +373,19 @@ describe('PublicKeyTable', () => {
         };
         const color = '';
         const api = {
-            deleteKey: function(domainName, serviceName, keyId, _csrf) {
+            deleteKey: function (domainName, serviceName, keyId, _csrf) {
                 return new Promise((resolve, reject) => {
                     resolve();
                 });
             },
-            getService: function(domainName, serviceName) {
+            getService: function (domainName, serviceName) {
                 return new Promise((resolve, reject) => {
                     let err = {
                         statusCode: 404,
                         body: {
                             message: 'not found',
-                        }
-                    }
+                        },
+                    };
                     reject(err);
                 });
             },

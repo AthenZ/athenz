@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import JsonUtils from "../../../components/utils/JsonUtils";
+import JsonUtils from '../../../components/utils/JsonUtils';
 
 describe('JsonUtils', () => {
     it('should test', () => {
@@ -23,13 +23,15 @@ describe('JsonUtils', () => {
 
         let undefinedObj = {
             var1: undefined,
-            var2: 'test'
+            var2: 'test',
         };
-        let undefinedObjExpect = {var2: 'test'};
-        expect(JsonUtils.omitUndefined(undefinedObj)).toEqual(undefinedObjExpect);
+        let undefinedObjExpect = { var2: 'test' };
+        expect(JsonUtils.omitUndefined(undefinedObj)).toEqual(
+            undefinedObjExpect
+        );
 
         let varObj = {
-            var1: 'test'
+            var1: 'test',
         };
         expect(JsonUtils.omitUndefined(varObj)).toEqual(varObj);
     });

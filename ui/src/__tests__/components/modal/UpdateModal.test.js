@@ -20,10 +20,10 @@ import UpdateModal from '../../../components/modal/UpdateModal';
 describe('UpdateModal', () => {
     it('should render', () => {
         const isOpen = true;
-        const cancel = function() {};
+        const cancel = function () {};
         const message = 'test';
         const name = 'name';
-        const submit = function() {};
+        const submit = function () {};
         const { getByTestId } = render(
             <UpdateModal
                 isOpen={isOpen}

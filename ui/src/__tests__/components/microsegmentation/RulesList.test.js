@@ -16,44 +16,36 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import API from '../../../api';
-import RulesList from "../../../components/microsegmentation/RulesList";
+import RulesList from '../../../components/microsegmentation/RulesList';
 
 describe('RulesList', () => {
     it('should render', () => {
-        let domain= 'domain';
+        let domain = 'domain';
         let segmentationData = {
-            "inbound": [
+            inbound: [
                 {
-                    "source_service": "serviceA",
-                    "source_port": "1111",
-                    "destination_port": "2222",
-                    "destination_services": [
-                        "serviceB",
-                        "serviceC",
-                        "serviceD"
-                    ],
-                    "layer" : "tcp"
-                }
+                    source_service: 'serviceA',
+                    source_port: '1111',
+                    destination_port: '2222',
+                    destination_services: ['serviceB', 'serviceC', 'serviceD'],
+                    layer: 'tcp',
+                },
             ],
-            "outbound": [
+            outbound: [
                 {
-                    "source_service": "serviceE",
-                    "source_port": "3333",
-                    "destination_port": "4444",
-                    "destination_services": [
-                        "serviceF",
-                        "serviceG",
-                        "serviceH"
-                    ],
-                    "layer" : "udp"
-                }
-            ]
+                    source_service: 'serviceE',
+                    source_port: '3333',
+                    destination_port: '4444',
+                    destination_services: ['serviceF', 'serviceG', 'serviceH'],
+                    layer: 'udp',
+                },
+            ],
         };
         const { getByTestId } = render(
             <RulesList
                 api={API()}
                 domain={domain}
-                _csrf={"_csrf"}
+                _csrf={'_csrf'}
                 isDomainAuditEnabled={true}
                 data={segmentationData}
             />

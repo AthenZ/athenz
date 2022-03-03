@@ -17,31 +17,27 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import MemberTable from '../../../components/member/MemberTable';
 import API from '../../../api';
-import RuleTable from "../../../components/microsegmentation/RuleTable";
+import RuleTable from '../../../components/microsegmentation/RuleTable';
 
 describe('RuleTable', () => {
     it('should render rule table', () => {
-        let domain= 'domain';
+        let domain = 'domain';
         let data = [
             {
-                "source_service": "serviceA",
-                "source_port": "1111",
-                "destination_port": "2222",
-                "destination_services": [
-                    "serviceB",
-                    "serviceC",
-                    "serviceD"
-                ],
-                "layer" : "tcp"
-            }
-        ]
+                source_service: 'serviceA',
+                source_port: '1111',
+                destination_port: '2222',
+                destination_services: ['serviceB', 'serviceC', 'serviceD'],
+                layer: 'tcp',
+            },
+        ];
 
         const { getByTestId } = render(
             <RuleTable
                 category={'inbound'}
                 domain={domain}
                 api={API()}
-                _csrf={"_csrf"}
+                _csrf={'_csrf'}
                 data={data}
                 caption='Inbound'
             />

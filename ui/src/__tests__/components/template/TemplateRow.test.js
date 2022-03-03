@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import {fireEvent, render, waitFor} from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import TemplateRow from '../../../components/template/TemplateRow';
 import { colors } from '../../../components/denali/styles';
 
@@ -23,22 +23,24 @@ describe('TemplateRow', () => {
         return false;
     }
 
-    function returnTemplateName(){
-        return "aws";
+    function returnTemplateName() {
+        return 'aws';
     }
 
     it('should render templateRow', () => {
         const color = colors.row;
         const currentVersion = 0;
         const latestVersion = 1;
-        const keywordsToReplace = "";
+        const keywordsToReplace = '';
         const { getByTestId } = render(
             <table>
                 <tbody>
-                <TemplateRow currentVersion={currentVersion}
-                             latestVersion={latestVersion}
-                             keywordsToReplace={keywordsToReplace}
-                             color={color} />
+                    <TemplateRow
+                        currentVersion={currentVersion}
+                        latestVersion={latestVersion}
+                        keywordsToReplace={keywordsToReplace}
+                        color={color}
+                    />
                 </tbody>
             </table>
         );
@@ -50,16 +52,18 @@ describe('TemplateRow', () => {
         const color = colors.row;
         const currentVersion = 2;
         const latestVersion = 2;
-        const keywordsToReplace = "";
-        const templateDescription = "testing template description";
+        const keywordsToReplace = '';
+        const templateDescription = 'testing template description';
         const { getByTestId } = render(
             <table>
                 <tbody>
-                <TemplateRow currentVersion={currentVersion}
-                             latestVersion={latestVersion}
-                             keywordsToReplace={keywordsToReplace}
-                             color={color}
-                             description={templateDescription}/>
+                    <TemplateRow
+                        currentVersion={currentVersion}
+                        latestVersion={latestVersion}
+                        keywordsToReplace={keywordsToReplace}
+                        color={color}
+                        description={templateDescription}
+                    />
                 </tbody>
             </table>
         );
@@ -71,79 +75,80 @@ describe('TemplateRow', () => {
         const color = colors.row;
         const currentVersion = 2;
         const latestVersion = 2;
-        const keywordsToReplace = "";
-        const templateDescription = "testing template description";
-        const { getByTitle,  getByTestId,  } = render(
+        const keywordsToReplace = '';
+        const templateDescription = 'testing template description';
+        const { getByTitle, getByTestId } = render(
             <table>
                 <tbody>
-                <TemplateRow currentVersion={currentVersion}
-                             latestVersion={latestVersion}
-                             keywordsToReplace={keywordsToReplace}
-                             color={color}
-                             description={templateDescription}/>
+                    <TemplateRow
+                        currentVersion={currentVersion}
+                        latestVersion={latestVersion}
+                        keywordsToReplace={keywordsToReplace}
+                        color={color}
+                        description={templateDescription}
+                    />
                 </tbody>
             </table>
         );
-        await waitFor(() =>
-            fireEvent.click(getByTitle('information-circle'))
-        );
+        await waitFor(() => fireEvent.click(getByTitle('information-circle')));
 
         expect(
             await waitFor(() => getByTestId('template-row'))
         ).toMatchSnapshot();
     });
 
-
     it('should render templaterow with pop up', async () => {
         const color = colors.row;
         const currentVersion = 2;
         const latestVersion = 2;
-        const keywordsToReplace = "";
-        const templateDescription = "testing template description";
-        const templateName= 'aws';
-        const domain= 'testdom';
+        const keywordsToReplace = '';
+        const templateDescription = 'testing template description';
+        const templateName = 'aws';
+        const domain = 'testdom';
 
         let params = {
             name: domain,
             domainTemplate: { templateNames: [templateName] },
         };
 
-        let toReturn =
-            [{
-                "templateName": "aws",
-                "description": "AWS access template",
-                "currentVersion": 4,
-                "latestVersion": 1,
-                "timestamp": "2020-04-28T00:00:00.000Z",
-                "autoUpdate": false
-            }];
+        let toReturn = [
+            {
+                templateName: 'aws',
+                description: 'AWS access template',
+                currentVersion: 4,
+                latestVersion: 1,
+                timestamp: '2020-04-28T00:00:00.000Z',
+                autoUpdate: false,
+            },
+        ];
 
         const api = {
-            updateTemplate: function(params, csrf) {
+            updateTemplate: function (params, csrf) {
                 return new Promise((resolve, reject) => {
-                    resolve(toReturn); reject("error");
+                    resolve(toReturn);
+                    reject('error');
                 });
             },
         };
 
-        const {getByTestId } = render(
+        const { getByTestId } = render(
             <table>
                 <tbody>
-                <TemplateRow currentVersion={currentVersion}
-                             latestVersion={latestVersion}
-                             keywordsToReplace={keywordsToReplace}
-                             color={color}
-                             description={templateDescription}
-                             api={api}
-                             errorMessage={null}
-                             templateName={templateName}
-                             templateDesc={templateDescription}
-                             onClickUpdateTemplate={onClickUpdateTemplate()}
-                             domain={domain}
-                             onsubmit={returnTemplateName()}
-                             onCancel={onClickUpdateTemplate()}
-
-                />
+                    <TemplateRow
+                        currentVersion={currentVersion}
+                        latestVersion={latestVersion}
+                        keywordsToReplace={keywordsToReplace}
+                        color={color}
+                        description={templateDescription}
+                        api={api}
+                        errorMessage={null}
+                        templateName={templateName}
+                        templateDesc={templateDescription}
+                        onClickUpdateTemplate={onClickUpdateTemplate()}
+                        domain={domain}
+                        onsubmit={returnTemplateName()}
+                        onCancel={onClickUpdateTemplate()}
+                    />
                 </tbody>
             </table>
         );

@@ -15,8 +15,8 @@
  */
 import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react';
-import InstanceList from "../../../components/service/InstanceList";
-import API from "../../../api";
+import InstanceList from '../../../components/service/InstanceList';
+import API from '../../../api';
 
 describe('InstanceList', () => {
     it('should render for static', () => {
@@ -34,7 +34,8 @@ describe('InstanceList', () => {
                 _csrf={_csrf}
                 instances={instanceDetails}
                 service={service}
-            />);
+            />
+        );
         const instanceList = getByTestId('instancelist');
 
         expect(instanceList).toMatchSnapshot();
@@ -46,15 +47,15 @@ describe('InstanceList', () => {
         let _csrf = '_csrfToken';
         let instanceDetails = [
             {
-                "domainName": null,
-                "serviceName": null,
-                "uuid": "zms3",
-                "ipAddresses": ['74.6.35.54'],
-                "hostname": "NA",
-                "provider": "sys.openstack.openstack-classic",
-                "updateTime": "2021-04-09T19:32:17.000Z",
-                "certExpiryTime": "1970-01-01T00:00:00.000z"
-            }
+                domainName: null,
+                serviceName: null,
+                uuid: 'zms3',
+                ipAddresses: ['74.6.35.54'],
+                hostname: 'NA',
+                provider: 'sys.openstack.openstack-classic',
+                updateTime: '2021-04-09T19:32:17.000Z',
+                certExpiryTime: '1970-01-01T00:00:00.000z',
+            },
         ];
         let service = 'testService';
 
@@ -66,27 +67,19 @@ describe('InstanceList', () => {
                 _csrf={_csrf}
                 instances={instanceDetails}
                 service={service}
-            />);
+            />
+        );
         const instanceList = getByTestId('instancelist');
 
-        expect(
-            screen.getByPlaceholderText('Search')
-        ).toBeInTheDocument();
-        fireEvent.change(
-            screen.getByPlaceholderText("Select an option"),
-            {
-                target: { value: "Instance"},
-            }
-        );
+        expect(screen.getByPlaceholderText('Search')).toBeInTheDocument();
+        fireEvent.change(screen.getByPlaceholderText('Select an option'), {
+            target: { value: 'Instance' },
+        });
 
-        fireEvent.change(
-            screen.getByPlaceholderText('Search'),
-            {
-                target: { value: '74.6.35.54' },
-            }
-        );
+        fireEvent.change(screen.getByPlaceholderText('Search'), {
+            target: { value: '74.6.35.54' },
+        });
 
         expect(instanceList).toMatchSnapshot();
     });
-
 });

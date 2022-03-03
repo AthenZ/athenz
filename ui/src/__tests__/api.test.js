@@ -20,17 +20,17 @@ let api = API(req);
 const sinon = require('sinon');
 let myDataService, fetchrStub, result, myDataServiceErr;
 const DATA = {
-    a: 1
-}
+    a: 1,
+};
 
 describe('Fetchr Client API Test', () => {
     describe('listUserDomains test', () => {
         it('listUserDomains test success', async () => {
             myDataService = {
                 name: 'domain-list',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -40,9 +40,9 @@ describe('Fetchr Client API Test', () => {
         it('listUserDomains test error', async () => {
             myDataServiceErr = {
                 name: 'domain-list',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -56,9 +56,9 @@ describe('Fetchr Client API Test', () => {
         it('listAdminDomains test success', async () => {
             myDataService = {
                 name: 'admin-domains',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -68,9 +68,9 @@ describe('Fetchr Client API Test', () => {
         it('listAdminDomains test error', async () => {
             myDataServiceErr = {
                 name: 'admin-domains',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -84,9 +84,9 @@ describe('Fetchr Client API Test', () => {
         it('getDomain test success', async () => {
             myDataService = {
                 name: 'domain',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -96,9 +96,9 @@ describe('Fetchr Client API Test', () => {
         it('getDomain test error', async () => {
             myDataServiceErr = {
                 name: 'domain',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -112,27 +112,53 @@ describe('Fetchr Client API Test', () => {
         it('createSubDomain test success', async () => {
             myDataService = {
                 name: 'domain',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.createSubDomain('dummyParent', 'dummySub', 'user.admin', '1234');
+            result = await api.createSubDomain(
+                'dummyParent',
+                'dummySub',
+                'user.admin',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('createSubDomain test error', async () => {
             myDataServiceErr = {
                 name: 'domain',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.createSubDomain('dummyParent', 'dummySub', 'user.admin', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .createSubDomain(
+                    'dummyParent',
+                    'dummySub',
+                    'user.admin',
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -140,9 +166,16 @@ describe('Fetchr Client API Test', () => {
         it('createUserDomain test success', async () => {
             myDataService = {
                 name: 'domain',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -152,9 +185,16 @@ describe('Fetchr Client API Test', () => {
         it('createUserDomain test error', async () => {
             myDataServiceErr = {
                 name: 'domain',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -168,9 +208,9 @@ describe('Fetchr Client API Test', () => {
         it('getRoleMembers test success', async () => {
             myDataService = {
                 name: 'role-members',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -180,9 +220,9 @@ describe('Fetchr Client API Test', () => {
         it('getRoleMembers test error', async () => {
             myDataServiceErr = {
                 name: 'role-members',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -196,9 +236,9 @@ describe('Fetchr Client API Test', () => {
         it('listRoles test success', async () => {
             myDataService = {
                 name: 'roles',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -208,9 +248,9 @@ describe('Fetchr Client API Test', () => {
         it('listRoles test error', async () => {
             myDataServiceErr = {
                 name: 'roles',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -224,9 +264,9 @@ describe('Fetchr Client API Test', () => {
         it('getRoles test success', async () => {
             myDataService = {
                 name: 'roles',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -236,9 +276,9 @@ describe('Fetchr Client API Test', () => {
         it('getRoles test error', async () => {
             myDataServiceErr = {
                 name: 'roles',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -252,9 +292,9 @@ describe('Fetchr Client API Test', () => {
         it('getRole test success', async () => {
             myDataService = {
                 name: 'role',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -264,9 +304,9 @@ describe('Fetchr Client API Test', () => {
         it('getRole test error', async () => {
             myDataServiceErr = {
                 name: 'role',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -280,9 +320,9 @@ describe('Fetchr Client API Test', () => {
         it('getPendingDomainMembersList test success', async () => {
             myDataService = {
                 name: 'pending-approval',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -292,9 +332,9 @@ describe('Fetchr Client API Test', () => {
         it('getPendingDomainMembersList test error', async () => {
             myDataServiceErr = {
                 name: 'pending-approval',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -308,27 +348,57 @@ describe('Fetchr Client API Test', () => {
         it('processPending test success', async () => {
             myDataService = {
                 name: 'process-pending',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.processPending('dummyDom', 'dummyRole', 'dummyMem', 'dummyAuditRef', {}, '1234');
+            result = await api.processPending(
+                'dummyDom',
+                'dummyRole',
+                'dummyMem',
+                'dummyAuditRef',
+                {},
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('processPending test error', async () => {
             myDataServiceErr = {
                 name: 'process-pending',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.processPending('dummyDom', 'dummyRole', 'dummyMem', 'dummyAuditRef', {}, '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .processPending(
+                    'dummyDom',
+                    'dummyRole',
+                    'dummyMem',
+                    'dummyAuditRef',
+                    {},
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -336,27 +406,49 @@ describe('Fetchr Client API Test', () => {
         it('addRole test success', async () => {
             myDataService = {
                 name: 'role',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.addRole('dummyDom', 'dummyRole', {}, 'dummyAuditRef', '1234');
+            result = await api.addRole(
+                'dummyDom',
+                'dummyRole',
+                {},
+                'dummyAuditRef',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('addRole test error', async () => {
             myDataServiceErr = {
                 name: 'role',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.addRole('dummyDom', 'dummyRole', {}, 'dummyAuditRef', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .addRole('dummyDom', 'dummyRole', {}, 'dummyAuditRef', '1234')
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -364,27 +456,34 @@ describe('Fetchr Client API Test', () => {
         it('deleteRole test success', async () => {
             myDataService = {
                 name: 'role',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.deleteRole('dummyDom', 'dummyRole', 'dummyAuditRef', '1234');
+            result = await api.deleteRole(
+                'dummyDom',
+                'dummyRole',
+                'dummyAuditRef',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('deleteRole test error', async () => {
             myDataServiceErr = {
                 name: 'role',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.deleteRole('dummyDom', 'dummyRole', 'dummyAuditRef', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .deleteRole('dummyDom', 'dummyRole', 'dummyAuditRef', '1234')
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -392,27 +491,55 @@ describe('Fetchr Client API Test', () => {
         it('reviewRole test success', async () => {
             myDataService = {
                 name: 'role',
-                update: function (req, resource, params, body, config, callback){
+                update: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.reviewRole('dummyDom', 'dummyRole', {}, 'dummyAuditRef', '1234');
+            result = await api.reviewRole(
+                'dummyDom',
+                'dummyRole',
+                {},
+                'dummyAuditRef',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('reviewRole test error', async () => {
             myDataServiceErr = {
                 name: 'role',
-                update: function (req, resource, params, body, config, callback){
+                update: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.reviewRole('dummyDom', 'dummyRole', {}, 'dummyAuditRef', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .reviewRole(
+                    'dummyDom',
+                    'dummyRole',
+                    {},
+                    'dummyAuditRef',
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -420,27 +547,39 @@ describe('Fetchr Client API Test', () => {
         it('deleteRoleMember test success', async () => {
             myDataService = {
                 name: 'role-members',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.deleteRoleMember('dummyDom', 'dummyMember', 'dummyAuditRef', '1234');
+            result = await api.deleteRoleMember(
+                'dummyDom',
+                'dummyMember',
+                'dummyAuditRef',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('deleteRoleMember test error', async () => {
             myDataServiceErr = {
                 name: 'role-members',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.deleteRoleMember('dummyDom', 'dummyMember', 'dummyAuditRef', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .deleteRoleMember(
+                    'dummyDom',
+                    'dummyMember',
+                    'dummyAuditRef',
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -448,27 +587,57 @@ describe('Fetchr Client API Test', () => {
         it('addMember test success', async () => {
             myDataService = {
                 name: 'member',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.addMember('dummyDom', 'dummyRole', 'dummyMem', {},'dummyAuditRef',  '1234');
+            result = await api.addMember(
+                'dummyDom',
+                'dummyRole',
+                'dummyMem',
+                {},
+                'dummyAuditRef',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('addMember test error', async () => {
             myDataServiceErr = {
                 name: 'member',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.addMember('dummyDom', 'dummyRole', 'dummyMem', {},'dummyAuditRef', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .addMember(
+                    'dummyDom',
+                    'dummyRole',
+                    'dummyMem',
+                    {},
+                    'dummyAuditRef',
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -476,27 +645,57 @@ describe('Fetchr Client API Test', () => {
         it('addMemberToRoles test success', async () => {
             myDataService = {
                 name: 'member-multiple-roles',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.addMemberToRoles('dummyDom', 'dummyRole', 'dummyMem', {},'dummyAuditRef',  '1234');
+            result = await api.addMemberToRoles(
+                'dummyDom',
+                'dummyRole',
+                'dummyMem',
+                {},
+                'dummyAuditRef',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('addMemberToRoles test error', async () => {
             myDataServiceErr = {
                 name: 'member-multiple-roles',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.addMemberToRoles('dummyDom', 'dummyRole', 'dummyMem', {},'dummyAuditRef', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .addMemberToRoles(
+                    'dummyDom',
+                    'dummyRole',
+                    'dummyMem',
+                    {},
+                    'dummyAuditRef',
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -504,27 +703,41 @@ describe('Fetchr Client API Test', () => {
         it('deleteMember test success', async () => {
             myDataService = {
                 name: 'member',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.deleteMember('dummyDom', 'dummyRole', 'dummyMem','dummyAuditRef',  '1234');
+            result = await api.deleteMember(
+                'dummyDom',
+                'dummyRole',
+                'dummyMem',
+                'dummyAuditRef',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('deleteMember test error', async () => {
             myDataServiceErr = {
                 name: 'member',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.deleteMember('dummyDom', 'dummyRole', 'dummyMem','dummyAuditRef', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .deleteMember(
+                    'dummyDom',
+                    'dummyRole',
+                    'dummyMem',
+                    'dummyAuditRef',
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -532,27 +745,41 @@ describe('Fetchr Client API Test', () => {
         it('deletePendingMember test success', async () => {
             myDataService = {
                 name: 'member',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.deletePendingMember('dummyDom', 'dummyRole', 'dummyMem','dummyAuditRef',  '1234');
+            result = await api.deletePendingMember(
+                'dummyDom',
+                'dummyRole',
+                'dummyMem',
+                'dummyAuditRef',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('deletePendingMember test error', async () => {
             myDataServiceErr = {
                 name: 'member',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.deletePendingMember('dummyDom', 'dummyRole', 'dummyMem','dummyAuditRef', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .deletePendingMember(
+                    'dummyDom',
+                    'dummyRole',
+                    'dummyMem',
+                    'dummyAuditRef',
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -560,9 +787,9 @@ describe('Fetchr Client API Test', () => {
         it('getForm test success', async () => {
             myDataService = {
                 name: 'get-form',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -572,9 +799,9 @@ describe('Fetchr Client API Test', () => {
         it('getForm test error', async () => {
             myDataServiceErr = {
                 name: 'get-form',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -588,9 +815,9 @@ describe('Fetchr Client API Test', () => {
         it('searchDomains test success', async () => {
             myDataService = {
                 name: 'search-domain',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -600,9 +827,9 @@ describe('Fetchr Client API Test', () => {
         it('searchDomains test error', async () => {
             myDataServiceErr = {
                 name: 'search-domain',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -616,9 +843,9 @@ describe('Fetchr Client API Test', () => {
         it('getServices test success', async () => {
             myDataService = {
                 name: 'services',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -628,9 +855,9 @@ describe('Fetchr Client API Test', () => {
         it('getServices test error', async () => {
             myDataServiceErr = {
                 name: 'services',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -644,9 +871,9 @@ describe('Fetchr Client API Test', () => {
         it('getService test success', async () => {
             myDataService = {
                 name: 'service',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -656,9 +883,9 @@ describe('Fetchr Client API Test', () => {
         it('getService test error', async () => {
             myDataServiceErr = {
                 name: 'service',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -672,27 +899,59 @@ describe('Fetchr Client API Test', () => {
         it('addService test success', async () => {
             myDataService = {
                 name: 'service',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.addService('dummyDom', 'dummyRole', 'dummyMem', 'https://dummy','v0',  '1234', '1234');
+            result = await api.addService(
+                'dummyDom',
+                'dummyRole',
+                'dummyMem',
+                'https://dummy',
+                'v0',
+                '1234',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('addService test error', async () => {
             myDataServiceErr = {
                 name: 'service',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.addService('dummyDom', 'dummyRole', 'dummyMem', 'https://dummy','v0',  '1234', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .addService(
+                    'dummyDom',
+                    'dummyRole',
+                    'dummyMem',
+                    'https://dummy',
+                    'v0',
+                    '1234',
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -700,9 +959,9 @@ describe('Fetchr Client API Test', () => {
         it('deleteService test success', async () => {
             myDataService = {
                 name: 'service',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -712,15 +971,17 @@ describe('Fetchr Client API Test', () => {
         it('deleteService test error', async () => {
             myDataServiceErr = {
                 name: 'service',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.deleteService('dummyDom', 'dummyRole','1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .deleteService('dummyDom', 'dummyRole', '1234')
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -728,27 +989,55 @@ describe('Fetchr Client API Test', () => {
         it('addKey test success', async () => {
             myDataService = {
                 name: 'key',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.addKey('dummyDom', 'dummyRole', 'dummyMem', 'https://dummy','1234');
+            result = await api.addKey(
+                'dummyDom',
+                'dummyRole',
+                'dummyMem',
+                'https://dummy',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('addKey test error', async () => {
             myDataServiceErr = {
                 name: 'key',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.addKey('dummyDom', 'dummyRole', 'dummyMem', 'https://dummy','1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .addKey(
+                    'dummyDom',
+                    'dummyRole',
+                    'dummyMem',
+                    'https://dummy',
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -756,27 +1045,34 @@ describe('Fetchr Client API Test', () => {
         it('deleteKey test success', async () => {
             myDataService = {
                 name: 'key',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.deleteKey('dummyDom', 'dummyRole', '1234', '1234');
+            result = await api.deleteKey(
+                'dummyDom',
+                'dummyRole',
+                '1234',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('deleteKey test error', async () => {
             myDataServiceErr = {
                 name: 'key',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.deleteKey('dummyDom', 'dummyRole','1234', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .deleteKey('dummyDom', 'dummyRole', '1234', '1234')
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -784,27 +1080,53 @@ describe('Fetchr Client API Test', () => {
         it('allowProviderTemplate test success', async () => {
             myDataService = {
                 name: 'provider',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.allowProviderTemplate('dummyDom', 'dummyRole', 'dummyTemplate','1234');
+            result = await api.allowProviderTemplate(
+                'dummyDom',
+                'dummyRole',
+                'dummyTemplate',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('allowProviderTemplate test error', async () => {
             myDataServiceErr = {
                 name: 'provider',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.allowProviderTemplate('dummyDom', 'dummyRole', 'dummyTemplate','1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .allowProviderTemplate(
+                    'dummyDom',
+                    'dummyRole',
+                    'dummyTemplate',
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -812,9 +1134,9 @@ describe('Fetchr Client API Test', () => {
         it('getStatus test success', async () => {
             myDataService = {
                 name: 'status',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -824,9 +1146,9 @@ describe('Fetchr Client API Test', () => {
         it('getStatus test error', async () => {
             myDataServiceErr = {
                 name: 'status',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -840,9 +1162,9 @@ describe('Fetchr Client API Test', () => {
         it('getPolicy test success', async () => {
             myDataService = {
                 name: 'policy',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -852,9 +1174,9 @@ describe('Fetchr Client API Test', () => {
         it('getPolicy test error', async () => {
             myDataServiceErr = {
                 name: 'policy',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -868,9 +1190,9 @@ describe('Fetchr Client API Test', () => {
         it('getProvider test success', async () => {
             myDataService = {
                 name: 'provider',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -880,9 +1202,9 @@ describe('Fetchr Client API Test', () => {
         it('getProvider test error', async () => {
             myDataServiceErr = {
                 name: 'provider',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -896,9 +1218,9 @@ describe('Fetchr Client API Test', () => {
         it('getPolicies test success', async () => {
             myDataService = {
                 name: 'policies',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -908,9 +1230,9 @@ describe('Fetchr Client API Test', () => {
         it('getPolicies test error', async () => {
             myDataServiceErr = {
                 name: 'policies',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -924,27 +1246,61 @@ describe('Fetchr Client API Test', () => {
         it('addPolicy test success', async () => {
             myDataService = {
                 name: 'policy',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.addPolicy('dummyDom', 'dummyPol', 'dummyRole', 'dummyResource', 'get', 'allow', true, '1234');
+            result = await api.addPolicy(
+                'dummyDom',
+                'dummyPol',
+                'dummyRole',
+                'dummyResource',
+                'get',
+                'allow',
+                true,
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('addPolicy test error', async () => {
             myDataServiceErr = {
                 name: 'policy',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.addPolicy('dummyDom', 'dummyPol', 'dummyRole', 'dummyResource', 'get', 'allow', true, '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .addPolicy(
+                    'dummyDom',
+                    'dummyPol',
+                    'dummyRole',
+                    'dummyResource',
+                    'get',
+                    'allow',
+                    true,
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -952,9 +1308,9 @@ describe('Fetchr Client API Test', () => {
         it('deletePolicy test success', async () => {
             myDataService = {
                 name: 'policy',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -964,15 +1320,17 @@ describe('Fetchr Client API Test', () => {
         it('deletePolicy test error', async () => {
             myDataServiceErr = {
                 name: 'policy',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.deletePolicy('dummyDom', 'dummyRole','1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .deletePolicy('dummyDom', 'dummyRole', '1234')
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -980,27 +1338,41 @@ describe('Fetchr Client API Test', () => {
         it('getHistory test success', async () => {
             myDataService = {
                 name: 'domain-history',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.getHistory('dummyDom', 'ALL', '2020-01-01T00:00:00Z', '2020-01-01T00:00:00Z', '1234');
+            result = await api.getHistory(
+                'dummyDom',
+                'ALL',
+                '2020-01-01T00:00:00Z',
+                '2020-01-01T00:00:00Z',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('getHistory test error', async () => {
             myDataServiceErr = {
                 name: 'domain-history',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.getHistory('dummyDom', 'ALL', '2020-01-01T00:00:00Z', '2020-01-01T00:00:00Z', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .getHistory(
+                    'dummyDom',
+                    'ALL',
+                    '2020-01-01T00:00:00Z',
+                    '2020-01-01T00:00:00Z',
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -1008,27 +1380,61 @@ describe('Fetchr Client API Test', () => {
         it('addAssertion test success', async () => {
             myDataService = {
                 name: 'assertion',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.addAssertion('dummyDom', 'dummyPol', 'dummyRole', 'dummyResource', 'get', 'allow', true, '1234');
+            result = await api.addAssertion(
+                'dummyDom',
+                'dummyPol',
+                'dummyRole',
+                'dummyResource',
+                'get',
+                'allow',
+                true,
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('addAssertion test error', async () => {
             myDataServiceErr = {
                 name: 'assertion',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.addAssertion('dummyDom', 'dummyPol', 'dummyRole', 'dummyResource', 'get', 'allow', true, '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .addAssertion(
+                    'dummyDom',
+                    'dummyPol',
+                    'dummyRole',
+                    'dummyResource',
+                    'get',
+                    'allow',
+                    true,
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -1036,27 +1442,34 @@ describe('Fetchr Client API Test', () => {
         it('deleteAssertion test success', async () => {
             myDataService = {
                 name: 'assertion',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.deleteAssertion('dummyDom', 'dummyRole', 'dummyAsser','1234');
+            result = await api.deleteAssertion(
+                'dummyDom',
+                'dummyRole',
+                'dummyAsser',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('deleteAssertion test error', async () => {
             myDataServiceErr = {
                 name: 'assertion',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.deleteAssertion('dummyDom', 'dummyRole','dummyAsser','1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .deleteAssertion('dummyDom', 'dummyRole', 'dummyAsser', '1234')
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -1064,27 +1477,34 @@ describe('Fetchr Client API Test', () => {
         it('deleteSubDomain test success', async () => {
             myDataService = {
                 name: 'domain',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.deleteSubDomain('dummyDom', 'dummyRole', 'dummy','1234');
+            result = await api.deleteSubDomain(
+                'dummyDom',
+                'dummyRole',
+                'dummy',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('deleteSubDomain test error', async () => {
             myDataServiceErr = {
                 name: 'domain',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.deleteSubDomain('dummyDom', 'dummyRole','dummy','1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .deleteSubDomain('dummyDom', 'dummyRole', 'dummy', '1234')
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -1092,27 +1512,49 @@ describe('Fetchr Client API Test', () => {
         it('putMeta test success', async () => {
             myDataService = {
                 name: 'role-meta',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.putMeta('dummyDom', 'dummyRole', {}, 'dummyRef','1234');
+            result = await api.putMeta(
+                'dummyDom',
+                'dummyRole',
+                {},
+                'dummyRef',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('putMeta test error', async () => {
             myDataServiceErr = {
                 name: 'meta',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.putMeta('dummyDom', 'dummyRole', {}, 'dummyRef','1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .putMeta('dummyDom', 'dummyRole', {}, 'dummyRef', '1234')
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -1120,9 +1562,9 @@ describe('Fetchr Client API Test', () => {
         it('isAWSTemplateApplied test success', async () => {
             myDataService = {
                 name: 'domain-templates',
-                read: function (req, resource, params, config, callback){
-                    callback(null, {templateNames: 'test'});
-                }
+                read: function (req, resource, params, config, callback) {
+                    callback(null, { templateNames: 'test' });
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -1132,9 +1574,9 @@ describe('Fetchr Client API Test', () => {
         it('isAWSTemplateApplied test error', async () => {
             myDataServiceErr = {
                 name: 'domain-templates',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -1148,27 +1590,47 @@ describe('Fetchr Client API Test', () => {
         it('applyAWSTemplates test success', async () => {
             myDataService = {
                 name: 'domain-templates',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.applyAWSTemplates('dummyDom','dummyRef','1234');
+            result = await api.applyAWSTemplates(
+                'dummyDom',
+                'dummyRef',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('applyAWSTemplates test error', async () => {
             myDataServiceErr = {
                 name: 'domain-templates',
-                create: function (req, resource, params, body, config, callback){
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.applyAWSTemplates('dummyDom','dummyRef','1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .applyAWSTemplates('dummyDom', 'dummyRef', '1234')
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -1176,9 +1638,9 @@ describe('Fetchr Client API Test', () => {
         it('getAuthOptions test success', async () => {
             myDataService = {
                 name: 'auth-options',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -1188,9 +1650,9 @@ describe('Fetchr Client API Test', () => {
         it('getAuthOptions test error', async () => {
             myDataServiceErr = {
                 name: 'auth-options',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -1204,9 +1666,9 @@ describe('Fetchr Client API Test', () => {
         it('getHeaderDetails test success', async () => {
             myDataService = {
                 name: 'header-details',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -1216,9 +1678,9 @@ describe('Fetchr Client API Test', () => {
         it('getHeaderDetails test error', async () => {
             myDataServiceErr = {
                 name: 'header-details',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -1232,9 +1694,9 @@ describe('Fetchr Client API Test', () => {
         it('getServicePageConfig test success', async () => {
             myDataService = {
                 name: 'service-page-config',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -1244,9 +1706,9 @@ describe('Fetchr Client API Test', () => {
         it('getServicePageConfig test error', async () => {
             myDataServiceErr = {
                 name: 'service-page-config',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
@@ -1262,7 +1724,7 @@ describe('Fetchr Client API Test', () => {
                 name: 'templates',
                 read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
@@ -1275,27 +1737,43 @@ describe('Fetchr Client API Test', () => {
         it('deleteTransportRule test success', async () => {
             myDataService = {
                 name: 'transport-rule',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.deleteTransportRule('dummyDom', 'dummyPol', '123', 'dummyRole', 'dummyAuditRef', '1234');
+            result = await api.deleteTransportRule(
+                'dummyDom',
+                'dummyPol',
+                '123',
+                'dummyRole',
+                'dummyAuditRef',
+                '1234'
+            );
             expect(result).toEqual(DATA);
         });
         it('deleteTransportRule test error', async () => {
             myDataServiceErr = {
                 name: 'transport-rule',
-                delete: function (req, resource, params, config, callback){
+                delete: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.deleteTransportRule('dummyDom', 'dummyPol', '123', 'dummyRole', 'dummyAuditRef', '1234').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .deleteTransportRule(
+                    'dummyDom',
+                    'dummyPol',
+                    '123',
+                    'dummyRole',
+                    'dummyAuditRef',
+                    '1234'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -1303,27 +1781,43 @@ describe('Fetchr Client API Test', () => {
         it('validateMicrosegmentationPolicy test success', async () => {
             myDataService = {
                 name: 'validateMicrosegmentation',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.validateMicrosegmentationPolicy('inbound', 'dummyRoleMembers', 'service1', 'service2', '123-234', '1024');
+            result = await api.validateMicrosegmentationPolicy(
+                'inbound',
+                'dummyRoleMembers',
+                'service1',
+                'service2',
+                '123-234',
+                '1024'
+            );
             expect(result).toEqual(DATA);
         });
         it('validateMicrosegmentationPolicy test error', async () => {
             myDataServiceErr = {
                 name: 'validateMicrosegmentation',
-                read: function (req, resource, params, config, callback){
+                read: function (req, resource, params, config, callback) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.validateMicrosegmentationPolicy('inbound', 'dummyRoleMembers', 'service1', 'service2', '123-234', '1024').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .validateMicrosegmentationPolicy(
+                    'inbound',
+                    'dummyRoleMembers',
+                    'service1',
+                    'service2',
+                    '123-234',
+                    '1024'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });
@@ -1331,27 +1825,57 @@ describe('Fetchr Client API Test', () => {
         it('editMicrosegmentation test success', async () => {
             myDataService = {
                 name: 'microsegmentation',
-                update: function (req, resource, params, body, config, callback) {
+                update: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.editMicrosegmentation('domain1', 'false', 'false', 'true', 'dummyData', '1024');
+            result = await api.editMicrosegmentation(
+                'domain1',
+                'false',
+                'false',
+                'true',
+                'dummyData',
+                '1024'
+            );
             expect(result).toEqual(DATA);
         });
         it('editMicrosegmentation test error', async () => {
             myDataServiceErr = {
                 name: 'microsegmentation',
-                update: function (req, resource, params, body, config, callback) {
+                update: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
-                }
+                },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.editMicrosegmentation('domain1', 'false', 'false', 'true', 'dummyData', '1024').catch((err) => {
-                expect(err).not.toBeNull();
-            });
+            await api
+                .editMicrosegmentation(
+                    'domain1',
+                    'false',
+                    'false',
+                    'true',
+                    'dummyData',
+                    '1024'
+                )
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
         });
         afterEach(() => fetchrStub.restore());
     });

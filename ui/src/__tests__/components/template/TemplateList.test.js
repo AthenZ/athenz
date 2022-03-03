@@ -28,34 +28,36 @@ describe('TemplateList', () => {
     it('should render with metadata array', () => {
         const left = 'left';
         const center = 'center';
-        let toReturn =
-            [{
-                "templateName": "aws",
-                "description": "AWS access template",
-                "currentVersion": 4,
-                "latestVersion": 1,
-                "timestamp": "2020-04-28T00:00:00.000Z",
-                "autoUpdate": false
-            }];
+        let toReturn = [
+            {
+                templateName: 'aws',
+                description: 'AWS access template',
+                currentVersion: 4,
+                latestVersion: 1,
+                timestamp: '2020-04-28T00:00:00.000Z',
+                autoUpdate: false,
+            },
+        ];
 
         const api = {
-            updateTemplate: function(params, csrf) {
+            updateTemplate: function (params, csrf) {
                 return new Promise((resolve, reject) => {
                     resolve(toReturn);
                 });
             },
         };
 
-        const { getByTestId } = render(<TemplateList
-            left ={left}
-            center = {center}
-            list={toReturn}
-            serverTemplateDetails={toReturn}
-            api = {api}
-        />);
+        const { getByTestId } = render(
+            <TemplateList
+                left={left}
+                center={center}
+                list={toReturn}
+                serverTemplateDetails={toReturn}
+                api={api}
+            />
+        );
         const templatelist = getByTestId('template-list');
 
         expect(templatelist).toMatchSnapshot();
     });
-
 });

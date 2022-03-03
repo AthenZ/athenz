@@ -17,9 +17,17 @@ let domainHistory = require('../../../server/handlers/domain-history');
 
 describe('domain-history test', () => {
     test('should get history record(s)', () => {
-        domainHistory({}, {}, {}, {}, (err, data) => {
-            expect(data).not.toBeNull();
-            expect(data.length).toEqual(1);
-        }, {}, {});
+        domainHistory(
+            {},
+            {},
+            {},
+            {},
+            (err, data) => {
+                expect(data).not.toBeNull();
+                expect(data.length).toEqual(1);
+            },
+            {},
+            {}
+        );
     });
 });

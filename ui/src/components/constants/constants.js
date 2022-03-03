@@ -160,3 +160,19 @@ export const MICROSEG_CONDITION_DELETE_JUSTIFICATION =
     'Microsegmentation Assertion Condition deletion';
 export const MICROSEG_TRANSPORT_RULE_DELETE_JUSTIFICATION =
     'Microsegmentation Transport Rule deletion';
+export const WORKFLOW_ADMIN_VIEW_TAB = 'Admin View';
+export const WORKFLOW_DOMAIN_VIEW_TAB = 'Domain View';
+export const WORKFLOW_DOMAIN_VIEW_DROPDOWN_PLACEHOLDER =
+    'Select a Domain to View Pending Members';
+export const VIEW_PENDING_MEMBERS_BY_DOMAIN_TITLE =
+    'View Pending Members by Domain';
+export const WORKFLOW_TABS = [
+    {
+        label: WORKFLOW_ADMIN_VIEW_TAB,
+        name: 'admin',
+    },
+    {
+        label: WORKFLOW_DOMAIN_VIEW_TAB,
+        name: 'domain',
+    },
+];

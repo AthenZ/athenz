@@ -19,7 +19,8 @@ jest.mock('fs');
 jest.mock('@athenz/auth-core');
 
 const MOCK_FILE_INFO = {
-    'keys/athenz.unit-test.pem': '-----BEGIN RSA PRIVATE KEY-----\n' +
+    'keys/athenz.unit-test.pem':
+        '-----BEGIN RSA PRIVATE KEY-----\n' +
         'MIIEowIBAAKCAQEAwTcE1vkGLw1fpsmJX1snyktMfhCJi73yDnNMPxp07Fh4r4ta\n' +
         '/N+5WOI4Xmmu9RoJ+ttwecdHZl/vHiJYUx+g8gRMqDrW8NjLbzEBLjSeB7eQ2RBs\n' +
         'OlL7dSjzYlPy3T/ZX32gbs9Cg/XzZifGl9TyaOOLZKkBAGb5goR+5D5enlgQvtr+\n' +

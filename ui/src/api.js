@@ -51,6 +51,18 @@ const Api = (req) => {
             });
         },
 
+        listAllDomains() {
+            return new Promise((resolve, reject) => {
+                fetchr.read('all-domain-list').end((err, data) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(data);
+                    }
+                });
+            });
+        },
+
         listAdminDomains(roleName) {
             return new Promise((resolve, reject) => {
                 fetchr
@@ -348,6 +360,36 @@ const Api = (req) => {
                         resolve(data);
                     }
                 });
+            });
+        },
+
+        getPendingDomainMembersListByDomain(domainName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('pending-approval-domain')
+                    .params({ domainName: domainName })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        getPendingDomainMembersCountByDomain(domainName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('pending-approval-domain-count')
+                    .params({ domainName: domainName })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
             });
         },
 

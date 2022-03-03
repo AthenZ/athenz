@@ -22,10 +22,11 @@ import Head from 'next/head';
 import RequestUtils from '../../../components/utils/RequestUtils';
 import Error from '../../_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
 import DomainDetails from '../../../components/header/DomainDetails';
 import Tabs from '../../../components/header/Tabs';
 import RulesList from '../../../components/microsegmentation/RulesList';
+import DomainNameHeader from '../../../components/header/DomainNameHeader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -89,12 +90,13 @@ export async function getServerSideProps(context) {
         api.getFeatureFlag(),
         api.getMeta(bServicesParams),
         api.getMeta(bServicesParamsAll),
-        api.getPageFeatureFlag("microsegmentation"),
+        api.getPageFeatureFlag('microsegmentation'),
+        api.getPendingDomainMembersCountByDomain(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
     });
     let businessServiceOptions = [];
     if (data[9] && data[9].validValues) {
@@ -148,7 +150,8 @@ export async function getServerSideProps(context) {
             validBusinessServices: businessServiceOptions,
             validBusinessServicesAll: businessServiceOptionsAll,
             pageFeatureFlag: data[11],
-        }
+            domainPendingMemberCount: data[12],
+        },
     };
 }
 
@@ -173,10 +176,10 @@ export default class MicrosegmentationPage extends React.Component {
         } = this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
         return (
             <CacheProvider value={this.cache}>
@@ -194,7 +197,13 @@ export default class MicrosegmentationPage extends React.Component {
                             <RolesContainerDiv>
                                 <RolesContentDiv>
                                     <PageHeaderDiv>
-                                        <TitleDiv>{domain}</TitleDiv>
+                                        <DomainNameHeader
+                                            domainName={this.props.domain}
+                                            pendingCount={
+                                                this.props
+                                                    .domainPendingMemberCount
+                                            }
+                                        />
                                         <DomainDetails
                                             domainDetails={domainDetails}
                                             api={this.api}
@@ -224,7 +233,9 @@ export default class MicrosegmentationPage extends React.Component {
                                         _csrf={_csrf}
                                         isDomainAuditEnabled={auditEnabled}
                                         data={segmentationData}
-                                        pageFeatureFlag={this.props.pageFeatureFlag}
+                                        pageFeatureFlag={
+                                            this.props.pageFeatureFlag
+                                        }
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>

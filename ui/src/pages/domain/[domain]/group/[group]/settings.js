@@ -26,9 +26,9 @@ import NameHeader from '../../../../../components/header/NameHeader';
 import Error from '../../../../_error';
 import GroupTabs from '../../../../../components/header/GroupTabs';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
 import SettingTable from '../../../../../components/settings/SettingTable';
-import JsonUtils from "../../../../../components/utils/JsonUtils";
+import JsonUtils from '../../../../../components/utils/JsonUtils';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -95,7 +95,7 @@ export async function getServerSideProps(context) {
             _csrf: groups[5],
             userAuthorityAttributes: groups[6],
             nonce: context.req.headers.rid,
-        }
+        },
     };
 }
 
@@ -110,14 +110,14 @@ export default class GroupSettingsPage extends React.Component {
     }
 
     render() {
-        const {domain, reload, groupDetails, group, auditEnabled, _csrf} =
+        const { domain, reload, groupDetails, group, auditEnabled, _csrf } =
             this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
         return (
             <CacheProvider value={this.cache}>

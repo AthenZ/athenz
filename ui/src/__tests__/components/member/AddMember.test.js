@@ -15,13 +15,13 @@
  */
 import React from 'react';
 import { render } from '@testing-library/react';
-import AddMember from "../../../components/member/AddMember";
-import API from "../../../api";
+import AddMember from '../../../components/member/AddMember';
+import API from '../../../api';
 
 describe('AddMember', () => {
     it('should render', () => {
         let domain = 'domain';
-        let role ='roleName';
+        let role = 'roleName';
         const onCancelMock = jest.fn();
         const { getByTestId } = render(
             <AddMember

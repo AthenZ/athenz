@@ -23,13 +23,13 @@ import Head from 'next/head';
 import RequestUtils from '../../../../../../components/utils/RequestUtils';
 import Error from '../../../../../_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
 import ServiceTabs from '../../../../../../components/header/ServiceTabs';
 import ServiceNameHeader from '../../../../../../components/header/ServiceNameHeader';
 import InstanceList from '../../../../../../components/service/InstanceList';
 import ServiceInstanceDetails from '../../../../../../components/header/ServiceInstanceDetails';
-import {SERVICE_TYPE_STATIC} from '../../../../../../components/constants/constants';
-import JsonUtils from "../../../../../../components/utils/JsonUtils";
+import { SERVICE_TYPE_STATIC } from '../../../../../../components/constants/constants';
+import JsonUtils from '../../../../../../components/utils/JsonUtils';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -96,13 +96,11 @@ export async function getServerSideProps(context) {
             _csrf: data[5],
             nonce: context.req.headers.rid,
             serviceHeaderDetails: data[6].static,
-        }
+        },
     };
 }
 
 export default class StaticInstancePage extends React.Component {
-
-
     constructor(props) {
         super(props);
         this.api = API();
@@ -123,10 +121,10 @@ export default class StaticInstancePage extends React.Component {
         } = this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
         return (
             <CacheProvider value={this.cache}>

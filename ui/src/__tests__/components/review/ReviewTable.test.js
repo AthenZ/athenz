@@ -21,7 +21,7 @@ import API from '../../../api';
 describe('ReviewTable', () => {
     it('should render review table', () => {
         let members = [];
-        let domain= 'domain';
+        let domain = 'domain';
         let role = 'roleName';
         const roleDetails = {
             memberExpiryDays: 15,
@@ -30,30 +30,37 @@ describe('ReviewTable', () => {
             memberReviewDays: null,
             serviceReviewDays: null,
             groupReviewDays: null,
-        }
+        };
         let user1 = {
             memberName: 'user1',
             approved: true,
-        }
+        };
         let user2 = {
             memberName: 'user2',
             approved: false,
-        }
+        };
         let user3 = {
             memberName: 'user3',
             approved: false,
-        }
+        };
         let user4 = {
             memberName: 'user4',
             approved: true,
-        }
+        };
         members.push(user1);
         members.push(user2);
         members.push(user3);
         members.push(user4);
 
         const { getByTestId } = render(
-            <ReviewTable api={API()} domain={domain} role={role} roleDetails={roleDetails} members={members} justificationRequired={true} />
+            <ReviewTable
+                api={API()}
+                domain={domain}
+                role={role}
+                roleDetails={roleDetails}
+                members={members}
+                justificationRequired={true}
+            />
         );
         const reviewTable = getByTestId('review-table');
 
@@ -61,7 +68,7 @@ describe('ReviewTable', () => {
     });
     it('should render review table with reminder settings', () => {
         let members = [];
-        let domain= 'domain';
+        let domain = 'domain';
         let role = 'roleName';
         const roleDetails = {
             memberExpiryDays: null,
@@ -70,30 +77,37 @@ describe('ReviewTable', () => {
             memberReviewDays: 5,
             serviceReviewDays: 10,
             groupReviewDays: 15,
-        }
+        };
         let user1 = {
             memberName: 'user1',
             approved: true,
-        }
+        };
         let user2 = {
             memberName: 'user2',
             approved: false,
-        }
+        };
         let user3 = {
             memberName: 'user3',
             approved: false,
-        }
+        };
         let user4 = {
             memberName: 'user4',
             approved: true,
-        }
+        };
         members.push(user1);
         members.push(user2);
         members.push(user3);
         members.push(user4);
 
         const { getByTestId } = render(
-            <ReviewTable api={API()} domain={domain} role={role} roleDetails={roleDetails} members={members} justificationRequired={true} />
+            <ReviewTable
+                api={API()}
+                domain={domain}
+                role={role}
+                roleDetails={roleDetails}
+                members={members}
+                justificationRequired={true}
+            />
         );
         const reviewTableReminder = getByTestId('review-table');
 
@@ -101,7 +115,7 @@ describe('ReviewTable', () => {
     });
     it('should render review table without expiry settings', () => {
         let members = [];
-        let domain= 'domain';
+        let domain = 'domain';
         let role = 'roleName';
         const roleDetails = {
             memberExpiryDays: null,
@@ -110,30 +124,37 @@ describe('ReviewTable', () => {
             memberReviewDays: null,
             serviceReviewDays: null,
             groupReviewDays: null,
-        }
+        };
         let user1 = {
             memberName: 'user1',
             approved: true,
-        }
+        };
         let user2 = {
             memberName: 'user2',
             approved: false,
-        }
+        };
         let user3 = {
             memberName: 'user3',
             approved: false,
-        }
+        };
         let user4 = {
             memberName: 'user4',
             approved: true,
-        }
+        };
         members.push(user1);
         members.push(user2);
         members.push(user3);
         members.push(user4);
 
         const { getByTestId } = render(
-            <ReviewTable api={API()} domain={domain} role={role} roleDetails={roleDetails} members={members} justificationRequired={true} />
+            <ReviewTable
+                api={API()}
+                domain={domain}
+                role={role}
+                roleDetails={roleDetails}
+                members={members}
+                justificationRequired={true}
+            />
         );
         const reviewTableNoSettings = getByTestId('review-table');
 

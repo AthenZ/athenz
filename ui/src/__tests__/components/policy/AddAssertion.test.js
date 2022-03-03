@@ -19,7 +19,7 @@ import AddAssertion from '../../../components/policy/AddAssertion';
 
 describe('AddAssertion', () => {
     it('should render', () => {
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {
             listRoles(domain) {
@@ -36,7 +36,7 @@ describe('AddAssertion', () => {
     });
 
     it('should render failed to submit action is required', () => {
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {
             listRoles(domain) {
@@ -57,7 +57,7 @@ describe('AddAssertion', () => {
     });
 
     it('should render failed to submit role name is required', () => {
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {
             listRoles(domain) {

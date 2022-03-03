@@ -14,23 +14,26 @@
  * limitations under the License.
  */
 import React from 'react';
-import {render, fireEvent, waitFor, waitForElement} from '@testing-library/react';
+import {
+    render,
+    fireEvent,
+    waitFor,
+    waitForElement,
+} from '@testing-library/react';
 import AddService from '../../../components/service/AddService';
 const pageConfig = {
     servicePageConfig: {
         keyCreationLink: {
             title: 'Key Creation',
-            url:
-                'https://test.com',
+            url: 'https://test.com',
             target: '_blank',
         },
-        keyCreationMessage:
-            'Test Message',
-    }
+        keyCreationMessage: 'Test Message',
+    },
 };
 describe('AddService', () => {
     it('should render', () => {
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {};
         const { getByTestId } = render(
@@ -47,10 +50,10 @@ describe('AddService', () => {
     });
 
     it('should render error after addService throws error(refresh)', async () => {
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {
-            addService: function(
+            addService: function (
                 domainName,
                 serviceName,
                 description,
@@ -65,10 +68,7 @@ describe('AddService', () => {
                     });
                 });
             },
-            getService: function(
-                domainName,
-                serviceName
-            ) {
+            getService: function (domainName, serviceName) {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 404,
@@ -79,20 +79,16 @@ describe('AddService', () => {
                 });
             },
         };
-        const {
-            getByTestId,
-            querySelector,
-            getByText,
-            getAllByTestId,
-        } = render(
-            <AddService
-                onCancel={cancel}
-                domain={domain}
-                api={api}
-                showAddService={true}
-                pageConfig={pageConfig}
-            />
-        );
+        const { getByTestId, querySelector, getByText, getAllByTestId } =
+            render(
+                <AddService
+                    onCancel={cancel}
+                    domain={domain}
+                    api={api}
+                    showAddService={true}
+                    pageConfig={pageConfig}
+                />
+            );
         const addServiceInput = await waitFor(() =>
             getAllByTestId('input-node')
         );
@@ -113,10 +109,10 @@ describe('AddService', () => {
     });
 
     it('should render error after addService throws error(other)', async () => {
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {
-            addService: function(
+            addService: function (
                 domainName,
                 serviceName,
                 description,
@@ -134,10 +130,7 @@ describe('AddService', () => {
                     });
                 });
             },
-            getService: function(
-                domainName,
-                serviceName,
-            ) {
+            getService: function (domainName, serviceName) {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 404,
@@ -148,20 +141,16 @@ describe('AddService', () => {
                 });
             },
         };
-        const {
-            getByTestId,
-            querySelector,
-            getByText,
-            getAllByTestId,
-        } = render(
-            <AddService
-                onCancel={cancel}
-                domain={domain}
-                api={api}
-                showAddService={true}
-                pageConfig={pageConfig}
-            />
-        );
+        const { getByTestId, querySelector, getByText, getAllByTestId } =
+            render(
+                <AddService
+                    onCancel={cancel}
+                    domain={domain}
+                    api={api}
+                    showAddService={true}
+                    pageConfig={pageConfig}
+                />
+            );
         const addServiceInput = await waitFor(() =>
             getAllByTestId('input-node')
         );
@@ -182,14 +171,14 @@ describe('AddService', () => {
     });
 
     it('should call onSubmit if add succeeds', async () => {
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         let test = 0;
-        const onSubmit = function(succedMessage) {
+        const onSubmit = function (succedMessage) {
             test = test + 1;
         };
         const api = {
-            addService: function(
+            addService: function (
                 domainName,
                 serviceName,
                 description,
@@ -202,10 +191,7 @@ describe('AddService', () => {
                     resolve();
                 });
             },
-            getService: function(
-                domainName,
-                serviceName,
-            ) {
+            getService: function (domainName, serviceName) {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 404,
@@ -216,21 +202,17 @@ describe('AddService', () => {
                 });
             },
         };
-        const {
-            getByTestId,
-            querySelector,
-            getByText,
-            getAllByTestId,
-        } = render(
-            <AddService
-                onCancel={cancel}
-                domain={domain}
-                api={api}
-                showAddService={true}
-                onSubmit={onSubmit}
-                pageConfig={pageConfig}
-            />
-        );
+        const { getByTestId, querySelector, getByText, getAllByTestId } =
+            render(
+                <AddService
+                    onCancel={cancel}
+                    domain={domain}
+                    api={api}
+                    showAddService={true}
+                    onSubmit={onSubmit}
+                    pageConfig={pageConfig}
+                />
+            );
         const addServiceInput = await waitFor(() =>
             getAllByTestId('input-node')
         );
@@ -249,10 +231,10 @@ describe('AddService', () => {
     });
 
     it('should render error if no key name specified', async () => {
-        const cancel = function() {};
+        const cancel = function () {};
         const domain = 'domain';
         const api = {
-            addService: function(
+            addService: function (
                 domainName,
                 serviceName,
                 description,
@@ -267,20 +249,16 @@ describe('AddService', () => {
             },
         };
 
-        const {
-            getByTestId,
-            querySelector,
-            getByText,
-            getAllByTestId,
-        } = render(
-            <AddService
-                onCancel={cancel}
-                domain={domain}
-                api={api}
-                showAddService={true}
-                pageConfig={pageConfig}
-            />
-        );
+        const { getByTestId, querySelector, getByText, getAllByTestId } =
+            render(
+                <AddService
+                    onCancel={cancel}
+                    domain={domain}
+                    api={api}
+                    showAddService={true}
+                    pageConfig={pageConfig}
+                />
+            );
         fireEvent.click(await waitFor(() => getByText('Submit')));
         expect(
             await waitFor(() => getByTestId('error-message'))
@@ -288,8 +266,7 @@ describe('AddService', () => {
     });
 
     it('should render error when service already exists', async () => {
-        const cancel = function () {
-        };
+        const cancel = function () {};
         const domain = 'domain';
         const api = {
             addService: function (
@@ -310,29 +287,22 @@ describe('AddService', () => {
                     });
                 });
             },
-            getService: function (
-                domainName,
-                serviceName,
-            ) {
+            getService: function (domainName, serviceName) {
                 return new Promise((resolve, reject) => {
                     resolve();
                 });
             },
         };
-        const {
-            getByTestId,
-            querySelector,
-            getByText,
-            getAllByTestId,
-        } = render(
-            <AddService
-                onCancel={cancel}
-                domain={domain}
-                api={api}
-                showAddService={true}
-                pageConfig={pageConfig}
-            />
-        );
+        const { getByTestId, querySelector, getByText, getAllByTestId } =
+            render(
+                <AddService
+                    onCancel={cancel}
+                    domain={domain}
+                    api={api}
+                    showAddService={true}
+                    pageConfig={pageConfig}
+                />
+            );
         const addServiceInput = await waitFor(() =>
             getAllByTestId('input-node')
         );
@@ -353,8 +323,7 @@ describe('AddService', () => {
     });
 
     it('should render error when after getService throws error(other)', async () => {
-        const cancel = function () {
-        };
+        const cancel = function () {};
         const domain = 'domain';
         const api = {
             addService: function (
@@ -375,10 +344,7 @@ describe('AddService', () => {
                     });
                 });
             },
-            getService: function (
-                domainName,
-                serviceName,
-            ) {
+            getService: function (domainName, serviceName) {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 0,
@@ -386,20 +352,16 @@ describe('AddService', () => {
                 });
             },
         };
-        const {
-            getByTestId,
-            querySelector,
-            getByText,
-            getAllByTestId,
-        } = render(
-            <AddService
-                onCancel={cancel}
-                domain={domain}
-                api={api}
-                showAddService={true}
-                pageConfig={pageConfig}
-            />
-        );
+        const { getByTestId, querySelector, getByText, getAllByTestId } =
+            render(
+                <AddService
+                    onCancel={cancel}
+                    domain={domain}
+                    api={api}
+                    showAddService={true}
+                    pageConfig={pageConfig}
+                />
+            );
         const addServiceInput = await waitFor(() =>
             getAllByTestId('input-node')
         );

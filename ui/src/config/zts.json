@@ -356,6 +356,18 @@
                         "type": "Bool",
                         "optional": true,
                         "comment": "If true, we should store action and resource in their original case"
+                    },
+                    {
+                        "name": "version",
+                        "type": "SimpleName",
+                        "optional": true,
+                        "comment": "optional version string, defaults to 0"
+                    },
+                    {
+                        "name": "active",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "if multi-version policy then indicates active version"
                     }
                 ],
                 "closed": false
@@ -398,13 +410,13 @@
                     {
                         "name": "zmsSignature",
                         "type": "String",
-                        "optional": false,
+                        "optional": true,
                         "comment": "zms signature generated based on the domain policies object"
                     },
                     {
                         "name": "zmsKeyId",
                         "type": "String",
-                        "optional": false,
+                        "optional": true,
                         "comment": "the identifier of the zms key used to generate the signature"
                     },
                     {
@@ -454,17 +466,66 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
-                "name": "RoleToken",
-                "comment": "A representation of a signed RoleToken",
+                "name": "JWSPolicyData",
+                "comment": "SignedPolicyData using flattened JWS JSON Serialization syntax. https://tools.ietf.org/html/rfc7515#section-7.2.2",
                 "fields": [
                     {
-                        "name": "token",
+                        "name": "payload",
                         "type": "String",
                         "optional": false
                     },
                     {
-                        "name": "expiryTime",
-                        "type": "Int64",
+                        "name": "protected",
+                        "type": "String",
+                        "optional": false
+                    },
+                    {
+                        "name": "header",
+                        "type": "Map",
+                        "optional": false,
+                        "items": "String",
+                        "keys": "String"
+                    },
+                    {
+                        "name": "signature",
+                        "type": "String",
+                        "optional": false
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "SignedPolicyRequest",
+                "fields": [
+                    {
+                        "name": "policyVersions",
+                        "type": "Map",
+                        "optional": false,
+                        "items": "String",
+                        "keys": "String"
+                    },
+                    {
+                        "name": "signatureP1363Format",
+                        "type": "Bool",
+                        "optional": false,
+                        "comment": "true if signature must be in P1363 format instead of ASN.1 DER"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "RoleCertificate",
+                "comment": "Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate",
+                "fields": [
+                    {
+                        "name": "x509Certificate",
+                        "type": "String",
                         "optional": false
                     }
                 ],
@@ -475,18 +536,67 @@
             "StructTypeDef": {
                 "type": "Struct",
                 "name": "RoleCertificateRequest",
-                "comment": "RoleCertificateRequest - a certificate signing request",
+                "comment": "RoleCertificateRequest - a certificate signing request. By including the optional previous Certificate NotBefore and NotAfter dates would all the server to correctly prioritize this request in case the certificate signer is under heavy load and it can't sign all submitted requests from the Athenz Server.",
                 "fields": [
                     {
                         "name": "csr",
                         "type": "String",
-                        "optional": false
+                        "optional": false,
+                        "comment": "role certificate singing request"
                     },
                     {
                         "name": "proxyForPrincipal",
                         "type": "EntityName",
                         "optional": true,
                         "comment": "this request is proxy for this principal"
+                    },
+                    {
+                        "name": "expiryTime",
+                        "type": "Int64",
+                        "optional": false,
+                        "comment": "request an expiry time for the role certificate"
+                    },
+                    {
+                        "name": "prevCertNotBefore",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "previous role certificate not before date"
+                    },
+                    {
+                        "name": "prevCertNotAfter",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "previous role certificate not after date"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "RoleAccess",
+                "fields": [
+                    {
+                        "name": "roles",
+                        "type": "Array",
+                        "optional": false,
+                        "items": "EntityName"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "RoleToken",
+                "comment": "A representation of a signed RoleToken",
+                "fields": [
+                    {
+                        "name": "token",
+                        "type": "String",
+                        "optional": false
                     },
                     {
                         "name": "expiryTime",
@@ -508,21 +618,6 @@
                         "type": "Bool",
                         "optional": false,
                         "comment": "true (allowed) or false (denied)"
-                    }
-                ],
-                "closed": false
-            }
-        },
-        {
-            "StructTypeDef": {
-                "type": "Struct",
-                "name": "RoleAccess",
-                "fields": [
-                    {
-                        "name": "roles",
-                        "type": "Array",
-                        "optional": false,
-                        "items": "EntityName"
                     }
                 ],
                 "closed": false
@@ -689,6 +784,212 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
+                "name": "SSHCertRequestData",
+                "fields": [
+                    {
+                        "name": "principals",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "principals in the ssh certificate (usually only one)",
+                        "items": "String"
+                    },
+                    {
+                        "name": "sources",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "source FQDNs or ip addresses",
+                        "items": "String"
+                    },
+                    {
+                        "name": "destinations",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "destination FQDNs or ip addresses",
+                        "items": "String"
+                    },
+                    {
+                        "name": "publicKey",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "public key for ssh certificate"
+                    },
+                    {
+                        "name": "touchPublicKey",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "yubikey/touch public key for ssh certificate"
+                    },
+                    {
+                        "name": "caPubKeyAlgo",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "CA public key algorithm: 0: Unknown, 1: RSA, 3: ECDSA"
+                    },
+                    {
+                        "name": "command",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "optional force command option for certificate"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "SSHCertRequestMeta",
+                "fields": [
+                    {
+                        "name": "requestor",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "requesting user"
+                    },
+                    {
+                        "name": "origin",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "origin FQDN or ip"
+                    },
+                    {
+                        "name": "clientInfo",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "client info"
+                    },
+                    {
+                        "name": "sshClientVersion",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "ssh client version"
+                    },
+                    {
+                        "name": "certType",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "cert type - user or host"
+                    },
+                    {
+                        "name": "keyIdPrincipals",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "principals included in the keyId field in the certificate",
+                        "items": "String"
+                    },
+                    {
+                        "name": "athenzService",
+                        "type": "EntityName",
+                        "optional": true,
+                        "comment": "ssh host cert request is for this athenz service"
+                    },
+                    {
+                        "name": "instanceId",
+                        "type": "PathElement",
+                        "optional": true,
+                        "comment": "ssh host cert request is for this instance id"
+                    },
+                    {
+                        "name": "prevCertValidFrom",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "previous ssh certificate validity from date"
+                    },
+                    {
+                        "name": "prevCertValidTo",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "previous ssh certificate validity to date"
+                    },
+                    {
+                        "name": "transId",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "ssh request transaction id"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "SSHCertRequest",
+                "fields": [
+                    {
+                        "name": "certRequestData",
+                        "type": "SSHCertRequestData",
+                        "optional": false,
+                        "comment": "ssh certificate request data"
+                    },
+                    {
+                        "name": "certRequestMeta",
+                        "type": "SSHCertRequestMeta",
+                        "optional": false,
+                        "comment": "ssh certificate request meta"
+                    },
+                    {
+                        "name": "csr",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "free-form csr if not using data/meta fields."
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "SSHCertificate",
+                "fields": [
+                    {
+                        "name": "certificate",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "the SSH certificate, signed by the CA"
+                    },
+                    {
+                        "name": "publicKey",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "certificate public key if generated by SSH RA"
+                    },
+                    {
+                        "name": "privateKey",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "certificate private key if generated by SSH Agent"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "SSHCertificates",
+                "fields": [
+                    {
+                        "name": "certificates",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "set of user ssh certificates",
+                        "items": "SSHCertificate"
+                    },
+                    {
+                        "name": "certificateSigner",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "the SSH CA's public key for the sshCertificate (user or host)"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
                 "name": "InstanceRegisterInformation",
                 "fields": [
                     {
@@ -725,7 +1026,13 @@
                         "name": "ssh",
                         "type": "String",
                         "optional": true,
-                        "comment": "if present, return an SSH host certificate. Format is JSON."
+                        "comment": "deprecated - use sshCertRequest, if present, return an SSH host certificate. Format is JSON."
+                    },
+                    {
+                        "name": "sshCertRequest",
+                        "type": "SSHCertRequest",
+                        "optional": true,
+                        "comment": "if present, return an SSH host certificate"
                     },
                     {
                         "name": "token",
@@ -777,7 +1084,13 @@
                         "name": "ssh",
                         "type": "String",
                         "optional": true,
-                        "comment": "if present, return an SSH host certificate. Format is JSON."
+                        "comment": "deprecated - use sshCertRequest, if present, return an SSH host certificate. Format is JSON."
+                    },
+                    {
+                        "name": "sshCertRequest",
+                        "type": "SSHCertRequest",
+                        "optional": true,
+                        "comment": "if present, return an SSH host certificate"
                     },
                     {
                         "name": "token",
@@ -1064,175 +1377,6 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
-                "name": "SSHCertRequestData",
-                "fields": [
-                    {
-                        "name": "principals",
-                        "type": "Array",
-                        "optional": false,
-                        "comment": "principals in the ssh certificate (usually only one)",
-                        "items": "String"
-                    },
-                    {
-                        "name": "sources",
-                        "type": "Array",
-                        "optional": true,
-                        "comment": "source FQDNs or ip addresses",
-                        "items": "String"
-                    },
-                    {
-                        "name": "destinations",
-                        "type": "Array",
-                        "optional": true,
-                        "comment": "destination FQDNs or ip addresses",
-                        "items": "String"
-                    },
-                    {
-                        "name": "publicKey",
-                        "type": "String",
-                        "optional": true,
-                        "comment": "public key for ssh certificate"
-                    },
-                    {
-                        "name": "touchPublicKey",
-                        "type": "String",
-                        "optional": true,
-                        "comment": "yubikey/touch public key for ssh certificate"
-                    }
-                ],
-                "closed": false
-            }
-        },
-        {
-            "StructTypeDef": {
-                "type": "Struct",
-                "name": "SSHCertRequestMeta",
-                "fields": [
-                    {
-                        "name": "requestor",
-                        "type": "String",
-                        "optional": false,
-                        "comment": "requesting user"
-                    },
-                    {
-                        "name": "origin",
-                        "type": "String",
-                        "optional": false,
-                        "comment": "origin FQDN or ip"
-                    },
-                    {
-                        "name": "clientInfo",
-                        "type": "String",
-                        "optional": true,
-                        "comment": "client info"
-                    },
-                    {
-                        "name": "sshClientVersion",
-                        "type": "String",
-                        "optional": true,
-                        "comment": "ssh client version"
-                    },
-                    {
-                        "name": "certType",
-                        "type": "String",
-                        "optional": false,
-                        "comment": "cert type - user or host"
-                    },
-                    {
-                        "name": "athenzService",
-                        "type": "EntityName",
-                        "optional": true,
-                        "comment": "ssh host cert request is for this athenz service"
-                    },
-                    {
-                        "name": "instanceId",
-                        "type": "PathElement",
-                        "optional": true,
-                        "comment": "ssh host cert request is for this instance id"
-                    }
-                ],
-                "closed": false
-            }
-        },
-        {
-            "StructTypeDef": {
-                "type": "Struct",
-                "name": "SSHCertRequest",
-                "fields": [
-                    {
-                        "name": "certRequestData",
-                        "type": "SSHCertRequestData",
-                        "optional": false,
-                        "comment": "ssh certificate request data"
-                    },
-                    {
-                        "name": "certRequestMeta",
-                        "type": "SSHCertRequestMeta",
-                        "optional": false,
-                        "comment": "ssh certificate request meta"
-                    },
-                    {
-                        "name": "csr",
-                        "type": "String",
-                        "optional": true,
-                        "comment": "free-form csr if not using data/meta fields."
-                    }
-                ],
-                "closed": false
-            }
-        },
-        {
-            "StructTypeDef": {
-                "type": "Struct",
-                "name": "SSHCertificate",
-                "fields": [
-                    {
-                        "name": "certificate",
-                        "type": "String",
-                        "optional": false,
-                        "comment": "the SSH certificate, signed by the CA"
-                    },
-                    {
-                        "name": "publicKey",
-                        "type": "String",
-                        "optional": true,
-                        "comment": "certificate public key if generated by SSH RA"
-                    },
-                    {
-                        "name": "privateKey",
-                        "type": "String",
-                        "optional": true,
-                        "comment": "certificate private key if generated by SSH Agent"
-                    }
-                ],
-                "closed": false
-            }
-        },
-        {
-            "StructTypeDef": {
-                "type": "Struct",
-                "name": "SSHCertificates",
-                "fields": [
-                    {
-                        "name": "certificates",
-                        "type": "Array",
-                        "optional": false,
-                        "comment": "set of user ssh certificates",
-                        "items": "SSHCertificate"
-                    },
-                    {
-                        "name": "certificateSigner",
-                        "type": "String",
-                        "optional": true,
-                        "comment": "the SSH CA's public key for the sshCertificate (user or host)"
-                    }
-                ],
-                "closed": false
-            }
-        },
-        {
-            "StructTypeDef": {
-                "type": "Struct",
                 "name": "AccessTokenResponse",
                 "fields": [
                     {
@@ -1341,6 +1485,115 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
+                "name": "OpenIDConfig",
+                "fields": [
+                    {
+                        "name": "issuer",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "url using the https scheme"
+                    },
+                    {
+                        "name": "authorization_endpoint",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "oauth 2.0 authorization endpoint url"
+                    },
+                    {
+                        "name": "jwks_uri",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "public server jwk set url"
+                    },
+                    {
+                        "name": "response_types_supported",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of supported response types",
+                        "items": "String"
+                    },
+                    {
+                        "name": "subject_types_supported",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of supported subject identifier types",
+                        "items": "String"
+                    },
+                    {
+                        "name": "id_token_signing_alg_values_supported",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of supported algorithms for issued id tokens",
+                        "items": "String"
+                    },
+                    {
+                        "name": "claims_supported",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "list of supported id claims",
+                        "items": "String"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "OAuthConfig",
+                "fields": [
+                    {
+                        "name": "issuer",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "url using the https scheme"
+                    },
+                    {
+                        "name": "authorization_endpoint",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "oauth 2.0 authorization endpoint url"
+                    },
+                    {
+                        "name": "token_endpoint",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "authorization server token endpoint"
+                    },
+                    {
+                        "name": "jwks_uri",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "public server jwk set url"
+                    },
+                    {
+                        "name": "response_types_supported",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of supported response types",
+                        "items": "String"
+                    },
+                    {
+                        "name": "grant_types_supported",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "supported grant types",
+                        "items": "String"
+                    },
+                    {
+                        "name": "token_endpoint_auth_signing_alg_values_supported",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of supported algorithms for issued access tokens",
+                        "items": "String"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
                 "name": "JWKList",
                 "comment": "JSON Web Key (JWK) List",
                 "fields": [
@@ -1358,11 +1611,10 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
-                "name": "RoleCertificate",
-                "comment": "Copyright 2019 Oath Holdings Inc Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate",
+                "name": "OIDCResponse",
                 "fields": [
                     {
-                        "name": "x509Certificate",
+                        "name": "location",
                         "type": "String",
                         "optional": false
                     }
@@ -1793,6 +2045,60 @@
                     "type": "DomainName",
                     "comment": "name of the domain",
                     "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "matchingTag",
+                    "type": "String",
+                    "comment": "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time",
+                    "pathParam": false,
+                    "header": "If-None-Match",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "tag",
+                    "type": "String",
+                    "header": "ETag",
+                    "comment": "The current latest modification timestamp is returned in this header",
+                    "optional": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "SignedPolicyRequest",
+            "method": "POST",
+            "path": "/domain/{domainName}/policy/signed",
+            "comment": "Get a signed policy enumeration from the service, to transfer to a local store. An ETag is generated for the PolicyList that changes when any item in the list changes. If the If-None-Match header is provided, and it matches the ETag that would be returned, then a NOT_MODIFIED response is returned instead of the list.",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "request",
+                    "type": "SignedPolicyRequest",
+                    "comment": "policy version request details",
+                    "pathParam": false,
                     "optional": false,
                     "flag": false
                 },
@@ -2386,7 +2692,7 @@
             "type": "InstanceIdentity",
             "method": "DELETE",
             "path": "/instance/{provider}/{domain}/{service}/{instanceId}",
-            "comment": "Delete the given service instance certificate record thus blocking any future refresh requests from the given instance for this service",
+            "comment": "Delete the given service instance certificate record thus blocking any future refresh requests from the given instance for this service There are two possible authorization checks for this endpoint: 1) domain admin: authorize(\"delete\", \"{domain}:instance.{instanceId}\") the authorized user can remove the instance record from the datastore 2) provider itself: if the identity of the caller is the provider itself then the provider is notifying ZTS that the instance was deleted",
             "inputs": [
                 {
                     "name": "provider",
@@ -2422,9 +2728,7 @@
                 }
             ],
             "auth": {
-                "authenticate": false,
-                "action": "delete",
-                "resource": "{domain}:instance.{instanceId}"
+                "authenticate": true
             },
             "expected": "NO_CONTENT",
             "exceptions": {
@@ -2531,6 +2835,28 @@
             }
         },
         {
+            "type": "OpenIDConfig",
+            "method": "GET",
+            "path": "/.well-known/openid-configuration",
+            "expected": "OK",
+            "exceptions": {
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "OAuthConfig",
+            "method": "GET",
+            "path": "/.well-known/oauth-authorization-server",
+            "expected": "OK",
+            "exceptions": {
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
             "type": "JWKList",
             "method": "GET",
             "path": "/oauth2/keys",
@@ -2546,6 +2872,28 @@
                     "default": false
                 }
             ],
+            "expected": "OK",
+            "exceptions": {
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "AccessTokenRequest",
+            "method": "POST",
+            "path": "/oauth2/token",
+            "comment": "Fetch OAuth2 Access Token",
+            "inputs": [
+                {
+                    "name": "request",
+                    "type": "AccessTokenRequest",
+                    "comment": "token request details include scope",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
             "auth": {
                 "authenticate": true
             },
@@ -2559,26 +2907,95 @@
                 },
                 "NOT_FOUND": {
                     "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
                 }
             }
         },
         {
-            "type": "AccessTokenRequest",
-            "method": "POST",
-            "path": "/oauth2/token",
+            "type": "OIDCResponse",
+            "method": "GET",
+            "path": "/oauth2/auth",
+            "comment": "Fetch OAuth OpenID Connect ID Token",
             "inputs": [
                 {
-                    "name": "request",
-                    "type": "AccessTokenRequest",
+                    "name": "responseType",
+                    "type": "String",
+                    "comment": "response type - currently only supporting id tokens - id_token",
                     "pathParam": false,
-                    "optional": false,
+                    "queryParam": "response_type",
+                    "optional": true,
                     "flag": false
+                },
+                {
+                    "name": "clientId",
+                    "type": "ServiceName",
+                    "comment": "client id - must be valid athenz service identity name",
+                    "pathParam": false,
+                    "queryParam": "client_id",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "redirectUri",
+                    "type": "String",
+                    "comment": "redirect uri for the response",
+                    "pathParam": false,
+                    "queryParam": "redirect_uri",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "scope",
+                    "type": "String",
+                    "comment": "id token scope",
+                    "pathParam": false,
+                    "queryParam": "scope",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "state",
+                    "type": "EntityName",
+                    "comment": "optional state claim included in the response location header",
+                    "pathParam": false,
+                    "queryParam": "state",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "nonce",
+                    "type": "EntityName",
+                    "comment": "nonce claim included in the id token",
+                    "pathParam": false,
+                    "queryParam": "nonce",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "keyType",
+                    "type": "SimpleName",
+                    "comment": "optional signing key type - RSA or EC. Might be ignored if server doesn't have the requested type configured",
+                    "pathParam": false,
+                    "queryParam": "keyType",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "location",
+                    "type": "String",
+                    "header": "Location",
+                    "comment": "return location header with id token",
+                    "optional": false
                 }
             ],
             "auth": {
                 "authenticate": true
             },
-            "expected": "OK",
+            "expected": "FOUND",
             "exceptions": {
                 "UNAUTHORIZED": {
                     "type": "ResourceError"
@@ -2628,6 +3045,45 @@
                 }
             },
             "name": "PostRoleCertificateRequestExt"
+        },
+        {
+            "type": "RoleAccess",
+            "method": "GET",
+            "path": "/role/cert",
+            "comment": "Fetch all roles that are tagged as requiring role certificates for principal",
+            "inputs": [
+                {
+                    "name": "principal",
+                    "type": "EntityName",
+                    "comment": "If not present, will return roles for the user making the call",
+                    "pathParam": false,
+                    "queryParam": "principal",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getRolesRequireRoleCert"
         },
         {
             "type": "Workloads",

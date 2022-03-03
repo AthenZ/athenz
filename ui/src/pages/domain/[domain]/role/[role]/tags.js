@@ -22,12 +22,12 @@ import Head from 'next/head';
 import RequestUtils from '../../../../../components/utils/RequestUtils';
 import Error from '../../../../_error';
 import createCache from '@emotion/cache';
-import {CacheProvider} from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
 import TagList from '../../../../../components/tag/TagList';
 import NameHeader from '../../../../../components/header/NameHeader';
 import CollectionDetails from '../../../../../components/header/CollectionDetails';
 import RoleTabs from '../../../../../components/header/RoleTabs';
-import JsonUtils from "../../../../../components/utils/JsonUtils";
+import JsonUtils from '../../../../../components/utils/JsonUtils';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -90,7 +90,7 @@ export async function getServerSideProps(context) {
             _csrf: tagsData[4],
             domain: context.query.domain,
             nonce: context.req.headers.rid,
-        }
+        },
     };
 }
 
@@ -105,13 +105,13 @@ export default class RoleTagsPage extends React.Component {
     }
 
     render() {
-        const {domain, reload, roleName, roleDetails, _csrf} = this.props;
+        const { domain, reload, roleName, roleDetails, _csrf } = this.props;
         if (reload) {
             window.location.reload();
-            return <div/>;
+            return <div />;
         }
         if (this.props.error) {
-            return <Error err={this.props.error}/>;
+            return <Error err={this.props.error} />;
         }
 
         return (

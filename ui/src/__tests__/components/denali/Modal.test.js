@@ -52,7 +52,6 @@ describe('Modal', () => {
                 Modal content
             </Modal>
         );
-
     });
 
     it('should render with an additional class name', () => {

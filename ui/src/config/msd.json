@@ -101,6 +101,22 @@
             }
         },
         {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "TransportPolicySubjectDomainName",
+                "comment": "DomainName in TransportPolicySubject should allow * to indicate ANY",
+                "pattern": "\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "TransportPolicySubjectServiceName",
+                "comment": "ServiceName in TransportPolicySubject should allow * to indicate ANY",
+                "pattern": "\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
             "EnumTypeDef": {
                 "type": "Enum",
                 "name": "TransportPolicyEnforcementState",
@@ -171,13 +187,13 @@
                 "fields": [
                     {
                         "name": "domainName",
-                        "type": "DomainName",
+                        "type": "TransportPolicySubjectDomainName",
                         "optional": false,
                         "comment": "Name of the domain"
                     },
                     {
                         "name": "serviceName",
-                        "type": "EntityName",
+                        "type": "TransportPolicySubjectServiceName",
                         "optional": false,
                         "comment": "Name of the service"
                     }
@@ -211,8 +227,8 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
-                "name": "TransportPolicyPort",
-                "comment": "Transport policy port",
+                "name": "PolicyPort",
+                "comment": "generic policy port. Will be used by TransportPolicyPort and NetworkPolicyPort structs",
                 "fields": [
                     {
                         "name": "port",
@@ -225,7 +241,17 @@
                         "type": "Int32",
                         "optional": false,
                         "comment": "End port of the port range. port and endPort will have same values for a single port definition."
-                    },
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "PolicyPort",
+                "name": "TransportPolicyPort",
+                "comment": "Transport policy port",
+                "fields": [
                     {
                         "name": "protocol",
                         "type": "TransportPolicyProtocol",
@@ -417,6 +443,12 @@
                         "comment": "source or destination of the network traffic depending on direction"
                     },
                     {
+                        "name": "id",
+                        "type": "Int64",
+                        "optional": true,
+                        "comment": "If present, assertion id associated with this transport policy"
+                    },
+                    {
                         "name": "trafficDirection",
                         "type": "TransportPolicyTrafficDirection",
                         "optional": false
@@ -441,6 +473,35 @@
                         "type": "Array",
                         "optional": true,
                         "items": "String"
+                    },
+                    {
+                        "name": "updateTime",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "most recent update timestamp in the backend"
+                    },
+                    {
+                        "name": "id",
+                        "type": "Int64",
+                        "optional": true,
+                        "comment": "If present, assertion id associated with the transport policy"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "TransportPolicyValidationResponseList",
+                "comment": "List of TransportPolicyValidationResponse",
+                "fields": [
+                    {
+                        "name": "responseList",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of transport policy validation response",
+                        "items": "TransportPolicyValidationResponse"
                     }
                 ],
                 "closed": false
@@ -466,6 +527,9 @@
                     },
                     {
                         "symbol": "EXTERNAL_APPLIANCE"
+                    },
+                    {
+                        "symbol": "VIP_LB"
                     }
                 ]
             }
@@ -584,7 +648,7 @@
                     {
                         "name": "updateTime",
                         "type": "Timestamp",
-                        "optional": false,
+                        "optional": true,
                         "comment": "most recent update timestamp in the backend"
                     }
                 ],
@@ -632,6 +696,141 @@
                         "optional": true,
                         "comment": "list of static workloads",
                         "items": "StaticWorkload"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "EnumTypeDef": {
+                "type": "Enum",
+                "name": "NetworkPolicyChangeEffect",
+                "comment": "IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMAPCT indicates that a change in network policy will not interfere with workings of any transport policy",
+                "elements": [
+                    {
+                        "symbol": "IMPACT"
+                    },
+                    {
+                        "symbol": "NO_IMPACT"
+                    }
+                ]
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "IPBlock",
+                "comment": "Struct representing ip blocks used by network policy in CIDR (Classless inter-domain routing) format",
+                "fields": [
+                    {
+                        "name": "cidr",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "cidr notation. can be used for ipv4 or ipv6"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "PolicyPort",
+                "name": "NetworkPolicyPort",
+                "comment": "network policy port.",
+                "fields": [
+                    {
+                        "name": "protocol",
+                        "type": "TransportPolicyProtocol",
+                        "optional": false,
+                        "comment": "protocol used by the network policy"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "NetworkPolicyChangeImpactRequest",
+                "comment": "struct representing input details for evaluating network policies change impact on transport policies",
+                "fields": [
+                    {
+                        "name": "from",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "from ip address range list in cidr format",
+                        "items": "IPBlock"
+                    },
+                    {
+                        "name": "to",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "to ip address range list in cidr format",
+                        "items": "IPBlock"
+                    },
+                    {
+                        "name": "sourcePorts",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of source ports",
+                        "items": "NetworkPolicyPort"
+                    },
+                    {
+                        "name": "destinationPorts",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of destination ports",
+                        "items": "NetworkPolicyPort"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "NetworkPolicyChangeImpactDetail",
+                "fields": [
+                    {
+                        "name": "domain",
+                        "type": "DomainName",
+                        "optional": false,
+                        "comment": "Name of the domain of the corresponding transport policy"
+                    },
+                    {
+                        "name": "policy",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "Name of the Athenz policy corresponding to transport policy"
+                    },
+                    {
+                        "name": "transportPolicyId",
+                        "type": "Int64",
+                        "optional": false,
+                        "comment": "Unique id of the transport policy"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "NetworkPolicyChangeImpactResponse",
+                "comment": "struct representing response of evaluating network policies change impact on transport policies",
+                "fields": [
+                    {
+                        "name": "effect",
+                        "type": "NetworkPolicyChangeEffect",
+                        "optional": false,
+                        "comment": "enum indicating effect of network policy change on one or more transport policies"
+                    },
+                    {
+                        "name": "details",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "if the above enum value is IMPACT then this optional object contains more details about the impacted transport policies",
+                        "items": "NetworkPolicyChangeImpactDetail"
                     }
                 ],
                 "closed": false
@@ -723,6 +922,44 @@
                 }
             },
             "name": "validateTransportPolicy"
+        },
+        {
+            "type": "TransportPolicyValidationResponseList",
+            "method": "GET",
+            "path": "/domain/{domainName}/transportpolicy/validationstatus",
+            "comment": "API to get transport policy validation response for transport policies of a domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getTransportPolicyValidationStatus"
         },
         {
             "type": "Workloads",
@@ -951,6 +1188,44 @@
                 }
             },
             "name": "putStaticWorkload"
+        },
+        {
+            "type": "NetworkPolicyChangeImpactRequest",
+            "method": "POST",
+            "path": "/transportpolicy/evaluatenetworkpolicychange",
+            "comment": "API to evaluate network policies change impact on transport policies",
+            "inputs": [
+                {
+                    "name": "detail",
+                    "type": "NetworkPolicyChangeImpactRequest",
+                    "comment": "Struct representing a network policy present in the system",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "evaluateNetworkPolicyChange"
         }
     ]
 }

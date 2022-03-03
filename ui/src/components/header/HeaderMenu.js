@@ -19,6 +19,7 @@ import Menu from '../denali/Menu/Menu';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import { useRouter } from 'next/router';
+import PageUtils from '../utils/PageUtils';
 
 const HeaderMenuDiv = styled.div`
     display: flex;
@@ -109,7 +110,7 @@ const HeaderMenu = (props) => {
             <Icon
                 icon={icon}
                 isLink
-                onClick={() => router.push('/workflow', '/workflow')}
+                onClick={() => router.push(PageUtils.workflowAdminPage())}
                 size={'25px'}
                 color={colors.white}
             />

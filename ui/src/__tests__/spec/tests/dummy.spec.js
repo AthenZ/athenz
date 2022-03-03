@@ -10,7 +10,7 @@ describe('homepage', () => {
         await HomePage.setLoginCookies({
             okta_it: browser.config.OKTA_IT,
             okta_at: browser.config.OKTA_AT,
-            domain: browser.config.COOKIE_DOMAIN
+            domain: browser.config.COOKIE_DOMAIN,
         });
         debug('cookies are set. lets run some tests.');
     });

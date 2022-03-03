@@ -20,18 +20,15 @@ const pageConfig = {
     servicePageConfig: {
         keyCreationLink: {
             title: 'Key Creation',
-            url:
-                'https://test.com',
+            url: 'https://test.com',
             target: '_blank',
         },
-        keyCreationMessage:
-            'Test Message',
-    }
+        keyCreationMessage: 'Test Message',
+    },
 };
 describe('ServiceList', () => {
     it('should render without services', () => {
-
-        const { getByTestId } = render(<ServiceList pageConfig={pageConfig}/>);
+        const { getByTestId } = render(<ServiceList pageConfig={pageConfig} />);
         const servicelist = getByTestId('service-list');
 
         expect(servicelist).toMatchSnapshot();
@@ -44,7 +41,9 @@ describe('ServiceList', () => {
                 modified: '2020-02-08T00:02:49.477Z',
             },
         ];
-        const { getByTestId } = render(<ServiceList services={services} pageConfig={pageConfig}/>);
+        const { getByTestId } = render(
+            <ServiceList services={services} pageConfig={pageConfig} />
+        );
         const servicelist = getByTestId('service-list');
 
         expect(servicelist).toMatchSnapshot();
@@ -58,7 +57,7 @@ describe('ServiceList', () => {
             },
         ];
         const { getByText, getByTestId } = render(
-            <ServiceList services={services} pageConfig={pageConfig}/>
+            <ServiceList services={services} pageConfig={pageConfig} />
         );
         fireEvent.click(getByText('Add Service'));
         expect(
@@ -74,7 +73,7 @@ describe('ServiceList', () => {
             },
         ];
         const api = {
-            deleteService: function(domain, deleteServiceName, _csrf) {
+            deleteService: function (domain, deleteServiceName, _csrf) {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 0,
@@ -83,7 +82,11 @@ describe('ServiceList', () => {
             },
         };
         const { getByText, getByTestId, getByTitle } = render(
-            <ServiceList services={services} api={api} pageConfig={pageConfig}/>
+            <ServiceList
+                services={services}
+                api={api}
+                pageConfig={pageConfig}
+            />
         );
         fireEvent.click(getByTitle('trash'));
 
@@ -103,7 +106,7 @@ describe('ServiceList', () => {
             },
         ];
         const api = {
-            deleteService: function(domain, deleteServiceName, _csrf) {
+            deleteService: function (domain, deleteServiceName, _csrf) {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 1,
@@ -115,7 +118,11 @@ describe('ServiceList', () => {
             },
         };
         const { getByText, getByTestId, getByTitle } = render(
-            <ServiceList services={services} api={api} pageConfig={pageConfig}/>
+            <ServiceList
+                services={services}
+                api={api}
+                pageConfig={pageConfig}
+            />
         );
         fireEvent.click(getByTitle('trash'));
 
@@ -138,12 +145,12 @@ describe('ServiceList', () => {
             },
         ];
         const api = {
-            deleteService: function(domain, deleteServiceName, _csrf) {
+            deleteService: function (domain, deleteServiceName, _csrf) {
                 return new Promise((resolve, reject) => {
                     resolve();
                 });
             },
-            getServices: function(domain) {
+            getServices: function (domain) {
                 return new Promise((resolve, reject) => {
                     resolve([]);
                 });
@@ -151,7 +158,11 @@ describe('ServiceList', () => {
         };
 
         const { getByText, getByTestId, getByTitle } = render(
-            <ServiceList services={services} api={api} pageConfig={pageConfig} />
+            <ServiceList
+                services={services}
+                api={api}
+                pageConfig={pageConfig}
+            />
         );
         fireEvent.click(getByTitle('trash'));
 
@@ -172,12 +183,12 @@ describe('ServiceList', () => {
             },
         ];
         const api = {
-            deleteService: function(domain, deleteServiceName, _csrf) {
+            deleteService: function (domain, deleteServiceName, _csrf) {
                 return new Promise((resolve, reject) => {
                     resolve();
                 });
             },
-            getServices: function(domain) {
+            getServices: function (domain) {
                 return new Promise((resolve, reject) => {
                     resolve([]);
                 });
@@ -185,7 +196,11 @@ describe('ServiceList', () => {
         };
 
         const { getByText, getByTestId, getByTitle } = render(
-            <ServiceList services={services} api={api} pageConfig={pageConfig}/>
+            <ServiceList
+                services={services}
+                api={api}
+                pageConfig={pageConfig}
+            />
         );
         fireEvent.click(getByTitle('trash'));
 
