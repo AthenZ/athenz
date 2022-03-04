@@ -505,7 +505,7 @@ public class DBServiceTest {
     @Test
     public void testUpdateTemplateRoleNoMembers() {
         Role role = new Role().setName("_domain_:role.readers");
-        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", null);
+        Role newRole = zms.dbService.updateTemplateRole(null, role, "athenz", null);
         assertEquals("athenz:role.readers", newRole.getName());
         assertEquals(0, newRole.getRoleMembers().size());
     }
@@ -513,10 +513,90 @@ public class DBServiceTest {
     @Test
     public void testUpdateTemplateRoleWithTrust() {
         Role role = new Role().setName("_domain_:role.readers").setTrust("trustdomain");
-        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", null);
+        Domain domain = new Domain().setName("trustdomain");
+        ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
+        when(con.getDomain("trustdomain")).thenReturn(domain);
+
+        Role newRole = zms.dbService.updateTemplateRole(con, role, "athenz", null);
         assertEquals("athenz:role.readers", newRole.getName());
         assertEquals("trustdomain", newRole.getTrust());
         assertEquals(0, newRole.getRoleMembers().size());
+
+        // retry the operation with parameters
+
+        List<TemplateParam> params = new ArrayList<>();
+        params.add(new TemplateParam().setName("service").setValue("storage"));
+
+        newRole = zms.dbService.updateTemplateRole(con, role, "athenz", params);
+        assertEquals("athenz:role.readers", newRole.getName());
+        assertEquals("trustdomain", newRole.getTrust());
+        assertEquals(0, newRole.getRoleMembers().size());
+
+        // empty and null trust values do not use the connection object
+
+        role = new Role().setName("_domain_:role.readers").setTrust(null);
+        assertNotNull(zms.dbService.updateTemplateRole(null, role, "athenz", null));
+        assertNotNull(zms.dbService.updateTemplateRole(null, role, "athenz", params));
+
+        role = new Role().setName("_domain_:role.readers").setTrust("");
+        assertNotNull(zms.dbService.updateTemplateRole(null, role, "athenz", null));
+        assertNotNull(zms.dbService.updateTemplateRole(null, role, "athenz", params));
+    }
+
+    @Test
+    public void testUpdateTemplateRoleWithTrustKeyword() {
+        Role role = new Role().setName("_domain_:role.readers").setTrust("_trustdomain_");
+        Domain domain = new Domain().setName("sports");
+        ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
+        when(con.getDomain("sports")).thenReturn(domain);
+        when(con.getDomain("weather")).thenReturn(null);
+        when(con.getDomain("_trustdomain_")).thenReturn(null);
+
+        List<TemplateParam> params = new ArrayList<>();
+        params.add(new TemplateParam().setName("trustdomain").setValue("sports"));
+
+        Role newRole = zms.dbService.updateTemplateRole(con, role, "athenz", params);
+        assertEquals("athenz:role.readers", newRole.getName());
+        assertEquals("sports", newRole.getTrust());
+        assertEquals(0, newRole.getRoleMembers().size());
+
+        // domain does not exist with specified keyword
+
+        params = new ArrayList<>();
+        params.add(new TemplateParam().setName("trustdomain").setValue("weather"));
+        assertNull(zms.dbService.updateTemplateRole(con, role, "athenz", params));
+
+        // without params it should fail as well
+
+        assertNull(zms.dbService.updateTemplateRole(con, role, "athenz", null));
+    }
+
+    @Test
+    public void testUpdateTemplateRoleWithTrustNotValid() {
+        Role role = new Role().setName("_domain_:role.readers").setTrust("trustdomain");
+        ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
+        when(con.getDomain("trustdomain")).thenReturn(null);
+        assertNull(zms.dbService.updateTemplateRole(con, role, "athenz", null));
+    }
+
+    @Test
+    public void testUpdateTemplateRoleWithTrustPointingToItself() {
+
+        Role role = new Role().setName("_domain_:role.readers").setTrust("sports");
+        Domain domain = new Domain().setName("sports");
+        ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
+        when(con.getDomain("sports")).thenReturn(domain);
+
+        // no substitution - pointing to itself
+
+        assertNull(zms.dbService.updateTemplateRole(con, role, "sports", null));
+
+        // with keyword substitution
+
+        role = new Role().setName("_domain_:role.readers").setTrust("_trustdomain_");
+        List<TemplateParam> params = new ArrayList<>();
+        params.add(new TemplateParam().setName("trustdomain").setValue("sports"));
+        assertNull(zms.dbService.updateTemplateRole(con, role, "sports", params));
     }
 
     @Test
@@ -528,7 +608,7 @@ public class DBServiceTest {
         members.add(new RoleMember().setMemberName("_domain_.user3"));
         role.setRoleMembers(members);
 
-        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", null);
+        Role newRole = zms.dbService.updateTemplateRole(null, role, "athenz", null);
         assertEquals("athenz:role.readers", newRole.getName());
         List<RoleMember> newMembers = newRole.getRoleMembers();
         assertEquals(3, newMembers.size());
@@ -553,7 +633,7 @@ public class DBServiceTest {
         params.add(new TemplateParam().setName("service").setValue("storage"));
         params.add(new TemplateParam().setName("api").setValue("java"));
         params.add(new TemplateParam().setName("name").setValue("notfound"));
-        Role newRole = zms.dbService.updateTemplateRole(role, "athenz", params);
+        Role newRole = zms.dbService.updateTemplateRole(null, role, "athenz", params);
         assertEquals("athenz:role.storage_javareaders", newRole.getName());
         List<RoleMember> newMembers = newRole.getRoleMembers();
         assertEquals(3, newMembers.size());
@@ -2787,6 +2867,9 @@ public class DBServiceTest {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
+
         // we are going to create one of the policies that's also in
         // the template - this should not change
 
@@ -2868,6 +2951,7 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
@@ -2879,6 +2963,9 @@ public class DBServiceTest {
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
 
         // apply the template
 
@@ -2988,6 +3075,7 @@ public class DBServiceTest {
         assertEquals(1, names.size());
         assertTrue(names.contains("admin"));
 
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
@@ -3233,6 +3321,9 @@ public class DBServiceTest {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
+
         // apply the template
 
         List<String> templates = new ArrayList<>();
@@ -3316,6 +3407,7 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
@@ -3327,6 +3419,9 @@ public class DBServiceTest {
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
 
         // apply the template
 
@@ -3397,6 +3492,7 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
@@ -3408,6 +3504,9 @@ public class DBServiceTest {
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg", adminUser);
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
 
         // we are going to create one of the roles that's also in
         // the template - this should not change
@@ -3493,6 +3592,7 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 

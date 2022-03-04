@@ -2408,12 +2408,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
 
-        DomainTemplateList domainTemplateList = dbService.listDomainTemplates(domainName);
-        if (domainTemplateList == null) {
-            throw ZMSUtils.notFoundError("getDomainTemplateList: Domain not found: '" + domainName + "'", caller);
-        }
-
-        return domainTemplateList;
+        return dbService.listDomainTemplates(domainName);
     }
 
     @Override
@@ -2488,7 +2483,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that all template names are valid
 
         List<String> templateNames = domainTemplate.getTemplateNames();
-        if (templateNames == null) {
+        if (templateNames == null || templateNames.size() == 0) {
             throw ZMSUtils.requestError("putDomainTemplateExt: No templates specified", caller);
         }
 

@@ -1589,7 +1589,7 @@ public class DBService implements RolesProvider {
             return false;
         }
 
-        return role.getTrust() != null && !role.getTrust().isEmpty();
+        return !StringUtil.isEmpty(role.getTrust());
     }
 
     void executePutMembership(ResourceContext ctx, String domainName, String roleName,
@@ -3477,7 +3477,7 @@ public class DBService implements RolesProvider {
 
             // if it's a delegated role then we have nothing to do
 
-            if (role.getTrust() != null && !role.getTrust().isEmpty()) {
+            if (!StringUtil.isEmpty(role.getTrust())) {
                 continue;
             }
 
@@ -3556,7 +3556,7 @@ public class DBService implements RolesProvider {
 
             // if it's a delegated role then we have nothing to do
 
-            if (role.getTrust() != null && !role.getTrust().isEmpty()) {
+            if (!StringUtil.isEmpty(role.getTrust())) {
                 continue;
             }
 
@@ -3924,7 +3924,10 @@ public class DBService implements RolesProvider {
         if (templateRoles != null) {
             for (Role role : templateRoles) {
 
-                Role templateRole = updateTemplateRole(role, domainName, templateParams);
+                Role templateRole = updateTemplateRole(con, role, domainName, templateParams);
+                if (templateRole == null) {
+                    return false;
+                }
 
                 String roleName = ZMSUtils.removeDomainPrefix(templateRole.getName(),
                     domainName, ROLE_PREFIX);
@@ -4110,21 +4113,40 @@ public class DBService implements RolesProvider {
         auditDetails.append("}");
     }
 
-    Role updateTemplateRole(Role role, String domainName, List<TemplateParam> params) {
+    Role updateTemplateRole(ObjectStoreConnection con, Role role, String domainName, List<TemplateParam> params) {
 
         // first process our given role name and carry out any
         // requested substitutions
 
         String templateRoleName = role.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);
+        String templateRoleTrust = role.getTrust();
         if (params != null) {
             for (TemplateParam param : params) {
                 final String paramKey = "_" + param.getName() + "_";
                 templateRoleName = templateRoleName.replace(paramKey, param.getValue());
+                if (!StringUtil.isEmpty(templateRoleTrust)) {
+                    templateRoleTrust = templateRoleTrust.replace(paramKey, param.getValue());
+                }
             }
         }
+
+        // if we have a role trust value specified then we want to make
+        // sure that domain actually exists and is not pointing to itself
+
+        if (!StringUtil.isEmpty(templateRoleTrust)) {
+            if (templateRoleTrust.equals(domainName)) {
+                LOG.error("Template role trust domain {} points to itself", templateRoleTrust);
+                return null;
+            }
+            if (con.getDomain(templateRoleTrust) == null) {
+                LOG.error("Template role trust domain {} does not exist", templateRoleTrust);
+                return null;
+            }
+        }
+
         Role templateRole = new Role()
                 .setName(templateRoleName)
-                .setTrust(role.getTrust())
+                .setTrust(templateRoleTrust)
                 //adding additional role meta attributes if present in template->roles
                 .setCertExpiryMins(role.getCertExpiryMins())
                 .setSelfServe(role.getSelfServe())
@@ -4800,7 +4822,7 @@ public class DBService implements RolesProvider {
 
         // ensure it is a trust role for the tenant
 
-        String trustDom = role.getTrust();
+        final String trustDom = role.getTrust();
         return trustDom != null && trustDom.equals(tenantDomain);
 
     }
@@ -6312,7 +6334,7 @@ public class DBService implements RolesProvider {
 
         // if it's a delegated role then we have nothing to do
 
-        if (originalRole.getTrust() != null && !originalRole.getTrust().isEmpty()) {
+        if (!StringUtil.isEmpty(originalRole.getTrust())) {
             return;
         }
 
@@ -6456,7 +6478,7 @@ public class DBService implements RolesProvider {
 
         // if it's a delegated role then we have nothing to do
 
-        if (originalRole.getTrust() != null && !originalRole.getTrust().isEmpty()) {
+        if (!StringUtil.isEmpty(originalRole.getTrust())) {
             return;
         }
 
@@ -7000,7 +7022,7 @@ public class DBService implements RolesProvider {
 
                 Role originalRole = getRole(con, domainName, roleName, false, false, false);
 
-                if (originalRole.getTrust() != null && !originalRole.getTrust().isEmpty()) {
+                if (!StringUtil.isEmpty(originalRole.getTrust())) {
                     throw ZMSUtils.requestError(caller + ": role " + roleName + " is delegated. Review should happen on the trusted role. ", caller);
                 }
 
