@@ -28,24 +28,21 @@ import java.util.function.Function;
 public enum DisableNotificationEnum {
     USER, ADMIN;
 
-    public static final String DISABLE_NOTIFICATIONS_TAG = "zms.DisableReminderNotifications";
-
     public static EnumSet<DisableNotificationEnum> getEnumSet(long mask) {
         return EnumUtils.processBitVector(DisableNotificationEnum.class, mask);
     }
 
-    public static <T> EnumSet<DisableNotificationEnum> getDisabledNotificationState(T collection, Function<T, Map<String, TagValueList>> tagsGetter) {
+    public static <T> EnumSet<DisableNotificationEnum> getDisabledNotificationState(T collection, Function<T, Map<String, TagValueList>> tagsGetter, final String disableNotificationTag) {
         if (collection == null) {
             return DisableNotificationEnum.getEnumSet(0);
         }
-
         Map<String, TagValueList> tags = tagsGetter.apply(collection);
 
         if (tags != null &&
-                tags.get(DisableNotificationEnum.DISABLE_NOTIFICATIONS_TAG) != null &&
-                tags.get(DisableNotificationEnum.DISABLE_NOTIFICATIONS_TAG).getList() != null &&
-                tags.get(DisableNotificationEnum.DISABLE_NOTIFICATIONS_TAG).getList().size() > 0) {
-            String value = tags.get(DisableNotificationEnum.DISABLE_NOTIFICATIONS_TAG).getList().get(0);
+                tags.get(disableNotificationTag) != null &&
+                tags.get(disableNotificationTag).getList() != null &&
+                tags.get(disableNotificationTag).getList().size() > 0) {
+            String value = tags.get(disableNotificationTag).getList().get(0);
             return DisableNotificationEnum.getEnumSet(Integer.parseInt(value));
         }
 

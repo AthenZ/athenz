@@ -17,9 +17,7 @@
 package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.notification.*;
-import com.yahoo.athenz.zms.DBService;
-import com.yahoo.athenz.zms.DomainRoleMember;
-import com.yahoo.athenz.zms.MemberRole;
+import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +65,7 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
                 new ExpiryRoleMemberDetailStringer(),
                 roleExpiryPrincipalNotificationToMetricConverter,
                 roleExpiryDomainNotificationToMetricConverter,
-                memberRole -> DisableNotificationEnum.getEnumSet(0));
-
+                new ReviewDisableRoleMemberNotificationFilter());
         metricNotificationDetails.addAll(metricAndEmailNotificationDetails);
         return metricNotificationDetails;
     }
@@ -101,6 +98,25 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
             detailsRow.append(memberRole.getRoleName()).append(';');
             detailsRow.append(memberRole.getExpiration());
             return detailsRow;
+        }
+    }
+
+    class ReviewDisableRoleMemberNotificationFilter implements RoleMemberNotificationCommon.DisableRoleMemberNotificationFilter {
+
+        @Override
+        public EnumSet<DisableNotificationEnum> getDisabledNotificationState(MemberRole memberRole) {
+            Role role = dbService.getRole(memberRole.getDomainName(), memberRole.getRoleName(), false, false, false);
+
+            try {
+                return DisableNotificationEnum.getDisabledNotificationState(role, r -> r.getTags(), ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG);
+            } catch (NumberFormatException ex) {
+                LOGGER.warn("Invalid mask value for {} in domain {}, role {}",
+                        ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG,
+                        memberRole.getDomainName(),
+                        memberRole.getRoleName());
+            }
+
+            return DisableNotificationEnum.getEnumSet(0);
         }
     }
 
