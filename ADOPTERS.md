@@ -1,6 +1,6 @@
 # Athenz adopters
 
-- [Yahoo](http://www.yahoo.com)
+- [Yahoo](https://www.yahoo.com)
 - [Yahoo Japan](https://www.yahoo.jp)
 
 If your company is using Athenz and would like to be included on this list,
