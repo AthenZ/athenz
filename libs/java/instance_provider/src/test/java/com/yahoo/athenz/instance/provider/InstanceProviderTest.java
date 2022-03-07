@@ -20,8 +20,7 @@ import org.testng.annotations.Test;
 
 import javax.net.ssl.SSLContext;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.*;
 
 public class InstanceProviderTest {
 

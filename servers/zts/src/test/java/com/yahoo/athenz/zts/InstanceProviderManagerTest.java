@@ -403,35 +403,32 @@ public class InstanceProviderManagerTest {
         HostnameResolver hostnameResolver = new HostnameResolver(){};
 
         InstanceProviderManager providerManager = new InstanceProviderManager(null, null, null, null, null);
-        InstanceProvider provider = providerManager.getClassProvider("unknown.class", "provider", hostnameResolver);
+        InstanceProvider provider = providerManager.getClassProvider("unknown.class", "provider", null,  hostnameResolver);
         assertNull(provider);
         
-        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", "provider", hostnameResolver);
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", "provider", null, hostnameResolver);
         assertNotNull(provider);
 
-        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", "provider", hostnameResolver);
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", "provider", null, hostnameResolver);
         assertNotNull(provider);
 
-        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", "provider", hostnameResolver);
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", "provider", null, hostnameResolver);
         assertNotNull(provider);
 
         // we should get this from the cache now
         
-        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", "provider", hostnameResolver);
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", "provider", null, hostnameResolver);
         assertNotNull(provider);
         
         // some invalid class name
         
-        provider = providerManager.getClassProvider("com.yahoo.athenz.unknown.class", "provider", hostnameResolver);
+        provider = providerManager.getClassProvider("com.yahoo.athenz.unknown.class", "provider", null, hostnameResolver);
         assertNull(provider);
         
         // class name that doesn't implement expected interface
-        
-        try {
-            providerManager.getClassProvider("com.yahoo.athenz.zts.ZTSConsts", "provider", hostnameResolver);
-            fail();
-        } catch (Exception ignored) {
-        }
+
+        providerManager.getClassProvider("com.yahoo.athenz.zts.ZTSConsts", "provider", null, hostnameResolver);
+        assertNull(provider);
     }
     
     @Test

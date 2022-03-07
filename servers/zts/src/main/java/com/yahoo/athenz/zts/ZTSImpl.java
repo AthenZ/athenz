@@ -3332,7 +3332,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String certReqInstanceId = certReq.getInstanceId();
 
         // validate attestation data is included in the request
-        
+
         InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver);
         if (instanceProvider == null) {
             throw requestError("unable to get instance for provider: " + provider,
@@ -3660,6 +3660,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // include the request cert attributes, if available
         X509Certificate[] certs = (X509Certificate[]) ctx.request().getAttribute(Http.JAVAX_CERT_ATTR);
+
         if (certs != null && certs.length != 0) {
             instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN, X509CertUtils.extractIssuerDn(certs));
             instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, X509CertUtils.extractSubjectDn(certs));
