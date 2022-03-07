@@ -16,12 +16,15 @@
 
 package com.yahoo.athenz.instance.provider;
 
+import javax.net.ssl.SSLContext;
+
 public interface AttrValidatorFactory {
 
     /**
      * create and return a new AttrValidator instance, which will be responsible for
      * confirming instance attributes
+     * @param sslContext SSLContext to be reused, if available
      * @return AttrValidator instance
      */
-    AttrValidator create();
+    AttrValidator create(final SSLContext sslContext);
 }

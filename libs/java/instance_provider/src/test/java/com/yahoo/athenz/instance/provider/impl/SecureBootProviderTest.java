@@ -16,8 +16,6 @@
 
 package com.yahoo.athenz.instance.provider.impl;
 
-import com.yahoo.athenz.auth.KeyStore;
-import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.instance.provider.AttrValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
@@ -153,58 +151,6 @@ public class SecureBootProviderTest {
         }
 
         System.clearProperty(SecureBootProvider.ZTS_PROP_SB_ISSUER_DN_LIST);
-    }
-
-    @Test
-    public void testConfirmInstanceEmptyAttestationData() {
-        SecureBootProvider provider = new SecureBootProvider();
-        provider.initialize("sys.auth.sb-provider", "com.yahoo.athenz.instance.provider.impl.SecureBootProvider", null, null);
-
-        InstanceConfirmation confirmation = new InstanceConfirmation();
-        confirmation.setDomain("sports");
-        confirmation.setService("api");
-        confirmation.setProvider("sys.auth.sb-provider");
-
-        try {
-            provider.confirmInstance(confirmation);
-            fail();
-        } catch (ResourceException e) {
-            assertTrue(e.getMessage().contains("Invalid attestation data"));
-        }
-
-        confirmation.setAttestationData("");
-        try {
-            provider.confirmInstance(confirmation);
-            fail();
-        } catch (ResourceException e) {
-            assertTrue(e.getMessage().contains("Invalid attestation data"));
-        }
-
-        provider.close();
-    }
-
-    @Test
-    public void testConfirmInstanceInvalidProvider() {
-        SecureBootProvider provider = new SecureBootProvider();
-        provider.initialize("sys.auth.sb-provider", "com.yahoo.athenz.instance.provider.impl.SecureBootProvider", null, null);
-
-        InstanceConfirmation confirmation = new InstanceConfirmation();
-        confirmation.setAttestationData("sample attestation data");
-        confirmation.setDomain("sports");
-        confirmation.setService("api");
-        confirmation.setProvider("sys.auth.unknown");
-
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(InstanceProvider.ZTS_INSTANCE_HOSTNAME, "athenz-examples1.abc.com");
-        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.1.1.3");
-        confirmation.setAttributes(attributes);
-
-        try {
-            provider.confirmInstance(confirmation);
-            fail();
-        } catch (ResourceException e) {
-            assertTrue(e.getMessage().contains("Invalid provider"));
-        }
     }
 
     @Test
@@ -378,7 +324,7 @@ public class SecureBootProviderTest {
     @Test
     public void testNewAttrValidator() {
         System.setProperty(SecureBootProvider.ZTS_PROP_SB_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
-        AttrValidator attrValidator = SecureBootProvider.newAttrValidator();
+        AttrValidator attrValidator = SecureBootProvider.newAttrValidator(null);
         assertNotNull(attrValidator);
         assertTrue(attrValidator.confirm(null));
     }
@@ -386,7 +332,7 @@ public class SecureBootProviderTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNewAttrValidatorFail() {
         System.setProperty(SecureBootProvider.ZTS_PROP_SB_ATTR_VALIDATOR_FACTORY_CLASS, "NoClass");
-        SecureBootProvider.newAttrValidator();
+        SecureBootProvider.newAttrValidator(null);
     }
 
     @Test
@@ -479,5 +425,29 @@ public class SecureBootProviderTest {
         String issuerDn = "CN=issuer2";
         assertTrue(new SecureBootProvider().validateIssuer(Collections.singletonMap(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN, issuerDn)));
         System.clearProperty(SecureBootProvider.ZTS_PROP_SB_ISSUER_DN_LIST);
+    }
+
+    @Test
+    public void testParseDnList() {
+        List<String> list = new ArrayList<>();
+        list.add("CN=Duke, OU=JavaSoft, O=Sun Microsystems, C=US");
+        list.add("CN=Count, OU=BobInc, O=Bob Systems, C=US");
+        list.add("C=US, O=Alice Systems, OU=Alice, CN=Ellington");
+
+        Set<String> dnSet = SecureBootProvider.parseDnList(list);
+        assertTrue(dnSet.contains("CN=Duke,OU=JavaSoft,O=Sun Microsystems,C=US"));
+        assertTrue(dnSet.contains("CN=Count,OU=BobInc,O=Bob Systems,C=US"));
+        assertTrue(dnSet.contains("C=US,O=Alice Systems,OU=Alice,CN=Ellington"));
+        assertTrue(dnSet.size() == 3);
+
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testParseDnListInvalid() {
+        List<String> list = new ArrayList<>();
+        list.add("unparseable");
+
+        Set<String> dnSet = SecureBootProvider.parseDnList(list);
+        fail();
     }
 }

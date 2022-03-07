@@ -25,20 +25,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
+import javax.security.auth.x500.X500Principal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SecureBootProvider implements InstanceProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(SecureBootProvider.class);
-    private static final String URI_HOSTNAME_PREFIX = "athenz://hostname/";
 
     static final String ZTS_PROP_SB_PROVIDER_DNS_SUFFIX  = "athenz.zts.sb_provider_dns_suffix";
     static final String ZTS_PROP_SB_PRINCIPAL_LIST       = "athenz.zts.sb_provider_service_list";
     static final String ZTS_PROP_SB_ISSUER_DN_LIST       = "athenz.zts.sb_provider_issuer_dn_list";
     static final String ZTS_PROP_SB_ATTR_VALIDATOR_FACTORY_CLASS = "athenz.zts.sb_provider_attr_validator_factory_class";
-    static final String ZTS_SB_PROVIDER_SERVICE  = "sys.auth.sb-provider";
 
-    // To look up any secrets needed by the provider
     KeyStore keyStore = null;
     Set<String> dnsSuffixes = null;
     String provider = null;
@@ -53,8 +52,7 @@ public class SecureBootProvider implements InstanceProvider {
     }
 
     @Override
-    public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
-            KeyStore keyStore) {
+    public void initialize(String provider, String endpoint, SSLContext sslContext, KeyStore keyStore) {
 
         // save our provider name
 
@@ -69,7 +67,7 @@ public class SecureBootProvider implements InstanceProvider {
 
         final String issuerList = System.getProperty(ZTS_PROP_SB_ISSUER_DN_LIST);
         if (issuerList != null && !issuerList.isEmpty()) {
-            issuerDNs = new HashSet<>(Arrays.asList(issuerList.split(";")));
+            issuerDNs = parseDnList(Arrays.asList(issuerList.split(";")));
         }
 
         // determine the dns suffix. if this is not specified we'll just default to zts.athenz.cloud
@@ -79,10 +77,12 @@ public class SecureBootProvider implements InstanceProvider {
         dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
 
         this.keyStore = keyStore;
-        this.attrValidator = newAttrValidator();
+        this.attrValidator = newAttrValidator(sslContext);
+
+        LOG.debug("initialized with provider: {}, endpoint: {}, sslContext: {}, keyStore: {}", provider, endpoint, sslContext, keyStore);
     }
 
-    static AttrValidator newAttrValidator() {
+    static AttrValidator newAttrValidator(final SSLContext sslContext) {
         final String factoryClass = System.getProperty(ZTS_PROP_SB_ATTR_VALIDATOR_FACTORY_CLASS);
         if (factoryClass == null) {
             return null;
@@ -96,7 +96,13 @@ public class SecureBootProvider implements InstanceProvider {
             throw new IllegalArgumentException("Invalid AttributeValidatorFactory class");
         }
 
-        return attrValidatorFactory.create();
+        return attrValidatorFactory.create(sslContext);
+    }
+
+    static Set<String> parseDnList(List<String> list) {
+        return list.stream()
+                .map(dn -> new X500Principal(dn).getName())
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -124,7 +130,6 @@ public class SecureBootProvider implements InstanceProvider {
     }
 
     InstanceConfirmation validateInstanceRequest(InstanceConfirmation confirmation, final boolean register) {
-
         final String instanceDomain = confirmation.getDomain();
         final String instanceService = confirmation.getService();
 
@@ -138,19 +143,9 @@ public class SecureBootProvider implements InstanceProvider {
                     logTxt(confirmation));
         }
 
-        final String attestationData = confirmation.getAttestationData();
-        if (StringUtil.isEmpty(attestationData)) {
-            throw forbiddenError("Invalid attestation data", logTxt(confirmation));
-        }
-
-        // make sure the provider matches
-        if (!ZTS_SB_PROVIDER_SERVICE.equals(confirmation.getProvider())) {
-            throw forbiddenError("Invalid provider in the confirmation", logTxt(confirmation));
-        }
-
         // for register requests, validate that the request is from a known issuer
         if (register && !validateIssuer(instanceAttributes)) {
-            throw forbiddenError("Invalid issuer", logTxt(confirmation));
+            throw forbiddenError("Invalid issuer DN", logTxt(confirmation));
         }
 
         final String hostname = InstanceUtils.getInstanceProperty(instanceAttributes,
@@ -286,10 +281,18 @@ public class SecureBootProvider implements InstanceProvider {
     }
 
     public static String logTxt(InstanceConfirmation confirmation) {
+        final Map<String, String> attributes = confirmation.getAttributes();
+        final String issuerDn = InstanceUtils.getInstanceProperty(attributes, InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN);
+        final String subjectDn = InstanceUtils.getInstanceProperty(attributes, InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN);
+        final String sanIpStr = InstanceUtils.getInstanceProperty(attributes, InstanceProvider.ZTS_INSTANCE_SAN_IP);
+
         return "InstanceConfirmation{" +
                 "provider='" + confirmation.getProvider() + '\'' +
                 ", domain='" + confirmation.getDomain() + '\'' +
                 ", service='" + confirmation.getService() + '\'' +
+                ", issuerDn='" + issuerDn + '\'' +
+                ", subjectDn='" + subjectDn + '\'' +
+                ", sanIpStr='" + sanIpStr + '\'' +
                 '}';
     }
 }

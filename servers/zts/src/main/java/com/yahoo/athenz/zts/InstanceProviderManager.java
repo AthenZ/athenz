@@ -130,20 +130,21 @@ public class InstanceProviderManager {
             LOGGER.error("Unable to parse {}: {}", providerEndpoint, ex.getMessage());
             return null;
         }
-        
+
+        // if the uri has athenz.client as the authenticated user then
+        // we're going to use our client ssl context otherwise we'll
+        // default to our server ssl context
+        boolean useClientSSLContext = ATHENZ_CLIENT_USER.equals(uri.getUserInfo());
+
         ProviderScheme schemeType = getProviderEndpointScheme(uri);
         switch (schemeType) {
         case HTTPS:
             instanceProvider = new InstanceHttpProvider();
-            // if the uri has athenz.client as the authenticated user then
-            // we're going to use our client ssl context otherwise we'll
-            // default to our server ssl context
-            boolean useClientSSLContext = ATHENZ_CLIENT_USER.equals(uri.getUserInfo());
             instanceProvider.initialize(provider, getProviderEndpoint(uri, useClientSSLContext, providerEndpoint),
                     getSSLContext(useClientSSLContext), keyStore);
             break;
         case CLASS:
-            instanceProvider = getClassProvider(uri.getHost(), provider, hostnameResolver);
+            instanceProvider = getClassProvider(uri.getHost(), provider, getSSLContext(useClientSSLContext), hostnameResolver);
             break;
         default:
             break;
@@ -152,26 +153,20 @@ public class InstanceProviderManager {
         return instanceProvider;
     }
 
-    InstanceProvider getClassProvider(String className, String providerName, HostnameResolver hostnameResolver) {
+    InstanceProvider getClassProvider(String className, String providerName, SSLContext context, HostnameResolver hostnameResolver) {
         final String classKey = className + "-" + providerName;
         InstanceProvider provider = providerMap.get(classKey);
         if (provider != null) {
             return provider;
         }
-        Class<?> instanceClass;
+
         try {
-            instanceClass = Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            LOGGER.error("Provider class {} not found", className);
+            provider = (InstanceProvider) Class.forName(className).getConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Unable to get new instance for provider {}", className, ex);
             return null;
         }
-        try {
-            provider = (InstanceProvider) instanceClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException ex) {
-            LOGGER.error("Unable to get new instance for provider {} error {}", className, ex.getMessage());
-            return null;
-        }
-        provider.initialize(providerName, className, athenzServerSSLContext, keyStore);
+        provider.initialize(providerName, className, context, keyStore);
         provider.setHostnameResolver(hostnameResolver);
         if (ZTS_PROVIDER.equals(providerName)) {
             provider.setPrivateKey(serverPrivateKey.getKey(), serverPrivateKey.getId(), serverPrivateKey.getAlgorithm());
