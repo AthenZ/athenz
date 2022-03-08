@@ -343,4 +343,6 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS = "athenz.zms.domain_change_publisher_factory_class";
     public static final String ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT = "com.yahoo.athenz.common.messaging.impl.NoOpDomainChangePublisherFactory";
 
+    public static final String DISABLE_REMINDER_NOTIFICATIONS_TAG = "zms.DisableReminderNotifications";
+    public static final String DISABLE_EXPIRATION_NOTIFICATIONS_TAG = "zms.DisableExpirationNotifications";
 }

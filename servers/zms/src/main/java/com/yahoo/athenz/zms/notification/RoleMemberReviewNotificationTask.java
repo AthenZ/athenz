@@ -17,10 +17,7 @@
 package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.notification.*;
-import com.yahoo.athenz.zms.DBService;
-import com.yahoo.athenz.zms.DomainRoleMember;
-import com.yahoo.athenz.zms.MemberRole;
-import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +85,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
             Role role = dbService.getRole(memberRole.getDomainName(), memberRole.getRoleName(), false, false, false);
 
             try {
-                return DisableNotificationEnum.getDisabledNotificationState(role, r -> r.getTags());
+                return DisableNotificationEnum.getDisabledNotificationState(role, r -> r.getTags(), ZMSConsts.DISABLE_REMINDER_NOTIFICATIONS_TAG);
             } catch (NumberFormatException ex) {
                 LOGGER.warn("Invalid mask value for zms.DisableReminderNotifications in domain {}, role {}",
                         memberRole.getDomainName(),
