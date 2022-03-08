@@ -19,8 +19,8 @@ package hostcert
 import (
 	"errors"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/futil"
 	"io/ioutil"
-	"os"
 	"path"
 	"strings"
 
@@ -45,31 +45,11 @@ func Update(hostCertFile, hostCert, sshDir, caKeyId string) error {
 		return err
 	}
 
-	return Symlink(hostCertFile, path.Join(sshDir, GENERIC_LINK))
-}
-
-// Symlink places the link file, if it doesn't exist or doesn't link to the source file
-func Symlink(source, link string) error {
-	// createLink, if the link doesn't exist (for any type of PathError)
-	target, err := os.Readlink(link)
-	if err != nil {
-		return os.Symlink(source, link)
-	}
-
-	// if link exists and the linked file is not pointing to the source, delete and link it again
-	if target != source {
-		e := os.Remove(link)
-		if e != nil {
-			return e
-		}
-		return os.Symlink(source, link)
-	}
-
-	return nil
+	return futil.Symlink(hostCertFile, path.Join(sshDir, GENERIC_LINK))
 }
 
 func verifyFn(caKeyId string) verify.VerifyFn {
-	return func(old, new string)  error {
+	return func(old, new string) error {
 		if siafile.Exists(old) {
 			cert, err := Load(old)
 			if err != nil {

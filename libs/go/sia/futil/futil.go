@@ -56,3 +56,23 @@ func WriteFile(name string, data []byte, perm os.FileMode) error {
 	}
 	return err
 }
+
+// Symlink places the link file, if it doesn't exist or doesn't link to the source file
+func Symlink(source, link string) error {
+	// createLink, if the link doesn't exist (for any type of PathError)
+	target, err := os.Readlink(link)
+	if err != nil {
+		return os.Symlink(source, link)
+	}
+
+	// if link exists and the linked file is not pointing to the source, delete and link it again
+	if target != source {
+		e := os.Remove(link)
+		if e != nil {
+			return e
+		}
+		return os.Symlink(source, link)
+	}
+
+	return nil
+}
