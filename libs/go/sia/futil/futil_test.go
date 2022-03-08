@@ -2,6 +2,8 @@ package futil
 
 import (
 	"io/fs"
+	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"testing"
@@ -82,7 +84,7 @@ func TestMakeSiaDirs(t *testing.T) {
 		{
 			name: "dir fail",
 			args: args{
-				dirs: []string{ filepath.Join("/nonexisting1", "invalid")},
+				dirs: []string{filepath.Join("/nonexisting1", "invalid")},
 				perm: 0755,
 			},
 			wantErr: true,
@@ -98,4 +100,83 @@ func TestMakeSiaDirs(t *testing.T) {
 
 	assert.True(t, Exists(filepath.Join(dir, "certs")))
 	assert.True(t, Exists(filepath.Join(dir, "keys")))
+}
+
+func TestSymlink(t *testing.T) {
+	sshDir, err := ioutil.TempDir("", "ssh.")
+	require.Nilf(t, err, "unexpected err: %v", err)
+	log.Printf("sshDir: %q", sshDir)
+	defer os.RemoveAll(sshDir)
+
+	source := filepath.Join(sshDir, "source")
+	ioutil.WriteFile(source, []byte("source file"), 0400)
+
+	existingLink := filepath.Join(sshDir, "existingLink")
+	existingSource := filepath.Join(sshDir, "existingSource")
+	ioutil.WriteFile(existingSource, []byte("earlier source file"), 0000)
+	err = os.Symlink(existingSource, existingLink)
+	require.Nilf(t, err, "unexpected err: %v", err)
+
+	regularFile := filepath.Join(sshDir, "regular")
+	ioutil.WriteFile(regularFile, []byte("regular file"), 0400)
+
+	linkToSource := filepath.Join(sshDir, "link-to-source")
+	err = os.Symlink(source, linkToSource)
+	require.Nilf(t, err, "unexpected err: %v", err)
+
+	type args struct {
+		source string
+		link   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "link doesn't exist",
+			args: args{
+				source: source,
+				link:   filepath.Join(sshDir, "link"),
+			},
+			wantErr: false,
+		},
+		{
+			name: "existing link, target mismatch",
+			args: args{
+				source: source,
+				link:   existingLink,
+			},
+			wantErr: false,
+		},
+		{
+			name: "link is a regular file",
+			args: args{
+				source: source,
+				link:   regularFile,
+			},
+			wantErr: true,
+		},
+		{
+			name: "link and source match",
+			args: args{
+				source: source,
+				link:   linkToSource,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := Symlink(tt.args.source, tt.args.link)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Symlink() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr {
+				if target, e := os.Readlink(tt.args.link); e != nil || target != tt.args.source {
+					t.Errorf("unexpected link: %q, source: %q, target: %q, err: %v", tt.args.link, tt.args.source, target, err)
+				}
+			}
+		})
+	}
 }
