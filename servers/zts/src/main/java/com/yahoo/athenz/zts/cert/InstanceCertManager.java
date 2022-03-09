@@ -25,6 +25,7 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.cert.*;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
@@ -898,7 +899,7 @@ public class InstanceCertManager {
         // first we need to make sure that the provider has been
         // authorized in Athenz to bootstrap/launch instances
         
-        if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, ZTSConsts.ZTS_RESOURCE_INSTANCE,
+        if (!authorizer.access(ServerCommonConsts.ACTION_LAUNCH, ServerCommonConsts.RESOURCE_INSTANCE,
                 providerService, null)) {
             errorMsg.append("provider '").append(providerService.getFullName())
                 .append("' not authorized to launch instances in Athenz");
@@ -909,7 +910,7 @@ public class InstanceCertManager {
         // the provider to bootstrap/launch an instance
         
         final String tenantResource = domain + ":service." + service;
-        if (!authorizer.access(ZTSConsts.ZTS_ACTION_LAUNCH, tenantResource,
+        if (!authorizer.access(ServerCommonConsts.ACTION_LAUNCH, tenantResource,
                 providerService, null)) {
             errorMsg.append("provider '").append(providerService.getFullName())
                 .append("' not authorized to launch ").append(domain).append('.')

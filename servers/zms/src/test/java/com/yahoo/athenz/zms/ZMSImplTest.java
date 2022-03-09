@@ -50,6 +50,9 @@ import com.yahoo.athenz.zms.ZMSImpl.AccessStatus;
 import com.yahoo.athenz.zms.ZMSImpl.AthenzObject;
 import com.yahoo.athenz.zms.config.MemberDueDays;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
+import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
+import com.yahoo.athenz.zms.provider.ServiceProviderClient;
+import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.zms.store.AthenzDomain;
@@ -71,6 +74,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -107,14 +111,19 @@ public class ZMSImplTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
-        zmsTestInitializer.setUp();
         System.setProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS, String.valueOf(fetchDomainDependencyFrequency));
+        zmsTestInitializer.setUp();
     }
 
     @AfterMethod
-    public void clearConnections() {
+    public void clearConnections() throws Exception {
         zmsTestInitializer.clearConnections();
         System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS);
+        // Reset ServiceProviderManager Singleton
+        ServiceProviderManager.getInstance(zmsTestInitializer.getZms().dbService, zmsTestInitializer.getZms()).shutdown();
+        Field instance = ServiceProviderManager.class.getDeclaredField("instance");
+        instance.setAccessible(true);
+        instance.set(null, null);
     }
 
     static class TestAuditLogger implements AuditLogger {
@@ -1222,6 +1231,123 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testDeleteTopLevelDomainServiceProviderDeclines() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+
+        String topLevelDomainName = "deltopdomdependencyexist";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(topLevelDomainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, zmsTestInitializer.getAuditRef(), dom1);
+
+        Domain resDom1 = zmsImpl.getDomain(ctx, topLevelDomainName);
+        assertNotNull(resDom1);
+
+        // Create services
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(topLevelDomainName,
+                "Service1", "http://localhost/ser", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), topLevelDomainName, "Service1", zmsTestInitializer.getAuditRef(), service);
+
+        ServiceIdentity service2 = zmsTestInitializer.createServiceObject(topLevelDomainName,
+                "Service2", "http://localhost/ser2", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), topLevelDomainName, "Service2", zmsTestInitializer.getAuditRef(), service2);
+
+        // Set endpoint for services
+
+        RsrcCtxWrapper sysAdminCtx = zmsTestInitializer.contextWithMockPrincipal("deleteMembership");
+
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
+        meta.setProviderEndpoint("https://localhost/service-provider-test-delete");
+        zmsTestInitializer.getZms().putServiceIdentitySystemMeta(sysAdminCtx, topLevelDomainName, "Service1", "providerendpoint", zmsTestInitializer.getAuditRef(), meta);
+
+        ServiceIdentitySystemMeta meta2 = new ServiceIdentitySystemMeta();
+        meta2.setProviderEndpoint("https://localhost/service-provider-test-delete2");
+        zmsTestInitializer.getZms().putServiceIdentitySystemMeta(sysAdminCtx, topLevelDomainName, "Service2", "providerendpoint", zmsTestInitializer.getAuditRef(), meta2);
+
+        // Make service2 an instance provider as well as service provider
+        makeInstanceProvider(topLevelDomainName, sysAdminCtx, "service2");
+        makeServiceProviders(zmsTestInitializer.getZms(), sysAdminCtx, Arrays.asList(topLevelDomainName + ".service1", topLevelDomainName + ".service2"));
+
+        // Make service1 provider deny deletion for regular user and allow it for admin for service1
+        // Make service2 provider deny deletion for all users
+
+        zmsTestInitializer.getZms().serviceProviderClient = Mockito.mock(ServiceProviderClient.class);
+        DomainDependencyProviderResponse providerResponseDeniesRegularUser = new DomainDependencyProviderResponse();
+        providerResponseDeniesRegularUser.setStatus(PROVIDER_RESPONSE_DENY);
+        providerResponseDeniesRegularUser.setMessage("provider denied deleting the domain for principal " + ctx.principal().getFullName());
+        ServiceProviderManager.DomainDependencyProvider domainDependencyProvider = new ServiceProviderManager.DomainDependencyProvider(topLevelDomainName + ".service1", "https://localhost/service-provider-test-delete", false);
+        when(zmsTestInitializer.getZms().serviceProviderClient.getDependencyStatus(domainDependencyProvider, topLevelDomainName, ctx.principal().getFullName())).thenReturn(providerResponseDeniesRegularUser);
+        DomainDependencyProviderResponse providerResponseAllows = new DomainDependencyProviderResponse();
+        providerResponseAllows.setStatus(PROVIDER_RESPONSE_ALLOW);
+        when(zmsTestInitializer.getZms().serviceProviderClient.getDependencyStatus(domainDependencyProvider, topLevelDomainName, sysAdminCtx.principal().getFullName())).thenReturn(providerResponseAllows);
+        ServiceProviderManager.DomainDependencyProvider domainDependencyProvider2 = new ServiceProviderManager.DomainDependencyProvider(topLevelDomainName + ".service2", "https://localhost/service-provider-test-delete2", true);
+        when(zmsTestInitializer.getZms().serviceProviderClient.getDependencyStatus(domainDependencyProvider2, topLevelDomainName, ctx.principal().getFullName())).thenReturn(providerResponseDeniesRegularUser);
+        DomainDependencyProviderResponse providerResponseDeniesAdmin = new DomainDependencyProviderResponse();
+        providerResponseDeniesAdmin.setStatus(PROVIDER_RESPONSE_DENY);
+        providerResponseDeniesAdmin.setMessage("provider denied deleting the domain for principal " + sysAdminCtx.principal().getFullName());
+        when(zmsTestInitializer.getZms().serviceProviderClient.getDependencyStatus(domainDependencyProvider2, topLevelDomainName, sysAdminCtx.principal().getFullName()))
+                .thenReturn(providerResponseDeniesAdmin) // Service2 provider will deny deletion in the first call by a sys admin
+                .thenReturn(providerResponseAllows);
+
+        // Wait for cache to be ServiceProviderManager cache to refresh
+
+        ZMSTestUtils.sleep((1000 * fetchDomainDependencyFrequency) + 50);
+
+        // Denies deletion for regular user by both service providers
+
+        try {
+            zmsTestInitializer.getZms().deleteTopLevelDomain(ctx, topLevelDomainName, zmsTestInitializer.getAuditRef());
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Service 'deltopdomdependencyexist.service2' is dependent on domain 'deltopdomdependencyexist'. Error: provider denied deleting the domain for principal user.user1, Service 'deltopdomdependencyexist.service1' is dependent on domain 'deltopdomdependencyexist'. Error: provider denied deleting the domain for principal user.user1\"}");
+        }
+
+        // Denies deletion for sys admin by service2 provider
+
+        try {
+            zmsTestInitializer.getZms().deleteTopLevelDomain(sysAdminCtx, topLevelDomainName, zmsTestInitializer.getAuditRef());
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Service 'deltopdomdependencyexist.service2' is dependent on domain 'deltopdomdependencyexist'. Error: provider denied deleting the domain for principal user.testadminuser\"}");
+        }
+
+
+        // Now the client will start to allow deletions for sys admin
+
+        zmsTestInitializer.getZms().deleteTopLevelDomain(sysAdminCtx, topLevelDomainName, zmsTestInitializer.getAuditRef());
+    }
+
+    private void makeInstanceProvider(String topLevelDomainName, RsrcCtxWrapper sysAdminCtx, String serviceInstanceProvider) {
+        String instanceProvidersRoleName = "instance-providers";
+        Role role = new Role();
+        role.setName(instanceProvidersRoleName);
+        RoleMember roleMember = new RoleMember();
+        roleMember.setMemberName(topLevelDomainName + "." + serviceInstanceProvider);
+        List<RoleMember> roleMembers = Arrays.asList(roleMember);
+        role.setRoleMembers(roleMembers);
+        zmsTestInitializer.getZms().putRole(sysAdminCtx, "sys.auth", instanceProvidersRoleName, zmsTestInitializer.getAuditRef(), role);
+
+        String instanceProviderPolicyName = "instanceProviderPolicy";
+        Policy policy = new Policy();
+        policy.setName(instanceProviderPolicyName);
+        Assertion assertion = new Assertion();
+        assertion.setAction("launch");
+        assertion.setResource("sys.auth:instance");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setRole("sys.auth:role." + instanceProvidersRoleName);
+        List<Assertion> assertions = Arrays.asList(assertion);
+        policy.setAssertions(assertions);
+        zmsTestInitializer.getZms().putPolicy(sysAdminCtx, "sys.auth", instanceProviderPolicyName, zmsTestInitializer.getAuditRef(), policy);
+    }
+
+    @Test
     public void testDeleteTopLevelDomainDependencyExist() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
@@ -1244,7 +1370,7 @@ public class ZMSImplTest {
             zmsTestInitializer.getZms().deleteTopLevelDomain(ctx, topLevelDomainName, zmsTestInitializer.getAuditRef());
             fail();
         } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Remove domain '" + topLevelDomainName + "' dependency from the following service(s):" + topLevelDomainName + ".service-provider1\"}");
+            assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Remove domain 'deltopdomdependencyexist' dependency from the following service(s):deltopdomdependencyexist.service-provider1\"}");
         }
 
         // Register another dependency, verify it appears in the delete error list
@@ -1254,7 +1380,7 @@ public class ZMSImplTest {
             zmsTestInitializer.getZms().deleteTopLevelDomain(ctx, topLevelDomainName, zmsTestInitializer.getAuditRef());
             fail();
         } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Remove domain '" + topLevelDomainName + "' dependency from the following service(s):" + topLevelDomainName + ".service-provider1, " + topLevelDomainName + ".service-provider2\"}");
+            assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Remove domain 'deltopdomdependencyexist' dependency from the following service(s):deltopdomdependencyexist.service-provider1, deltopdomdependencyexist.service-provider2\"}");
         }
 
         // Remove one of the dependencies, verify the error message is updated
@@ -1264,12 +1390,38 @@ public class ZMSImplTest {
             zmsTestInitializer.getZms().deleteTopLevelDomain(ctx, topLevelDomainName, zmsTestInitializer.getAuditRef());
             fail();
         } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Remove domain '" + topLevelDomainName + "' dependency from the following service(s):" + topLevelDomainName + ".service-provider2\"}");
+            assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Remove domain 'deltopdomdependencyexist' dependency from the following service(s):deltopdomdependencyexist.service-provider2\"}");
         }
 
-        // Now remove the last dependency and verify delete is successful
+        // Now remove the dependency but set endpoint for the service - verify the error message change
+        RsrcCtxWrapper sysAdminCtx = zmsTestInitializer.contextWithMockPrincipal("deleteMembership");
+        zmsTestInitializer.getZms().deleteDomainDependency(sysAdminCtx, topLevelDomainName, topLevelDomainName + ".service-provider2", zmsTestInitializer.getAuditRef());
+        // Verify dependency was removed
+        DomainList dependentDomainList = zmsImpl.getDependentDomainList(sysAdminCtx, topLevelDomainName + ".service-provider1");
+        assertEquals(dependentDomainList.getNames().size(), 0);
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
+        meta.setProviderEndpoint("https://localhost/testendpoint");
+        zmsTestInitializer.getZms().putServiceIdentitySystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), topLevelDomainName, "service-provider2", "providerendpoint", zmsTestInitializer.getAuditRef(), meta);
 
-        deRegisterDependency(topLevelDomainName, zmsImpl, topLevelDomainName, "service-provider2");
+        // Wait for cache to be ServiceProviderManager cache to refresh
+
+        ZMSTestUtils.sleep((1000 * fetchDomainDependencyFrequency) + 50);
+
+        try {
+            zmsTestInitializer.getZms().deleteTopLevelDomain(ctx, topLevelDomainName, zmsTestInitializer.getAuditRef());
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Service '" + topLevelDomainName + ".service-provider2' is dependent on domain '" + topLevelDomainName + "'. Error: Exception thrown during call to provider: Failed to get response from server: https://localhost/testendpoint\"}");
+        }
+
+        // Now make the provider approve the deletion
+
+        ServiceProviderManager.DomainDependencyProvider domainDependencyProvider = new ServiceProviderManager.DomainDependencyProvider(topLevelDomainName + ".service-provider2", "https://localhost/testendpoint", false);
+        DomainDependencyProviderResponse providerResponse = new DomainDependencyProviderResponse();
+        providerResponse.setStatus("allow");
+        ServiceProviderClient serviceProviderClientMock = Mockito.mock(ServiceProviderClient.class);
+        when(serviceProviderClientMock.getDependencyStatus(domainDependencyProvider, topLevelDomainName, ctx.principal().getFullName())).thenReturn(providerResponse);
+        zmsTestInitializer.getZms().serviceProviderClient = serviceProviderClientMock;
         zmsTestInitializer.getZms().deleteTopLevelDomain(ctx, topLevelDomainName, zmsTestInitializer.getAuditRef());
     }
 
@@ -6635,6 +6787,12 @@ public class ZMSImplTest {
         String serviceName  = "storage";
         String resourceGroup = "Group1";
 
+        ServiceIdentity serviceProviderIdentity = zmsTestInitializer.createServiceObject(domain,
+                serviceName, "http://localhost/service-provider", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), domain, serviceName, zmsTestInitializer.getAuditRef(), serviceProviderIdentity);
+
         makeServiceProviders(zmsImpl, zmsTestInitializer.getMockDomRsrcCtx(), Collections.singletonList(domain + "." + serviceName));
         TenantResourceGroupRoles tenantRoles = new TenantResourceGroupRoles().setDomain(domain)
                 .setService(serviceName).setTenant(tenantDomain)
@@ -9604,7 +9762,7 @@ public class ZMSImplTest {
     @Test
     public void testPutTenancyNoAuthorizedServiceDomainDependency() {
 
-        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
 
         zmsTestInitializer.setupTenantDomainProviderService(zmsImpl, "AddTenancyDom1", "coretech", "storage",
                 "http://localhost:8090/provider");
@@ -13357,20 +13515,20 @@ public class ZMSImplTest {
 
     @Test
     public void testProviderServiceDomain() {
-        assertEquals(zmsTestInitializer.getZms().providerServiceDomain("coretech.storage"), "coretech");
-        assertEquals(zmsTestInitializer.getZms().providerServiceDomain("coretech.hosted.storage"), "coretech.hosted");
-        assertNull(zmsTestInitializer.getZms().providerServiceDomain("coretech"));
-        assertNull(zmsTestInitializer.getZms().providerServiceDomain(".coretech"));
-        assertNull(zmsTestInitializer.getZms().providerServiceDomain("coretech."));
+        assertEquals(ZMSUtils.providerServiceDomain("coretech.storage"), "coretech");
+        assertEquals(ZMSUtils.providerServiceDomain("coretech.hosted.storage"), "coretech.hosted");
+        assertNull(ZMSUtils.providerServiceDomain("coretech"));
+        assertNull(ZMSUtils.providerServiceDomain(".coretech"));
+        assertNull(ZMSUtils.providerServiceDomain("coretech."));
     }
 
     @Test
     public void testProviderServiceName() {
-        assertEquals(zmsTestInitializer.getZms().providerServiceName("coretech.storage"), "storage");
-        assertEquals(zmsTestInitializer.getZms().providerServiceName("coretech.hosted.storage"), "storage");
-        assertNull(zmsTestInitializer.getZms().providerServiceName("coretech"));
-        assertNull(zmsTestInitializer.getZms().providerServiceName(".coretech"));
-        assertNull(zmsTestInitializer.getZms().providerServiceName("coretech."));
+        assertEquals(ZMSUtils.providerServiceName("coretech.storage"), "storage");
+        assertEquals(ZMSUtils.providerServiceName("coretech.hosted.storage"), "storage");
+        assertNull(ZMSUtils.providerServiceName("coretech"));
+        assertNull(ZMSUtils.providerServiceName(".coretech"));
+        assertNull(ZMSUtils.providerServiceName("coretech."));
     }
 
     @Test

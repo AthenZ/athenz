@@ -18,14 +18,19 @@
 
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
+import com.yahoo.athenz.zms.provider.ServiceProviderClient;
+import com.yahoo.athenz.zms.provider.ServiceProviderManager;
+import org.mockito.Mockito;
 import org.testng.annotations.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.yahoo.athenz.zms.ZMSConsts.*;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 public class DomainDependencyTest {
@@ -45,8 +50,14 @@ public class DomainDependencyTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
-        zmsTestInitializer.setUp();
         System.setProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS, String.valueOf(fetchFrequency));
+
+        // Reset ServiceProviderManager Singleton
+        Field instance = ServiceProviderManager.class.getDeclaredField("instance");
+        instance.setAccessible(true);
+        instance.set(null, null);
+
+        zmsTestInitializer.setUp();
     }
 
     @AfterMethod
@@ -176,9 +187,6 @@ public class DomainDependencyTest {
         assertEquals(domainList.getNames().size(), 1);
         assertTrue(domainList.getNames().contains(secondTopLevelDomain));
 
-        zmsTestInitializer.getZms().deleteSubDomain(regularUserCtx, topLevelDomainName, subDomainName, zmsTestInitializer.getAuditRef());
-        zmsTestInitializer.getZms().deleteTopLevelDomain(regularUserCtx, topLevelDomainName, zmsTestInitializer.getAuditRef());
-
         // Trying to delete test-domain2 will fail as the service test-domain1.sub-test-domain1.service-provider is still dependent on it
 
         try {
@@ -188,10 +196,41 @@ public class DomainDependencyTest {
             assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Remove domain 'test-domain2' dependency from the following service(s):test-domain1.sub-test-domain1.service-provider\"}");
         }
 
-        // Remove the dependency registration and delete
+        // Now remove the dependency but set endpoint for the service. It will not be responsive so exception will be thrown
+        zmsTestInitializer.getZms().deleteDomainDependency(sysAdminCtx, secondTopLevelDomain, fullSubDomainName + "." + serviceProviderName, zmsTestInitializer.getAuditRef());
+        // Verify dependency was removed
+        DomainList dependentDomainList = zmsImpl.getDependentDomainList(regularUserCtx, fullSubDomainName + "." + serviceProviderName);
+        assertEquals(dependentDomainList.getNames().size(), 0);
+        // Setting endpoint
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
+        meta.setProviderEndpoint("https://localhost/service-provider");
+        zmsTestInitializer.getZms().putServiceIdentitySystemMeta(sysAdminCtx, fullSubDomainName, serviceProviderName, "providerendpoint", zmsTestInitializer.getAuditRef(), meta);
 
-        zmsImpl.deleteDomainDependency(sysAdminCtx, secondTopLevelDomain, fullSubDomainName + "." + serviceProviderName, zmsTestInitializer.getAuditRef());
+        // Wait for ServiceProviderManager cache to refresh
+
+        ZMSTestUtils.sleep((1000 * fetchFrequency) + 50);
+
+        try {
+            zmsTestInitializer.getZms().deleteTopLevelDomain(regularUserCtx, secondTopLevelDomain, zmsTestInitializer.getAuditRef());
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Service 'test-domain1.sub-test-domain1.service-provider' is dependent on domain 'test-domain2'. Error: Exception thrown during call to provider: Failed to get response from server: https://localhost/service-provider\"}");
+        }
+
+        // Now make the service provider client approve deletion of the domains
+
+        ServiceProviderClient serviceProviderClient = Mockito.mock(ServiceProviderClient.class);
+        ServiceProviderManager.DomainDependencyProvider domainDependencyProvider = new ServiceProviderManager.DomainDependencyProvider(fullSubDomainName + "." + serviceProviderName, "https://localhost/service-provider", false);
+        DomainDependencyProviderResponse response = new DomainDependencyProviderResponse();
+        response.setStatus(PROVIDER_RESPONSE_ALLOW);
+        when(serviceProviderClient.getDependencyStatus(domainDependencyProvider, secondTopLevelDomain, regularUserCtx.principal().getFullName())).thenReturn(response);
+        when(serviceProviderClient.getDependencyStatus(domainDependencyProvider, fullSubDomainName, regularUserCtx.principal().getFullName())).thenReturn(response);
+        when(serviceProviderClient.getDependencyStatus(domainDependencyProvider, topLevelDomainName, regularUserCtx.principal().getFullName())).thenReturn(response);
+        zmsTestInitializer.getZms().serviceProviderClient = serviceProviderClient;
+
         zmsTestInitializer.getZms().deleteTopLevelDomain(regularUserCtx, secondTopLevelDomain, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteSubDomain(regularUserCtx, topLevelDomainName, subDomainName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteTopLevelDomain(regularUserCtx, topLevelDomainName, zmsTestInitializer.getAuditRef());
     }
 
     @Test
@@ -221,10 +260,16 @@ public class DomainDependencyTest {
         zmsImpl.postSubDomain(regularUserCtx, topLevelDomainName, zmsTestInitializer.getAuditRef(), subDom1);
 
         ServiceIdentity serviceProvider = zmsTestInitializer.createServiceObject(fullSubDomainName,
-                serviceProviderName, "http://localhost", "/usr/bin/java", "root",
+                serviceProviderName, "http://localhost/service", "/usr/bin/java", "root",
+                "users", "host1");
+
+        ServiceIdentity someOtherServiceProvider = zmsTestInitializer.createServiceObject(fullSubDomainName,
+                "some-other-service", "http://localhost/other-service", "/usr/bin/java", "root",
                 "users", "host1");
 
         zmsImpl.putServiceIdentity(regularUserCtx, fullSubDomainName, serviceProviderName, zmsTestInitializer.getAuditRef(), serviceProvider);
+        zmsImpl.putServiceIdentity(regularUserCtx, fullSubDomainName, "some-other-service", zmsTestInitializer.getAuditRef(), someOtherServiceProvider);
+
         DependentService dependentService = new DependentService().setService(fullSubDomainName + "." + serviceProviderName);
         try {
             zmsImpl.putDomainDependency(regularUserCtx, topLevelDomainName, zmsTestInitializer.getAuditRef(), dependentService);
@@ -480,7 +525,10 @@ public class DomainDependencyTest {
 
         // Mock a service provider
 
-        zmsImpl.serviceProviderManager.serviceProviders = new HashSet<>(Arrays.asList("service.provider"));
+        Map<String, ServiceProviderManager.DomainDependencyProvider> serviceProviders = Stream.of(new Object[][]{
+                {"service.provider", new ServiceProviderManager.DomainDependencyProvider("service.provider", "https://localhost:1234/service", false)},
+        }).collect(Collectors.toMap(data -> (String) data[0], data -> (ServiceProviderManager.DomainDependencyProvider) data[1]));
+        zmsImpl.serviceProviderManager.setServiceProviders(serviceProviders);
 
         // For non system administrators - trying to specify the service provider isn't enough, principal must be the service provider
 

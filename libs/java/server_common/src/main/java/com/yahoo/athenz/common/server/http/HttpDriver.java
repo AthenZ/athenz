@@ -280,13 +280,7 @@ public class HttpDriver implements Closeable {
         throw new IOException("Failed to get response from server: " + url);
     }
 
-    /**
-     * doPost performs post operation and returns a string
-     * @param httpPost post request to process
-     * @return response string
-     * @throws IOException in case of any errors
-     */
-    public String doPost(HttpPost httpPost) throws IOException {
+    public HttpDriverResponse doPostHttpResponse(HttpPost httpPost) throws IOException {
         String url = httpPost.getURI().toString();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Requesting from {} with query {}", url, getPostQuery(httpPost));
@@ -296,19 +290,9 @@ public class HttpDriver implements Closeable {
             try (CloseableHttpResponse response = this.client.execute(httpPost)) {
                 if (response != null) {
                     int statusCode = response.getStatusLine().getStatusCode();
-                    switch (statusCode) {
-                        case 200:
-                        case 201:
-                            String out = EntityUtils.toString(response.getEntity());
-                            LOGGER.debug("Data received: {}", out);
-                            return out;
-                        default:
-                            //received bad statuscode, don't bother resending request.
-                            LOGGER.error("Received bad status code: {} from: {} reason: {}", statusCode, url, response.getStatusLine());
-                            //before breaking out. We must close inputstream to prevent from leaking.
-                            response.getEntity().getContent().close();
-                            return "";
-                    }
+                    String out = EntityUtils.toString(response.getEntity());
+                    LOGGER.debug("StatusCode: {} Data received: {}", statusCode, out);
+                    return new HttpDriverResponse(statusCode, out, response.getStatusLine());
                 }
             } catch (IOException ex) {
                 LOGGER.error("Failed to get response from {} for query: {} retry: {}/{}, exception: ", url, getPostQuery(httpPost), i, clientMaxRetries, ex);
@@ -319,6 +303,28 @@ public class HttpDriver implements Closeable {
             }
         }
         throw new IOException("Failed to get response from server: " + url);
+    }
+
+    /**
+     * doPost performs post operation and returns a string
+     * @param httpPost post request to process
+     * @return response string
+     * @throws IOException in case of any errors
+     */
+    public String doPost(HttpPost httpPost) throws IOException {
+        HttpDriverResponse httpDriverResponse = doPostHttpResponse(httpPost);
+        switch (httpDriverResponse.getStatusCode()) {
+            case 200:
+            case 201:
+                String out = httpDriverResponse.getMessage();
+                LOGGER.debug("Data received: {}", out);
+                return out;
+            default:
+                //received bad statuscode, don't bother resending request.
+                String url = httpPost.getURI().toString();
+                LOGGER.error("Received bad status code: {} from: {} reason: {}", httpDriverResponse.getStatusCode(), url, httpDriverResponse.getStatusLine());
+                return "";
+        }
     }
 
     /**
