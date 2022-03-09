@@ -396,6 +396,42 @@ public class SecureBootProviderTest {
     }
 
     @Test
+    public void testValidateSanIpWithCompressedHostIp() {
+        HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
+        Mockito.when(hostnameResolver.getAllByName("athenz-examples1.abc.com")).thenReturn(
+                new HashSet<>(Arrays.asList("200.152.166.210", "2804:1bc:f044:1fa::6002"))
+        );
+
+        SecureBootProvider provider = new SecureBootProvider();
+        provider.initialize("sys.auth.sb-provider", "com.yahoo.athenz.instance.provider.impl.SecureBootProvider", null, null);
+        provider.setHostnameResolver(hostnameResolver);
+
+        assertTrue(provider.validateSanIp("athenz-examples1.abc.com",
+                Collections.singletonMap(InstanceProvider.ZTS_INSTANCE_SAN_IP, "200.152.166.210,2804:1bc:f044:1fa:0:0:0:6002")));
+
+        assertFalse(provider.validateSanIp("athenz-examples1.abc.com",
+                Collections.singletonMap(InstanceProvider.ZTS_INSTANCE_SAN_IP, "200.152.166.210,2904:1bc:f044:1fa:0:0:0:6002")));
+
+    }
+
+    @Test
+    public void testValidateSanIpWithInvalidHostIp() {
+        // [200.152.166.210, 2804:1bc:f044:1fa:0:0:0:6002] with hostIps:[2804:1bc:f044:1fa::6002, 200.152.166.210]
+        HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
+        Mockito.when(hostnameResolver.getAllByName("athenz-examples1.abc.com")).thenReturn(
+                new HashSet<>(Arrays.asList("200.152.166.210", "2804:1bc:f044:1fa::6002", "unparseable:1bc:f044:1fa::6002"))
+        );
+
+        SecureBootProvider provider = new SecureBootProvider();
+        provider.initialize("sys.auth.sb-provider", "com.yahoo.athenz.instance.provider.impl.SecureBootProvider", null, null);
+        provider.setHostnameResolver(hostnameResolver);
+
+        assertTrue(provider.validateSanIp("athenz-examples1.abc.com",
+                Collections.singletonMap(InstanceProvider.ZTS_INSTANCE_SAN_IP, "200.152.166.210,2804:1bc:f044:1fa:0:0:0:6002")));
+    }
+
+
+        @Test
     public void testValidateCnHostname() {
         String subjectDn = "CN=athenz-examples1.abc.com,OU=Testing Domain,O=Athenz,L=LA,ST=CA,C=US";
         assertTrue(SecureBootProvider.validateCnHostname("athenz-examples1.abc.com",
@@ -449,5 +485,12 @@ public class SecureBootProviderTest {
 
         Set<String> dnSet = SecureBootProvider.parseDnList(list);
         fail();
+    }
+
+    @Test
+    public void flattenIp() {
+        assertEquals(SecureBootProvider.flattenIp("2804:1bc:f044:1fa::6002"), "2804:1bc:f044:1fa:0:0:0:6002");
+        assertEquals(SecureBootProvider.flattenIp("10.2.3.4"), "10.2.3.4");
+        assertEquals(SecureBootProvider.flattenIp("unparseable.2.3.4"), "");
     }
 }

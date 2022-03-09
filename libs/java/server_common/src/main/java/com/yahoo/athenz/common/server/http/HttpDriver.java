@@ -159,7 +159,7 @@ public class HttpDriver implements Closeable {
         connManager = createConnectionPooling(sslContext);
         client = createHttpClient(clientConnectTimeoutMs, clientReadTimeoutMs, sslContext, connManager);
 
-        LOGGER.info("initialized Names HttpDriver with base url: {} connectionTimeoutMs: {} readTimeoutMs: {}",
+        LOGGER.info("initialized HttpDriver with base url: {} connectionTimeoutMs: {} readTimeoutMs: {}",
                 baseUrl, clientConnectTimeoutMs, clientReadTimeoutMs);
     }
 
