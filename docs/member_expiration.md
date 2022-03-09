@@ -87,3 +87,18 @@ access to be extended.
 The domain administrators will receive a single email notification listing all the members
 that are about to expire in their domain. It is their responsibility to access their
 domain in Athenz UI and extend those member's expiration, if necessary.
+
+### Managing Role Member Expiry Reminder Recipients
+
+By default, both the role members and the domain administrators will receive notifications as described above.
+You can change this behavior by adding a tag to the role:
+
+```
+zms-cli -d <domain-name> add-role-tag <role-name> zms.DisableExpirationNotifications <one of the following: 0 - non-disabled, 1 - User disabled, 2 - Admin disabled, 3 - both admin and user disabled
+```
+
+For example, to prevent administrators from receiving notifications for the "write" role in the domain "sports", run the following:
+
+```
+zms-cli -d sports add-role-tag write zms.DisableExpirationNotifications 2
+```

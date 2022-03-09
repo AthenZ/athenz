@@ -66,3 +66,18 @@ The domain administrator or the paranoids team may review the list of members wi
 ```
 zms-cli overdue-review <domain-name>
 ```
+
+### Managing Soft Expiry Reminder Recipients
+
+By default, both the role members and the domain administrators will receive notifications as described above.
+You can change this behavior by adding a tag to the role:
+
+```
+zms-cli -d <domain-name> add-role-tag <role-name> zms.DisableReminderNotifications <one of the following: 0 - non-disabled, 1 - User disabled, 2 - Admin disabled, 3 - both admin and user disabled
+```
+
+For example, to prevent administrators from receiving notifications for the "write" role in the domain "sports", run the following:
+
+```
+zms-cli -d sports add-role-tag write zms.DisableReminderNotifications 2
+```
