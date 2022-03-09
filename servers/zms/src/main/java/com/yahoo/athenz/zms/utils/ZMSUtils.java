@@ -442,4 +442,20 @@ public class ZMSUtils {
         }
         return expiryDays == 0 ? 0 : System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(expiryDays, TimeUnit.DAYS);
     }
+
+    public static String providerServiceDomain(String provider) {
+        int n = provider.lastIndexOf('.');
+        if (n <= 0 || n == provider.length() - 1) {
+            return null;
+        }
+        return provider.substring(0, n);
+    }
+
+    public static String providerServiceName(String provider) {
+        int n = provider.lastIndexOf('.');
+        if (n <= 0 || n == provider.length() - 1) {
+            return null;
+        }
+        return provider.substring(n + 1);
+    }
 }
