@@ -1,0 +1,573 @@
+Athenz v1.10.49 Release / Mar 07, 2022
+--------------------------------------
+
+#1789 Domain Dependency for Tenancy
+#1795 fix lookup of sia integer env variables
+#1796 parameterizing sshcaKeyId
+#1797 Athenz ZTS QosFilter support for cert requests
+#1798 [skip ci] Update MAINTAINERS
+#1799 clarify settings for provider ssl client object
+#1800 UI: add domain view for pending-approval requests
+#1802 fix IAM role name in README
+#1804 add ADOPTERS file
+#1806 reusing sslContext from ZTS in class based InstanceProvider
+
+Athenz v1.10.48 Release / Feb 24, 2022
+--------------------------------------
+
+#1781 For domain dependency, sys admin can be a service
+#1782 UI - Bump follow-redirects from 1.14.7 to 1.14.8 in /ui
+#1783 update pending member api to support getting list for a domain
+#1784 for sia return uid/gid for current user instead of root
+#1785 sia - for eks region provide option to use env variable first
+#1787 provide option to skip adding principal when on-boarding a resource group
+#1788 support athenz.client@ as user-info in provider endpoint to use zts client certs
+#1790 Adding SecureBoot Provider
+#1792 Adding methods to create folders and write content to file with implicit sync
+#1793 adding msd service to fileprivatekeystore
+#1794 support running sia as non-root
+
+Athenz v1.10.47 Release / Feb 11, 2022
+--------------------------------------
+
+#1777 Add domain dependency functions to zms java and go clients
+#1778 all refresh interval and zts region from config
+#1779 make cert retry property settings dynamic
+#1780 update jetty to 9.4.45 + other dep updates
+
+Athenz v1.10.46 Release / Feb 07, 2022
+--------------------------------------
+
+#1710 UI - add retry logic and feature flag in micro-segmentation
+#1758 Service Visibility - Domain Dependencies
+#1759 fix fargate /task uri and use v1 metadata api only
+#1760 process service/role/policy in correct order in zms-cli update-domain
+#1761 specify TLS 1.2/1.3 version for RDS communication with IAM creds
+#1763 remove unnecessary load of all config settings during startup
+#1764 log all dynamic config changes at info level
+#1765 UI - bump next from 12.0.7 to 12.0.9 in /ui
+#1766 Adding methods to use ssh host keys and certs
+#1767 UI - update UI tests
+#1768 support kubectl ExecCredential json output support for id tokens
+#1769 rfc8414 OAuth 2.0 Authorization Server Metadata
+#1770 UI: fix bugs in micro-segmentation view
+#1771 UI: update test and display validation errors
+#1772 add HostCertificate option line to sshd if doesn't exist
+#1773 Adding methods and a utility program to parse host document
+#1774 support new get-stats endpoint to get per-domain/system stats
+#1775 write to sds cert updates channel only if sds is enabled
+#1776 add skip error option for zms-cli import domain
+
+Athenz v1.10.45 Release / Jan 25, 2022
+--------------------------------------
+
+#1732 UI: add graphical view of micro-segmentation policies
+#1750 fix zmscli case for new add-regular-role cmd
+#1751 UI: Fix Dates for HistoryList and RoleHistoryList tests
+#1752 make role validation config based, remove support for wildcards
+#1753 Update roadmap for Q1 2022
+#1754 Athenz OIDC Authentication Provider Support for AWS EKS Guide
+#1755 provide signing key-type (RSA/EC) option when requesting oidc id tokes
+#1756 add get private key per algorithm support for aws s3 keystore
+#1757 updated package dependencies to their latest releases
+
+Athenz v1.10.44 Release / Jan 20, 2022
+--------------------------------------
+
+#1727 role consistency check when deleting roles or adding assertions
+#1740 use role/group meta api to update tags
+#1742 Letting ZMSImpl initialize, when change publisher is not initialized
+#1743 add NoOpTransportPolicyValidationFactory and fix assertionID to be Long
+#1744 support implicit flow of oidc to issue id tokens for groups/roles
+#1745 zts-idtoken utility to fetch oidc id token
+#1746 use add-regular-role in zms-cli instead of add-group-role
+#1748 for ecs verify the instance id based on request data
+#1749 fix command case options for sia
+
+Athenz v1.10.43 Release / Jan 07, 2022
+--------------------------------------
+
+#1705 Use Config Manager to refresh configuration
+#1711 define slf4j version as property
+#1712 using SSHCertRequest object in instance register/refresh requests
+#1713 archive unused HttpCertSignerFactory and HttpCertSigner classes
+#1714 replace go get with go install as recommended by go 1.17
+#1715 protect system admin users from being removed from deleteUser api
+#1716 support sshcertrequest object in instance register/refresh operations
+#1717 remove abstract http cert signer class
+#1722 log all ssh certificate requests with info level
+#1724 add openid-configuration support for zts
+#1725 validate ip from x-forwarded-for before logging
+#1726 allow tokens to include openid issuer
+#1729 Update manual build and development steps
+#1731 Msd viplb workload type, ui dependencies update, docker fixes
+#1733 correct handling of user authority if not set
+#1734 remove null test case for ssmclient - fails when build is run on aws
+#1735 docker-fixes
+#1736 update manual install steps with fixes
+#1737 allow * as service in micro-segmentation
+#1738 openapi documentation update
+#1739 UI: setup config for csp local source url instead of hardcoded localhost
+
+Athenz v1.10.42 Release / Dec 19, 2021
+--------------------------------------
+
+#1708 increase publish timeout to nexus to 60 mins
+#1709 update jackson/logback libraries to address CVEs
+
+Athenz v1.10.41 Release / Dec 17, 2021
+--------------------------------------
+
+#1661 UI: add validation of micro-segmentation policies
+#1682 introduce backward compatible option for x.509 cert san values
+#1683 For cert priority fixed unspecified value for crypki
+#1684 additional checks when converting sigs from der to p1363 format
+#1685 Added comment explaining cert priority enum and link to crypki
+#1686 UI: Upgrade to next-v12 and routing update to next/router
+#1687 UI: Bump validator from 13.6.0 to 13.7.0 in /ui
+#1688 update transport policy validation response object to add assertion id
+#1689 UI: Code coverage increase
+#1690 envoy sds support for sia agents
+#1691 UI: Bump next from 12.0.4 to 12.0.5 in /ui
+#1692 UI: update search page for Next.js 12
+#1694 UI: fix history page bug
+#1695 correct padding when converting sigs from der to p1363
+#1696 migrate from logutil to std log package
+#1697 aws imds v2 metadata api support
+#1698 support multiple dns suffixes for token/role based cert requests
+#1699 support role principal from uri in cert authority
+#1700 correct logging of role principal in audit/access logs
+#1702 add option caPubKeyAlgo for ssh cert requests
+#1703 extend zpu to provide -check-status and -check-details options for monitoring
+#1704 UI: fix switching between domains do not change the business service
+#1706 define alphabetical order for running tests
+#1707 updated deps to their latest releases
+
+Athenz v1.10.40 Release / Nov 16, 2021
+--------------------------------------
+
+#1618 UI: remove + button to add member in micro-segmentation
+#1631 UI: Advanced Settings in Role Creation Dialog
+#1669 UI: group tags support
+#1671 Support priority handling for cert signing
+#1672 UI fix: Group settings User Authority Filter
+#1673 update MSD interfaces for continuous validation of transport policies
+#1674 reorganize sia agents builds using common go/sia library
+#1675 Fix zms notification test
+#1676 Updated mariadb to 10.5.13 in docker container
+#1677 AWS Temp Creds for AWS SDK v2 users
+#1678 allow * in TransportPolicySubject domain and/or service
+#1679 UI: Enable Add Static Instance Button
+#1680 Fix Snapshots for Enabling Adding Static Workload
+
+Athenz v1.10.39 Release / Nov 01, 2021
+--------------------------------------
+
+#1641 UI/msd Integrating msd client in UI
+#1654 For role expiry notification - record metrics daily while
+#1655 Make ZMS/ZTS Binder singleton
+#1657 putRoleMeta can now be called by principals
+#1658 UI: Pinning specific package versions for UI
+#1659 update transport policy validator interface
+#1660 Group tags implementation
+#1662 update cert-refresh unit test to pass with latest jdk constraints
+#1663 Disable Group Expiry Notifications By Tag zms.DisableReminderNotifications
+#1664 Delete zpe_policy_updater to fix docker setup
+#1665 update public cloud providers to support multiple dns suffixes
+#1666 UI to log msd api static instance error, enable adding static instances
+#1667 support multiple dns suffix domains for aws/azure agents
+#1668 command line option to force refresh when running zpu
+#1670 evaluateNetworkPolicyChange api
+
+Athenz v1.10.38 Release / Oct 18, 2021
+--------------------------------------
+
+#1646 change scope of aws provider methods/class to support extensibility
+#1647 remove duplicate code from sia agent libs/packages
+#1648 explicit dep on bcprov-ext to enforce version match
+#1649 minor changes in ConfigManager (comments and 2 small new helper methods
+#1650 method to fetch current aws region from identity document
+#1651 provide capability to override dns suffix for aws provider
+#1652 document Q4 Roadmap tasks
+#1653 support org field in x.509 csr method in go sia libs
+
+Athenz v1.10.37 Release / Oct 08, 2021
+--------------------------------------
+
+#1640 simplify pulsar publisher class interface and delete wrapper classes
+#1642 move common code from provider/aws/sia-ec2 to libs/go/sia
+#1643 correct javadoc param for role certs to be minutes, not seconds
+#1645 configure option to retry cert sign requests not only for connect timeouts
+
+Athenz v1.10.36 Release / Oct 04, 2021
+--------------------------------------
+
+#1630 Allow specifying version name when creating new policy
+#1635 skip creating event objects if no publishers are registered
+#1636 Add policy versions commands to zms-cli
+#1637 Pulsar client implementation
+#1638 Fix setting policy version active
+#1639 updated jetty to 9.4.44 and other latest deps
+
+Athenz v1.10.35 Release / Oct 01, 2021
+--------------------------------------
+
+#1624 rdl publishChangeEvents generator
+#1625 Add version and active status to policy list
+#1626 allow providers to delete their managed instance records
+#1627 static workload put api in msd store
+#1628 UI: policy versions
+#1629 Defining interfaces for consuming/publishing changes
+#1632 defining policy change, workload change messages
+#1633 update ssl context protocol to 1.3 for cert refresher
+#1634 cert-refresher fallback to TLS1.2 if 1.3 is not supported
+
+Athenz v1.10.34 Release / Sep 17, 2021
+--------------------------------------
+
+#1615 additional checks when setting a policy version as active
+#1617 validation of transport rules api definition
+#1619 Domain changes messaging object definition
+#1621 support both der/p1363 format signatures for zpe
+#1622 repository and validator interfaces for MSD static workload implementation
+
+Athenz v1.10.33 Release / Sep 12, 2021
+--------------------------------------
+
+#1588 msd agent support
+#1605 Implement multi-version policies endpoints
+#1606 adding service tag related method to MSD store interface
+#1608 support for policy data in jws format
+#1609 support jws policy files in zpe
+#1611 support p1363 format for jws data with ec keys in zms as well
+#1612 Update ConfigProviderAwsParametersStore to support decryption of the parameters
+#1613 update group last modified when user is deleted
+#1614 additional validation checks when processing versioned policies
+
+Athenz v1.10.32 Release / Aug 25, 2021
+--------------------------------------
+
+#1595 When role is deleted, remove from dynamic role cert cache
+#1596 fix digest algorithm value when validating jws domains
+#1597 handle any exceptions (we shouldn't get any) during process domain call
+#1598 Add a readme in the go client for zpe, which refers to Yahoo! Japan's athenz-authorizer.
+#1599 update dependency packages to their latest releases
+#1601 define new jwspolicydata object and api endpoint
+#1602 jws validate document method in Crypto
+#1603 MSD - API changes for static workload support
+
+Athenz v1.10.31 Release / Aug 19, 2021
+--------------------------------------
+
+#1569 New config management package
+#1587 use jwsdomain api to fetch signed domains in datastore
+#1590 UI: add radio button for extend in group review page
+#1591 fixing the order of updates for assertion condition api operations
+#1592 correctly support new config manager library that returns empty values instead of nulls
+#1593 fix incorrect setting of role member field during role cert request
+#1594 for kerberos settings treat empty strings as nulls
+
+Athenz v1.10.30 Release / Aug 10, 2021
+--------------------------------------
+
+#1545 zts endpoint: Get roles which allow fetching role certs dynamically
+#1579 Disable Reminder Review Notifications By Tag zms.DisableReminderNotifications
+#1580 additional unit tests for group member support
+#1581 UI: update dependencies
+#1582 UI: clear justification after modal close
+#1583 extend changelog store interface + impl to support jws domain api calls
+#1584 Extend group expiration
+#1585 fix zpe handling when skip zms sig option is enabled
+#1586 improve zpe resource strip domain logic when supporting a single domain
+
+Athenz v1.10.29 Release / Aug 04, 2021
+--------------------------------------
+
+#1559 UI: Add case-sensitive checkbox for policy assertions
+#1561 For notifications - get recipient email from User Authority
+#1568 multi-version policy - introducing version/active in policy object
+#1570 extend getJWSDomain api to support etags and return all domain data
+#1571 archive java zpe policy updater - use go version
+#1572 go.mod: update golang.org/x/net to v0.0.0-20210726213435-c6fcb2dbf985
+#1573 auto generate go.mod/go.sum after complete rebuild
+#1574 UI: fix auditEnabled justification requirement bug
+#1575 Updating interfaces for MsdStore, adding utility methods to extract hostname, provider
+#1576 multi version policy support: make zms signature check configurable
+#1577 multi-version policy support: zts ignore inactive policies
+#1578 correct handling of group member cache if cached list has no members
+
+Athenz v1.10.28 Release / Jul 28, 2021
+--------------------------------------
+
+#1567 Checking in generated client/model.go for msd rdl change
+
+Athenz v1.10.27 Release / Jul 28, 2021
+--------------------------------------
+
+#1564 include spiffe/principal uris in role cert requests in zts java client
+#1565 UI: fix micro-segmentation ui bugs
+#1566 Making certIssueTime optional in Workload type
+
+Athenz v1.10.26 Release / Jul 28, 2021
+--------------------------------------
+
+#1555 Extending Micro-segmentation daemon api
+#1558 additional unit tests for server-common lib
+#1560 multi-version policy support: schema update only
+#1562 fixing dependabot alert for jwt-go
+#1563 adding missing expected 304 in MSD rdl
+
+Athenz v1.10.25 Release / Jul 23, 2021
+--------------------------------------
+
+#1547 Add profiles to pom file to skip UI tests if skipTests maven flag is present
+#1549 Describe required environment variables and check that go/bin exists in rdl-gen-athenz-server build
+#1550 UI: add edit operation in Micro-segmentation UI
+#1551 Fix copper argos doc examples
+#1552 Option to use Key/Cert files for mtls connection with identity provider
+#1554 randomize sleep between each retry for domain get from zms
+#1556 proper handling of disabled domains from zms to zts
+#1557 UI: update error message
+
+Athenz v1.10.24 Release / Jul 09, 2021
+--------------------------------------
+
+#1527 zms-cli: generic output conversion
+#1534 correct handling of disabled domains in zts
+#1535 UI: Fix tab order (settings before history)
+#1536 Remove grunt dependency
+#1537 add system meta enable/disable commands in zms-cli
+#1538 Update jetty and other deps to their latest release
+#1539 Modifying size of value column in role_tags and domain_tags
+#1540 UI: add audit ref to delete assertion calls
+#1541 fix Fetch function description
+
+Athenz v1.10.23 Release / Jul 02, 2021
+--------------------------------------
+
+#1529 update Micro-segmentation UI
+#1530 Add missing attributes in "getSignedDomains" call
+#1531 configurable location for changelog file store
+#1532 Clog config, assertion condition regex update
+#1533 add cert valid from/to dates to objects for cert sign priority support
+
+Athenz v1.10.22 Release / Jul 01, 2021
+--------------------------------------
+
+#1505 UI: Onboard template to domain
+#1520 New endpoint for UI: Get all valid authority attributes
+#1521 UI: Add Domain Settings tab
+#1522 Allow system admins to set domain meta attribute business service
+#1523 Assertion conditions implementation - core, clients, DB schema changes
+#1524 UI: In Manage page, when setting business service highlight the row instead of showing success message
+#1528 assertion condition server changes
+
+Athenz v1.10.21 Release / Jun 20, 2021
+--------------------------------------
+
+#1510 microSegmentation UI: add identifier field and allow multiple destination ports
+#1516 UI: remove undefined template call
+#1517 Update Tag Values to include '/', ':'
+#1519 adding msd artifacts to publish
+
+Athenz v1.10.20 Release / Jun 09, 2021
+--------------------------------------
+
+#1506 adding workload api to msd
+#1509 go/athenzutils: address golint issues
+#1511 go/athenzutils: add ExtractHostname function
+#1512 UI: enable role review without setting restrictions
+#1513 UI: Support business service id
+#1514 update jetty to 9.4.42 and other dep updates
+
+Athenz v1.10.19 Release / Jun 07, 2021
+--------------------------------------
+
+#1482 UI: support for static and dynamic record count for service instances
+#1493 msd core initial commit
+#1496 UI: Fix 3 bugs associated with business service
+#1499 extend ZTSClientTokenCacher class to support access tokens
+#1500 msd java client
+#1501 msd go client
+#1503 allow role/group review regardless of role/group expiry/reminder settings
+#1504 Add zms endpoint: Get all server template meta details
+
+Athenz v1.10.18 Release / Jun 02, 2021
+--------------------------------------
+
+#1479 UI: Select business service for domain
+#1493 move x509certutils class to client-common so it can be shared
+#1494 UI: Fix business service bugs
+#1495 handle null condition when processDomainTags
+
+Athenz v1.10.17 Release / May 27, 2021
+--------------------------------------
+
+#1490 Fix putDomainMeta and enabled rdl structs to support empty string in business service field
+#1492 UI: update package version and fix-lint
+
+Athenz v1.10.16 Release / May 21, 2021
+--------------------------------------
+
+#1481 zms-cli: support adding * members + remove invalid command from help
+#1485 For ssl_error metric - only record type
+#1486 Support using customized providers in Crypto class
+#1489 update jetty and other deps (jersey) to latest release
+
+Athenz v1.10.15 Release / May 21, 2021
+--------------------------------------
+
+#1473 support for search filter in service details page
+#1474 UI update to allow adding multiple templates while creating user domains. Update tests to fix emotionJS version update
+#1475 removed unreachable code + one test case in auth_core
+#1476 move GenerateAccessTokenRequestString method to athenzutils library
+#1480 remove optional components from spiffe uri
+#1483 Add getDomainMetaStoreValidValuesList to ZMSClient
+
+Athenz v1.10.14 Release / May 03, 2021
+--------------------------------------
+
+#1420 Update SIA AWS to rotate private key daily when refreshing service identity certificates
+#1462 zts go client update for certexpiry attribute in workloads
+#1463 retry publish steps in case of intermittent errors
+#1464 include authz details entry in zts properties file
+#1467 Extend getUserList ZMS API to take an optional domain name
+#1469 log full policy assertion details during delete operations in audit log
+#1470 using 4 digit precision for better coverage checks
+#1471 improve aws temp creds failure by reporting sts error message
+#1472 move proxy principal implementation to use cnf claim
+
+Athenz v.1.10.13 Release / May 03, 2021
+--------------------------------------
+
+#1451 adding support for hostname field in workload table
+#1452 implement proxy principal spiffe uri support when validating access tokens
+#1453 roadmap for Q2-2021
+#1454 zts access check was not converting checkprincipal to lowercase before using it
+#1455 adding support for cert expiry time
+#1456 Add api: get valid values for domain meta attributes
+#1457 adding ui support for hostname and certexpiry
+#1459 adding zts.json to support service details page
+#1460 fixing tests and deps update
+
+Athenz v1.10.12 Release / Apr 22, 2021
+--------------------------------------
+
+#1438 UI: Add groupReviewDays setting to Role
+#1439 For unrefreshed cert notif - add link to Athenz Guide
+#1440 UI: update display of links in details
+#1441 Enable aws secrets manager integration
+#1442 catch all crypto.verify exceptions to generate notifications
+#1443 rdl changes to add hostname in workload response
+#1444 during provider admin setup, ignore deletes
+#1446 updated jetty and dependency packages
+#1447 sia-fargate identity agent initial version
+#1449 server side implementation of proxy access principal support
+#1450 include spiffe uri when generating service x.509 certs based on registered private key
+
+Athenz v1.10.11 Release / Apr 11, 2021
+--------------------------------------
+
+#1406 UI: service based micro segmentation implementation
+#1414 UI: Add review for pending members in UI
+#1418 sia eks provider agent initial checkin
+#1421 update jetty and other deps to the latest release
+#1422 UI: serviceExpiryDays and memberExpiryDays for group settings
+#1424 extend restricted definition for any cert with :restricted suffix OU
+#1426 workloads api update fix, add tests for missing coverage
+#1427 fix docker image
+#1428 Add group review days to role
+#1429 UI: add member and service review days settings
+#1430 new DomainMetaStore interface support in ZMS
+#1431 add a way to exclude certain providers workloads from store
+#1432 UI: minor updates
+#1433 UI: fix-lint
+#1434 do not update case for action/resource objects in the cache
+#1435 more specific resource for tenancy admins with resource groups
+#1436 exclude group settings from signature
+#1437 generate a metric when domain validation fails
+
+Athenz v1.10.10 Release / Apr 01, 2021
+--------------------------------------
+
+#1358 For SSL errors, always display cause if it's different
+#1359 UI - make group list scrollable from role member page
+#1360 UI - local ui development prep
+#1372 adding swagger api documentation
+#1373 athenz rdl generator for java clients
+#1378 AWS Parameter store syncer
+#1379 including rdl java client generator in docker build
+#1380 support Authorization header in docker setup
+#1386 Support JSON output format for domain-related commands
+#1387 Fix setup documentation
+#1388 Add memberExpiryDays and serviceExpiryDays support for groups
+#1389 Throw error on exceeding tags limit
+#1394 Remove unused dependencies
+#1397 Add JSON output support for remaining commands of zms-cli
+#1400 RDL and generated files for issues
+#1402 Create CODE_OF_CONDUCT.md
+#1403 zts client unit tests, db script for new api
+#1404 fix group support for delegated roles with wildcards
+#1411 ZTS API support for micro segmentation use cases
+#1412 Reload the key-store if the file is changed (configurable)
+#1413 fix maven warning by adding plugin versions
+#1415 Adding cert hostname to attributes sent to the provider
+#1417 fetching sanip string earlier from instance attributes before manipulations
+#1419 Support for instance register tokens for service x.509 certs
+
+Athenz v1.10.9 Release / Mar 25, 2021
+--------------------------------------
+
+#1304 UI: Remove ok confirmation for create/edit operation
+#1317 jetty and other dependency package updates
+#1318 do not modify db assertion objects during access checks
+#1320 Make SSL failed connection logger support configurable
+#1322 Create SECURITY.md
+#1323 sonarcloud: use static const from parent class
+#1324 sonarcloud: Modifiers should be declared in the correct order
+#1325 Rewrite SSL Connection Logger
+#1327 javadoc/pom changes to compile successfully with jdk11
+#1328 sonarcloud: rename method name to avoid conflict with field names
+#1329 sonarcloud: method always returns same result
+#1330 sonarcloud: use try with resources with FileWriter
+#1333 sonarcloud: validate cors origin/header values against allow list + format
+#1335 removal of post domain metrics api from zts and updating zpe clients
+#1339 new domain and group meta attributes
+#1340 Metric name from system properties
+#1341 sonarcloud: Format specifiers should be used instead of string concatenation
+#1342 For zpu, make expiryCheck configurable
+#1351 [skip ci] fixing docker build
+#1353 Enhance security
+#1354 fix group db name in db update script
+#1355 Adding sonar config details, disabling progress indicator in maven
+#1357 expose new domain attribute: business-service
+
+Athenz v1.10.8 Release / Feb 27, 2021
+--------------------------------------
+
+#1315 setup correct home dir for gpg keys
+#1316 maven plugin version changes
+
+Athenz v1.10.7 Release / Feb 26, 2021
+--------------------------------------
+
+#1303 replace bintray with maven central artifacts
+#1305 add support for groups for resource lookup api
+#1306 Log SSL Connection Failures
+#1308 Example set up on docker in AWS EC2
+#1309 check for template keywords both null and empty
+#1310 Include jti and scope claims per https://tools.ietf.org/html/draft-ietf-oauth-access-token-jwt
+#1311 enable auto-deploy from SD
+#1312 go.mod update dependencies
+#1313 add command line option required for openssl 1.1
+#1314 encrypt gpg key on ubuntu + pom changes to support build env
+
+Athenz v1.10.4 Release / Feb 14, 2021
+--------------------------------------
+
+#1277 UI - add support for domain tags
+#1287 UI - Fix Athenz new Role UI reported issues
+#1291 Upgrade Kinesis logger support which depends on aws sdk 2.x
+#1299 adopting open governance model
+#1301 address javadoc warnings for missing params
+#1302 initial manual deploy to Maven Central
