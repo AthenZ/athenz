@@ -6,6 +6,7 @@
 [![Publish Status][publish-status-image]][status-url]
 [![SourceSpy Dashboard](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/athenzathenz/)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4681/badge)](https://bestpractices.coreinfrastructure.org/projects/4681)
+[![Licenses](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FAthenZ%2Fathenz.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FAthenZ%2Fathenz?ref=badge_shield)
 
 [status-image]: https://cd.screwdriver.cd/pipelines/6606/badge
 [publish-status-image]: https://cd.screwdriver.cd/pipelines/6606/publish/badge
