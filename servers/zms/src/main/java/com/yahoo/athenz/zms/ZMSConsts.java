@@ -345,4 +345,19 @@ public final class ZMSConsts {
 
     public static final String DISABLE_REMINDER_NOTIFICATIONS_TAG = "zms.DisableReminderNotifications";
     public static final String DISABLE_EXPIRATION_NOTIFICATIONS_TAG = "zms.DisableExpirationNotifications";
+    public static final String ZMS_PROP_PROVIDER_READ_TIMEOUT       = "athenz.zms.provider.client.read_timeout";
+    public static final String ZMS_PROP_PROVIDER_TRUST_STORE = "athenz.zms.provider.client.truststore";
+    public static final String ZMS_PROP_PROVIDER_TRUST_STORE_PASSWORD = "athenz.zms.provider.client.truststore_password";
+    public static final String ZMS_PROP_PROVIDER_APP_NAME = "athenz.zms.provider.client.app_name";
+    public static final String ZMS_PROP_PROVIDER_CERT_PATH = "athenz.zms.provider.client.cert_path";
+    public static final String ZMS_PROP_PROVIDER_KEY_PATH = "athenz.zms.provider.client.key_path";
+    public static final String ZMS_PROP_PROVIDER_MAX_POOL_ROUTE = "athenz.zms.provider.client.max_pool_route";
+    public static final String ZMS_PROP_PROVIDER_MAX_POOL_TOTAL = "athenz.zms.provider.client.max_pool_total";
+    public static final String ZMS_PROP_PROVIDER_RETRY_INTERVAL_MS = "athenz.zms.provider.client.retry_interval_ms";
+    public static final String ZMS_PROP_PROVIDER_MAX_RETRIES = "athenz.zms.provider.client.max_retries";
+    public static final String ZMS_PROP_PROVIDER_CONNECT_TIMEOUT_MS = "athenz.zms.provider.client.connect_timeout_ms";
+    public static final String ZMS_PROP_PROVIDER_READ_TIMEOUT_MS = "athenz.zms.provider.client.read_timeout_ms";
+
+    public static final String PROVIDER_RESPONSE_ALLOW = "allow";
+    public static final String PROVIDER_RESPONSE_DENY = "deny";
 }

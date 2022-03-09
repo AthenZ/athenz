@@ -25,7 +25,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-import static com.yahoo.athenz.zms.ZMSConsts.*;
+import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS;
+import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS;
 import static org.testng.Assert.*;
 
 public class DomainDependencyTest {
@@ -190,7 +191,7 @@ public class DomainDependencyTest {
 
         // Remove the dependency registration and delete
 
-        zmsImpl.deleteDomainDependency(sysAdminCtx, secondTopLevelDomain, fullSubDomainName + "." + serviceProviderName, zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.getZms().deleteDomainDependency(sysAdminCtx, secondTopLevelDomain, fullSubDomainName + "." + serviceProviderName, zmsTestInitializer.getAuditRef());
         zmsTestInitializer.getZms().deleteTopLevelDomain(regularUserCtx, secondTopLevelDomain, zmsTestInitializer.getAuditRef());
     }
 
@@ -221,10 +222,16 @@ public class DomainDependencyTest {
         zmsImpl.postSubDomain(regularUserCtx, topLevelDomainName, zmsTestInitializer.getAuditRef(), subDom1);
 
         ServiceIdentity serviceProvider = zmsTestInitializer.createServiceObject(fullSubDomainName,
-                serviceProviderName, "http://localhost", "/usr/bin/java", "root",
+                serviceProviderName, "http://localhost/service", "/usr/bin/java", "root",
+                "users", "host1");
+
+        ServiceIdentity someOtherServiceProvider = zmsTestInitializer.createServiceObject(fullSubDomainName,
+                "some-other-service", "http://localhost/other-service", "/usr/bin/java", "root",
                 "users", "host1");
 
         zmsImpl.putServiceIdentity(regularUserCtx, fullSubDomainName, serviceProviderName, zmsTestInitializer.getAuditRef(), serviceProvider);
+        zmsImpl.putServiceIdentity(regularUserCtx, fullSubDomainName, "some-other-service", zmsTestInitializer.getAuditRef(), someOtherServiceProvider);
+
         DependentService dependentService = new DependentService().setService(fullSubDomainName + "." + serviceProviderName);
         try {
             zmsImpl.putDomainDependency(regularUserCtx, topLevelDomainName, zmsTestInitializer.getAuditRef(), dependentService);
@@ -480,7 +487,7 @@ public class DomainDependencyTest {
 
         // Mock a service provider
 
-        zmsImpl.serviceProviderManager.serviceProviders = new HashSet<>(Arrays.asList("service.provider"));
+        zmsImpl.serviceProviderManager.setServiceProviders(new HashSet<>(Arrays.asList("service.provider")));
 
         // For non system administrators - trying to specify the service provider isn't enough, principal must be the service provider
 

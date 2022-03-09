@@ -18,6 +18,7 @@
 
 package com.yahoo.athenz.zms;
 
+import com.google.common.io.Resources;
 import com.wix.mysql.EmbeddedMysql;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
@@ -28,6 +29,8 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogger;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
+import com.yahoo.athenz.zms.provider.ServiceProviderClient;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
@@ -45,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
+import static com.yahoo.athenz.zms.ZMSConsts.*;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
@@ -137,6 +141,13 @@ public class ZMSTestInitializer {
         System.setProperty(ZMSConsts.ZMS_PROP_VALIDATE_ASSERTION_ROLES, "true");
         System.setProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER, "true");
         System.setProperty(ZMSConsts.ZMS_PROP_MAX_POLICY_VERSIONS, "5");
+
+        String certPath = Resources.getResource("service.provider.cert.pem").getPath();
+        String keyPath = Resources.getResource("service.provider.key.pem").getPath();
+        System.setProperty(ZMSConsts.ZMS_PROP_PROVIDER_KEY_PATH, keyPath);
+        System.setProperty(ZMS_PROP_PROVIDER_CERT_PATH, certPath);
+        System.setProperty(ZMS_PROP_PROVIDER_TRUST_STORE, "test.truststore");
+        System.setProperty(ZMS_PROP_PROVIDER_TRUST_STORE_PASSWORD, "test.truststore.password");
 
         auditLogger = new DefaultAuditLogger();
 
@@ -269,6 +280,10 @@ public class ZMSTestInitializer {
         privKeyK2 = Crypto.ybase64(new String(Files.readAllBytes(path)).getBytes());
 
         zms = zmsInit();
+        zms.serviceProviderClient = Mockito.mock(ServiceProviderClient.class);
+        DomainDependencyProviderResponse providerResponse = new DomainDependencyProviderResponse();
+        providerResponse.setStatus(PROVIDER_RESPONSE_ALLOW);
+        when(zms.serviceProviderClient.getDependencyStatus(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any(), Mockito.any())).thenReturn(providerResponse);
     }
 
     public Membership generateMembership(String roleName, String memberName) {

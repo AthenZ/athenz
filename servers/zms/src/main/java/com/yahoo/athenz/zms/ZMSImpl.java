@@ -17,10 +17,13 @@ package com.yahoo.athenz.zms;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Bytes;
+import com.oath.auth.KeyRefresherException;
 import com.yahoo.athenz.auth.*;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
 import com.yahoo.athenz.common.messaging.ChangePublisher;
@@ -53,6 +56,9 @@ import com.yahoo.athenz.zms.config.*;
 import com.yahoo.athenz.zms.notification.PutGroupMembershipNotificationTask;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.notification.ZMSNotificationTaskFactory;
+import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
+import com.yahoo.athenz.zms.provider.ServiceProviderClient;
+import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreFactory;
@@ -95,6 +101,7 @@ import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
+import static com.yahoo.athenz.zms.ZMSConsts.PROVIDER_RESPONSE_DENY;
 import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES;
 
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
@@ -218,6 +225,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected NotificationToEmailConverterCommon notificationToEmailConverterCommon;
     protected List<ChangePublisher<DomainChangeMessage>> domainChangePublishers = new ArrayList<>();
     protected ServiceProviderManager serviceProviderManager;
+    protected ServiceProviderClient serviceProviderClient;
+
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -716,7 +725,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private void initializeServiceProviderManager() {
-        serviceProviderManager = new ServiceProviderManager(dbService);
+        try {
+            serviceProviderManager = new ServiceProviderManager(dbService);
+            serviceProviderClient = new ServiceProviderClient(keyStore, homeDomainPrefix);
+        } catch (KeyRefresherException | IOException | InterruptedException e) {
+            throw new RuntimeException("Failed to initialize service provider manager: " + e.getMessage());
+        }
     }
 
     private void setNotificationManager() {
@@ -1548,9 +1562,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             groupMemberConsistencyCheck(domainName, group.getName(), true, caller);
         }
 
-        // consistency checks are ok. Now make sure no service is dependent on the domain
+        // consistency checks are ok. Now check if there are provider services dependent on the domain
 
         verifyNoServiceDependenciesOnDomain(domainName, caller);
+        verifyServiceProvidersApproveDeletion(ctx, auditRef, domain, caller);
 
         // no service is dependent on the domain, we can go ahead and delete the domain
 
@@ -1565,6 +1580,38 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             msgBuilder.append("' dependency from the following service(s):");
             msgBuilder.append(String.join(", ", serviceIdentityList.getNames()));
             throw ZMSUtils.forbiddenError(msgBuilder.toString(), caller);
+        }
+    }
+
+    private void verifyServiceProvidersApproveDeletion(ResourceContext ctx, String auditRef, AthenzDomain domain, String caller) {
+
+        List<ServiceIdentity> servicesWithProviderEndpoint = domain.getServices()
+                .stream()
+                .filter(service -> !StringUtil.isEmpty(service.getProviderEndpoint()))
+                .collect(Collectors.toList());
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        List<String> serviceDependenciesDenied = new ArrayList<>();
+        servicesWithProviderEndpoint.forEach(serviceIdentity -> {
+            Principal providerServicePrincipal = SimplePrincipal.create(ZMSUtils.providerServiceDomain(serviceIdentity.getName()), ZMSUtils.providerServiceName(serviceIdentity.getName()), (String) null);
+            boolean isInstanceProvider = access(ServerCommonConsts.ACTION_LAUNCH, ServerCommonConsts.RESOURCE_INSTANCE, providerServicePrincipal, null);
+            DomainDependencyProviderResponse domainDependencyProviderResponse = serviceProviderClient.getDependencyStatus(providerServicePrincipal.getFullName(), serviceIdentity.getProviderEndpoint(), isInstanceProvider, domain.getName(), principal.getFullName());
+            if (domainDependencyProviderResponse.getStatus().equals(PROVIDER_RESPONSE_DENY)) {
+                StringBuilder msgBuilder = new StringBuilder("Service '");
+                msgBuilder.append(providerServicePrincipal.getFullName());
+                msgBuilder.append("' is dependent on domain '");
+                msgBuilder.append(domain.getName());
+                msgBuilder.append("'");
+                if (!StringUtil.isEmpty(domainDependencyProviderResponse.getMessage())) {
+                    msgBuilder.append(". Error: ");
+                    msgBuilder.append(domainDependencyProviderResponse.getMessage());
+                }
+                serviceDependenciesDenied.add(msgBuilder.toString());
+            }
+        });
+
+        if (!serviceDependenciesDenied.isEmpty()) {
+            throw ZMSUtils.forbiddenError(serviceDependenciesDenied.stream().collect(Collectors.joining(", ")), caller);
         }
     }
 
@@ -6631,22 +6678,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return true;
     }
 
-    String providerServiceDomain(String provider) {
-        int n = provider.lastIndexOf('.');
-        if (n <= 0 || n == provider.length() - 1) {
-            return null;
-        }
-        return provider.substring(0, n);
-    }
-
-    String providerServiceName(String provider) {
-        int n = provider.lastIndexOf('.');
-        if (n <= 0 || n == provider.length() - 1) {
-            return null;
-        }
-        return provider.substring(n + 1);
-    }
-
     @Override
     public void putTenancy(ResourceContext ctx, String tenantDomain, String provider,
             String auditRef, Tenancy detail) {
@@ -6683,8 +6714,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String authorizedService = ((RsrcCtxWrapper) ctx).principal().getAuthorizedService();
         verifyAuthorizedServiceOperation(authorizedService, caller);
 
-        String provSvcDomain = providerServiceDomain(provider); // provider service domain
-        String provSvcName = providerServiceName(provider); // provider service name
+        String provSvcDomain = ZMSUtils.providerServiceDomain(provider); // provider service domain
+        String provSvcName = ZMSUtils.providerServiceName(provider); // provider service name
 
         // we can't have the provider and tenant be in the same domain
         // as we don't allow delegation of roles onto themselves
@@ -6779,8 +6810,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // make sure we have a valid provider service
 
-        String provSvcDomain = providerServiceDomain(provider);
-        String provSvcName   = providerServiceName(provider);
+        String provSvcDomain = ZMSUtils.providerServiceDomain(provider);
+        String provSvcName   = ZMSUtils.providerServiceName(provider);
 
         if (dbService.getServiceIdentity(provSvcDomain, provSvcName, true) == null) {
             throw ZMSUtils.notFoundError("Unable to retrieve service: " + provider, caller);
@@ -7192,9 +7223,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             int idx = provSvc.indexOf(".res_group.");
             String provSvcDomain;
             if (idx == -1) {
-                provSvcDomain = providerServiceDomain(provSvc);
+                provSvcDomain = ZMSUtils.providerServiceDomain(provSvc);
             } else {
-                provSvcDomain = providerServiceDomain(provSvc.substring(0, idx));
+                provSvcDomain = ZMSUtils.providerServiceDomain(provSvc.substring(0, idx));
             }
 
             AthenzDomain providerDomain = getAthenzDomain(provSvcDomain, true);

@@ -44,6 +44,9 @@ public final class ServerCommonConsts {
     
     public static final String METRIC_DEFAULT_FACTORY_CLASS = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
 
+    public static final String ACTION_LAUNCH     = "launch";
+    public static final String RESOURCE_INSTANCE = "sys.auth:instance";
+
     // for tests
     public static final String ZTS_PROP_AWS_PUBLIC_CERT = "athenz.zts.aws_public_cert";
 }

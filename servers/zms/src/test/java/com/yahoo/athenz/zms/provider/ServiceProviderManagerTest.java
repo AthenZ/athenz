@@ -16,8 +16,12 @@
  *
  */
 
-package com.yahoo.athenz.zms;
+package com.yahoo.athenz.zms.provider;
 
+import com.yahoo.athenz.zms.DBService;
+import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
+import com.yahoo.athenz.zms.ZMSTestUtils;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 

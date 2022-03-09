@@ -16,8 +16,10 @@
  *
  */
 
-package com.yahoo.athenz.zms;
+package com.yahoo.athenz.zms.provider;
 
+import com.yahoo.athenz.zms.DBService;
+import com.yahoo.athenz.zms.Role;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +70,10 @@ public class ServiceProviderManager {
      */
     public void shutdown() {
         scheduledExecutor.shutdownNow();
+    }
+
+    public void setServiceProviders(Set<String> serviceProviders) {
+        this.serviceProviders = serviceProviders;
     }
 
     private void refreshServiceProviders() {
