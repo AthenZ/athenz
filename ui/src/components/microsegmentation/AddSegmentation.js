@@ -781,7 +781,7 @@ export default class AddSegmentation extends React.Component {
             }) || [];
 
         // check if validation of policy has been enabled
-        // if enbaled then validate microsegmentation policy against network policy
+        // if enabled then validate microsegmentation policy against network policy
 
         this.validateMicrosegmentationPolicy(
             this.state.category,

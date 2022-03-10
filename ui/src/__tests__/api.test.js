@@ -1781,7 +1781,14 @@ describe('Fetchr Client API Test', () => {
         it('validateMicrosegmentationPolicy test success', async () => {
             myDataService = {
                 name: 'validateMicrosegmentation',
-                read: function (req, resource, params, config, callback) {
+                update: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     callback(null, DATA);
                 },
             };
@@ -1800,7 +1807,14 @@ describe('Fetchr Client API Test', () => {
         it('validateMicrosegmentationPolicy test error', async () => {
             myDataServiceErr = {
                 name: 'validateMicrosegmentation',
-                read: function (req, resource, params, config, callback) {
+                update: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
                     return callback({}, null);
                 },
             };

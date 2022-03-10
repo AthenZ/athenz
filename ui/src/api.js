@@ -1947,7 +1947,7 @@ const Api = (req) => {
                     },
                 });
                 fetchr
-                    .read('validateMicrosegmentation')
+                    .update('validateMicrosegmentation')
                     .params({
                         category,
                         roleMembers,
