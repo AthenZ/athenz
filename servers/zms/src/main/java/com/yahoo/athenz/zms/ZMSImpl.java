@@ -171,6 +171,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected int domainNameMaxLen;
     protected AuthorizedServices serverAuthorizedServices = null;
     protected SolutionTemplates serverSolutionTemplates = null;
+    protected List<String> serverSolutionTemplateNames = null;
     protected Map<String, String> serverPublicKeyMap = null;
     protected DynamicConfigBoolean readOnlyMode;
     protected DynamicConfigBoolean validateServiceRoleMembers;
@@ -1137,6 +1138,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.error("Generating empty solution template list...");
             serverSolutionTemplates = new SolutionTemplates();
             serverSolutionTemplates.setTemplates(new HashMap<>());
+            serverSolutionTemplateNames = Collections.emptyList();
+        } else {
+            serverSolutionTemplateNames = new ArrayList<>(serverSolutionTemplates.names());
+            Collections.sort(serverSolutionTemplateNames);
         }
     }
 
@@ -3158,13 +3163,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = ctx.getApiName();
 
         logPrincipal(ctx);
-
         validateRequest(ctx.request(), caller);
 
-        ServerTemplateList result = new ServerTemplateList();
-        result.setTemplateNames(new ArrayList<>(serverSolutionTemplates.names()));
-
-        return result;
+        return new ServerTemplateList().setTemplateNames(serverSolutionTemplateNames);
     }
 
     public Template getTemplate(ResourceContext ctx, String templateName) {
