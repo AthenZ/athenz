@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.google.common.net.InetAddresses;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
@@ -266,9 +267,13 @@ public class SecureBootProvider implements InstanceProvider {
             return true;
         }
 
-        Set<String> hostIps = hostnameResolver.getAllByName(hostname);;
+        // Let's get an uncompressed list of IP strings for the hostname to compare
+        Set<String> hostIps = hostnameResolver.getAllByName(hostname).stream()
+                .map(ip -> flattenIp(ip))
+                .filter(ip -> !StringUtil.isEmpty(ip))
+                .collect(Collectors.toSet());
 
-        LOG.debug("Validating sanIps: {}, hostIps: {}", sanIps, hostIps);
+        LOG.debug("validating sanIps: {}, hostIps: {}", sanIps, hostIps);
 
         for (String sanIp: sanIps) {
             if (!hostIps.contains(sanIp)) {
@@ -278,6 +283,16 @@ public class SecureBootProvider implements InstanceProvider {
         }
 
         return true;
+    }
+
+    static String flattenIp(String ip) {
+        try {
+            return InetAddresses.forString(ip).getHostAddress();
+        } catch (IllegalArgumentException e) {
+            LOG.error("unable to parse ip: {}", ip);
+        }
+
+        return "";
     }
 
     public static String logTxt(InstanceConfirmation confirmation) {
