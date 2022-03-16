@@ -1,4 +1,4 @@
-Athenz v1.10.49 Release / Mar 07, 2022
+Athenz v1.10.50 Release / Mar 14, 2022
 --------------------------------------
 
 #1791 UI: update retry logic to get assertionId and treat 404 as success for deletion
