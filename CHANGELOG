@@ -1,6 +1,17 @@
 Athenz v1.10.49 Release / Mar 07, 2022
 --------------------------------------
 
+#1791 UI: update retry logic to get assertionId and treat 404 as success for deletion
+#1805 disable role member expiry notification
+#1807 Move Symlink from hostcert to futil
+#1808 add to guide
+#1809 Matching uncompressed IPs of the hostname during SecureBoot validation
+#1811 add cert utils fir sia libs
+#1812 return server template names in sorted order
+
+Athenz v1.10.49 Release / Mar 07, 2022
+--------------------------------------
+
 #1789 Domain Dependency for Tenancy
 #1795 fix lookup of sia integer env variables
 #1796 parameterizing sshcaKeyId
