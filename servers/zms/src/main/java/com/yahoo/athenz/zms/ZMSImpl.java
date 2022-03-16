@@ -1604,7 +1604,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             userDomainCheck = domain.substring(0, idx + 1);
         }
 
-        // retrieve the number of domains with this prefix
+        // retrieve the number of domains with this prefix testttt
 
         DomainList dlist = listDomains(null, null, userDomainCheck, null, 0, true);
         if (dlist.getNames().size() < virtualDomainLimit) {
