@@ -15,17 +15,20 @@
  */
 package com.yahoo.athenz.auth;
 
-import java.security.cert.X509Certificate;
-import java.util.*;
-
 import javax.servlet.http.HttpServletRequest;
+import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * An Authority can validate credentials of a Principal in its domain. It also can provide HTTP header information
  * that determines where to find relevant credentials for that task.
  */
 public interface Authority {
-    
+
     /**
      * Source for the credentials - either headers or certificate
      */
@@ -34,7 +37,7 @@ public interface Authority {
         CERTIFICATE,
         REQUEST
     }
-    
+
     /**
      * Initialize the authority
      */
@@ -85,7 +88,7 @@ public interface Authority {
     default boolean allowAuthorization() {
         return true;
     }
-    
+
     /**
      * If the authority is handling user principals, then it might require some
      * mapping from username to user domain name.
@@ -117,7 +120,7 @@ public interface Authority {
      * @return the Principal for the credentials, or null if the credentials are not valid.
      */
     Principal authenticate(String creds, String remoteAddr, String httpMethod, StringBuilder errMsg);
-    
+
     /**
      * Process the client certificates extracted from the http request object.
      * Extract the CN field from the Certificate Subject DN which should be the Athenz
@@ -130,7 +133,7 @@ public interface Authority {
     default Principal authenticate(X509Certificate[] certs, StringBuilder errMsg) {
         return null;
     }
-    
+
     /**
      * Process the authenticate request based on http request object.
      * @param request http servlet request

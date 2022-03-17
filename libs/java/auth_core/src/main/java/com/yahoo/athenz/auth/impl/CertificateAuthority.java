@@ -42,6 +42,8 @@ public class CertificateAuthority implements Authority {
     private CertificateIdentityParser certificateIdentityParser = null;
     private GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
 
+
+
     @Override
     public void initialize() {
         Set<String> excludedPrincipalSet = null;
@@ -53,7 +55,7 @@ public class CertificateAuthority implements Authority {
 
         boolean excludeRoleCertificates = Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_EXCLUDE_ROLE_CERTIFICATES, "false"));
 
-        this.certificateIdentityParser = new CertificateIdentityParser(excludedPrincipalSet, excludeRoleCertificates);
+        this.certificateIdentityParser = new CertificateIdentityParser(excludedPrincipalSet, excludeRoleCertificates, new CertificateAuthorityValidator());
     }
 
     @Override
@@ -116,6 +118,7 @@ public class CertificateAuthority implements Authority {
 
         // create principal
         X509Certificate x509Cert = certId.getX509Certificate();
+
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(certId.getDomain(), certId.getService(), x509Cert.toString(), this);
         principal.setUnsignedCreds(x509Cert.getSubjectX500Principal().toString());
         principal.setX509Certificate(x509Cert);

@@ -34,6 +34,7 @@ import javax.security.auth.x500.X500Principal;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bouncycastle.asn1.*;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -611,13 +612,12 @@ public class Crypto {
         File certFile = new File(certsFile);
 
         try (InputStream certStream  = new FileInputStream(certFile)) {
-
             final CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            List<? extends Certificate> certs = (List<? extends Certificate>) cf.generateCertificates(certStream);
+            Collection<? extends Certificate> certs = cf.generateCertificates(certStream);
             if (certs.isEmpty()) {
                 throw new CryptoException("Certificate file contains empty certificate or an invalid certificate.");
             }
-            return certs.toArray(new X509Certificate[certs.size()]);
+            return certs.parallelStream().filter(X509Certificate.class::isInstance).toArray(X509Certificate[]::new);
         } catch (IOException ex) {
             LOG.error("loadX509Certificates: unable to process file: {}", certFile.getAbsolutePath());
             throw new CryptoException(ex);
@@ -1631,5 +1631,31 @@ public class Crypto {
         }
 
         return result;
+    }
+
+    /**
+     *
+     * @param x509Certificate object to extract Issuer DN from
+     * @return extracted Issuer DN
+     */
+    public static String extractIssuerDn(X509Certificate x509Certificate) {
+        return x509Certificate.getIssuerX500Principal().getName();
+    }
+
+    /**
+     *
+     * @param certificateBundlePath trust store pem file path
+     * @return Set of extracted Issuer Dns
+     */
+    public static Set<String> extractIssuerDn(String certificateBundlePath) {
+        if (StringUtil.isEmpty(certificateBundlePath)) {
+            return new HashSet<>();
+        }
+        Set<String> issuerDN = new HashSet<>();
+        X509Certificate[] certificates = loadX509Certificates(certificateBundlePath);
+        for (X509Certificate cert: certificates) {
+            issuerDN.add(extractIssuerDn(cert));
+        }
+        return issuerDN;
     }
 }

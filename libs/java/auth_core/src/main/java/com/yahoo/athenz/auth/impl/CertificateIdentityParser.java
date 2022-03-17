@@ -40,8 +40,12 @@ public class CertificateIdentityParser {
 
     public static final String EMPTY_CERT_ERR_MSG = "No certificate available in request";
 
+    public static final String ISSUER_DN_MISMATCH = "No Isser DNs match with trust store";
+
     private final Set<String> excludedPrincipalSet;
     private final boolean excludeRoleCertificates;
+
+    private CertificateAuthorityValidator certificateAuthorityValidator;
 
     /**
      * @param  excludedPrincipalSet    Reject parsing certificate with those principal
@@ -50,6 +54,18 @@ public class CertificateIdentityParser {
     public CertificateIdentityParser(Set<String> excludedPrincipalSet, boolean excludeRoleCertificates) {
         this.excludedPrincipalSet = excludedPrincipalSet;
         this.excludeRoleCertificates = excludeRoleCertificates;
+    }
+
+    /**
+     *
+     * @param excludedPrincipalSet
+     * @param excludeRoleCertificates
+     * @param certificateAuthorityValidator
+     */
+    public CertificateIdentityParser(Set<String> excludedPrincipalSet, boolean excludeRoleCertificates, CertificateAuthorityValidator certificateAuthorityValidator) {
+        this.excludedPrincipalSet = excludedPrincipalSet;
+        this.excludeRoleCertificates = excludeRoleCertificates;
+        this.certificateAuthorityValidator = certificateAuthorityValidator;
     }
 
     /**
@@ -77,6 +93,11 @@ public class CertificateIdentityParser {
         }
 
         X509Certificate x509Cert = certs[0];
+
+        if (this.certificateAuthorityValidator != null && !this.certificateAuthorityValidator.validate(x509Cert)) {
+            throw new CertificateIdentityException(ISSUER_DN_MISMATCH);
+        }
+
         String principalName = Crypto.extractX509CertCommonName(x509Cert);
         if (principalName == null || principalName.isEmpty()) {
             throw new CertificateIdentityException("Certificate principal is empty");
