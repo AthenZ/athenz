@@ -2700,7 +2700,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    ServiceIdentity getServiceIdentity(String domainName, String serviceName, boolean attrsOnly) {
+    public ServiceIdentity getServiceIdentity(String domainName, String serviceName, boolean attrsOnly) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getServiceIdentity(con, domainName, serviceName, attrsOnly);

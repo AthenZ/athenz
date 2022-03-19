@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.google.common.io.Resources;
 import com.wix.mysql.EmbeddedMysql;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
@@ -54,6 +55,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.yahoo.athenz.zms.ZMSConsts.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
@@ -117,6 +119,12 @@ public class DBServiceTest {
                 "src/test/resources/solution_templates.json");
         System.setProperty(ZMSConsts.ZMS_PROP_USER_AUTHORITY_CLASS, ZMSConsts.ZMS_PRINCIPAL_AUTHORITY_CLASS);
         System.setProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER, "true");
+        String certPath = Resources.getResource("service.provider.cert.pem").getPath();
+        String keyPath = Resources.getResource("service.provider.key.pem").getPath();
+        System.setProperty(ZMSConsts.ZMS_PROP_PROVIDER_KEY_PATH, keyPath);
+        System.setProperty(ZMS_PROP_PROVIDER_CERT_PATH, certPath);
+        System.setProperty(ZMS_PROP_PROVIDER_TRUST_STORE, "test.truststore");
+        System.setProperty(ZMS_PROP_PROVIDER_TRUST_STORE_PASSWORD, "test.truststore.password");
         initializeZms();
     }
 

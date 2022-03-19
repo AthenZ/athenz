@@ -186,8 +186,6 @@ public final class ZTSConsts {
     public static final String ZTS_SSH_TYPE = "certtype";
 
     public static final String ZTS_CERT_DNS_SUFFIX   = ".athenz.cloud";
-    public static final String ZTS_ACTION_LAUNCH     = "launch";
-    public static final String ZTS_RESOURCE_INSTANCE = "sys.auth:instance";
     public static final String ZTS_RESOURCE_DNS      = "sys.auth:dns.";
 
     public static final String ZTS_CERT_INSTANCE_ID_DNS  = ".instanceid.athenz.";

@@ -16,21 +16,46 @@
  *
  */
 
-package com.yahoo.athenz.zms;
+package com.yahoo.athenz.zms.provider;
 
+import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.common.ServerCommonConsts;
+import com.yahoo.athenz.zms.*;
+import com.yahoo.athenz.zms.utils.ZMSUtils;
 import org.mockito.Mockito;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 import static com.yahoo.athenz.zms.ZMSConsts.*;
 import static java.util.stream.Collectors.toList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 public class ServiceProviderManagerTest {
+
+    @BeforeMethod
+    public void setup() throws NoSuchFieldException, IllegalAccessException {
+        // Reset ServiceProviderManager Singleton
+        Field instance = ServiceProviderManager.class.getDeclaredField("instance");
+        instance.setAccessible(true);
+        instance.set(null, null);
+    }
+
+    @AfterMethod
+    public void clean() {
+    }
 
     @Test
     public void testIsServiceProvider() throws InterruptedException, ExecutionException {
@@ -56,12 +81,23 @@ public class ServiceProviderManagerTest {
                 "service.provider.test2",
                 "service.provider.test3"), testRoleName);
 
-        Mockito.when(dbService.getRole(Mockito.eq(testDomainName), Mockito.eq(testRoleName), Mockito.eq(false), Mockito.eq(true), Mockito.eq(false)))
+        when(dbService.getRole(Mockito.eq(testDomainName), Mockito.eq(testRoleName), Mockito.eq(false), Mockito.eq(true), Mockito.eq(false)))
                 .thenReturn(testRole1)
                 .thenReturn(testRole2)
                 .thenReturn(testRole3);
 
-        ServiceProviderManager serviceProviderManager = new ServiceProviderManager(dbService);
+        for (int i = 1; i <=3; ++i) {
+            ServiceIdentity serviceIdentity = new ServiceIdentity();
+            serviceIdentity.setName("service.provider.test" + i);
+            serviceIdentity.setProviderEndpoint("https://localhost:4443/test" + i);
+            when(dbService.getServiceIdentity(eq("service.provider"), eq("test" + i), eq(true))).thenReturn(serviceIdentity);
+
+
+        }
+        Principal providerServicePrincipal = SimplePrincipal.create("service.provider", "test1", (String) null);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(eq(ServerCommonConsts.ACTION_LAUNCH), eq(ServerCommonConsts.RESOURCE_INSTANCE), eq(providerServicePrincipal), isNull())).thenReturn(true);
+        ServiceProviderManager serviceProviderManager = ServiceProviderManager.getInstance(dbService, authorizer);
 
         // Simulate calls from different threads to check service provider
         ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
@@ -77,7 +113,6 @@ public class ServiceProviderManagerTest {
             }
         }
 
-        serviceProviderManager.shutdown();
 
         System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS);
         System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_DOMAIN);
@@ -118,6 +153,8 @@ public class ServiceProviderManagerTest {
                 assertFalse(serviceProviderManager.isServiceProvider("service.provider.test2"));
                 assertFalse(serviceProviderManager.isServiceProvider("service.provider.test3"));
                 assertFalse(serviceProviderManager.isServiceProvider("service.provider.test4"));
+                Map<String, ServiceProviderManager.DomainDependencyProvider> serviceProvidersWithEndpoints = serviceProviderManager.getServiceProvidersWithEndpoints();
+                assertEquals(serviceProvidersWithEndpoints.size(), 1);
 
                 // Now sleep until the second fetch from DB (fetchFrequency + add a small delta)
                 ZMSTestUtils.sleep((1000 * fetchFrequency) + 50);
@@ -129,6 +166,14 @@ public class ServiceProviderManagerTest {
                 assertTrue(serviceProviderManager.isServiceProvider("service.provider.test2"));
                 assertTrue(serviceProviderManager.isServiceProvider("service.provider.test3"));
                 assertFalse(serviceProviderManager.isServiceProvider("service.provider.test4"));
+                serviceProvidersWithEndpoints = serviceProviderManager.getServiceProvidersWithEndpoints();
+                assertEquals(serviceProvidersWithEndpoints.size(), 3);
+                assertTrue(serviceProvidersWithEndpoints.get("service.provider.test1").isInstanceProvider());
+                assertFalse(serviceProvidersWithEndpoints.get("service.provider.test2").isInstanceProvider());
+                assertFalse(serviceProvidersWithEndpoints.get("service.provider.test3").isInstanceProvider());
+                assertEquals(serviceProvidersWithEndpoints.get("service.provider.test1").getProviderEndpoint(), "https://localhost:4443/test1");
+                assertEquals(serviceProvidersWithEndpoints.get("service.provider.test2").getProviderEndpoint(), "https://localhost:4443/test2");
+                assertEquals(serviceProvidersWithEndpoints.get("service.provider.test3").getProviderEndpoint(), "https://localhost:4443/test3");
 
                 // Now check final fetch from DB
                 ZMSTestUtils.sleep(1000 * fetchFrequency);
@@ -140,6 +185,9 @@ public class ServiceProviderManagerTest {
                 assertTrue(serviceProviderManager.isServiceProvider("service.provider.test2"));
                 assertTrue(serviceProviderManager.isServiceProvider("service.provider.test3"));
                 assertFalse(serviceProviderManager.isServiceProvider("service.provider.test4"));
+                serviceProvidersWithEndpoints = serviceProviderManager.getServiceProvidersWithEndpoints();
+                assertEquals(serviceProvidersWithEndpoints.size(), 2);
+
                 System.out.println("Finished successfully - thread " + threadNumber);
                 return true;
             } catch (AssertionError error) {

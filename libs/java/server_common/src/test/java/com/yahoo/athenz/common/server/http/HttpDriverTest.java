@@ -52,7 +52,7 @@ public class HttpDriverTest {
     }
 
     @Test
-    public void testDriverInit() throws IOException {
+    public void testDriverInit() {
         String caCertFile = classLoader.getResource("driver.truststore.jks").getFile();
         String certFile = classLoader.getResource("driver.cert.pem").getFile();
         String keyFile = classLoader.getResource("unit_test_driver.key.pem").getFile();
@@ -185,6 +185,68 @@ public class HttpDriverTest {
 
         String out = httpDriver.doPost(httpPost);
         Assert.assertEquals(out, data);
+    }
+
+    @Test
+    public void testDoPostHttpPostResponse() throws IOException {
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+        CloseableHttpResponse httpResponse = Mockito.mock(CloseableHttpResponse.class);
+        HttpEntity responseEntity = Mockito.mock(HttpEntity.class);
+
+        String data = "Sample Server Response";
+
+        Mockito.when(httpResponse.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK" ));
+        Mockito.when(responseEntity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
+        Mockito.when(httpResponse.getEntity()).thenReturn(responseEntity);
+        Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
+
+        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+                .build();
+        httpDriver.setHttpClient(httpClient);
+
+        HttpPost httpPost = new HttpPost("https://localhost:4443/sample");
+
+        // prepare POST body
+        String body = "<?xml version='1.0'?><methodCall><methodName>test.test</methodName></methodCall>";
+
+        // set POST body
+        HttpEntity entity = new StringEntity(body);
+        httpPost.setEntity(entity);
+
+        HttpDriverResponse httpDriverResponse = httpDriver.doPostHttpResponse(httpPost);
+        Assert.assertEquals(httpDriverResponse.getMessage(), data);
+        Assert.assertEquals(httpDriverResponse.getStatusCode(), HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testDoPostHttpPostResponseFailure() throws IOException {
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+        CloseableHttpResponse httpResponse = Mockito.mock(CloseableHttpResponse.class);
+        HttpEntity responseEntity = Mockito.mock(HttpEntity.class);
+
+        String data = "ERROR RESPONSE FROM SERVER";
+
+        Mockito.when(httpResponse.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_GATEWAY, "BAD-GATEWAY" ));
+        Mockito.when(responseEntity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
+        Mockito.when(httpResponse.getEntity()).thenReturn(responseEntity);
+        Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
+
+        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+                .build();
+        httpDriver.setHttpClient(httpClient);
+
+        HttpPost httpPost = new HttpPost("https://localhost:4443/sample");
+
+        // prepare POST body
+        String body = "<?xml version='1.0'?><methodCall><methodName>test.test</methodName></methodCall>";
+
+        // set POST body
+        HttpEntity entity = new StringEntity(body);
+        httpPost.setEntity(entity);
+
+        HttpDriverResponse httpDriverResponse = httpDriver.doPostHttpResponse(httpPost);
+        Assert.assertEquals(httpDriverResponse.getMessage(), data);
+        Assert.assertEquals(httpDriverResponse.getStatusCode(), HttpStatus.SC_BAD_GATEWAY);
     }
 
     @Test
