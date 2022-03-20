@@ -29,6 +29,13 @@ RUN mkdir -p "${GOPATH}/bin"
 
 # add $GOPATH/bin and latest go bin to path
 ENV PATH="${GOPATH}/bin:/usr/local/go/bin:${PATH}"
+
+# fix to have rdl binary available to be used by client generators.
+RUN go get -d github.com/ardielle/ardielle-tools/... && go install github.com/ardielle/ardielle-tools/... \
+    && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/zms/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/zms/bin \
+    && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/zts/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/zts/bin \
+    && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/msd/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/msd/bin
+
 RUN GO111MODULE=on \
   CGO_ENABLED=0 \
   CGO_CXXFLAGS="-g -Ofast -march=native" \
