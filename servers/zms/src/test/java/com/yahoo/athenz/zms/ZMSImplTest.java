@@ -6880,6 +6880,19 @@ public class ZMSImplTest {
         assertEquals(resourceGroup2.toLowerCase(), tRoles.getResourceGroup());
         assertEquals(ZMSTestInitializer.TABLE_PROVIDER_ROLE_ACTIONS.size(), tRoles.getRoles().size());
 
+        DependentServiceResourceGroupList dependentServiceResourceGroupList = zmsTestInitializer.getZms().getDependentServiceResourceGroupList(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomain);
+        assertEquals(dependentServiceResourceGroupList.getServiceAndResourceGroups().size(), 1);
+        assertEquals(dependentServiceResourceGroupList.getServiceAndResourceGroups().get(0).getService(), "testgettenantresourcegrouprolesdomaindependency.storage");
+        assertEquals(dependentServiceResourceGroupList.getServiceAndResourceGroups().get(0).getDomain(), "tenanttestgettenantresourcegrouprolesdomaindependency");
+        List<String> resourceGroups = dependentServiceResourceGroupList.getServiceAndResourceGroups().get(0).getResourceGroups();
+        assertEquals(resourceGroups.size(), 6);
+        assertTrue(resourceGroups.contains("storage.tenant.tenanttestgettenantresourcegrouprolesdomaindependency.res_group.group1.admin"));
+        assertTrue(resourceGroups.contains("storage.tenant.tenanttestgettenantresourcegrouprolesdomaindependency.res_group.group1.reader"));
+        assertTrue(resourceGroups.contains("storage.tenant.tenanttestgettenantresourcegrouprolesdomaindependency.res_group.group1.writer"));
+        assertTrue(resourceGroups.contains("storage.tenant.tenanttestgettenantresourcegrouprolesdomaindependency.res_group.group2.admin"));
+        assertTrue(resourceGroups.contains("storage.tenant.tenanttestgettenantresourcegrouprolesdomaindependency.res_group.group2.reader"));
+        assertTrue(resourceGroups.contains("storage.tenant.tenanttestgettenantresourcegrouprolesdomaindependency.res_group.group2.writer"));
+
         // Now remove the first resource group and verify dependency remains until the second resource group and admin role is removed
 
         zmsImpl.deleteTenantResourceGroupRoles(serviceProviderCtx, domain, serviceName, tenantDomain, resourceGroup, zmsTestInitializer.getAuditRef());

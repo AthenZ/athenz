@@ -7,3 +7,13 @@ include "Names.tdl";
 type DependentService Struct {
     ServiceName service; //name of the service
 }
+
+type DependentServiceResourceGroup Struct {
+    ServiceName service; //name of the service
+    DomainName domain; //name of the dependent domain
+    Array<EntityName> resourceGroups (optional); //registered resource groups for this service and domain
+}
+
+type DependentServiceResourceGroupList Struct {
+    Array<DependentServiceResourceGroup> serviceAndResourceGroups; // collection of dependent services and resource groups for tenant domain
+}

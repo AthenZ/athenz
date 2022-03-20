@@ -10389,6 +10389,43 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
+    public DependentServiceResourceGroupList getDependentServiceResourceGroupList(ResourceContext ctx, String domainName) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        ServiceIdentityList serviceIdentityList = dbService.listServiceDependencies(domainName);
+        final String finalDomainName = domainName;
+        List<DependentServiceResourceGroup> dependentServiceResourceGroups = serviceIdentityList.getNames().stream().map(service -> {
+            DependentServiceResourceGroup dependentServiceResourceGroup = new DependentServiceResourceGroup();
+            dependentServiceResourceGroup.setService(service);
+            dependentServiceResourceGroup.setDomain(finalDomainName);
+            dependentServiceResourceGroup.setResourceGroups(getResourceGroupsForProviderServiceTenantDomain(service, finalDomainName));
+            return dependentServiceResourceGroup;
+        }).collect(Collectors.toList());
+        return new DependentServiceResourceGroupList().setServiceAndResourceGroups(dependentServiceResourceGroups);
+    }
+
+    private List<String> getResourceGroupsForProviderServiceTenantDomain(final String service, final String tenantDomain) {
+        final String provSvcName = ZMSUtils.providerServiceName(service);
+        final String provSvcDomain = ZMSUtils.providerServiceDomain(service);
+        final String rolePrefix = ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, null);
+        final List<String> tenantDomainRoles = dbService.listRoles(provSvcDomain);
+        return tenantDomainRoles.stream()
+                .filter(role -> role.startsWith(rolePrefix) && role.contains(".res_group."))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public DomainList getDependentDomainList(ResourceContext ctx, String service) {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);

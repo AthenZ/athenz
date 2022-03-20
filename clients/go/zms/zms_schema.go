@@ -746,6 +746,16 @@ func init() {
 	tDependentService.Field("service", "ServiceName", false, nil, "name of the service")
 	sb.AddType(tDependentService.Build())
 
+	tDependentServiceResourceGroup := rdl.NewStructTypeBuilder("Struct", "DependentServiceResourceGroup")
+	tDependentServiceResourceGroup.Field("service", "ServiceName", false, nil, "name of the service")
+	tDependentServiceResourceGroup.Field("domain", "DomainName", false, nil, "name of the dependent domain")
+	tDependentServiceResourceGroup.ArrayField("resourceGroups", "EntityName", true, "registered resource groups for this service and domain")
+	sb.AddType(tDependentServiceResourceGroup.Build())
+
+	tDependentServiceResourceGroupList := rdl.NewStructTypeBuilder("Struct", "DependentServiceResourceGroupList")
+	tDependentServiceResourceGroupList.ArrayField("serviceAndResourceGroups", "DependentServiceResourceGroup", false, "collection of dependent services and resource groups for tenant domain")
+	sb.AddType(tDependentServiceResourceGroupList.Build())
+
 	mGetDomain := rdl.NewResourceBuilder("Domain", "GET", "/domain/{domain}")
 	mGetDomain.Comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
 	mGetDomain.Input("domain", "DomainName", true, "", "", false, nil, "name of the domain")
@@ -2360,6 +2370,17 @@ func init() {
 	mGetDependentServiceList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetDependentServiceList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetDependentServiceList.Build())
+
+	mGetDependentServiceResourceGroupList := rdl.NewResourceBuilder("DependentServiceResourceGroupList", "GET", "/dependency/domain/{domainName}/resourceGroup")
+	mGetDependentServiceResourceGroupList.Comment("List registered services and resource groups for domain")
+	mGetDependentServiceResourceGroupList.Name("getDependentServiceResourceGroupList")
+	mGetDependentServiceResourceGroupList.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
+	mGetDependentServiceResourceGroupList.Auth("", "", true, "")
+	mGetDependentServiceResourceGroupList.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetDependentServiceResourceGroupList.Exception("NOT_FOUND", "ResourceError", "")
+	mGetDependentServiceResourceGroupList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetDependentServiceResourceGroupList.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetDependentServiceResourceGroupList.Build())
 
 	mGetDependentDomainList := rdl.NewResourceBuilder("DomainList", "GET", "/dependency/service/{service}")
 	mGetDependentDomainList.Comment("List dependent domains for service")

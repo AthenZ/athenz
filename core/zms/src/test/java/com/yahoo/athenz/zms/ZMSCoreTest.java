@@ -4090,4 +4090,80 @@ public class ZMSCoreTest {
 
         assertFalse(a.equals(new String()));
     }
+
+    @Test
+    public void testDependentServiceResourceGroup() {
+
+        List<String> resourceGroups = Arrays.asList("group1", "group2");
+
+        DependentServiceResourceGroup a = new DependentServiceResourceGroup().setService("testService").setDomain("testTenantDomain").setResourceGroups(resourceGroups);
+        assertEquals(a.getService(), "testService");
+        assertEquals(a.getDomain(), "testTenantDomain");
+        assertEquals(a.getResourceGroups(), resourceGroups);
+
+        assertTrue(a.equals(a));
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+        Result result = validator.validate(a, "DependentServiceResourceGroup");
+        assertTrue(result.valid);
+
+        assertFalse(a.equals(null));
+
+        DependentServiceResourceGroup a2 = new DependentServiceResourceGroup();
+        assertFalse(a2.equals(a));
+        a2.setService("testService2");
+        assertFalse(a2.equals(a));
+        a2.setService("testService");
+        assertFalse(a2.equals(a));
+        a2.setDomain("testTenantDomain");
+        assertFalse(a2.equals(a));
+        a2.setResourceGroups(resourceGroups);
+        assertTrue(a2.equals(a));
+
+        assertFalse(a.equals(new DependentServiceResourceGroup()));
+    }
+
+    @Test
+    public void testDependentServiceResourceGroupList() {
+
+        DependentServiceResourceGroup dependentServiceResourceGroup1 = new DependentServiceResourceGroup().setService("service1").setDomain("testTenantDomain").setResourceGroups(Arrays.asList("rsg1", "rsg2"));
+        DependentServiceResourceGroup dependentServiceResourceGroup2 = new DependentServiceResourceGroup().setService("service2").setDomain("testTenantDomain").setResourceGroups(Arrays.asList("rsg3", "rsg4"));
+        DependentServiceResourceGroup dependentServiceResourceGroup3 = new DependentServiceResourceGroup().setService("service3").setDomain("testTenantDomain");
+        List<DependentServiceResourceGroup> serviceAndResourceGroups = Arrays.asList(
+                dependentServiceResourceGroup1,
+                dependentServiceResourceGroup2,
+                dependentServiceResourceGroup3
+        );
+
+        DependentServiceResourceGroupList a = new DependentServiceResourceGroupList().setServiceAndResourceGroups(serviceAndResourceGroups);
+        assertEquals(a.getServiceAndResourceGroups(), serviceAndResourceGroups);
+
+        assertTrue(a.equals(a));
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+        Result result = validator.validate(a, "DependentServiceResourceGroupList");
+        assertTrue(result.valid);
+
+        assertFalse(a.equals(null));
+
+        DependentServiceResourceGroupList a2 = new DependentServiceResourceGroupList();
+        assertFalse(a2.equals(a));
+        a2.setServiceAndResourceGroups(new ArrayList<>());
+        assertFalse(a2.equals(a));
+        a2.setServiceAndResourceGroups(Arrays.asList(
+                dependentServiceResourceGroup1,
+                dependentServiceResourceGroup2
+        ));
+        assertFalse(a2.equals(a));
+        a2.setServiceAndResourceGroups(Arrays.asList(
+                dependentServiceResourceGroup1,
+                dependentServiceResourceGroup2,
+                dependentServiceResourceGroup3
+        ));
+        assertTrue(a2.equals(a));
+
+        assertFalse(a.equals(new DependentServiceResourceGroupList()));
+    }
 }

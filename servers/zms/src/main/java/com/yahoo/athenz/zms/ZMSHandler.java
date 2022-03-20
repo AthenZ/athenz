@@ -127,6 +127,7 @@ public interface ZMSHandler {
     void putDomainDependency(ResourceContext context, String domainName, String auditRef, DependentService service);
     void deleteDomainDependency(ResourceContext context, String domainName, String service, String auditRef);
     ServiceIdentityList getDependentServiceList(ResourceContext context, String domainName);
+    DependentServiceResourceGroupList getDependentServiceResourceGroupList(ResourceContext context, String domainName);
     DomainList getDependentDomainList(ResourceContext context, String service);
     Schema getRdlSchema(ResourceContext context);
     ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
