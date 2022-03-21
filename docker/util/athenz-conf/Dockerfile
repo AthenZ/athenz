@@ -37,7 +37,6 @@ LABEL org.label-schema.description="athenz-conf CLI"
 LABEL org.label-schema.url="https://www.athenz.io/"
 LABEL org.label-schema.vcs-url="https://github.com/AthenZ/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
-# LABEL maintainer "YJ Athenz Team <>"
 
 ENV APP_NAME athenz-conf
 

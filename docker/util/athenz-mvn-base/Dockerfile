@@ -21,7 +21,6 @@ LABEL org.label-schema.description="base image for maven cache"
 LABEL org.label-schema.url="https://www.athenz.io/"
 LABEL org.label-schema.vcs-url="https://github.com/AthenZ/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
-# LABEL maintainer "YJ Athenz Team <>"
 
 ARG USER_HOME_DIR="/root"
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"

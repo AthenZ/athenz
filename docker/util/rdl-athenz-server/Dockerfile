@@ -3,7 +3,7 @@ FROM golang:1.14-alpine AS builder
 ENV APP_NAME rdl-gen-athenz-server
 
 RUN set -eux \
-    && apk --no-cache add --virtual build-dependencies cmake g++ make unzip curl upx git
+    && apk --no-cache add --virtual build-dependencies libgcc libstdc++ cmake g++ make unzip curl upx git
 
 WORKDIR ${GOPATH}/src/github.com/AthenZ/athenz/rdl/rdl-gen-athenz-server
 
@@ -39,7 +39,6 @@ LABEL org.label-schema.description="base image of RDL"
 LABEL org.label-schema.url="https://www.athenz.io/"
 LABEL org.label-schema.vcs-url="https://github.com/AthenZ/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
-# LABEL maintainer "YJ Athenz Team <>"
 
 ENV APP_NAME rdl-gen-athenz-server
 
