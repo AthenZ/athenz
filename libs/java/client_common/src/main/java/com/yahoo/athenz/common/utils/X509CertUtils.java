@@ -223,16 +223,18 @@ public class X509CertUtils {
             return "";
         }
 
-        return extractIssuerDn(certs[0]);
+        return Crypto.extractIssuerDn(certs[0]);
     }
 
     /**
+     * @deprecated use com.yahoo.athenz.auth.util.Crypto.extractIssuerDn instead
      * extractIssuerDn returns the IssuerDN from the certificate passed in
      * @param cert X509Certificate to extract the DN from
      * @return string with Issuer DN
      */
+    @Deprecated
     public static String extractIssuerDn(X509Certificate cert) {
-        return cert.getIssuerX500Principal().getName();
+        return Crypto.extractIssuerDn(cert);
     }
 
     /**

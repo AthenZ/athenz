@@ -1594,4 +1594,29 @@ public class CryptoTest {
             assertEquals(derSignature, testDerSignature);
         }
     }
+
+    @Test
+    public void testExtractIssuerDn() throws IOException {
+        Path path = Paths.get("src/test/resources/x509_ca_certificate.pem");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        String issuerDN = "CN=athenz.syncer,OU=athenz.syncer,O=My Test Company,L=Sunnyvale,ST=CA,C=US";
+        assertEquals(Crypto.extractIssuerDn(cert), issuerDN);
+
+        String caBundlePath = "src/test/resources/x509_ca_certificate_chain.pem";
+        Set<String> issuerDNSet = new HashSet<>();
+        issuerDNSet.add("CN=athenz.syncer,OU=athenz.syncer,O=My Test Company,L=Sunnyvale,ST=CA,C=US");
+        issuerDNSet.add("CN=athenz.syncer,OU=athenz.syncer,O=My Test Company,L=New York,ST=NY,C=US");
+
+        assertEquals(Crypto.extractIssuerDn(caBundlePath), issuerDNSet);
+
+        caBundlePath = "";
+        issuerDNSet = new HashSet<>();
+        assertEquals(Crypto.extractIssuerDn(caBundlePath), issuerDNSet);
+
+        caBundlePath = null;
+        issuerDNSet = new HashSet<>();
+        assertEquals(Crypto.extractIssuerDn(caBundlePath), issuerDNSet);
+    }
 }

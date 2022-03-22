@@ -281,4 +281,50 @@ public class CertificateAuthorityTest {
             assertTrue(errMsg.toString().contains("Principal is not a valid service identity"));
         }
     }
+
+    @Test
+    public void testAuthenticateInvalidCertificatetoAuthority() {
+        System.setProperty("athenz.authority.truststore.path", "src/test/resources/x509_ca_certificate_chain.pem");
+        CertificateAuthority authority = new CertificateAuthority();
+        authority.initialize();
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            X509Certificate[] certs = new X509Certificate[1];
+            certs[0] = cert;
+            Principal principal = authority.authenticate(certs, null);
+            assertNull(principal);
+        } catch (Exception e) {
+            fail();
+        } finally {
+            System.clearProperty("athenz.authority.truststore.path");
+        }
+    }
+
+    @Test
+    public void testAuthenticateValidCertificatetoAuthority() {
+        System.setProperty("athenz.authority.truststore.path", "src/test/resources/x509_ca_certificate_chain.pem");
+        CertificateAuthority authority = new CertificateAuthority();
+        authority.initialize();
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/x509_client_certificate_with_ca.pem")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            X509Certificate[] certs = new X509Certificate[1];
+            certs[0] = cert;
+            Principal principal = authority.authenticate(certs, null);
+            assertNotNull(principal);
+            assertEquals("athenz", principal.getDomain());
+            assertEquals("syncer", principal.getName());
+            assertNull(principal.getRoles());
+            assertFalse(principal.getMtlsRestricted());
+        } catch (Exception e) {
+            fail();
+        } finally {
+            System.clearProperty("athenz.authority.truststore.path");
+        }
+    }
 }

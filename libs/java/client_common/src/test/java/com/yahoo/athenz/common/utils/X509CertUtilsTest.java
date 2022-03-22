@@ -18,10 +18,15 @@ package com.yahoo.athenz.common.utils;
 import static org.testng.Assert.*;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -306,5 +311,16 @@ public class X509CertUtilsTest {
         X509Certificate[] certs = new X509Certificate[]{cert};
 
         assertEquals(X509CertUtils.extractSubjectDn(certs), "CN=athenz.examples.httpd,OU=Testing Domain,O=Athenz,L=LA,ST=CA,C=US");
+    }
+
+    @Test
+    public void testTestExtractIssuerDn() {
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+            System.out.println(X509CertUtils.extractIssuerDn(cert));
+        } catch (IOException | CertificateException e) {
+            e.printStackTrace();
+        }
     }
 }
