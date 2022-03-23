@@ -51,12 +51,12 @@ const TrStyled = styled.tr`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const MenuDiv = styled.div`
@@ -171,6 +171,10 @@ class GroupRow extends React.Component {
             this,
             `/domain/${this.props.domain}/group/${this.state.name}/roles`
         );
+        let clickTag = this.onClickFunction.bind(
+            this,
+            `/domain/${this.props.domain}/group/${this.state.name}/tags`
+        );
 
         let clickDelete = this.onClickDelete.bind(this, this.state.name);
         let submitDelete = this.onSubmitDelete.bind(this, this.props.domain);
@@ -265,6 +269,25 @@ class GroupRow extends React.Component {
                         }
                     >
                         <MenuDiv>Roles</MenuDiv>
+                    </Menu>
+                </TDStyled>
+                <TDStyled color={color} align={center}>
+                    <Menu
+                        placement='bottom-start'
+                        trigger={
+                            <span>
+                                <Icon
+                                    icon={'tag'}
+                                    onClick={clickTag}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </span>
+                        }
+                    >
+                        <MenuDiv>Tags</MenuDiv>
                     </Menu>
                 </TDStyled>
                 <TDStyled color={color} align={center}>

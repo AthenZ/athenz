@@ -107,9 +107,10 @@ export default class GroupTable extends React.Component {
         return (
             <StyleTable key='group-table' data-testid='grouptable'>
                 <colgroup>
-                    <col style={{ width: 30 + '%' }} />
-                    <col style={{ width: 15 + '%' }} />
-                    <col style={{ width: 15 + '%' }} />
+                    <col style={{ width: 26 + '%' }} />
+                    <col style={{ width: 13 + '%' }} />
+                    <col style={{ width: 13 + '%' }} />
+                    <col style={{ width: 8 + '%' }} />
                     <col style={{ width: 8 + '%' }} />
                     <col style={{ width: 8 + '%' }} />
                     <col style={{ width: 8 + '%' }} />
@@ -125,6 +126,7 @@ export default class GroupTable extends React.Component {
                         <TableHeadStyled>Reviewed Date</TableHeadStyled>
                         <TableHeadStyled>Members</TableHeadStyled>
                         <TableHeadStyled>Roles</TableHeadStyled>
+                        <TableHeadStyled>Tags</TableHeadStyled>
                         <TableHeadStyled>Settings</TableHeadStyled>
                         <TableHeadStyled>History</TableHeadStyled>
                         <TableHeadStyled>Delete</TableHeadStyled>
