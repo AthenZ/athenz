@@ -7753,3 +7753,136 @@ func (self *DependentService) Validate() error {
 	}
 	return nil
 }
+
+//
+// DependentServiceResourceGroup -
+//
+type DependentServiceResourceGroup struct {
+
+	//
+	// name of the service
+	//
+	Service ServiceName `json:"service"`
+
+	//
+	// name of the dependent domain
+	//
+	Domain DomainName `json:"domain"`
+
+	//
+	// registered resource groups for this service and domain
+	//
+	ResourceGroups []EntityName `json:"resourceGroups,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+//
+// NewDependentServiceResourceGroup - creates an initialized DependentServiceResourceGroup instance, returns a pointer to it
+//
+func NewDependentServiceResourceGroup(init ...*DependentServiceResourceGroup) *DependentServiceResourceGroup {
+	var o *DependentServiceResourceGroup
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DependentServiceResourceGroup)
+	}
+	return o
+}
+
+type rawDependentServiceResourceGroup DependentServiceResourceGroup
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DependentServiceResourceGroup
+//
+func (self *DependentServiceResourceGroup) UnmarshalJSON(b []byte) error {
+	var m rawDependentServiceResourceGroup
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DependentServiceResourceGroup(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DependentServiceResourceGroup) Validate() error {
+	if self.Service == "" {
+		return fmt.Errorf("DependentServiceResourceGroup.service is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "ServiceName", self.Service)
+		if !val.Valid {
+			return fmt.Errorf("DependentServiceResourceGroup.service does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	if self.Domain == "" {
+		return fmt.Errorf("DependentServiceResourceGroup.domain is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.Domain)
+		if !val.Valid {
+			return fmt.Errorf("DependentServiceResourceGroup.domain does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// DependentServiceResourceGroupList -
+//
+type DependentServiceResourceGroupList struct {
+
+	//
+	// collection of dependent services and resource groups for tenant domain
+	//
+	ServiceAndResourceGroups []*DependentServiceResourceGroup `json:"serviceAndResourceGroups"`
+}
+
+//
+// NewDependentServiceResourceGroupList - creates an initialized DependentServiceResourceGroupList instance, returns a pointer to it
+//
+func NewDependentServiceResourceGroupList(init ...*DependentServiceResourceGroupList) *DependentServiceResourceGroupList {
+	var o *DependentServiceResourceGroupList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DependentServiceResourceGroupList)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *DependentServiceResourceGroupList) Init() *DependentServiceResourceGroupList {
+	if self.ServiceAndResourceGroups == nil {
+		self.ServiceAndResourceGroups = make([]*DependentServiceResourceGroup, 0)
+	}
+	return self
+}
+
+type rawDependentServiceResourceGroupList DependentServiceResourceGroupList
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DependentServiceResourceGroupList
+//
+func (self *DependentServiceResourceGroupList) UnmarshalJSON(b []byte) error {
+	var m rawDependentServiceResourceGroupList
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DependentServiceResourceGroupList(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DependentServiceResourceGroupList) Validate() error {
+	if self.ServiceAndResourceGroups == nil {
+		return fmt.Errorf("DependentServiceResourceGroupList: Missing required field: serviceAndResourceGroups")
+	}
+	return nil
+}

@@ -57,6 +57,18 @@ resource ServiceIdentityList GET "/dependency/domain/{domainName}" (name=getDepe
     }
 }
 
+//List registered services and resource groups for domain
+resource DependentServiceResourceGroupList GET "/dependency/domain/{domainName}/resourceGroup" (name=getDependentServiceResourceGroupList) {
+    DomainName domainName;//name of the domain
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
 //List dependent domains for service
 resource DomainList GET "/dependency/service/{service}" (name=getDependentDomainList) {
     ServiceName service; //name of the service

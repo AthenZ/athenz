@@ -640,6 +640,14 @@ public class ZMSSchema {
             .comment("Dependent service provider details")
             .field("service", "ServiceName", false, "name of the service");
 
+        sb.structType("DependentServiceResourceGroup")
+            .field("service", "ServiceName", false, "name of the service")
+            .field("domain", "DomainName", false, "name of the dependent domain")
+            .arrayField("resourceGroups", "EntityName", true, "registered resource groups for this service and domain");
+
+        sb.structType("DependentServiceResourceGroupList")
+            .arrayField("serviceAndResourceGroups", "DependentServiceResourceGroup", false, "collection of dependent services and resource groups for tenant domain");
+
 
         sb.resource("Domain", "GET", "/domain/{domain}")
             .comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
@@ -2773,6 +2781,21 @@ public class ZMSSchema {
         sb.resource("ServiceIdentityList", "GET", "/dependency/domain/{domainName}")
             .comment("List registered services for domain")
             .name("getDependentServiceList")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("DependentServiceResourceGroupList", "GET", "/dependency/domain/{domainName}/resourceGroup")
+            .comment("List registered services and resource groups for domain")
+            .name("getDependentServiceResourceGroupList")
             .pathParam("domainName", "DomainName", "name of the domain")
             .auth("", "", true)
             .expected("OK")
