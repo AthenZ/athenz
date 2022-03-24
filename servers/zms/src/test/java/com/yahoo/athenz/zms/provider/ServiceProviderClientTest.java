@@ -20,6 +20,7 @@ package com.yahoo.athenz.zms.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oath.auth.KeyRefresherException;
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.http.HttpDriverResponse;
 import com.yahoo.athenz.zms.ZMSConsts;
@@ -38,6 +39,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
+import static com.yahoo.athenz.zms.ZMSConsts.*;
+import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_PROVIDER_TRUST_STORE_PASSWORD;
 import static org.mockito.ArgumentMatchers.any;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
@@ -178,6 +181,24 @@ public class ServiceProviderClientTest {
         DomainDependencyProviderResponse dependencyStatus = serviceProviderClient.getDependencyStatus(domainDependencyProvider, domain, principal);
         assertEquals(dependencyStatus.getStatus(), ZMSConsts.PROVIDER_RESPONSE_DENY);
         assertEquals(dependencyStatus.getMessage(), "Http Status: 500, error: \"server error\"");
+    }
 
+    @Test
+    public void testServiceProviderClientDisabled() throws KeyRefresherException, IOException, InterruptedException {
+        System.clearProperty(ZMS_PROP_PROVIDER_KEY_PATH);
+        System.clearProperty(ZMS_PROP_PROVIDER_CERT_PATH);
+        System.clearProperty(ZMS_PROP_PROVIDER_TRUST_STORE);
+        System.clearProperty(ZMS_PROP_PROVIDER_TRUST_STORE_PASSWORD);
+        PrivateKeyStore privateKeyStore = Mockito.mock(PrivateKeyStore.class);
+        ServiceProviderManager serviceProviderManager = Mockito.mock(ServiceProviderManager.class);
+        ServiceProviderClient serviceProviderClient = new ServiceProviderClient(privateKeyStore, serviceProviderManager, "home.");
+        String provider = "provider-test";
+        String providerEndpoint = "https://provider-endpoint:12345";
+        ServiceProviderManager.DomainDependencyProvider domainDependencyProvider = new ServiceProviderManager.DomainDependencyProvider(provider, providerEndpoint, false);
+        String domain = "test.domain";
+        String principal = "user.someone";
+        DomainDependencyProviderResponse dependencyStatus = serviceProviderClient.getDependencyStatus(domainDependencyProvider, domain, principal);
+        assertEquals(dependencyStatus.getStatus(), ZMSConsts.PROVIDER_RESPONSE_ALLOW);
+        assertEquals(dependencyStatus.getMessage(), "ServiceProviderClient is disabled");
     }
 }
