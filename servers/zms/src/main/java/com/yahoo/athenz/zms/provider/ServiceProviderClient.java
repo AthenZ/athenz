@@ -46,8 +46,13 @@ public class ServiceProviderClient {
 
     public ServiceProviderClient(PrivateKeyStore keyStore, ServiceProviderManager serviceProviderManager, String homeDomainPrefix) throws KeyRefresherException, IOException, InterruptedException {
         SSLContext sslContext = getDomainDependencyProviderSSLContext(keyStore);
-        this.httpDriver = getHttpDriver(sslContext, serviceProviderManager);
-        this.homeDomainPrefix = homeDomainPrefix;
+        if (sslContext != null) {
+            this.httpDriver = getHttpDriver(sslContext, serviceProviderManager);
+            this.homeDomainPrefix = homeDomainPrefix;
+        } else {
+            this.httpDriver = null;
+            this.homeDomainPrefix = null;
+        }
     }
 
     public ServiceProviderClient(HttpDriver httpDriver, String homeDomainPrefix) {
@@ -56,7 +61,13 @@ public class ServiceProviderClient {
     }
 
     public DomainDependencyProviderResponse getDependencyStatus(ServiceProviderManager.DomainDependencyProvider domainDependencyProvider, String domain, String principal) {
-
+        if (this.httpDriver == null) {
+            // ServiceProviderClient wasn't initialized. Do not enforce dependency check.
+            DomainDependencyProviderResponse domainDependencyProviderResponse = new DomainDependencyProviderResponse();
+            domainDependencyProviderResponse.setStatus(PROVIDER_RESPONSE_ALLOW);
+            domainDependencyProviderResponse.setMessage("ServiceProviderClient is disabled");
+            return domainDependencyProviderResponse;
+        }
         if (domain.startsWith(homeDomainPrefix)) {
             // We won't enforce dependency on user domains
             DomainDependencyProviderResponse domainDependencyProviderResponse = new DomainDependencyProviderResponse();
@@ -91,6 +102,10 @@ public class ServiceProviderClient {
         final String certPath = System.getProperty(ZMSConsts.ZMS_PROP_PROVIDER_CERT_PATH, "");
         final String keyPath = System.getProperty(ZMSConsts.ZMS_PROP_PROVIDER_KEY_PATH, "");
 
+        if (StringUtil.isEmpty(trustStore) || StringUtil.isEmpty(certPath) || StringUtil.isEmpty(keyPath) || StringUtil.isEmpty(trustStorePassword)) {
+            LOG.warn("ServiceProviderClient Configuration properties are missing. Providers will not be contacted when deleting domains.");
+            return null;
+        }
         KeyRefresher keyRefresher = Utils.generateKeyRefresher(
                 trustStore,
                 keyStore.getApplicationSecret(appName, trustStorePassword),
