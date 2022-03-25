@@ -73,17 +73,17 @@
   <properties>
     <jetty.version>9.4.45.v20220203</jetty.version>
     <jersey.version>2.35</jersey.version>
-    <jackson.version>2.13.1</jackson.version>
+    <jackson.version>2.13.2.1</jackson.version>
     <rdl.version>1.5.4</rdl.version>
     <bouncycastle.version>1.70</bouncycastle.version>
-    <aws.version>1.12.157</aws.version>
-    <aws2.version>2.17.128</aws2.version>
-    <guava.version>31.0.1-jre</guava.version>
+    <aws.version>1.12.185</aws.version>
+    <aws2.version>2.17.156</aws2.version>
+    <guava.version>31.1-jre</guava.version>
     <slf4j.version>1.7.36</slf4j.version>
     <logback.version>1.2.10</logback.version>
     <javax.version>3.1.0</javax.version>
     <javax.ws.version>2.1.1</javax.ws.version>
-    <mockito.version>4.3.1</mockito.version>
+    <mockito.version>4.4.0</mockito.version>
     <jmockit.version>1.49</jmockit.version>
     <jjwt.version>0.11.2</jjwt.version>
     <jaxb.version>2.3.3</jaxb.version>
