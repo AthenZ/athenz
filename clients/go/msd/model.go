@@ -909,7 +909,7 @@ type TransportPolicyIngressRule struct {
 	//
 	// Source of network traffic
 	//
-	From *TransportPolicyPeer `json:"from"`
+	From *TransportPolicyPeer `json:"from,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 //
@@ -931,9 +931,6 @@ func NewTransportPolicyIngressRule(init ...*TransportPolicyIngressRule) *Transpo
 func (self *TransportPolicyIngressRule) Init() *TransportPolicyIngressRule {
 	if self.EntitySelector == nil {
 		self.EntitySelector = NewTransportPolicyEntitySelector()
-	}
-	if self.From == nil {
-		self.From = NewTransportPolicyPeer()
 	}
 	return self
 }
@@ -964,9 +961,6 @@ func (self *TransportPolicyIngressRule) Validate() error {
 	if self.EntitySelector == nil {
 		return fmt.Errorf("TransportPolicyIngressRule: Missing required field: entitySelector")
 	}
-	if self.From == nil {
-		return fmt.Errorf("TransportPolicyIngressRule: Missing required field: from")
-	}
 	return nil
 }
 
@@ -993,7 +987,7 @@ type TransportPolicyEgressRule struct {
 	//
 	// Destination of network traffic
 	//
-	To *TransportPolicyPeer `json:"to"`
+	To *TransportPolicyPeer `json:"to,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 //
@@ -1015,9 +1009,6 @@ func NewTransportPolicyEgressRule(init ...*TransportPolicyEgressRule) *Transport
 func (self *TransportPolicyEgressRule) Init() *TransportPolicyEgressRule {
 	if self.EntitySelector == nil {
 		self.EntitySelector = NewTransportPolicyEntitySelector()
-	}
-	if self.To == nil {
-		self.To = NewTransportPolicyPeer()
 	}
 	return self
 }
@@ -1047,9 +1038,6 @@ func (self *TransportPolicyEgressRule) Validate() error {
 	}
 	if self.EntitySelector == nil {
 		return fmt.Errorf("TransportPolicyEgressRule: Missing required field: entitySelector")
-	}
-	if self.To == nil {
-		return fmt.Errorf("TransportPolicyEgressRule: Missing required field: to")
 	}
 	return nil
 }

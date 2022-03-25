@@ -134,14 +134,14 @@ public class MSDSchema {
             .field("id", "Int64", false, "Assertion id associated with this transport policy")
             .field("lastModified", "Timestamp", false, "Last modification timestamp of this transport policy")
             .field("entitySelector", "TransportPolicyEntitySelector", false, "Describes the entity to which this transport policy applies")
-            .field("from", "TransportPolicyPeer", false, "Source of network traffic");
+            .field("from", "TransportPolicyPeer", true, "Source of network traffic");
 
         sb.structType("TransportPolicyEgressRule")
             .comment("Transport policy egress rule")
             .field("id", "Int64", false, "Assertion id associated with this transport policy")
             .field("lastModified", "Timestamp", false, "Last modification timestamp of this transport policy")
             .field("entitySelector", "TransportPolicyEntitySelector", false, "Entity to which this transport policy applies")
-            .field("to", "TransportPolicyPeer", false, "Destination of network traffic");
+            .field("to", "TransportPolicyPeer", true, "Destination of network traffic");
 
         sb.structType("TransportPolicyRules")
             .comment("Transport policy containing ingress and egress rules")
