@@ -76,6 +76,7 @@ public interface PrivateKeyStore {
      * @return secret for the given key and application as char[]
      */
     default char[] getSecret(String appName, String keyName) {
-        return keyName.toCharArray();
+        final String secret = getApplicationSecret(appName, keyName);
+        return secret != null ? secret.toCharArray() : null;
     }
 }

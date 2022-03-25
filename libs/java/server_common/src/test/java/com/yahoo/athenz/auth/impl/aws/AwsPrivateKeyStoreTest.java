@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
@@ -50,8 +49,7 @@ public class AwsPrivateKeyStoreTest {
         System.setProperty(ATHENZ_AWS_KMS_REGION, "us-east-1");
         String bucketName = "my_bucket";
         String keyName = "my_key";
-        char[] expected = "my_value".toCharArray();
-        byte[] expectedBytes = "my_value".getBytes();
+        String expected = "my_value";
 
         System.setProperty(ATHENZ_PROP_ZTS_BUCKET_NAME, bucketName);
         System.setProperty("athenz.aws.zts.key_name", keyName);
@@ -60,17 +58,17 @@ public class AwsPrivateKeyStoreTest {
         AWSKMS kms = mock(AWSKMS.class);
         S3Object s3Object = mock(S3Object.class);
         Mockito.when(s3.getObject(bucketName, keyName)).thenReturn(s3Object);
-        InputStream is = new ByteArrayInputStream(expectedBytes);
+        InputStream is = new ByteArrayInputStream(expected.getBytes());
         S3ObjectInputStream s3ObjectInputStream = new S3ObjectInputStream(is, null);
         Mockito.when(s3Object.getObjectContent()).thenReturn(s3ObjectInputStream);
 
-        ByteBuffer buffer = ByteBuffer.wrap(expectedBytes);
+        ByteBuffer buffer = ByteBuffer.wrap(expected.getBytes());
         DecryptResult decryptResult = mock(DecryptResult.class);
         Mockito.when(kms.decrypt(Mockito.any(DecryptRequest.class))).thenReturn(decryptResult);
         Mockito.when(decryptResult.getPlaintext()).thenReturn(buffer);
 
         AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
-        char[] actual = awsPrivateKeyStore.getSecret(bucketName, keyName);
+        String actual = awsPrivateKeyStore.getApplicationSecret(bucketName, keyName);
         StringBuilder privateKeyId = new StringBuilder(keyName);
         awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", privateKeyId);
         assertEquals(actual, expected);
@@ -102,18 +100,17 @@ public class AwsPrivateKeyStoreTest {
         System.setProperty(ATHENZ_AWS_KMS_REGION, "us-east-1");
         String bucketName = "my_bucket";
         String keyName = "my_key";
-        char[] expected = "my_value".toCharArray();
-        byte[] expectedBytes = "my_value".getBytes();
+        String expected = "my_value";
 
         AmazonS3 s3 = mock(AmazonS3.class);
         AWSKMS kms = mock(AWSKMS.class);
         S3Object s3Object = mock(S3Object.class);
         Mockito.when(s3.getObject(bucketName, keyName)).thenReturn(s3Object);
-        InputStream is = new ByteArrayInputStream(expectedBytes);
+        InputStream is = new ByteArrayInputStream(expected.getBytes());
         S3ObjectInputStream s3ObjectInputStream = new S3ObjectInputStream(is, null);
         Mockito.when(s3Object.getObjectContent()).thenReturn(s3ObjectInputStream);
 
-        ByteBuffer buffer = ByteBuffer.wrap(expectedBytes);
+        ByteBuffer buffer = ByteBuffer.wrap(expected.getBytes());
         DecryptResult decryptResult = mock(DecryptResult.class);
         Mockito.when(kms.decrypt(Mockito.any(DecryptRequest.class))).thenReturn(decryptResult);
         Mockito.when(decryptResult.getPlaintext()).thenReturn(buffer);
@@ -123,7 +120,7 @@ public class AwsPrivateKeyStoreTest {
         AwsPrivateKeyStore spyAWS = Mockito.spy(awsPrivateKeyStore);
         doReturn(s3).when(spyAWS).getS3();
         doReturn(kms).when(spyAWS).getKMS();
-        char[] actual = spyAWS.getSecret(bucketName, keyName);
+        String actual = spyAWS.getApplicationSecret(bucketName, keyName);
         assertEquals(actual, expected);
         System.clearProperty("athenz.aws.s3.region");
         System.clearProperty(ATHENZ_AWS_KMS_REGION);

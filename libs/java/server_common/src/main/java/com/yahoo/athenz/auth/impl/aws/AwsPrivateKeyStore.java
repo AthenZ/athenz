@@ -30,7 +30,8 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.PrivateKey;
 
@@ -121,12 +122,12 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
         }
 
         PrivateKey pkey = null;
-        try (Reader reader = new InputStreamReader(new ByteArrayInputStream(getDecryptedData(bucketName, keyName)))) {
-            pkey = Crypto.loadPrivateKey(reader);
+        try {
+            pkey = Crypto.loadPrivateKey(getDecryptedData(bucketName, keyName));
         } catch (Exception ex) {
             LOG.error("unable to load private key", ex);
         }
-        return pkey == null ? null : new ServerPrivateKey(pkey, new String(getDecryptedData(bucketName, keyIdName)));
+        return pkey == null ? null : new ServerPrivateKey(pkey, getDecryptedData(bucketName, keyIdName));
     }
 
     @Override
@@ -153,35 +154,20 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
             LOG.error("No bucket name specified with system property");
             return null;
         }
-
-        try (Reader reader = new InputStreamReader(new ByteArrayInputStream(getDecryptedData(bucketName, keyName)))) {
-            PrivateKey pkey = Crypto.loadPrivateKey(reader);
-            privateKeyId.append(new String(getDecryptedData(bucketName, keyIdName)));
-            return pkey;
-        } catch (Exception e) {
-            LOG.error("unable to load private key");
-            return null;
-        }
+        
+        PrivateKey pkey = Crypto.loadPrivateKey(getDecryptedData(bucketName, keyName));
+        privateKeyId.append(getDecryptedData(bucketName, keyIdName));
+        return pkey;
     }
     
     @Override
     public String getApplicationSecret(final String appName, final String keyName) {
-        return String.valueOf(getSecret(appName, keyName));
-    }
-
-    @Override
-    public char[] getSecret(final String appName, final String keyName) {
-        byte[] secretBytes = getDecryptedData(appName, keyName);
-        char[] secret = new char[secretBytes.length];
-        for (int i = 0; i < secretBytes.length; i++) {
-            secret[i] = (char) secretBytes[i];
-        }
-        return secret;
+        return getDecryptedData(appName, keyName);
     }
     
-    private byte[] getDecryptedData(final String bucketName, final String keyName) {
+    private String getDecryptedData(final String bucketName, final String keyName) {
         
-        byte[] keyValue = new byte[]{};
+        String keyValue = "";
         S3Object s3Object = getS3().getObject(bucketName, keyName);
         
         if (LOG.isDebugEnabled()) {
@@ -206,16 +192,16 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
             if (kmsDecrypt) {
                 DecryptRequest req = new DecryptRequest().withCiphertextBlob(ByteBuffer.wrap(result.toByteArray()));
                 ByteBuffer plainText = getKMS().decrypt(req).getPlaintext();
-                keyValue = plainText.array();
+                keyValue = new String(plainText.array());
             } else {
-                keyValue = result.toByteArray();
+                keyValue = result.toString();
             }
             
         } catch (IOException e) {
             LOG.error("error getting application secret.", e);
         }
 
-        return keyValue;
+        return keyValue.trim();
     }
 
     AmazonS3 getS3() {
