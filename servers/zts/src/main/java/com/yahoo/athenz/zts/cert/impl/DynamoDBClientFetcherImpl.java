@@ -90,7 +90,7 @@ public class DynamoDBClientFetcherImpl implements DynamoDBClientFetcher {
         try {
             KeyRefresher keyRefresher = Utils.generateKeyRefresher(
                     dynamoDBClientSettings.getTrustStore(),
-                    dynamoDBClientSettings.getTrustStorePassword(),
+                    dynamoDBClientSettings.getTrustStorePasswordChars(),
                     dynamoDBClientSettings.getCertPath(),
                     dynamoDBClientSettings.getKeyPath());
             keyRefresher.startup();

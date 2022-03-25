@@ -85,11 +85,16 @@ public class DynamoDBClientSettings {
         return region;
     }
 
+    @Deprecated
     public String getTrustStorePassword() {
+        return String.valueOf(getTrustStorePasswordChars());
+    }
+
+    char[] getTrustStorePasswordChars() {
         if (keyStore == null) {
             return null;
         }
 
-        return keyStore.getApplicationSecret(appName, trustStorePassword);
+        return keyStore.getSecret(appName, trustStorePassword);
     }
 }

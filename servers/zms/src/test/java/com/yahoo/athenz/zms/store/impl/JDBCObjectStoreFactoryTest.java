@@ -37,7 +37,7 @@ public class JDBCObjectStoreFactoryTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD);
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        Mockito.doReturn("password").when(keyStore).getApplicationSecret("jdbc", "password");
+        Mockito.doReturn("password".toCharArray()).when(keyStore).getSecret("jdbc", "password");
 
         JDBCObjectStoreFactory factory = new JDBCObjectStoreFactory();
         ObjectStore store = factory.create(keyStore);
@@ -56,7 +56,8 @@ public class JDBCObjectStoreFactoryTest {
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, "password");
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        Mockito.doReturn("password").when(keyStore).getApplicationSecret("jdbc", "password");
+        char[] passwordMock = new char[]{'p','a','s','s','w','o','r','d'};
+        Mockito.doReturn(passwordMock).when(keyStore).getSecret("jdbc", "password");
 
         JDBCObjectStoreFactory factory = new JDBCObjectStoreFactory();
         ObjectStore store = factory.create(keyStore);

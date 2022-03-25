@@ -36,11 +36,9 @@ public class JDBCWorkloadRecordStoreFactory implements WorkloadRecordStoreFactor
         final String password = System.getProperty(ZTSConsts.ZTS_PROP_WORKLOAD_JDBC_PASSWORD, "");
         final String jdbcAppName = System.getProperty(ZTSConsts.ZTS_PROP_WORKLOAD_JDBC_APP_NAME, JDBC);
 
-        String jdbcPassword = keyStore.getApplicationSecret(jdbcAppName, password);
-
         Properties props = new Properties();
         props.setProperty(ZTSConsts.DB_PROP_USER, jdbcUser);
-        props.setProperty(ZTSConsts.DB_PROP_PASSWORD, jdbcPassword);
+        props.setProperty(ZTSConsts.DB_PROP_PASSWORD, String.valueOf(keyStore.getSecret(jdbcAppName, password)));
         props.setProperty(ZTSConsts.DB_PROP_VERIFY_SERVER_CERT,
                 System.getProperty(ZTSConsts.ZTS_PROP_WORKLOAD_JDBC_VERIFY_SERVER_CERT, "false"));
         props.setProperty(ZTSConsts.DB_PROP_USE_SSL,

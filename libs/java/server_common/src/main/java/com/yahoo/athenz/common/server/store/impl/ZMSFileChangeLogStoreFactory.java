@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.security.PrivateKey;
+import java.util.Arrays;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_DATA_STORE_SUBDIR;
 
@@ -42,9 +43,8 @@ public class ZMSFileChangeLogStoreFactory implements ChangeLogStoreFactory {
     private static final String ZTS_SERVER_PROP_TRUSTORE_PWD_NAME  = "athenz.common.server.clog.zts_server_trust_store_password_name";
     private static final String ZTS_SERVER_PROP_TRUSTORE_PWD_APP   = "athenz.common.server.clog.zts_server_trust_store_password_app";
 
-    // default truststore password used by the jdk
-
-    private static final String DEFAULT_JDK_TRUSTSTORE_PWD = "changeit";
+    // default truststore password used by the jdk, added as a char array directly to not have the string literal available.
+    private static final char[] DEFAULT_JDK_TRUSTSTORE_PWD = new char[] {'c', 'h', 'a', 'n', 'g', 'e', 'i', 't'};
 
     PrivateKeyStore privateKeyStore;
 
@@ -83,12 +83,12 @@ public class ZMSFileChangeLogStoreFactory implements ChangeLogStoreFactory {
             return null;
         }
 
-        String trustStorePassword = DEFAULT_JDK_TRUSTSTORE_PWD;
+        char[] trustStorePassword = DEFAULT_JDK_TRUSTSTORE_PWD;
         final String trustStorePwdName = System.getProperty(ZTS_SERVER_PROP_TRUSTORE_PWD_NAME, "");
         if (!trustStorePwdName.isEmpty()) {
             final String trustStorePwdApp = System.getProperty(ZTS_SERVER_PROP_TRUSTORE_PWD_APP);
-            trustStorePassword = (privateKeyStore == null) ? trustStorePwdName :
-                    privateKeyStore.getApplicationSecret(trustStorePwdApp, trustStorePwdName);
+            trustStorePassword = (privateKeyStore == null) ? trustStorePwdName.toCharArray() :
+                    privateKeyStore.getSecret(trustStorePwdApp, trustStorePwdName);
         }
 
         // catch any exceptions thrown from the change log store and instead

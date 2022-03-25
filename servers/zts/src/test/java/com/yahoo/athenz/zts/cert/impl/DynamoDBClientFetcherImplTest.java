@@ -69,7 +69,7 @@ public class DynamoDBClientFetcherImplTest {
 
         DynamoDBClientFetcherImpl dynamoDBClientFetcher = new DynamoDBClientFetcherImpl();
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        when(keyStore.getApplicationSecret(Mockito.eq(""), Mockito.eq("test.truststore.password"))).thenReturn("mockPassword");
+        when(keyStore.getSecret(Mockito.eq(""), Mockito.eq("test.truststore.password"))).thenReturn("mockPassword".toCharArray());
         ZTSClientNotificationSender ztsClientNotificationSender = Mockito.mock(ZTSClientNotificationSender.class);
         AmazonDynamoDB dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore).getAmazonDynamoDB();
         assertNotNull(dynamoDBClient);
