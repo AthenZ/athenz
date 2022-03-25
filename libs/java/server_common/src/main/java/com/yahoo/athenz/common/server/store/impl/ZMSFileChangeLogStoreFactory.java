@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.security.PrivateKey;
-import java.util.Arrays;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_DATA_STORE_SUBDIR;
 

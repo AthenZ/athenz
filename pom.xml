@@ -73,7 +73,8 @@
   <properties>
     <jetty.version>9.4.45.v20220203</jetty.version>
     <jersey.version>2.35</jersey.version>
-    <jackson.version>2.13.2.1</jackson.version>
+    <jackson.version>2.13.2</jackson.version>
+    <jackson-databind.version>2.13.2.1</jackson-databind.version>
     <rdl.version>1.5.4</rdl.version>
     <bouncycastle.version>1.70</bouncycastle.version>
     <aws.version>1.12.185</aws.version>
