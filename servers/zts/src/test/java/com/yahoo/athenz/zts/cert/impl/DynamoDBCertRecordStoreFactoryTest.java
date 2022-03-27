@@ -182,8 +182,8 @@ public class DynamoDBCertRecordStoreFactoryTest {
         System.setProperty(ZTS_PROP_DYNAMODB_ZTS_URL, "test.ztsurl");
         System.setProperty(ZTS_PROP_DYNAMODB_TRUSTSTORE_APPNAME, "test.appname");
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        when(keyStore.getApplicationSecret(Mockito.eq("test.appname"), Mockito.eq("test.truststore.password")))
-                .thenReturn("decryptedPassword");
+        when(keyStore.getSecret(Mockito.eq("test.appname"), Mockito.eq("test.truststore.password")))
+                .thenReturn("decryptedPassword".toCharArray());
 
         DynamoDBCertRecordStoreFactory factory = new DynamoDBCertRecordStoreFactory();
         ZTSClientNotificationSenderImpl ztsClientNotificationSender = Mockito.mock(ZTSClientNotificationSenderImpl.class);

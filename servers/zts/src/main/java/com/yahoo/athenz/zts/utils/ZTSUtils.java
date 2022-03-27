@@ -143,11 +143,16 @@ public class ZTSUtils {
     
     static String getApplicationSecret(final PrivateKeyStore privateKeyStore,
             final String keyStorePasswordAppName, final String keyStorePassword) {
+        return String.valueOf(getSecret(privateKeyStore, keyStorePasswordAppName, keyStorePassword));
+    }
+
+    static char[] getSecret(final PrivateKeyStore privateKeyStore,
+                                       final String keyStorePasswordAppName, final String keyStorePassword) {
 
         if (privateKeyStore == null) {
-            return keyStorePassword;
+            return keyStorePassword.toCharArray();
         }
-        return privateKeyStore.getApplicationSecret(keyStorePasswordAppName, keyStorePassword);
+        return privateKeyStore.getSecret(keyStorePasswordAppName, keyStorePassword);
     }
     
     public static boolean emitMonmetricError(int errorCode, String caller,
@@ -326,11 +331,11 @@ public class ZTSUtils {
         final String serverTrustStorePasswordAppName = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME);
         final String trustStorePasswordAppName = System.getProperty(ATHENZ_PROP_PROVIDER_CLIENT_TRUSTSTORE_PASSWORD_APPNAME,
                 serverTrustStorePasswordAppName);
-        final String password = getApplicationSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
-        char[] passwordChars = getPasswordChars(password);
+        final char[] passwordChars = getSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
         try {
             KeyRefresher keyRefresher = Utils.generateKeyRefresher(trustStorePath, passwordChars, certPath, keyPath);
             keyRefresher.startup();
+            Arrays.fill(passwordChars, '0');
             return Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(), keyRefresher.getTrustManagerProxy());
         } catch (Exception ex) {
             LOGGER.error("Unable to create client ssl context. Error: {}", ex.getMessage());
@@ -363,17 +368,23 @@ public class ZTSUtils {
             TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             try (FileInputStream instream = new FileInputStream(trustStorePath)) {
                 KeyStore trustStore = KeyStore.getInstance(trustStoreType);
-                final String password = getApplicationSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
-                trustStore.load(instream, getPasswordChars(password));
+                final char[] password = getSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
+                trustStore.load(instream, password != null ? password : EMPTY_PASSWORD);
                 tmfactory.init(trustStore);
+                if (password != null) {
+                    Arrays.fill(password, '0');
+                }
             }
 
             KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
             try (FileInputStream instream = new FileInputStream(keyStorePath)) {
                 KeyStore keyStore = KeyStore.getInstance(keyStoreType);
-                final String password = getApplicationSecret(privateKeyStore, keyStorePasswordAppName, keyStorePassword);
-                keyStore.load(instream, getPasswordChars(password));
-                kmfactory.init(keyStore, getPasswordChars(password));
+                final char[] password = getSecret(privateKeyStore, keyStorePasswordAppName, keyStorePassword);
+                keyStore.load(instream, password != null ? password : EMPTY_PASSWORD);
+                kmfactory.init(keyStore, password != null ? password : EMPTY_PASSWORD);
+                if (password != null) {
+                    Arrays.fill(password, '0');
+                }
             }
 
             KeyManager[] keymanagers = kmfactory.getKeyManagers();
@@ -386,10 +397,6 @@ public class ZTSUtils {
         }
 
         return sslcontext;
-    }
-
-    static char[] getPasswordChars(final String password) {
-        return password != null ? password.toCharArray() : EMPTY_PASSWORD;
     }
 
     public static int parseInt(final String value, int defaultValue) {

@@ -38,9 +38,7 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
         final String jdbcUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER);
         final String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, "");
         final String jdbcAppName = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_APP_NAME, JDBC_APP_NAME);
-        String jdbcPassword = keyStore.getApplicationSecret(jdbcAppName, password);
-        
-        Properties readWriteProperties = getProperties(jdbcUser, jdbcPassword);
+        Properties readWriteProperties = getProperties(jdbcUser, keyStore.getSecret(jdbcAppName, password));
         PoolableDataSource readWriteSrc = DataSourceFactory.create(jdbcStore, readWriteProperties);
         
         // now check to see if we also have a read-only jdbc store configured
@@ -52,9 +50,7 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
         if (jdbcReadOnlyStore != null && jdbcReadOnlyStore.startsWith(JDBC_APP_NAME)) {
             final String jdbcReadOnlyUser = getDefaultSetting(ZMSConsts.ZMS_PROP_JDBC_RO_USER, jdbcUser);
             final String readOnlyPassword = getDefaultSetting(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, password);
-            final String jdbcReadOnlyPassword = keyStore.getApplicationSecret(jdbcAppName, readOnlyPassword);
-            
-            Properties readOnlyProperties = getProperties(jdbcReadOnlyUser, jdbcReadOnlyPassword);
+            Properties readOnlyProperties = getProperties(jdbcReadOnlyUser, keyStore.getSecret(jdbcAppName, readOnlyPassword));
             readOnlySrc = DataSourceFactory.create(jdbcReadOnlyStore, readOnlyProperties);
         }
         
@@ -66,10 +62,10 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
         return (StringUtil.isEmpty(value)) ? defaultValue : value;
     }
 
-    Properties getProperties(final String dbUser, final String dbPassword) {
+    Properties getProperties(final String dbUser, final char[] dbPassword) {
         Properties properties = new Properties();
         properties.setProperty(ZMSConsts.DB_PROP_USER, dbUser);
-        properties.setProperty(ZMSConsts.DB_PROP_PASSWORD, dbPassword);
+        properties.setProperty(ZMSConsts.DB_PROP_PASSWORD, String.valueOf(dbPassword));
         properties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
                 System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "false"));
         properties.setProperty(ZMSConsts.DB_PROP_USE_SSL,

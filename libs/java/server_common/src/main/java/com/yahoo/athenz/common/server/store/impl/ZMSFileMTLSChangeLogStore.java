@@ -41,6 +41,12 @@ public class ZMSFileMTLSChangeLogStore implements ChangeLogStore {
     public ZMSFileMTLSChangeLogStore(String rootDirectory, final String keyPath, final String certPath,
                                      final String trustStorePath, final String trustStorePassword)
             throws InterruptedException, KeyRefresherException, IOException {
+        this(rootDirectory, keyPath, certPath, trustStorePath, trustStorePassword.toCharArray());
+    }
+
+    public ZMSFileMTLSChangeLogStore(String rootDirectory, final String keyPath, final String certPath,
+                                     final String trustStorePath, final char[] trustStorePassword)
+            throws InterruptedException, KeyRefresherException, IOException {
 
         // check to see if we need to override the ZMS url from the config file
 
@@ -52,6 +58,7 @@ public class ZMSFileMTLSChangeLogStore implements ChangeLogStore {
         KeyRefresher keyRefresher = Utils.generateKeyRefresher(trustStorePath, trustStorePassword,
                 certPath, keyPath);
         keyRefresher.startup();
+        Arrays.fill(trustStorePassword, '0');
 
         SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                 keyRefresher.getTrustManagerProxy());

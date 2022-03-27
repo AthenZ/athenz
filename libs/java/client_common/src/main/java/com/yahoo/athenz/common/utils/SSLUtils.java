@@ -149,7 +149,7 @@ public class SSLUtils {
         private static char[] getPassword(char[] password, final PrivateKeyStore privateKeyStore, String appName) {
             if (password != null) {
                 if (null != privateKeyStore) {
-                    password = privateKeyStore.getApplicationSecret(appName, String.valueOf(password)).toCharArray();
+                    password = privateKeyStore.getSecret(appName, String.valueOf(password));
                 }
             }
             return password;
