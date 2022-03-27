@@ -1,3 +1,16 @@
+Athenz v1.10.51 Release / Mar 27, 2022
+--------------------------------------
+
+#1786 UI: Bump next from 12.0.9 to 12.1.0 in /ui
+#1816 Add provider webhook for verifying if domain should be allowed to be deleted
+#1817 Ability to validate CA issuers in Authorities with Certificate support
+#1818 Endpoint to get dependent services and resource groups
+#1819 fixes to get working docker build
+#1823 Allow ZMS startup even if service provider client not configured
+#1825 Heap inspection - use char[] for passwords instead of Strings
+#1826 making peer optional to allow explicit deny
+#1827 UI: Bump minimist from 1.2.5 to 1.2.6
+
 Athenz v1.10.50 Release / Mar 14, 2022
 --------------------------------------
 
