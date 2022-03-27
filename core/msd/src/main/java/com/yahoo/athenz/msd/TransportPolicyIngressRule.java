@@ -4,6 +4,7 @@
 
 package com.yahoo.athenz.msd;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
@@ -14,6 +15,8 @@ public class TransportPolicyIngressRule {
     public long id;
     public Timestamp lastModified;
     public TransportPolicyEntitySelector entitySelector;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public TransportPolicyPeer from;
 
     public TransportPolicyIngressRule setId(long id) {

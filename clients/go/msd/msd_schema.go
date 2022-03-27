@@ -159,7 +159,7 @@ func init() {
 	tTransportPolicyIngressRule.Field("id", "Int64", false, nil, "Assertion id associated with this transport policy")
 	tTransportPolicyIngressRule.Field("lastModified", "Timestamp", false, nil, "Last modification timestamp of this transport policy")
 	tTransportPolicyIngressRule.Field("entitySelector", "TransportPolicyEntitySelector", false, nil, "Describes the entity to which this transport policy applies")
-	tTransportPolicyIngressRule.Field("from", "TransportPolicyPeer", false, nil, "Source of network traffic")
+	tTransportPolicyIngressRule.Field("from", "TransportPolicyPeer", true, nil, "Source of network traffic")
 	sb.AddType(tTransportPolicyIngressRule.Build())
 
 	tTransportPolicyEgressRule := rdl.NewStructTypeBuilder("Struct", "TransportPolicyEgressRule")
@@ -167,7 +167,7 @@ func init() {
 	tTransportPolicyEgressRule.Field("id", "Int64", false, nil, "Assertion id associated with this transport policy")
 	tTransportPolicyEgressRule.Field("lastModified", "Timestamp", false, nil, "Last modification timestamp of this transport policy")
 	tTransportPolicyEgressRule.Field("entitySelector", "TransportPolicyEntitySelector", false, nil, "Entity to which this transport policy applies")
-	tTransportPolicyEgressRule.Field("to", "TransportPolicyPeer", false, nil, "Destination of network traffic")
+	tTransportPolicyEgressRule.Field("to", "TransportPolicyPeer", true, nil, "Destination of network traffic")
 	sb.AddType(tTransportPolicyEgressRule.Build())
 
 	tTransportPolicyRules := rdl.NewStructTypeBuilder("Struct", "TransportPolicyRules")
