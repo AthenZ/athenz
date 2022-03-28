@@ -221,6 +221,22 @@ func TestOptionsWithRotateKeyConfig(t *testing.T) {
 	assert.True(t, opts.RotateKey == true)
 }
 
+func TestOptionsMultipleUsers(t *testing.T) {
+	config, configAccount, _ := getConfig("data/sia_config", "-service", "http://localhost:80", false, "us-west-2")
+	opts, _ := setOptions(config, configAccount, "/tmp", "1.0.0")
+	uid, gid := GetRunsAsUidGid(opts)
+	assert.True(t, uid == -1)
+	assert.True(t, gid == -1)
+}
+
+func TestOptionsSingleUser(t *testing.T) {
+	config, configAccount, _ := getConfig("data/sia_config_same_user", "-service", "http://localhost:80", false, "us-west-2")
+	opts, _ := setOptions(config, configAccount, "/tmp", "1.0.0")
+	uid, gid := GetRunsAsUidGid(opts)
+	assert.True(t, uid == getUid("nobody"))
+	assert.True(t, gid == getUserGid("nobody"))
+}
+
 func idCommandId(arg string) int {
 	out, err := exec.Command("id", arg).Output()
 	if err != nil {

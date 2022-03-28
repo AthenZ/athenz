@@ -470,6 +470,30 @@ func GetSvcNames(svcs []Service) string {
 	return strings.TrimSuffix(b.String(), ",")
 }
 
+// GetRunsAsUidGid returns the uid/gid that the tool should
+// continue to run as based on the configured setup. For example,
+// if all services have been configured to have the same uid/gid
+// for keys and certs, then the tool can drop its access from root
+// to the specified user. If they're multiple users defined then
+// the return values would be -1/-1
+func GetRunsAsUidGid(opts *Options) (int, int) {
+	uid := -1
+	gid := -1
+	for i, svc := range opts.Services {
+		if i == 0 {
+			uid = svc.Uid
+			gid = svc.Gid
+		} else {
+			// if we have a mismatch with our current
+			// set then we cannot change our run-as user
+			if svc.Uid != uid || svc.Gid != gid {
+				return -1, -1
+			}
+		}
+	}
+	return uid, gid
+}
+
 func NewOptions(config *Config, configAccount *ConfigAccount, siaDir, siaVersion string, useRegionalSTS bool, region string) (*Options, error) {
 
 	opts, err := setOptions(config, configAccount, siaDir, siaVersion)
