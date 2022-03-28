@@ -1938,6 +1938,7 @@ const Api = (req) => {
             destinationPort,
             protocol,
             domainName,
+            assertionId,
             _csrf
         ) {
             return new Promise((resolve, reject) => {
@@ -1957,6 +1958,7 @@ const Api = (req) => {
                         destinationPort,
                         protocol,
                         domainName,
+                        assertionId,
                     })
                     .end((err, data) => {
                         if (err) {

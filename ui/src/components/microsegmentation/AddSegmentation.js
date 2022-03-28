@@ -527,17 +527,6 @@ export default class AddSegmentation extends React.Component {
                 return 1;
             }
 
-            if (
-                this.state.sourceServiceMembers.length <= 0 &&
-                this.state.members.length == 0
-            ) {
-                this.setState({
-                    errorMessage: 'At least one source service is required.',
-                    saving: 'todo',
-                });
-                return 1;
-            }
-
             if (!this.state.sourcePort || this.state.sourcePort === '') {
                 this.setState({
                     errorMessage: 'Source port is required.',
@@ -568,18 +557,6 @@ export default class AddSegmentation extends React.Component {
             if (!this.state.sourcePort || this.state.sourcePort === '') {
                 this.setState({
                     errorMessage: 'Source port is required.',
-                    saving: 'todo',
-                });
-                return 1;
-            }
-
-            if (
-                this.state.destinationServiceMembers.length <= 0 &&
-                this.state.members.length == 0
-            ) {
-                this.setState({
-                    errorMessage:
-                        'At least one destination service is required.',
                     saving: 'todo',
                 });
                 return 1;
@@ -628,6 +605,7 @@ export default class AddSegmentation extends React.Component {
         sourcePort,
         destinationPort,
         protocol,
+        assertionId,
         skipValidation
     ) {
         return new Promise((resolve, reject) => {
@@ -642,6 +620,7 @@ export default class AddSegmentation extends React.Component {
                         destinationPort,
                         protocol,
                         this.props.domain,
+                        assertionId,
                         this.props._csrf
                     )
                     .then((data) => {
@@ -783,6 +762,8 @@ export default class AddSegmentation extends React.Component {
         // check if validation of policy has been enabled
         // if enabled then validate microsegmentation policy against network policy
 
+        let assertionId = -1;
+
         this.validateMicrosegmentationPolicy(
             this.state.category,
             role.roleMembers,
@@ -791,6 +772,7 @@ export default class AddSegmentation extends React.Component {
             sourcePort,
             destinationPort,
             this.state.protocol,
+            assertionId,
             skipValidation
         )
             .then(() => {
@@ -925,6 +907,8 @@ export default class AddSegmentation extends React.Component {
             }
         }
 
+        let assertionId = this.state.data.assertionIdx;
+
         this.validateMicrosegmentationPolicy(
             this.state.category,
             this.state.members,
@@ -933,6 +917,7 @@ export default class AddSegmentation extends React.Component {
             source.port,
             destination.port,
             this.state.protocol,
+            assertionId,
             skipValidation
         )
             .then(() => {
