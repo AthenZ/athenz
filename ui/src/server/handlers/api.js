@@ -2584,6 +2584,10 @@ Fetchr.registerService({
             trafficDirection: trafficDirection,
         };
 
+        if (params.assertionId != -1) {
+            transportPolicy.id = params.assertionId;
+        }
+
         req.clients.msd.validateTransportPolicy(
             { transportPolicy: transportPolicy },
             (err, data) => {
