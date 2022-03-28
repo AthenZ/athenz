@@ -1,6 +1,6 @@
 FROM node:fermium-alpine AS builder
 
-RUN set -eux && apk update && apk add --no-cache --update ca-certificates libstdc++ libgcc tini make git
+RUN set -eux && apk update && apk add --no-cache --update ca-certificates libstdc++ libgcc tini make git bash
 
 WORKDIR /tmp/work
 
