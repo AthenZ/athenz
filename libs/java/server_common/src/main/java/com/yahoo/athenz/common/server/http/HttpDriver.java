@@ -91,7 +91,7 @@ public class HttpDriver implements Closeable {
         public Builder(String baseUrl, String trustorePath, char[] trustorePassword, String certPath, String keyPath) {
             this.baseUrl = baseUrl;
             this.truststorePath = trustorePath;
-            this.truststorePassword = trustorePassword;
+            this.truststorePassword = trustorePassword.clone();
             this.certPath = certPath;
             this.keyPath = keyPath;
         }
