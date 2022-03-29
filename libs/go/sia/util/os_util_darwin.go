@@ -220,6 +220,9 @@ func SetupSIADirs(siaMainDir, siaLinkDir string, ownerUid, ownerGid int) error {
 }
 
 func changeDirectoryOwnership(path string, ownerUid, ownerGid int) error {
+	if ownerUid == -1 && ownerGid == -1 {
+		return nil
+	}
 	log.Printf("setting %s directory ownership set to %d/%d...\n", path, ownerUid, ownerGid)
 	err := os.Chown(path, ownerUid, ownerGid)
 	if err != nil {

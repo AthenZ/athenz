@@ -478,9 +478,10 @@ func GetSvcNames(svcs []Service) string {
 // to the specified user. If they're multiple users defined then
 // the return values would be -1/-1
 func GetRunsAsUidGid(opts *Options) (int, int) {
-	// if the os does not support uid/gid values we're not going
-	// to make any changes
-	if syscall.Getuid() == -1 || syscall.Getgid() == -1 {
+	// if the os does not support uid/gid values, or the unix domain
+	// socket path is configured then we're not going to make any
+	// changes
+	if syscall.Getuid() == -1 || syscall.Getgid() == -1 || opts.SDSUdsPath != "" {
 		return -1, -1
 	}
 	uid := -1
