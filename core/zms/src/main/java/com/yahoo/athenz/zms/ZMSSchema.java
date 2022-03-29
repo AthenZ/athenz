@@ -2808,6 +2808,22 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("DependentServiceResourceGroup", "GET", "/dependency/domain/{domainName}/resourceGroup/service/{service}")
+            .comment("List registered resource groups for domain and service")
+            .name("getDependentServiceResourceGroup")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("service", "ServiceName", "name of the service")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("DomainList", "GET", "/dependency/service/{service}")
             .comment("List dependent domains for service")
             .name("getDependentDomainList")

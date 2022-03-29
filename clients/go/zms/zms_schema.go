@@ -2382,6 +2382,18 @@ func init() {
 	mGetDependentServiceResourceGroupList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetDependentServiceResourceGroupList.Build())
 
+	mGetDependentServiceResourceGroup := rdl.NewResourceBuilder("DependentServiceResourceGroup", "GET", "/dependency/domain/{domainName}/resourceGroup/service/{service}")
+	mGetDependentServiceResourceGroup.Comment("List registered resource groups for domain and service")
+	mGetDependentServiceResourceGroup.Name("getDependentServiceResourceGroup")
+	mGetDependentServiceResourceGroup.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
+	mGetDependentServiceResourceGroup.Input("service", "ServiceName", true, "", "", false, nil, "name of the service")
+	mGetDependentServiceResourceGroup.Auth("", "", true, "")
+	mGetDependentServiceResourceGroup.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetDependentServiceResourceGroup.Exception("NOT_FOUND", "ResourceError", "")
+	mGetDependentServiceResourceGroup.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetDependentServiceResourceGroup.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetDependentServiceResourceGroup.Build())
+
 	mGetDependentDomainList := rdl.NewResourceBuilder("DomainList", "GET", "/dependency/service/{service}")
 	mGetDependentDomainList.Comment("List dependent domains for service")
 	mGetDependentDomainList.Name("getDependentDomainList")

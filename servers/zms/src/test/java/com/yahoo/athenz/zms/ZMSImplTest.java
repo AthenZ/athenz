@@ -6893,6 +6893,9 @@ public class ZMSImplTest {
         assertTrue(resourceGroups.contains("storage.tenant.tenanttestgettenantresourcegrouprolesdomaindependency.res_group.group2.reader"));
         assertTrue(resourceGroups.contains("storage.tenant.tenanttestgettenantresourcegrouprolesdomaindependency.res_group.group2.writer"));
 
+        DependentServiceResourceGroup dependentServiceResourceGroup = zmsTestInitializer.getZms().getDependentServiceResourceGroup(zmsTestInitializer.getMockDomRsrcCtx(), tenantDomain, "testgettenantresourcegrouprolesdomaindependency.storage");
+        assertEquals(dependentServiceResourceGroupList.getServiceAndResourceGroups().get(0), dependentServiceResourceGroup);
+
         // Now remove the first resource group and verify dependency remains until the second resource group and admin role is removed
 
         zmsImpl.deleteTenantResourceGroupRoles(serviceProviderCtx, domain, serviceName, tenantDomain, resourceGroup, zmsTestInitializer.getAuditRef());

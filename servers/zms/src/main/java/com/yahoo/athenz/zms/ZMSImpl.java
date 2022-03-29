@@ -10415,6 +10415,30 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return new DependentServiceResourceGroupList().setServiceAndResourceGroups(dependentServiceResourceGroups);
     }
 
+    @Override
+    public DependentServiceResourceGroup getDependentServiceResourceGroup(ResourceContext ctx, String domainName, String service) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(service, TYPE_SERVICE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        service = service.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        DependentServiceResourceGroup dependentServiceResourceGroup = new DependentServiceResourceGroup();
+        dependentServiceResourceGroup.setService(service);
+        dependentServiceResourceGroup.setDomain(domainName);
+        dependentServiceResourceGroup.setResourceGroups(getResourceGroupsForProviderServiceTenantDomain(service, domainName));
+        return dependentServiceResourceGroup;
+    }
+
     private List<String> getResourceGroupsForProviderServiceTenantDomain(final String service, final String tenantDomain) {
         final String provSvcName = ZMSUtils.providerServiceName(service);
         final String provSvcDomain = ZMSUtils.providerServiceDomain(service);
