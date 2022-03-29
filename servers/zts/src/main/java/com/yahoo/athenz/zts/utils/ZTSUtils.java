@@ -331,11 +331,10 @@ public class ZTSUtils {
         final String serverTrustStorePasswordAppName = System.getProperty(ATHENZ_PROP_TRUSTSTORE_PASSWORD_APPNAME);
         final String trustStorePasswordAppName = System.getProperty(ATHENZ_PROP_PROVIDER_CLIENT_TRUSTSTORE_PASSWORD_APPNAME,
                 serverTrustStorePasswordAppName);
-        final char[] passwordChars = getSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
         try {
+            final char[] passwordChars = getSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
             KeyRefresher keyRefresher = Utils.generateKeyRefresher(trustStorePath, passwordChars, certPath, keyPath);
             keyRefresher.startup();
-            Arrays.fill(passwordChars, '0');
             return Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(), keyRefresher.getTrustManagerProxy());
         } catch (Exception ex) {
             LOGGER.error("Unable to create client ssl context. Error: {}", ex.getMessage());
@@ -371,9 +370,6 @@ public class ZTSUtils {
                 final char[] password = getSecret(privateKeyStore, trustStorePasswordAppName, trustStorePassword);
                 trustStore.load(instream, password != null ? password : EMPTY_PASSWORD);
                 tmfactory.init(trustStore);
-                if (password != null) {
-                    Arrays.fill(password, '0');
-                }
             }
 
             KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -382,9 +378,6 @@ public class ZTSUtils {
                 final char[] password = getSecret(privateKeyStore, keyStorePasswordAppName, keyStorePassword);
                 keyStore.load(instream, password != null ? password : EMPTY_PASSWORD);
                 kmfactory.init(keyStore, password != null ? password : EMPTY_PASSWORD);
-                if (password != null) {
-                    Arrays.fill(password, '0');
-                }
             }
 
             KeyManager[] keymanagers = kmfactory.getKeyManagers();

@@ -58,10 +58,10 @@ public class ZMSFileMTLSChangeLogStore implements ChangeLogStore {
         KeyRefresher keyRefresher = Utils.generateKeyRefresher(trustStorePath, trustStorePassword,
                 certPath, keyPath);
         keyRefresher.startup();
-        Arrays.fill(trustStorePassword, '0');
 
         SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                 keyRefresher.getTrustManagerProxy());
+        Arrays.fill(trustStorePassword, '0');
 
         zmsClient = new ZMSClient(zmsUrl, sslContext);
 
