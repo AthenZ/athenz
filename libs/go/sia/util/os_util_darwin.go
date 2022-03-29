@@ -3,11 +3,13 @@ package util
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"log/syslog"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -182,7 +184,7 @@ func uidGidForUser(username string) (int, int) {
 	return uid, gid
 }
 
-func SetupSIADirs(siaMainDir, siaLinkDir string) error {
+func SetupSIADirs(siaMainDir, siaLinkDir string, ownerUid, ownerGid int) error {
 	// Create the certs directory, if it doesn't exist
 	certDir := fmt.Sprintf("%s/certs", siaMainDir)
 	if !FileExists(certDir) {
@@ -201,6 +203,11 @@ func SetupSIADirs(siaMainDir, siaLinkDir string) error {
 		}
 	}
 
+	// update our main and then subdirectories
+	changeDirectoryOwnership(siaMainDir, ownerUid, ownerGid)
+	setupDirOwnership(certDir, ownerUid, ownerGid)
+	setupDirOwnership(keyDir, ownerUid, ownerGid)
+
 	//make sure the link directory exists as well
 	if siaLinkDir != "" && !FileExists(siaLinkDir) {
 		err := os.Symlink(siaMainDir, siaLinkDir)
@@ -210,4 +217,22 @@ func SetupSIADirs(siaMainDir, siaLinkDir string) error {
 		}
 	}
 	return nil
+}
+
+func changeDirectoryOwnership(path string, ownerUid, ownerGid int) error {
+	log.Printf("setting %s directory ownership set to %d/%d...\n", path, ownerUid, ownerGid)
+	err := os.Chown(path, ownerUid, ownerGid)
+	if err != nil {
+		log.Printf("unable to update ownership: error %v\n", err)
+	}
+	return err
+}
+
+func setupDirOwnership(siaDir string, ownerUid, ownerGid int) {
+	filepath.WalkDir(siaDir, func(path string, dirEntry fs.DirEntry, err error) error {
+		if err == nil {
+			err = changeDirectoryOwnership(path, ownerUid, ownerGid)
+		}
+		return err
+	})
 }

@@ -433,18 +433,22 @@ func hostCertificateLinePresent(sshConfigFile string) (bool, error) {
 
 func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 
-	_ = util.SetupSIADirs(siaDir, "")
+	//first, let's determine if we need to drop our privileges
+	//since it requires us to create the directories with the
+	//specified ownership
+	runUid, runGid := options.GetRunsAsUidGid(opts)
+
+	_ = util.SetupSIADirs(siaDir, "", runUid, runGid)
 
 	//check to see if we need to drop our privileges and
 	//run as the specific user
-	runUid, runGid := options.GetRunsAsUidGid(opts)
-	if runUid != -1 && syscall.Getuid() != -1 && runUid != syscall.Getuid() {
+	if runUid != -1 {
 		if err := syscall.Setuid(runUid); err != nil {
 			log.Printf("unable to drop privileges to user %d, error: %v\n", runUid, err)
 		}
 	}
 	// same check for the group id
-	if runGid != -1 && syscall.Getgid() != -1 && runGid != syscall.Getgid() {
+	if runGid != -1 {
 		if err := syscall.Setgid(runGid); err != nil {
 			log.Printf("unable to drop privileges to group %d, error: %v\n", runGid, err)
 		}

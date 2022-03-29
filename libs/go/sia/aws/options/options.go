@@ -29,6 +29,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -477,6 +478,11 @@ func GetSvcNames(svcs []Service) string {
 // to the specified user. If they're multiple users defined then
 // the return values would be -1/-1
 func GetRunsAsUidGid(opts *Options) (int, int) {
+	// if the os does not support uid/gid values we're not going
+	// to make any changes
+	if syscall.Getuid() == -1 || syscall.Getgid() == -1 {
+		return -1, -1
+	}
 	uid := -1
 	gid := -1
 	for i, svc := range opts.Services {
@@ -490,6 +496,16 @@ func GetRunsAsUidGid(opts *Options) (int, int) {
 				return -1, -1
 			}
 		}
+	}
+	// if our uid is equivalent to our running process uid
+	// there is no need to change it
+	if uid == syscall.Getuid() {
+		uid = -1
+	}
+	// if our gid is equivalent to our running process gid
+	// there is no need to change it
+	if gid == syscall.Getgid() {
+		gid = -1
 	}
 	return uid, gid
 }
