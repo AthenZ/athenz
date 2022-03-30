@@ -29,6 +29,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -83,6 +84,7 @@ type Config struct {
 	ExpiryTime      int                      `json:"expiry_time,omitempty"`       //service and role certificate expiry in minutes
 	RefreshInterval int                      `json:"refresh_interval,omitempty"`  //specifies refresh interval in minutes
 	ZTSRegion       string                   `json:"zts_region,omitempty"`        //specifies zts region for the requests
+	KeepPrivileges  bool                     `json:"keep_privileges,omitempty"`   //keep privileges as root instead of dropping to configured user
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -155,6 +157,7 @@ type Options struct {
 	SDSUdsUid          int                   //UDS connections must be from the given user uid
 	RefreshInterval    int                   //refresh interval for certificates - default 24 hours
 	ZTSRegion          string                //ZTS region in case the client needs this information
+	KeepPrivileges     bool                  //Keep privileges as root instead of dropping to configured user
 }
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string) (string, error) {
@@ -289,6 +292,9 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if config.ZTSRegion == "" {
 		config.ZTSRegion = os.Getenv("ATHENZ_SIA_ZTS_REGION")
 	}
+	if !config.KeepPrivileges {
+		config.KeepPrivileges = util.ParseEnvBooleanFlag("ATHENZ_SIA_KEEP_PRIVILEGES")
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -323,6 +329,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 	expiryTime := 0
 	refreshInterval := 24 * 60
 	ztsRegion := ""
+	keepPrivileges := false
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
@@ -331,6 +338,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		sdsUdsUid = config.SDSUdsUid
 		expiryTime = config.ExpiryTime
 		ztsRegion = config.ZTSRegion
+		keepPrivileges = config.KeepPrivileges
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
 		}
@@ -458,6 +466,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		SDSUdsPath:       sdsUdsPath,
 		RefreshInterval:  refreshInterval,
 		ZTSRegion:        ztsRegion,
+		KeepPrivileges:   keepPrivileges,
 	}, nil
 }
 
@@ -468,6 +477,54 @@ func GetSvcNames(svcs []Service) string {
 		b.WriteString(fmt.Sprintf("%s,", svc.Name))
 	}
 	return strings.TrimSuffix(b.String(), ",")
+}
+
+// GetRunsAsUidGid returns the uid/gid that the tool should
+// continue to run as based on the configured setup. For example,
+// if all services have been configured to have the same uid/gid
+// for keys and certs, then the tool can drop its access from root
+// to the specified user. If they're multiple users defined then
+// the return values would be -1/-1
+func GetRunsAsUidGid(opts *Options) (int, int) {
+	// first we want to check if the caller has specifically indicated
+	// that they want to keep the privileges and not drop to another user
+	if opts.KeepPrivileges {
+		log.Println("Configured to keep run as privileges")
+		return -1, -1
+	}
+	// if the os does not support uid/gid values, or the unix domain
+	// socket path is configured then we're not going to make any
+	// changes
+	if syscall.Getuid() == -1 || syscall.Getgid() == -1 || opts.SDSUdsPath != "" {
+		log.Println("OS does not support setuid/setgid or UDS path is configured - keeping run as privileges")
+		return -1, -1
+	}
+	uid := -1
+	gid := -1
+	for i, svc := range opts.Services {
+		if i == 0 {
+			uid = svc.Uid
+			gid = svc.Gid
+		} else {
+			// if we have a mismatch with our current
+			// set then we cannot change our run-as user
+			if svc.Uid != uid || svc.Gid != gid {
+				return -1, -1
+			}
+		}
+	}
+	// if our uid is equivalent to our running process uid
+	// there is no need to change it
+	if uid == syscall.Getuid() {
+		uid = -1
+	}
+	// if our gid is equivalent to our running process gid
+	// there is no need to change it
+	if gid == syscall.Getgid() {
+		gid = -1
+	}
+	log.Printf("RunAs configuration - uid: %d, gid: %d\n", uid, gid)
+	return uid, gid
 }
 
 func NewOptions(config *Config, configAccount *ConfigAccount, siaDir, siaVersion string, useRegionalSTS bool, region string) (*Options, error) {

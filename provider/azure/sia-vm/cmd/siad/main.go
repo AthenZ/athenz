@@ -106,7 +106,7 @@ func main() {
 
 	ztsUrl := fmt.Sprintf("https://%s:4443/zts/v1", *ztsEndPoint)
 
-	err = util.SetupSIADirs(siaMainDir, siaLinkDir)
+	err = util.SetupSIADirs(siaMainDir, siaLinkDir, -1, -1)
 	if err != nil {
 		log.Fatalf("Unable to setup sia directories, error: %v\n", err)
 	}

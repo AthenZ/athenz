@@ -75,7 +75,7 @@ func UidGidForUserGroup(username, groupname string) (int, int) {
 	return 0, 0
 }
 
-func SetupSIADirs(siaMainDir, siaLinkDir string) error {
+func SetupSIADirs(siaMainDir, siaLinkDir string, ownerUid, ownerGid int) error {
 	// Create the certs directory, if it doesn't exist
 	certDir := fmt.Sprintf("%s/certs", siaMainDir)
 	if !FileExists(certDir) {
