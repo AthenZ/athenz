@@ -1,3 +1,11 @@
+Athenz v1.10.52 Release / Mar 29, 2022
+--------------------------------------
+#1828 UI upkeep
+#1829 UI: allow src/destination service to be empty and send assertionID
+#1832 update dependencies - jackson/gradle fix
+#1833 clear trust store password after sslcontext creation
+#1834 drop privileges for sia user from root to configured user, if possible
+
 Athenz v1.10.51 Release / Mar 27, 2022
 --------------------------------------
 
