@@ -52,6 +52,10 @@ class Tabs extends React.Component {
             name: 'domain-settings',
         },
         {
+            label: 'Visibility',
+            name: 'visibility',
+        },
+        {
             label: 'History',
             name: 'history',
         },
@@ -112,6 +116,11 @@ class Tabs extends React.Component {
                 this.props.router.push(
                     `/domain/${domain}/domain-settings`,
                     `/domain/${domain}/domain-settings`
+                );
+            case 'visibility':
+                this.props.router.push(
+                    `/domain/${domain}/visibility`,
+                    `/domain/${domain}/visibility`
                 );
                 break;
         }

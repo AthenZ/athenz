@@ -2853,6 +2853,50 @@
                 ],
                 "closed": false
             }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "DependentServiceResourceGroup",
+                "fields": [
+                    {
+                        "name": "service",
+                        "type": "ServiceName",
+                        "optional": false,
+                        "comment": "name of the service"
+                    },
+                    {
+                        "name": "domain",
+                        "type": "DomainName",
+                        "optional": false,
+                        "comment": "name of the dependent domain"
+                    },
+                    {
+                        "name": "resourceGroups",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "registered resource groups for this service and domain",
+                        "items": "EntityName"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "DependentServiceResourceGroupList",
+                "fields": [
+                    {
+                        "name": "serviceAndResourceGroups",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "collection of dependent services and resource groups for tenant domain",
+                        "items": "DependentServiceResourceGroup"
+                    }
+                ],
+                "closed": false
+            }
         }
     ],
     "resources": [
@@ -9482,6 +9526,41 @@
                 }
             },
             "name": "getDependentServiceList"
+        },
+        {
+            "type": "DependentServiceResourceGroupList",
+            "method": "GET",
+            "path": "/dependency/domain/{domainName}/resourceGroup",
+            "comment": "List registered services and resource groups for domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getDependentServiceResourceGroupList"
         },
         {
             "type": "DomainList",
