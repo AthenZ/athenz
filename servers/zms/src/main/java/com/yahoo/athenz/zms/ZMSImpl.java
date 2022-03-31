@@ -1565,7 +1565,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         verifyNoServiceDependenciesOnDomain(domainName, caller);
         verifyServiceProvidersAuthorizeDelete(ctx, domainName, caller);
 
-
         // no service is dependent on the domain, we can go ahead and delete the domain
 
         dbService.executeDeleteDomain(ctx, domainName, auditRef, caller);
