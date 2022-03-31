@@ -34,12 +34,7 @@ public class CertificateIdentityParser {
      */
     public static final String JAVAX_CERT_ATTR = "javax.servlet.request.X509Certificate";
 
-    /**
-     * Role prefix inside X509Certificate
-     */
-
     public static final String EMPTY_CERT_ERR_MSG = "No certificate available in request";
-
     public static final String ISSUER_DN_MISMATCH = "No Isser DNs match with trust store";
 
     private final Set<String> excludedPrincipalSet;
@@ -48,8 +43,9 @@ public class CertificateIdentityParser {
     private CertificateAuthorityValidator certificateAuthorityValidator;
 
     /**
-     * @param  excludedPrincipalSet    Reject parsing certificate with those principal
-     * @param  excludeRoleCertificates Reject parsing role certificates
+     * Parse the given certificate and verify it passes the configured restrictions
+     * @param excludedPrincipalSet Reject parsing certificate with these principals
+     * @param excludeRoleCertificates Reject accepting role certificates
      */
     public CertificateIdentityParser(Set<String> excludedPrincipalSet, boolean excludeRoleCertificates) {
         this.excludedPrincipalSet = excludedPrincipalSet;
@@ -57,12 +53,13 @@ public class CertificateIdentityParser {
     }
 
     /**
-     *
-     * @param excludedPrincipalSet
-     * @param excludeRoleCertificates
-     * @param certificateAuthorityValidator
+     * Parse the given certificate and verify it passes the configured restrictions
+     * @param excludedPrincipalSet Reject parsing certificate with these principals
+     * @param excludeRoleCertificates Reject accepting role certificates
+     * @param certificateAuthorityValidator validate the CA issuer in certificates
      */
-    public CertificateIdentityParser(Set<String> excludedPrincipalSet, boolean excludeRoleCertificates, CertificateAuthorityValidator certificateAuthorityValidator) {
+    public CertificateIdentityParser(Set<String> excludedPrincipalSet, boolean excludeRoleCertificates,
+                                     CertificateAuthorityValidator certificateAuthorityValidator) {
         this.excludedPrincipalSet = excludedPrincipalSet;
         this.excludeRoleCertificates = excludeRoleCertificates;
         this.certificateAuthorityValidator = certificateAuthorityValidator;
@@ -70,8 +67,8 @@ public class CertificateIdentityParser {
 
     /**
      * Parse from X509Certificate inside the request.
-     * @param  request                      HTTPS request
-     * @return                              CertificateIdentity
+     * @param request HTTPS request
+     * @return CertificateIdentity
      * @throws CertificateIdentityException parse error
      */
     public CertificateIdentity parse(HttpServletRequest request) throws CertificateIdentityException {
@@ -81,11 +78,12 @@ public class CertificateIdentityParser {
 
     /**
      * Parse from X509Certificate chain.
-     * @param  certs                        X509Certificate chain
-     * @return                              CertificateIdentity
+     * @param certs X509Certificate chain
+     * @return CertificateIdentity
      * @throws CertificateIdentityException parse error
      */
     public CertificateIdentity parse(X509Certificate[] certs) throws CertificateIdentityException {
+
         // make sure we have at least one valid certificate in our list
 
         if (certs == null || certs[0] == null) {
@@ -95,7 +93,7 @@ public class CertificateIdentityParser {
         X509Certificate x509Cert = certs[0];
 
         if (this.certificateAuthorityValidator != null && !this.certificateAuthorityValidator.validate(x509Cert)) {
-            throw new CertificateIdentityException(ISSUER_DN_MISMATCH);
+            throw new CertificateIdentityException(ISSUER_DN_MISMATCH, false);
         }
 
         String principalName = Crypto.extractX509CertCommonName(x509Cert);
