@@ -30,6 +30,11 @@ public class CertificateIdentityExceptionTest {
 
         ex = new CertificateIdentityException("err msg");
         assertEquals(ex.getMessage(), "err msg");
+        assertTrue(ex.isReportError());
+
+        ex = new CertificateIdentityException("err msg2", false);
+        assertEquals(ex.getMessage(), "err msg2");
+        assertFalse(ex.isReportError());
 
         Throwable t = new Throwable();
         ex = new CertificateIdentityException(t);

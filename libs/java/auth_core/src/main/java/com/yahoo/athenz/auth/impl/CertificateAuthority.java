@@ -42,8 +42,6 @@ public class CertificateAuthority implements Authority {
     private CertificateIdentityParser certificateIdentityParser = null;
     private GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
 
-
-
     @Override
     public void initialize() {
         Set<String> excludedPrincipalSet = null;
@@ -55,7 +53,8 @@ public class CertificateAuthority implements Authority {
 
         boolean excludeRoleCertificates = Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_EXCLUDE_ROLE_CERTIFICATES, "false"));
 
-        this.certificateIdentityParser = new CertificateIdentityParser(excludedPrincipalSet, excludeRoleCertificates, new CertificateAuthorityValidator());
+        this.certificateIdentityParser = new CertificateIdentityParser(excludedPrincipalSet, excludeRoleCertificates,
+                new CertificateAuthorityValidator());
     }
 
     @Override
@@ -88,21 +87,22 @@ public class CertificateAuthority implements Authority {
         return CredSource.CERTIFICATE;
     }
 
-    void reportError(final String message, StringBuilder errMsg) {
+    void reportError(final String message, boolean reportError, StringBuilder errMsg) {
         if (LOG.isDebugEnabled()) {
             LOG.debug(message);
         }
-        if (errMsg != null) {
+        if (reportError && errMsg != null) {
             errMsg.append(message);
         }
     }
 
     @Override
     public Principal authenticate(X509Certificate[] certs, StringBuilder errMsg) {
-        if (LOG.isDebugEnabled()) {
+
+        if (LOG.isTraceEnabled()) {
             if (certs != null) {
                 for (X509Certificate cert : certs) {
-                    LOG.debug("CertificateAuthority: TLS Certificate: {}", cert);
+                    LOG.trace("CertificateAuthority: TLS Certificate: {}", cert);
                 }
             }
         }
@@ -111,15 +111,17 @@ public class CertificateAuthority implements Authority {
         CertificateIdentity certId;
         try {
             certId = this.certificateIdentityParser.parse(certs);
-        } catch (CertificateIdentityException e) {
-            this.reportError("CertificateAuthority: " + e.getMessage(), errMsg);
+        } catch (CertificateIdentityException ex) {
+            this.reportError("CertificateAuthority: " + ex.getMessage(), ex.isReportError(), errMsg);
             return null;
         }
 
         // create principal
+
         X509Certificate x509Cert = certId.getX509Certificate();
 
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(certId.getDomain(), certId.getService(), x509Cert.toString(), this);
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(certId.getDomain(),
+                certId.getService(), x509Cert.toString(), this);
         principal.setUnsignedCreds(x509Cert.getSubjectX500Principal().toString());
         principal.setX509Certificate(x509Cert);
         if (certId.getRoles() != null) {
@@ -130,5 +132,4 @@ public class CertificateAuthority implements Authority {
 
         return principal;
     }
-
 }
