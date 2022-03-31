@@ -2469,11 +2469,12 @@ public class ZTSClient implements Closeable {
         data.setToken(awsCreds.getSessionToken());
         
         ObjectMapper mapper = new ObjectMapper();
-        String jsonData = null;
+        String jsonData;
         try {
             jsonData = mapper.writeValueAsString(data);
         } catch (JsonProcessingException ex) {
             LOG.error("Unable to generate attestation json data: {}", ex.getMessage());
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
         
         return jsonData;
@@ -2500,7 +2501,7 @@ public class ZTSClient implements Closeable {
             return AWSSecurityTokenServiceClientBuilder.defaultClient().assumeRole(req).getCredentials();
         } catch (Exception ex) {
             LOG.error("assumeAWSRole - unable to assume role: {}", ex.getMessage());
-            return null;
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
     
