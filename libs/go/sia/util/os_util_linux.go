@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -240,4 +241,12 @@ func setupDirOwnership(siaDir string, ownerUid, ownerGid int) {
 		}
 		return err
 	})
+}
+
+func SyscallSetGid(gid int) error {
+	return syscall.Setgid(gid)
+}
+
+func SyscallSetUid(uid int) error {
+	return syscall.Setuid(uid)
 }

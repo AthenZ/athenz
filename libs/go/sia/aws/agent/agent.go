@@ -443,13 +443,13 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 	//check to see if we need to drop our privileges and
 	//run as the specific group id
 	if runGid != -1 {
-		if err := syscall.Setgid(runGid); err != nil {
+		if err := util.SyscallSetGid(runGid); err != nil {
 			log.Printf("unable to drop privileges to group %d, error: %v\n", runGid, err)
 		}
 	}
 	// same check for the user id
 	if runUid != -1 {
-		if err := syscall.Setuid(runUid); err != nil {
+		if err := util.SyscallSetUid(runUid); err != nil {
 			log.Printf("unable to drop privileges to user %d, error: %v\n", runUid, err)
 		}
 	}

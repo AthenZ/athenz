@@ -95,3 +95,11 @@ func SetupSIADirs(siaMainDir, siaLinkDir string, ownerUid, ownerGid int) error {
 	}
 	return nil
 }
+
+func SyscallSetGid(gid int) error {
+	return nil
+}
+
+func SyscallSetUid(uid int) error {
+	return nil
+}
