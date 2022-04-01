@@ -41,18 +41,24 @@ public class SwaggerFilter implements javax.servlet.Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        ResourceContext context = this.zmsHandler.newResourceContext((HttpServletRequest) request, (HttpServletResponse) response, "swagger");
-        context.authenticate();
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        ResourceContext context = this.zmsHandler.newResourceContext((HttpServletRequest) request,
+                (HttpServletResponse) response, "swagger");
+        try {
+            context.authenticate();
+        } catch (Exception ex) {
+            ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
         chain.doFilter(request, response);
     }
 
     @Override
     public void destroy() {
-
     }
 }
