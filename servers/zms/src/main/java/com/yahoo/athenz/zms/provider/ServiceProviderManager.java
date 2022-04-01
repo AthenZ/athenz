@@ -30,7 +30,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -64,7 +64,7 @@ public class ServiceProviderManager {
         serviceProviderRole = System.getProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_ROLE, ZMS_PROP_SERVICE_PROVIDER_MANAGER_ROLE_DEFAULT);
         this.dbService = dbService;
         this.authorizer = authorizer;
-        this.serviceProviders = new HashMap<>();
+        this.serviceProviders = Collections.emptyMap();
         refreshServiceProviders();
         init();
     }
@@ -95,34 +95,41 @@ public class ServiceProviderManager {
         LOGGER.info("Refreshing service providers in cache");
         Role role = dbService.getRole(serviceProviderDomain, serviceProviderRole, false, true, false);
         if (role == null) {
-            LOGGER.warn("Failed to refresh service providers in cache");
+            LOGGER.warn("Unable to fetch service provider role. Service cache provider list will not be updated");
             return;
         }
-        if (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
-            Map<String, DomainDependencyProvider> serviceProvidersUpdatedMap = role.getRoleMembers().stream()
-                    .filter(roleMember -> !StringUtil.isEmpty(roleMember.getMemberName()))
-                    .map(roleMember -> {
-                        String provider = roleMember.getMemberName();
-                        String provSvcDomain = ZMSUtils.providerServiceDomain(provider);
-                        String provSvcName = ZMSUtils.providerServiceName(provider);
-                        ServiceIdentity provSvcIdentity = dbService.getServiceIdentity(provSvcDomain, provSvcName, true);
-                        if (provSvcIdentity == null) {
-                            return null;
-                        }
-                        String endpoint = provSvcIdentity.getProviderEndpoint();
-                        boolean isInstanceProvider = isServiceProviderAuthorizedLaunch(provSvcIdentity);
-                        return new DomainDependencyProvider(provider, endpoint, isInstanceProvider);
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toMap(DomainDependencyProvider::getProvider, Function.identity()));
-
-            serviceProviders = serviceProvidersUpdatedMap;
+        if (role.getRoleMembers() == null || role.getRoleMembers().isEmpty()) {
+            LOGGER.warn("Service provider role is empty, resetting cache list.");
+            serviceProviders = Collections.emptyMap();
+            return;
         }
+        Map<String, DomainDependencyProvider> serviceProvidersUpdatedMap = role.getRoleMembers().stream()
+                .filter(roleMember -> !StringUtil.isEmpty(roleMember.getMemberName()))
+                .map(roleMember -> {
+                    final String provider = roleMember.getMemberName();
+                    final String provSvcDomain = ZMSUtils.providerServiceDomain(provider);
+                    final String provSvcName = ZMSUtils.providerServiceName(provider);
+                    ServiceIdentity provSvcIdentity = dbService.getServiceIdentity(provSvcDomain, provSvcName, true);
+                    if (provSvcIdentity == null) {
+                        return null;
+                    }
+                    final String endpoint = provSvcIdentity.getProviderEndpoint();
+                    boolean isInstanceProvider = isServiceProviderAuthorizedLaunch(provSvcIdentity);
+                    return new DomainDependencyProvider(provider, endpoint, isInstanceProvider);
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(DomainDependencyProvider::getProvider, Function.identity()));
+
+        serviceProviders = serviceProvidersUpdatedMap;
     }
 
     private boolean isServiceProviderAuthorizedLaunch(ServiceIdentity provSvcIdentity) {
-        Principal providerServicePrincipal = SimplePrincipal.create(ZMSUtils.providerServiceDomain(provSvcIdentity.getName()), ZMSUtils.providerServiceName(provSvcIdentity.getName()), (String) null);
-        return authorizer.access(ServerCommonConsts.ACTION_LAUNCH, ServerCommonConsts.RESOURCE_INSTANCE, providerServicePrincipal, null);
+        Principal providerServicePrincipal = SimplePrincipal.create(
+                ZMSUtils.providerServiceDomain(provSvcIdentity.getName()),
+                ZMSUtils.providerServiceName(provSvcIdentity.getName()),
+                (String) null);
+        return authorizer.access(ServerCommonConsts.ACTION_LAUNCH, ServerCommonConsts.RESOURCE_INSTANCE,
+                providerServicePrincipal, null);
     }
 
     /**
