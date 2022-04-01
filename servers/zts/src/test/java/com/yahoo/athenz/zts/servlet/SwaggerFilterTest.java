@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static org.testng.Assert.*;
+import static org.mockito.Mockito.times;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
@@ -62,7 +62,7 @@ public class SwaggerFilterTest {
 
     @BeforeClass
     public void setupClass() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         Mockito.when(mockServletRequest.getMethod()).thenReturn("GET");
         Mockito.when(mockServletRequest.getRequestURI()).thenReturn("/v1/api/openapi.yaml");
@@ -82,12 +82,9 @@ public class SwaggerFilterTest {
         Mockito.doThrow(new com.yahoo.athenz.zts.ResourceException(401,
                 new ResourceError().code(401).message("Unauthenticated"))).when(resourceContext).authenticate();
 
-        try {
-            SwaggerFilter swaggerFilter = new SwaggerFilter(ztsHandler);
-            swaggerFilter.init(filterConfig);
-            swaggerFilter.doFilter(mockServletRequest, mockServletResponse, filterChain);
-        } catch (com.yahoo.athenz.zts.ResourceException ex) {
-            assertEquals(401, ex.getCode());
-        }
+        SwaggerFilter swaggerFilter = new SwaggerFilter(ztsHandler);
+        swaggerFilter.init(filterConfig);
+        swaggerFilter.doFilter(mockServletRequest, mockServletResponse, filterChain);
+        Mockito.verify(mockServletResponse, times(1)).sendError(401);
     }
 }
