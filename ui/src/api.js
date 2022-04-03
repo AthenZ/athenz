@@ -160,6 +160,25 @@ const Api = (req) => {
             });
         },
 
+        getServiceDependencies(domainName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('dependencies')
+                    .params({ domainName })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            if (data) {
+                                resolve(data && data.serviceAndResourceGroups);
+                            } else {
+                                resolve([]);
+                            }
+                        }
+                    });
+            });
+        },
+
         listRoles(domainName) {
             return new Promise((resolve, reject) => {
                 fetchr

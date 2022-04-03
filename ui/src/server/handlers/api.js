@@ -1354,6 +1354,20 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'dependencies',
+    read(req, resource, params, config, callback) {
+        req.clients.zms.getDependentServiceResourceGroupList(
+            params,
+            responseHandler.bind({
+                caller: 'getServiceDependencies',
+                callback,
+                req,
+            })
+        );
+    },
+});
+
+Fetchr.registerService({
     name: 'groups-list',
     read(req, resource, params, config, callback) {
         req.clients.zms.getGroups(params, function (err, data) {
