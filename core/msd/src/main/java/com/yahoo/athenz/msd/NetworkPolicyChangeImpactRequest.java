@@ -15,8 +15,7 @@ import com.yahoo.rdl.*;
 public class NetworkPolicyChangeImpactRequest {
     public List<IPBlock> from;
     public List<IPBlock> to;
-    public List<NetworkPolicyPort> sourcePorts;
-    public List<NetworkPolicyPort> destinationPorts;
+    public List<NetworkPolicyPorts> ports;
 
     public NetworkPolicyChangeImpactRequest setFrom(List<IPBlock> from) {
         this.from = from;
@@ -32,19 +31,12 @@ public class NetworkPolicyChangeImpactRequest {
     public List<IPBlock> getTo() {
         return to;
     }
-    public NetworkPolicyChangeImpactRequest setSourcePorts(List<NetworkPolicyPort> sourcePorts) {
-        this.sourcePorts = sourcePorts;
+    public NetworkPolicyChangeImpactRequest setPorts(List<NetworkPolicyPorts> ports) {
+        this.ports = ports;
         return this;
     }
-    public List<NetworkPolicyPort> getSourcePorts() {
-        return sourcePorts;
-    }
-    public NetworkPolicyChangeImpactRequest setDestinationPorts(List<NetworkPolicyPort> destinationPorts) {
-        this.destinationPorts = destinationPorts;
-        return this;
-    }
-    public List<NetworkPolicyPort> getDestinationPorts() {
-        return destinationPorts;
+    public List<NetworkPolicyPorts> getPorts() {
+        return ports;
     }
 
     @Override
@@ -60,10 +52,7 @@ public class NetworkPolicyChangeImpactRequest {
             if (to == null ? a.to != null : !to.equals(a.to)) {
                 return false;
             }
-            if (sourcePorts == null ? a.sourcePorts != null : !sourcePorts.equals(a.sourcePorts)) {
-                return false;
-            }
-            if (destinationPorts == null ? a.destinationPorts != null : !destinationPorts.equals(a.destinationPorts)) {
+            if (ports == null ? a.ports != null : !ports.equals(a.ports)) {
                 return false;
             }
         }

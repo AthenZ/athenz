@@ -22,12 +22,17 @@ type NetworkPolicyPort PolicyPort {
     TransportPolicyProtocol protocol; // protocol used by the network policy
 }
 
+// allows creating a unique tuple of source and destination ports
+type NetworkPolicyPorts Struct {
+    Array<NetworkPolicyPort> sourcePorts; // list of source ports
+    Array<NetworkPolicyPort> destinationPorts; // list of destination ports
+}
+
 // struct representing input details for evaluating network policies change impact on transport policies
 type NetworkPolicyChangeImpactRequest Struct {
     Array<IPBlock> from; // from ip address range list in cidr format
     Array<IPBlock> to; // to ip address range list in cidr format
-    Array<NetworkPolicyPort> sourcePorts; // list of source ports
-    Array<NetworkPolicyPort> destinationPorts; // list of destination ports
+    Array<NetworkPolicyPorts> ports; // list of ports. Facilitates multiple transports for the same source and destinations.
 }
 
 type NetworkPolicyChangeImpactDetail Struct {

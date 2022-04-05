@@ -2111,6 +2111,78 @@ func (self *NetworkPolicyPort) Validate() error {
 }
 
 //
+// NetworkPolicyPorts - allows creating a unique tuple of source and
+// destination ports
+//
+type NetworkPolicyPorts struct {
+
+	//
+	// list of source ports
+	//
+	SourcePorts []*NetworkPolicyPort `json:"sourcePorts"`
+
+	//
+	// list of destination ports
+	//
+	DestinationPorts []*NetworkPolicyPort `json:"destinationPorts"`
+}
+
+//
+// NewNetworkPolicyPorts - creates an initialized NetworkPolicyPorts instance, returns a pointer to it
+//
+func NewNetworkPolicyPorts(init ...*NetworkPolicyPorts) *NetworkPolicyPorts {
+	var o *NetworkPolicyPorts
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(NetworkPolicyPorts)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *NetworkPolicyPorts) Init() *NetworkPolicyPorts {
+	if self.SourcePorts == nil {
+		self.SourcePorts = make([]*NetworkPolicyPort, 0)
+	}
+	if self.DestinationPorts == nil {
+		self.DestinationPorts = make([]*NetworkPolicyPort, 0)
+	}
+	return self
+}
+
+type rawNetworkPolicyPorts NetworkPolicyPorts
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a NetworkPolicyPorts
+//
+func (self *NetworkPolicyPorts) UnmarshalJSON(b []byte) error {
+	var m rawNetworkPolicyPorts
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := NetworkPolicyPorts(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *NetworkPolicyPorts) Validate() error {
+	if self.SourcePorts == nil {
+		return fmt.Errorf("NetworkPolicyPorts: Missing required field: sourcePorts")
+	}
+	if self.DestinationPorts == nil {
+		return fmt.Errorf("NetworkPolicyPorts: Missing required field: destinationPorts")
+	}
+	return nil
+}
+
+//
 // NetworkPolicyChangeImpactRequest - struct representing input details for
 // evaluating network policies change impact on transport policies
 //
@@ -2127,14 +2199,10 @@ type NetworkPolicyChangeImpactRequest struct {
 	To []*IPBlock `json:"to"`
 
 	//
-	// list of source ports
+	// list of ports. Facilitates multiple transports for the same source and
+	// destinations.
 	//
-	SourcePorts []*NetworkPolicyPort `json:"sourcePorts"`
-
-	//
-	// list of destination ports
-	//
-	DestinationPorts []*NetworkPolicyPort `json:"destinationPorts"`
+	Ports []*NetworkPolicyPorts `json:"ports"`
 }
 
 //
@@ -2160,11 +2228,8 @@ func (self *NetworkPolicyChangeImpactRequest) Init() *NetworkPolicyChangeImpactR
 	if self.To == nil {
 		self.To = make([]*IPBlock, 0)
 	}
-	if self.SourcePorts == nil {
-		self.SourcePorts = make([]*NetworkPolicyPort, 0)
-	}
-	if self.DestinationPorts == nil {
-		self.DestinationPorts = make([]*NetworkPolicyPort, 0)
+	if self.Ports == nil {
+		self.Ports = make([]*NetworkPolicyPorts, 0)
 	}
 	return self
 }
@@ -2195,11 +2260,8 @@ func (self *NetworkPolicyChangeImpactRequest) Validate() error {
 	if self.To == nil {
 		return fmt.Errorf("NetworkPolicyChangeImpactRequest: Missing required field: to")
 	}
-	if self.SourcePorts == nil {
-		return fmt.Errorf("NetworkPolicyChangeImpactRequest: Missing required field: sourcePorts")
-	}
-	if self.DestinationPorts == nil {
-		return fmt.Errorf("NetworkPolicyChangeImpactRequest: Missing required field: destinationPorts")
+	if self.Ports == nil {
+		return fmt.Errorf("NetworkPolicyChangeImpactRequest: Missing required field: ports")
 	}
 	return nil
 }
