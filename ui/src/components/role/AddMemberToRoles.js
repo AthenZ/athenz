@@ -24,6 +24,7 @@ import Checkbox from '../denali/CheckBox';
 import DateUtils from '../utils/DateUtils';
 import NameUtils from '../utils/NameUtils';
 import RequestUtils from '../utils/RequestUtils';
+import SearchInput from '../denali/SearchInput';
 
 const SectionsDiv = styled.div`
     width: 800px;
@@ -48,6 +49,11 @@ const StyledInputLabel = styled(InputLabel)`
     flex: 0 0 150px;
     font-weight: 600;
     line-height: 36px;
+`;
+
+const StyledSearchInputDiv = styled.div`
+    width: 50%;
+    padding-bottom: 10px;
 `;
 
 const StyledInput = styled(Input)`
@@ -113,6 +119,10 @@ export default class AddMemberToRoles extends React.Component {
         this.state = {
             showModal: !!this.props.showAddMemberToRoles,
             checkedRoles: [],
+            roleNames: this.props.roles
+                .map((role) => NameUtils.getShortName(':role.', role.name))
+                .sort(),
+            searchText: '',
         };
         this.dateUtils = new DateUtils();
     }
@@ -206,8 +216,15 @@ export default class AddMemberToRoles extends React.Component {
 
     render() {
         let roleCheckboxes = [];
-        this.props.roles.forEach((role) => {
-            const roleName = NameUtils.getShortName(':role.', role.name);
+        let roleNames;
+        if (this.state.searchText.trim() !== '') {
+            roleNames = this.state.roleNames.filter((roleName) =>
+                roleName.includes(this.state.searchText.trim())
+            );
+        } else {
+            roleNames = this.state.roleNames;
+        }
+        roleNames.forEach((roleName) => {
             let onCheckboxChanged = this.onCheckboxChanged.bind(this, roleName);
             roleCheckboxes.push(
                 <StyledRole key={roleName}>
@@ -279,6 +296,22 @@ export default class AddMemberToRoles extends React.Component {
                 <SectionDiv>
                     <StyledInputLabel htmlFor=''>Roles</StyledInputLabel>
                     <ContentDiv>
+                        <StyledSearchInputDiv>
+                            <SearchInput
+                                dark={false}
+                                name='search'
+                                fluid={true}
+                                value={this.state.searchText}
+                                placeholder={'Enter role name'}
+                                error={this.state.error}
+                                onChange={(event) =>
+                                    this.setState({
+                                        searchText: event.target.value,
+                                        error: false,
+                                    })
+                                }
+                            />
+                        </StyledSearchInputDiv>
                         <StyledRoleContainer>
                             <StyledRoles>{roleCheckboxes}</StyledRoles>
                         </StyledRoleContainer>
