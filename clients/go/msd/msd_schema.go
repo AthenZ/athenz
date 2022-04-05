@@ -261,12 +261,17 @@ func init() {
 	tNetworkPolicyPort.Field("protocol", "TransportPolicyProtocol", false, nil, "protocol used by the network policy")
 	sb.AddType(tNetworkPolicyPort.Build())
 
+	tNetworkPolicyPorts := rdl.NewStructTypeBuilder("Struct", "NetworkPolicyPorts")
+	tNetworkPolicyPorts.Comment("allows creating a unique tuple of source and destination ports")
+	tNetworkPolicyPorts.ArrayField("sourcePorts", "NetworkPolicyPort", false, "list of source ports")
+	tNetworkPolicyPorts.ArrayField("destinationPorts", "NetworkPolicyPort", false, "list of destination ports")
+	sb.AddType(tNetworkPolicyPorts.Build())
+
 	tNetworkPolicyChangeImpactRequest := rdl.NewStructTypeBuilder("Struct", "NetworkPolicyChangeImpactRequest")
 	tNetworkPolicyChangeImpactRequest.Comment("struct representing input details for evaluating network policies change impact on transport policies")
 	tNetworkPolicyChangeImpactRequest.ArrayField("from", "IPBlock", false, "from ip address range list in cidr format")
 	tNetworkPolicyChangeImpactRequest.ArrayField("to", "IPBlock", false, "to ip address range list in cidr format")
-	tNetworkPolicyChangeImpactRequest.ArrayField("sourcePorts", "NetworkPolicyPort", false, "list of source ports")
-	tNetworkPolicyChangeImpactRequest.ArrayField("destinationPorts", "NetworkPolicyPort", false, "list of destination ports")
+	tNetworkPolicyChangeImpactRequest.ArrayField("ports", "NetworkPolicyPorts", false, "list of ports. Facilitates multiple transports for the same source and destinations.")
 	sb.AddType(tNetworkPolicyChangeImpactRequest.Build())
 
 	tNetworkPolicyChangeImpactDetail := rdl.NewStructTypeBuilder("Struct", "NetworkPolicyChangeImpactDetail")

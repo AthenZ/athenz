@@ -221,12 +221,16 @@ public class MSDSchema {
             .comment("network policy port.")
             .field("protocol", "TransportPolicyProtocol", false, "protocol used by the network policy");
 
+        sb.structType("NetworkPolicyPorts")
+            .comment("allows creating a unique tuple of source and destination ports")
+            .arrayField("sourcePorts", "NetworkPolicyPort", false, "list of source ports")
+            .arrayField("destinationPorts", "NetworkPolicyPort", false, "list of destination ports");
+
         sb.structType("NetworkPolicyChangeImpactRequest")
             .comment("struct representing input details for evaluating network policies change impact on transport policies")
             .arrayField("from", "IPBlock", false, "from ip address range list in cidr format")
             .arrayField("to", "IPBlock", false, "to ip address range list in cidr format")
-            .arrayField("sourcePorts", "NetworkPolicyPort", false, "list of source ports")
-            .arrayField("destinationPorts", "NetworkPolicyPort", false, "list of destination ports");
+            .arrayField("ports", "NetworkPolicyPorts", false, "list of ports. Facilitates multiple transports for the same source and destinations.");
 
         sb.structType("NetworkPolicyChangeImpactDetail")
             .field("domain", "DomainName", false, "Name of the domain of the corresponding transport policy")

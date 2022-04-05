@@ -38,43 +38,37 @@ public class NetworkPolicyChangeImpactRequestTest {
         IPBlock ipbt = new IPBlock().setCidr("10.0.0.1/16");
         IPBlock ipbf = new IPBlock().setCidr("10.1.0.1/16");
 
+        NetworkPolicyPorts ports = new NetworkPolicyPorts().setDestinationPorts(Collections.singletonList(pd))
+                .setSourcePorts(Collections.singletonList(ps));
+
         NetworkPolicyChangeImpactRequest o1 = new NetworkPolicyChangeImpactRequest()
                 .setTo(Collections.singletonList(ipbt))
                 .setFrom(Collections.singletonList(ipbf))
-                .setDestinationPorts(Collections.singletonList(pd))
-                .setSourcePorts(Collections.singletonList(ps));
+                .setPorts(Collections.singletonList(ports));
 
         NetworkPolicyChangeImpactRequest o2 = new NetworkPolicyChangeImpactRequest()
                 .setTo(Collections.singletonList(ipbt))
                 .setFrom(Collections.singletonList(ipbf))
-                .setDestinationPorts(Collections.singletonList(pd))
-                .setSourcePorts(Collections.singletonList(ps));
+                .setPorts(Collections.singletonList(ports));
 
         assertEquals(o1, o2);
         assertEquals(o1, o1);
         assertFalse(o1.equals("abc"));
 
-        assertEquals(o1.getDestinationPorts(), Collections.singletonList(pd));
-        assertEquals(o1.getSourcePorts(), Collections.singletonList(ps));
+        assertEquals(o1.getPorts(), Collections.singletonList(ports));
         assertEquals(o1.getFrom(), Collections.singletonList(ipbf));
         assertEquals(o1.getTo(), Collections.singletonList(ipbt));
 
-        o2.setDestinationPorts(null);
+        o2.setPorts(null);
         assertNotEquals(o1, o2);
 
-        o2.setDestinationPorts(Collections.singletonList(pd));
+        o2.setPorts(Collections.singletonList(ports));
         o2.setFrom(null);
         assertNotEquals(o1, o2);
 
         o2.setFrom(Collections.singletonList(ipbf));
-        o2.setSourcePorts(null);
-        assertNotEquals(o1, o2);
-
-        o2.setSourcePorts(Collections.singletonList(ps));
         o2.setTo(null);
         assertNotEquals(o1, o2);
-
-
     }
 
 }
