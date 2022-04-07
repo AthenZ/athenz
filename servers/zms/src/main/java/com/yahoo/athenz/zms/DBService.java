@@ -7855,9 +7855,10 @@ public class DBService implements RolesProvider {
                     throw ZMSUtils.internalServerError("unable to put dependency on domain " + domainName + " for service " + service, caller);
                 }
 
-                // update our domain time-stamp and save changes
+                // we only need to commit out changes and no need to update
+                // our domain timestamp or invalidate the cache data
 
-                saveChanges(con, domainName);
+                con.commitChanges();
 
                 // audit log the request
 
@@ -7865,8 +7866,8 @@ public class DBService implements RolesProvider {
                         service, auditDetails.toString());
 
                 // add domain change event
-                addDomainChangeMessage(ctx, domainName, service, DomainChangeMessage.ObjectType.DOMAIN);
 
+                addDomainChangeMessage(ctx, domainName, service, DomainChangeMessage.ObjectType.DOMAIN);
                 return;
 
             } catch (ResourceException ex) {
