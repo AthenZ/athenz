@@ -8835,7 +8835,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return;
         }
 
-        // otherwise we're going to do a standard check if the principal
+        // otherwise, we're going to do a standard check if the principal
         // is authorized to update the domain role membership
 
         if (!isAllowedPutMembershipAccess(principal, domain, role.getName())) {
@@ -8853,14 +8853,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     ZMSUtils.extractRoleName(domain.getName(), role.getName()),
                     roleMember.getMemberName(), 0, true);
 
-            // if the member is not found then we're going to throw a not found exception
-
-            if (!pendingMember.getIsMember()) {
-                throw ZMSUtils.notFoundError("pending member " + roleMember.getMemberName()
-                        + " not found", caller);
-            }
-
-            if (pendingMember.getRequestPrincipal().equalsIgnoreCase(principal.getFullName())) {
+            if (principal.getFullName().equalsIgnoreCase(pendingMember.getRequestPrincipal())) {
                 throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
                         + " cannot approve his/her own request", caller);
             }
@@ -8883,7 +8876,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return;
         }
 
-        // otherwise we're going to do a standard check if the principal
+        // otherwise, we're going to do a standard check if the principal
         // is authorized to update the domain group membership
 
         if (!isAllowedPutMembershipAccess(principal, domain, group.getName())) {
@@ -8901,14 +8894,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     ZMSUtils.extractGroupName(domain.getName(), group.getName()),
                     groupMember.getMemberName(), 0, true);
 
-            // if the member is not found then we're going to throw a not found exception
-
-            if (!pendingMember.getIsMember()) {
-                throw ZMSUtils.notFoundError("pending member " + groupMember.getMemberName()
-                        + " not found", caller);
-            }
-
-            if (pendingMember.getRequestPrincipal().equalsIgnoreCase(principal.getFullName())) {
+            if (principal.getFullName().equalsIgnoreCase(pendingMember.getRequestPrincipal())) {
                 throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
                         + " cannot approve his/her own request", caller);
             }
