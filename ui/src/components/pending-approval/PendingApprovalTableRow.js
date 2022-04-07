@@ -221,8 +221,8 @@ export default class PendingApprovalTableRow extends React.Component {
                                     this.props.dateChange(key, date, 'expiry');
                                 }}
                                 disabled={this.props.checked}
-                                clearExpiry={this.props.clearExpiry}
                                 value={this.props.requestedExpiry}
+                                minDate={this.props.requestedExpiry}
                                 nomargin={true}
                             />
                         </FlatPickrInputDiv>
@@ -242,8 +242,8 @@ export default class PendingApprovalTableRow extends React.Component {
                                 }}
                                 placeholder={'Reminder (Optional)'}
                                 disabled={this.props.checked}
-                                clearReviewReminder={this.props.reviewReminder}
                                 value={this.props.requestedReviewReminder}
+                                minDate={this.props.requestedReviewReminder}
                                 nomargin={true}
                             />
                         </FlatPickrInputDiv>

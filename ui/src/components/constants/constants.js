@@ -176,3 +176,14 @@ export const WORKFLOW_TABS = [
         name: 'domain',
     },
 ];
+
+export const DATE_BEFORE_CURRENT_TIME_ERROR_MESSAGE =
+    'Expiry/Review date selected cannot be before current date.';
+
+export const PENDING_APPROVAL_TYPE_ENUM = Object.freeze({
+    EXPIRY: 'expiry',
+    REVIEW: 'review',
+});
+export const PENDING_APPROVAL_KEY_ENUM = Object.freeze({
+    SELECTALL: 'selectAll',
+});

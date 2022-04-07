@@ -21,6 +21,13 @@ import PendingApprovalTableHeader from './PendingApprovalTableHeader';
 import Color from '../../components/denali/Color';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
+import StringUtils from '../utils/StringUtils';
+import {
+    DATE_BEFORE_CURRENT_TIME_ERROR_MESSAGE,
+    PENDING_APPROVAL_ENUM_TYPE,
+    PENDING_APPROVAL_KEY_ENUM,
+    PENDING_APPROVAL_TYPE_ENUM,
+} from '../constants/constants';
 const TableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
@@ -106,7 +113,7 @@ export default class PendingApprovalTable extends React.Component {
     }
 
     auditRefChange(key, event) {
-        if (key === 'SelectAll') {
+        if (key === PENDING_APPROVAL_KEY_ENUM.SELECTALL) {
             this.setState({
                 selectAllAudit: event.target.value,
             });
@@ -122,27 +129,30 @@ export default class PendingApprovalTable extends React.Component {
     dateChange(key, date, type) {
         if (date && date.length > 0) {
             date = this.dateUtils.uxDatetimeToRDLTimestamp(date);
-            if (key === 'SelectAll') {
-                if (type === 'expiry') {
-                    this.setState({
-                        selectAllDateExpiry: date,
-                    });
-                } else {
-                    this.setState({
-                        selectAllDateReviewReminder: date,
-                    });
-                }
-            } else {
-                const pendingMap = this.state.pendingMap;
-                if (type === 'expiry') {
-                    pendingMap[key].expiryDate = date;
-                } else {
-                    pendingMap[key].reviewReminder = date;
-                }
+        } else {
+            date = null;
+        }
+
+        if (key === PENDING_APPROVAL_KEY_ENUM.SELECTALL) {
+            if (type === PENDING_APPROVAL_TYPE_ENUM.EXPIRY) {
                 this.setState({
-                    pendingMap: pendingMap,
+                    selectAllDateExpiry: date,
+                });
+            } else {
+                this.setState({
+                    selectAllDateReviewReminder: date,
                 });
             }
+        } else {
+            const pendingMap = this.state.pendingMap;
+            if (type === PENDING_APPROVAL_TYPE_ENUM.EXPIRY) {
+                pendingMap[key].expiryDate = date;
+            } else {
+                pendingMap[key].reviewReminder = date;
+            }
+            this.setState({
+                pendingMap: pendingMap,
+            });
         }
     }
 
@@ -222,12 +232,26 @@ export default class PendingApprovalTable extends React.Component {
     }
 
     pendingDecision(key, approved) {
-        if (key === 'SelectAll') {
+        if (key === PENDING_APPROVAL_KEY_ENUM.SELECTALL) {
             if (this.state.selectAllAudit === '') {
                 this.setState({
                     selectAllAuditMissing: true,
                 });
             } else {
+                if (
+                    !this.dateUtils.validateDate(
+                        this.state.selectAllDateExpiry
+                    ) ||
+                    !this.dateUtils.validateDate(
+                        this.state.selectAllDateReviewReminder
+                    )
+                ) {
+                    this.setState({
+                        errorMessage: DATE_BEFORE_CURRENT_TIME_ERROR_MESSAGE,
+                    });
+                    return;
+                }
+
                 let promises = [];
                 this.state.checkedList.forEach((key) => {
                     let membership = {
@@ -293,6 +317,20 @@ export default class PendingApprovalTable extends React.Component {
                     pendingMap: pendingMap,
                 });
             } else {
+                if (
+                    this.dateUtils.validateDate(
+                        this.state.pendingMap[key].expiryDate
+                    ) ||
+                    this.dateUtils.validateDate(
+                        this.state.pendingMap[key].reviewReminder
+                    )
+                ) {
+                    this.setState({
+                        errorMessage: DATE_BEFORE_CURRENT_TIME_ERROR_MESSAGE,
+                    });
+                    return;
+                }
+
                 let membership = {
                     memberName: this.state.pendingMap[key].memberName,
                     approved,

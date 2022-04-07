@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import moment from 'moment-timezone';
+import StringUtils from './StringUtils';
 
 class DateUtils {
     constructor() {
         this.dateFormat = 'YYYY-MM-DD HH:mm zz';
+        this.stringUtils = new StringUtils();
     }
 
     getLocalDate(currentDate, currentTimezone, newTimezone) {
@@ -57,6 +59,20 @@ class DateUtils {
             return new Date(ux).toISOString();
         }
         return '';
+    }
+
+    isBeforeCurrenTime(selectedDate) {
+        let d1 = new Date(selectedDate);
+        let d2 = new Date();
+
+        if (d1.getTime() < d2.getTime()) {
+            return true;
+        }
+        return false;
+    }
+
+    validateDate(date) {
+        return !this.stringUtils.isEmpty(date) && this.isBeforeCurrenTime(date);
     }
 }
 
