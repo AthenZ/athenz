@@ -47,11 +47,13 @@ module.exports = function (expressApp, config, secrets) {
                 mediaSrc: [`'self'`],
                 objectSrc: [`'self'`],
                 workerSrc: [`'self'`],
+                formAction: [`'self'`],
                 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/default-src
                 // we have set all the directives which defaultSrc sets for us, and we let nextjs set up style-src for us
                 defaultSrc:
                     helmet.contentSecurityPolicy.dangerouslyDisableDefaultSrc,
             },
+            useDefaults: false,
         };
         if (config.cspImgSrc && config.cspImgSrc !== '') {
             contentSecurityPolicy.directives.imgSrc.push(config.cspImgSrc);
@@ -59,8 +61,12 @@ module.exports = function (expressApp, config, secrets) {
         if (config.cspReportUri && config.cspReportUri !== '') {
             contentSecurityPolicy.directives.reportUri = config.cspReportUri;
         }
+        if (config.formAction && config.formAction !== '') {
+            contentSecurityPolicy.directives.formAction.push(config.formAction);
+        }
         helmet({
             contentSecurityPolicy: contentSecurityPolicy,
+            crossOriginEmbedderPolicy: false,
         })(req, res, next);
     });
 
