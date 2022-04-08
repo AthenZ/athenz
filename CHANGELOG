@@ -1,5 +1,24 @@
+Athenz v1.10.53 Release / Apr 08, 2022
+--------------------------------------
+
+#1821 sorting and filtering for roles in Add Member
+#1822 add tag icon for group
+#1835 UI: Visibility - Domain dependency page
+#1836 do not set error state for optional ca issuer validation check
+#1837 throw zts client exceptions instead of null ones for better error reporting
+#1838 syscall set uid/gid api not available on windows
+#1839 reset provider list if role has no members
+#1840 improve auth error handling in swagger filter
+#1841 NetworkPolicyChangeImpactRequest modification
+#1842 remove resetting ca truststore password to avoid key refresh failures
+#1843 update jetty and aws components to their latest releases
+#1844 validate expiry/review date in workflow page
+#1845 remove unnecessary is member check from member decision calls
+#1846 no need to update domain's last mod timestamp during put dependency call
+
 Athenz v1.10.52 Release / Mar 29, 2022
 --------------------------------------
+
 #1828 UI upkeep
 #1829 UI: allow src/destination service to be empty and send assertionID
 #1832 update dependencies - jackson/gradle fix
