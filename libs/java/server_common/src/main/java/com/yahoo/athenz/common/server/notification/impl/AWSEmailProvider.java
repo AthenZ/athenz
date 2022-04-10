@@ -55,7 +55,7 @@ public class AWSEmailProvider implements EmailProvider {
         }
     }
 
-    AWSEmailProvider() {
+    public AWSEmailProvider() {
         this(initSES());
     }
 
