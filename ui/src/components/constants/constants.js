@@ -185,5 +185,5 @@ export const PENDING_APPROVAL_TYPE_ENUM = Object.freeze({
     REVIEW: 'review',
 });
 export const PENDING_APPROVAL_KEY_ENUM = Object.freeze({
-    SELECTALL: 'selectAll',
+    SELECTALL: 'SelectAll',
 });
