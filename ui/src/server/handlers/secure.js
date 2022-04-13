@@ -55,14 +55,16 @@ module.exports = function (expressApp, config, secrets) {
             },
             useDefaults: false,
         };
-        if (config.cspImgSrc && config.cspImgSrc !== '') {
-            contentSecurityPolicy.directives.imgSrc.push(config.cspImgSrc);
+        if (config.cspImgSrc && config.cspImgSrc.length !== 0) {
+            contentSecurityPolicy.directives.imgSrc.push(...config.cspImgSrc);
         }
         if (config.cspReportUri && config.cspReportUri !== '') {
             contentSecurityPolicy.directives.reportUri = config.cspReportUri;
         }
-        if (config.formAction && config.formAction !== '') {
-            contentSecurityPolicy.directives.formAction.push(config.formAction);
+        if (config.formAction && config.formAction.length !== 0) {
+            contentSecurityPolicy.directives.formAction.push(
+                ...config.formAction
+            );
         }
         helmet({
             contentSecurityPolicy: contentSecurityPolicy,

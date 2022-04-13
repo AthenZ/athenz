@@ -111,7 +111,8 @@ const config = {
         createDomainMessage:
             'Athenz top level domain creation is manual. \n Please connect with your system administrator to create top level domains. \n',
         cspReportUri: '',
-        cspImgSrc: '',
+        cspImgSrc: [],
+        formAction: [],
         allPrefixes: [
             {
                 name: 'AWS',
