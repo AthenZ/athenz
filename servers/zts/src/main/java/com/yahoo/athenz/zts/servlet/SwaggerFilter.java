@@ -20,10 +20,10 @@ import com.yahoo.athenz.zts.ResourceContext;
 import com.yahoo.athenz.zts.ZTSHandler;
 import com.yahoo.athenz.zts.ZTSImplFactory;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.ext.Provider;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 
 @Provider

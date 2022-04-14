@@ -16,15 +16,15 @@
 package com.yahoo.athenz.msd;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonXmlBindJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 import java.io.Closeable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
@@ -88,7 +88,7 @@ public class MSDClient implements Closeable {
     ClientBuilder builder = getClientBuilder();
     builder = builder.sslContext(sslContext);
 
-    final JacksonJsonProvider jacksonJsonProvider = new JacksonJaxbJsonProvider()
+    final JacksonJsonProvider jacksonJsonProvider = new JacksonXmlBindJsonProvider()
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     ClientConfig clientConfig = new ClientConfig(jacksonJsonProvider);
     clientConfig.connectorProvider(new ApacheConnectorProvider());

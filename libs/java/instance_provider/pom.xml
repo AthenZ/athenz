@@ -105,12 +105,12 @@
     <dependency>
       <groupId>jakarta.xml.bind</groupId>
       <artifactId>jakarta.xml.bind-api</artifactId>
-      <version>${jaxb.version}</version>
+      <version>${jaxb.api.version}</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-runtime</artifactId>
-      <version>${jaxb.version}</version>
+      <version>${jaxb.impl.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>

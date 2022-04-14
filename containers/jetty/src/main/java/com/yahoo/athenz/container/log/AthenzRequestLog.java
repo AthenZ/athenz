@@ -19,15 +19,16 @@ import java.io.IOException;
 import java.util.Locale;
 
 import org.apache.http.conn.util.InetAddressUtils;
-import org.eclipse.jetty.server.NCSARequestLog;
+import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.DateCache;
 import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.util.StringUtil;
 
 import javax.net.ssl.SSLSession;
 
-public class AthenzRequestLog extends NCSARequestLog {
+public class AthenzRequestLog extends CustomRequestLog {
 
     private static final String REQUEST_PRINCIPAL      = "com.yahoo.athenz.auth.principal";
     private static final String REQUEST_AUTHORITY_ID   = "com.yahoo.athenz.auth.authority_id";
@@ -39,7 +40,7 @@ public class AthenzRequestLog extends NCSARequestLog {
 
     private final String logDateFormat = "dd/MMM/yyyy:HH:mm:ss Z";
     private final String logTimeZone = "GMT";
-    private transient DateCache logDateCache = new DateCache(logDateFormat, Locale.getDefault(), logTimeZone);
+    private final transient DateCache logDateCache = new DateCache(logDateFormat, Locale.getDefault(), logTimeZone);
     
     public AthenzRequestLog(String filename) {
         super(filename);
@@ -48,40 +49,9 @@ public class AthenzRequestLog extends NCSARequestLog {
     private void logLength(StringBuilder buf, long length) {
 
         if (length >= 0L) {
-            if (length > 99999L) {
-                buf.append(length);
-            } else {
-                if (length > 9999L) {
-                    buf.append((char) ((int) (48L + length / 10000L % 10L)));
-                }
-
-                if (length > 999L) {
-                    buf.append((char) ((int) (48L + length / 1000L % 10L)));
-                }
-
-                if (length > 99L) {
-                    buf.append((char) ((int) (48L + length / 100L % 10L)));
-                }
-
-                if (length > 9L) {
-                    buf.append((char) ((int) (48L + length / 10L % 10L)));
-                }
-
-                buf.append((char) ((int) (48L + length % 10L)));
-            }
+            buf.append(length);
         } else {
             buf.append('-');
-        }
-    }
-
-    private void logStatus(StringBuilder buf, int status) {
-
-        if (status >= 0) {
-            buf.append((char) (48 + status / 100 % 10));
-            buf.append((char) (48 + status / 10 % 10));
-            buf.append((char) (48 + status % 10));
-        } else {
-            buf.append(status);
         }
     }
 
@@ -107,16 +77,16 @@ public class AthenzRequestLog extends NCSARequestLog {
 
     private void logTLSProtocol(StringBuilder buf, Request request) {
         SSLSession sslSession = (SSLSession) request.getAttribute(REQUEST_SSL_SESSION);
-        append(buf, (sslSession == null) ? "-" : sslSession.getProtocol());
+        append(buf, (sslSession == null) ? null : sslSession.getProtocol());
         buf.append(' ');
-        append(buf, (sslSession == null) ? "-" : sslSession.getCipherSuite());
+        append(buf, (sslSession == null) ? null : sslSession.getCipherSuite());
     }
 
     private void append(StringBuilder buf, String str) {
-        if (str != null && !str.isEmpty()) {
-            buf.append(str);
-        } else {
+        if (StringUtil.isEmpty(str)) {
             buf.append('-');
+        } else {
+            buf.append(str);
         }
     }
 
@@ -134,13 +104,29 @@ public class AthenzRequestLog extends NCSARequestLog {
         buf.append(addr);
     }
 
+    protected void logExtended(StringBuilder b, Request request) throws IOException {
+        String referer = request.getHeader(HttpHeader.REFERER.toString());
+        if (referer == null) {
+            b.append("\"-\" ");
+        } else {
+            b.append('"');
+            b.append(referer);
+            b.append("\" ");
+        }
+
+        String agent = request.getHeader(HttpHeader.USER_AGENT.toString());
+        if (agent == null) {
+            b.append("\"-\"");
+        } else {
+            b.append('"');
+            b.append(agent);
+            b.append('"');
+        }
+    }
+
     @Override
     public void log(Request request, Response response) {
         try {
-            if (!this.isEnabled()) {
-                return;
-            }
-
             StringBuilder buf = TLS_BUILDER.get();
             buf.setLength(0);
 
@@ -161,13 +147,13 @@ public class AthenzRequestLog extends NCSARequestLog {
             append(buf, request.getProtocol());
             buf.append("\" ");
 
-            logStatus(buf, response.getCommittedMetaData().getStatus());
+            buf.append(response.getCommittedMetaData().getStatus());
             buf.append(' ');
 
             logLength(buf, response.getHttpChannel().getBytesWritten());
             buf.append(' ');
 
-            logExtended(buf, request, response);
+            logExtended(buf, request);
 
             buf.append(' ');
             logLength(buf, request.getContentLengthLong());
@@ -181,10 +167,10 @@ public class AthenzRequestLog extends NCSARequestLog {
             buf.append(' ');
             logTLSProtocol(buf, request);
 
-            write(buf.toString());
+            getWriter().write(buf.toString());
 
         } catch (IOException ex) {
-            LOG.warn(ex);
+            LOG.warn("unable to write log entry", ex);
         }
     }
 }

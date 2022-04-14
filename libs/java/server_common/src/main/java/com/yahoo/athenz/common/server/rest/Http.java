@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.security.cert.X509Certificate;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,12 +57,12 @@ public class Http {
     }
     
     static String getCookieValue(HttpServletRequest hreq, String name) {
-        
-        javax.servlet.http.Cookie[] cookies = hreq.getCookies();
+
+        jakarta.servlet.http.Cookie[] cookies = hreq.getCookies();
         if (cookies == null) {
             return null;
         }
-        for (javax.servlet.http.Cookie cookie : cookies) {
+        for (jakarta.servlet.http.Cookie cookie : cookies) {
             if (name.equals(cookie.getName())) {
                 return cookie.getValue();
             }

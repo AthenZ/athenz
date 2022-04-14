@@ -23,10 +23,11 @@ import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.client.ClientBuilder;
+import javax.net.ssl.HostnameVerifier;
+
+import jakarta.ws.rs.client.ClientBuilder;
 
 import com.amazonaws.services.securitytoken.model.Credentials;
-import javax.net.ssl.HostnameVerifier;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.Crypto;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;

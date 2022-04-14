@@ -82,7 +82,7 @@ public class ZTSUtils {
 
     private final static char[] EMPTY_PASSWORD = "".toCharArray();
 
-    public static SslContextFactory createSSLContextObject(final String[] clientProtocols,
+    public static SslContextFactory.Client createSSLContextObject(final String[] clientProtocols,
             final PrivateKeyStore privateKeyStore) {
         
         String keyStorePath = System.getProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH);
@@ -101,9 +101,8 @@ public class ZTSUtils {
                 ZTS_DEFAULT_EXCLUDED_CIPHER_SUITES);
         String excludedProtocols = System.getProperty(ZTSConsts.ZTS_PROP_EXCLUDED_PROTOCOLS,
                 ZTS_DEFAULT_EXCLUDED_PROTOCOLS);
-        boolean wantClientAuth = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_WANT_CLIENT_CERT, "false"));
-        
-        SslContextFactory sslContextFactory = new SslContextFactory();
+
+        SslContextFactory.Client sslContextFactory = new SslContextFactory.Client();
         if (!StringUtil.isEmpty(keyStorePath)) {
             LOGGER.info("createSSLContextObject: using SSL KeyStore path: {}", keyStorePath);
             sslContextFactory.setKeyStorePath(keyStorePath);
@@ -133,7 +132,6 @@ public class ZTSUtils {
         sslContextFactory.setExcludeCipherSuites(excludedCipherSuites.split(","));
         sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
 
-        sslContextFactory.setWantClientAuth(wantClientAuth);
         if (clientProtocols != null) {
             sslContextFactory.setIncludeProtocols(clientProtocols);
         }

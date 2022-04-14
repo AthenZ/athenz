@@ -38,8 +38,11 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
+
+import com.fasterxml.jackson.jakarta.rs.json.JacksonXmlBindJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.oath.auth.KeyRefresher;
@@ -61,8 +64,6 @@ import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJsonProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -525,7 +526,7 @@ public class ZTSClient implements Closeable {
 
     /**
      * Set new ZTS Client configuration property. This method calls
-     * internal javax.ws.rs.client.Client client's property method.
+     * internal jakarta.ws.rs.client.Client client's property method.
      * If already set, the existing value of the property will be updated.
      * Setting a null value into a property effectively removes the property
      * from the property bag.
@@ -728,7 +729,7 @@ public class ZTSClient implements Closeable {
 
         // setup our client config object with timeouts
 
-        final JacksonJsonProvider jacksonJsonProvider = new JacksonJaxbJsonProvider()
+        final JacksonJsonProvider jacksonJsonProvider = new JacksonXmlBindJsonProvider()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         final ClientConfig config = new ClientConfig(jacksonJsonProvider);
 

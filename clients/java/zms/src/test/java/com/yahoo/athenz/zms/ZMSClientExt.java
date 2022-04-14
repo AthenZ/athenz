@@ -15,7 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
-import javax.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.ClientBuilder;
 
 public class ZMSClientExt extends ZMSClient {
 

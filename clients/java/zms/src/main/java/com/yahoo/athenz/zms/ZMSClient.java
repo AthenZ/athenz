@@ -27,13 +27,13 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.glassfish.jersey.client.ClientConfig;
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonXmlBindJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
@@ -191,7 +191,7 @@ public class ZMSClient implements Closeable {
 
     /**
      * Set new ZMS Client configuration property. This method calls
-     * internal javax.ws.rs.client.Client client's property method.
+     * internal jakarta.ws.rs.client.Client client's property method.
      * If already set, the existing value of the property will be updated.
      * Setting a null value into a property effectively removes the property
      * from the property bag.
@@ -378,7 +378,7 @@ public class ZMSClient implements Closeable {
             builder = builder.sslContext(sslContext);
         }
 
-        final JacksonJsonProvider jacksonJsonProvider = new JacksonJaxbJsonProvider()
+        final JacksonJsonProvider jacksonJsonProvider = new JacksonXmlBindJsonProvider()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         ClientConfig clientConfig = new ClientConfig(jacksonJsonProvider);
         clientConfig.connectorProvider(new ApacheConnectorProvider());

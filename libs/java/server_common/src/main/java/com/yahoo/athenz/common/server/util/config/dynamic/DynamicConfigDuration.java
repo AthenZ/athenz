@@ -19,7 +19,7 @@ import com.yahoo.athenz.common.server.util.config.ConfigManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;

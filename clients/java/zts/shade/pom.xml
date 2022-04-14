@@ -65,14 +65,14 @@
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
-      <groupId>javax.ws.rs</groupId>
-      <artifactId>javax.ws.rs-api</artifactId>
-      <version>${javax.ws.version}</version>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <version>${jakarta.ws.version}</version>
     </dependency>
     <dependency>
-      <groupId>javax.annotation</groupId>
-      <artifactId>javax.annotation-api</artifactId>
-      <version>1.3.2</version>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <version>${jakarta.annotation.version}</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.inject</groupId>
@@ -147,18 +147,18 @@
     <dependency>
       <groupId>jakarta.xml.bind</groupId>
       <artifactId>jakarta.xml.bind-api</artifactId>
-      <version>${jaxb.version}</version>
+      <version>${jaxb.api.version}</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-runtime</artifactId>
-      <version>${jaxb.version}</version>
+      <version>${jaxb.impl.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>javax.activation</groupId>
-      <artifactId>javax.activation-api</artifactId>
-      <version>1.2.0</version>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+      <version>${jakarta.activation.version}</version>
     </dependency>
   </dependencies>
 
@@ -212,13 +212,13 @@
                   <include>org.glassfish.jersey.inject</include>
                   <include>org.glassfish.jersey.bundles.repackaged</include>
                   <include>com.fasterxml.jackson.core</include>
-                  <include>com.fasterxml.jackson.jaxrs</include>
+                  <include>com.fasterxml.jackson.jakarta.rs</include>
                   <include>com.fasterxml.jackson.module</include>
                   <include>org.glassfish.jersey.connectors</include>
                   <include>org.apache.httpcomponents</include>
-                  <include>javax.ws.rs</include>
-                  <include>javax.annotation</include>
-                  <include>javax.inject</include>
+                  <include>jakarta.ws.rs</include>
+                  <include>jakarta.annotation</include>
+                  <include>jakarta.inject</include>
                   <include>jersey.repackaged.com.google.common</include>
                   <include>org.aopalliance</include>
                   <include>commons-codec</include>
@@ -231,8 +231,8 @@
                   <shadedPattern>athenz.shade.zts.org.apache.commons</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>javax.inject</pattern>
-                  <shadedPattern>athenz.shade.zts.javax.inject</shadedPattern>
+                  <pattern>jakarta.inject</pattern>
+                  <shadedPattern>athenz.shade.zts.jakarta.inject</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.aopalliance</pattern>
@@ -243,12 +243,12 @@
                   <shadedPattern>athenz.shade.zts.jersey.repackaged.com.google.common</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>javax.ws.rs</pattern>
-                  <shadedPattern>athenz.shade.zts.javax.ws.rs</shadedPattern>
+                  <pattern>jakarta.ws.rs</pattern>
+                  <shadedPattern>athenz.shade.zts.jakarta.ws.rs</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>javax.annotation</pattern>
-                  <shadedPattern>athenz.shade.zts.javax.annotation</shadedPattern>
+                  <pattern>jakarta.annotation</pattern>
+                  <shadedPattern>athenz.shade.zts.jakarta.annotation</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.glassfish.jersey</pattern>

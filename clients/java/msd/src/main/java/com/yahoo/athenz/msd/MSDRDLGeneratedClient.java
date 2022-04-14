@@ -4,9 +4,9 @@
 package com.yahoo.athenz.msd;
 
 import com.yahoo.rdl.*;
-import javax.ws.rs.client.*;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import jakarta.ws.rs.client.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
 import javax.net.ssl.HostnameVerifier;
 
 public class MSDRDLGeneratedClient {
@@ -83,7 +83,7 @@ public class MSDRDLGeneratedClient {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
                 credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(transportPolicy, "application/json"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(transportPolicy, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -181,7 +181,7 @@ public class MSDRDLGeneratedClient {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
                 credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(options, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(options, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -201,7 +201,7 @@ public class MSDRDLGeneratedClient {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
                 credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(staticWorkload, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(staticWorkload, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -219,7 +219,7 @@ public class MSDRDLGeneratedClient {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
                 credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:

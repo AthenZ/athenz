@@ -22,7 +22,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.DispatcherType;
+import jakarta.servlet.DispatcherType;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,18 +39,9 @@ import org.eclipse.jetty.http.HttpHeaderValue;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.rewrite.handler.HeaderPatternRule;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
-import org.eclipse.jetty.server.DebugListener;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.ProxyConnectionFactory;
-import org.eclipse.jetty.server.SecureRequestCustomizer;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.Slf4jRequestLog;
-import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -122,9 +113,9 @@ public class AthenzJettyContainer {
     }
     
     public void addRequestLogHandler() {
-        
-        RequestLogHandler requestLogHandler = new RequestLogHandler();
-        
+
+//        RequestLogHandler requestLogHandler = new RequestLogHandler();
+
         // check to see if we have a slf4j logger name specified. if we don't
         // then we'll just use our NCSARequestLog extended Athenz logger
         // when using the slf4j logger we don't have the option to pass
@@ -132,14 +123,13 @@ public class AthenzJettyContainer {
         
         String accessSlf4jLogger = System.getProperty(AthenzConsts.ATHENZ_PROP_ACCESS_SLF4J_LOGGER);
         if (!StringUtil.isEmpty(accessSlf4jLogger)) {
-            
-            Slf4jRequestLog requestLog = new Slf4jRequestLog();
-            requestLog.setLoggerName(accessSlf4jLogger);
-            requestLog.setExtended(true);
-            requestLog.setPreferProxiedForAddress(true);
-            requestLog.setLogTimeZone("GMT");
-            requestLogHandler.setRequestLog(requestLog);
-            
+
+            Slf4jRequestLogWriter slfjRequestLogWriter = new Slf4jRequestLogWriter();
+            slfjRequestLogWriter.setLoggerName(accessSlf4jLogger);
+
+            CustomRequestLog customRequestLog = new CustomRequestLog(slfjRequestLogWriter, CustomRequestLog.EXTENDED_NCSA_FORMAT);
+            server.setRequestLog(customRequestLog);
+
         } else {
 
             String logDir = System.getProperty(AthenzConsts.ATHENZ_PROP_ACCESS_LOG_DIR,
@@ -148,20 +138,22 @@ public class AthenzJettyContainer {
                     "access.yyyy_MM_dd.log");
 
             AthenzRequestLog requestLog = new AthenzRequestLog(logDir + File.separator + logName);
-            requestLog.setAppend(true);
-            requestLog.setExtended(true);
-            requestLog.setPreferProxiedForAddress(true);
-            requestLog.setLogTimeZone("GMT");
-        
-            String retainDays = System.getProperty(AthenzConsts.ATHENZ_PROP_ACCESS_LOG_RETAIN_DAYS, "31");
-            int days = Integer.parseInt(retainDays);
-            if (days > 0) {
-                requestLog.setRetainDays(days);
-            }
-            requestLogHandler.setRequestLog(requestLog);
+            server.setRequestLog(requestLog);
+
+//            requestLog.setAppend(true);
+//            requestLog.setExtended(true);
+//            requestLog.setPreferProxiedForAddress(true);
+//            requestLog.setLogTimeZone("GMT");
+//
+//            String retainDays = System.getProperty(AthenzConsts.ATHENZ_PROP_ACCESS_LOG_RETAIN_DAYS, "31");
+//            int days = Integer.parseInt(retainDays);
+//            if (days > 0) {
+//                requestLog.setRetainDays(days);
+//            }
+//            requestLogHandler.setRequestLog(requestLog);
         }
         
-        handlers.addHandler(requestLogHandler);
+        //handlers.addHandler(requestLogHandler);
     }
     
     public void addServletHandlers(String serverHostName) {

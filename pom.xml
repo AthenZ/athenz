@@ -71,23 +71,26 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.46.v20220331</jetty.version>
-    <jersey.version>2.35</jersey.version>
+    <jetty.version>11.0.9</jetty.version>
+    <jersey.version>3.0.4</jersey.version>
     <jackson.version>2.13.2</jackson.version>
     <jackson-databind.version>2.13.2.2</jackson-databind.version>
     <rdl.version>1.5.4</rdl.version>
     <bouncycastle.version>1.70</bouncycastle.version>
-    <aws.version>1.12.193</aws.version>
-    <aws2.version>2.17.164</aws2.version>
+    <aws.version>1.12.198</aws.version>
+    <aws2.version>2.17.169</aws2.version>
     <guava.version>31.1-jre</guava.version>
     <slf4j.version>1.7.36</slf4j.version>
     <logback.version>1.2.11</logback.version>
-    <javax.version>3.1.0</javax.version>
-    <javax.ws.version>2.1.1</javax.ws.version>
+    <jakarta.activation.version>2.0.1</jakarta.activation.version>
+    <jakarta.annotation.version>2.1.0</jakarta.annotation.version>
+    <jakarta.servlet.version>5.0.0</jakarta.servlet.version>
+    <jakarta.ws.version>3.0.0</jakarta.ws.version>
     <mockito.version>4.4.0</mockito.version>
     <jmockit.version>1.49</jmockit.version>
     <jjwt.version>0.11.2</jjwt.version>
-    <jaxb.version>2.3.3</jaxb.version>
+    <jaxb.api.version>3.0.1</jaxb.api.version>
+    <jaxb.impl.version>3.0.2</jaxb.impl.version>
     <nimbus.jose.version>9.21</nimbus.jose.version>
     <mysql.connector.version>8.0.28</mysql.connector.version>
     <commons.daemon.version>1.3.0</commons.daemon.version>
@@ -122,9 +125,9 @@
     <module>core/msd</module>
     <module>libs/java/auth_core</module>
     <module>libs/java/client_common</module>
+    <module>libs/java/cert_refresher</module>
     <module>libs/java/server_common</module>
     <module>libs/java/instance_provider</module>
-    <module>libs/java/cert_refresher</module>
     <module>clients/java/zms</module>
     <module>clients/java/zts/core</module>
     <module>clients/java/zts/shade</module>
@@ -387,9 +390,12 @@
       <id>ossrh</id>
       <properties>
         <gpg.executable>gpg</gpg.executable>
+        <!--suppress UnresolvedMavenProperty -->
         <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
+        <!--suppress UnresolvedMavenProperty -->
         <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
         <gpg.defaultKeyring>false</gpg.defaultKeyring>
+        <!--suppress UnresolvedMavenProperty -->
         <gpg.homedir>${env.SD_SOURCE_DIR}/screwdriver/deploy</gpg.homedir>
         <gpg.publickeyring>pubring.gpg</gpg.publickeyring>
         <gpg.secretkeyring>secring.gpg</gpg.secretkeyring>

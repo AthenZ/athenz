@@ -16,7 +16,7 @@
 package com.yahoo.athenz.msd;
 
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.ClientBuilder;
 
 public class MSDClientMock extends MSDClient {
 

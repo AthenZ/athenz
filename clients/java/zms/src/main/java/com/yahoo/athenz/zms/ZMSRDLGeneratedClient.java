@@ -4,9 +4,9 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.rdl.*;
-import javax.ws.rs.client.*;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import jakarta.ws.rs.client.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
 import javax.net.ssl.HostnameVerifier;
 
 public class ZMSRDLGeneratedClient {
@@ -134,7 +134,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -156,7 +156,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -178,7 +178,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -267,7 +267,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -290,7 +290,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -312,7 +312,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(domainTemplate, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(domainTemplate, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -335,7 +335,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(domainTemplate, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(domainTemplate, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -443,7 +443,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(entity, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(entity, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -610,7 +610,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(role, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(role, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -743,7 +743,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(membership, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(membership, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -813,7 +813,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(defaultAdmins, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(defaultAdmins, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -837,7 +837,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -860,7 +860,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -884,7 +884,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(membership, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(membership, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -907,7 +907,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(role, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(role, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -984,7 +984,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(group, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(group, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1079,7 +1079,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(membership, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(membership, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1151,7 +1151,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1174,7 +1174,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1198,7 +1198,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(membership, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(membership, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1221,7 +1221,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(group, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(group, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1338,7 +1338,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(policy, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(policy, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1405,7 +1405,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(assertion, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(assertion, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -1429,7 +1429,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(assertion, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(assertion, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -1502,7 +1502,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(assertionConditions, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(assertionConditions, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -1526,7 +1526,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(assertionCondition, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(assertionCondition, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -1639,7 +1639,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(policyOptions, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(policyOptions, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1662,7 +1662,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(policyOptions, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(policyOptions, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1709,7 +1709,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1847,7 +1847,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(publicKeyEntry, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(publicKeyEntry, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1895,7 +1895,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1918,7 +1918,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -1965,7 +1965,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -2014,7 +2014,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -2086,7 +2086,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(detail, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -2528,7 +2528,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(quota, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(quota, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:
@@ -2669,7 +2669,7 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             invocationBuilder = invocationBuilder.header("Y-Audit-Ref", auditRef);
         }
-        Response response = invocationBuilder.put(javax.ws.rs.client.Entity.entity(service, "application/json"));
+        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(service, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 204:

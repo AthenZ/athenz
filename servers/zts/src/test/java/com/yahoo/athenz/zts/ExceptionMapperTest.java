@@ -17,7 +17,7 @@ package com.yahoo.athenz.zts;
 
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import static org.testng.Assert.assertEquals;
 

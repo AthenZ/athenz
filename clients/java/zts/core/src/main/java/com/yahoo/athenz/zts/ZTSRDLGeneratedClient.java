@@ -4,9 +4,9 @@
 package com.yahoo.athenz.zts;
 
 import com.yahoo.rdl.*;
-import javax.ws.rs.client.*;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import jakarta.ws.rs.client.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
 import javax.net.ssl.HostnameVerifier;
 
 public class ZTSRDLGeneratedClient {
@@ -221,7 +221,7 @@ public class ZTSRDLGeneratedClient {
         if (matchingTag != null) {
             invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(request, "application/json"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(request, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -279,7 +279,7 @@ public class ZTSRDLGeneratedClient {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
                 credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(req, "application/json"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(req, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -366,7 +366,7 @@ public class ZTSRDLGeneratedClient {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
                 credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(req, "application/json"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(req, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -410,7 +410,7 @@ public class ZTSRDLGeneratedClient {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
                 credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(info, "application/json"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(info, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 201:
@@ -435,7 +435,7 @@ public class ZTSRDLGeneratedClient {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
                 credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(info, "application/json"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(info, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -534,7 +534,7 @@ public class ZTSRDLGeneratedClient {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
                 credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(certRequest, "application/json"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(certRequest, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 201:
@@ -597,7 +597,7 @@ public class ZTSRDLGeneratedClient {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
                 credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(request, "application/x-www-form-urlencoded"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(request, "application/x-www-form-urlencoded"));
         int code = response.getStatus();
         switch (code) {
         case 200:
@@ -657,7 +657,7 @@ public class ZTSRDLGeneratedClient {
             invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
                 credsToken) : invocationBuilder.header(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(javax.ws.rs.client.Entity.entity(req, "application/json"));
+        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(req, "application/json"));
         int code = response.getStatus();
         switch (code) {
         case 200:

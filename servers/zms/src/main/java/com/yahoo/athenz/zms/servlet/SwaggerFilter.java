@@ -20,14 +20,14 @@ import com.yahoo.athenz.zms.ResourceContext;
 import com.yahoo.athenz.zms.ZMSHandler;
 import com.yahoo.athenz.zms.ZMSImplFactory;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.ext.Provider;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 
 @Provider
-public class SwaggerFilter implements javax.servlet.Filter {
+public class SwaggerFilter implements jakarta.servlet.Filter {
 
     private final ZMSHandler zmsHandler;
 

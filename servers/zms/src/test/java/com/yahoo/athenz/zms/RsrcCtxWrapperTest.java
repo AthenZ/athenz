@@ -25,8 +25,8 @@ import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 

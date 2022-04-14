@@ -19,10 +19,10 @@ import (
 )
 
 type GeneratorParams struct {
-	Outdir         string
-	Banner         string
-	Namespace      string
-	ClassName      string
+	Outdir    string
+	Banner    string
+	Namespace string
+	ClassName string
 }
 
 type javaClientGenerator struct {
@@ -119,9 +119,9 @@ func (gen *javaClientGenerator) resourcePath(r *rdl.Resource) string {
 const javaClientTemplate = `{{header}}
 {{package}}
 import com.yahoo.rdl.*;
-import javax.ws.rs.client.*;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import jakarta.ws.rs.client.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
 import javax.net.ssl.HostnameVerifier;
 
 public class {{cName}}Client {
@@ -238,9 +238,9 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 			contentType = r.Consumes[0]
 		}
 		if entityName == "" {
-			s += "        Response response = invocationBuilder." + strings.ToLower(r.Method) + "(javax.ws.rs.client.Entity.entity(null, \"" + contentType + "\"));\n"
+			s += "        Response response = invocationBuilder." + strings.ToLower(r.Method) + "(jakarta.ws.rs.client.Entity.entity(null, \"" + contentType + "\"));\n"
 		} else {
-			s += "        Response response = invocationBuilder." + strings.ToLower(r.Method) + "(javax.ws.rs.client.Entity.entity(" + entityName + ", \"" + contentType + "\"));\n"
+			s += "        Response response = invocationBuilder." + strings.ToLower(r.Method) + "(jakarta.ws.rs.client.Entity.entity(" + entityName + ", \"" + contentType + "\"));\n"
 		}
 	default:
 		s += "        Response response = invocationBuilder." + strings.ToLower(r.Method) + "();\n"

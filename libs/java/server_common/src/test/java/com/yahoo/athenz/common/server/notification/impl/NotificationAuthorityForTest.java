@@ -21,7 +21,7 @@ package com.yahoo.athenz.common.server.notification.impl;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.EnumSet;

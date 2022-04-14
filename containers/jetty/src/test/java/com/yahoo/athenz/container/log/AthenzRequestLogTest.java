@@ -51,17 +51,6 @@ public class AthenzRequestLogTest {
     }
 
     @Test
-    public void testAthenzRequestLogNotEnabled() {
-
-        AthenzRequestLog athenzRequestLog = new AthenzRequestLog(TEST_FILE);
-        assertNotNull(athenzRequestLog);
-
-        // since not enabled, nothing will be done
-
-        athenzRequestLog.log(null, null);
-    }
-
-    @Test
     public void testAthenzRequestLogNullFields() throws Exception {
 
         AthenzRequestLog athenzRequestLog = new AthenzRequestLog(TEST_FILE);
