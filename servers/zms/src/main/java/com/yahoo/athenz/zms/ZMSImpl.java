@@ -6773,8 +6773,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private void tenancyDeregisterDomainDependency(ResourceContext ctx, String tenantDomain, String provSvcDomain, String provSvcName, String auditRef, String caller) {
         String serviceToDeregister = provSvcDomain + "." + provSvcName;
         if (serviceProviderManager.isServiceProvider(serviceToDeregister)) {
-            boolean tenantDomainRolesExist = isTenantDomainRolesExist(tenantDomain, provSvcDomain, provSvcName);
-            if (!tenantDomainRolesExist) {
+            boolean tenantDomainRolesExist = isTenantDomainRolesExist(ctx, tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
+            DomainList domainList = dbService.listDomainDependencies(serviceToDeregister);
+            if (!tenantDomainRolesExist && domainList.getNames().contains(tenantDomain)) {
                 dbService.deleteDomainDependency(ctx, tenantDomain, serviceToDeregister, auditRef, caller);
             }
         }
@@ -7382,15 +7383,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    private boolean isTenantDomainRolesExist(String tenantDomain, String provSvcDomain, String provSvcName) {
-        final String rolePrefix = ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, null);
-        // find roles matching the prefix
-
-        List<String> tenantDomainRoles = dbService.listRoles(provSvcDomain);
-        return tenantDomainRoles.stream()
-                .filter(role -> dbService.isTenantRolePrefixMatch(role, rolePrefix, null, tenantDomain))
+    private boolean isTenantDomainRolesExist(ResourceContext ctx, String tenantDomain, String provSvcDomain, String provSvcName, String auditRef, String caller) {
+        List<String> dependentResourceGroups = getDependentServiceResourceGroupList(tenantDomain).getServiceAndResourceGroups().stream()
+                .filter(dependency -> dependency.getDomain().equals(tenantDomain) && dependency.getService().equals(provSvcDomain + "." + provSvcName))
                 .findAny()
-                .isPresent();
+                .map(dependency -> dependency.getResourceGroups())
+                .orElse(new ArrayList<>());
+
+        return !dependentResourceGroups.isEmpty();
     }
 
     public ProviderResourceGroupRoles getProviderResourceGroupRoles(ResourceContext ctx, String tenantDomain,
@@ -10388,6 +10388,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
 
+        return getDependentServiceResourceGroupList(domainName);
+    }
+
+    private DependentServiceResourceGroupList getDependentServiceResourceGroupList(String domainName) {
         ServiceIdentityList serviceIdentityList = dbService.listServiceDependencies(domainName);
         final String finalDomainName = domainName;
         List<DependentServiceResourceGroup> dependentServiceResourceGroups = serviceIdentityList.getNames().stream().map(service -> {

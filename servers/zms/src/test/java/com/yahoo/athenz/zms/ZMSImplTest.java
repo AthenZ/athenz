@@ -6900,12 +6900,11 @@ public class ZMSImplTest {
         assertEquals(dependentDomainList.getNames().size(), 1);
         assertEquals(dependentDomainList.getNames().get(0), tenantDomain.toLowerCase());
 
-        // Now delete the second resouce group and verify dependency still remains until the admin role is removed
+        // Now delete the second resource group and verify dependency was removed
 
         zmsImpl.deleteTenantResourceGroupRoles(serviceProviderCtx, domain, serviceName, tenantDomain, resourceGroup2, zmsTestInitializer.getAuditRef());
         dependentDomainList = zmsImpl.getDependentDomainList(zmsTestInitializer.getMockDomRsrcCtx(), domain + "." + serviceName);
-        assertEquals(dependentDomainList.getNames().size(), 1);
-        assertEquals(dependentDomainList.getNames().get(0), tenantDomain.toLowerCase());
+        assertEquals(dependentDomainList.getNames().size(), 0);
 
         // Finally, remove all resource groups related to the tenant domain (which will remove the admin role)
 
@@ -14398,13 +14397,12 @@ public class ZMSImplTest {
         assertNotNull(tRoles);
         assertEquals(0, tRoles.getRoles().size());
 
-        // Domain dependency still remains as the admin role wasn't removed (storage.tenant.providerresourcegrouprolesauthorizedservice.admin)
+        // Domain dependency will be removed
 
         dependentDomainList = zms.getDependentDomainList(zmsTestInitializer.getMockDomRsrcCtx(), providerDomain + "." + providerService);
-        assertEquals(dependentDomainList.getNames().size(), 1);
-        assertEquals(dependentDomainList.getNames().get(0), "providerresourcegrouprolesauthorizedservice");
+        assertEquals(dependentDomainList.getNames().size(), 0);
 
-        // Finally, remove the admin role by deleting the tenant
+        // Finally, delete the tenant
         RsrcCtxWrapper serviceProviderCtx = zmsTestInitializer.contextWithMockPrincipal("deleteTenant", providerDomain, providerService);
         zms.deleteTenant(serviceProviderCtx, providerDomain, providerService, tenantDomain, zmsTestInitializer.getAuditRef());
         dependentDomainList = zms.getDependentDomainList(zmsTestInitializer.getMockDomRsrcCtx(), providerDomain + "." + providerService);
