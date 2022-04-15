@@ -37,6 +37,12 @@ func parseRoleMember(memberStruct map[interface{}]interface{}) *zms.RoleMember {
 	return roleMember
 }
 
+func parseGroupMember(memberStruct map[interface{}]interface{}) *zms.GroupMember {
+	groupMember := zms.NewGroupMember()
+	groupMember.MemberName = zms.GroupMemberName(memberStruct["name"].(string))
+	return groupMember
+}
+
 func shouldReportError(commandSkipErrors, clientSkipErrors bool, err error) bool {
 	// if we have no error then there is nothing to check
 	if err == nil {
@@ -57,7 +63,83 @@ func shouldReportError(commandSkipErrors, clientSkipErrors bool, err error) bool
 	return !strings.Contains(err.Error(), "already exists")
 }
 
-func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, validatedAdmins []string, skipErrors bool) error {
+func groupExists(groupName zms.ResourceName, groups *zms.Groups) bool {
+	if groups == nil {
+		return false
+	}
+	for _, group := range groups.List {
+		if group.Name == groupName {
+			return true
+		}
+	}
+	return false
+}
+
+func (cli Zms) importGroups(dn string, lstGroups []*zms.Group, existingGroups *zms.Groups, updateDomain bool) error {
+	for _, group := range lstGroups {
+		gn := localName(string(group.Name), ":group.")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing group "+gn+"...\n")
+		b := cli.Verbose
+		cli.Verbose = true
+		var err error
+		if updateDomain && groupExists(group.Name, existingGroups) {
+			groupMembers := make([]string, 0)
+			for _, groupMember := range group.GroupMembers {
+				groupMembers = append(groupMembers, string(groupMember.MemberName))
+			}
+			_, err = cli.AddGroupMembers(dn, gn, groupMembers)
+		} else {
+			groupMembers := make([]*zms.GroupMember, 0)
+			for _, groupMember := range group.GroupMembers {
+				groupMembers = append(groupMembers, groupMember)
+			}
+			_, err = cli.AddGroup(dn, gn, groupMembers)
+		}
+		cli.Verbose = b
+		if shouldReportError(updateDomain, cli.SkipErrors, err) {
+			return err
+		}
+	}
+	return nil
+}
+
+func (cli Zms) importGroupsOld(dn string, lstGroups []interface{}, skipErrors bool) error {
+	for _, group := range lstGroups {
+		groupMap := group.(map[interface{}]interface{})
+		gn := groupMap["name"].(string)
+		_, _ = fmt.Fprintf(os.Stdout, "Processing group "+gn+"...\n")
+		groupMembers := make([]*zms.GroupMember, 0)
+		if val, ok := groupMap["members"]; ok {
+			mem := val.([]interface{})
+			for _, m := range mem {
+				groupMember := parseGroupMember(m.(map[interface{}]interface{}))
+				groupMembers = append(groupMembers, groupMember)
+			}
+		}
+		b := cli.Verbose
+		cli.Verbose = true
+		_, err := cli.AddGroup(dn, gn, groupMembers)
+		cli.Verbose = b
+		if shouldReportError(skipErrors, cli.SkipErrors, err) {
+			return err
+		}
+	}
+	return nil
+}
+
+func roleExists(roleName zms.ResourceName, roles *zms.Roles) bool {
+	if roles == nil {
+		return false
+	}
+	for _, role := range roles.List {
+		if role.Name == roleName {
+			return true
+		}
+	}
+	return false
+}
+
+func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, existingRoles *zms.Roles, validatedAdmins []string, updateDomain bool) error {
 	for _, role := range lstRoles {
 		rn := localName(string(role.Name), ":role.")
 		_, _ = fmt.Fprintf(os.Stdout, "Processing role "+rn+"...\n")
@@ -90,26 +172,32 @@ func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, validatedAdmins []st
 				}
 				b := cli.Verbose
 				cli.Verbose = true
-				_, err = cli.AddRegularRole(dn, rn, roleMembers)
+				if updateDomain && roleExists(role.Name, existingRoles) {
+					_, err = cli.AddRoleMembers(dn, rn, roleMembers)
+				} else {
+					_, err = cli.AddRegularRole(dn, rn, roleMembers)
+				}
 				cli.Verbose = b
 			}
-			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+			if shouldReportError(updateDomain, cli.SkipErrors, err) {
 				return err
 			}
 		} else if role.Trust != "" {
 			trust := string(role.Trust)
 			_, err := cli.AddDelegatedRole(dn, rn, trust)
-			if shouldReportError(skipErrors, cli.SkipErrors, err) {
+			if shouldReportError(updateDomain, cli.SkipErrors, err) {
 				return err
 			}
 		} else {
-			roleMembers := make([]*zms.RoleMember, 0)
-			b := cli.Verbose
-			cli.Verbose = true
-			_, err := cli.AddRegularRole(dn, rn, roleMembers)
-			cli.Verbose = b
-			if shouldReportError(skipErrors, cli.SkipErrors, err) {
-				return err
+			if !updateDomain || !roleExists(role.Name, existingRoles) {
+				roleMembers := make([]*zms.RoleMember, 0)
+				b := cli.Verbose
+				cli.Verbose = true
+				_, err := cli.AddRegularRole(dn, rn, roleMembers)
+				cli.Verbose = b
+				if shouldReportError(updateDomain, cli.SkipErrors, err) {
+					return err
+				}
 			}
 		}
 	}
