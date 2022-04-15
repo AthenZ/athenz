@@ -529,7 +529,7 @@ func (cli Zms) DeleteGroupTags(dn string, gn, tagKey string, tagValue string) (*
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
-func (cli Zms) ShowGroups(dn string, tagKey string, tagValue string) (*string, error) {
+func (cli Zms) ShowGroups(dn, tagKey, tagValue string) (*string, error) {
 	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
 		members := true
 		groups, err := cli.Zms.GetGroups(zms.DomainName(dn), &members, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
