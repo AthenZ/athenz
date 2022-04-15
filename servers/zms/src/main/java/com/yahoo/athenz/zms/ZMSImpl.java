@@ -1573,11 +1573,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private void verifyNoServiceDependenciesOnDomain(String domainName, String caller) {
         ServiceIdentityList serviceIdentityList = dbService.listServiceDependencies(domainName);
         if (serviceIdentityList.getNames() != null && !serviceIdentityList.getNames().isEmpty()) {
-            StringBuilder msgBuilder = new StringBuilder("Remove domain '");
-            msgBuilder.append(domainName);
-            msgBuilder.append("' dependency from the following service(s):");
-            msgBuilder.append(String.join(", ", serviceIdentityList.getNames()));
-            throw ZMSUtils.forbiddenError(msgBuilder.toString(), caller);
+            final String msgBuilder = "Remove domain '" + domainName +
+                    "' dependency from the following service(s):" +
+                    String.join(", ", serviceIdentityList.getNames());
+            throw ZMSUtils.forbiddenError(msgBuilder, caller);
         }
     }
 
@@ -1594,7 +1593,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .collect(Collectors.toList());
 
         if (!serviceDependenciesDenied.isEmpty()) {
-            throw ZMSUtils.forbiddenError(serviceDependenciesDenied.stream().collect(Collectors.joining(", ")), caller);
+            throw ZMSUtils.forbiddenError(String.join(", ", serviceDependenciesDenied), caller);
         }
     }
 
@@ -1619,11 +1618,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (serviceProviderManager.isServiceProvider(serviceName)) {
             DomainList domainList = dbService.listDomainDependencies(serviceName);
             if (domainList.getNames() != null && !domainList.getNames().isEmpty()) {
-                StringBuilder msgBuilder = new StringBuilder("Remove service '");
-                msgBuilder.append(serviceName);
-                msgBuilder.append("' dependency from the following domain(s):");
-                msgBuilder.append(String.join(", ", domainList.getNames()));
-                throw ZMSUtils.forbiddenError(msgBuilder.toString(), caller);
+                final String msgBuilder = "Remove service '" + serviceName +
+                        "' dependency from the following domain(s):" +
+                        String.join(", ", domainList.getNames());
+                throw ZMSUtils.forbiddenError(msgBuilder, caller);
             }
         }
     }
@@ -6761,7 +6759,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    private void tenancyRegisterDomainDependency(ResourceContext ctx, String tenantDomain, String provider, String auditRef, String caller) {
+    private void tenancyRegisterDomainDependency(ResourceContext ctx, String tenantDomain, String provider,
+                                                 String auditRef, String caller) {
         if (serviceProviderManager.isServiceProvider(provider)) {
             DomainList domainList = dbService.listDomainDependencies(provider);
             if (!domainList.getNames().contains(tenantDomain)) {
@@ -6770,10 +6769,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    private void tenancyDeregisterDomainDependency(ResourceContext ctx, String tenantDomain, String provSvcDomain, String provSvcName, String auditRef, String caller) {
-        String serviceToDeregister = provSvcDomain + "." + provSvcName;
+    private void tenancyDeregisterDomainDependency(ResourceContext ctx, String tenantDomain, String provSvcDomain,
+                                                   String provSvcName, String auditRef, String caller) {
+        final String serviceToDeregister = provSvcDomain + "." + provSvcName;
         if (serviceProviderManager.isServiceProvider(serviceToDeregister)) {
-            boolean tenantDomainRolesExist = isTenantDomainRolesExist(ctx, tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
+            boolean tenantDomainRolesExist = isTenantDomainRolesExist(tenantDomain, provSvcDomain, provSvcName);
             DomainList domainList = dbService.listDomainDependencies(serviceToDeregister);
             if (!tenantDomainRolesExist && domainList.getNames().contains(tenantDomain)) {
                 dbService.deleteDomainDependency(ctx, tenantDomain, serviceToDeregister, auditRef, caller);
@@ -7377,15 +7377,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                 resourceGroup, auditRef, caller);
 
-            // If listed as service provider, check if there are remaining resource group roles. If not - de-register dependency between the provider service and the tenant domain
+            // If listed as service provider, check if there are remaining resource group roles.
+            // If not - de-register dependency between the provider service and the tenant domain
 
             tenancyDeregisterDomainDependency(ctx, tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
         }
     }
 
-    private boolean isTenantDomainRolesExist(ResourceContext ctx, String tenantDomain, String provSvcDomain, String provSvcName, String auditRef, String caller) {
+    private boolean isTenantDomainRolesExist(String tenantDomain, String provSvcDomain, String provSvcName) {
+        final String provider = provSvcDomain + "." + provSvcName;
         List<String> dependentResourceGroups = getDependentServiceResourceGroupList(tenantDomain).getServiceAndResourceGroups().stream()
-                .filter(dependency -> dependency.getDomain().equals(tenantDomain) && dependency.getService().equals(provSvcDomain + "." + provSvcName))
+                .filter(dependency -> dependency.getDomain().equals(tenantDomain) && dependency.getService().equals(provider))
                 .findAny()
                 .map(dependency -> dependency.getResourceGroups())
                 .orElse(new ArrayList<>());
