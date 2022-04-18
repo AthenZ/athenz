@@ -68,6 +68,7 @@ public class AthenzRequestLogTest {
         assertNotNull(athenzRequestLog);
 
         athenzRequestLog.start();
+        athenzRequestLog.setLogForwardedForAddr(true);
 
         Request request = Mockito.mock(Request.class);
         Response response = Mockito.mock(Response.class);
@@ -108,6 +109,7 @@ public class AthenzRequestLogTest {
         assertNotNull(athenzRequestLog);
 
         athenzRequestLog.start();
+        athenzRequestLog.setLogForwardedForAddr(true);
 
         Request request = Mockito.mock(Request.class);
         Response response = Mockito.mock(Response.class);
@@ -148,6 +150,7 @@ public class AthenzRequestLogTest {
         assertNotNull(athenzRequestLog);
 
         athenzRequestLog.start();
+        athenzRequestLog.setLogForwardedForAddr(true);
 
         Request request = Mockito.mock(Request.class);
         Response response = Mockito.mock(Response.class);
@@ -188,6 +191,7 @@ public class AthenzRequestLogTest {
         assertNotNull(athenzRequestLog);
 
         athenzRequestLog.start();
+        athenzRequestLog.setLogForwardedForAddr(true);
 
         Request request = Mockito.mock(Request.class);
         Response response = Mockito.mock(Response.class);
@@ -224,6 +228,57 @@ public class AthenzRequestLogTest {
         final String data = new String(Files.readAllBytes(file.toPath()));
 
         assertTrue(data.startsWith("10.10.11.13 - athenz.zts [01/Jan/1970:00:00:00 +0000] \"GET /request-uri?query=true HTTP/1.1\" 200 10240 \"-\" \"-\" 102400"), data);
+        assertTrue(data.endsWith("Auth-X509 TLSv1.2 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256\n"), data);
+
+        Files.delete(file.toPath());
+    }
+
+    @Test
+    public void testAthenzRequestLogXForwardedForDisabled() throws Exception {
+
+        AthenzRequestLog athenzRequestLog = new AthenzRequestLog(TEST_FILE);
+        assertNotNull(athenzRequestLog);
+
+        athenzRequestLog.start();
+        athenzRequestLog.setLogForwardedForAddr(false);
+
+        Request request = Mockito.mock(Request.class);
+        Response response = Mockito.mock(Response.class);
+
+        Mockito.when(request.getHeader(HttpHeader.X_FORWARDED_FOR.toString())).thenReturn("10.10.11.13");
+        Mockito.when(request.getRemoteAddr()).thenReturn("10.10.11.12");
+
+        Mockito.when(request.getAttribute(REQUEST_PRINCIPAL)).thenReturn("athenz.zts");
+        Mockito.when(request.getAttribute(REQUEST_AUTHORITY_ID)).thenReturn("Auth-X509");
+
+        Mockito.when(request.getAttribute(REQUEST_URI_SKIP_QUERY)).thenReturn(Boolean.TRUE);
+        Mockito.when(request.getRequestURI()).thenReturn("/request-uri");
+        Mockito.when(request.getAttribute(REQUEST_URI_ADDL_QUERY)).thenReturn("query=true");
+
+        Mockito.when(request.getMethod()).thenReturn("GET");
+        Mockito.when(request.getProtocol()).thenReturn("HTTP/1.1");
+        Mockito.when(request.getContentLengthLong()).thenReturn(102400L);
+
+        MetaData.Response metaResponse = Mockito.mock(MetaData.Response.class);
+        Mockito.when(metaResponse.getStatus()).thenReturn(200);
+        Mockito.when(response.getCommittedMetaData()).thenReturn(metaResponse);
+
+        HttpChannel httpChannel = Mockito.mock(HttpChannel.class);
+        Mockito.when(httpChannel.getBytesWritten()).thenReturn(10240L);
+        Mockito.when(response.getHttpChannel()).thenReturn(httpChannel);
+
+        SSLSession sslSession = Mockito.mock(SSLSession.class);
+        Mockito.when(request.getAttribute(REQUEST_SSL_SESSION)).thenReturn(sslSession);
+        Mockito.when(sslSession.getProtocol()).thenReturn("TLSv1.2");
+        Mockito.when(sslSession.getCipherSuite()).thenReturn("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
+
+        athenzRequestLog.log(request, response);
+        athenzRequestLog.stop();
+
+        File file = new File(TEST_FILE);
+        final String data = new String(Files.readAllBytes(file.toPath()));
+
+        assertTrue(data.startsWith("10.10.11.12 - athenz.zts [01/Jan/1970:00:00:00 +0000] \"GET /request-uri?query=true HTTP/1.1\" 200 10240 \"-\" \"-\" 102400"), data);
         assertTrue(data.endsWith("Auth-X509 TLSv1.2 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256\n"), data);
 
         Files.delete(file.toPath());

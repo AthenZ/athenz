@@ -146,12 +146,15 @@ public class AthenzJettyContainer {
                     getRootDir() + "/logs/athenz");
             String logName = System.getProperty(AthenzConsts.ATHENZ_PROP_ACCESS_LOG_NAME,
                     "access.yyyy_MM_dd.log");
+            boolean logForwardedForAddr = Boolean.parseBoolean(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_LOG_FORWARDED_FOR_ADDR, "false"));
 
             AthenzRequestLog requestLog = new AthenzRequestLog(logDir + File.separator + logName);
             requestLog.setAppend(true);
             requestLog.setExtended(true);
             requestLog.setPreferProxiedForAddress(true);
             requestLog.setLogTimeZone("GMT");
+            requestLog.setLogForwardedForAddr(logForwardedForAddr);
         
             String retainDays = System.getProperty(AthenzConsts.ATHENZ_PROP_ACCESS_LOG_RETAIN_DAYS, "31");
             int days = Integer.parseInt(retainDays);
