@@ -1,3 +1,16 @@
+Athenz v1.10.54 Release / Apr 19, 2022
+--------------------------------------
+
+#1847 UI: set csp defaults to false and add form action from config
+#1848 Bump moment from 2.29.1 to 2.29.2 in /ui
+#1849 Make aws email provider public
+#1850 When deleting tenant resource group roles, delete dependency if the only admin role left
+#1851 UI: update selectAll enum and don't validate date for reject request
+#1852 UI: allow adding multiple csp formAction and imgSrc
+#1853 add group and membership support for zms-cli update-domain command
+#1854 remove unused method arguments
+#1855 access log 127.0.0.1 is addr is null, make use of x-forwarded-for configurable
+
 Athenz v1.10.53 Release / Apr 08, 2022
 --------------------------------------
 
