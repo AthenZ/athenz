@@ -2675,6 +2675,7 @@ public class ZTSClient implements Closeable {
                 }
             }
 
+            LOG.error("Unable to get AWS Creds", ex);
             throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
         

@@ -340,8 +340,8 @@ public class AthenzJettyContainer {
         PrivateKeyStoreFactory pkeyFactory;
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid PrivateKeyStoreFactory class: {} error: {}", pkeyFactoryClass, e.getMessage());
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
+            LOG.error("Invalid PrivateKeyStoreFactory class: {}", pkeyFactoryClass, ex);
             throw new IllegalArgumentException("Invalid private key store");
         }
         this.privateKeyStore = pkeyFactory.create();

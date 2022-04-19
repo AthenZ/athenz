@@ -365,13 +365,13 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         // parse JWT error
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer invalid_access_token")));
-        Mockito.when(requestMock.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(clientCertChain);
+        Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
         assertEquals(authority.authenticate(requestMock, errMsg), null);
         assertEquals(errMsg.toString(), "OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid JWT: io.jsonwebtoken.MalformedJwtException: JWT strings must contain exactly 2 period characters. Found: 0");
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + expiredJwt)));
-        Mockito.when(requestMock.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(clientCertChain);
+        Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
         assertEquals(authority.authenticate(requestMock, errMsg), null);
         assertTrue(errMsg.toString().startsWith("OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid JWT: io.jsonwebtoken.ExpiredJwtException: JWT expired at 2018-01-18T01:30:22Z. Current time: "));
@@ -379,13 +379,13 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         // invalid JWT
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + noExpJwt)));
-        Mockito.when(requestMock.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(clientCertChain);
+        Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
         assertEquals(authority.authenticate(requestMock, errMsg), null);
         assertEquals(errMsg.toString(), "OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid JWT: exp is empty");
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + noCnfJwt)));
-        Mockito.when(requestMock.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(clientCertChain);
+        Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
         assertEquals(authority.authenticate(requestMock, errMsg), null);
         assertEquals(errMsg.toString(), "OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid JWT: NO mapping of authorized client IDs for certificate principal (ui.athenz.io)");
@@ -400,7 +400,7 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         System.clearProperty("athenz.auth.oauth.jwt.verify_cert_thumbprint");
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + noCnfJwt)));
-        Mockito.when(requestMock.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(clientCertChain);
+        Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
         principal = authority.authenticate(requestMock, errMsg);
         assertNotNull(principal);
@@ -425,7 +425,7 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         System.clearProperty("athenz.auth.oauth.jwt.authorized_client_ids_path");
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + invalidSubjectJwt)));
-        Mockito.when(requestMock.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(clientCertChain);
+        Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
         assertEquals(authority.authenticate(requestMock, errMsg), null);
         assertEquals(errMsg.toString(), "OAuthCertBoundJwtAccessTokenAuthority:authenticate: sub is not a valid service identity: got=useradmin");
@@ -444,7 +444,7 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         System.clearProperty("athenz.auth.oauth.jwt.claim.scope");
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + customJwt)));
-        Mockito.when(requestMock.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(clientCertChain);
+        Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
         principal = authority.authenticate(requestMock, errMsg);
         assertNotNull(principal);

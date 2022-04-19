@@ -38,7 +38,7 @@ public class Http {
     public static final String WWW_AUTHENTICATE  = "WWW-Authenticate";
     public static final String INVALID_CRED_ATTR = "com.yahoo.athenz.auth.credential.error";
     public static final String AUTH_CHALLENGES   = "com.yahoo.athenz.auth.credential.challenges";
-    public static final String JAVAX_CERT_ATTR   = "javax.servlet.request.X509Certificate";
+    public static final String JAVAX_CERT_ATTR   = "jakarta.servlet.request.X509Certificate";
 
     public static class AuthorityList {
         List<Authority> authorities;

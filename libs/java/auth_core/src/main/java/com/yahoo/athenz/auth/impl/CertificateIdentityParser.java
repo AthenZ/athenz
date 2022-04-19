@@ -32,10 +32,10 @@ public class CertificateIdentityParser {
     /**
      * X509Certificate attribute name
      */
-    public static final String JAVAX_CERT_ATTR = "javax.servlet.request.X509Certificate";
+    public static final String JAVAX_CERT_ATTR = "jakarta.servlet.request.X509Certificate";
 
     public static final String EMPTY_CERT_ERR_MSG = "No certificate available in request";
-    public static final String ISSUER_DN_MISMATCH = "No Isser DNs match with trust store";
+    public static final String ISSUER_DN_MISMATCH = "No Issuer DNs match with trust store";
 
     private final Set<String> excludedPrincipalSet;
     private final boolean excludeRoleCertificates;
