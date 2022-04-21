@@ -3,749 +3,1129 @@
 //
 package com.yahoo.athenz.zts;
 
-import com.yahoo.rdl.*;
-import jakarta.ws.rs.client.*;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.*;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
+
 import javax.net.ssl.HostnameVerifier;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.List;
 
 public class ZTSRDLGeneratedClient {
-    Client client;
-    WebTarget base;
-    String credsHeader;
-    String credsToken;
 
-    public ZTSRDLGeneratedClient(String url) {
-        client = ClientBuilder.newClient();
-        base = client.target(url);
+    private static final int DEFAULT_CLIENT_CONNECT_TIMEOUT_MS = 5000;
+    private static final int DEFAULT_CLIENT_READ_TIMEOUT_MS = 30000;
+
+    private final String baseUrl;
+    private String credsHeader;
+    private String credsToken;
+
+    private CloseableHttpClient client;
+    private HttpContext httpContext;
+    private final ObjectMapper jsonMapper;
+
+    protected CloseableHttpClient createHttpClient(HostnameVerifier hostnameVerifier) {
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(DEFAULT_CLIENT_CONNECT_TIMEOUT_MS)
+                .setSocketTimeout(DEFAULT_CLIENT_READ_TIMEOUT_MS)
+                .setRedirectsEnabled(false)
+                .build();
+        return HttpClients.custom()
+                .setDefaultRequestConfig(config)
+                .setSSLHostnameVerifier(hostnameVerifier)
+                .build();
     }
 
-    public ZTSRDLGeneratedClient(String url, HostnameVerifier hostnameVerifier) {
-        client = ClientBuilder.newBuilder()
-            .hostnameVerifier(hostnameVerifier)
-            .build();
-        base = client.target(url);
+    private static class UriTemplateBuilder {
+        private final String baseUrl;
+        private String basePath;
+        public UriTemplateBuilder(final String url, final String path) {
+            baseUrl = url;
+            basePath = path;
+        }
+        public UriTemplateBuilder resolveTemplate(final String key, final Object value) {
+            basePath = basePath.replace("{" + key + "}", String.valueOf(value));
+            return this;
+        }
+        public String getUri() {
+            return baseUrl + basePath;
+        }
     }
 
-    public ZTSRDLGeneratedClient(String url, Client rsClient) {
-        client = rsClient;
-        base = client.target(url);
+    public ZTSRDLGeneratedClient(final String url) {
+        baseUrl = url;
+        client = createHttpClient(null);
+        jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    public ZTSRDLGeneratedClient(final String url, HostnameVerifier hostnameVerifier) {
+        baseUrl = url;
+        client = createHttpClient(hostnameVerifier);
+        jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    public ZTSRDLGeneratedClient(final String url, CloseableHttpClient httpClient) {
+        baseUrl = url;
+        client = httpClient;
+        jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
     
     public void close() {
-        client.close();
+        try {
+            client.close();
+        } catch (IOException ignored) {
+        }
     }
 
-    public ZTSRDLGeneratedClient setProperty(String name, Object value) {
-        client = client.property(name, value);
-        base = client.target(base.getUri().toString());
-        return this;
-    }
+    public void addCredentials(final String header, final String token) {
 
-    public ZTSRDLGeneratedClient addCredentials(String header, String token) {
         credsHeader = header;
         credsToken = token;
-        return this;
+
+        if (header == null) {
+            httpContext = null;
+        } else if (header.startsWith("Cookie.")) {
+            httpContext = new BasicHttpContext();
+            CookieStore cookieStore = new BasicCookieStore();
+            BasicClientCookie cookie = new BasicClientCookie(header.substring(7), token);
+            cookie.setPath(baseUrl);
+            cookieStore.addCookie(cookie);
+            httpContext.setAttribute(HttpClientContext.COOKIE_STORE, cookieStore);
+            credsHeader = null;
+        }
     }
 
-    public ResourceAccess getResourceAccess(String action, String resource, String domain, String checkPrincipal) {
-        WebTarget target = base.path("/access/{action}/{resource}")
+    public void setHttpClient(CloseableHttpClient httpClient) {
+        client = httpClient;
+    }
+
+
+    public ResourceAccess getResourceAccess(String action, String resource, String domain, String checkPrincipal) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/access/{action}/{resource}")
             .resolveTemplate("action", action)
             .resolveTemplate("resource", resource);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (domain != null) {
-            target = target.queryParam("domain", domain);
+            uriBuilder.setParameter("domain", domain);
         }
         if (checkPrincipal != null) {
-            target = target.queryParam("principal", checkPrincipal);
+            uriBuilder.setParameter("principal", checkPrincipal);
         }
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(ResourceAccess.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), ResourceAccess.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public ResourceAccess getResourceAccessExt(String action, String resource, String domain, String checkPrincipal) {
-        WebTarget target = base.path("/access/{action}")
+    public ResourceAccess getResourceAccessExt(String action, String resource, String domain, String checkPrincipal) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/access/{action}")
             .resolveTemplate("action", action);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (resource != null) {
-            target = target.queryParam("resource", resource);
+            uriBuilder.setParameter("resource", resource);
         }
         if (domain != null) {
-            target = target.queryParam("domain", domain);
+            uriBuilder.setParameter("domain", domain);
         }
         if (checkPrincipal != null) {
-            target = target.queryParam("principal", checkPrincipal);
+            uriBuilder.setParameter("principal", checkPrincipal);
         }
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(ResourceAccess.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), ResourceAccess.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public ServiceIdentity getServiceIdentity(String domainName, String serviceName) {
-        WebTarget target = base.path("/domain/{domainName}/service/{serviceName}")
+    public ServiceIdentity getServiceIdentity(String domainName, String serviceName) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(ServiceIdentity.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), ServiceIdentity.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public ServiceIdentityList getServiceIdentityList(String domainName) {
-        WebTarget target = base.path("/domain/{domainName}/service")
+    public ServiceIdentityList getServiceIdentityList(String domainName) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service")
             .resolveTemplate("domainName", domainName);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(ServiceIdentityList.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), ServiceIdentityList.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName, String keyId) {
-        WebTarget target = base.path("/domain/{domainName}/service/{serviceName}/publickey/{keyId}")
+    public PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName, String keyId) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/publickey/{keyId}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
             .resolveTemplate("keyId", keyId);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(PublicKeyEntry.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), PublicKeyEntry.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public HostServices getHostServices(String host) {
-        WebTarget target = base.path("/host/{host}/services")
+    public HostServices getHostServices(String host) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/host/{host}/services")
             .resolveTemplate("host", host);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(HostServices.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), HostServices.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public DomainSignedPolicyData getDomainSignedPolicyData(String domainName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
-        WebTarget target = base.path("/domain/{domainName}/signed_policy_data")
+    public DomainSignedPolicyData getDomainSignedPolicyData(String domainName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/signed_policy_data")
             .resolveTemplate("domainName", domainName);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
         if (matchingTag != null) {
-            invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
+            httpUriRequest.addHeader("If-None-Match", matchingTag);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-        case 304:
-            if (headers != null) {
-                headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+            case 304:
+                if (headers != null) {
+                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                }
+                if (code == 304) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), DomainSignedPolicyData.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
             }
-            if (code == 304) {
-                return null;
-            }
-            return response.readEntity(DomainSignedPolicyData.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public JWSPolicyData postSignedPolicyRequest(String domainName, SignedPolicyRequest request, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
-        WebTarget target = base.path("/domain/{domainName}/policy/signed")
+    public JWSPolicyData postSignedPolicyRequest(String domainName, SignedPolicyRequest request, String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/signed")
             .resolveTemplate("domainName", domainName);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(request), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.post()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
         if (matchingTag != null) {
-            invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
+            httpUriRequest.addHeader("If-None-Match", matchingTag);
         }
-        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(request, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-        case 304:
-            if (headers != null) {
-                headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+            case 304:
+                if (headers != null) {
+                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                }
+                if (code == 304) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), JWSPolicyData.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
             }
-            if (code == 304) {
-                return null;
-            }
-            return response.readEntity(JWSPolicyData.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public RoleToken getRoleToken(String domainName, String role, Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
-        WebTarget target = base.path("/domain/{domainName}/token")
+    public RoleToken getRoleToken(String domainName, String role, Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/token")
             .resolveTemplate("domainName", domainName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (role != null) {
-            target = target.queryParam("role", role);
+            uriBuilder.setParameter("role", role);
         }
         if (minExpiryTime != null) {
-            target = target.queryParam("minExpiryTime", minExpiryTime);
+            uriBuilder.setParameter("minExpiryTime", String.valueOf(minExpiryTime));
         }
         if (maxExpiryTime != null) {
-            target = target.queryParam("maxExpiryTime", maxExpiryTime);
+            uriBuilder.setParameter("maxExpiryTime", String.valueOf(maxExpiryTime));
         }
         if (proxyForPrincipal != null) {
-            target = target.queryParam("proxyForPrincipal", proxyForPrincipal);
+            uriBuilder.setParameter("proxyForPrincipal", proxyForPrincipal);
         }
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(RoleToken.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), RoleToken.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public RoleToken postRoleCertificateRequest(String domainName, String roleName, RoleCertificateRequest req) {
-        WebTarget target = base.path("/domain/{domainName}/role/{roleName}/token")
+    public RoleToken postRoleCertificateRequest(String domainName, String roleName, RoleCertificateRequest req) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}/token")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(req), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.post()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(req, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(RoleToken.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), RoleToken.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public Access getAccess(String domainName, String roleName, String principal) {
-        WebTarget target = base.path("/access/domain/{domainName}/role/{roleName}/principal/{principal}")
+    public Access getAccess(String domainName, String roleName, String principal) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/access/domain/{domainName}/role/{roleName}/principal/{principal}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName)
             .resolveTemplate("principal", principal);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(Access.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Access.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public RoleAccess getRoleAccess(String domainName, String principal) {
-        WebTarget target = base.path("/access/domain/{domainName}/principal/{principal}")
+    public RoleAccess getRoleAccess(String domainName, String principal) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/access/domain/{domainName}/principal/{principal}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("principal", principal);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(RoleAccess.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), RoleAccess.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public TenantDomains getTenantDomains(String providerDomainName, String userName, String roleName, String serviceName) {
-        WebTarget target = base.path("/providerdomain/{providerDomainName}/user/{userName}")
+    public TenantDomains getTenantDomains(String providerDomainName, String userName, String roleName, String serviceName) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/providerdomain/{providerDomainName}/user/{userName}")
             .resolveTemplate("providerDomainName", providerDomainName)
             .resolveTemplate("userName", userName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (roleName != null) {
-            target = target.queryParam("roleName", roleName);
+            uriBuilder.setParameter("roleName", roleName);
         }
         if (serviceName != null) {
-            target = target.queryParam("serviceName", serviceName);
+            uriBuilder.setParameter("serviceName", serviceName);
         }
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(TenantDomains.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), TenantDomains.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public Identity postInstanceRefreshRequest(String domain, String service, InstanceRefreshRequest req) {
-        WebTarget target = base.path("/instance/{domain}/{service}/refresh")
+    public Identity postInstanceRefreshRequest(String domain, String service, InstanceRefreshRequest req) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/instance/{domain}/{service}/refresh")
             .resolveTemplate("domain", domain)
             .resolveTemplate("service", service);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(req), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.post()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(req, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(Identity.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Identity.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String role, Integer durationSeconds, String externalId) {
-        WebTarget target = base.path("/domain/{domainName}/role/{role}/creds")
+    public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String role, Integer durationSeconds, String externalId) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{role}/creds")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("role", role);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (durationSeconds != null) {
-            target = target.queryParam("durationSeconds", durationSeconds);
+            uriBuilder.setParameter("durationSeconds", String.valueOf(durationSeconds));
         }
         if (externalId != null) {
-            target = target.queryParam("externalId", externalId);
+            uriBuilder.setParameter("externalId", externalId);
         }
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(AWSTemporaryCredentials.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
-        }
-
-    }
-
-    public InstanceIdentity postInstanceRegisterInformation(InstanceRegisterInformation info, java.util.Map<String, java.util.List<String>> headers) {
-        WebTarget target = base.path("/instance");
-        Invocation.Builder invocationBuilder = target.request("application/json");
-        if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
-        }
-        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(info, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 201:
-            if (headers != null) {
-                headers.put("location", java.util.Arrays.asList((String) response.getHeaders().getFirst("Location")));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), AWSTemporaryCredentials.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
             }
-            return response.readEntity(InstanceIdentity.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public InstanceIdentity postInstanceRefreshInformation(String provider, String domain, String service, String instanceId, InstanceRefreshInformation info) {
-        WebTarget target = base.path("/instance/{provider}/{domain}/{service}/{instanceId}")
+    public InstanceIdentity postInstanceRegisterInformation(InstanceRegisterInformation info, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/instance");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(info), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.post()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 201:
+                if (headers != null) {
+                    headers.put("location", List.of(httpResponse.getFirstHeader("Location").getValue()));
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), InstanceIdentity.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public InstanceIdentity postInstanceRefreshInformation(String provider, String domain, String service, String instanceId, InstanceRefreshInformation info) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/instance/{provider}/{domain}/{service}/{instanceId}")
             .resolveTemplate("provider", provider)
             .resolveTemplate("domain", domain)
             .resolveTemplate("service", service)
             .resolveTemplate("instanceId", instanceId);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(info), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.post()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(info, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(InstanceIdentity.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), InstanceIdentity.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public InstanceRegisterToken getInstanceRegisterToken(String provider, String domain, String service, String instanceId) {
-        WebTarget target = base.path("/instance/{provider}/{domain}/{service}/{instanceId}/token")
+    public InstanceRegisterToken getInstanceRegisterToken(String provider, String domain, String service, String instanceId) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/instance/{provider}/{domain}/{service}/{instanceId}/token")
             .resolveTemplate("provider", provider)
             .resolveTemplate("domain", domain)
             .resolveTemplate("service", service)
             .resolveTemplate("instanceId", instanceId);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(InstanceRegisterToken.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), InstanceRegisterToken.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public InstanceIdentity deleteInstanceIdentity(String provider, String domain, String service, String instanceId) {
-        WebTarget target = base.path("/instance/{provider}/{domain}/{service}/{instanceId}")
+    public InstanceIdentity deleteInstanceIdentity(String provider, String domain, String service, String instanceId) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/instance/{provider}/{domain}/{service}/{instanceId}")
             .resolveTemplate("provider", provider)
             .resolveTemplate("domain", domain)
             .resolveTemplate("service", service)
             .resolveTemplate("instanceId", instanceId);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.delete()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.delete();
-        int code = response.getStatus();
-        switch (code) {
-        case 204:
-            return null;
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public CertificateAuthorityBundle getCertificateAuthorityBundle(String name) {
-        WebTarget target = base.path("/cacerts/{name}")
+    public CertificateAuthorityBundle getCertificateAuthorityBundle(String name) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/cacerts/{name}")
             .resolveTemplate("name", name);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(CertificateAuthorityBundle.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), CertificateAuthorityBundle.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public Status getStatus() {
-        WebTarget target = base.path("/status");
-        Invocation.Builder invocationBuilder = target.request("application/json");
+    public Status getStatus() throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/status");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(Status.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Status.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public SSHCertificates postSSHCertRequest(SSHCertRequest certRequest) {
-        WebTarget target = base.path("/sshcert");
-        Invocation.Builder invocationBuilder = target.request("application/json");
+    public SSHCertificates postSSHCertRequest(SSHCertRequest certRequest) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/sshcert");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(certRequest), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.post()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(certRequest, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 201:
-            return response.readEntity(SSHCertificates.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 201:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), SSHCertificates.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public OpenIDConfig getOpenIDConfig() {
-        WebTarget target = base.path("/.well-known/openid-configuration");
-        Invocation.Builder invocationBuilder = target.request("application/json");
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(OpenIDConfig.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+    public OpenIDConfig getOpenIDConfig() throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/.well-known/openid-configuration");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), OpenIDConfig.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public OAuthConfig getOAuthConfig() {
-        WebTarget target = base.path("/.well-known/oauth-authorization-server");
-        Invocation.Builder invocationBuilder = target.request("application/json");
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(OAuthConfig.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+    public OAuthConfig getOAuthConfig() throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/.well-known/oauth-authorization-server");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), OAuthConfig.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public JWKList getJWKList(Boolean rfc) {
-        WebTarget target = base.path("/oauth2/keys");
+    public JWKList getJWKList(Boolean rfc) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/oauth2/keys");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (rfc != null) {
-            target = target.queryParam("rfc", rfc);
+            uriBuilder.setParameter("rfc", String.valueOf(rfc));
         }
-        Invocation.Builder invocationBuilder = target.request("application/json");
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(JWKList.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), JWKList.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public AccessTokenResponse postAccessTokenRequest(String request) {
-        WebTarget target = base.path("/oauth2/token");
-        Invocation.Builder invocationBuilder = target.request("application/json");
+    public AccessTokenResponse postAccessTokenRequest(String request) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/oauth2/token");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(request, ContentType.create("application/x-www-form-urlencoded"));
+        HttpUriRequest httpUriRequest = RequestBuilder.post()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(request, "application/x-www-form-urlencoded"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(AccessTokenResponse.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), AccessTokenResponse.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope, String state, String nonce, String keyType, java.util.Map<String, java.util.List<String>> headers) {
-        WebTarget target = base.path("/oauth2/auth");
+    public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope, String state, String nonce, String keyType, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/oauth2/auth");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (responseType != null) {
-            target = target.queryParam("response_type", responseType);
+            uriBuilder.setParameter("response_type", responseType);
         }
         if (clientId != null) {
-            target = target.queryParam("client_id", clientId);
+            uriBuilder.setParameter("client_id", clientId);
         }
         if (redirectUri != null) {
-            target = target.queryParam("redirect_uri", redirectUri);
+            uriBuilder.setParameter("redirect_uri", redirectUri);
         }
         if (scope != null) {
-            target = target.queryParam("scope", scope);
+            uriBuilder.setParameter("scope", scope);
         }
         if (state != null) {
-            target = target.queryParam("state", state);
+            uriBuilder.setParameter("state", state);
         }
         if (nonce != null) {
-            target = target.queryParam("nonce", nonce);
+            uriBuilder.setParameter("nonce", nonce);
         }
         if (keyType != null) {
-            target = target.queryParam("keyType", keyType);
+            uriBuilder.setParameter("keyType", keyType);
         }
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 302:
-            if (headers != null) {
-                headers.put("location", java.util.Arrays.asList((String) response.getHeaders().getFirst("Location")));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 302:
+                if (headers != null) {
+                    headers.put("location", List.of(httpResponse.getFirstHeader("Location").getValue()));
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), OIDCResponse.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
             }
-            return response.readEntity(OIDCResponse.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public RoleCertificate postRoleCertificateRequestExt(RoleCertificateRequest req) {
-        WebTarget target = base.path("/rolecert");
-        Invocation.Builder invocationBuilder = target.request("application/json");
+    public RoleCertificate postRoleCertificateRequestExt(RoleCertificateRequest req) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/rolecert");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(req), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.post()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(req, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(RoleCertificate.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), RoleCertificate.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public RoleAccess getRolesRequireRoleCert(String principal) {
-        WebTarget target = base.path("/role/cert");
+    public RoleAccess getRolesRequireRoleCert(String principal) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/role/cert");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (principal != null) {
-            target = target.queryParam("principal", principal);
+            uriBuilder.setParameter("principal", principal);
         }
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(RoleAccess.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), RoleAccess.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public Workloads getWorkloadsByService(String domainName, String serviceName) {
-        WebTarget target = base.path("/domain/{domainName}/service/{serviceName}/workloads")
+    public Workloads getWorkloadsByService(String domainName, String serviceName) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workloads")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(Workloads.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Workloads.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public Workloads getWorkloadsByIP(String ip) {
-        WebTarget target = base.path("/workloads/{ip}")
+    public Workloads getWorkloadsByIP(String ip) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/workloads/{ip}")
             .resolveTemplate("ip", ip);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(Workloads.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Workloads.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public TransportRules getTransportRules(String domainName, String serviceName) {
-        WebTarget target = base.path("/domain/{domainName}/service/{serviceName}/transportRules")
+    public TransportRules getTransportRules(String domainName, String serviceName) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/transportRules")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(TransportRules.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), TransportRules.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
 }

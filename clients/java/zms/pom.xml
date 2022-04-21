@@ -37,6 +37,11 @@
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-cert-refresher</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>athenz-client-common</artifactId>
       <version>${project.parent.version}</version>
@@ -45,26 +50,6 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>athenz-auth-core</artifactId>
       <version>${project.parent.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jersey.inject</groupId>
-      <artifactId>jersey-hk2</artifactId>
-      <version>${jersey.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jersey.media</groupId>
-      <artifactId>jersey-media-json-jackson</artifactId>
-      <version>${jersey.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jersey.core</groupId>
-      <artifactId>jersey-client</artifactId>
-      <version>${jersey.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jersey.connectors</groupId>
-      <artifactId>jersey-apache-connector</artifactId>
-      <version>${jersey.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -92,16 +77,6 @@
       <version>${jackson.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
-      <artifactId>jackson-jakarta-rs-base</artifactId>
-      <version>${jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
-      <artifactId>jackson-jakarta-rs-json-provider</artifactId>
-      <version>${jackson.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>${jackson-databind.version}</version>
@@ -111,42 +86,6 @@
       <artifactId>jackson-annotations</artifactId>
       <version>${jackson.version}</version>
     </dependency>
-    <dependency>
-      <groupId>jakarta.ws.rs</groupId>
-      <artifactId>jakarta.ws.rs-api</artifactId>
-      <version>${jakarta.ws.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>jakarta.xml.bind</groupId>
-      <artifactId>jakarta.xml.bind-api</artifactId>
-      <version>${jaxb.api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jaxb</groupId>
-      <artifactId>jaxb-runtime</artifactId>
-      <version>${jaxb.impl.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <!-- Test dependencies -->
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-      <version>${jetty.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-      <version>${jetty.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.resteasy</groupId>
-      <artifactId>resteasy-client</artifactId>
-      <version>${jboss.resteasy.version}</version>
-      <scope>test</scope>
-    </dependency>
-
   </dependencies>
 
   <build>
@@ -174,30 +113,6 @@
   </build>
 
   <profiles>
-    <profile>
-      <id>coverage</id>
-      <activation>
-        <property>
-          <name>coverage</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.openclover</groupId>
-            <artifactId>clover-maven-plugin</artifactId>
-            <version>4.3.1</version>
-            <configuration>
-              <jdk>1.8</jdk>
-              <!-- exclude auto-generated RDL client code -->
-              <excludes>
-                <exclude>**/ZMSRDLGeneratedClient.java</exclude>
-              </excludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
     <profile>
       <id>jdk11</id>
       <activation>

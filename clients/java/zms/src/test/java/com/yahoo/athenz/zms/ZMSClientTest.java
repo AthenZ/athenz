@@ -15,11 +15,11 @@
  */
 package com.yahoo.athenz.zms;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.security.*;
 import java.util.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
@@ -33,6 +33,7 @@ import static org.testng.Assert.*;
 
 import static org.mockito.ArgumentMatchers.any;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeClass;
@@ -44,8 +45,8 @@ public class ZMSClientTest {
 
     private String systemAdminUser = null;
     private String systemAdminFullUser = null;
-    private static String ZMS_CLIENT_PROP_ZMS_URL = "athenz.zms.client.zms_url";
-    private static String ZMS_CLIENT_PROP_TEST_ADMIN = "athenz.zms.client.test_admin";
+    private static final String ZMS_CLIENT_PROP_ZMS_URL = "athenz.zms.client.zms_url";
+    private static final String ZMS_CLIENT_PROP_TEST_ADMIN = "athenz.zms.client.test_admin";
 
     private static final String PUB_KEY_ZONE1 = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BM"
             + "EdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FDMXRHU1ZDQTh3bDVldzVZNzZXajJySkFVRA"
@@ -63,7 +64,7 @@ public class ZMSClientTest {
     static final Struct TABLE_PROVIDER_ROLE_ACTIONS = new Struct()
         .with("admin", "*").with("writer", "WRITE").with("reader", "READ");
 
-    private static String AUDIT_REF = "zmsjcltest";
+    private static final String AUDIT_REF = "zmsjcltest";
 
     static final int BASE_PRODUCT_ID = 100000000; // these product id's will lie in 100 million range
     static java.util.Random domainProductId = new java.security.SecureRandom();
@@ -475,7 +476,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutMembership() {
+    public void testPutMembership() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -525,7 +526,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteMembership() {
+    public void testDeleteMembership() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -548,7 +549,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeletePendingMembershipFailures() {
+    public void testDeletePendingMembershipFailures() throws URISyntaxException, IOException {
 
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -572,7 +573,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteTopLevelDomain() {
+    public void testDeleteTopLevelDomain() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -886,7 +887,7 @@ public class ZMSClientTest {
         client.deleteTopLevelDomain("ServiceAddDom1", AUDIT_REF);
     }
 
-    private void testDeletePublicKeyEntry(ZMSClient client, String adminUser) {
+    private void testDeletePublicKeyEntry(ZMSClient client, String adminUser) throws URISyntaxException, IOException {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("DelPublicKeyDom1",
                 "Test Domain1", "testOrg", adminUser);
@@ -939,7 +940,7 @@ public class ZMSClientTest {
         client.deleteTopLevelDomain("DelPublicKeyDom1", AUDIT_REF);
     }
 
-    private void testCreateEntity(ZMSClient client, String adminUser) {
+    private void testCreateEntity(ZMSClient client, String adminUser) throws URISyntaxException, IOException {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("CreateEntityDom1",
                 "Test Domain1", "testOrg", adminUser);
@@ -985,7 +986,7 @@ public class ZMSClientTest {
         client.deleteTopLevelDomain("CreateEntityDom1", AUDIT_REF);
     }
 
-    private void testDeleteEntity(ZMSClient client, String adminUser) {
+    private void testDeleteEntity(ZMSClient client, String adminUser) throws URISyntaxException, IOException {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("DelEntityDom1",
                 "Test Domain1", "testOrg", adminUser);
@@ -1132,17 +1133,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testSetProperty() {
-        ZMSClient client = new ZMSClient("http://localhost:10080/zms/v1");
-        client.setProperty("name", "value");
-
-        // no exceptions if there is no client object
-        client.setZMSRDLGeneratedClient(null);
-        client.setProperty("name", "value");
-    }
-
-    @Test
-    public void testClientOnlyUrl() {
+    public void testClientOnlyUrl() throws URISyntaxException, IOException {
         String zmsUrl = getZMSUrl();
         ZMSClient client = new ZMSClient(zmsUrl);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -1210,7 +1201,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testClientUrlPrincipal() {
+    public void testClientUrlPrincipal() throws URISyntaxException, IOException {
 
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -1236,7 +1227,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testClientClearPrincipal() {
+    public void testClientClearPrincipal() throws URISyntaxException, IOException {
         String zmsUrl = getZMSUrl();
         ZMSClient client = new ZMSClient(zmsUrl);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -1288,7 +1279,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testClientWithoutEndingSlash() {
+    public void testClientWithoutEndingSlash() throws URISyntaxException, IOException {
         String zmsUrl = getZMSUrl();
         if (zmsUrl == null) {
             zmsUrl = "http://localhost:10080";
@@ -1313,7 +1304,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetDomainList() {
+    public void testGetDomainList() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1337,7 +1328,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteSubDomain() {
+    public void testDeleteSubDomain() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1358,7 +1349,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutTenantResourceGroupRoles() {
+    public void testPutTenantResourceGroupRoles() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1384,7 +1375,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetTenantResourceGroupRoles() {
+    public void testGetTenantResourceGroupRoles() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1407,7 +1398,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteTenantResourceGroupRoles() {
+    public void testDeleteTenantResourceGroupRoles() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1438,7 +1429,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetRoles() {
+    public void testGetRoles() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1459,7 +1450,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetPolicies() {
+    public void testGetPolicies() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1494,7 +1485,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteUserDomain() {
+    public void testDeleteUserDomain() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1515,7 +1506,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutDomainMeta() {
+    public void testPutDomainMeta() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1537,7 +1528,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutDomainSystemMeta() {
+    public void testPutDomainSystemMeta() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1559,7 +1550,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutDomainTemplate() {
+    public void testPutDomainTemplate() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1583,7 +1574,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutDomainTemplateExt() {
+    public void testPutDomainTemplateExt() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1607,7 +1598,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetResourceAccessList() {
+    public void testGetResourceAccessList() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1628,7 +1619,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testAssertion() {
+    public void testAssertion() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1676,7 +1667,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetTemplate() {
+    public void testGetTemplate() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1697,7 +1688,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetProviderResourceGroupRoles() {
+    public void testGetProviderResourceGroupRoles() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1722,7 +1713,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteProviderResourceGroupRoles() {
+    public void testDeleteProviderResourceGroupRoles() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1747,7 +1738,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutProviderResourceGroupRoles() {
+    public void testPutProviderResourceGroupRoles() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1773,7 +1764,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPostUserDomain() {
+    public void testPostUserDomain() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1803,7 +1794,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testCreateTopLevelDomainUserToken() {
+    public void testCreateTopLevelDomainUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1818,7 +1809,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testCreateTopLevelDomainOnceOnlyUserToken() {
+    public void testCreateTopLevelDomainOnceOnlyUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1831,7 +1822,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testCreateSubDomainUserToken() {
+    public void testCreateSubDomainUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1847,7 +1838,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testCreateSubdomainOnceOnlyUserToken() {
+    public void testCreateSubdomainOnceOnlyUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1861,7 +1852,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testCreateRoleUserToken() {
+    public void testCreateRoleUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1882,7 +1873,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetRoleList() {
+    public void testGetRoleList() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1921,7 +1912,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteRole() {
+    public void testDeleteRole() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1945,7 +1936,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetMembership() {
+    public void testGetMembership() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -1970,7 +1961,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetOverdueReview() {
+    public void testGetOverdueReview() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2000,7 +1991,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetPolicyList() {
+    public void testGetPolicyList() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2039,7 +2030,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetPolicyVersionList() {
+    public void testGetPolicyVersionList() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2078,7 +2069,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutServiceIdentity() {
+    public void testPutServiceIdentity() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2101,7 +2092,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteServiceIdentity() {
+    public void testDeleteServiceIdentity() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2126,7 +2117,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetServiceIdentities() {
+    public void testGetServiceIdentities() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2149,7 +2140,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetServiceIdentityList() {
+    public void testGetServiceIdentityList() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2186,7 +2177,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutPublicKeyEntry() {
+    public void testPutPublicKeyEntry() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2213,7 +2204,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteTenancy() {
+    public void testDeleteTenancy() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2237,7 +2228,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetSignedDomains() {
+    public void testGetSignedDomains() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2269,7 +2260,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetDomainMetaStoreValidValuesList() {
+    public void testGetDomainMetaStoreValidValuesList() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2305,7 +2296,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetDomainListException() {
+    public void testGetDomainListException() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2341,7 +2332,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutDefaultAdmins() {
+    public void testPutDefaultAdmins() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2367,7 +2358,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetDomainDataCheck() {
+    public void testGetDomainDataCheck() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2390,7 +2381,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutTenancy() {
+    public void testPutTenancy() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2415,7 +2406,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testAddMembershipUserToken() {
+    public void testAddMembershipUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2454,7 +2445,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteMembershipUserToken() {
+    public void testDeleteMembershipUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2474,7 +2465,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteUser() {
+    public void testDeleteUser() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2506,7 +2497,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetUserList() {
+    public void testGetUserList() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2540,7 +2531,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetUserListWithDomain() {
+    public void testGetUserListWithDomain() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2574,7 +2565,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetUserToken() {
+    public void testGetUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2604,7 +2595,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testCreatePolicyUserToken() {
+    public void testCreatePolicyUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2645,7 +2636,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeletePolicyUserToken() {
+    public void testDeletePolicyUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2669,7 +2660,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeletePublicKeyEntryUserToken() {
+    public void testDeletePublicKeyEntryUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2688,7 +2679,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testCreateServiceIdentityUserToken() {
+    public void testCreateServiceIdentityUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2705,7 +2696,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testCreateEntityUserToken() {
+    public void testCreateEntityUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2720,7 +2711,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteEntityUserToken() {
+    public void testDeleteEntityUserToken() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2799,7 +2790,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteDomainTemplate() {
+    public void testDeleteDomainTemplate() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         String domName = "templesofold";
         String domName2 = "templesofold2";
@@ -2867,7 +2858,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteDomainTemplateErrorCases() {
+    public void testDeleteDomainTemplateErrorCases() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2927,7 +2918,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetStats() {
+    public void testGetStats() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2963,7 +2954,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetQuota() {
+    public void testGetQuota() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -2999,7 +2990,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutQuota() {
+    public void testPutQuota() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3036,7 +3027,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteQuota() {
+    public void testDeleteQuota() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3068,7 +3059,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteDomainRoleMember() {
+    public void testDeleteDomainRoleMember() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3101,7 +3092,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetDomainRoleMembers() {
+    public void testGetDomainRoleMembers() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3151,7 +3142,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetPrincipalRoles() {
+    public void testGetPrincipalRoles() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3213,7 +3204,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutTenant() {
+    public void testPutTenant() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3239,7 +3230,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteTenant() {
+    public void testDeleteTenant() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3318,7 +3309,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetAccess() {
+    public void testGetAccess() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3352,7 +3343,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetAccessExt() {
+    public void testGetAccessExt() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3386,7 +3377,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetEntityList() {
+    public void testGetEntityList() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3414,7 +3405,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testUpdatePrincipal() {
+    public void testUpdatePrincipal() throws URISyntaxException, IOException {
         String zmsUrl = getZMSUrl();
         ZMSClient client = new ZMSClient(zmsUrl);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -3437,7 +3428,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetPrincipal() {
+    public void testGetPrincipal() throws URISyntaxException, IOException {
         String zmsUrl = getZMSUrl();
         ZMSClient client = new ZMSClient(zmsUrl);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -3508,7 +3499,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutRoleSystemMeta() {
+    public void testPutRoleSystemMeta() throws URISyntaxException, IOException {
 
         final String domainName = "role-meta";
         final String roleName = "role1";
@@ -3538,7 +3529,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetRole() {
+    public void testGetRole() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3552,7 +3543,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutRoleMeta() {
+    public void testPutRoleMeta() throws URISyntaxException, IOException {
 
         final String domainName = "role-meta";
         final String roleName = "role1";
@@ -3582,7 +3573,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutRoleMetaSuccess() {
+    public void testPutRoleMetaSuccess() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3594,7 +3585,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutMembershipDecision() {
+    public void testPutMembershipDecision() throws URISyntaxException, IOException {
 
         final String domainName = "put-mbr-decision";
         final String roleName = "role1";
@@ -3623,7 +3614,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutMembershipDecisionSuccess() {
+    public void testPutMembershipDecisionSuccess() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3634,7 +3625,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutRoleReviewError() {
+    public void testPutRoleReviewError() throws URISyntaxException, IOException {
 
         final String domainName = "put-role-review";
         final String roleName = "role1";
@@ -3665,7 +3656,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutRoleReviewSuccess() {
+    public void testPutRoleReviewSuccess() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3680,7 +3671,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutServiceIdentitySystemMeta() {
+    public void testPutServiceIdentitySystemMeta() throws URISyntaxException, IOException {
 
         final String domainName = "put-svc-meta";
         final String serviceName = "service1";
@@ -3710,7 +3701,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetJWSDomain() {
+    public void testGetJWSDomain() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3725,7 +3716,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetJWSDomainNoArguments() {
+    public void testGetJWSDomainNoArguments() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3740,7 +3731,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetJWSDomainFailures() {
+    public void testGetJWSDomainFailures() throws URISyntaxException, IOException {
 
         final String domainName = "jws-domain";
 
@@ -3768,7 +3759,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutGroup() {
+    public void testPutGroup() throws URISyntaxException, IOException {
 
         final String domainName = "put-group-test";
         final String groupName1 = "group1";
@@ -3832,7 +3823,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutGroupMembership() {
+    public void testPutGroupMembership() throws URISyntaxException, IOException {
 
         final String domainName = "put-group-mbr";
         final String groupName = "group1";
@@ -3863,7 +3854,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteGroupMembership() {
+    public void testDeleteGroupMembership() throws URISyntaxException, IOException {
 
         final String domainName = "del-group-mbr-test";
         final String groupName1 = "group1";
@@ -3889,7 +3880,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteGroupMembershipFailures() {
+    public void testDeleteGroupMembershipFailures() throws URISyntaxException, IOException {
 
         final String domainName = "del-group-mbr-test";
         final String groupName1 = "group1";
@@ -3917,7 +3908,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeletePendingGroupMembershipFailures() {
+    public void testDeletePendingGroupMembershipFailures() throws URISyntaxException, IOException {
 
         final String domainName = "del-pending-group-mbr-test";
         final String groupName1 = "group1";
@@ -3944,7 +3935,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteGroup() {
+    public void testDeleteGroup() throws URISyntaxException, IOException {
 
         final String domainName = "del-group";
         final String groupName1 = "group1";
@@ -3977,7 +3968,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetPendingDomainRoleMembersList() {
+    public void testGetPendingDomainRoleMembersList() throws URISyntaxException, IOException {
 
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -4007,7 +3998,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetPendingDomainRoleMembersListWithDomain() {
+    public void testGetPendingDomainRoleMembersListWithDomain() throws URISyntaxException, IOException {
 
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -4037,7 +4028,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetGroupMembership() {
+    public void testGetGroupMembership() throws URISyntaxException, IOException {
 
         final String domainName = "get-group-mbr";
         final String groupName = "group1";
@@ -4070,7 +4061,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetPrincipalGroups() {
+    public void testGetPrincipalGroups() throws URISyntaxException, IOException {
 
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -4101,7 +4092,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutGroupMeta() {
+    public void testPutGroupMeta() throws URISyntaxException, IOException {
 
         final String domainName = "group-meta";
         final String groupName = "group1";
@@ -4131,7 +4122,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutGroupSystemMeta() {
+    public void testPutGroupSystemMeta() throws URISyntaxException, IOException {
 
         final String domainName = "group-sys-meta";
         final String groupName = "group1";
@@ -4161,7 +4152,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutGroupMembershipDecision() {
+    public void testPutGroupMembershipDecision() throws URISyntaxException, IOException {
 
         final String domainName = "put-group-mbr-decision";
         final String groupName = "group1";
@@ -4190,7 +4181,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutGroupReview() {
+    public void testPutGroupReview() throws URISyntaxException, IOException {
 
         final String domainName = "put-group-review";
         final String groupName = "group1";
@@ -4221,7 +4212,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetPendingDomainGroupMembersList() {
+    public void testGetPendingDomainGroupMembersList() throws URISyntaxException, IOException {
 
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -4252,7 +4243,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetPendingDomainGroupMembersListWithDomain() {
+    public void testGetPendingDomainGroupMembersListWithDomain() throws URISyntaxException, IOException {
 
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -4283,7 +4274,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetGroups() {
+    public void testGetGroups() throws URISyntaxException, IOException {
 
         final String domainName = "get-groups";
 
@@ -4310,7 +4301,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetGroupsTags() {
+    public void testGetGroupsTags() throws URISyntaxException, IOException {
 
         final String domainName = "get-groups-tags";
 
@@ -4337,7 +4328,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutAssertionConditions() {
+    public void testPutAssertionConditions() throws URISyntaxException, IOException {
         final String domainName = "put-assertion-conditions";
         final String policyName = "put-assertion-conditions.pol";
         ZMSClient client = createClient(systemAdminUser);
@@ -4367,7 +4358,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutAssertionCondition() {
+    public void testPutAssertionCondition() throws URISyntaxException, IOException {
         final String domainName = "put-assertion-condition";
         final String policyName = "put-assertion-condition.pol";
         ZMSClient client = createClient(systemAdminUser);
@@ -4396,7 +4387,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteAssertionConditions() {
+    public void testDeleteAssertionConditions() throws URISyntaxException, IOException {
         final String domainName = "delete-assertion-conditions";
         final String policyName = "delete-assertion-conditions.pol";
         ZMSClient client = createClient(systemAdminUser);
@@ -4427,7 +4418,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteAssertionCondition() {
+    public void testDeleteAssertionCondition() throws URISyntaxException, IOException {
         final String domainName = "delete-assertion-condition";
         final String policyName = "delete-assertion-condition.pol";
         ZMSClient client = createClient(systemAdminUser);
@@ -4458,7 +4449,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testPutDomainDependency() {
+    public void testPutDomainDependency() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -4488,7 +4479,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testDeleteDomainDependency() {
+    public void testDeleteDomainDependency() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -4515,7 +4506,7 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetDependentServiceList() {
+    public void testGetDependentServiceList() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -4542,7 +4533,13 @@ public class ZMSClientTest {
     }
 
     @Test
-    public void testGetDependentDomainList() {
+    public void testGetDependentDomainList() throws URISyntaxException, IOException {
+
+        final String baseUrl = "https://zms.athenz.yahoo.com:4443/zms/v1";
+        final String name = "athens";
+        URIBuilder uriBuilder = new URIBuilder(baseUrl + "/domain/").setFragment("{name}");
+        uriBuilder.setPathSegments(name);
+
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);

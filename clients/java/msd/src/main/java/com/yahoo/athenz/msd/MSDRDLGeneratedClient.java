@@ -3,231 +3,384 @@
 //
 package com.yahoo.athenz.msd;
 
-import com.yahoo.rdl.*;
-import jakarta.ws.rs.client.*;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.*;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
+
 import javax.net.ssl.HostnameVerifier;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.List;
 
 public class MSDRDLGeneratedClient {
-    Client client;
-    WebTarget base;
-    String credsHeader;
-    String credsToken;
 
-    public MSDRDLGeneratedClient(String url) {
-        client = ClientBuilder.newClient();
-        base = client.target(url);
+    private static final int DEFAULT_CLIENT_CONNECT_TIMEOUT_MS = 5000;
+    private static final int DEFAULT_CLIENT_READ_TIMEOUT_MS = 30000;
+
+    private final String baseUrl;
+    private String credsHeader;
+    private String credsToken;
+
+    private CloseableHttpClient client;
+    private HttpContext httpContext;
+    private final ObjectMapper jsonMapper;
+
+    protected CloseableHttpClient createHttpClient(HostnameVerifier hostnameVerifier) {
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(DEFAULT_CLIENT_CONNECT_TIMEOUT_MS)
+                .setSocketTimeout(DEFAULT_CLIENT_READ_TIMEOUT_MS)
+                .setRedirectsEnabled(false)
+                .build();
+        return HttpClients.custom()
+                .setDefaultRequestConfig(config)
+                .setSSLHostnameVerifier(hostnameVerifier)
+                .build();
     }
 
-    public MSDRDLGeneratedClient(String url, HostnameVerifier hostnameVerifier) {
-        client = ClientBuilder.newBuilder()
-            .hostnameVerifier(hostnameVerifier)
-            .build();
-        base = client.target(url);
+    private static class UriTemplateBuilder {
+        private final String baseUrl;
+        private String basePath;
+        public UriTemplateBuilder(final String url, final String path) {
+            baseUrl = url;
+            basePath = path;
+        }
+        public UriTemplateBuilder resolveTemplate(final String key, final Object value) {
+            basePath = basePath.replace("{" + key + "}", String.valueOf(value));
+            return this;
+        }
+        public String getUri() {
+            return baseUrl + basePath;
+        }
     }
 
-    public MSDRDLGeneratedClient(String url, Client rsClient) {
-        client = rsClient;
-        base = client.target(url);
+    public MSDRDLGeneratedClient(final String url) {
+        baseUrl = url;
+        client = createHttpClient(null);
+        jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    public MSDRDLGeneratedClient(final String url, HostnameVerifier hostnameVerifier) {
+        baseUrl = url;
+        client = createHttpClient(hostnameVerifier);
+        jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    public MSDRDLGeneratedClient(final String url, CloseableHttpClient httpClient) {
+        baseUrl = url;
+        client = httpClient;
+        jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
     
     public void close() {
-        client.close();
+        try {
+            client.close();
+        } catch (IOException ignored) {
+        }
     }
 
-    public MSDRDLGeneratedClient setProperty(String name, Object value) {
-        client = client.property(name, value);
-        base = client.target(base.getUri().toString());
-        return this;
-    }
+    public void addCredentials(final String header, final String token) {
 
-    public MSDRDLGeneratedClient addCredentials(String header, String token) {
         credsHeader = header;
         credsToken = token;
-        return this;
+
+        if (header == null) {
+            httpContext = null;
+        } else if (header.startsWith("Cookie.")) {
+            httpContext = new BasicHttpContext();
+            CookieStore cookieStore = new BasicCookieStore();
+            BasicClientCookie cookie = new BasicClientCookie(header.substring(7), token);
+            cookie.setPath(baseUrl);
+            cookieStore.addCookie(cookie);
+            httpContext.setAttribute(HttpClientContext.COOKIE_STORE, cookieStore);
+            credsHeader = null;
+        }
     }
 
-    public TransportPolicyRules getTransportPolicyRules(String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
-        WebTarget target = base.path("/transportpolicies");
-        Invocation.Builder invocationBuilder = target.request("application/json");
+    public void setHttpClient(CloseableHttpClient httpClient) {
+        client = httpClient;
+    }
+
+
+    public TransportPolicyRules getTransportPolicyRules(String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/transportpolicies");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
         if (matchingTag != null) {
-            invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
+            httpUriRequest.addHeader("If-None-Match", matchingTag);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-        case 304:
-            if (headers != null) {
-                headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+            case 304:
+                if (headers != null) {
+                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                }
+                if (code == 304) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicyRules.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
             }
-            if (code == 304) {
-                return null;
-            }
-            return response.readEntity(TransportPolicyRules.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public TransportPolicyValidationResponse validateTransportPolicy(TransportPolicyValidationRequest transportPolicy) {
-        WebTarget target = base.path("/transportpolicy/validate");
-        Invocation.Builder invocationBuilder = target.request("application/json");
+    public TransportPolicyValidationResponse validateTransportPolicy(TransportPolicyValidationRequest transportPolicy) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/transportpolicy/validate");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(transportPolicy), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.post()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(transportPolicy, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(TransportPolicyValidationResponse.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicyValidationResponse.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public TransportPolicyValidationResponseList getTransportPolicyValidationStatus(String domainName) {
-        WebTarget target = base.path("/domain/{domainName}/transportpolicy/validationstatus")
+    public TransportPolicyValidationResponseList getTransportPolicyValidationStatus(String domainName) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/transportpolicy/validationstatus")
             .resolveTemplate("domainName", domainName);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(TransportPolicyValidationResponseList.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicyValidationResponseList.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public Workloads getWorkloadsByService(String domainName, String serviceName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
-        WebTarget target = base.path("/domain/{domainName}/service/{serviceName}/workloads")
+    public Workloads getWorkloadsByService(String domainName, String serviceName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workloads")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
         if (matchingTag != null) {
-            invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
+            httpUriRequest.addHeader("If-None-Match", matchingTag);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-        case 304:
-            if (headers != null) {
-                headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+            case 304:
+                if (headers != null) {
+                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                }
+                if (code == 304) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Workloads.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
             }
-            if (code == 304) {
-                return null;
-            }
-            return response.readEntity(Workloads.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public Workloads getWorkloadsByIP(String ip, String matchingTag, java.util.Map<String, java.util.List<String>> headers) {
-        WebTarget target = base.path("/workloads/{ip}")
+    public Workloads getWorkloadsByIP(String ip, String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/workloads/{ip}")
             .resolveTemplate("ip", ip);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
         if (matchingTag != null) {
-            invocationBuilder = invocationBuilder.header("If-None-Match", matchingTag);
+            httpUriRequest.addHeader("If-None-Match", matchingTag);
         }
-        Response response = invocationBuilder.get();
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-        case 304:
-            if (headers != null) {
-                headers.put("tag", java.util.Arrays.asList((String) response.getHeaders().getFirst("ETag")));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+            case 304:
+                if (headers != null) {
+                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                }
+                if (code == 304) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Workloads.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
             }
-            if (code == 304) {
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public WorkloadOptions putDynamicWorkload(String domainName, String serviceName, WorkloadOptions options) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workload/dynamic")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("serviceName", serviceName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(options), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.put()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
                 return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
             }
-            return response.readEntity(Workloads.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public WorkloadOptions putDynamicWorkload(String domainName, String serviceName, WorkloadOptions options) {
-        WebTarget target = base.path("/domain/{domainName}/service/{serviceName}/workload/dynamic")
+    public StaticWorkload putStaticWorkload(String domainName, String serviceName, StaticWorkload staticWorkload) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workload/static")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(staticWorkload), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.put()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(options, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 204:
-            return null;
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
     }
 
-    public StaticWorkload putStaticWorkload(String domainName, String serviceName, StaticWorkload staticWorkload) {
-        WebTarget target = base.path("/domain/{domainName}/service/{serviceName}/workload/static")
-            .resolveTemplate("domainName", domainName)
-            .resolveTemplate("serviceName", serviceName);
-        Invocation.Builder invocationBuilder = target.request("application/json");
+    public NetworkPolicyChangeImpactResponse evaluateNetworkPolicyChange(NetworkPolicyChangeImpactRequest detail) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/transportpolicy/evaluatenetworkpolicychange");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(detail), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.post()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
         if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
+            httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        Response response = invocationBuilder.put(jakarta.ws.rs.client.Entity.entity(staticWorkload, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 204:
-            return null;
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), NetworkPolicyChangeImpactResponse.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
         }
-
-    }
-
-    public NetworkPolicyChangeImpactResponse evaluateNetworkPolicyChange(NetworkPolicyChangeImpactRequest detail) {
-        WebTarget target = base.path("/transportpolicy/evaluatenetworkpolicychange");
-        Invocation.Builder invocationBuilder = target.request("application/json");
-        if (credsHeader != null) {
-            invocationBuilder = credsHeader.startsWith("Cookie.") ? invocationBuilder.cookie(credsHeader.substring(7),
-                credsToken) : invocationBuilder.header(credsHeader, credsToken);
-        }
-        Response response = invocationBuilder.post(jakarta.ws.rs.client.Entity.entity(detail, "application/json"));
-        int code = response.getStatus();
-        switch (code) {
-        case 200:
-            return response.readEntity(NetworkPolicyChangeImpactResponse.class);
-        default:
-            throw new ResourceException(code, response.readEntity(ResourceError.class));
-        }
-
     }
 
 }

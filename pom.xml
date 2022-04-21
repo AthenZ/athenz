@@ -278,8 +278,8 @@
             <configuration>
               <excludes>
                 <exclude>*Test</exclude>
-                <exclude>**/*ZMSRDLGeneratedClient.class</exclude>
-                <exclude>**/*ZTSRDLGeneratedClient.class</exclude>
+                <exclude>**/*ZMSRDLGeneratedClient*.class</exclude>
+                <exclude>**/*ZTSRDLGeneratedClient*.class</exclude>
                 <exclude>**/ZMSResources.class</exclude>
                 <exclude>**/ZTSResources.class</exclude>
                 <exclude>**/ZMSHandler.class</exclude>
@@ -288,7 +288,7 @@
                 <exclude>**/FileConnection.class</exclude>
                 <exclude>**/FileObjectStore.class</exclude>
                 <exclude>**/FileWorkloadStore.class</exclude>
-                <exclude>**/*MSDRDLGeneratedClient.class</exclude>
+                <exclude>**/*MSDRDLGeneratedClient*.class</exclude>
               </excludes>
               <rules>
                 <rules>

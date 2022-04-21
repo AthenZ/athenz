@@ -17,33 +17,16 @@ package com.yahoo.athenz.zts;
 
 import javax.net.ssl.HostnameVerifier;
 
-import com.yahoo.athenz.auth.Principal;
-
 public class ZTSRDLGeneratedClientMock extends ZTSRDLGeneratedClient {
-    
-    public ZTSRDLGeneratedClientMock(String url) {
-        super(url);
-    }
 
-    public ZTSRDLGeneratedClientMock(String url, Principal identity) {
-        super(url);
-        if (identity != null && identity.getAuthority() != null) {
-            addCredentials(identity.getAuthority().getHeader(), identity.getCredentials());
-        }
-    }
-
-    public ZTSRDLGeneratedClientMock(String url, Principal identity, HostnameVerifier hostnameVerifier) {
-        super(url, hostnameVerifier);
-        if (identity != null && identity.getAuthority() != null) {
-            addCredentials(identity.getAuthority().getHeader(), identity.getCredentials());
-        }
-    }
+    private HostnameVerifier hostnameVerifier;
 
     public ZTSRDLGeneratedClientMock(String url, HostnameVerifier hostnameVerifier) {
         super(url, hostnameVerifier);
+        this.hostnameVerifier = hostnameVerifier;
     }
 
     public HostnameVerifier getHostnameVerifier() {
-        return client.getHostnameVerifier();
+        return hostnameVerifier;
     }
 }

@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,7 +31,6 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -39,31 +39,25 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
-import com.fasterxml.jackson.jakarta.rs.json.JacksonXmlBindJsonProvider;
-import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
 import com.oath.auth.KeyRefresherListener;
 import com.oath.auth.Utils;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.ehcache.Cache;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -525,21 +519,6 @@ public class ZTSClient implements Closeable {
     }
 
     /**
-     * Set new ZTS Client configuration property. This method calls
-     * internal jakarta.ws.rs.client.Client client's property method.
-     * If already set, the existing value of the property will be updated.
-     * Setting a null value into a property effectively removes the property
-     * from the property bag.
-     * @param name property name.
-     * @param value property value. null value removes the property with the given name.
-     */
-    public void setProperty(String name, Object value) {
-        if (ztsClient != null) {
-            ztsClient.setProperty(name, value);
-        }
-    }
-
-    /**
      * Sets a notificationSender that will listen to notifications and send them (usually to domain admins)
      * @param notificationSender notification sender
      */
@@ -691,13 +670,27 @@ public class ZTSClient implements Closeable {
         return SSLUtils.loadServicePrivateKey(pkeyFactoryClass);
     }
 
-    ClientBuilder getClientBuilder() {
-        return ClientBuilder.newBuilder();
+    protected CloseableHttpClient createHttpClient(int connTimeoutMs, int readTimeoutMs, SSLContext sslContext,
+            final String proxyUrl, PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
+        //apache http client expects in milliseconds
+        HttpHost proxy = null;
+        if (proxyUrl != null && !proxyUrl.isEmpty()) {
+            proxy = new HttpHost(proxyUrl);
+        }
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(connTimeoutMs)
+                .setSocketTimeout(readTimeoutMs)
+                .setRedirectsEnabled(false)
+                .setProxy(proxy)
+                .build();
+        return HttpClients.custom()
+                .setConnectionManager(poolingHttpClientConnectionManager)
+                .setDefaultRequestConfig(config)
+                .build();
     }
 
-    private void initClient(final String serverUrl, Principal identity,
-            final String domainName, final String serviceName,
-            final ServiceIdentityProvider siaProvider) {
+    private void initClient(final String serverUrl, Principal identity, final String domainName,
+            final String serviceName, final ServiceIdentityProvider siaProvider) {
         
         ztsUrl = (serverUrl == null) ? confZtsUrl : serverUrl;
         
@@ -726,43 +719,21 @@ public class ZTSClient implements Closeable {
         if (sslContext == null) {
             sslContext = createSSLContext();
         }
-
-        // setup our client config object with timeouts
-
-        final JacksonJsonProvider jacksonJsonProvider = new JacksonXmlBindJsonProvider()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        final ClientConfig config = new ClientConfig(jacksonJsonProvider);
-
-        PoolingHttpClientConnectionManager connManager = createConnectionManager(sslContext, hostnameVerifier);
-        if (connManager != null) {
-            config.property(ApacheClientProperties.CONNECTION_MANAGER, connManager);
-        }
-        config.connectorProvider(new ApacheConnectorProvider());
-
-        // if we're asked to use a proxy for our request
-        // we're going to set the property that is supported
-        // by the apache connector and use that
-        
-        if (proxyUrl != null) {
-            config.property(ClientProperties.PROXY_URI, proxyUrl);
-        }
-        
-        ClientBuilder builder = getClientBuilder();
         if (sslContext != null) {
-            builder = builder.sslContext(sslContext);
             enablePrefetch = true;
         }
 
-        // JerseyClientBuilder::withConfig() replaces the existing config with the new client
-        // config. Hence the client config should be added to the builder before the timeouts.
-        // Otherwise the timeout settings would be overridden.
-        Client rsClient = builder.withConfig(config)
-                .hostnameVerifier(hostnameVerifier)
-                .readTimeout(reqReadTimeout, TimeUnit.MILLISECONDS)
-                .connectTimeout(reqConnectTimeout, TimeUnit.MILLISECONDS)
-                .build();
+        /* determine our read and connect timeouts */
 
-        ztsClient = new ZTSRDLGeneratedClient(ztsUrl, rsClient);
+        int readTimeout = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_READ_TIMEOUT, "30000"));
+        int connectTimeout = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));
+
+        PoolingHttpClientConnectionManager connManager = createConnectionManager(sslContext, hostnameVerifier);
+        CloseableHttpClient httpClient = createHttpClient(connectTimeout, readTimeout, sslContext,
+                proxyUrl, connManager);
+
+        ztsClient = new ZTSRDLGeneratedClient(ztsUrl, httpClient);
+        
         principal = identity;
         domain = domainName;
         service = serviceName;
@@ -1340,18 +1311,18 @@ public class ZTSClient implements Closeable {
             scope.append(" openid ").append(domainName).append(":service.").append(idTokenServiceName);
         }
         final String scopeStr = scope.toString();
-        body.append("&scope=").append(URLEncoder.encode(scopeStr, "UTF-8"));
+        body.append("&scope=").append(URLEncoder.encode(scopeStr, StandardCharsets.UTF_8));
 
         if (!isEmpty(proxyForPrincipal)) {
-            body.append("&proxy_for_principal=").append(URLEncoder.encode(proxyForPrincipal, "UTF-8"));
+            body.append("&proxy_for_principal=").append(URLEncoder.encode(proxyForPrincipal, StandardCharsets.UTF_8));
         }
 
         if (!isEmpty(authorizationDetails)) {
-            body.append("&authorization_details=").append(URLEncoder.encode(authorizationDetails, "UTF-8"));
+            body.append("&authorization_details=").append(URLEncoder.encode(authorizationDetails, StandardCharsets.UTF_8));
         }
 
         if (!isEmpty(proxyPrincipalSpiffeUris)) {
-            body.append("&proxy_principal_spiffe_uris=").append(URLEncoder.encode(proxyPrincipalSpiffeUris, "UTF-8"));
+            body.append("&proxy_principal_spiffe_uris=").append(URLEncoder.encode(proxyPrincipalSpiffeUris, StandardCharsets.UTF_8));
         }
 
         return body.toString();
@@ -2611,13 +2582,9 @@ public class ZTSClient implements Closeable {
 
         // since our aws role name can contain the path element thus /'s
         // we need to encode the value and use that instead
-        
-        try {
-            roleName = URLEncoder.encode(roleName, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            LOG.error("Unable to encode {} - error {}", roleName, ex.getMessage());
-        }
-        
+
+        roleName = URLEncoder.encode(roleName, StandardCharsets.UTF_8);
+
         // first lookup in our cache to see if it can be satisfied
         // only if we're not asked to ignore the cache
         

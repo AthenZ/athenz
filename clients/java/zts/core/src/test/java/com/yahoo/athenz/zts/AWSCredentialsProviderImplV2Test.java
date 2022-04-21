@@ -26,6 +26,9 @@ import org.mockito.Mockito;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
@@ -103,7 +106,7 @@ public class AWSCredentialsProviderImplV2Test {
     }
 
     @Test
-    public void testAWSCredentialsProviderImplV2RefreshEnabled() {
+    public void testAWSCredentialsProviderImplV2RefreshEnabled() throws URISyntaxException, IOException {
 
         ZTSClient.setPrefetchAutoEnable(true);
         ZTSClient.AWS_CREDS_CACHE.clear();

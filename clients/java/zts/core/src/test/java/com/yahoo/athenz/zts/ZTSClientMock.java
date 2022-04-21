@@ -25,8 +25,6 @@ import java.util.Map;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.HostnameVerifier;
 
-import jakarta.ws.rs.client.ClientBuilder;
-
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -35,7 +33,6 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 public class ZTSClientMock extends ZTSClient {
 
-    private static ClientBuilder clientBuilder;
     private String csrUriVerifyValue;
     private List<String> csrDnsVerifyValues;
 
@@ -56,21 +53,12 @@ public class ZTSClientMock extends ZTSClient {
         return null;
     }
 
-    public static void setClientBuilder(ClientBuilder builder) {
-        clientBuilder = builder;
-    }
-
     public void setCsrUriVerifyValue(final String uriValue) {
         csrUriVerifyValue = uriValue;
     }
 
     public void setCsrDnsVerifyValues(final List<String> dnsValues) {
         csrDnsVerifyValues = dnsValues;
-    }
-
-    @Override
-    ClientBuilder getClientBuilder() {
-        return (clientBuilder == null) ? ClientBuilder.newBuilder() : clientBuilder;
     }
 
     @Override

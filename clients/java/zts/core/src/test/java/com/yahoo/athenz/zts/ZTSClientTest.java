@@ -48,7 +48,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
-import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
@@ -3029,6 +3028,7 @@ public class ZTSClientTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
+        client.close();
     }
 
     @Test
@@ -3200,27 +3200,27 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080/", principal);
 
-        assertNull(client.getAccessTokenCacheKey(null, "service", "coretech", null, null, null, null, null));
+        assertNull(ZTSClient.getAccessTokenCacheKey(null, "service", "coretech", null, null, null, null, null));
 
         assertEquals("p=sports;d=coretech",
-                client.getAccessTokenCacheKey("sports", null, "coretech", null, null, null, null, null));
+                ZTSClient.getAccessTokenCacheKey("sports", null, "coretech", null, null, null, null, null));
         assertEquals("p=sports.api;d=coretech",
-                client.getAccessTokenCacheKey("sports", "api", "coretech", null, null, null, null, null));
+                ZTSClient.getAccessTokenCacheKey("sports", "api", "coretech", null, null, null, null, null));
         assertEquals("p=sports.api;d=coretech;r=readers",
-                client.getAccessTokenCacheKey("sports", "api", "coretech",
+                ZTSClient.getAccessTokenCacheKey("sports", "api", "coretech",
                         Collections.singletonList("readers"), null, null, null, null));
 
         List<String> roles = new ArrayList<>();
         roles.add("writers");
         roles.add("readers");
         assertEquals("p=sports.api;d=coretech;r=readers,writers",
-                client.getAccessTokenCacheKey("sports", "api", "coretech", roles, null, null, null, null));
+                ZTSClient.getAccessTokenCacheKey("sports", "api", "coretech", roles, null, null, null, null));
 
         assertEquals("p=sports.api;d=coretech;r=readers,writers",
-                client.getAccessTokenCacheKey("sports", "api", "coretech", roles, "", null, null, null));
+                ZTSClient.getAccessTokenCacheKey("sports", "api", "coretech", roles, "", null, null, null));
 
         assertEquals("p=sports.api;d=coretech;r=readers,writers;o=backend",
-                client.getAccessTokenCacheKey("sports", "api", "coretech", roles, "backend", null, null, null));
+                ZTSClient.getAccessTokenCacheKey("sports", "api", "coretech", roles, "backend", null, null, null));
 
         // using tenant domain details from principal object
 
@@ -3230,17 +3230,17 @@ public class ZTSClientTest {
         // using authorization details
 
         assertEquals("p=sports.api;d=coretech;r=readers,writers;o=backend;z=ZHMaRw4r9BWIPOWxVv9kDcCMTFzXm3nCUzNs9SA5aL8",
-                client.getAccessTokenCacheKey("sports", "api", "coretech", roles, "backend", null,
+                ZTSClient.getAccessTokenCacheKey("sports", "api", "coretech", roles, "backend", null,
                         "[{\"type\": \"message\",\"uuid\": \"uuid-12345678\"}]", null));
 
         assertEquals("p=sports.api;d=coretech;r=readers,writers;o=backend;z=ZHMaRw4r9BWIPOWxVv9kDcCMTFzXm3nCUzNs9SA5aL8",
-                client.getAccessTokenCacheKey("sports", "api", "coretech", roles, "backend", null,
+                ZTSClient.getAccessTokenCacheKey("sports", "api", "coretech", roles, "backend", null,
                         "[{\"type\": \"message\",\"uuid\": \"uuid-12345678\"}]", ""));
 
         // using proxy principal spiffe uris
 
         assertEquals("p=sports.api;d=coretech;r=readers,writers;o=backend;z=ZHMaRw4r9BWIPOWxVv9kDcCMTFzXm3nCUzNs9SA5aL8;s=spiffe://athenz/sa/service1",
-                client.getAccessTokenCacheKey("sports", "api", "coretech", roles, "backend", null,
+                ZTSClient.getAccessTokenCacheKey("sports", "api", "coretech", roles, "backend", null,
                         "[{\"type\": \"message\",\"uuid\": \"uuid-12345678\"}]", "spiffe://athenz/sa/service1"));
         client.close();
     }
@@ -3251,7 +3251,6 @@ public class ZTSClientTest {
         SSLContext sslContext = Mockito.mock(SSLContext.class);
         final String contextStr = sslContext.toString();
 
-        ZTSClientMock.setClientBuilder(new JerseyClientBuilder());
         ZTSClientMock client = new ZTSClientMock("http://localhost:4080/", sslContext);
 
         final String expectedStr = "p=" + contextStr + ";d=coretech;r=readers;o=backend";
@@ -3285,6 +3284,8 @@ public class ZTSClientTest {
         assertNotNull(accessTokenResponse);
         assertEquals(accessTokenResponse.getScope(), "admin");
         assertEquals((int) accessTokenResponse.getExpires_in(), 28800);
+
+        client.close();
     }
 
     @Test
