@@ -48,7 +48,7 @@ public class ZMSClientMockTest {
     @Mock ZMSRDLGeneratedClient mockZMS;
 
     ZMSClient    zclt;
-    String       zmsUrl   = "";
+    String       zmsUrl   = "https://localhost";
     List<String> userList;
     String       auditRef = "zmsjcltmktest";
 

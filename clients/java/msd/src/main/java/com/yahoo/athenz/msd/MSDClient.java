@@ -100,17 +100,17 @@ public class MSDClient implements Closeable {
     private void initClient(String url, SSLContext sslContext) {
 
         String msdUrl;
-        if (url == null || "".equals(url)) {
+        if (url == null || url.isEmpty()) {
             LOGGER.error("No MSD URL is specified. Trying to look in environment.");
             msdUrl = System.getProperty(MSD_CLIENT_PROP_MSD_URL);
-            if (msdUrl == null || "".equals(msdUrl)) {
+            if (msdUrl == null || msdUrl.isEmpty()) {
                 throw new IllegalArgumentException("MSD URL must be specified");
             }
         } else {
             msdUrl = url;
         }
 
-        /* determine our read and connect timeouts */
+        // determine our read and connect timeouts
 
         int readTimeout = Integer.parseInt(System.getProperty(MSD_CLIENT_PROP_READ_TIMEOUT, "30000"));
         int connectTimeout = Integer.parseInt(System.getProperty(MSD_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));

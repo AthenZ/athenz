@@ -352,33 +352,30 @@ public class ZMSClient implements Closeable {
      */
     private void initClient(String url, SSLContext sslContext) {
 
-        /* if we have no url specified then we're going to retrieve
-         * the value from our configuration package */
+        // if we have no url specified then we're going to retrieve
+        // the value from our configuration package */
 
-        if (url == null) {
-            zmsUrl = lookupZMSUrl();
-        } else {
-            zmsUrl = url;
+        zmsUrl = (url == null) ? lookupZMSUrl() : url;
+        if (zmsUrl == null || zmsUrl.isEmpty()) {
+            throw new IllegalArgumentException("ZMS url must be specified");
         }
 
-        /* verify if the url is ending with /zms/v1 and if it's
-         * not we'll automatically append it */
+        // verify if the url is ending with /zms/v1 and if it's
+        // not we'll automatically append it */
 
-        if (zmsUrl != null && !zmsUrl.isEmpty()) {
-            if (!zmsUrl.endsWith("/zms/v1")) {
-                if (zmsUrl.charAt(zmsUrl.length() - 1) != '/') {
-                    zmsUrl += '/';
-                }
-                zmsUrl += "zms/v1";
+        if (!zmsUrl.endsWith("/zms/v1")) {
+            if (zmsUrl.charAt(zmsUrl.length() - 1) != '/') {
+                zmsUrl += '/';
             }
+            zmsUrl += "zms/v1";
         }
 
-        /* determine our read and connect timeouts */
+        // determine our read and connect timeouts
 
         int readTimeout = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_READ_TIMEOUT, "30000"));
         int connectTimeout = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));
 
-        /* if we are not given an url then use the default value */
+        // if we are not given an url then use the default value
 
         if (sslContext == null) {
             sslContext = createSSLContext();

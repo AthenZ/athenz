@@ -694,17 +694,18 @@ public class ZTSClient implements Closeable {
             final String serviceName, final ServiceIdentityProvider siaProvider) {
         
         ztsUrl = (serverUrl == null) ? confZtsUrl : serverUrl;
-        
+        if (isEmpty(ztsUrl)) {
+            throw new IllegalArgumentException("ZTS url must be specified");
+        }
+
         // verify if the url is ending with /zts/v1 and if it's
         // not we'll automatically append it
         
-        if (!isEmpty(ztsUrl)) {
-            if (!ztsUrl.endsWith("/zts/v1")) {
-                if (ztsUrl.charAt(ztsUrl.length() - 1) != '/') {
-                    ztsUrl += '/';
-                }
-                ztsUrl += "zts/v1";
+        if (!ztsUrl.endsWith("/zts/v1")) {
+            if (ztsUrl.charAt(ztsUrl.length() - 1) != '/') {
+                ztsUrl += '/';
             }
+            ztsUrl += "zts/v1";
         }
 
         // determine to see if we need a host verifier for our ssl connections
