@@ -129,8 +129,7 @@
     <module>libs/java/server_common</module>
     <module>libs/java/instance_provider</module>
     <module>clients/java/zms</module>
-    <module>clients/java/zts/core</module>
-    <module>clients/java/zts/shade</module>
+    <module>clients/java/zts</module>
     <module>clients/java/zpe</module>
     <module>clients/java/msd</module>
     <module>servers/zms</module>

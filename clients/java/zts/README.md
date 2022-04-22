@@ -45,7 +45,7 @@ which will be used for retrieving passwords. Default: `com.yahoo.athenz.auth.imp
 
 Using X.509 Certificates when communicating with ZTS Server:
 
-[ZTS Client with TLS Support](https://github.com/AthenZ/athenz/tree/master/clients/java/zts/core/examples/tls-support)
+[ZTS Client with TLS Support](https://github.com/AthenZ/athenz/tree/master/clients/java/zts/examples/tls-support)
 
 ## License
 

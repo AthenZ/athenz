@@ -43,7 +43,7 @@ public class ZTSAccessTokenFileLoaderTest {
 
     @Test
     public void testFileUtil() {
-        String domain = "test.domain";
+        final String domain = "test.domain";
         List<String> roles = new ArrayList<>();
         ZTSAccessTokenFileLoader ztsAccessTokenFileLoader = new ZTSAccessTokenFileLoader(resolver);
         ztsAccessTokenFileLoader.preload();

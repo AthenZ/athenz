@@ -18,7 +18,7 @@
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
     <version>1.11.0-SNAPSHOT</version>
-    <relativePath>../../../../pom.xml</relativePath>
+    <relativePath>../../../../../pom.xml</relativePath>
   </parent>
 
   <artifactId>athenz-zts-java-client</artifactId>
