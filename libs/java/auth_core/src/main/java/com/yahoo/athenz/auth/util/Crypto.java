@@ -104,6 +104,7 @@ public class Crypto {
     private static final String RSA_SHA1 = "SHA1withRSA";
     private static final String RSA_SHA256 = "SHA256withRSA";
     static final String ATHENZ_CRYPTO_ALGO_ECDSA = "athenz.crypto.algo_ecdsa";
+    private static final String EC = "EC";
     private static final String ECDSA = "ECDSA";
     private static final String ECDSA_SHA1 = "SHA1withECDSA";
     private static final String ECDSA_SHA256 = "SHA256withECDSA";
@@ -231,6 +232,7 @@ public class Crypto {
                 }
                 break;
             case ECDSA:
+            case EC:
                 if (SHA256.equals(digestAlgorithm)) {
                     signatureAlgorithm = ECDSA_SHA256;
                 } else if (SHA1.equals(digestAlgorithm)) {
