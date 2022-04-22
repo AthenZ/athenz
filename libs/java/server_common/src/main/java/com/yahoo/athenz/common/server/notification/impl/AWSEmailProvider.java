@@ -64,12 +64,10 @@ public class AWSEmailProvider implements EmailProvider {
     }
 
     private static AmazonSimpleEmailService initSES() {
-        ///CLOVER:OFF
         Region region = Regions.getCurrentRegion();
         if (region == null) {
             region = Region.getRegion(Regions.US_EAST_1);
         }
         return AmazonSimpleEmailServiceClientBuilder.standard().withRegion(region.getName()).build();
-        ///CLOVER:ON
     }
 }

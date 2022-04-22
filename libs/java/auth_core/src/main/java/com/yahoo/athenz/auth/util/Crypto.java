@@ -127,11 +127,9 @@ public class Crypto {
         SecureRandom r;
         try {
             r = SecureRandom.getInstance("NativePRNGNonBlocking");
-            ///CLOVER:OFF
         } catch (NoSuchAlgorithmException nsa) {
             r = new SecureRandom();
         }
-        ///CLOVER:ON
         RANDOM = r;
         // force seeding.
         RANDOM.nextBytes(new byte[] { 8 });
@@ -208,7 +206,6 @@ public class Crypto {
             javax.crypto.spec.SecretKeySpec secretKey = new javax.crypto.spec.SecretKeySpec(utf8Bytes(sharedSecret), method);
             hmac.init(secretKey);
             bsig = hmac.doFinal(message.getBytes());
-            ///CLOVER:OFF
         } catch (NoSuchAlgorithmException e) {
             LOG.error("hmac: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
             throw new CryptoException(e);
@@ -216,7 +213,6 @@ public class Crypto {
             LOG.error("hmac: Caught InvalidKeyException, incorrect key type is being used.");
             throw new CryptoException(e);
         }
-        ///CLOVER:ON
         return ybase64(bsig);
     }
 
@@ -272,7 +268,6 @@ public class Crypto {
             signer.update(utf8Bytes(message));
             byte[] sig = signer.sign();
             return ybase64(sig);
-            /// CLOVER:OFF
         } catch (NoSuchProviderException e) {
             LOG.error("sign: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
             throw new CryptoException(e);
@@ -286,7 +281,6 @@ public class Crypto {
             LOG.error("sign: Caught InvalidKeyException, incorrect key type is being used.");
             throw new CryptoException(e);
         }
-        ///CLOVER:ON
     }
 
     /**
@@ -478,7 +472,6 @@ public class Crypto {
             signer.initVerify(key);
             signer.update(utf8Bytes(message));
             return signer.verify(sig);
-            ///CLOVER:OFF
         } catch (NoSuchProviderException e) {
             LOG.error("verify: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
             throw new CryptoException(e);
@@ -486,7 +479,6 @@ public class Crypto {
             LOG.error("verify: Caught InvalidKeyException, invalid key type is being used.");
             throw new CryptoException(e);
         } catch (NoSuchAlgorithmException e) {
-            ///CLOVER:ON
             LOG.error("verify: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
             throw new CryptoException(e);
         } catch (SignatureException e) {
@@ -551,12 +543,10 @@ public class Crypto {
         MessageDigest sha256;
         try {
             sha256 = MessageDigest.getInstance("SHA-256");
-            ///CLOVER:OFF
         } catch (NoSuchAlgorithmException e) {
             LOG.error("sha256: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
             throw new CryptoException(e);
         }
-        ///CLOVER:ON
         return sha256.digest(data);
     }
 
@@ -634,13 +624,11 @@ public class Crypto {
             LOG.error("loadX509Certificate: Caught FileNotFoundException while attempting to load certificate for file: {}",
                     certFile.getAbsolutePath());
             throw new CryptoException(e);
-            ///CLOVER:OFF
         } catch (IOException e) {
             LOG.error("loadX509Certificate: Caught IOException while attempting to load certificate for file: {}",
                     certFile.getAbsolutePath());
             throw new CryptoException(e);
         }
-        ///CLOVER:ON
     }
 
     public static X509Certificate loadX509Certificate(String pemEncoded) throws CryptoException {
@@ -650,29 +638,23 @@ public class Crypto {
     public static X509Certificate loadX509Certificate(Reader reader) throws CryptoException {
         try (PEMParser pemParser = new PEMParser(reader)) {
             Object pemObj = pemParser.readObject();
-            ///CLOVER:OFF
             if (pemObj instanceof X509Certificate) {
                 return (X509Certificate) pemObj;
             } else if (pemObj instanceof X509CertificateHolder) {
-                ///CLOVER:ON
                 try {
                     return new JcaX509CertificateConverter()
                             .setProvider(BC_PROVIDER)
                             .getCertificate((X509CertificateHolder) pemObj);
-                    ///CLOVER:OFF
                 } catch (CertificateException ex) {
                     LOG.error("loadX509Certificate: Caught CertificateException, unable to parse X509 certificate: {}", ex.getMessage());
                     throw new CryptoException(ex);
                 }
-                ///CLOVER:ON
             }
         } catch (IOException ex) {
             LOG.error("loadX509Certificate: Caught IOException, unable to parse X509 certificate: {}", ex.getMessage());
             throw new CryptoException(ex);
         }
-        ///CLOVER:OFF
         return null;
-        ///CLOVER:ON
     }
 
     public static PublicKey loadPublicKey(String pemEncoded) throws CryptoException {
@@ -693,12 +675,10 @@ public class Crypto {
 
                 ASN1ObjectIdentifier ecOID = (ASN1ObjectIdentifier) pemObj;
                 ecParam = ECNamedCurveTable.getByOID(ecOID);
-                ///CLOVER:OFF
                 if (ecParam == null) {
                     throw new PEMException("Unable to find EC Parameter for the given curve oid: "
                             + ((ASN1ObjectIdentifier) pemObj).getId());
                 }
-                ///CLOVER:ON
                 pemObj = pemReader.readObject();
             } else if (pemObj instanceof X9ECParameters) {
                 ecParam = (X9ECParameters) pemObj;
@@ -727,14 +707,12 @@ public class Crypto {
         } catch (NoSuchAlgorithmException e) {
             LOG.error("loadPublicKey: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
             throw new CryptoException(e);
-            ///CLOVER:OFF
         } catch (InvalidKeySpecException e) {
             LOG.error("loadPublicKey: Caught InvalidKeySpecException, invalid key spec is being used.");
             throw new CryptoException("InvalidKeySpecException");
         } catch (IOException e) {
             throw new CryptoException(e);
         }
-        ///CLOVER:ON
     }
 
     public static PublicKey loadPublicKey(File f) throws CryptoException  {
@@ -744,13 +722,11 @@ public class Crypto {
             LOG.error("loadPublicKey: Caught FileNotFoundException while attempting to load public key for file: "
                     + f.getAbsolutePath());
             throw new CryptoException(e);
-            ///CLOVER:OFF
         } catch (IOException e) {
             LOG.error("loadPublicKey: Caught IOException while attempting to load public key for file: "
                     + f.getAbsolutePath());
             throw new CryptoException(e);
         }
-        ///CLOVER:ON
     }
 
     public static PublicKey extractPublicKey(PrivateKey privateKey) throws CryptoException {
@@ -772,12 +748,10 @@ public class Crypto {
                 } catch (NoSuchAlgorithmException ex) {
                     LOG.error("extractPublicKey: RSA - Caught NoSuchAlgorithmException exception: {}", ex.getMessage());
                     throw new CryptoException(ex);
-                    ///CLOVER:OFF
                 } catch (InvalidKeySpecException ex) {
                     LOG.error("extractPublicKey: RSA - Caught InvalidKeySpecException exception: {}", ex.getMessage());
                     throw new CryptoException(ex);
                 }
-                ///CLOVER:ON
                 break;
 
             case ECDSA:
@@ -795,12 +769,10 @@ public class Crypto {
                 } catch (NoSuchAlgorithmException ex) {
                     LOG.error("extractPublicKey: ECDSA - Caught NoSuchAlgorithmException exception: {}", ex.getMessage());
                     throw new CryptoException(ex);
-                    ///CLOVER:OFF
                 } catch (InvalidKeySpecException ex) {
                     LOG.error("extractPublicKey: ECDSA - Caught InvalidKeySpecException exception: {}", ex.getMessage());
                     throw new CryptoException(ex);
                 }
-                ///CLOVER:ON
                 break;
 
             default:
@@ -830,13 +802,11 @@ public class Crypto {
             LOG.error("loadPrivateKey: Caught FileNotFoundException while attempting to load private key for file: "
                     + file.getAbsolutePath());
             throw new CryptoException(e);
-            ///CLOVER:OFF
         } catch (IOException e) {
             LOG.error("loadPrivateKey: Caught IOException while attempting to load private key for file: "
                     + file.getAbsolutePath());
             throw new CryptoException(e);
         }
-        ///CLOVER:ON
     }
 
     public static PrivateKey loadPrivateKey(String pemEncoded, String pwd) throws CryptoException {
@@ -859,12 +829,10 @@ public class Crypto {
 
                 ASN1ObjectIdentifier ecOID = (ASN1ObjectIdentifier) pemObj;
                 ecParam = ECNamedCurveTable.getByOID(ecOID);
-                ///CLOVER:OFF
                 if (ecParam == null) {
                     throw new PEMException("Unable to find EC Parameter for the given curve oid: "
                             + ((ASN1ObjectIdentifier) pemObj).getId());
                 }
-                ///CLOVER:ON
 
                 pemObj = pemReader.readObject();
 
@@ -879,9 +847,7 @@ public class Crypto {
                 PrivateKeyInfo pKeyInfo = ((PEMKeyPair) pemObj).getPrivateKeyInfo();
                 JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
                 privKey = pemConverter.getPrivateKey(pKeyInfo);
-                ///CLOVER:OFF
             } else if (pemObj instanceof PKCS8EncryptedPrivateKeyInfo) {
-                ///CLOVER:ON
                 PKCS8EncryptedPrivateKeyInfo pKeyInfo = (PKCS8EncryptedPrivateKeyInfo) pemObj;
                 if (pwd == null) {
                     throw new CryptoException("No password specified to decrypt encrypted private key");
@@ -909,7 +875,6 @@ public class Crypto {
             }
 
             return privKey;
-            ///CLOVER:OFF
         } catch (PEMException e) {
             LOG.error("loadPrivateKey: Caught PEMException, problem with format of key detected.");
             throw new CryptoException(e);
@@ -932,7 +897,6 @@ public class Crypto {
             LOG.error("loadPrivateKey: Caught IOException, while trying to read key.");
             throw new CryptoException(e);
         }
-        ///CLOVER:ON
     }
 
     /**
@@ -945,12 +909,10 @@ public class Crypto {
         KeyPairGenerator keyGen;
         try {
             keyGen = KeyPairGenerator.getInstance(RSA);
-            ///CLOVER:OFF
         } catch (NoSuchAlgorithmException e) {
             LOG.error("generatePrivateKey: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
             throw new CryptoException(e);
         }
-        ///CLOVER:ON
         keyGen.initialize(bits);
         return keyGen.genKeyPair().getPrivate();
     }
@@ -964,24 +926,20 @@ public class Crypto {
         try (FileInputStream in = new FileInputStream(f)) {
             int fileLength = (int) f.length();
             byte [] buf = new byte[fileLength];
-            ///CLOVER:OFF
             if (in.read(buf) != fileLength) {
                 LOG.error("encodedFile: Unable to read {} bytes from file {}", fileLength, f.getAbsolutePath());
                 throw new IOException("Unable to read file");
             }
-            ///CLOVER:ON
             return ybase64(buf);
         } catch (FileNotFoundException e) {
             LOG.error("encodedFile: Caught FileNotFoundException while attempting to read encoded file: "
                     + f.getAbsolutePath());
             throw new RuntimeException(e);
-            ///CLOVER:OFF
         } catch (IOException e) {
             LOG.error("encodedFile: Caught IOException while attempting to read encoded file: "
                     + f.getAbsolutePath());
             throw new RuntimeException(e);
         }
-        ///CLOVER:ON
     }
 
     public static String encodedFile(FileInputStream is) {
@@ -989,7 +947,6 @@ public class Crypto {
             byte [] buf = new byte[4096];
             int readBytes;
             String contents = null;
-            ///CLOVER:OFF
             while ((readBytes = is.read(buf)) > 0) {
                 if (contents == null) {
                     contents = new String(buf, 0, readBytes - 1);
@@ -1000,13 +957,10 @@ public class Crypto {
             if (contents == null) {
                 throw new IOException("Unable to read any data from file stream");
             }
-            ///CLOVER:ON
             return ybase64(utf8Bytes(contents));
-            ///CLOVER:OFF
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        ///CLOVER:ON
     }
 
     public static PKCS10CertificationRequest getPKCS10CertRequest(String csr) {
@@ -1020,19 +974,15 @@ public class Crypto {
             Reader csrReader = new StringReader(csr);
             try (PEMParser pemParser = new PEMParser(csrReader)) {
                 Object pemObj = pemParser.readObject();
-                ///CLOVER:OFF
                 if (pemObj instanceof PKCS10CertificationRequest) {
                     return (PKCS10CertificationRequest) pemObj;
                 }
-                ///CLOVER:ON
             }
         } catch (IOException ex) {
             LOG.error("getPKCS10CertRequest: unable to parse csr: {}", ex.getMessage());
             throw new CryptoException(ex);
         }
-        ///CLOVER:OFF
         return null;
-        ///CLOVER:ON
     }
 
     public static String extractX509CSRSubjectField(PKCS10CertificationRequest certReq, ASN1ObjectIdentifier id) {
@@ -1091,11 +1041,9 @@ public class Crypto {
             for (ASN1Encodable value : attribute.getAttributeValues()) {
                 Extensions extensions = Extensions.getInstance(value);
                 GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
-                ///CLOVER:OFF
                 if (gns == null) {
                     continue;
                 }
-                ///CLOVER:ON
                 for (GeneralName name : gns.getNames()) {
 
                     // GeneralName ::= CHOICE {
@@ -1146,11 +1094,9 @@ public class Crypto {
             for (ASN1Encodable value : attribute.getAttributeValues()) {
                 Extensions extensions = Extensions.getInstance(value);
                 GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
-                ///CLOVER:OFF
                 if (gns == null) {
                     continue;
                 }
-                ///CLOVER:ON
                 for (GeneralName name : gns.getNames()) {
                     if (name.getTagNo() == GeneralName.iPAddress) {
                         try {
@@ -1171,23 +1117,19 @@ public class Crypto {
         PublicKey publicKey;
         try {
             publicKey = pemConverter.getPublicKey(certReq.getSubjectPublicKeyInfo());
-            ///CLOVER:OFF
         } catch (PEMException ex) {
             LOG.error("extractX509CSRPublicKey: unable to get public key: {}", ex.getMessage());
             return null;
         }
-        ///CLOVER:ON
         return convertToPEMFormat(publicKey);
     }
 
     public static String generateX509CSR(PrivateKey privateKey, String x500Principal,
                                          GeneralName[] sanArray) throws OperatorCreationException, IOException {
         final PublicKey publicKey = extractPublicKey(privateKey);
-        ///CLOVER:OFF
         if (publicKey == null) {
             throw new CryptoException("Unable to extract public key from private key");
         }
-        ///CLOVER:ON
         return generateX509CSR(privateKey, publicKey, x500Principal, sanArray);
     }
 
@@ -1209,9 +1151,7 @@ public class Crypto {
                 subject, publicKey);
 
         // Add SubjectAlternativeNames (SAN) if specified
-        ///CLOVER:OFF
         if (sanArray != null) {
-            ///CLOVER:ON
             ExtensionsGenerator extGen = new ExtensionsGenerator();
             GeneralNames subjectAltNames = new GeneralNames(sanArray);
             extGen.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
@@ -1237,11 +1177,9 @@ public class Crypto {
      * @return string with the subpart of the DN
      */
     public static String extractX500DnField(String principalName, ASN1ObjectIdentifier id) {
-        ///CLOVER:OFF
         if (principalName == null || principalName.isEmpty()) {
             return null;
         }
-        ///CLOVER:ON
         X500Name x500name = new X500Name(principalName);
         RDN[] rdns = x500name.getRDNs(id);
 
@@ -1251,11 +1189,9 @@ public class Crypto {
         if (rdns == null || rdns.length == 0) {
             return null;
         }
-        ///CLOVER:OFF
         if (rdns.length != 1) {
             throw new CryptoException("CSR Subject contains multiple values for the same field.");
         }
-        ///CLOVER:ON
         return IETFUtils.valueToString(rdns[0].getFirst().getValue());
     }
 
@@ -1353,12 +1289,10 @@ public class Crypto {
         Collection<List<?>> altNames = null;
         try {
             altNames = x509Cert.getSubjectAlternativeNames();
-            ///CLOVER:OFF
         } catch (CertificateParsingException ex) {
             LOG.error("extractX509IPAddresses: Caught CertificateParsingException when parsing certificate: "
                     + ex.getMessage());
         }
-        ///CLOVER:ON
         if (altNames == null) {
             return Collections.emptyList();
         }
@@ -1421,12 +1355,10 @@ public class Crypto {
     public static String extractX509CertPublicKey(X509Certificate x509Cert) {
 
         PublicKey publicKey = x509Cert.getPublicKey();
-        ///CLOVER:OFF
         if (publicKey == null) {
             LOG.error("extractX509CertPublicKey: unable to get public key");
             return null;
         }
-        ///CLOVER:ON
         return convertToPEMFormat(publicKey);
     }
 
@@ -1476,11 +1408,9 @@ public class Crypto {
                 for (Attribute attribute : certAttributes) {
                     Extensions extensions = Extensions.getInstance(attribute.getAttrValues().getObjectAt(0));
                     GeneralNames gns = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
-                    ///CLOVER:OFF
                     if (gns == null) {
                         continue;
                     }
-                    ///CLOVER:ON
                     GeneralName[] names = gns.getNames();
                     for (GeneralName name : names) {
                         switch (name.getTagNo()) {
@@ -1505,7 +1435,6 @@ public class Crypto {
 
             JcaX509CertificateConverter converter = new JcaX509CertificateConverter().setProvider(BC_PROVIDER);
             cert = converter.getCertificate(caBuilder.build(caSigner));
-            ///CLOVER:OFF
         } catch (CertificateException ex) {
             LOG.error("generateX509Certificate: Caught CertificateException when generating certificate: "
                     + ex.getMessage());
@@ -1526,10 +1455,8 @@ public class Crypto {
             LOG.error("generateX509Certificate: unable to generate X509 Certificate: {}", ex.getMessage());
             throw new CryptoException("Unable to generate X509 Certificate");
         }
-        ///CLOVER:ON
         return cert;
     }
-    ///CLOVER:OFF
     public static boolean validatePKCS7Signature(String data, String signature, PublicKey publicKey) {
 
         try {
@@ -1568,7 +1495,6 @@ public class Crypto {
 
         return false;
     }
-    ///CLOVER:ON
     public static String convertToPEMFormat(Object obj) {
         StringWriter writer = new StringWriter();
         try {
@@ -1576,12 +1502,10 @@ public class Crypto {
                 pemWriter.writeObject(obj);
                 pemWriter.flush();
             }
-            ///CLOVER:OFF
         } catch (IOException ex) {
             LOG.error("convertToPEMFormat: unable to convert object to PEM: {}", ex.getMessage());
             return null;
         }
-        ///CLOVER:ON
         return writer.toString();
     }
 

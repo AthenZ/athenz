@@ -402,7 +402,6 @@ public class PrincipalToken extends Token {
         try {
             pub = Crypto.loadPublicKey(pubKey);
             verified = Crypto.verify(unsignedAuthorizedServiceToken, pub, authorizedServiceSignature);
-            ///CLOVER:OFF
             if (!verified) {
                 errMsg.append("PrincipalToken:validateForAuthorizedService: token=").
                        append(unsignedToken).append(" : authentication failed: public key=").
@@ -411,7 +410,6 @@ public class PrincipalToken extends Token {
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug("validateForAuthorizedService: Token: {} -  successfully authenticated", unsignedToken);
             }
-            ///CLOVER:ON
         } catch (Exception e) {
             errMsg.append("PrincipalToken:validateForAuthorizedService: token=").
                    append(unsignedToken).
