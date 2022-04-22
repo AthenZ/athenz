@@ -19,6 +19,8 @@ export const GROUP_NAME_REGEX =
     '([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
 export const GROUP_MEMBER_NAME_REGEX =
     '([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
+export const MICROSEGMENTATION_SERVICE_NAME_REGEX =
+    '\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
 export const GROUP_ROLES_CATEGORY = 'group-roles';
 export const GROUP_MEMBER_PLACEHOLDER = 'user.<userid> or <domain>.<service>';
 export const DISPLAY_SPACE = '\u23b5';
